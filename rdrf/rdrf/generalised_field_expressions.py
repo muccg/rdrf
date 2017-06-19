@@ -168,6 +168,7 @@ class PokeFieldExpression(GeneralisedFieldExpression):
     # 
     
     def __init__(self, registry_model, field_expression):
+        logger.debug("init PokeFieldExpression")
         self.registry_model = registry_model
         self._parse_poke(field_expression)
 
@@ -180,7 +181,13 @@ class PokeFieldExpression(GeneralisedFieldExpression):
         self.form_model = RegistryForm.objects.get(registry=self.registry_model,
                                                    name=form_name)
         self.section_model = self._get_section_model(section_code)
-        self.cde_model = self._get_code_model(cde_code)
+        self.cde_model = self._get_cde_model(cde_code)
+
+        if self.section_model not in self.form_model.section_models:
+            raise Exception("section not in form")
+
+        if self.cde_model not in self.section_model.cde_models:
+            raise Exception("cde not in section")
 
     def _get_section_model(self, section_code):
         for section_model in self.form_model.section_models:
@@ -200,26 +207,78 @@ class PokeFieldExpression(GeneralisedFieldExpression):
 
 
     def _iterate_through_forms(self, mongo_data, **kwargs):
+        logger.debug("in iterate through forms")
+        is_setting = "value" in kwargs
+        logger.debug("is setting = %s" % is_setting)
+        
         for form_dict in mongo_data["forms"]:
+            logger.debug("checking form %s" % form_dict["name"])
             if form_dict["name"] == self.form_model.name:
+                if self.section_model.code not in [ x["code"] for x in form_dict["sections"]]:
+                    if is_setting:
+                        section_dict = {"code": self.section_model.code,
+                                        "allow_multiple": self.section_model.allow_multiple
+                                    }
+
+                        cde_dict = {"code": self.cde_model.code,
+                                    "value": kwargs["value"]}
+
+                        if self.section_model.allow_multiple:
+                            item = [cde_dict]
+                            items = [item]
+                            section_dict["cdes"] = items
+                        else:
+                            section_dict["cdes"] = [cde_dict]
+                        form_dict["sections"].append(section_dict)
+                        return True
+                    
                 for section_dict in form_dict["sections"]:
+                    logger.debug("checking section %s" % section_dict["code"])
                     if section_dict["code"] == self.section_model.code:
                         if not section_dict["allow_multiple"]:
                             raise Exception("Can't get cde in item if not a multisection")
                         else:
+                            if len(section_dict["cdes"]) == 0:
+                                logger.debug("empty items")
+                                # if we're setting, create an item with one cde
+                                if is_setting:
+                                    cde_dict = {"code": self.cde_model.code,
+                                                "value": kwargs["value"]}
+                                    item = [cde_dict]
+                                    items = [item]
+                                    section_dict["cdes"] = items
+                                    logger.debug("poked cde into a new first item")
+                                    return True
+                                
                             for item_index, cde_dict_list in enumerate(section_dict["cdes"]):
                                 num = item_index + 1
+                                logger.debug("checking item no. %s" % num)
                                 if num == self.item_number:
+                                    if is_setting:
+                                        if self.cde_model.code not in [ x["code"] for x in cde_dict_list]:
+                                            # missing cde dict in correct item
+                                            logger.debug("creating cde dict")
+                                            cde_dict = {"code": self.cde_model.code,
+                                                        "value": kwargs["value"]}
+                                            cde_dict_list.append(cde_dict)
+                                            return True
+                                        
                                     for cde_dict in cde_dict_list:
                                         if cde_dict["code"] == self.cde_model.code:
-                                            if "value" in kwargs:
+                                            if is_setting:
                                                 cde_dict["value"] = kwargs["value"]
                                                 return True
                                             else:
                                                 return cde_dict["value"]
 
-        if "value" in kwargs:
-            raise ValueError("can't update value as the cde or item doesn't exist")
+                                    if is_setting:
+                                        logger.debug("cde list = %s" % cde_dict_list)
+                                        
+
+        if is_setting:
+            logger.debug("couldn't find cde")
+            logger.debug("data = %s" % mongo_data)
+            return False
         else:
             raise ValueError("can't retrieve value")
 
@@ -240,8 +299,8 @@ class PokeFieldExpression(GeneralisedFieldExpression):
                 raise ValueError("Can't update item %s as there is no data" % self.item_number)
 
         else:
-            # this updates mongo_data
-            succeeded = self._iterate_through_forms(mongo_datavalue=new_value)
+            # this updates the clinical data
+            succeeded = self._iterate_through_forms(mongo_data, value=new_value)
             # if we couldn't poke the right item, fail
             if not succeeded:
                 raise ValueError("can't update this cde")
@@ -552,22 +611,31 @@ class GeneralisedFieldExpressionParser(object):
         return s
 
     def parse(self, field_expression):
+        logger.debug("field_expression = %s" % field_expression)
         try:
             if field_expression.startswith("Consents/"):
+                logger.debug("GFE Parser: consents")
                 return self._parse_consent_expression(field_expression)
             elif field_expression.startswith("poke/"):
+                logger.debug("GFE Parser: poke")
                 return self._parse_poke_expression(field_expression)
             elif field_expression.startswith("@"):
+                logger.debug("GFE Parser: @")
                 return self._parse_report_function_expression(field_expression)
             elif field_expression.startswith("$ms"):
+                logger.debug("GFE Parser: $ms")
                 return self._parse_ms_expression(field_expression)
             elif field_expression.startswith("Demographics/Address/"):
+                logger.debug("GFE Parser: address")
                 return self._parse_address_expression(field_expression)
             elif field_expression == "Demographics/Addresses":
+                logger.debug("GFE Parser: addresses")
                 return AddressesExpression(self.registry_model)
             elif "/" in field_expression:
+                logger.debug("GFE Parser: clinical")
                 return self._parse_clinical_form_expression(field_expression)
             elif field_expression in self.patient_fields:
+                logger.debug("GFE Parser: patient field")
                 return self._parse_patient_fields_expression(field_expression)
             else:
                 return BadColumnExpression()
@@ -585,10 +653,7 @@ class GeneralisedFieldExpressionParser(object):
     def _parse_ms_expression(self, field_expression):
         try:
             if field_expression.startswith("pick/") or field_expression.startswith("poke/"):
-                return self._parse_poke_expression(self.registry_model,
-                                                   field_expression)
-            
-                            
+                return self._parse_poke_expression(field_expression)
                                                    
             ms_designator, form_name, multisection_code, action_code = field_expression.split("/")
         except ValueError:
@@ -619,19 +684,6 @@ class GeneralisedFieldExpressionParser(object):
                                                section_model)
         else:
             raise FieldExpressionError("ms expression not understood: %s" % field_expression)
-
-    def _parse_poke_expression(self, field_expression, registry_model):
-        form_model = None
-        section_model = None
-        cde_model = None
-        operation = None
-        
-        return CDEInMultiSectionItemExpression(registry_model,
-                                               form_model,
-                                               section_model,
-                                               cde_model,
-                                               operation)
-    
 
     def _parse_consent_expression(self, consent_expression):
         """
