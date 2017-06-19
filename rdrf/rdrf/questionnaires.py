@@ -299,8 +299,9 @@ class QuestionnaireReverseMapper(object):
                     k)
                 original_form_name, original_section_code = self.parse_generated_section_code(
                     generated_section_code)
-
-                yield self.registry.code, original_form_name, original_section_code, cde_code, self.questionnaire_data[k]
+                reg_code = self.registry_code
+                q_data = self.questionnaire_data[k]
+                yield reg_code, original_form_name, original_section_code, cde_code, q_data
 
             if not dynamic and not is_a_dynamic_field:
                 logger.debug("yield non-dynamic %s" % k)
@@ -604,15 +605,6 @@ class _ExistingDataWrapper(object):
         return l
 
     def _get_consent_answer(self, consent_question):
-        #
-        # NB consent answer stored in mongo ..
-        # class ConsentValue(models.Model):
-        #patient = models.ForeignKey(Patient, related_name="consents")
-        #consent_question = models.ForeignKey(ConsentQuestion)
-        #answer = models.BooleanField(default=False)
-        #first_save = models.DateField(null=True, blank=True)
-        #last_update = models.DateField(null=True, blank=True)
-
         from registry.patients.models import ConsentValue
         try:
             consent_value_model = ConsentValue.objects.get(patient=self.patient_model,
@@ -625,13 +617,6 @@ class _ExistingDataWrapper(object):
         return "No"
 
     def _get_address_labels(self, addresses_expression):
-        #patient = models.ForeignKey(Patient)
-        #address_type = models.ForeignKey(AddressType, default=1)
-        #address = models.TextField()
-        #suburb = models.CharField(max_length=100, verbose_name="Suburb/Town")
-        #state = models.CharField(max_length=50, verbose_name="State/Province/Territory")
-        #postcode = models.CharField(max_length=50)
-        #country = models.CharField(max_length=100)
 
         def address_label(address):
             try:
@@ -684,15 +669,16 @@ class _ExistingDataWrapper(object):
 
 class _ConsentQuestion(object):
         # Mongo record looks like this on questionnaire:
-        #                                                                        question
-        #"customconsent_%s_%s_%s" % (registry_model.pk, consent_section_model.pk, self.pk)
-        #"custom_consent_data" : {
-                #"customconsent_2_2_3" : "on",
-                #"customconsent_2_2_6" : "on",
-                #"customconsent_2_2_5" : "on",
-                #"customconsent_2_2_4" : "on",
-                #"customconsent_2_1_1" : "on",
-                #"customconsent_2_1_2" : "on"
+        # question
+        # "customconsent_%s_%s_%s" %
+        # (registry_model.pk, consent_section_model.pk, self.pk)
+        # "custom_consent_data" : {
+        # "customconsent_2_2_3" : "on",
+        # "customconsent_2_2_6" : "on",
+        # "customconsent_2_2_5" : "on",
+        # "customconsent_2_2_4" : "on",
+        # "customconsent_2_1_1" : "on",
+        # "customconsent_2_1_2" : "on"
 
     def __init__(self, registry_model, key, raw_value):
         self.is_multi = False
@@ -829,8 +815,11 @@ class _Question(object):
             return self.humaniser.display_value2(self.form_model, self.section_model, self.cde_model, value)
         else:
             if not self.is_address:
-                return ",".join([self.humaniser.display_value2(self.form_model, self.section_model,
-                                                               self.cde_model, single_value) for single_value in value])
+                display = self.humaniser.display_value2
+                return ",".join([display(self.form_model,
+                                         self.section_model,
+                                         self.cde_model,
+                                         single_value) for single_value in value])
             else:
                 return ",".join([x for x in value])
 
@@ -1111,17 +1100,18 @@ class Questionnaire(object):
         return new_ordering
 
     def _get_consents(self):
-        # Mongo record looks like in questionnaire - ( NB not in Patients ...):
+        # Clinical record looks like in questionnaire - ( NB not in Patients ...):
         # for patients , the consent data stored in django models
-        #                                                                        question
-        #"customconsent_%s_%s_%s" % (registry_model.pk, consent_section_model.pk, self.pk)
-        #"custom_consent_data" : {
-                #"customconsent_2_2_3" : "on",
-                #"customconsent_2_2_6" : "on",
-                #"customconsent_2_2_5" : "on",
-                #"customconsent_2_2_4" : "on",
-                #"customconsent_2_1_1" : "on",
-                #"customconsent_2_1_2" : "on"
+        # question
+        # "customconsent_%s_%s_%s" % (registry_model.pk, consent_section_model.pk, self.pk)
+        # "custom_consent_data" : {
+        # "customconsent_2_2_3" : "on",
+        # "customconsent_2_2_6" : "on",
+        # "customconsent_2_2_5" : "on",
+        # "customconsent_2_2_4" : "on",
+        # "customconsent_2_1_1" : "on",
+        # "customconsent_2_1_2" : "on"
+
         consents = []
 
         if CONSENTS_SECTION in self.data:
@@ -1172,17 +1162,14 @@ class Questionnaire(object):
             # a list of (ordered) dictionaries like:
             # [ {"DrugName": "Aspirin", "DrugDose": 23},
             #   {"DrugName": "Neurophen","DrugDose": 100}]
-            #   
             # ( i.e. 2 section items in the multisection )
-
             # The structure actually used in the clinical forms is:
             # in the multisection record would be:
             # cdes: [  [ {"code": "DrugName", "value": "Aspirin"}, {"code": "DrugDose",
             # "value" : 23 } ],  [ {"code" "DrugName", "value": "Neurophen"},
             # {"code": "DrugDose", "value": 100}]]
-            
+
             items = []
-            
             for ordered_dict in ordered_dicts:
                 item = []
                 for cde_code, cde_value in ordered_dict.items():
@@ -1191,23 +1178,16 @@ class Questionnaire(object):
                     cde_dict["value"] = cde_value
                     item.append(cde_dict)
                 items.append(item)
-                    
-                
             return items
 
         for q in multisection_questions:
             logger.debug("about to evaluate field expression %s" %
                          q.field_expression)
             try:
-                logger.debug("Updating multisection from questionnaire!")
                 if not q.field_expression.startswith("Demographics/"):
-                    # clinical multisection structure is in incorrect format
                     items = correct_structure(q.value)
                 else:
                     items = q.value
-                logger.debug("field_expression = %s" % q.field_expression)
-                logger.debug("items list = %s" % items)
-                
                 patient_model.evaluate_field_expression(self.registry_model,
                                                         q.field_expression,
                                                         value=items)
