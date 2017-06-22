@@ -456,10 +456,6 @@ class PatientCreator(object):
         mylogger.info("Created patient %s (%s)  OK" % (patient, patient.pk))
         return patient
 
-    def _remove_mongo_data(self, registry, patient):
-        wrapper = DynamicDataWrapper(patient)
-        wrapper.delete_patient_data(registry, patient)
-
     def _create_custom_consents(self, patient_model, custom_consent_dict):
         from rdrf.models import ConsentQuestion
         # dictionary looks like: ( only the "on"s will exist if false it won't have a key
