@@ -4,7 +4,6 @@ django.setup()
 import sys
 from operator import itemgetter
 import csv
-
 from django.db import transaction
 
 from rdrf.models import Registry
@@ -15,16 +14,35 @@ from registry.patients.models import Patient
 
 
 def error(msg):
-    print("Error: %s" % msg)
+    print("ERROR: %s" % msg)
 
 
 def info(msg):
-    print("Info: %s" % msg)
+    print("INFO: %s" % msg)
 
 def blank_lines(n):
     for i in range(n):
         print("")
-        
+
+def convert_american_date(american_date_string):
+    if not american_date_string:
+        return None
+    month, day, year = american_date_string.split("/")
+    return "%s-%s-%s" % (day, month, year)
+
+
+def convert_australian_date(aus_date_string):
+    if not aus_date_string:
+        return None
+
+    day, month, year = aus_date_string.split("/")
+    return "%s-%s-%s" % (day, month, year)
+
+
+converters = {
+    53: convert_american_date,
+    102: convert_australian_date,
+}
 
 
 class FieldInfo:
@@ -35,12 +53,13 @@ class FieldInfo:
         self.section_model = section_model
         self.cde_model = cde_model
         self.is_multi = self.section_model.allow_multiple
+        self.field_num = None
 
     def __str__(self):
-        return "%s/%s/%s/%s" % (self.registry_model.code,
-                                self.form_model.name,
-                                self.section_model.code,
-                                self.cde_model.code)
+        return "[%s]/%s/%s/%s" % (self.field_num,
+                                  self.form_model.name,
+                                  self.section_model.code,
+                                  self.cde_model.code)
 
     @property
     def field_expression(self):
@@ -63,6 +82,12 @@ class FieldInfo:
             raise ValueError(
                 "Field info is not a range: Can't look up value [%s]" % display_value)
 
+        if self.cde_model.allow_multiple:
+            # multiselet checkboxes use this feature
+            # values are peristed as lists of codes not single values
+            return self._get_multiple_code_list(display_value)
+        
+
         range_value_dicts = self.cde_model.pv_group.as_dict()["values"]
         
         for range_value_dict in range_value_dicts:
@@ -71,8 +96,29 @@ class FieldInfo:
             if display_value == range_display_value:
                 return range_value_dict["code"]
 
-        info("Range Value [%s] is outside of allowed inputs of cde so won't be entered" % display_value)
         return None
+
+    def _get_multiple_code_list(self, desc_csv):
+        if not desc_csv:
+            return []
+        # we need to find  the corresponding codes which are then stored as a list
+        try:
+            descs = desc_csv.split(",")
+        except Exception as ex:
+            error("multiple code list [%s] could not be split: %s" % (desc_csv,
+                                                                      ex))
+            return []
+        
+        codes = []
+        pv_group =self.cde_model.pv_group
+        values_dict = pv_group.as_dict()
+        for desc in descs:
+            for value_dict in values_dict["values"]:
+                if desc == value_dict["value"]:
+                    code = value_dict["code"]
+                    codes.append(code)
+
+        return codes
 
 
     def should_apply(self, value):
@@ -81,8 +127,10 @@ class FieldInfo:
             return value is not None
 
         return True
-        
 
+    @property
+    def datatype(self):
+        return self.cde_model.datatype.lower().strip()
 
 def build_id_map(map_file):
     id_map = {}
@@ -102,26 +150,18 @@ def build_field_map(registry_model, field_map_file):
 
         for row in rows:
             fieldnum = row["FIELDNUM"]
-            info("reading field %s" % fieldnum)
             form_name = row["FORM"]
-            info("form name = %s" % form_name)
             section_name = row["SECTION"]
-            info("section name = %s" % section_name)
             cde_name = row["CDE"]
-            info("cde name = %s" % cde_name)
-
             try:
                 form_model = RegistryForm.objects.get(registry=registry_model,
                                                       name=form_name)
-
-                info("found registry form %s" % form_model)
 
                 section_model = None
 
                 for sec_model in form_model.section_models:
                     if sec_model.display_name == section_name:
                         section_model = sec_model
-                        info("found section model %s" % section_model)
                         break
 
                 cde_model = None
@@ -129,7 +169,6 @@ def build_field_map(registry_model, field_map_file):
                 for c_model in section_model.cde_models:
                     if c_model.name == cde_name:
                         cde_model = c_model
-                        info("found cde_model %s" % cde_model)
                         break
 
                 field_info = FieldInfo(registry_model,
@@ -137,9 +176,11 @@ def build_field_map(registry_model, field_map_file):
                                        section_model,
                                        cde_model)
 
-                info("created field info object")
-
                 field_map[fieldnum] = field_info
+                field_info.field_num = fieldnum
+
+                info("fieldmap %s --> %s" % (fieldnum, field_info))
+                
             except Exception as ex:
                 error("Bad field: fieldnum = %s error: %s" % (fieldnum,
                                                               ex))
@@ -164,21 +205,30 @@ class PatientUpdater:
         self.headers = rows[0]
         self.rows = rows[1:]
         self.field_map = field_map
+        self.num_rows = len(self.rows)
+        self.num_updated = 0
+        self.num_rollbacks = 0
+        self.num_missing = 0
+
+    def print_stats(self):
+        info("Rows:      %s" % self.num_rows)
+        info("Updates:   %s" % self.num_updated)
+        info("Rollbacks: %s" % self.num_rollbacks)
+        info("Missing:   %s" % self.num_missing)
 
     def _get_patient(self, row):
         old_id = row["1"]
         new_id = self.id_map.get(old_id, None)
         if new_id is None:
-            error("Patient %s unmapped" % old_id)
-            return None
+            return None, old_id
 
         try:
             patient_model = Patient.objects.get(id=new_id)
-            return patient_model
+            return patient_model, old_id
         except Patient.DoesNotExist:
-            error("Patient %s/%s does not exist" % (old_id,
-                                                    new_id))
-            return None
+            error("MISSING %s/%s" % (old_id,
+                                     new_id))
+            return None, old_id
 
     def _get_column_info(self, column_index):
         return self.field_map[column_index]
@@ -188,60 +238,99 @@ class PatientUpdater:
             patient_model.evaluate_field_expression(self.registry_model,
                                                     field_expression,
                                                     value=rdrf_value)
+
+            msg = "%s|%s|%s --> [%s]" % (patient_model.pk,
+                                         field_info,
+                                         field_expression,
+                                         rdrf_value)
+
+            info(msg)
         else:
-            # if data not supplied, we don't attempt to import
-            info("Not applying empty value for this field")
+            info("will not update single value %s with bad value [%s]" % (field_expression,
+                                                                          rdrf_value))
+            
 
     def _get_rdrf_value(self, value, field_info):
         if field_info.is_range:
-            info("getting rdrf value for range")
             return field_info.get_range_code(value)
         else:
-            info("returning rdrf value for non-range")
-            return value
+            converter = self._get_converter_func(field_info)
+            if converter is not None:
+                return converter(value)
+
+            if field_info.datatype == "float":
+                try:
+                    return float(value)
+                except:
+                    error("error converting [%s] to float - returning None" % value)
+                    return None
+            elif field_info.datatype == "integer":
+                try:
+                    return int(value)
+                except:
+                    error("error converting [%s] to integer - returning None" % value)
+                    return None
+            elif field_info.datatype == "date":
+                return value
+            else:
+                return value
+
+    def _get_converter_func(self, field_info):
+        field_num = int(field_info.field_num)
+        converter = converters.get(field_num, None)
+        return converter
 
     def update(self):
-        for row in rows:
+        for row in self.rows:
             blank_lines(1)
-            patient_model = self._get_patient(row)
+            patient_model, old_id = self._get_patient(row)
             if patient_model:
-                info("starting update of patient %s" % patient_model)
-                keys = sorted(row.keys())
-                for column_key in keys:
-                    if column_key != "1":
-                        field_info = self.field_map.get(column_key, None)
-                        if field_info is None:
-                            error("No field info for column %s" % column_key)
-                            continue
-                        else:
-                            if not field_info.is_multi:
-                                continue
-                            info(
-                                "found field info for column %s: %s" % (column_key,
-                                                                        field_info))
+                with transaction.atomic():
+                    try:
+                        self._update_patient(old_id,
+                                             patient_model,
+                                             row)
 
-                            raw_value = row[column_key]
-                            info("found raw value: [%s]" % raw_value)
-                            rdrf_value = self._get_rdrf_value(
-                                raw_value, field_info)
+                        self.num_updated += 1
+                    except Exception as ex:
+                        self.num_rollbacks += 1
+                        error("Rollback on patient %s: %s" % (patient_model.pk,
+                                                              ex))
+            else:
+                self.num_missing += 1
+                error("MISSING %s" % old_id)
 
-                            field_expression = field_info.field_expression
+    def _update_patient(self, old_id, patient_model, row):
+        keys = sorted(row.keys())
+        for column_key in keys:
+            if column_key != "1":
+                field_info = self.field_map.get(column_key, None)
+                if field_info is None:
+                    error("No field info for column %s" % column_key)
+                    continue
+                else:
+                    # some date fields had spaces at front
+                    raw_value = row[column_key].strip()
+                    rdrf_value = self._get_rdrf_value(raw_value, field_info)
+                    field_expression = field_info.field_expression
+                    if not field_info.in_multi:
+                        self._apply_field_expression(field_info,
+                                                     field_expression,
+                                                     patient_model,
+                                                     rdrf_value)            
+                    else:
+                        self._update_multisection(field_info,
+                                                  rdrf_value,
+                                                  patient_model)
 
-                            if not field_info.in_multi:
-                                
-                                self._apply_field_expression(field_info,
-                                                             field_expression,
-                                                             patient_model,
-                                                             rdrf_value)
+                        msg = "%s/%s %s : [%s] --> [%s]" % (old_id,
+                                                            patient_model.pk,
+                                                            field_info,
+                                                            raw_value,
+                                                            rdrf_value)
 
-                                
-                            else:
-                                info("dummy updating cde in mulisection %s --> %s" % (field_expression,
-                                                                                      rdrf_value))
+                        info(msg)
 
-                                self._update_multisection(field_info,
-                                                          rdrf_value,
-                                                          patient_model)
 
     def _update_multisection(self, field_info, rdrf_value, patient_model):
         # assumption from sheet is that we are updating the 1st item of the multisection
@@ -258,6 +347,12 @@ class PatientUpdater:
             patient_model.evaluate_field_expression(self.registry_model,
                                                     field_expression,
                                                     value=rdrf_value)
+
+            info("Updated multisection: %s" % field_expression)
+        else:
+            info("will not update multisection %s with bad value [%s]" % (field_info,
+                                                                          rdrf_value))
+            
         
     
                                 
@@ -273,7 +368,6 @@ if __name__ == '__main__':
     blank_lines(2)
     field_map = build_field_map(registry_model, field_map_file)
 
-
     if field_map is None:
         error("Field Map error - aborting")
         sys.exit(1)
@@ -282,4 +376,10 @@ if __name__ == '__main__':
 
     rows = read_patients(csv_file)
     patient_updater = PatientUpdater(registry_model, field_map, id_map, rows)
+    info("RUN STARTED")
     patient_updater.update()
+    info("RUN FINISHED")
+    info("STATS")
+    patient_updater.print_stats()
+    info("DONE")
+    
