@@ -644,32 +644,7 @@ class DynamicDataWrapper(object):
         # Not sure why I have to do this explicitly
         _convert_datetime_to_str(cdes_modjgo.data)
         cdes_modjgo.save()
-        
-
-    def delete_patient_record(self, registry_model, context_id):
-        self.rdrf_context_id = context_id
-        logger.info("delete_patient_record called: patient %s registry %s context %s" % (self.obj,
-                                                                                         registry_model,
-                                                                                         context_id))
-
-        # used _only_ when trying to emulate a roll-back to no data after an exception  in questionnaire handling
-        if self.obj.__class__.__name__ != 'Patient':
-            raise Exception("can't delete non-patient record")
-
-        collection = self._get_collection(registry_model.code, "cdes")
-        logger.debug("collection = %s" % collection)
-
-        filter = {"django_id": self.obj.pk,
-                  "django_model": 'Patient',
-                  "context_id": context_id}
-
-        logger.info("Deleting patient record from mongo for rollback: %s" % filter)
-        try:
-            collection.remove(filter)
-            logger.info("deleted OK..")
-        except Exception as ex:
-            logger.error("Error deleting record: %s" % ex)
-
+    
     def _create_context_model_on_fly(self):
         assert self.CREATE_MODE, "Must be in CREATE MODE"
         assert self.rdrf_context_id == "add", "Must be adding"
