@@ -138,31 +138,27 @@ def rpc_update_selected_cdes_from_questionnaire(
     from rdrf.models import QuestionnaireResponse
     from rdrf.questionnaires import Questionnaire
     from django.db import transaction
+
     questionnaire_response_model = QuestionnaireResponse.objects.get(pk=questionnaire_response_id)
     patient_model = Patient.objects.get(pk=patient_id)
     registry_model = questionnaire_response_model.registry
     questionnaire = Questionnaire(registry_model, questionnaire_response_model)
     mongo_data_before_update = patient_model.get_dynamic_data(registry_model)
-    failed = False
-    errors = []
-
     data_to_update = [question for question in questionnaire.questions if question.src_id in questionnaire_checked_ids]
+    
     try:
         with transaction.atomic():
             errors = questionnaire.update_patient(patient_model, data_to_update)
             if len(errors) > 0:
                 raise Exception("Errors occurred during update: %s" % ",".join(errors))
     except Exception as ex:
-        failed = True
         logger.error("Update patient failed: rolled back: %s" % ex)
-
-    if not failed:
+        return {"status": "fail", "message": ",".join(errors)}
+    else:
         questionnaire_response_model.processed = True
         questionnaire_response_model.patient_id = patient_model.pk
         questionnaire_response_model.save()
         return {"status": "success", "message": "Patient updated successfully"}
-    else:
-        return {"status": "fail", "message": ",".join(errors)}
 
 def rpc_create_patient_from_questionnaire(request, questionnaire_response_id):
     from rdrf.models import QuestionnaireResponse
