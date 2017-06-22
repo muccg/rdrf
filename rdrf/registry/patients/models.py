@@ -886,14 +886,6 @@ class Patient(models.Model):
         logger.info("New Mongo data record = %s" % new_mongo_data)
         if new_mongo_data is not None:
             wrapper.update_dynamic_data(registry_model, new_mongo_data)
-        else:
-            # this means we want to delete the existing incorrect questionnaire data
-            # and go back to before the update when the patient had no data in mongo
-            logger.info("New data is None so the existing record will be deleted")
-            logger.info("deleting record for patient %s registry %s context %s" % (self.pk,
-                                                                                   registry_model,
-                                                                                   context_id))
-            wrapper.delete_patient_record(registry_model, context_id)
 
 
 class ClinicianOther(models.Model):

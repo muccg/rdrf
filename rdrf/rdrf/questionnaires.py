@@ -299,7 +299,7 @@ class QuestionnaireReverseMapper(object):
                     k)
                 original_form_name, original_section_code = self.parse_generated_section_code(
                     generated_section_code)
-                reg_code = self.registry_code
+                reg_code = self.registry.code
                 q_data = self.questionnaire_data[k]
                 yield reg_code, original_form_name, original_section_code, cde_code, q_data
 
@@ -442,16 +442,8 @@ class PatientCreator(object):
         try:
             mapper.save_dynamic_fields()
         except Exception as ex:
-            logger.error("Error saving dynamic data in mongo: %s" % ex)
-            try:
-                self._remove_mongo_data(self.registry, patient)
-                logger.info("removed dynamic data for %s for registry %s" %
-                            (patient.pk, self.registry))
-                raise PatientCreatorError("Error saving dynamic fields: %s" % ex)
-            except Exception as ex2:
-                logger.error("could not remove dynamic data for patient %s: %s" %
-                             (patient.pk, ex2))
-                raise PatientCreatorError("Error saving fields: %s. But couldn't remove bad data: %s" % (ex, ex2))
+            logger.error("Error saving dynamic data in clinical database: %s" % ex)
+            raise PatientCreatorError("Error saving clinical data: %s" % ex)
 
         try:
             questionnaire_response.patient_id = patient.pk
@@ -463,10 +455,6 @@ class PatientCreator(object):
 
         mylogger.info("Created patient %s (%s)  OK" % (patient, patient.pk))
         return patient
-
-    def _remove_mongo_data(self, registry, patient):
-        wrapper = DynamicDataWrapper(patient)
-        wrapper.delete_patient_data(registry, patient)
 
     def _create_custom_consents(self, patient_model, custom_consent_dict):
         from rdrf.models import ConsentQuestion

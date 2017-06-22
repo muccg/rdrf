@@ -517,38 +517,7 @@ class DynamicDataWrapper(object):
         record_query = record_query.find(record_type="snapshot")
         data = [fmt(snapshot,i) for i,snapshot in enumerate(record_query.data())]
         return collapse_same(sorted(data, key=itemgetter("timestamp")))
-
-    def load_contexts(self, registry_model):
-        logger.debug("registry model = %s" % registry_model)
-        if not registry_model.has_feature("contexts"):
-            raise Exception("Registry %s does not support use of contexts" % registry_model.code)
-
-        logger.debug("registry supports contexts so retreiving")
-        from rdrf.models import RDRFContext
-        django_model = self.obj.__class__.__name__
-        mongo_query = {"django_id": self.django_id,
-                       "django_model": django_model}
-        logger.debug("query = %s" % mongo_query)
-
-        projection = {"rdrf_context_id": 1, "_id": 0}
-
-        logger.debug("projection = %s" % projection)
-
-        cdes_collection = self._get_collection(registry_model.code, "cdes")
-
-        context_ids = [d["rdrf_context_id"] for d in cdes_collection.find(mongo_query, projection)]
-        logger.debug("context_ids = %s" % context_ids)
-        rdrf_context_models = []
-        for context_id in context_ids:
-            try:
-                rdrf_context_model = RDRFContext.objects.get(pk=int(context_id))
-                rdrf_context_models.append(rdrf_context_model)
-            except RDRFContext.DoesNotExist:
-                logger.error("Context %s for %s %s does not exist?" % (context_id, django_model, self.obj.pk))
-
-        logger.debug("contexts = %s" % rdrf_context_models)
-        return rdrf_context_models
-
+   
     def load_registry_specific_data(self, registry_model=None):
         data = {}
         if registry_model is None:
@@ -675,32 +644,7 @@ class DynamicDataWrapper(object):
         # Not sure why I have to do this explicitly
         _convert_datetime_to_str(cdes_modjgo.data)
         cdes_modjgo.save()
-        
-
-    def delete_patient_record(self, registry_model, context_id):
-        self.rdrf_context_id = context_id
-        logger.info("delete_patient_record called: patient %s registry %s context %s" % (self.obj,
-                                                                                         registry_model,
-                                                                                         context_id))
-
-        # used _only_ when trying to emulate a roll-back to no data after an exception  in questionnaire handling
-        if self.obj.__class__.__name__ != 'Patient':
-            raise Exception("can't delete non-patient record")
-
-        collection = self._get_collection(registry_model.code, "cdes")
-        logger.debug("collection = %s" % collection)
-
-        filter = {"django_id": self.obj.pk,
-                  "django_model": 'Patient',
-                  "context_id": context_id}
-
-        logger.info("Deleting patient record from mongo for rollback: %s" % filter)
-        try:
-            collection.remove(filter)
-            logger.info("deleted OK..")
-        except Exception as ex:
-            logger.error("Error deleting record: %s" % ex)
-
+    
     def _create_context_model_on_fly(self):
         assert self.CREATE_MODE, "Must be in CREATE MODE"
         assert self.rdrf_context_id == "add", "Must be adding"
@@ -820,10 +764,6 @@ class DynamicDataWrapper(object):
                 else:
                     # recurse on multisection data
                     self._convert_date_to_datetime(value)
-
-    def delete_patient_data(self, registry_model, patient_model):
-        cdes = self._get_collection(registry_model, "cdes")
-        cdes.remove({"django_id": patient_model.pk, "django_model": "Patient"})
 
     def get_nested_cde(self, registry_code, form_name, section_code, cde_code):
         # fixme: clean this up
