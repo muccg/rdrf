@@ -517,38 +517,7 @@ class DynamicDataWrapper(object):
         record_query = record_query.find(record_type="snapshot")
         data = [fmt(snapshot,i) for i,snapshot in enumerate(record_query.data())]
         return collapse_same(sorted(data, key=itemgetter("timestamp")))
-
-    def load_contexts(self, registry_model):
-        logger.debug("registry model = %s" % registry_model)
-        if not registry_model.has_feature("contexts"):
-            raise Exception("Registry %s does not support use of contexts" % registry_model.code)
-
-        logger.debug("registry supports contexts so retreiving")
-        from rdrf.models import RDRFContext
-        django_model = self.obj.__class__.__name__
-        mongo_query = {"django_id": self.django_id,
-                       "django_model": django_model}
-        logger.debug("query = %s" % mongo_query)
-
-        projection = {"rdrf_context_id": 1, "_id": 0}
-
-        logger.debug("projection = %s" % projection)
-
-        cdes_collection = self._get_collection(registry_model.code, "cdes")
-
-        context_ids = [d["rdrf_context_id"] for d in cdes_collection.find(mongo_query, projection)]
-        logger.debug("context_ids = %s" % context_ids)
-        rdrf_context_models = []
-        for context_id in context_ids:
-            try:
-                rdrf_context_model = RDRFContext.objects.get(pk=int(context_id))
-                rdrf_context_models.append(rdrf_context_model)
-            except RDRFContext.DoesNotExist:
-                logger.error("Context %s for %s %s does not exist?" % (context_id, django_model, self.obj.pk))
-
-        logger.debug("contexts = %s" % rdrf_context_models)
-        return rdrf_context_models
-
+   
     def load_registry_specific_data(self, registry_model=None):
         data = {}
         if registry_model is None:
