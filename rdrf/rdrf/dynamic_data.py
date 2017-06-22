@@ -790,10 +790,6 @@ class DynamicDataWrapper(object):
                     # recurse on multisection data
                     self._convert_date_to_datetime(value)
 
-    def delete_patient_data(self, registry_model, patient_model):
-        cdes = self._get_collection(registry_model, "cdes")
-        cdes.remove({"django_id": patient_model.pk, "django_model": "Patient"})
-
     def get_nested_cde(self, registry_code, form_name, section_code, cde_code):
         # fixme: clean this up
         for form_dict, section_dict, item in self.iter_cdes(registry_code):
