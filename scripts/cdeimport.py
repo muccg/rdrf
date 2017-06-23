@@ -56,10 +56,11 @@ class FieldInfo:
         self.field_num = None
 
     def __str__(self):
-        return "[%s]/%s/%s/%s" % (self.field_num,
-                                  self.form_model.name,
-                                  self.section_model.code,
-                                  self.cde_model.code)
+        return "[%s] %s/%s/%s/%s" % (self.field_num,
+                                     self.registry_model.code,
+                                     self.form_model.name,
+                                     self.section_model.code,
+                                     self.cde_model.code)
 
     @property
     def field_expression(self):
@@ -232,18 +233,7 @@ class PatientUpdater:
             patient_model.evaluate_field_expression(self.registry_model,
                                                     field_expression,
                                                     value=rdrf_value)
-
-            msg = "%s|%s|%s --> [%s]" % (patient_model.pk,
-                                         field_info,
-                                         field_expression,
-                                         rdrf_value)
-
-            info(msg)
-        else:
-            info("will not update single value %s with bad value [%s]" % (field_expression,
-                                                                          rdrf_value))
-            
-
+        
     def _get_rdrf_value(self, value, field_info):
         if field_info.is_range:
             return field_info.get_range_code(value)
@@ -256,13 +246,16 @@ class PatientUpdater:
                 try:
                     return float(value)
                 except:
-                    error("error converting [%s] to float - returning None" % value)
+                    if value != "":
+                        info("%s error converting [%s] to float - returning None" % (field_info,
+                                                                                 value))
                     return None
             elif field_info.datatype == "integer":
                 try:
                     return int(value)
                 except:
-                    error("error converting [%s] to integer - returning None" % value)
+                    if value != "":
+                        info("%s error converting [%s] to integer - returning None" % (field_info,value))
                     return None
             elif field_info.datatype == "date":
                 return value
@@ -281,11 +274,14 @@ class PatientUpdater:
             if patient_model:
                 with transaction.atomic():
                     try:
+                        info("Updating %s/%s ..." % (old_id, patient_model.pk))
                         self._update_patient(old_id,
                                              patient_model,
                                              row)
 
                         self.num_updated += 1
+                        info("Updated patient %s/%s successfully" % (old_id,
+                                                                     patient_model.pk))
                     except Exception as ex:
                         self.num_rollbacks += 1
                         error("Rollback on patient %s: %s" % (patient_model.pk,
@@ -317,15 +313,6 @@ class PatientUpdater:
                                                   rdrf_value,
                                                   patient_model)
 
-                        msg = "%s/%s %s : [%s] --> [%s]" % (old_id,
-                                                            patient_model.pk,
-                                                            field_info,
-                                                            raw_value,
-                                                            rdrf_value)
-
-                        info(msg)
-
-
     def _update_multisection(self, field_info, rdrf_value, patient_model):
         # assumption from sheet is that we are updating the 1st item of the multisection
         # if none exists, we create the multisection item
@@ -341,16 +328,11 @@ class PatientUpdater:
             patient_model.evaluate_field_expression(self.registry_model,
                                                     field_expression,
                                                     value=rdrf_value)
-
-            info("Updated multisection: %s" % field_expression)
         else:
             info("will not update multisection %s with bad value [%s]" % (field_info,
                                                                           rdrf_value))
-            
-        
 def usage():
     print("usage: python cdeimport.py <registry code> <field map file> <id map file> <data file csv>")
-
 
 if __name__ == '__main__':
     try:
