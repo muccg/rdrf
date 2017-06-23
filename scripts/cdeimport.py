@@ -329,8 +329,9 @@ class PatientUpdater:
                                                     field_expression,
                                                     value=rdrf_value)
         else:
-            info("will not update multisection %s with bad value [%s]" % (field_info,
-                                                                          rdrf_value))
+            if rdrf_value is not None:
+                info("will not update multisection %s with bad value [%s]" % (field_info,
+                                                                              rdrf_value))
 def usage():
     print("usage: python cdeimport.py <registry code> <field map file> <id map file> <data file csv>")
 
