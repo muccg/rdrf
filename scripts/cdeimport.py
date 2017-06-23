@@ -153,39 +153,33 @@ def build_field_map(registry_model, field_map_file):
             form_name = row["FORM"]
             section_name = row["SECTION"]
             cde_name = row["CDE"]
-            try:
-                form_model = RegistryForm.objects.get(registry=registry_model,
+            form_model = RegistryForm.objects.get(registry=registry_model,
                                                       name=form_name)
 
-                section_model = None
+            section_model = None
 
-                for sec_model in form_model.section_models:
-                    if sec_model.display_name == section_name:
-                        section_model = sec_model
-                        break
+            for sec_model in form_model.section_models:
+                if sec_model.display_name == section_name:
+                    section_model = sec_model
+                    break
 
-                cde_model = None
+            cde_model = None
 
-                for c_model in section_model.cde_models:
-                    if c_model.name == cde_name:
-                        cde_model = c_model
-                        break
+            for c_model in section_model.cde_models:
+                if c_model.name == cde_name:
+                    cde_model = c_model
+                    break
 
-                field_info = FieldInfo(registry_model,
+            field_info = FieldInfo(registry_model,
                                        form_model,
                                        section_model,
                                        cde_model)
 
-                field_map[fieldnum] = field_info
-                field_info.field_num = fieldnum
+            field_map[fieldnum] = field_info
+            field_info.field_num = fieldnum
 
-                info("fieldmap %s --> %s" % (fieldnum, field_info))
+            info("fieldmap %s --> %s" % (fieldnum, field_info))
                 
-            except Exception as ex:
-                error("Bad field: fieldnum = %s error: %s" % (fieldnum,
-                                                              ex))
-                return None
-
     return field_map
 
 
@@ -354,32 +348,61 @@ class PatientUpdater:
                                                                           rdrf_value))
             
         
-    
-                                
+def usage():
+    print("usage: python cdeimport.py <registry code> <field map file> <id map file> <data file csv>")
 
 
 if __name__ == '__main__':
-    registry_model = Registry.objects.get(code='fh')
-    field_map_file = sys.argv[1]
-    idmap_file = sys.argv[2]
-    csv_file = sys.argv[3]
-
-    id_map = build_id_map(idmap_file)
-    blank_lines(2)
-    field_map = build_field_map(registry_model, field_map_file)
-
-    if field_map is None:
-        error("Field Map error - aborting")
+    try:
+        registry_code = sys.argv[1]
+        field_map_file = sys.argv[2]
+        idmap_file = sys.argv[3]
+        csv_file = sys.argv[4]
+    except IndexError:
+        usage()
         sys.exit(1)
 
+    try:
+        registry_model = Registry.objects.get(code=registry_code)
+    except Registry.DoesNotExist:
+        error("No registry loaded with code %s" % registry_code)
+        sys.exit(1)
+
+    try:
+        id_map = build_id_map(idmap_file)
+    except Exception as ex:
+        error("Could not load id map: %s" % ex)
+        sys.exit(1)
+    
     blank_lines(2)
 
-    rows = read_patients(csv_file)
-    patient_updater = PatientUpdater(registry_model, field_map, id_map, rows)
-    info("RUN STARTED")
-    patient_updater.update()
-    info("RUN FINISHED")
-    info("STATS")
-    patient_updater.print_stats()
-    info("DONE")
+    try:
+        field_map = build_field_map(registry_model, field_map_file)
+    except Exception as ex:
+        error("Could not build field map: %s" % ex)
+        sys.exit(1)
+        
+    blank_lines(2)
     
+    try:
+        rows = read_patients(csv_file)
+    except Exception as ex:
+        error("Could not load data file: %s" % ex)
+        sys.exit(1)
+
+    try:
+        patient_updater = PatientUpdater(registry_model, field_map, id_map, rows)
+    except Exception as ex:
+        error("Could not create updater: %s" % ex)
+        sys.exit(1)
+
+    
+    info("RUN STARTED")
+    try:
+        patient_updater.update()
+        info("STATS:")
+        patient_updater.print_stats()
+        info("RUN FINISHED")
+    except Exception as ex:
+        error("Unexpected error during run: %s" % ex)
+        sys.exit(1)
