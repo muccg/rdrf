@@ -47,31 +47,32 @@
         
     </head>
     <script>
-      // scroll to any validation errors
-      $(document).ready(function() {
+        $(document).ready(function() {
 
-      (function() {
-      var delay = 0;
-      var offset = 150;
+            var delay = 0;
+            var offset = 150;
 
-      document.addEventListener('invalid', function(e){
-          $(e.target).addClass("invalid");
-          $('html, body').animate({scrollTop: $($(".invalid")[0]).offset().top - offset }, delay);
-      }, true);
-      
-      document.addEventListener('change', function(e){
-          $(e.target).removeClass("invalid")
-      }, true);
+            document.addEventListener('invalid', function(e) {
+                $(e.target).addClass("invalid");
+                $('html, body').animate({
+                    scrollTop: $($(".invalid")[0]).offset().top - offset
+                }, delay);
+            }, true);
 
-      // if we posting back Django errors - scroll to errorlist
-      $('html, body').animate({scrollTop: $($(".errorlist")[0]).offset().top - offset }, delay);
-      
+            document.addEventListener('change', function(e) {
+                $(e.target).removeClass("invalid")
+            }, true);
 
-      
-
-      })();
-      });
-     </script>
+            // if we're posting back Django errors - scroll to errorlist
+	    try {
+                $('html, body').animate({
+                    scrollTop: $($(".errorlist")[0]).offset().top - offset
+                }, delay);
+	    }
+	    catch(err) {
+	    };
+        });
+    </script>
 
     <body style="background-color: #edeff1; padding-top: 80px; padding-bottom: 30px;">
 
