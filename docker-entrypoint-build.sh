@@ -22,6 +22,7 @@ if [ "$1" = 'releasetarball' ]; then
     git clone --depth=1 --branch="${GIT_BRANCH}" "${PROJECT_SOURCE}" .
     git rev-parse HEAD > .version
     cat .version
+    pip install --upgrade "setuptools>=36.0.0,<=37.0.0"
     pip install -e "${PROJECT_NAME}"
     set +x
 
