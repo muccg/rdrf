@@ -30,10 +30,49 @@
                 table {
                     table-layout: fixed;
                 }
+
+		ul.errorlist {
+		    display: block;
+		    padding: 15px;
+		    margin-bottom: 20px;
+		    border: 1px solid transparent;
+		    border-radius: 4px;
+		    color: #a94442;
+		    background-color: #f2dede;
+		    border-color: #ebccd1;
+		}
             </style>
+
         {% endblock %}
         
     </head>
+    <script>
+        $(document).ready(function() {
+
+            var delay = 0;
+            var offset = 150;
+
+            document.addEventListener('invalid', function(e) {
+                $(e.target).addClass("invalid");
+                $('html, body').animate({
+                    scrollTop: $($(".invalid")[0]).offset().top - offset
+                }, delay);
+            }, true);
+
+            document.addEventListener('change', function(e) {
+                $(e.target).removeClass("invalid")
+            }, true);
+
+            // if we're posting back Django errors - scroll to errorlist
+	    try {
+                $('html, body').animate({
+                    scrollTop: $($(".errorlist")[0]).offset().top - offset
+                }, delay);
+	    }
+	    catch(err) {
+	    };
+        });
+    </script>
 
     <body style="background-color: #edeff1; padding-top: 80px; padding-bottom: 30px;">
 
