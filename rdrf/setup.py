@@ -33,7 +33,7 @@ requirements=[
      "python-dateutil==2.5.3",
      "python-memcached==1.58",
      "pyyaml==3.12",
-     "setuptools>=35.0.0,<=36.0.0",
+     "setuptools>=36.0.0,<=37.0.0",
      "setuptools_scm==1.10.1",
      "six==1.10.0",
      "SQLAlchemy==1.0.16",
