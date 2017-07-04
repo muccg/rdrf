@@ -483,6 +483,10 @@ class Importer(object):
             logger.info("starting import of form map %s" % frm_map)
 
             sections = ",".join([section_map["code"] for section_map in frm_map["sections"]])
+
+            # First create section models so the form save validation passes 
+            self._create_form_sections(frm_map)
+            
             f, created = RegistryForm.objects.get_or_create(registry=r, name=frm_map["name"],
                                                             defaults={'sections': sections})
             if not created:
@@ -509,20 +513,6 @@ class Importer(object):
             f.save()
             logger.info("imported form %s OK" % f.name)
             imported_forms.add(f.name)
-
-            for section_map in frm_map["sections"]:
-                s, created = Section.objects.get_or_create(code=section_map["code"])
-                s.code = section_map["code"]
-                s.display_name = section_map["display_name"]
-                if "questionnaire_display_name" in section_map:
-                    s.questionnaire_display_name = section_map["questionnaire_display_name"]
-                s.elements = ",".join(section_map["elements"])
-                s.allow_multiple = section_map["allow_multiple"]
-                s.extra = section_map["extra"]
-                if "questionnaire_help" in section_map:
-                    s.questionnaire_help = section_map["questionnaire_help"]
-                s.save()
-                logger.info("imported section %s OK" % s.code)
 
         extra_forms = original_forms - imported_forms
         # if there are extra forms in the original set, we delete them
@@ -585,6 +575,22 @@ class Importer(object):
             logger.info("no context form groups to import")
 
         logger.info("end of import registry objects!")
+
+
+    def _create_form_sections(self, frm_map):
+        for section_map in frm_map["sections"]:
+            s, created = Section.objects.get_or_create(code=section_map["code"])
+            s.code = section_map["code"]
+            s.display_name = section_map["display_name"]
+            if "questionnaire_display_name" in section_map:
+                s.questionnaire_display_name = section_map["questionnaire_display_name"]
+            s.elements = ",".join(section_map["elements"])
+            s.allow_multiple = section_map["allow_multiple"]
+            s.extra = section_map["extra"]
+            if "questionnaire_help" in section_map:
+                s.questionnaire_help = section_map["questionnaire_help"]
+            s.save()
+            logger.info("imported section %s OK" % s.code)
 
     def _create_context_form_groups(self, registry):
         from rdrf.models import ContextFormGroup, ContextFormGroupItem

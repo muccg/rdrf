@@ -986,6 +986,16 @@ class RegistryForm(models.Model):
         if self.pk:
             self._check_completion_cdes()
 
+        self._check_sections()
+
+    def _check_sections(self):
+        for section_code in self.get_sections():
+            try:
+                section_model = Section.objects.get(code=section_code)
+            except Section.DoesNotExist:
+                raise ValidationError("Section %s does not exist!" % section_code)
+            
+
 
 class Wizard(models.Model):
     registry = models.CharField(max_length=50)
