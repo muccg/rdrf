@@ -1,8 +1,10 @@
+import sys
 from django.core.management import BaseCommand
 from rdrf.models import Registry
 from rdrf.models import Modjgo
 import yaml
 import jsonschema
+
 
 explanation = "This command checks for schema validation errors"
 
@@ -10,20 +12,35 @@ class Command(BaseCommand):
     help = 'Checks in clinical db against json schema(s)'
 
     def add_arguments(self, parser):
+        parser.add_argument('--registry_code',
+                            action='store',
+                            dest='registry_code',
+                            help='Code of registry to check')
         parser.add_argument('--collection',
                             action='store',
                             dest='collection',
                             default="cdes",
-                            help='Collection name ( one of cdes, history or registry_specific)')
+                            choices=['cdes', 'history', 'progress', 'registry_specific'],
+                            help='Collection name')
 
     def _usage(self):
         print(explanation)
 
     def handle(self, *args, **options):
         self.schema = self._load_schema()
+        registry_code = options.get("registry_code")
+        try:
+            registry_model = Registry.objects.get(code=registry_code)
+        except Registry.DoesNotExist:
+            print("Error: registry does not exist")
+            sys.exit(1)
+        
         collection = options.get("collection", "cdes")
+        if collection == "registry_specific":
+           collection = "registry_specific_patient_data"
 
-        for modjgo_model in Modjgo.objects.filter(collection=collection):
+        for modjgo_model in Modjgo.objects.filter(registry_code=registry_code,
+                                                  collection=collection):
             data = modjgo_model.data
             problem = self._check_for_problem(collection, data)
             if problem is not None:
