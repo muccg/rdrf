@@ -13,10 +13,17 @@ properties:
     allOf:
     - {$ref: '#/definitions/content_types'}
     - {$ref: '#/definitions/progress'}
+
   registry_specific_patient_data:
-    allOf:
-    - {$ref: '#/definitions/content_types'}
-    - {$ref: '#/definitions/cde'}
+    properties:
+      django_id:
+        type: integer
+      context_id:
+        type: "null"
+      django_model:
+        type: string
+        enum: [Patient]
+      
 additionalProperties: false
 maxProperties: 1
 minProperties: 1
