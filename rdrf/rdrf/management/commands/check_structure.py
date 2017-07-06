@@ -5,18 +5,17 @@ from rdrf.models import Modjgo
 import yaml
 import jsonschema
 
-
 explanation = "This command checks for schema validation errors"
 
 class Command(BaseCommand):
     help = 'Checks in clinical db against json schema(s)'
 
     def add_arguments(self, parser):
-        parser.add_argument('--registry_code',
+        parser.add_argument('-r',"--registry_code",
                             action='store',
                             dest='registry_code',
                             help='Code of registry to check')
-        parser.add_argument('--collection',
+        parser.add_argument('-c','--collection',
                             action='store',
                             dest='collection',
                             default="cdes",
@@ -27,8 +26,12 @@ class Command(BaseCommand):
         print(explanation)
 
     def handle(self, *args, **options):
+        problem_count = 0
         self.schema = self._load_schema()
-        registry_code = options.get("registry_code")
+        registry_code = options.get("registry_code",None)
+        if registry_code is None:
+            print("Error: registry code required")
+            sys.exit(1)
         try:
             registry_model = Registry.objects.get(code=registry_code)
         except Registry.DoesNotExist:
@@ -44,10 +47,15 @@ class Command(BaseCommand):
             data = modjgo_model.data
             problem = self._check_for_problem(collection, data)
             if problem is not None:
+                problem_count += 1
                 django_model, django_id, message = problem
                 print("%s/%s : %s" % (django_model,
                                       django_id,
                                       message))
+
+        if problem_count > 0:
+            sys.exit(1)
+            
                 
     def _load_schema(self):
         modjgo_schema_file = "/app/rdrf/rdrf/schemas/modjgo.yaml"
