@@ -50,7 +50,9 @@ Please run it without any arguments for help on its usage.
 
 A typical usage is::
 
-    ./develop.sh build base builder dev
+    ./develop.sh build base
+    ./develop.sh build builder
+    ./develop.sh build dev
     ./develop.sh up
 
 This will start up all the docker containers needed for dev. 
