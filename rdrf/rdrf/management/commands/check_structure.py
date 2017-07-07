@@ -22,21 +22,30 @@ class Command(BaseCommand):
                             choices=['cdes', 'history', 'progress', 'registry_specific'],
                             help='Collection name')
 
+        parser.add_argument('-t','--test-mode',
+                            action='store_true',
+                            dest='test_mode',
+                            default=False,
+                            help='Test mode - does not return exit code 1 on fail')
+
     def _usage(self):
         print(explanation)
 
     def handle(self, *args, **options):
+        self.test_mode = options.get("test_mode", False)
         problem_count = 0
         self.schema = self._load_schema()
         registry_code = options.get("registry_code",None)
         if registry_code is None:
             print("Error: registry code required")
-            sys.exit(1)
+            if not self.test_mode:
+                sys.exit(1)
         try:
             registry_model = Registry.objects.get(code=registry_code)
         except Registry.DoesNotExist:
             print("Error: registry does not exist")
-            sys.exit(1)
+            if not self.test_mode:
+                sys.exit(1)
         
         collection = options.get("collection", "cdes")
         if collection == "registry_specific":
@@ -49,12 +58,14 @@ class Command(BaseCommand):
             if problem is not None:
                 problem_count += 1
                 django_model, django_id, message = problem
-                print("%s/%s : %s" % (django_model,
-                                      django_id,
-                                      message))
+                print("%s;%s;%s;%s" % (modjgo_model.pk,
+                                       django_model,
+                                       django_id,
+                                       message))
 
         if problem_count > 0:
-            sys.exit(1)
+            if not self.test_mode:
+                sys.exit(1)
             
                 
     def _load_schema(self):
