@@ -987,9 +987,6 @@ class TimeStripperTestCase(TestCase):
                                                       ts.converted_date_cdes))
 
 
-
-
-
 class MinTypeTest(TestCase):
     def test_string(self):
         from rdrf.utils import MinType
@@ -1006,11 +1003,55 @@ class MinTypeTest(TestCase):
         self.assertTrue(g[0] is bottom)
         
 
+class StructureChecker(TestCase):
+    def _run_command(self, *args, **kwargs):
+        from django.core import management
+        import io
+        out_stream = io.StringIO("")
+        # test_mode means the command does not issue sys.exit(1) 
+        management.call_command('check_structure', *args, test_mode=True, stdout=out_stream, **kwargs)
+        return out_stream.getvalue()
         
-        
-        
-        
-        
-            
-        
-        
+    def test_cdes(self):
+        from rdrf.models import Modjgo
+        foobar = Registry()
+        foobar.code = "foobar"
+        foobar.save()
+
+        def make_modjgo(collection, data):
+            m = Modjgo()
+            m.registry_code = "foobar"
+            m.collection = collection
+            m.data = data
+            m.save()
+            return m
+
+        # Some examples of possible mangled records
+        bad = [("bad id","cdes", {"django_id": "fred",
+                                  "django_model": "Patient",
+                                  "timestamp": "2018-03-10T04:03:21",
+                                  "forms": []}),
+               
+               ("missing id","cdes", {"django_model": "Patient",
+                                      "timestamp": "2018-03-10T04:03:21",
+                                      "forms": []}),
+               
+               ("bad model", "cdes",{"django_id": 100,
+                                     "django_model": "Tomato",
+                                     "timestamp": "2018-03-10T04:03:21",
+                                     "forms": []}),
+               
+
+               ("missing_model","cdes",{"django_id": "fred",
+                                        "timestamp": "2018-03-10T04:03:21",
+                                        "forms": [] }),
+               ("bad_forms", "cdes", {"django_id": "fred",
+                                      "django_model": "Patient",
+                                      "timestamp": "2018-03-10T04:03:21",
+                                      "forms": 999})
+               ]
+
+        for bad_example, collection, data in bad:
+            m = make_modjgo(collection, data)
+            output = self._run_command(registry_code="foobar",collection=collection)
+            self.assertEqual(output, str(m.pk))
