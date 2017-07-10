@@ -4,8 +4,13 @@ from rdrf.models import Registry
 from rdrf.models import Modjgo
 import yaml
 import jsonschema
+import errno
+import os
 
 explanation = "This command checks for schema validation errors"
+
+SCHEMA_LOCATIONS = ["/app/rdrf/rdrf/schemas/modjgo.yaml",
+                    "/env/src/django-rdrf/rdrf/rdrf/schemas/modjgo.yaml"]
 
 class Command(BaseCommand):
     help = 'Checks in clinical db against json schema(s)'
@@ -72,9 +77,15 @@ class Command(BaseCommand):
             
                 
     def _load_schema(self):
-        modjgo_schema_file = "/app/rdrf/rdrf/schemas/modjgo.yaml"
-        with open(modjgo_schema_file) as sf:
-            return yaml.load(sf)
+        # base rdrf and mtm will differ on the location of this file
+        for file_location in SCHEMA_LOCATIONS:
+            if os.path.exists(file_location):
+                with open(file_location) as sf:
+                    return yaml.load(sf)
+
+        raise FileNotFoundError(errno.ENOENT,
+                                os.strerror(errno.ENOENT),
+                                "modjgo.yaml")
 
     def _get_key(self, data, key):
         if data is None:

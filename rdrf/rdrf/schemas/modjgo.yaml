@@ -2,7 +2,6 @@ $schema: http://json-schema.org/schema#
 type: object
 properties:
   cdes:
-    additionalProperties: false
     allOf:
     - {$ref: '#/definitions/cde'}
   history:
@@ -89,6 +88,9 @@ definitions:
       timestamp: {$ref: '#/definitions/timestamp_iso'}
     patternProperties:
       ^.*_timestamp$: {$ref: '#/definitions/timestamp_iso'}
+
+    additionalProperties: false
+
     required: [forms, timestamp, django_id, django_model]
 
   cde_val:
