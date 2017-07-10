@@ -31,19 +31,22 @@ class Command(BaseCommand):
     def _usage(self):
         print(explanation)
 
+    def _print(self, msg):
+        self.stdout.write(msg + "\n")
+
     def handle(self, *args, **options):
         self.test_mode = options.get("test_mode", False)
         problem_count = 0
         self.schema = self._load_schema()
         registry_code = options.get("registry_code",None)
         if registry_code is None:
-            print("Error: registry code required")
+            self._print("Error: registry code required")
             if not self.test_mode:
                 sys.exit(1)
         try:
             registry_model = Registry.objects.get(code=registry_code)
         except Registry.DoesNotExist:
-            print("Error: registry does not exist")
+            self._print("Error: registry does not exist")
             if not self.test_mode:
                 sys.exit(1)
         
@@ -58,7 +61,7 @@ class Command(BaseCommand):
             if problem is not None:
                 problem_count += 1
                 django_model, django_id, message = problem
-                print("%s;%s;%s;%s" % (modjgo_model.pk,
+                self._print("%s;%s;%s;%s" % (modjgo_model.pk,
                                        django_model,
                                        django_id,
                                        message))

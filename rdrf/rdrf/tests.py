@@ -1018,6 +1018,9 @@ class StructureChecker(TestCase):
         foobar.code = "foobar"
         foobar.save()
 
+        def clear_modjgo_objects():
+            Modjgo.objects.all().delete()
+
         def make_modjgo(collection, data):
             m = Modjgo()
             m.registry_code = "foobar"
@@ -1027,6 +1030,8 @@ class StructureChecker(TestCase):
             return m
 
         # Some examples of possible mangled records
+        # [ (desc,collectionname,example), ...]
+        # we expect non-blank output/failure for each example
         bad = [("bad id","cdes", {"django_id": "fred",
                                   "django_model": "Patient",
                                   "timestamp": "2018-03-10T04:03:21",
@@ -1042,16 +1047,29 @@ class StructureChecker(TestCase):
                                      "forms": []}),
                
 
-               ("missing_model","cdes",{"django_id": "fred",
+               ("missing_model","cdes",{"django_id": 23,
                                         "timestamp": "2018-03-10T04:03:21",
                                         "forms": [] }),
-               ("bad_forms", "cdes", {"django_id": "fred",
+               ("bad_forms", "cdes", {"django_id": 23,
                                       "django_model": "Patient",
                                       "timestamp": "2018-03-10T04:03:21",
-                                      "forms": 999})
+                                      "forms": 999}),
+               ("bad_old_format", "cdes", {"django_id": 23,
+                                           "django_model": "Patient",
+                                           "timestamp": "2018-03-10T04:03:21",
+                                           "formname____sectioncode____cdecode" : 99,
+                                           "forms": []})
                ]
 
         for bad_example, collection, data in bad:
+            clear_modjgo_objects()
             m = make_modjgo(collection, data)
             output = self._run_command(registry_code="foobar",collection=collection)
-            self.assertEqual(output, str(m.pk))
+            print("output = [%s]" % output)
+            assert output != "", "check_structure management command failed: Expected schema error for %s" % bad_example
+            parts = output.split(";")
+            bad_pk = int(parts[0])
+            self.assertEqual(m.pk, bad_pk)
+
+
+        

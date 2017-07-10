@@ -2,8 +2,8 @@ $schema: http://json-schema.org/schema#
 type: object
 properties:
   cdes:
+    additionalProperties: false
     allOf:
-    - {$ref: '#/definitions/content_types'}
     - {$ref: '#/definitions/cde'}
   history:
     allOf:
@@ -33,6 +33,13 @@ definitions:
     title: CDE values collection
     type: object
     properties:
+      django_id:
+        type: integer
+      django_model:
+        enum:
+          - Patient
+          - QuestionnaireResponse
+        type: string
       context_id:
         type: integer
       forms:
@@ -82,7 +89,7 @@ definitions:
       timestamp: {$ref: '#/definitions/timestamp_iso'}
     patternProperties:
       ^.*_timestamp$: {$ref: '#/definitions/timestamp_iso'}
-    required: [forms, timestamp]
+    required: [forms, timestamp, django_id, django_model]
 
   cde_val:
     type: object
