@@ -62,8 +62,9 @@ ALL_LANGUAGES = (("en", "English"),
 # EnvConfig can't handle structure of tuple of tuples so we pass in a flat association list
 # E.g. ["en","English","ar","Arabic"]
 # This must be a subset of ALL_LANGUAGES
-LANGUAGES_ASSOC_LIST = env.getlist("languages",["en","English","ar","Arabic","de","German"])
+LANGUAGES_ASSOC_LIST = env.getlist("languages",["en","English"])
 LANGUAGES = tuple(zip(LANGUAGES_ASSOC_LIST[0::2],LANGUAGES_ASSOC_LIST[1::2]))
+
 
 DATABASES = {
     'default': {
