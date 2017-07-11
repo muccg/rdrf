@@ -6,6 +6,7 @@ from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
 from django.db import models
 from django.dispatch import receiver
+from django.core.exceptions import ValidationError
 
 from registration.signals import user_activated
 from registration.signals import user_registered
@@ -40,8 +41,6 @@ class WorkingGroup(models.Model):
 
 
 class CustomUser(AbstractBaseUser, PermissionsMixin):
-    LANGUAGE_CHOICES = (("en", _("English")),
-                        ("de", _("German")))
     username = models.CharField(
         _('username'),
         max_length=254,
@@ -68,8 +67,7 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
     preferred_language = models.CharField(_("preferred language"),
                                           max_length=20,
                                           default="en",
-                                          choices=LANGUAGE_CHOICES,
-                                          help_text=_("Preferred language for communications"))
+                                          help_text=_("Preferred language (code) for communications"))
 
     USERNAME_FIELD = "username"
 
@@ -189,6 +187,14 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
                 return True
 
         return False
+
+    def clean(self):
+        from django.conf import settings
+        allowed_language_codes = [ p[0] for p in settings.LANGUAGES]
+        if self.preferred_language not in allowed_language_codes:
+            codes = ",".join([ "%s (%s)" % (p[0],p[1]) for p in settings.LANGUAGES])
+            msg = "Preferred language must be one of: %s" % codes
+            raise ValidationError(msg)
 
     @property
     def menu_links(self):
