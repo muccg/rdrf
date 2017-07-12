@@ -24,4 +24,19 @@ class RdrfRegistrationView(RegistrationView):
     def get_context_data(self, **kwargs):
         context = super(RdrfRegistrationView, self).get_context_data(**kwargs)
         context['registry_code'] = self.registry_code
+        context["preferred_languages"] = self._get_preferred_languages()
         return context
+
+    def _get_preferred_languages(self):
+        # Registration allows choice of preferred language
+        # But we allow different sites to expose different values
+        # over time without code change via env --> settings
+
+        # The default list is english only which we don't bother to show
+        from rdrf.utils import get_supported_languages
+        languages = get_supported_languages()
+        if len(languages) == 1 and languages[0].code == "en":
+            return []
+        else:
+            return languages
+            

@@ -647,7 +647,8 @@ def trans_file(request, doc_name_with_out_language):
     return doc_name_with_out_language
 
 
-    
-    
-    
-
+def get_supported_languages():
+    from collections import namedtuple
+    from django.conf import settings
+    Language = namedtuple('Language', ['code', 'name'])
+    return [Language(pair[0], pair[1]) for pair in settings.LANGUAGES] 

@@ -6,6 +6,7 @@ from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
 from django.db import models
 from django.dispatch import receiver
+from django.core.exceptions import ValidationError
 
 from registration.signals import user_activated
 from registration.signals import user_registered
@@ -40,8 +41,6 @@ class WorkingGroup(models.Model):
 
 
 class CustomUser(AbstractBaseUser, PermissionsMixin):
-    LANGUAGE_CHOICES = (("en", _("English")),
-                        ("de", _("German")))
     username = models.CharField(
         _('username'),
         max_length=254,
@@ -68,8 +67,7 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
     preferred_language = models.CharField(_("preferred language"),
                                           max_length=20,
                                           default="en",
-                                          choices=LANGUAGE_CHOICES,
-                                          help_text=_("Preferred language for communications"))
+                                          help_text=_("Preferred language (code) for communications"))
 
     USERNAME_FIELD = "username"
 
