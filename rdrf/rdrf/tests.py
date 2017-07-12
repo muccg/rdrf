@@ -987,9 +987,6 @@ class TimeStripperTestCase(TestCase):
                                                       ts.converted_date_cdes))
 
 
-
-
-
 class MinTypeTest(TestCase):
     def test_string(self):
         from rdrf.utils import MinType
@@ -1006,11 +1003,119 @@ class MinTypeTest(TestCase):
         self.assertTrue(g[0] is bottom)
         
 
+class StructureChecker(TestCase):
+    def _run_command(self, *args, **kwargs):
+        from django.core import management
+        import io
+        out_stream = io.StringIO("")
+        # test_mode means the command does not issue sys.exit(1) 
+        management.call_command('check_structure', *args, stdout=out_stream, **kwargs)
+        return out_stream.getvalue()
+
+    def clear_modjgo_objects(self):
+        Modjgo.objects.all().delete()
+
+    def make_modjgo(self, collection, data):
+        m = Modjgo()
+        m.registry_code = "foobar"
+        m.collection = collection
+        m.data = data
+        m.save()
+        return m
         
-        
-        
-        
-        
-            
-        
-        
+    def test_cdes(self):
+        from rdrf.models import Modjgo
+        foobar = Registry()
+        foobar.code = "foobar"
+        foobar.save()
+
+       
+        # Some examples of possible mangled records
+        # [ (desc,collectionname,example), ...]
+        # we expect non-blank output/failure for each example
+        bad = [("bad id","cdes", {"django_id": "fred",
+                                  "django_model": "Patient",
+                                  "timestamp": "2018-03-10T04:03:21",
+                                  "forms": []}),
+               
+               ("missing id","cdes", {"django_model": "Patient",
+                                      "timestamp": "2018-03-10T04:03:21",
+                                      "forms": []}),
+               
+               ("bad model", "cdes",{"django_id": 100,
+                                     "django_model": "Tomato",
+                                     "timestamp": "2018-03-10T04:03:21",
+                                     "forms": []}),
+               
+
+               ("missing_model","cdes",{"django_id": 23,
+                                        "timestamp": "2018-03-10T04:03:21",
+                                        "forms": [] }),
+               ("bad_forms", "cdes", {"django_id": 23,
+                                      "django_model": "Patient",
+                                      "timestamp": "2018-03-10T04:03:21",
+                                      "forms": 999}),
+               ("bad_old_format", "cdes", {"django_id": 23,
+                                           "django_model": "Patient",
+                                           "timestamp": "2018-03-10T04:03:21",
+                                           "formname____sectioncode____cdecode" : 99,
+                                           "forms": []})
+               ]
+
+        for bad_example, collection, data in bad:
+            self.clear_modjgo_objects()
+            m = self.make_modjgo(collection, data)
+            with self.assertRaises(SystemExit) as cm:
+                output = self._run_command(registry_code="foobar",collection=collection)
+                print("output = [%s]" % output)
+                assert output != "", "check_structure management command failed: Expected schema error for %s" % bad_example
+                parts = output.split(";")
+                bad_pk = int(parts[0])
+                self.assertEqual(m.pk, bad_pk)
+            self.assertEqual(cm.exception.code, 1)
+
+
+        # finally, a good record
+        good = {"django_id": 23,
+                "django_model": "Patient",
+                "timestamp": "2018-03-10T04:03:21",
+                "forms": []}
+
+        self.clear_modjgo_objects()
+        m = self.make_modjgo("cdes", good)
+        output = self._run_command(registry_code="foobar",collection="cdes")
+        print("output = [%s]" % output)
+        assert output == "", "check_structure test of good data should output nothing"
+
+
+    def test_history(self):
+        from rdrf.models import Modjgo
+        foobar = Registry()
+        foobar.code = "foobar"
+        foobar.save()
+        bad_history = {"id": 6,
+                       "registry_code": "foobar",
+                       "collection": "history",
+                       "data": {"record": {"django_id": 1,
+                                           "timestamp": "2017-07-10T14:45:36.760123",
+                                           "context_id": 1,
+                                           "django_model": "Patient",
+                                           "oldstyleform____section____cde": 23,
+                                           "Diagnosis_timestamp": "2017-07-10T14:45:36.760123"}
+                        },
+                        "django_id": 1,
+                        "timestamp": "2017-07-10 14:45:37.012962",
+                        "context_id": 1,
+                        "record_type": "snapshot",
+                        "django_model": "Patient",
+                        "registry_code": "foobar"}
+
+        self.clear_modjgo_objects()
+        m = self.make_modjgo("history", bad_history)
+        with self.assertRaises(SystemExit) as cm:
+            output = self._run_command(registry_code="foobar",collection="history")
+
+        self.assertEqual(cm.exception.code, 1)
+
+
+

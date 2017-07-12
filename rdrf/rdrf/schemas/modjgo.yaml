@@ -3,7 +3,6 @@ type: object
 properties:
   cdes:
     allOf:
-    - {$ref: '#/definitions/content_types'}
     - {$ref: '#/definitions/cde'}
   history:
     allOf:
@@ -13,10 +12,17 @@ properties:
     allOf:
     - {$ref: '#/definitions/content_types'}
     - {$ref: '#/definitions/progress'}
+
   registry_specific_patient_data:
-    allOf:
-    - {$ref: '#/definitions/content_types'}
-    - {$ref: '#/definitions/cde'}
+    properties:
+      django_id:
+        type: integer
+      context_id:
+        type: "null"
+      django_model:
+        type: string
+        enum: [Patient]
+      
 additionalProperties: false
 maxProperties: 1
 minProperties: 1
@@ -26,6 +32,13 @@ definitions:
     title: CDE values collection
     type: object
     properties:
+      django_id:
+        type: integer
+      django_model:
+        enum:
+          - Patient
+          - QuestionnaireResponse
+        type: string
       context_id:
         type: integer
       forms:
@@ -75,7 +88,10 @@ definitions:
       timestamp: {$ref: '#/definitions/timestamp_iso'}
     patternProperties:
       ^.*_timestamp$: {$ref: '#/definitions/timestamp_iso'}
-    required: [forms, timestamp]
+
+    additionalProperties: false
+
+    required: [forms, timestamp, django_id, django_model]
 
   cde_val:
     type: object
