@@ -31,22 +31,12 @@ class RdrfRegistrationView(RegistrationView):
         # Registration allows choice of preferred language
         # But we allow different sites to expose different values
         # over time without code change via env --> settings
-        from django.conf import settings
 
         # The default list is english only which we don't bother to show
-        if len(settings.LANGUAGES) == 1:
-            if settings.LANGUAGES[0][0].lower() == "en":
-                return []
-            
-        l = [] 
-
-        class LanguageWrapper:
-            def __init__(self, code, name):
-                self.code = code
-                self.name = name
-
-        for code, name in settings.LANGUAGES:
-            l.append(LanguageWrapper(code, name))
-
-        return l
+        from rdrf.utils import get_supported_languages
+        languages = get_supported_languages()
+        if len(languages) == 1 and languages[0].code == "en":
+            return []
+        else:
+            return languages
             

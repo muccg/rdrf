@@ -1,9 +1,10 @@
 from django import forms
 from django.contrib.auth import get_user_model
 from django.contrib.auth.forms import ReadOnlyPasswordHashField
-
+from django.forms import ChoiceField
 from .models import WorkingGroup
 from rdrf.models import Registry
+from rdrf.utils import get_supported_languages
 from django.core.exceptions import ValidationError
 import logging
 
@@ -45,7 +46,6 @@ class UserValidationMixin(object):
             raise ValidationError("Please choose a working group")
 
         return self.cleaned_data
-
 
 class RDRFUserCreationForm(UserValidationMixin, forms.ModelForm):
     # set by admin class - used to restrict registry and workign group choices
@@ -113,6 +113,8 @@ class UserChangeForm(UserValidationMixin, forms.ModelForm):
     from django.contrib.auth.forms import UserChangeForm as OldUserChangeForm
     password = ReadOnlyPasswordHashField(
         help_text=(OldUserChangeForm.base_fields['password'].help_text))
+
+    preferred_language = ChoiceField(choices=get_supported_languages())
 
     class Meta:
         fields = "__all__"

@@ -188,14 +188,6 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
 
         return False
 
-    def clean(self):
-        from django.conf import settings
-        allowed_language_codes = [ p[0] for p in settings.LANGUAGES]
-        if self.preferred_language not in allowed_language_codes:
-            codes = ",".join([ "%s (%s)" % (p[0],p[1]) for p in settings.LANGUAGES])
-            msg = "Preferred language must be one of: %s" % codes
-            raise ValidationError(msg)
-
     @property
     def menu_links(self):
         from rdrf.quick_links import QuickLinks
