@@ -8,9 +8,7 @@ import errno
 import os
 
 explanation = "This command checks for schema validation errors"
-
-SCHEMA_LOCATIONS = ["/app/rdrf/rdrf/schemas/modjgo.yaml",
-                    "/env/src/django-rdrf/rdrf/rdrf/schemas/modjgo.yaml"]
+SCHEMA_FILE = "modjgo.yaml"
 
 class Command(BaseCommand):
     help = 'Checks in clinical db against json schema(s)'
@@ -27,12 +25,6 @@ class Command(BaseCommand):
                             choices=['cdes', 'history', 'progress', 'registry_specific'],
                             help='Collection name')
 
-        parser.add_argument('-t','--test-mode',
-                            action='store_true',
-                            dest='test_mode',
-                            default=False,
-                            help='Test mode - does not return exit code 1 on fail')
-
     def _usage(self):
         print(explanation)
 
@@ -40,20 +32,17 @@ class Command(BaseCommand):
         self.stdout.write(msg + "\n")
 
     def handle(self, *args, **options):
-        self.test_mode = options.get("test_mode", False)
         problem_count = 0
         self.schema = self._load_schema()
         registry_code = options.get("registry_code",None)
         if registry_code is None:
             self._print("Error: registry code required")
-            if not self.test_mode:
-                sys.exit(1)
+            sys.exit(1)
         try:
             registry_model = Registry.objects.get(code=registry_code)
         except Registry.DoesNotExist:
             self._print("Error: registry does not exist")
-            if not self.test_mode:
-                sys.exit(1)
+            sys.exit(1)
         
         collection = options.get("collection", "cdes")
         if collection == "registry_specific":
@@ -72,20 +61,22 @@ class Command(BaseCommand):
                                        message))
 
         if problem_count > 0:
-            if not self.test_mode:
-                sys.exit(1)
+            sys.exit(1)
             
                 
     def _load_schema(self):
-        # base rdrf and mtm will differ on the location of this file
-        for file_location in SCHEMA_LOCATIONS:
-            if os.path.exists(file_location):
-                with open(file_location) as sf:
+        cmd_dir = os.path.dirname(__file__)
+        schema_path = os.path.join(os.path.dirname(os.path.dirname(cmd_dir)),
+                                   "schemas",
+                                   SCHEMA_FILE)
+
+        if os.path.exists(schema_path):
+                with open(schema_path) as sf:
                     return yaml.load(sf)
 
         raise FileNotFoundError(errno.ENOENT,
                                 os.strerror(errno.ENOENT),
-                                "modjgo.yaml")
+                                SCHEMA_FILE)
 
     def _get_key(self, data, key):
         if data is None:

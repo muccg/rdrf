@@ -1009,7 +1009,7 @@ class StructureChecker(TestCase):
         import io
         out_stream = io.StringIO("")
         # test_mode means the command does not issue sys.exit(1) 
-        management.call_command('check_structure', *args, test_mode=True, stdout=out_stream, **kwargs)
+        management.call_command('check_structure', *args, stdout=out_stream, **kwargs)
         return out_stream.getvalue()
 
     def clear_modjgo_objects(self):
@@ -1065,12 +1065,14 @@ class StructureChecker(TestCase):
         for bad_example, collection, data in bad:
             self.clear_modjgo_objects()
             m = self.make_modjgo(collection, data)
-            output = self._run_command(registry_code="foobar",collection=collection)
-            print("output = [%s]" % output)
-            assert output != "", "check_structure management command failed: Expected schema error for %s" % bad_example
-            parts = output.split(";")
-            bad_pk = int(parts[0])
-            self.assertEqual(m.pk, bad_pk)
+            with self.assertRaises(SystemExit) as cm:
+                output = self._run_command(registry_code="foobar",collection=collection)
+                print("output = [%s]" % output)
+                assert output != "", "check_structure management command failed: Expected schema error for %s" % bad_example
+                parts = output.split(";")
+                bad_pk = int(parts[0])
+                self.assertEqual(m.pk, bad_pk)
+            self.assertEqual(cm.exception.code, 1)
 
 
         # finally, a good record
@@ -1110,7 +1112,10 @@ class StructureChecker(TestCase):
 
         self.clear_modjgo_objects()
         m = self.make_modjgo("history", bad_history)
-        output = self._run_command(registry_code="foobar",collection="history")
+        with self.assertRaises(SystemExit) as cm:
+            output = self._run_command(registry_code="foobar",collection="history")
+
+        self.assertEqual(cm.exception.code, 1)
 
 
 
