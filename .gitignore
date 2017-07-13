@@ -33,3 +33,9 @@ flycheck_*
 *.docx
 *.csv
 *.mongo
+startup
+.env
+*.po
+*.mo
+
+
