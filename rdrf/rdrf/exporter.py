@@ -457,7 +457,7 @@ class Exporter(object):
         for query in registry_queries:
             q = {}
             q["registry"] = query.registry.code
-            q["access_group"] = [ag.id for ag in query.access_group.order_by("name")]
+            q["access_group"] = [ag.name for ag in query.access_group.order_by("name")]
             q["title"] = query.title
             q["description"] = query.description
             q["mongo_search_type"] = query.mongo_search_type
