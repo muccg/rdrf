@@ -574,8 +574,60 @@ class Importer(object):
         else:
             logger.info("no context form groups to import")
 
+        if "email_notifications" in self.data:
+            self._create_email_notifications(r)
+            logger.info("imported email notifications OK")
+
         logger.info("end of import registry objects!")
 
+    def _create_email_notifications(self, registry):
+        from rdrf.models import EmailNotification
+        from rdrf.models import EmailTemplate
+        def used_templates(registry):
+            used_by_others = []
+            for en in EmailNotification.objects.all():
+                if en.registry.pk != registry.pk:
+                    for t in en.email_templates.all():
+                        used_by_others.append(t.pk)
+            return used_by_others
+
+        # delete any non-shared templates
+
+        ids_in_use = used_templates(registry)
+        templates_to_delete = []
+
+        for en in EmailNotification.objects.filter(registry=registry):
+            for t in en.email_templates.all():
+                if t.pk not in ids_in_use:
+                    templates_to_delete.append(t)
+
+        logger.info("templates to delete = %s" % templates_to_delete)
+
+        map(lambda t: t.delete(), templates_to_delete)
+        logger.info("deleted existing email templates")
+        
+        # first delete any existing
+        EmailNotification.objects.filter(registry=registry).delete()
+        
+        for en_dict in self.data["email_notifications"]:
+            en = EmailNotification(registry=registry)
+            en.description = en_dict["description"]
+            en.email_from = en_dict["email_from"]
+            en.recipient = en_dict["recipient"]
+            en.disabled = en_dict["disabled"]
+            en.save()
+            if en_dict["group_recipient"]:
+                auth_group = Group.objects.get(name=en_dict["group_recipient"])
+                en.group_recipient = auth_group
+            for template_dict in en_dict["email_templates"]:
+                et = EmailTemplate()
+                et.language = template_dict["language"]
+                et.description = template_dict["description"]
+                et.subject = template_dict["subject"]
+                et.body = template_dict["body"]
+                et.save()
+                en.email_templates.add(et)
+                en.save()
 
     def _create_form_sections(self, frm_map):
         for section_map in frm_map["sections"]:
@@ -769,7 +821,7 @@ class Importer(object):
             query, created = Query.objects.get_or_create(
                 registry=registry_obj, title=d["title"])
             for ag in d["access_group"]:
-                query.access_group.add(Group.objects.get(name=ag))
+                    query.access_group.add(Group.objects.get(name=ag))
             query.description = d["description"]
             query.mongo_search_type = d["mongo_search_type"]
             query.sql_query = d["sql_query"]

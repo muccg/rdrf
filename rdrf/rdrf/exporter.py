@@ -190,7 +190,7 @@ class Exporter(object):
         data["reports"] = self._get_reports()
         data["cde_policies"] = self._get_cde_policies()
         data["context_form_groups"] = self._get_context_form_groups()
-        data["emal_notifications"] = self._get_email_notifications()
+        data["email_notifications"] = self._get_email_notifications()
 
         if self.registry.patient_data_section:
             data["patient_data_section"] = self._create_section_map(
