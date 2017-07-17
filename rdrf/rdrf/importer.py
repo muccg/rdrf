@@ -584,15 +584,14 @@ class Importer(object):
         from rdrf.models import EmailNotification
         from rdrf.models import EmailTemplate
         def used_templates(registry):
-            used_by_others = []
+            used_by_others = set([])
             for en in EmailNotification.objects.all():
                 if en.registry.pk != registry.pk:
                     for t in en.email_templates.all():
-                        used_by_others.append(t.pk)
+                        used_by_others.add(t.pk)
             return used_by_others
 
         # delete any non-shared templates
-
         ids_in_use = used_templates(registry)
         templates_to_delete = []
 
@@ -601,11 +600,10 @@ class Importer(object):
                 if t.pk not in ids_in_use:
                     templates_to_delete.append(t)
 
-        logger.info("templates to delete = %s" % templates_to_delete)
-
-        map(lambda t: t.delete(), templates_to_delete)
-        logger.info("deleted existing email templates")
-        
+        for t in templates_to_delete:
+            logger.info("deleting old template %s .." % t)
+            t.delete()
+            
         # first delete any existing
         EmailNotification.objects.filter(registry=registry).delete()
         
