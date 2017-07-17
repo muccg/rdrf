@@ -584,10 +584,10 @@ class Importer(object):
         from rdrf.models import EmailNotification
         from rdrf.models import EmailTemplate
         our_notifications = EmailNotification.objects.filter(registry=registry)
+        not_ours = EmailNotification.objects.filter(registry__pk != registry.pk)
 
         # delete any non-shared templates
         def in_use(template_model):
-              not_ours = EmailNotification.objects.filter(registry__pk != registry.pk)
               return not_ours.filter(templates__contains=template_model.pk).count() > 0
             
         map(lambda t: t.delete(),
