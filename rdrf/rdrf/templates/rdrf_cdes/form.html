@@ -295,7 +295,7 @@
                                     {% elif fpc.1 == False %}
                                         <img src='{% static 'images/cross.png'%}'>
                                     {% endif %}
-                                    {{fpc.0|get_cde_name}}
+                                    {{fpc.0|get_cde_name|translate}}
                                 </li>
                             {% endfor %}
                         </ul>
