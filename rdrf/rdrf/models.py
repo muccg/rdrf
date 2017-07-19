@@ -289,21 +289,14 @@ class Registry(models.Model):
                 section_map[section_key] = [cde_code]
 
         generated_questionnaire_form_name = self.generated_questionnaire_name
-        generated_questionnaire_form, created = RegistryForm.objects.get_or_create(
-            registry=self,
-            name=generated_questionnaire_form_name,
-            defaults={"sections": "dummy"}  # Had to add this in the fix RDR-1347
-        )
+            
+
 
         # get rid of any existing generated sections
         for section in Section.objects.all():
             if section.code.startswith(self.questionnaire_section_prefix):
                 section.delete()
 
-        generated_questionnaire_form.registry = self
-        generated_questionnaire_form.is_questionnaire = True
-        generated_questionnaire_form.save()
-        logger.info("created questionnaire form %s" % generated_questionnaire_form.name)
         generated_section_codes = []
 
         section_ordering_map = {}
@@ -353,6 +346,14 @@ class Registry(models.Model):
 
         patient_info_section = self._get_patient_info_section()
 
+        generated_questionnaire_form, created = RegistryForm.objects.get_or_create(
+            registry=self,
+            name=generated_questionnaire_form_name,
+            sections=patient_info_section + "," + self._get_patient_address_section() + "," + ",".join(ordered_codes)
+        )
+        generated_questionnaire_form.registry = self
+        generated_questionnaire_form.is_questionnaire = True
+        logger.info("created questionnaire form %s" % generated_questionnaire_form.name)
         generated_questionnaire_form.sections = patient_info_section + \
             "," + self._get_patient_address_section() + "," + ",".join(ordered_codes)
         generated_questionnaire_form.save()

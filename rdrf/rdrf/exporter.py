@@ -190,6 +190,7 @@ class Exporter(object):
         data["reports"] = self._get_reports()
         data["cde_policies"] = self._get_cde_policies()
         data["context_form_groups"] = self._get_context_form_groups()
+        data["email_notifications"] = self._get_email_notifications()
 
         if self.registry.patient_data_section:
             data["patient_data_section"] = self._create_section_map(
@@ -457,7 +458,7 @@ class Exporter(object):
         for query in registry_queries:
             q = {}
             q["registry"] = query.registry.code
-            q["access_group"] = [ag.id for ag in query.access_group.order_by("name")]
+            q["access_group"] = [ag.name for ag in query.access_group.order_by("name")]
             q["title"] = query.title
             q["description"] = query.description
             q["mongo_search_type"] = query.mongo_search_type
@@ -498,6 +499,31 @@ class Exporter(object):
                 cfg_dict["forms"].append(form.name)
             cfg_dict["ordering"] = cfg.ordering
             data.append(cfg_dict)
+        return data
+
+    def _get_email_notifications(self):
+        from rdrf.models import EmailNotification
+        data = []
+        def get_template_dict(t):
+            return {"language": t.language,
+                    "description": t.description,
+                    "subject": t.subject,
+                    "body": t.body}
+        
+        for email_notification in EmailNotification.objects.filter(registry=self.registry).order_by("description"):
+            en_dict = {}
+            en_dict["description"] = email_notification.description
+            en_dict["email_from"] = email_notification.email_from
+            en_dict["recipient"] = email_notification.recipient
+            if email_notification.group_recipient:
+                en_dict["group_recipient"] = email_notification.group_recipient.name
+            else:
+                en_dict["group_recipient"] = None
+            en_dict["email_templates"] = [get_template_dict(t) for t in
+                                          email_notification.email_templates.all()]
+
+            en_dict["disabled"] = email_notification.disabled
+            data.append(en_dict)
         return data
 
 

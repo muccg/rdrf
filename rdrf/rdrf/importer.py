@@ -574,8 +574,46 @@ class Importer(object):
         else:
             logger.info("no context form groups to import")
 
+        if "email_notifications" in self.data:
+            self._create_email_notifications(r)
+            logger.info("imported email notifications OK")
+
         logger.info("end of import registry objects!")
 
+    def _create_email_notifications(self, registry):
+        from rdrf.models import EmailNotification
+        from rdrf.models import EmailTemplate
+        our_registry_tuple_list = [(registry.pk,)]
+        # delete non-shared templates in use by this registry
+        def non_shared(template_model):
+            using_regs = [x for x in template_model.emailnotification_set.all().values_list('registry__pk')]
+            if using_regs == our_registry_tuple_list:
+                return True
+            
+        templates_to_delete = set([t.id for t in EmailTemplate.objects.all() if non_shared(t)])
+
+        EmailTemplate.objects.filter(id__in=templates_to_delete).delete()
+        EmailNotification.objects.filter(registry=registry).delete()
+        
+        for en_dict in self.data["email_notifications"]:
+            en = EmailNotification(registry=registry)
+            en.description = en_dict["description"]
+            en.email_from = en_dict["email_from"]
+            en.recipient = en_dict["recipient"]
+            en.disabled = en_dict["disabled"]
+            en.save()
+            if en_dict["group_recipient"]:
+                auth_group = Group.objects.get(name=en_dict["group_recipient"])
+                en.group_recipient = auth_group
+            for template_dict in en_dict["email_templates"]:
+                et = EmailTemplate()
+                et.language = template_dict["language"]
+                et.description = template_dict["description"]
+                et.subject = template_dict["subject"]
+                et.body = template_dict["body"]
+                et.save()
+                en.email_templates.add(et)
+                en.save()
 
     def _create_form_sections(self, frm_map):
         for section_map in frm_map["sections"]:
@@ -769,7 +807,7 @@ class Importer(object):
             query, created = Query.objects.get_or_create(
                 registry=registry_obj, title=d["title"])
             for ag in d["access_group"]:
-                query.access_group.add(Group.objects.get(id=ag))
+                    query.access_group.add(Group.objects.get(name=ag))
             query.description = d["description"]
             query.mongo_search_type = d["mongo_search_type"]
             query.sql_query = d["sql_query"]
