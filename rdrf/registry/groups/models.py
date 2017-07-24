@@ -127,6 +127,10 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
         return self.in_group(RDRF_GROUPS.PARENT)
 
     @property
+    def is_carrier(self):
+        return self.in_group(RDRF_GROUPS.CARRIER)
+
+    @property
     def is_clinician(self):
         return self.in_group(RDRF_GROUPS.CLINICAL)
 

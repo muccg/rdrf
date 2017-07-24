@@ -10,7 +10,8 @@ GroupLookup = namedtuple('GroupLookup',
                           'GENETIC_CURATOR',
                           'WORKING_GROUP_STAFF',
                           'WORKING_GROUP_CURATOR',
-                          'SUPER_USER'])
+                          'SUPER_USER',
+                          'CARRIER'])
 GROUPS = GroupLookup('patients',
                      'parents',
                      'clinical staff',
@@ -18,4 +19,5 @@ GROUPS = GroupLookup('patients',
                      'genetic curator',
                      'working group staff',
                      'working group curators',
-                     '__super_user__')
+                     '__super_user__',
+                     'carriers')
