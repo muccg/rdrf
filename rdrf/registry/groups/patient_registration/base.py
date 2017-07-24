@@ -44,7 +44,7 @@ class BaseRegistration(object):
                 user_group = self._get_group("Patients")
             django_user.groups = [user_group.id, ] if user_group else []
         else:
-            django_user.groups = user_groups
+            django_user.groups = [g.id for g in user_groups]
 
         if is_parent:
             django_user.first_name = request.POST['parent_guardian_first_name']
