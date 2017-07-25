@@ -569,8 +569,9 @@ class ColumnContextMenu(Column):
             return buttons
 
     def _get_forms_button(self, patient_model, context_form_group, forms):
+        
         button = FormsButton(self.registry, self.user, patient_model,
-                             context_form_group, forms)
+                             context_form_group, [f for f in forms if f.applicable_to(patient_model)])
 
         return """
             <div class="dropdown">

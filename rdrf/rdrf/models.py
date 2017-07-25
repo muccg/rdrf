@@ -1001,7 +1001,7 @@ class RegistryForm(models.Model):
                 raise ValidationError("Section %s does not exist!" % section_code)
 
 
-    def is_applicable(self, patient):
+    def applicable_to(self, patient):
         def safe(python_code):
             return all([python_code.startswith("patient."),
                         not "delete" in python_code,

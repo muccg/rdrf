@@ -314,6 +314,9 @@ class FormView(View):
 
         self.registry_form = self.get_registry_form(form_id)
 
+        if not self.registry_form.applicable_to(patient_model):
+            return HttpResponseRedirect(reverse("patientslisting"))
+
         context_launcher = RDRFContextLauncherComponent(request.user,
                                                         self.registry,
                                                         patient_model,
