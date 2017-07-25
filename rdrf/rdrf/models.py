@@ -876,6 +876,10 @@ class RegistryForm(models.Model):
         blank=True, help_text="Comma-separated list of sectioncode.cdecodes for questionnnaire")
     complete_form_cdes = models.ManyToManyField(CommonDataElement, blank=True)
     groups_allowed = models.ManyToManyField(Group, blank=True)
+    applicability_condition = models.TextField(blank=True,
+                                               null=True,
+                                               help_text="E.g. patient.deceased == True")
+
 
     def natural_key(self):
         return (self.registry.code, self.name)
@@ -995,6 +999,35 @@ class RegistryForm(models.Model):
                 section_model = Section.objects.get(code=section_code)
             except Section.DoesNotExist:
                 raise ValidationError("Section %s does not exist!" % section_code)
+
+
+    def is_applicable(self, patient):
+        def safe(python_code):
+            return all([python_code.startswith("patient."),
+                        not "delete" in python_code,
+                        not "import" in python_code,
+                        not " = " in python_code,
+                        not ":" in python_code])
+        
+        if patient is None:
+            return True
+
+        if not patient.in_registry(self.registry.code):
+            return False
+        else:
+            # if no restriction return True
+            if not self.applicability_condition:
+                return True
+
+        
+        evaluation_context = {"patient": patient}
+
+        is_applicable = eval(
+            self.applicability_condition, {"__builtins__": None}, evaluation_context)
+
+        return is_applicable
+
+        
             
 
 
