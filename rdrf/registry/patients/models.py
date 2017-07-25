@@ -923,6 +923,18 @@ class ParentGuardian(models.Model):
         related_name="parent_user_object",
         on_delete=models.SET_NULL)
 
+    @property
+    def children(self):
+        if not self.self_patient:
+            return [p for p in self.patient.all()]
+        else:
+            return [p for p in self.patient.all() if p.pk != self.self_patient.pk]
+
+    def is_parent_of(self, other_patient):
+        return other_patient in self.children
+    
+        
+
 @receiver(post_save, sender=ParentGuardian)
 def update_my_user(sender, **kwargs):
     """
