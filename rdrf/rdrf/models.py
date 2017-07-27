@@ -1002,33 +1002,56 @@ class RegistryForm(models.Model):
 
 
     def applicable_to(self, patient):
-        def safe(python_code):
-            return all([python_code.startswith("patient."),
-                        not "delete" in python_code,
-                        not "import" in python_code,
-                        not " = " in python_code,
-                        not ":" in python_code])
-        
+        # 2 levels of restriction:
+        # by patient type , set up in the registry metadata
+        # and further by a dynamic condition
+        # thus we can have forms applicable to all carrier patients
+        # ( patient_type = carrier) and also
+        # deceased patients, say. ( for MTM)
+        # the default case is True - ie all forms are applicable to a patient
+        from rdrf.utils import applicable_forms
+
         if patient is None:
-            return True
+            logger.debug("ap: patient None returning False")
+            return False
 
         if not patient.in_registry(self.registry.code):
+            logger.debug("ap: patient not in reg returning False")
             return False
         else:
-            # if no restriction return True
-            if not self.applicability_condition:
-                return True
+            allowed_forms = [f.name for f in applicable_forms(self.registry, patient)]
+            logger.debug("allowed forms = %s" % allowed_forms)
+            if self.name not in allowed_forms:
+                logger.debug("%s is not in %s: returning False" % (self.name, allowed_forms))
+                return False
+
+        # In allowed list for patient type, but is there a patient condition also?
+
+        logger.debug("in allowed list now checking condition")
+
+        if not self.applicability_condition:
+            logger.debug("no condition defined so returning True")
+            return True
+
+        logger.debug("condition defined - checking ...")
 
         
         evaluation_context = {"patient": patient}
 
-        is_applicable = eval(
-            self.applicability_condition, {"__builtins__": None}, evaluation_context)
+        try:
+            is_applicable = eval(self.applicability_condition,
+                                 {"__builtins__": None},
+                                 evaluation_context)
+        except:
+            # allows us to filter out forms for patients
+            # which are not related with the assumed structure
+            # in the supplied condition
+            logger.debug("Error evaling condition so returning False")
+            return False
+
+        logger.debug("condition evaluated to %s" % is_applicable)
 
         return is_applicable
-
-        
-            
 
 
 class Wizard(models.Model):

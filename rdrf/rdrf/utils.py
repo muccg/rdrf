@@ -655,3 +655,32 @@ def get_supported_languages():
     from django.conf import settings
     Language = namedtuple('Language', ['code', 'name'])
     return [Language(pair[0], pair[1]) for pair in settings.LANGUAGES] 
+
+
+def applicable_forms(registry_model, patient_model):
+    patient_type_map = registry_model.metadata.get("patient_types", None)
+    logger.debug("patient type map = %s" % patient_type_map)
+    # type map looks like:
+    # { "carrier": { "name": "Female Carrier", "forms": ["CarrierForm"]} }
+    all_forms = registry_model.forms
+
+    if patient_type_map is None:
+        return all_forms
+    else:
+        patient_type = patient_model.patient_type
+        logger.debug("patient_type = %s" % patient_type)
+        if patient_type is None:
+            return all_forms
+        else:
+            if patient_type in patient_type_map:
+                applicable_form_names = patient_type_map[patient_type].get("forms",
+                                                                           all_forms)
+                logger.debug("applicable form names = %s" % applicable_form_names)
+                
+                forms =  [form for form in all_forms
+                          if form.name in applicable_form_names]
+
+                logger.debug("forms = %s" % forms)
+                return forms
+            else:
+                return []

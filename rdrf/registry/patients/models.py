@@ -237,6 +237,15 @@ class Patient(models.Model):
 
     living_status = models.CharField(choices=LIVING_STATES, max_length=80, default='Alive', verbose_name=_("Living status"))
 
+    # The following is intended as a hidden field which is set only
+    # via registration process for those registries which support registration
+    # It allows
+    patient_type = models.CharField(max_length=80,
+                                    blank=True,
+                                    null=True,
+                                    verbose_name=_("Patient Type"))
+    
+
     class Meta:
         ordering = ["family_name", "given_names", "date_of_birth"]
         verbose_name_plural = _("Patient List")
