@@ -1966,6 +1966,9 @@ class CustomConsentFormView(View):
                                                         patient_model,
                                                         current_form_name="Consents")
 
+        patient_info = RDRFPatientInfoComponent(registry_model,
+                                                patient_model)
+
         context = {
             "location": "Consents",
             "forms": form_sections,
@@ -1979,6 +1982,7 @@ class CustomConsentFormView(View):
             "registry_code": registry_code,
             'patient_link': PatientLocator(registry_model, patient_model).link,
             "context_launcher": context_launcher.html,
+            "patient_info": patient_info.html,
             "next_form_link": wizard.next_link,
             "previous_form_link": wizard.previous_link,
             "parent": parent,
