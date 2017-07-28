@@ -658,6 +658,7 @@ def get_supported_languages():
 
 
 def applicable_forms(registry_model, patient_model):
+    logger.debug("checking applicable forms for patient %s" % patient_model)
     patient_type_map = registry_model.metadata.get("patient_types", None)
     logger.debug("patient type map = %s" % patient_type_map)
     # type map looks like:
