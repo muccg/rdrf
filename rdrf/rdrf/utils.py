@@ -659,6 +659,7 @@ def get_supported_languages():
 
 def applicable_forms(registry_model, patient_model):
     logger.debug("checking applicable forms for patient %s" % patient_model)
+    logger.debug("patient type = %s" % patient_model.patient_type)
     patient_type_map = registry_model.metadata.get("patient_types", None)
     logger.debug("patient type map = %s" % patient_type_map)
     # type map looks like:
@@ -670,8 +671,17 @@ def applicable_forms(registry_model, patient_model):
     else:
         patient_type = patient_model.patient_type
         logger.debug("patient_type = %s" % patient_type)
-        if patient_type is None:
-            return all_forms
+        if not patient_type:
+            # list of form names which are "owned" by some patient type
+            # if a patient has no designated patient type they see
+            # the complement of forms which are restricted to any of the
+            # defined types
+            typed_forms = [form
+                           for k in patient_type_map.keys()
+                           for form in patient_type_map[k]["forms"]]
+            
+            logger.debug("typed forms = %s" % typed_forms)
+            return [ f for f in all_forms if f.name not in typed_forms]
         else:
             if patient_type in patient_type_map:
                 applicable_form_names = patient_type_map[patient_type].get("forms",
@@ -681,7 +691,7 @@ def applicable_forms(registry_model, patient_model):
                 forms =  [form for form in all_forms
                           if form.name in applicable_form_names]
 
-                logger.debug("forms = %s" % forms)
+                logger.debug("applicable forms = %s" % forms)
                 return forms
             else:
                 return []
