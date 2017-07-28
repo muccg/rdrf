@@ -54,6 +54,7 @@ from rdrf.form_progress import FormProgress
 from rdrf.contexts_api import RDRFContextError
 from rdrf.locators import PatientLocator
 from rdrf.components import RDRFContextLauncherComponent
+from rdrf.components import RDRFPatientInfoComponent
 from rdrf.questionnaires import PatientCreatorError
 
 
@@ -328,10 +329,13 @@ class FormView(View):
         # we provide a "path" to the header field which contains an embedded Django template
         context["header"] = self.registry_form.header
         context["header_expression"] = "rdrf://model/RegistryForm/%s/header" % self.registry_form.pk
+
+        patient_info_component = RDRFPatientInfoComponent(self.registry, patient_model)
         
         if not self.CREATE_MODE:
             context["CREATE_MODE"] = False
             context["show_print_button"] = True
+            context["patient_info"] = patient_info_component.html
             context["show_archive_button"] = request.user.can_archive
             context["not_linked"] = not patient_model.is_linked
             context["archive_patient_url"] = patient_model.get_archive_url(self.registry) if request.user.can_archive else ""
@@ -549,6 +553,8 @@ class FormView(View):
                                                         patient,
                                                         self.registry_form.name,
                                                         self.rdrf_context)
+        
+        patient_info_component = RDRFPatientInfoComponent(registry, patient)
 
         context = {
             'CREATE_MODE': self.CREATE_MODE,
@@ -561,6 +567,7 @@ class FormView(View):
             'patient_id': patient_id,
             'patient_link': PatientLocator(registry, patient).link,
             'sections': sections,
+            'patient_info': patient_info_component.html,
             'section_field_ids_map': section_field_ids_map,
             'section_ids': ids,
             'forms': form_section,

@@ -141,12 +141,14 @@
         <div class="container">
 	  <div class="row">
 	   <!-- name row -->
-	    <div class="col-md-6 col-sm-6 col-xs-6">
+	    <div class="col-md-4 col-sm-4 col-xs-4">
               <h3><span  class="glyphicon glyphicon-list-alt" aria-hidden="true"></span> {% block location %}{{ location|safe|translate }}{% endblock %}</h3>
-             		
+	    </div>
+	    <div class="col-md-4 col-sm-4 col-xs-4">
+              {{ patient_info }}	
 	    </div>
 
-	    <div class="col-md-6 col-sm-6 col-xs-6" style="text-align: right">
+	    <div class="col-md-4 col-sm-4 col-xs-4" style="text-align: right">
 	      <h3>
 		
 	       {% if patient_link %}
