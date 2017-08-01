@@ -89,7 +89,7 @@ class Command(BaseCommand):
             ts = parse_iso_datetime(last_saved_snapshot.data["timestamp"])
             return ts
         else:
-            # if they haven't ever saved anything - we should do what..
+            # if they haven't ever saved anything
             return None
         
         
@@ -98,15 +98,16 @@ class Command(BaseCommand):
             for patient_model in Patient.objects.filter(rdrf_registry__in=[registry_model]):
                 if patient_model.user:
                     yield patient_model, patient_model.user
-
         else:
-            for parent_guardian_model in ParentGuardian.objects.all():
+            for parent_guardian_model in ParentGuardian.objects.filter(user__registry__in=[registry_model]):
                 if parent_guardian_model.user:
-                    regs = [ r for r in parent_guardian.rdrf_registry.all() ]
-                    if registry_model in regs:
-                        yield parent_guardian_model, parent_guardian_model.user
+                    yield parent_guardian_model, parent_guardian_model.user
 
     def _check_users(self, registry_model, save_threshold):
+
+        def stale(last_saved):
+            return last_saved is None or last_saved < save_threshold
+        
         for patient_model, user in self._get_patient_users(registry_model):
             last_saved = self._get_last_saved_timestamp(registry_model,
                                                         user,
@@ -120,14 +121,16 @@ class Command(BaseCommand):
                 last_saved = self._get_last_saved_timestamp(registry_model,
                                                             user,
                                                             parent_guardian_model.self_patient)
-                if last_saved < save_threshold:
+
+                print("self patient last saved = %s" % last_saved)
+                if stale(last_saved):
                     yield user, PatientType.SELF_PATIENT, parent_guardian_model.self_patient
                     
             for child_patient_model in parent_guardian_model.patient.all():
                 last_saved = self._get_last_saved_timestamp(registry_model,
                                                             user,
                                                             child_patient_model)
-                if last_saved < save_threshold:
+                if stale(last_saved):
                     yield user, PatientType.CHILD, child_patient_model
 
                 
