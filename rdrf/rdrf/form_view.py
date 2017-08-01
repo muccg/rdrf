@@ -413,6 +413,9 @@ class FormView(View):
         else:
             dyn_patient = DynamicDataWrapper(patient, rdrf_context_id='add')
 
+
+        dyn_patient.user = request.user
+
         form_obj = self.get_registry_form(form_id)
         # this allows form level timestamps to be saved
         dyn_patient.current_form_model = form_obj

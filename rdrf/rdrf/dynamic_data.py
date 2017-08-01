@@ -444,6 +444,7 @@ class DynamicDataWrapper(object):
         # when saving data to Mongo this field allows timestamp to be recorded
         self.current_form_model = None
         self.rdrf_context_id = rdrf_context_id
+        self.user = None  # user saving the data
 
         # holds reference to the complete data record for this object
         self.patient_record = None
@@ -458,8 +459,12 @@ class DynamicDataWrapper(object):
     def _make_record(self, registry_code, collection_name, data=None, **kwargs):
         data = dict(data or {})
         data["context_id"] = self.rdrf_context_id
-        return Modjgo.for_obj(self.obj, registry_code=registry_code,
+        m = Modjgo.for_obj(self.obj, registry_code=registry_code,
                               collection=collection_name, data=data, **kwargs)
+
+        if collection_name == "history":
+            m.data["username"] = None if not self.user else self.user.username
+        return m
 
     def has_data(self, registry_code):
         return self._get_record(registry_code, "cdes").exists()
@@ -728,6 +733,7 @@ class DynamicDataWrapper(object):
                         "timestamp": timestamp,
                         "record": record.data,
                         }
+
             history = self._make_record(registry_code, "history", data=snapshot)
             history.save()
             logger.debug("snapshot added for %s patient %s timestamp %s" % (registry_code, patient_id, timestamp))
