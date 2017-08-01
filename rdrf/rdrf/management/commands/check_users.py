@@ -3,38 +3,47 @@ from datetime import datetime, timedelta
 
 from django.core.management import BaseCommand
 from rdrf.models import Registry
+from rdrf.models import Modjgo
+from rdrf.utils import parse_iso_datetime
+
 from registry.patients.models import Patient
 from registry.patients.models import ParentGuardian
 
+# Send reminders to patient/parent users with stale data
+
 class PatientType:
-    PATIENT = 1
-    CHILD = 2
-    SELF_PATIENT = 3
-    
+    PATIENT = "PATIENT"
+    CHILD = "CHILD"
+    SELF_PATIENT = "SELF PATIENT"
+
+def cmp_timestamp(a,b):
+    dta = parse_iso_datetime(a.data["timestamp"])
+    dtb = parse_iso_datetime(b.data["timestamp"])    
+    if dta is not None and dtb is not None:
+        return tsa < tsb
+    return True
+
 
 class Command(BaseCommand):
-    help = 'Send Reminders for various events'
+    help = 'Send Reminders to users with stale data'
 
     def add_arguments(self, parser):
         parser.add_argument('-r',"--registry_code",
                             action='store',
                             dest='registry_code',
                             help='Code of registry to check')
-        parser.add_argument('-e','--event',
-                            action='store',
-                            dest='event',
-                            default="cdes",
-                            choices=['cdes', 'history', 'progress', 'registry_specific'],
-                            help='Collection name')
-
-    def _usage(self):
-        print(explanation)
-
     def _print(self, msg):
         self.stdout.write(msg + "\n")
 
-    def _get_threshold(self):
-        return datetime.now() - timedelta(months=6)
+    def _get_threshold(self, registry_model):
+        metadata = registry_model.metadata
+        if "reminders" in metadata:
+            reminder_dict = metadata["reminders"]
+            last_saved_threshold_months= reminder_dict.get("last_saved", 12)
+        else:
+            return None
+            
+        return datetime.now() - timedelta(minutes=last_saved_threshold_months)
         
 
     def handle(self, *args, **options):
@@ -49,20 +58,43 @@ class Command(BaseCommand):
             self._print("Registry does not exist")
             sys.exit(1)
 
-        save_threshhold = self._get_threshold()
+        save_threshold = self._get_threshold(registry_model)
+        if save_threshold is None:
+            self._print("Registry %s does not have reminders" % registry_model)
+            sys.exit(1)
         
-        for user, patient_model, patient_type in self._check_users(registry_model, save_threshold):
-            self._process_reminder(user, patient_model, patient_type)
+        for user,relationship_to_user,patient_model in self._check_users(registry_model, save_threshold):
+            self._process_reminder(user, relationship_to_user, patient_model)
 
 
-    def _process_reminder(self, user, patient_model, patient_type):
-        print("todo process reminder for user %s patient %s type %s" % (user,
-                                                                        patient_model,
-                                                                        patient_type))
+    def _process_reminder(self, user, relationship_to_user, patient_model):
+        print("%s,%s,%s" % (user.username,
+                            relationship_to_user,
+                            patient_model.pk))
+
+    def _get_last_saved_timestamp(self, registry_model, user, patient_model):
+        # check last time user saved patient for registry
+        history_collection = Modjgo.collection(registry_model.code,
+                                               collection="history")
+
+        snapshots_qs = history_collection.find(patient_model,
+                                               username=user.username)
+        snapshots_qs = snapshots_qs.exclude(data__timestamp__isnull)
+        snapshots_qs = snapshots_qs.exclude(data__timestamp=="")
         
-    def get_users(self, registry_model, parent=False):
+        
+        snapshots = [ s for s in sorted(snapshots_qs,cmp=cmp_timestamp)]
+        print(snapshots)
+        if snapshots:
+            return snapshots[0]
+        else:
+            # if they haven't ever saved anything - we should do what..
+            return None
+        
+        
+    def _get_users(self, registry_model, parent=False):
         if not parent:
-            for patient_model in Patient.objects.filter(registry__in=[registry_model]):
+            for patient_model in Patient.objects.filter(rdrf_registry__in=[registry_model]):
                 if patient_model.user:
                     yield patient_model, user
 
@@ -73,27 +105,29 @@ class Command(BaseCommand):
                     if registry_model in regs:
                         yield parent_guardian_model, parent_guardian_model.user
 
-
-    def _get_children(self, parent_guardian_model):
-        # to do
-        return []
-                    
     def _check_users(self, registry_model, save_threshold):
         for patient_model, user in self._get_users(registry_model):
-            last_saved = self._get_last_saved_timestamp(patient_model, user)
+            last_saved = self._get_last_saved_timestamp(registry_model,
+                                                        user,
+                                                        patient_model)
             if last_saved < save_threshold:
-                yield user, patient_model, PatientType.PATIENT
+                yield user, PatientType.PATIENT, patient_model
 
         for parent_guardian_model, user in self._get_users(registry_model, parent=True):
+            # If the parent guardian is also a self patient check that also
             if parent_guardian_model.self_patient:
-                last_saved = self._get_last_saved_timestamp(parent_guardian_model.self_patient, user)
-                if last_saved < save_threshhold:
-                    yield user, PatientType.SELF_PATIENT
-                    
-            for child_patient_model in self._get_children(parent_guardian_model):
-                last_saved = self._get_last_saved_timestamp(child_patient_model, user)
+                last_saved = self._get_last_saved_timestamp(registry_model,
+                                                            user,
+                                                            parent_guardian_model.self_patient)
                 if last_saved < save_threshold:
-                    yield user, PatientType.CHILD
+                    yield user, PatientType.SELF_PATIENT, parent_guardian_model.self_patient
+                    
+            for child_patient_model in parent_guardian_model.patient.all():
+                last_saved = self._get_last_saved_timestamp(registry_model,
+                                                            user,
+                                                            child_patient_model)
+                if last_saved < save_threshold:
+                    yield user, PatientType.CHILD, child_patient_model
 
                 
                 
