@@ -16,13 +16,14 @@ class PatientType:
     CHILD = "CHILD"
     SELF_PATIENT = "SELF PATIENT"
 
-def cmp_timestamp(a,b):
-    dta = parse_iso_datetime(a.data["timestamp"])
-    dtb = parse_iso_datetime(b.data["timestamp"])    
-    if dta is not None and dtb is not None:
-        return tsa < tsb
-    return True
+def timestamp_key_func(snapshot):
+    ts = snapshot.data["timestamp"]
+    return parse_iso_datetime(ts)
 
+def has_timestamp(snapshot):
+    return all([snapshot is not None,
+                snapshot.data,
+                "timestamp" in snapshot.data])
 
 class Command(BaseCommand):
     help = 'Send Reminders to users with stale data'
@@ -74,29 +75,29 @@ class Command(BaseCommand):
 
     def _get_last_saved_timestamp(self, registry_model, user, patient_model):
         # check last time user saved patient for registry
-        history_collection = Modjgo.collection(registry_model.code,
+        history_collection = Modjgo.objects.collection(registry_model.code,
                                                collection="history")
 
         snapshots_qs = history_collection.find(patient_model,
                                                username=user.username)
-        snapshots_qs = snapshots_qs.exclude(data__timestamp__isnull)
-        snapshots_qs = snapshots_qs.exclude(data__timestamp=="")
         
-        
-        snapshots = [ s for s in sorted(snapshots_qs,cmp=cmp_timestamp)]
-        print(snapshots)
+        snapshots = sorted([s for s in snapshots_qs if has_timestamp(s)],
+                           key=timestamp_key_func,
+                           reverse=True)
         if snapshots:
-            return snapshots[0]
+            last_saved_snapshot = snapshots[0]
+            ts = parse_iso_datetime(last_saved_snapshot.data["timestamp"])
+            return ts
         else:
             # if they haven't ever saved anything - we should do what..
             return None
         
         
-    def _get_users(self, registry_model, parent=False):
+    def _get_patient_users(self, registry_model, parent=False):
         if not parent:
             for patient_model in Patient.objects.filter(rdrf_registry__in=[registry_model]):
                 if patient_model.user:
-                    yield patient_model, user
+                    yield patient_model, patient_model.user
 
         else:
             for parent_guardian_model in ParentGuardian.objects.all():
@@ -106,14 +107,14 @@ class Command(BaseCommand):
                         yield parent_guardian_model, parent_guardian_model.user
 
     def _check_users(self, registry_model, save_threshold):
-        for patient_model, user in self._get_users(registry_model):
+        for patient_model, user in self._get_patient_users(registry_model):
             last_saved = self._get_last_saved_timestamp(registry_model,
                                                         user,
                                                         patient_model)
             if last_saved < save_threshold:
                 yield user, PatientType.PATIENT, patient_model
 
-        for parent_guardian_model, user in self._get_users(registry_model, parent=True):
+        for parent_guardian_model, user in self._get_patient_users(registry_model, parent=True):
             # If the parent guardian is also a self patient check that also
             if parent_guardian_model.self_patient:
                 last_saved = self._get_last_saved_timestamp(registry_model,
