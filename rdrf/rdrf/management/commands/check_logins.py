@@ -24,6 +24,9 @@ class Command(BaseCommand):
     def _print(self, msg):
         self.stdout.write(msg + "\n")
 
+    def _error(self, msg):
+        self.stderr.write(msg + "\n")
+
     def _get_numdays(self, registry_model):
         metadata = registry_model.metadata
         if "reminders" in metadata:
@@ -39,13 +42,13 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         registry_code = options.get("registry_code", None)
         if registry_code is None:
-            self._print("Registry code required")
+            self._error("Registry code required")
             sys.exit(1)
 
         try:
             registry_model = Registry.objects.get(code=registry_code)
         except Registry.DoesNotExist:
-            self._print("Registry does not exist")
+            self._error("Registry does not exist")
             sys.exit(1)
 
         days = options.get("days", None)
