@@ -2,7 +2,7 @@ from rdrf.email_notification import process_notification
 from datetime import datetime
 import logging
 
-logger = logger.getLogger(__name__)
+logger = logging.getLogger(__name__)
 
 class ReminderProcessor:
     def __init__(self, user, registry_model):

@@ -2,9 +2,16 @@ import sys
 from datetime import datetime, timedelta
 from django.core.management import BaseCommand
 from rdrf.models import Registry
+from rdrf.reminders import ReminderProcessor
+
 from registry.groups.models import CustomUser
 from registry.patients.models import Patient
 from registry.patients.models import ParentGuardian
+
+def send_reminder(user, registry_model):
+    rp = ReminderProcessor(user, registry_model)
+    rp.process()
+    
 
 class Command(BaseCommand):
     help = "Lists users who haven't logged in for a while"
@@ -20,6 +27,13 @@ class Command(BaseCommand):
                             dest="days",
                             type=int,
                             help="Number of days since last login.")
+
+        parser.add_argument("-a", "--action",
+                            action="store",
+                            dest="action",
+                            choices=['print','send-reminder'],
+                            default='print',
+                            help="Action to perform")
         
     def _print(self, msg):
         self.stdout.write(msg + "\n")
@@ -57,10 +71,28 @@ class Command(BaseCommand):
             days = self._get_numdays(registry_model)
 
         threshold = self._get_threshold(days)
+
+        action = options.get("action", None)
+        if action is None:
+            self._error("no action?")
+            sys.exit(1)
+
+        if action == "print":
+            action_func = lambda user : print(user.username)
+        elif action == "send-reminder":
+            action_func = lambda user : send_reminder(user, registry_model)
+        else:
+            self._error("Unknown action: %s" % action)
+            sys.exit(1)
             
         for user in self._get_users(registry_model):
             if user.last_login is None or user.last_login < threshold:
-                print(user.username)
+                try:
+                    action_func(user)
+                except Exception as ex:
+                    self._error("Error performing %s on user %s: %s" % (action,
+                                                                        user,
+                                                                        ex))
 
 
     def _get_users(self, registry_model):
