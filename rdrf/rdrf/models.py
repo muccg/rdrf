@@ -1972,7 +1972,8 @@ class EmailNotification(models.Model):
         (EventType.OTHER_CLINICIAN, "Other Clinician"),
         (EventType.NEW_PATIENT, "New Patient Registered"),
         (EventType.NEW_PATIENT_PARENT, "New Patient Registered (Parent)"),
-        (EventType.ACCOUNT_VERIFIED, "Account Verified")
+        (EventType.ACCOUNT_VERIFIED, "Account Verified"),
+        (EventType.REMINDER, "Reminder")
     )
 
     description = models.CharField(max_length=100, choices=EMAIL_NOTIFICATIONS)
