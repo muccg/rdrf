@@ -18,6 +18,7 @@ class Command(BaseCommand):
         parser.add_argument("-d", "--days",
                             action="store",
                             dest="days",
+                            type=int,
                             help="Number of days since last login.")
         
     def _print(self, msg):
