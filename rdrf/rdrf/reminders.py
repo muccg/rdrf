@@ -7,17 +7,19 @@ import logging
 logger = logging.getLogger(__name__)
 
 class ReminderProcessor:
-    def __init__(self, user, registry_model):
+    def __init__(self, user, registry_model, process_func=process_notification):
         self.user = user
         self.registry_model = registry_model
         self.registry_id = registry_model.id
         self.user_id = user.id
         self.threshold = self.user.last_login
+        self.process_func = process_func
 
     def _can_send(self):
         # These are the rules for MTM - should we push into config?
         now = datetime.now()
         existing_reminders = self._get_reminders()
+        logger.debug("existing reminders = %s" % existing_reminders)
         num_sent = len(existing_reminders)
         if num_sent >= 2:
             return False
@@ -51,9 +53,9 @@ class ReminderProcessor:
             template_data = {"user": self.user,
                              "registry": self.registry_model}
     
-            process_notification(self.registry_model.code,
+            self.process_func(self.registry_model.code,
                                  "reminder",
                                  template_data)
         else:
-            logger.debug("can't send because of rules")
+            logger.info("can't send because of rules")
     

@@ -3,6 +3,7 @@ import logging
 import os
 import yaml
 from datetime import datetime
+from datetime import timedelta
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth import get_user_model
@@ -18,9 +19,15 @@ from .models import Modjgo
 from .form_view import FormView
 from registry.patients.models import Patient
 from registry.patients.models import State, PatientAddress, AddressType
+from django.contrib.auth.models import Group
 from registry.groups.models import WorkingGroup, CustomUser
 from .utils import de_camelcase, check_calculation, TimeStripper
 from copy import deepcopy
+
+from rdrf.models import EmailNotification
+from rdrf.models import EmailNotificationHistory
+from django.core.management import call_command
+
 
 logger = logging.getLogger(__name__)
 
@@ -1116,6 +1123,124 @@ class StructureChecker(TestCase):
             output = self._run_command(registry_code="foobar",collection="history")
 
         self.assertEqual(cm.exception.code, 1)
+
+
+class RemindersTestCase(TestCase):
+    def _run_command(self, *args, **kwargs):
+        import io
+        out_stream = io.StringIO("")
+        call_command('check_logins', *args, stdout=out_stream, **kwargs)
+        return out_stream.getvalue()
+
+    def setUp(self):
+        self.registry = Registry()
+        self.registry.code = "foobar"
+        self.registry.save()
+        self.user = None
+
+
+    def _setup_user(self, username, last_login, group="patients"):
+        patients_group, created = Group.objects.get_or_create(name="Patients")
+        parents_group, created = Group.objects.get_or_create(name="Parents")
+        curators_group, created = Group.objects.get_or_create(name="Curators")
+        if created:
+            patients_group.save()
+        if self.user:
+            self.user.delete()
+            self.user = None
+            
+        self.user = CustomUser()
+        self.user.username = username
+        self.user.last_login = last_login
+        self.user.is_active = True
+        self.user.save()
+        self.user.registry = [self.registry]
+        self.user.save()
+
+        if group == "patients":
+            self.user.groups = [patients_group]
+        elif group == "parents":
+            self.user.groups = [parents_group]
+        elif group == "curators":
+            self.user.groups = [curators_group]
+            
+        self.user.save()
+
+    def set_metadata(self, d):
+        import json
+        self.registry.metadata_json = json.dumps(d)
+        self.registry.save()
+
+
+    def _setup_notification():
+        t = EmailTemplate()
+        t.language = "en"
+        t.description = "test reminder template"
+        t.subject = "testing"
+        t.body = "test"
+        t.save()
+        self.template = t
+
+        en = EmailNotification()
+        en.description = "reminder"
+        en.registry = self.registry
+        en.recipient = "{{user.email}}"
+        en.save()
+        en.templates = [self.template]
+        en.save()
+        self.email_notification = en
+    
+    def test_check_logins_command(self):
+        now = datetime.now()
+        class LastLogin:
+            RECENTLY = now - timedelta(days=1)
+            LONG_AGO = now - timedelta(days=3650)
+            ONE_YEAR_AGO = now - timedelta(days=365)
+
+
+        # dead user
+        self._setup_user("testuser", LastLogin.LONG_AGO)
+        result = self._run_command(registry_code="foobar",days=365)
+        lines = result.split("\n")
+        assert "testuser" in lines, "Expected to see testuser in output: instead [%s]" % result
+
+        # patient user logged in inside threshhold
+        self._setup_user("testuser", LastLogin.RECENTLY)
+        result = self._run_command(registry_code="foobar",days=365)
+        assert result == "", "Expected no output instead got [%s]" % result
+
+        # patient on edge is detected
+        self._setup_user("testuser", LastLogin.ONE_YEAR_AGO)
+        result = self._run_command(registry_code="foobar",days=365)
+        assert result == "testuser\n", "Expected testuser instead got [%s]" % result
+
+        # parents are detected
+        self._setup_user("testuser", LastLogin.LONG_AGO, group="parents")
+        result = self._run_command(registry_code="foobar",days=365)
+        assert result == "testuser\n", "Expected testuser instead got [%s]" % result
+
+        # but not other types of users
+        self._setup_user("testuser", LastLogin.LONG_AGO, group="curators")
+        result = self._run_command(registry_code="foobar",days=365)
+        assert result == "", "Expected no output instead got [%s]" % result
+
+
+
+
+        
+    
+        
+        
+
+        
+
+
+        
+            
+        
+        
+    
+        
 
 
 

@@ -8,9 +8,16 @@ from registry.groups.models import CustomUser
 from registry.patients.models import Patient
 from registry.patients.models import ParentGuardian
 
-def send_reminder(user, registry_model):
-    rp = ReminderProcessor(user, registry_model)
+def send_reminder(user, registry_model,process_func=None):
+    if process_func:
+        rp = ReminderProcessor(user, registry_model, process_func)
+    else:
+        rp = ReminderProcessor(user, registry_model)
     rp.process()
+
+
+
+
     
 
 class Command(BaseCommand):
@@ -31,8 +38,14 @@ class Command(BaseCommand):
         parser.add_argument("-a", "--action",
                             action="store",
                             dest="action",
-                            choices=['print','send-reminder'],
+                            choices=['print','send-reminders'],
                             default='print',
+                            help="Action to perform")
+
+        parser.add_argument("-t", "--test-mode",
+                            action="store_true",
+                            dest="test_mode",
+                            default=False,
                             help="Action to perform")
         
     def _print(self, msg):
@@ -40,6 +53,12 @@ class Command(BaseCommand):
 
     def _error(self, msg):
         self.stderr.write(msg + "\n")
+
+    def _dummy_send(self, reg_code, description=None, template_data={}):
+        msg = "dummy send reg_code=%s description=%s template_data=%s" % (reg_code,
+                                                                          description,
+                                                                          template_data)
+        self._print(msg)
 
     def _get_numdays(self, registry_model):
         metadata = registry_model.metadata
@@ -77,10 +96,16 @@ class Command(BaseCommand):
             self._error("no action?")
             sys.exit(1)
 
+        test_mode = options.get("test_mode", False)
+
         if action == "print":
-            action_func = lambda user : print(user.username)
-        elif action == "send-reminder":
-            action_func = lambda user : send_reminder(user, registry_model)
+            action_func = lambda user : self._print(user.username)
+        elif action == "send-reminders":
+            if test_mode:
+                process_func = self._dummy_send
+                action_func = lambda user : send_reminder(user, registry_model, process_func)
+            else: 
+                action_func = lambda user : send_reminder(user, registry_model)
         else:
             self._error("Unknown action: %s" % action)
             sys.exit(1)
