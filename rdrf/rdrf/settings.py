@@ -164,6 +164,7 @@ INSTALLED_APPS = [
     'registry.genetic',
     'registration',
     'storages',
+    'django_cron',
 ]
 
 
@@ -476,3 +477,7 @@ PROJECT_TITLE_LINK = "patientslisting"
 
 
 LOCALE_PATHS = env.getlist("locale_paths", [os.path.join(WEBAPP_ROOT, "translations/locale")])
+
+CRON_CLASSES = []
+
+
