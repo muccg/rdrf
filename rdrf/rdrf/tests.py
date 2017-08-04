@@ -25,9 +25,10 @@ from .utils import de_camelcase, check_calculation, TimeStripper
 from copy import deepcopy
 
 from rdrf.models import EmailNotification
+from rdrf.models import EmailTemplate
 from rdrf.models import EmailNotificationHistory
 from django.core.management import call_command
-
+import json
 
 logger = logging.getLogger(__name__)
 
@@ -1172,7 +1173,7 @@ class RemindersTestCase(TestCase):
         self.registry.save()
 
 
-    def _setup_notification():
+    def _setup_notification(self):
         t = EmailTemplate()
         t.language = "en"
         t.description = "test reminder template"
@@ -1189,40 +1190,137 @@ class RemindersTestCase(TestCase):
         en.templates = [self.template]
         en.save()
         self.email_notification = en
+
+    def _create_dummy_history(self, date_stamp):
+        enh = EmailNotificationHistory()
+        enh.date_stamp = date_stamp
+        enh.language = "en"
+        enh.email_notification = self.email_notification
+        enh.template_data = json.dumps({"user": {"id": self.user.id,
+                                                 "model": "CustomUser",
+                                                 "app": "groups"},
+                                        "registry": {"id": self.registry.id,
+                                                     "app": "rdrf",
+                                                     "model": "Registry"}})
+
+        enh.save()
+        enh.date_stamp = date_stamp
+        enh.save()
+        print("enh.date_stamp = %s" % enh.date_stamp)
+
+
+    def _clear_notifications(self):
+        EmailNotificationHistory.objects.all().delete()
+        EmailNotification.objects.all().delete()
+        EmailTemplate.objects.all().delete()
+
     
     def test_check_logins_command(self):
         now = datetime.now()
-        class LastLogin:
+        class Time:
             RECENTLY = now - timedelta(days=1)
+            MONTH_AGO = now - timedelta(days=30)
             LONG_AGO = now - timedelta(days=3650)
             ONE_YEAR_AGO = now - timedelta(days=365)
 
-
         # dead user
-        self._setup_user("testuser", LastLogin.LONG_AGO)
+        self._setup_user("testuser", Time.LONG_AGO)
         result = self._run_command(registry_code="foobar",days=365)
         lines = result.split("\n")
         assert "testuser" in lines, "Expected to see testuser in output: instead [%s]" % result
 
         # patient user logged in inside threshhold
-        self._setup_user("testuser", LastLogin.RECENTLY)
+        self._setup_user("testuser", Time.RECENTLY)
         result = self._run_command(registry_code="foobar",days=365)
         assert result == "", "Expected no output instead got [%s]" % result
 
         # patient on edge is detected
-        self._setup_user("testuser", LastLogin.ONE_YEAR_AGO)
+        self._setup_user("testuser", Time.ONE_YEAR_AGO)
         result = self._run_command(registry_code="foobar",days=365)
         assert result == "testuser\n", "Expected testuser instead got [%s]" % result
 
         # parents are detected
-        self._setup_user("testuser", LastLogin.LONG_AGO, group="parents")
+        self._setup_user("testuser", Time.LONG_AGO, group="parents")
         result = self._run_command(registry_code="foobar",days=365)
         assert result == "testuser\n", "Expected testuser instead got [%s]" % result
 
         # but not other types of users
-        self._setup_user("testuser", LastLogin.LONG_AGO, group="curators")
+        self._setup_user("testuser", Time.LONG_AGO, group="curators")
         result = self._run_command(registry_code="foobar",days=365)
         assert result == "", "Expected no output instead got [%s]" % result
+
+        # mock the send-reminders action
+        self._setup_user("testuser", Time.LONG_AGO)
+        
+        result = self._run_command(registry_code="foobar",
+                                   days=365,
+                                   action="send-reminders",
+                                   test_mode=True)
+
+
+        lines = result.split("\n")
+    
+        assert "dummy send reg_code=foobar description=reminder" in lines[0], "send-reminders failed?"
+
+        # create some dummy email notification history models to simulate previous reminders being sent
+
+        self._setup_notification()
+        self._create_dummy_history(Time.RECENTLY)
+
+        result = self._run_command(registry_code="foobar",
+                                   days=365,
+                                   action="send-reminders",
+                                   test_mode=True)
+
+        lines = result.split("\n")
+        
+
+        assert "not sent" in lines, "Expected reminder NOT to be sent if one already sent"
+
+
+        # 2nd one allowed
+        self._clear_notifications()
+        self._setup_user("testuser", Time.LONG_AGO)
+        self._setup_notification()
+        self._create_dummy_history(Time.MONTH_AGO)
+
+        result = self._run_command(registry_code="foobar",
+                                   days=365,
+                                   action="send-reminders",
+                                   test_mode=True)
+
+        lines = result.split("\n")
+        print(lines)
+        assert "dummy send reg_code=foobar description=reminder" in lines[0], "send-reminders failed?"
+        
+        self._clear_notifications()
+        self._setup_user("testuser", Time.LONG_AGO)
+        self._setup_notification()
+        self._create_dummy_history(Time.MONTH_AGO)
+        self._create_dummy_history(Time.MONTH_AGO)
+        result = self._run_command(registry_code="foobar",
+                                   
+                                   days=365,
+                                   action="send-reminders",
+                                   test_mode=True)
+
+        lines = result.split("\n")
+        print(lines)
+        assert "not sent" in lines, "Expected reminder NOT to be sent if two or more already sent"
+        
+        
+    
+        
+
+        
+        
+        
+
+        
+
+
+        
+        
 
 
 

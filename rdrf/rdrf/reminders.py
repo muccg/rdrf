@@ -13,20 +13,19 @@ class ReminderProcessor:
         self.registry_id = registry_model.id
         self.user_id = user.id
         self.threshold = self.user.last_login
-        self.process_func = process_func
+        self.process_func = process_func # exposed to allow testing
 
     def _can_send(self):
         # These are the rules for MTM - should we push into config?
         now = datetime.now()
         existing_reminders = self._get_reminders()
-        logger.debug("existing reminders = %s" % existing_reminders)
         num_sent = len(existing_reminders)
         if num_sent >= 2:
             return False
         elif num_sent == 1:
             last_reminder = existing_reminders[-1]
             delta = now - last_reminder.date_stamp
-            return  delta.days >= 14
+            return delta.days >= 14
         else:
             return True
 
@@ -56,6 +55,8 @@ class ReminderProcessor:
             self.process_func(self.registry_model.code,
                                  "reminder",
                                  template_data)
+            return True
         else:
             logger.info("can't send because of rules")
+            return False
     

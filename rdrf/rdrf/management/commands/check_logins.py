@@ -13,7 +13,8 @@ def send_reminder(user, registry_model,process_func=None):
         rp = ReminderProcessor(user, registry_model, process_func)
     else:
         rp = ReminderProcessor(user, registry_model)
-    rp.process()
+    sent = rp.process()
+    return sent
 
 
 
@@ -113,7 +114,10 @@ class Command(BaseCommand):
         for user in self._get_users(registry_model):
             if user.last_login is None or user.last_login < threshold:
                 try:
-                    action_func(user)
+                    reminders_sent = action_func(user)
+                    if test_mode:
+                        if not reminders_sent:
+                            self._print("not sent")
                 except Exception as ex:
                     self._error("Error performing %s on user %s: %s" % (action,
                                                                         user,
