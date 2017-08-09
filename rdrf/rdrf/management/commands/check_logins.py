@@ -3,6 +3,7 @@ from datetime import datetime, timedelta
 from django.core.management import BaseCommand
 from rdrf.models import Registry
 from rdrf.reminders import ReminderProcessor
+from rdrf.email_notifications import process_notification
 
 from registry.groups.models import CustomUser
 from registry.patients.models import Patient
@@ -74,7 +75,12 @@ class Command(BaseCommand):
         return datetime.now() - timedelta(days=num_days)
 
     def handle(self, *args, **options):
-        registry_code = options.get("registry_code", None)
+        action = options.get("action")
+        if action is None:
+            self._error("no action?")
+            sys.exit(1)
+
+        registry_code = options.get("registry_code")
         if registry_code is None:
             self._error("Registry code required")
             sys.exit(1)
@@ -85,17 +91,9 @@ class Command(BaseCommand):
             self._error("Registry does not exist")
             sys.exit(1)
 
-        days = options.get("days", None)
-        # allow override form command line else use registry config
-        if days is None:
-            days = self._get_numdays(registry_model)
-
+        days = options.get("days", self._get_numdays(registry_model))
         threshold = self._get_threshold(days)
 
-        action = options.get("action", None)
-        if action is None:
-            self._error("no action?")
-            sys.exit(1)
 
         test_mode = options.get("test_mode", False)
 
@@ -103,10 +101,13 @@ class Command(BaseCommand):
             action_func = lambda user : self._print(user.username)
         elif action == "send-reminders":
             if test_mode:
-                process_func = self._dummy_send
-                action_func = lambda user : send_reminder(user, registry_model, process_func)
+                action_func = lambda user : send_reminder(user,
+                                                          registry_model,
+                                                          self._dummy_send)
             else: 
-                action_func = lambda user : send_reminder(user, registry_model)
+                action_func = lambda user : send_reminder(user,
+                                                          registry_model,
+                                                          process_notification)
         else:
             self._error("Unknown action: %s" % action)
             sys.exit(1)
