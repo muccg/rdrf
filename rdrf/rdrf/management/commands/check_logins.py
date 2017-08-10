@@ -3,7 +3,7 @@ from datetime import datetime, timedelta
 from django.core.management import BaseCommand
 from rdrf.models import Registry
 from rdrf.reminders import ReminderProcessor
-from rdrf.email_notifications import process_notification
+from rdrf.email_notification import process_notification
 
 from registry.groups.models import CustomUser
 from registry.patients.models import Patient
