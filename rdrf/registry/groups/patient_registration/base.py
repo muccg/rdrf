@@ -35,13 +35,16 @@ class BaseRegistration(object):
     def process(self, ):
         return
 
-    def _create_django_user(self, request, django_user, registry, is_parent):
-        if is_parent:
-            user_group = self._get_group("Parents")
+    def _create_django_user(self, request, django_user, registry, is_parent, groups=[]):
+        user_groups = [self._get_group(g) for g in groups]
+        if not user_groups:
+            if is_parent:
+                user_group = self._get_group("Parents")
+            else:
+                user_group = self._get_group("Patients")
+            django_user.groups = [user_group.id, ] if user_group else []
         else:
-            user_group = self._get_group("Patients")
-
-        django_user.groups = [user_group.id, ] if user_group else []
+            django_user.groups = [g.id for g in user_groups]
 
         if is_parent:
             django_user.first_name = request.POST['parent_guardian_first_name']

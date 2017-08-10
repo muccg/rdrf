@@ -68,6 +68,29 @@ class RDRFComponent(object):
         return {}
 
 
+class RDRFPatientInfoComponent(RDRFComponent):
+    TEMPLATE = "rdrf_cdes/patient_info_component.html"
+
+    def __init__(self, registry_model, patient_model):
+        self.patient_model = patient_model
+        self.registry_model = registry_model
+
+    def _get_template_data(self):    
+        patient_type = self._get_patient_type()
+        return {"patient_type": patient_type}
+
+    def _get_patient_type(self):
+        patient_type = self.patient_model.patient_type
+        if patient_type:
+            metadata = self.registry_model.metadata
+            type_dict = metadata.get("patient_types", {})
+            info_dict= type_dict.get(patient_type, {})
+            return info_dict.get("name", patient_type)
+        return ""
+
+                
+
+
 class RDRFContextLauncherComponent(RDRFComponent):
     TEMPLATE = "rdrf_cdes/rdrfcontext_launcher.html"
 

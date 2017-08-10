@@ -876,6 +876,10 @@ class RegistryForm(models.Model):
         blank=True, help_text="Comma-separated list of sectioncode.cdecodes for questionnnaire")
     complete_form_cdes = models.ManyToManyField(CommonDataElement, blank=True)
     groups_allowed = models.ManyToManyField(Group, blank=True)
+    applicability_condition = models.TextField(blank=True,
+                                               null=True,
+                                               help_text="E.g. patient.deceased == True")
+
 
     def natural_key(self):
         return (self.registry.code, self.name)
@@ -995,7 +999,59 @@ class RegistryForm(models.Model):
                 section_model = Section.objects.get(code=section_code)
             except Section.DoesNotExist:
                 raise ValidationError("Section %s does not exist!" % section_code)
-            
+
+
+    def applicable_to(self, patient):
+        # 2 levels of restriction:
+        # by patient type , set up in the registry metadata
+        # and further by a dynamic condition
+        # thus we can have forms applicable to all carrier patients
+        # ( patient_type = carrier) and also
+        # deceased patients, say. ( for MTM)
+        # the default case is True - ie all forms are applicable to a patient
+        from rdrf.utils import applicable_forms
+
+        if patient is None:
+            logger.debug("ap: patient None returning False")
+            return False
+
+        if not patient.in_registry(self.registry.code):
+            logger.debug("ap: patient not in reg returning False")
+            return False
+        else:
+            allowed_forms = [f.name for f in applicable_forms(self.registry, patient)]
+            logger.debug("allowed forms = %s" % allowed_forms)
+            if self.name not in allowed_forms:
+                logger.debug("%s is not in %s: returning False" % (self.name, allowed_forms))
+                return False
+
+        # In allowed list for patient type, but is there a patient condition also?
+
+        logger.debug("in allowed list now checking condition")
+
+        if not self.applicability_condition:
+            logger.debug("no condition defined so returning True")
+            return True
+
+        logger.debug("condition defined - checking ...")
+
+        
+        evaluation_context = {"patient": patient}
+
+        try:
+            is_applicable = eval(self.applicability_condition,
+                                 {"__builtins__": None},
+                                 evaluation_context)
+        except:
+            # allows us to filter out forms for patients
+            # which are not related with the assumed structure
+            # in the supplied condition
+            logger.debug("Error evaling condition so returning False")
+            return False
+
+        logger.debug("condition evaluated to %s" % is_applicable)
+
+        return is_applicable
 
 
 class Wizard(models.Model):
@@ -1916,7 +1972,8 @@ class EmailNotification(models.Model):
         (EventType.OTHER_CLINICIAN, "Other Clinician"),
         (EventType.NEW_PATIENT, "New Patient Registered"),
         (EventType.NEW_PATIENT_PARENT, "New Patient Registered (Parent)"),
-        (EventType.ACCOUNT_VERIFIED, "Account Verified")
+        (EventType.ACCOUNT_VERIFIED, "Account Verified"),
+        (EventType.REMINDER, "Reminder")
     )
 
     description = models.CharField(max_length=100, choices=EMAIL_NOTIFICATIONS)

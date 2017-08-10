@@ -160,6 +160,7 @@ class Exporter(object):
         frm_map["questionnaire_questions"] = form_model.questionnaire_questions
         frm_map["position"] = form_model.position
         frm_map["sections"] = []
+        frm_map["applicability_condition"] = form_model.applicability_condition
 
         for section_code in form_model.get_sections():
             frm_map["sections"].append(self._create_section_map(section_code))

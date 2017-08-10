@@ -54,6 +54,7 @@ from rdrf.form_progress import FormProgress
 from rdrf.contexts_api import RDRFContextError
 from rdrf.locators import PatientLocator
 from rdrf.components import RDRFContextLauncherComponent
+from rdrf.components import RDRFPatientInfoComponent
 from rdrf.questionnaires import PatientCreatorError
 
 
@@ -314,6 +315,9 @@ class FormView(View):
 
         self.registry_form = self.get_registry_form(form_id)
 
+        if not self.registry_form.applicable_to(patient_model):
+            return HttpResponseRedirect(reverse("patientslisting"))
+
         context_launcher = RDRFContextLauncherComponent(request.user,
                                                         self.registry,
                                                         patient_model,
@@ -325,10 +329,13 @@ class FormView(View):
         # we provide a "path" to the header field which contains an embedded Django template
         context["header"] = self.registry_form.header
         context["header_expression"] = "rdrf://model/RegistryForm/%s/header" % self.registry_form.pk
+
+        patient_info_component = RDRFPatientInfoComponent(self.registry, patient_model)
         
         if not self.CREATE_MODE:
             context["CREATE_MODE"] = False
             context["show_print_button"] = True
+            context["patient_info"] = patient_info_component.html
             context["show_archive_button"] = request.user.can_archive
             context["not_linked"] = not patient_model.is_linked
             context["archive_patient_url"] = patient_model.get_archive_url(self.registry) if request.user.can_archive else ""
@@ -405,6 +412,9 @@ class FormView(View):
             dyn_patient = DynamicDataWrapper(patient, rdrf_context_id=self.rdrf_context.pk)
         else:
             dyn_patient = DynamicDataWrapper(patient, rdrf_context_id='add')
+
+
+        dyn_patient.user = request.user
 
         form_obj = self.get_registry_form(form_id)
         # this allows form level timestamps to be saved
@@ -546,6 +556,8 @@ class FormView(View):
                                                         patient,
                                                         self.registry_form.name,
                                                         self.rdrf_context)
+        
+        patient_info_component = RDRFPatientInfoComponent(registry, patient)
 
         context = {
             'CREATE_MODE': self.CREATE_MODE,
@@ -558,6 +570,7 @@ class FormView(View):
             'patient_id': patient_id,
             'patient_link': PatientLocator(registry, patient).link,
             'sections': sections,
+            'patient_info': patient_info_component.html,
             'section_field_ids_map': section_field_ids_map,
             'section_ids': ids,
             'forms': form_section,
@@ -1956,6 +1969,9 @@ class CustomConsentFormView(View):
                                                         patient_model,
                                                         current_form_name="Consents")
 
+        patient_info = RDRFPatientInfoComponent(registry_model,
+                                                patient_model)
+
         context = {
             "location": "Consents",
             "forms": form_sections,
@@ -1969,6 +1985,7 @@ class CustomConsentFormView(View):
             "registry_code": registry_code,
             'patient_link': PatientLocator(registry_model, patient_model).link,
             "context_launcher": context_launcher.html,
+            "patient_info": patient_info.html,
             "next_form_link": wizard.next_link,
             "previous_form_link": wizard.previous_link,
             "parent": parent,

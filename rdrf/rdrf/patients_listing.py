@@ -155,6 +155,10 @@ class PatientsListingView(View):
     ########################   POST #################################
     def post(self, request):
         # see http://datatables.net/manual/server-side
+        self.user = request.user
+        if self.user and self.user.is_anonymous():
+            login_url = "%s?next=%s" % (reverse("login"), reverse("login_router"))
+            return redirect(login_url)
         self.set_parameters(request)
         self.set_csrf(request)
         rows = self.get_results(request)
@@ -569,8 +573,9 @@ class ColumnContextMenu(Column):
             return buttons
 
     def _get_forms_button(self, patient_model, context_form_group, forms):
+        
         button = FormsButton(self.registry, self.user, patient_model,
-                             context_form_group, forms)
+                             context_form_group, [f for f in forms if f.applicable_to(patient_model)])
 
         return """
             <div class="dropdown">

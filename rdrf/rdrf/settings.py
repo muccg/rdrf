@@ -56,6 +56,7 @@ USE_I18N = env.get("use_i18n", True)
 # This must be a superset of LANGUAGES
 ALL_LANGUAGES = (("en", "English"),
                  ("ar", "Arabic"),
+                 ("es", "Spanish"),
                  ("de", "German"))
 
 
@@ -164,6 +165,7 @@ INSTALLED_APPS = [
     'registry.genetic',
     'registration',
     'storages',
+    'django_cron',
 ]
 
 
@@ -476,3 +478,7 @@ PROJECT_TITLE_LINK = "patientslisting"
 
 
 LOCALE_PATHS = env.getlist("locale_paths", [os.path.join(WEBAPP_ROOT, "translations/locale")])
+
+CRON_CLASSES = []
+
+

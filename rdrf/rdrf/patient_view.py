@@ -28,6 +28,7 @@ from rdrf.registry_specific_fields import RegistrySpecificFieldsHandler
 from rdrf.utils import get_error_messages
 from rdrf.wizard import NavigationWizard, NavigationFormType
 from rdrf.components import RDRFContextLauncherComponent
+from rdrf.components import RDRFPatientInfoComponent
 
 import logging
 
@@ -504,10 +505,12 @@ class PatientEditView(View):
         registry_model = Registry.objects.get(code=registry_code)
 
         context_launcher = RDRFContextLauncherComponent(request.user, registry_model, patient)
+        patient_info = RDRFPatientInfoComponent(registry_model, patient)
 
         context = {
             "location": "Demographics",
             "context_launcher": context_launcher.html,
+            "patient_info": patient_info.html,
             "forms": form_sections,
             "patient": patient,
             "patient_id": patient.id,
@@ -551,6 +554,7 @@ class PatientEditView(View):
         registry_model = Registry.objects.get(code=registry_code)
 
         context_launcher = RDRFContextLauncherComponent(request.user, registry_model, patient)
+        patient_info = RDRFPatientInfoComponent(registry_model, patient)
 
         if registry_model.patient_fields:
             patient_form_class = self._create_registry_specific_patient_form_class(user,
@@ -668,6 +672,7 @@ class PatientEditView(View):
 
         context["next_form_link"] = wizard.next_link
         context["previous_form_link"] = wizard.previous_link
+        context["patient_info"] = patient_info.html
 
         context["registry_code"] = registry_code
         context["patient_id"] = patient.id

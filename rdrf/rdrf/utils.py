@@ -245,12 +245,15 @@ def create_permission(app_label, model, code_name, name):
 
 
 def get_form_links(user, patient_id, registry_model, context_model=None, current_form_name=""):
+    from registry.patients.models import Patient
     if user is not None:
         if context_model and context_model.context_form_group:
             # show links to forms restricted to this config object
             container_model = context_model.context_form_group
         else:
             container_model = registry_model
+
+        patient_model = Patient.objects.get(id=patient_id)
 
         return [
             FormLink(
@@ -260,7 +263,7 @@ def get_form_links(user, patient_id, registry_model, context_model=None, current
                 selected=(
                     form.name == current_form_name),
                 context_model=context_model) for form in container_model.forms
-            if not form.is_questionnaire and user.can_view(form)]
+            if not form.is_questionnaire and user.can_view(form) and form.applicable_to(patient_model)]
     else:
         return []
 
@@ -652,3 +655,43 @@ def get_supported_languages():
     from django.conf import settings
     Language = namedtuple('Language', ['code', 'name'])
     return [Language(pair[0], pair[1]) for pair in settings.LANGUAGES] 
+
+
+def applicable_forms(registry_model, patient_model):
+    logger.debug("checking applicable forms for patient %s" % patient_model)
+    logger.debug("patient type = %s" % patient_model.patient_type)
+    patient_type_map = registry_model.metadata.get("patient_types", None)
+    logger.debug("patient type map = %s" % patient_type_map)
+    # type map looks like:
+    # { "carrier": { "name": "Female Carrier", "forms": ["CarrierForm"]} }
+    all_forms = registry_model.forms
+
+    if patient_type_map is None:
+        return all_forms
+    else:
+        patient_type = patient_model.patient_type
+        logger.debug("patient_type = %s" % patient_type)
+        if not patient_type:
+            # list of form names which are "owned" by some patient type
+            # if a patient has no designated patient type they see
+            # the complement of forms which are restricted to any of the
+            # defined types
+            typed_forms = [form
+                           for k in patient_type_map.keys()
+                           for form in patient_type_map[k]["forms"]]
+            
+            logger.debug("typed forms = %s" % typed_forms)
+            return [ f for f in all_forms if f.name not in typed_forms]
+        else:
+            if patient_type in patient_type_map:
+                applicable_form_names = patient_type_map[patient_type].get("forms",
+                                                                           all_forms)
+                logger.debug("applicable form names = %s" % applicable_form_names)
+                
+                forms =  [form for form in all_forms
+                          if form.name in applicable_form_names]
+
+                logger.debug("applicable forms = %s" % forms)
+                return forms
+            else:
+                return []

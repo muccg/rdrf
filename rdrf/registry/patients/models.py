@@ -237,6 +237,15 @@ class Patient(models.Model):
 
     living_status = models.CharField(choices=LIVING_STATES, max_length=80, default='Alive', verbose_name=_("Living status"))
 
+    # The following is intended as a hidden field which is set only
+    # via registration process for those registries which support registration
+    # It allows
+    patient_type = models.CharField(max_length=80,
+                                    blank=True,
+                                    null=True,
+                                    verbose_name=_("Patient Type"))
+    
+
     class Meta:
         ordering = ["family_name", "given_names", "date_of_birth"]
         verbose_name_plural = _("Patient List")
@@ -922,6 +931,18 @@ class ParentGuardian(models.Model):
         null=True,
         related_name="parent_user_object",
         on_delete=models.SET_NULL)
+
+    @property
+    def children(self):
+        if not self.self_patient:
+            return [p for p in self.patient.all()]
+        else:
+            return [p for p in self.patient.all() if p.pk != self.self_patient.pk]
+
+    def is_parent_of(self, other_patient):
+        return other_patient in self.children
+    
+        
 
 @receiver(post_save, sender=ParentGuardian)
 def update_my_user(sender, **kwargs):

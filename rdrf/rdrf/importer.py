@@ -507,6 +507,9 @@ class Importer(object):
             if "questionnaire_questions" in frm_map:
                 f.questionnaire_questions = frm_map["questionnaire_questions"]
 
+            if "applicability_condition" in frm_map:
+                f.applicability_condition = frm_map["applicability_condition"]
+
             f.registry = r
             if 'position' in frm_map:
                 f.position = frm_map['position']

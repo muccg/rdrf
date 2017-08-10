@@ -4,4 +4,5 @@ class EventType:
     NEW_PATIENT_PARENT = "new-patient-parent"
     ACCOUNT_LOCKED = "account-locked"
     ACCOUNT_VERIFIED = "account-verified"
+    REMINDER = "reminder"
 
