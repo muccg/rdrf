@@ -56,7 +56,3 @@ class ReminderProcessor:
                                  "reminder",
                                  template_data)
             return True
-        else:
-            logger.info("can't send because of rules")
-            return False
-    
