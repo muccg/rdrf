@@ -30,10 +30,10 @@ class RdrfEmail(object):
             self.email_notification = email_notification
             self.reg_code = self.email_notification.registry.code
             self.description = self.email_notification.description
-            
+
         else:
             self.email_notification = self._get_email_notification()
-            
+
 
     def send(self):
         try:
@@ -49,12 +49,12 @@ class RdrfEmail(object):
                     # skip recipients with diff language
                     # this is used in resend when we resend per language template
                     continue
-                    
+
                 email_subject, email_body = self._get_email_subject_and_body(language)
                 logger.debug("email_subject = %s" % email_subject)
                 logger.debug("email_body = %s" % email_body)
                 send_mail(email_subject, email_body, self.email_notification.email_from, [recipient], html_message=email_body)
-                if language not in notification_record_saved: 
+                if language not in notification_record_saved:
                     self._save_notification_record(language)
                     notification_record_saved.append(language)
             logger.info("Sent email(s) %s" % self.description)
@@ -90,12 +90,12 @@ class RdrfEmail(object):
         # NB If a patient registers as a patient ( not a parent)
         # and a parent template is registered against the account verified
         # event , the recipient template will evaulate to an empty string ..
-        
+
         return [r for r in recipients  if self._valid_email(r)]
 
     def _valid_email(self, s):
         return "@" in s
-    
+
     def _get_email_subject_and_body(self, language):
         try:
             email_template = self.email_notification.email_templates.get(language=language)
@@ -120,7 +120,7 @@ class RdrfEmail(object):
             return EmailNotification.objects.get(registry__code=self.reg_code, description=self.description)
         except EmailNotification.DoesNotExist:
                 raise RdrfEmailException()
-       
+
     def _get_group_emails(self, group):
         user_emails = []
         users = CustomUser.objects.filter(groups__in=[group])
@@ -163,7 +163,7 @@ def process_notification(reg_code=None, description=None, template_data={}):
     logger.debug("process_notification %s %s %s" % (reg_code,
                                                     description,
                                                     template_data))
-    
+
     notes = EmailNotification.objects.filter(registry__code=reg_code, description=description)
     for note in notes:
         if note.disabled:
