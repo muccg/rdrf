@@ -4,6 +4,7 @@ from django.shortcuts import render
 from django.views.generic.base import TemplateView
 import django.contrib.auth.views
 from django.views.i18n import JavaScriptCatalog
+from django.conf import settings
 
 import rdrf.form_view as form_view
 import rdrf.registry_view as registry_view
@@ -27,9 +28,16 @@ from rdrf.lookup_views import RecaptchaValidator
 from rdrf.context_views import RDRFContextCreateView, RDRFContextEditView
 from rdrf import patients_listing
 
+import logging
+
+
+logger = logging.getLogger(__name__)
+
 # very important so that registry admins (genetic, patient, etc) are discovered.
 admin.autodiscover()
 
+def handlerException(request):
+    raise Exception("Forced exception in /raise")
 
 def handler404(request):
     return render(request, "404.html")
@@ -46,11 +54,17 @@ def handlerApplicationError(request):
 
 JavaScriptCatalog.domain = "django"  # The default domain didn't work for me
 
-urlpatterns = [
+urlpatterns = []
+if settings.DEBUG is True:
+    urlpatterns += [
+        url(r'^test404', handler404, name='test 404'),
+        url(r'^test500', handler500, name='test 500'),
+        url(r'^testAppError', handlerApplicationError, name='test application error'),
+        url(r'^raise', handlerException, name='test exception'),
+    ]
+
+urlpatterns += [
     url(r'^translations/jsi18n/$', JavaScriptCatalog.as_view(), name='javascript-catalog'),
-    url(r'^test404', handler404),
-    url(r'^test500', handler500),
-    url(r'^testAppError', handlerApplicationError),
     url(r'^iprestrict/', include('iprestrict.urls')),
     url(r'^useraudit/', include('useraudit.urls')),
 
@@ -194,3 +208,4 @@ urlpatterns = [
 
     url(r'^i18n/', include('django.conf.urls.i18n')),
 ]
+
