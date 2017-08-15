@@ -102,7 +102,7 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
             logger.debug("user is NOT superuser")
             value = self.has_perm("patients.delete_patient")
             logger.debug("%s delete patient perm = %s" % (self, value))
-        
+
         return value
 
     @property
@@ -251,7 +251,7 @@ def user_activated_callback(sender, user, request, **kwargs):
     from rdrf.events import EventType
     from registry.patients.models import Patient
     from registry.patients.models import ParentGuardian
-    
+
     parent = patient = None
     email_notification_description = EventType.ACCOUNT_VERIFIED
     template_data = {}
@@ -272,19 +272,10 @@ def user_activated_callback(sender, user, request, **kwargs):
     if parent:
         template_data["parent"] = parent
 
-
     template_data["user"] = user
-    
 
     for registry_model in user.registry.all():
          registry_code = registry_model.code
          process_notification(registry_code,
                               email_notification_description,
                               template_data)
-
-
-         
-     
-
-
-    
