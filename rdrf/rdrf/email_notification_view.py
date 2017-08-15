@@ -6,10 +6,12 @@ from django.shortcuts import redirect
 from django.core.urlresolvers import reverse
 from django.apps import apps
 from django.contrib import messages
-
-from .models import EmailNotificationHistory
+from django.utils import timezone
 
 from .email_notification import RdrfEmail
+from .events import EventType
+from .models import EmailNotificationHistory
+
 
 logger = logging.getLogger(__name__)
 
@@ -18,11 +20,17 @@ class ResendEmail(View):
 
     template_data = {}
 
+    # TODO most of this code probably belongs on an EmailNotificationHistoryManager method
+    # To be done as part of EmailNotificationHistory redesign #447
     def get(self, request, notification_history_id):
+        self.notification_history_id = notification_history_id
         history = EmailNotificationHistory.objects.get(pk=notification_history_id)
         self.template_data = history.template_data
 
         self._get_template_data()
+
+        if EventType.is_registration(history.email_notification.description):
+            self._ensure_registration_not_expired()
 
         email = RdrfEmail(
             language=history.language,
@@ -43,3 +51,19 @@ class ResendEmail(View):
             model = value.get("model")
             app_model = apps.get_model(app_label=app, model_name=model)
             self.template_data[key] = app_model.objects.get(id=value.get("id"))
+
+
+    def _ensure_registration_not_expired(self):
+        registration = self.template_data.get('registration')
+        if registration is None:
+            logger.warn('Template data for notification history %s should contain "registration" object', self.notification_history_id)
+            return
+        user = registration.user
+        if user.is_active:
+            logger.info('User "%s" already active. Not changing anything.', user)
+            return
+        registration.activated = False
+        user.date_joined = timezone.now()
+        registration.save()
+        user.save()
+        logger.info('Changed date_joined of user "%s" to today.', user)

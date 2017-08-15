@@ -6,3 +6,6 @@ class EventType:
     ACCOUNT_VERIFIED = "account-verified"
     REMINDER = "reminder"
 
+    @classmethod
+    def is_registration(cls, evt):
+        return evt in (cls.NEW_PATIENT, cls.NEW_PATIENT_PARENT)
