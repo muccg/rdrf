@@ -6,6 +6,7 @@ import django.contrib.auth.views
 from django.views.i18n import JavaScriptCatalog
 from django.conf import settings
 
+from rdrf.auth import RDRFAuthenticationForm
 import rdrf.form_view as form_view
 import rdrf.registry_view as registry_view
 import rdrf.landing_view as landing_view
@@ -94,7 +95,7 @@ urlpatterns += [
         RDRFContextEditView.as_view(),
         name="context_edit"),
     url(r'^login/?$', django.contrib.auth.views.login,
-        kwargs={'template_name': 'admin/login.html'}, name='login'),
+        kwargs={'template_name': 'admin/login.html', 'authentication_form': RDRFAuthenticationForm}, name='login'),
     url(r'^router/', login_router.RouterView.as_view(), name="login_router"),
 
     url(r"^(?P<registry_code>\w+)/forms/(?P<form_id>\w+)/(?P<patient_id>\d+)/(?P<context_id>add)/?$",
