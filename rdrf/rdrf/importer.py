@@ -810,7 +810,10 @@ class Importer(object):
             query, created = Query.objects.get_or_create(
                 registry=registry_obj, title=d["title"])
             for ag in d["access_group"]:
-                    query.access_group.add(Group.objects.get(name=ag))
+                group, created  = Group.objects.get_or_create(name=ag)
+                if created:
+                    group.save()
+                query.access_group.add(group)
             query.description = d["description"]
             query.mongo_search_type = d["mongo_search_type"]
             query.sql_query = d["sql_query"]
