@@ -79,22 +79,17 @@ class NavigationWizard(object):
 
     def _get_multiple_contexts(self, multiple_form_group):
         def keyfunc(context_model):
-
-            # FollowUp/FHFollowUp/DateOfAssessment
             name_path = multiple_form_group.naming_cde_to_use
             form_name,section_code,cde_code = name_path.split("/")
             section_model = Section.objects.get(code=section_code)
             is_multisection = section_model.allow_multiple
 
-            try:
-                return self.patient_model.get_form_value(self.registry_model.code,
-                                                         form_name,
-                                                         section_code,
-                                                         cde_code,
-                                                         multisection=is_multisection,
-                                                         context_id=context_model.id)
-            except:
-                 raise Exception("Could not get CDE data (Date of assessment).")
+            return self.patient_model.get_form_value(self.registry_model.code,
+                                                     form_name,
+                                                     section_code,
+                                                     cde_code,
+                                                     multisection=is_multisection,
+                                                     context_id=context_model.id)
 
         if multiple_form_group.ordering == "N":
             key_func = keyfunc
