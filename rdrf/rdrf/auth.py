@@ -50,7 +50,7 @@ class RDRFAuthenticationForm(AuthenticationForm):
             return None
         if _login_failure_limit == 0:
             return None
-        login_failure_time_limit = getattr(settings, 'LOGIN_FAILURE_TOLERANCE_WINDOW', 0)
+        login_failure_time_limit = getattr(settings, 'LOGIN_FAILURE_TOLERANCE_TIME', 0)
         if login_failure_time_limit == 0:
             return None
 

@@ -273,7 +273,7 @@ LOGIN_FAILURE_LIMIT = env.get("login_failure_limit", 3)
 # This setting allows to tune what consecutive means. It is the time window in which the failed logins
 # are counted.
 # Value is in minutes, if not set or 0 the feature is disabled.
-LOGIN_FAILURE_TOLERANCE_WINDOW = env.get("login_failure_tolerance_window", 60)
+LOGIN_FAILURE_TOLERANCE_TIME = env.get("login_failure_tolerance_time", 60)
 
 # APPLICATION SPECIFIC SETTINGS
 AUTH_PROFILE_MODULE = 'groups.User'
