@@ -1,12 +1,13 @@
 from django.core.urlresolvers import reverse
 from rdrf.models import RDRFContext
-from rdrf.models import RegistryForm
+from rdrf.models import RegistryForm, Section
 from django.contrib.contenttypes.models import ContentType
 
+import logging
+logger = logging.getLogger(__name__)
 
 class NavigationError(Exception):
     pass
-
 
 class NavigationFormType:
     DEMOGRAPHICS = 1
@@ -77,10 +78,28 @@ class NavigationWizard(object):
         return [cfg for cfg in self.registry_model.multiple_form_groups]
 
     def _get_multiple_contexts(self, multiple_form_group):
+        def keyfunc(context_model):
+            name_path = multiple_form_group.naming_cde_to_use
+            form_name,section_code,cde_code = name_path.split("/")
+            section_model = Section.objects.get(code=section_code)
+            is_multisection = section_model.allow_multiple
+
+            return self.patient_model.get_form_value(self.registry_model.code,
+                                                     form_name,
+                                                     section_code,
+                                                     cde_code,
+                                                     multisection=is_multisection,
+                                                     context_id=context_model.id)
+
+        if multiple_form_group.ordering == "N":
+            key_func = keyfunc
+        else:
+            key_func = lambda c : c.created_at
+
         contexts = [c for c in self.patient_model.context_models
                     if c.context_form_group is not None and c.context_form_group.pk == multiple_form_group.pk]
 
-        return sorted(contexts, key=lambda c: c.created_at)
+        return sorted(contexts, key=key_func, reverse=True)
 
     def _construct_demographics_link(self):
         return ("demographic", None, reverse("patient_edit", args=[self.registry_model.code, self.patient_model.pk]))
