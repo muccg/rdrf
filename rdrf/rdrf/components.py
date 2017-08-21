@@ -391,10 +391,7 @@ class FormsButton(RDRFComponent):
         else:
             # multiple group
             # we may have more than one assessment etc
-            context_models = RDRFContext.objects.filter(registry=self.registry_model,
-                                                        context_form_group=self.context_form_group,
-                                                        object_id=self.patient_model.pk,
-                                                        content_type__model="patient")
+            context_models = self.patient_model.get_multiple_contexts(self.context_form_group)
 
             return [
                 self.FormWrapper(self.registry_model,
@@ -402,7 +399,7 @@ class FormsButton(RDRFComponent):
                                  form_model,
                                  self.context_form_group,
                                  context_model) for form_model in self.forms
-                for context_model in context_models.order_by("-pk")]
+                for context_model in context_models]
 
     @property
     def id(self):

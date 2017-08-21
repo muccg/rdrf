@@ -818,6 +818,35 @@ class Patient(models.Model):
             contexts.append(context_model)
         return contexts
 
+    def get_multiple_contexts(self, multiple_form_group):
+        # Return all context models in 1 multiple context form group
+        # We need this ordering of the group's context accessible from the patient
+        # listing and the launcher
+        registry_model = multiple_form_group.registry
+        def keyfunc(context_model):
+            name_path = multiple_form_group.naming_cde_to_use
+            form_name,section_code,cde_code = name_path.split("/")
+            section_model = Section.objects.get(code=section_code)
+            is_multisection = section_model.allow_multiple
+
+            return self.get_form_value(registry_model.code,
+                                       form_name,
+                                       section_code,
+                                       cde_code,
+                                       multisection=is_multisection,
+                                       context_id=context_model.id)
+
+        if multiple_form_group.ordering == "N":
+            key_func = keyfunc
+        else:
+            key_func = lambda c : c.created_at
+
+        contexts = [c for c in self.context_models
+                    if c.context_form_group is not None and c.context_form_group.pk == multiple_form_group.pk]
+
+        return sorted(contexts, key=key_func, reverse=True)
+
+
     def get_forms_by_group(self, context_form_group):
         """
         Return links (pair of url and text)
