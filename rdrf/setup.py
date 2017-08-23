@@ -10,7 +10,7 @@ requirements=[
      "django-anymail==0.6.1",
      "django-countries",
      "django-extensions>=0.7.1",
-     "django-iprestrict==1.1.1",
+     "django-iprestrict==1.3.2",
      "django-messages-ui==0.2.7",
      "django-nose==1.4.4",
      "django-positions==0.5.4",
