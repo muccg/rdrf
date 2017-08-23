@@ -26,7 +26,7 @@ requirements=[
      "openpyxl==2.3.5",
      "polib==1.0.8",
      "psycopg2==2.6.2",
-     "pycountry==1.20",
+     "pycountry==17.5.14",
      "pyinotify==0.9.6",
      "pymongo==2.9.3",
      "pyodbc==3.0.7",
