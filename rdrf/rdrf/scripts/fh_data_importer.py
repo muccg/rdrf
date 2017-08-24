@@ -151,7 +151,7 @@ class SpreadsheetImporter(object):
         self.index_patient_map = {}
         self.field_map = {}
         self.id_map = {}   # external id -> rdrf id
-        self.reverse_map = {}  # rdrf id -> external id 
+        self.reverse_map = {}  # rdrf id -> external id
         self._load_workbook()
         self._load_datasheet()
         self._load_datadictionary_sheet()
@@ -164,8 +164,8 @@ class SpreadsheetImporter(object):
     def _get_mongo_db_name(self):
         from django.conf import settings
         return settings.MONGO_DB_PREFIX + self.registry_model.code
-    
-        
+
+
 
 
     def rollback_mongo(self):
@@ -173,7 +173,7 @@ class SpreadsheetImporter(object):
         mongo_client = construct_mongo_client()
         db = mongo_client[self.mongo_db_name]
         cdes_collection = db["cdes"]
-        
+
         for patient_id in self.ids:
             query = {"django_id": patient_id,
                      "django_model": "Patient"}
@@ -188,7 +188,7 @@ class SpreadsheetImporter(object):
             ident = "%s/%s" % (self.external_id, pid)
         else:
             ident = ""
-            
+
         if self.row:
             print("%s STAGE [%s] ROW [%s] PATIENT [%s]: %s" % (self.log_prefix,
                                                                self.stage,
@@ -342,14 +342,14 @@ class SpreadsheetImporter(object):
 
         try:
             country_object = self.countries.get(name=country)
-            country_code = country_object.alpha2
+            country_code = country_object.alpha_2
         except Exception as ex:
             self.log("Unknown country: [%s]" % country)
             country_code = ""
 
         try:
             state_code = "%s-%s" % (country_code, state)
-            
+
             address_object = PatientAddress()
             address_object.patient = patient_model
             address_object.address = address
@@ -358,7 +358,7 @@ class SpreadsheetImporter(object):
             address_object.country = country_code
             address_object.address_type = home_address_type
             address_object.state = state_code
-            
+
             address_object.save()
         except Exception as ex:
             self.log("Error saving address: %s" % ex)
@@ -370,18 +370,18 @@ class SpreadsheetImporter(object):
 
     def run(self):
         try:
-            
+
             self.process()
             self.reset()
             self.stage = "COMPLETE"
             self.log("Import completed successfully")
-        
+
         except Exception as ex:
             self.reset()
             self.stage = "ROLLBACK!"
             self.log("Unhandled error - rollback will now occur: %s" % ex)
             self.delete_added_patients()
-                
+
             try:
                 self.rollback_mongo()
             except Exception as rex:
@@ -393,8 +393,8 @@ class SpreadsheetImporter(object):
         # do twice to override the default "archiving"
         Patient.objects.filter(id__in=self.ids).delete()
         Patient.objects.filter(id__in=self.ids).delete()
-        
-            
+
+
     def process(self):
         self.stage = "SETUP"
 
@@ -486,7 +486,7 @@ class SpreadsheetImporter(object):
             raise ImportError("Dupe rdrf id: %s" % rdrf_id)
         else:
             self.reverse_map[rdrf_id] = external_id
-            
+
         if external_id in self.id_map:
             raise ImportError("Dupe ID?- %s" % external_id)
         else:
@@ -628,7 +628,7 @@ class SpreadsheetImporter(object):
         patient.consent = True  # to satisfy validation ...
         patient.save()
         self.ids.append(patient.pk)
-        
+
         patient.rdrf_registry = [self.registry_model]
         patient.save()
 
@@ -642,7 +642,7 @@ class SpreadsheetImporter(object):
             self.patient = patient
         else:
             patient = patient_to_update
-            
+
         self.stage = "DEMOGRAPHICS"
         self._import_demographics_data(patient, row)
         self._import_consents(patient, row)
@@ -774,7 +774,7 @@ class SpreadsheetImporter(object):
                             # special case
                             self._update_bmi(row,
                                              field_expression)
-                            
+
                         else:
                             field_updates.append((field_expression, rdrf_value))
 
@@ -826,7 +826,7 @@ class SpreadsheetImporter(object):
 if __name__ == "__main__":
     registry_code = sys.argv[1]
     spreadsheet_file = sys.argv[2]
-    
+
     registry_model = Registry.objects.get(code=registry_code)
     spreadsheet_importer = SpreadsheetImporter(registry_model,
                                                spreadsheet_file,

@@ -110,8 +110,8 @@ class PatientManager(models.Manager):
 
     def inactive(self):
         return self.really_all().filter(active=False)
-        
-    
+
+
 
 
 class Patient(models.Model):
@@ -244,7 +244,7 @@ class Patient(models.Model):
                                     blank=True,
                                     null=True,
                                     verbose_name=_("Patient Type"))
-    
+
 
     class Meta:
         ordering = ["family_name", "given_names", "date_of_birth"]
@@ -572,7 +572,7 @@ class Patient(models.Model):
             pr = PatientRelative.objects.get(relative_patient=self)
         except PatientRelative.DoesNotExist:
             return
-        
+
         pr.given_names = self.given_names
         pr.family_name = self.family_name
         pr.date_of_birth = self.date_of_birth
@@ -582,7 +582,7 @@ class Patient(models.Model):
         # sever the link if we've deactivated
         if not self.active:
             pr.relative_patient = None
-            
+
         pr.save()
 
     def set_consent(self, consent_model, answer=True, commit=True):
@@ -970,8 +970,8 @@ class ParentGuardian(models.Model):
 
     def is_parent_of(self, other_patient):
         return other_patient in self.children
-    
-        
+
+
 
 @receiver(post_save, sender=ParentGuardian)
 def update_my_user(sender, **kwargs):
@@ -1057,7 +1057,7 @@ class PatientDoctor(models.Model):
 
 
 def get_countries():
-    return [(c.alpha2, c.name)
+    return [(c.alpha_2, c.name)
             for c in sorted(pycountry.countries, key=attrgetter("name"))]
 
 

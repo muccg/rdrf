@@ -144,17 +144,17 @@ class ListCountries(APIView):
         countries = sorted(pycountry.countries, key=lambda c: c.name)
 
         def to_dict(country):
-            # WANTED_FIELDS = ('name', 'alpha2', 'alpha3', 'numeric', 'official_name')
+            # WANTED_FIELDS = ('name', 'alpha_2', 'alpha_3', 'numeric', 'official_name')
             WANTED_FIELDS = ('name', 'numeric', 'official_name')
             ALIASES = {
-                'alpha2': 'country_code',
-                'alpha3': 'country_code3',
+                'alpha_2': 'country_code',
+                'alpha_3': 'country_code3',
             }
 
             d = dict([(k, getattr(country, k, None)) for k in WANTED_FIELDS])
             for attr, alias in ALIASES.items():
                 d[alias] = getattr(country, attr)
-            d['states'] = reverse('state_lookup', args=[country.alpha2], request=request)
+            d['states'] = reverse('state_lookup', args=[country.alpha_2], request=request)
 
             return d
 
