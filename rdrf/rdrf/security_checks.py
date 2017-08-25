@@ -1,4 +1,4 @@
-from registry.patiets.models import Patient
+from registry.patients.models import Patient
 from registry.patients.models import ParentGuardian
 
 def check_patient_user(user, patient_model):
