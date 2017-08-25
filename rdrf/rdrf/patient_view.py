@@ -543,6 +543,7 @@ class PatientEditView(View):
     def post(self, request, registry_code, patient_id):
         user = request.user
         patient = Patient.objects.get(id=patient_id)
+        patient_type = patient.patient_type
         patient_relatives_forms = None
         actions = []
 
@@ -619,6 +620,8 @@ class PatientEditView(View):
                 doctors_to_save.save()
             address_to_save.save()
             patient_instance = patient_form.save()
+            patient_instance.patient_type = patient_type
+            patient_instance.save()
 
             patient_instance.sync_patient_relative()
 
