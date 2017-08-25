@@ -297,9 +297,7 @@ class FormView(View):
 
 
         if not check_patient_user(request.user, patient_model):
-            logger.info("User %s is not authorised to view patient %s" % (request.user,
-                                                                          patient_model))
-            return HttpResponseRedirect("/")
+            raise PermissionDenied()
         
 
         self.registry = self._get_registry(registry_code)
@@ -406,6 +404,10 @@ class FormView(View):
         self.registry = registry
 
         patient = Patient.objects.get(pk=patient_id)
+
+        if not check_patient_user(request.user, patient):
+            raise PermissionDenied()
+        
         self.patient_id = patient_id
 
         self.rdrf_context_manager = RDRFContextManager(self.registry)
@@ -1957,7 +1959,12 @@ class CustomConsentFormView(View):
             login_url = reverse('login')
             return redirect("%s?next=%s" % (login_url, consent_form_url))
 
+
         patient_model = Patient.objects.get(pk=patient_id)
+
+        if not check_patient_user(request.user, patient_model):
+            raise PermissionDenied()
+        
         registry_model = Registry.objects.get(code=registry_code)
         form_sections = self._get_form_sections(registry_model, patient_model)
         wizard = NavigationWizard(request.user,
@@ -2065,6 +2072,10 @@ class CustomConsentFormView(View):
 
         registry_model = Registry.objects.get(code=registry_code)
         patient_model = Patient.objects.get(id=patient_id)
+
+        if not check_patient_user(request.user, patient_model):
+            raise PermissionDenied()
+        
         context_launcher = RDRFContextLauncherComponent(request.user,
                                                         registry_model,
                                                         patient_model,
