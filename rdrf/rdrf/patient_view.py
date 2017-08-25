@@ -31,6 +31,7 @@ from rdrf.components import RDRFContextLauncherComponent
 from rdrf.components import RDRFPatientInfoComponent
 
 from rdrf.security_checks import check_patient_user
+from django.core.exceptions import PermissionDenied
 
 
 import logging
