@@ -47,7 +47,7 @@ class NavigationWizard(object):
         # for each multiple group, link through each assessment created for that group
         # in form order
         for multiple_form_group in self._multiple_form_groups():
-            for context_model in self._get_multiple_contexts(multiple_form_group):
+            for context_model in self.patient_model.get_multiple_contexts(multiple_form_group):
                 for form_model in multiple_form_group.form_models:
                     if self.user.can_view(form_model):
                         self.links.append(self._form_link(form_model, context_model))
@@ -76,30 +76,6 @@ class NavigationWizard(object):
 
     def _multiple_form_groups(self):
         return [cfg for cfg in self.registry_model.multiple_form_groups]
-
-    def _get_multiple_contexts(self, multiple_form_group):
-        def keyfunc(context_model):
-            name_path = multiple_form_group.naming_cde_to_use
-            form_name,section_code,cde_code = name_path.split("/")
-            section_model = Section.objects.get(code=section_code)
-            is_multisection = section_model.allow_multiple
-
-            return self.patient_model.get_form_value(self.registry_model.code,
-                                                     form_name,
-                                                     section_code,
-                                                     cde_code,
-                                                     multisection=is_multisection,
-                                                     context_id=context_model.id)
-
-        if multiple_form_group.ordering == "N":
-            key_func = keyfunc
-        else:
-            key_func = lambda c : c.created_at
-
-        contexts = [c for c in self.patient_model.context_models
-                    if c.context_form_group is not None and c.context_form_group.pk == multiple_form_group.pk]
-
-        return sorted(contexts, key=key_func, reverse=True)
 
     def _construct_demographics_link(self):
         return ("demographic", None, reverse("patient_edit", args=[self.registry_model.code, self.patient_model.pk]))
