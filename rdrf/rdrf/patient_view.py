@@ -30,6 +30,9 @@ from rdrf.wizard import NavigationWizard, NavigationFormType
 from rdrf.components import RDRFContextLauncherComponent
 from rdrf.components import RDRFPatientInfoComponent
 
+from rdrf.security_checks import check_patient_user
+
+
 import logging
 
 logger = logging.getLogger(__name__)
@@ -502,6 +505,12 @@ class PatientEditView(View):
 
         patient, form_sections = self._get_patient_and_forms_sections(
             patient_id, registry_code, request)
+
+        if not check_patient_user(request.user, patient):
+            logger.info("User %s not authorised to view patient %s" % (request.user,
+                                                                       patient))
+            return HttpResponseRedirect("/")
+        
         registry_model = Registry.objects.get(code=registry_code)
 
         context_launcher = RDRFContextLauncherComponent(request.user, registry_model, patient)

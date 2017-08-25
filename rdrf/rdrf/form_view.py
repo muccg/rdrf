@@ -56,6 +56,7 @@ from rdrf.locators import PatientLocator
 from rdrf.components import RDRFContextLauncherComponent
 from rdrf.components import RDRFPatientInfoComponent
 from rdrf.questionnaires import PatientCreatorError
+from rdrf.security_checks import check_patient_user
 
 
 logger = logging.getLogger(__name__)
@@ -293,6 +294,13 @@ class FormView(View):
             patient_model = Patient.objects.get(pk=patient_id)
         except Patient.DoesNotExist:
             raise Http404
+
+
+        if not check_patient_user(request.user, patient_model):
+            logger.info("User %s is not authorised to view patient %s" % (request.user,
+                                                                          patient_model))
+            return HttpResponseRedirect("/")
+        
 
         self.registry = self._get_registry(registry_code)
 
