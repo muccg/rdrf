@@ -507,9 +507,7 @@ class PatientEditView(View):
             patient_id, registry_code, request)
 
         if not check_patient_user(request.user, patient):
-            logger.info("User %s not authorised to view patient %s" % (request.user,
-                                                                       patient))
-            return HttpResponseRedirect("/")
+            raise PermissionDenied()
         
         registry_model = Registry.objects.get(code=registry_code)
 
@@ -553,6 +551,9 @@ class PatientEditView(View):
         user = request.user
         patient = Patient.objects.get(id=patient_id)
         patient_type = patient.patient_type
+        if not check_patient_user(user, patient):
+            raise PermissionDenied()
+
         patient_relatives_forms = None
         actions = []
 
