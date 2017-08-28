@@ -56,6 +56,7 @@ from rdrf.locators import PatientLocator
 from rdrf.components import RDRFContextLauncherComponent
 from rdrf.components import RDRFPatientInfoComponent
 from rdrf.questionnaires import PatientCreatorError
+from rdrf.security_checks import security_check_user_patient
 
 
 logger = logging.getLogger(__name__)
@@ -294,6 +295,9 @@ class FormView(View):
         except Patient.DoesNotExist:
             raise Http404
 
+
+        security_check_user_patient(request.user, patient_model)
+
         self.registry = self._get_registry(registry_code)
 
         self.rdrf_context_manager = RDRFContextManager(self.registry)
@@ -398,6 +402,9 @@ class FormView(View):
         self.registry = registry
 
         patient = Patient.objects.get(pk=patient_id)
+
+        security_check_user_patient(request.user, patient)
+        
         self.patient_id = patient_id
 
         self.rdrf_context_manager = RDRFContextManager(self.registry)
@@ -1949,7 +1956,11 @@ class CustomConsentFormView(View):
             login_url = reverse('login')
             return redirect("%s?next=%s" % (login_url, consent_form_url))
 
+
         patient_model = Patient.objects.get(pk=patient_id)
+
+        security_check_user_patient(request.user, patient_model)
+        
         registry_model = Registry.objects.get(code=registry_code)
         form_sections = self._get_form_sections(registry_model, patient_model)
         wizard = NavigationWizard(request.user,
@@ -2057,6 +2068,9 @@ class CustomConsentFormView(View):
 
         registry_model = Registry.objects.get(code=registry_code)
         patient_model = Patient.objects.get(id=patient_id)
+
+        security_check_user_patient(request.user, patient_model)
+        
         context_launcher = RDRFContextLauncherComponent(request.user,
                                                         registry_model,
                                                         patient_model,
