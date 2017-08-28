@@ -16,11 +16,7 @@ from rdrf.models import ConsentSection
 from rdrf.models import ConsentQuestion
 from rdrf.models import Registry
 
-from rdrf.security_checks import check_patient_user
-
-def check_security(user, patient_id):
-    patient = Patient.objects.get(pk=patient_id)
-    return check_patient_user(user, patient)
+from rdrf.security_checks import security_check_user_patient
 
 class ConsentList(View):
 
@@ -87,8 +83,7 @@ class ConsentDetails(View):
 
     @method_decorator(login_required)
     def get(self, request, registry_code, section_id, patient_id):
-        if not check_security(request.user, patient_id):
-            return HttpResponseRedirect("/")
+        security_check_user_patient(request.user, patient_id)
 
         if request.is_ajax:
             values = self._get_consent_details_for_patient(registry_code, section_id, patient_id)
@@ -127,9 +122,7 @@ class ConsentDetailsPrint(ConsentDetails):
 
     @method_decorator(login_required)
     def get(self, request, registry_code, patient_id):
-        if not check_security(request.user, patient_id):
-            return HttpResponseRedirect("/")
-
+        security_check_user_patient(request.user, patient_id)
         context = {}
 
         consent_sections = ConsentSection.objects.filter(registry__code=registry_code)

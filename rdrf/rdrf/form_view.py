@@ -56,7 +56,7 @@ from rdrf.locators import PatientLocator
 from rdrf.components import RDRFContextLauncherComponent
 from rdrf.components import RDRFPatientInfoComponent
 from rdrf.questionnaires import PatientCreatorError
-from rdrf.security_checks import check_patient_user
+from rdrf.security_checks import security_check_user_patient
 
 
 logger = logging.getLogger(__name__)
@@ -296,9 +296,7 @@ class FormView(View):
             raise Http404
 
 
-        if not check_patient_user(request.user, patient_model):
-            raise PermissionDenied()
-        
+        security_check_user_patient(request.user, patient_model)
 
         self.registry = self._get_registry(registry_code)
 
@@ -405,8 +403,7 @@ class FormView(View):
 
         patient = Patient.objects.get(pk=patient_id)
 
-        if not check_patient_user(request.user, patient):
-            raise PermissionDenied()
+        security_check_user_patient(request.user, patient)
         
         self.patient_id = patient_id
 
@@ -1962,8 +1959,7 @@ class CustomConsentFormView(View):
 
         patient_model = Patient.objects.get(pk=patient_id)
 
-        if not check_patient_user(request.user, patient_model):
-            raise PermissionDenied()
+        security_check_user_patient(request.user, patient_model)
         
         registry_model = Registry.objects.get(code=registry_code)
         form_sections = self._get_form_sections(registry_model, patient_model)
@@ -2073,8 +2069,7 @@ class CustomConsentFormView(View):
         registry_model = Registry.objects.get(code=registry_code)
         patient_model = Patient.objects.get(id=patient_id)
 
-        if not check_patient_user(request.user, patient_model):
-            raise PermissionDenied()
+        security_check_user_patient(request.user, patient_model)
         
         context_launcher = RDRFContextLauncherComponent(request.user,
                                                         registry_model,
