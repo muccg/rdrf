@@ -30,7 +30,7 @@ from rdrf.wizard import NavigationWizard, NavigationFormType
 from rdrf.components import RDRFContextLauncherComponent
 from rdrf.components import RDRFPatientInfoComponent
 
-from rdrf.security_checks import check_patient_user
+from rdrf.security_checks import security_check_user_patient
 from django.core.exceptions import PermissionDenied
 
 
@@ -507,8 +507,7 @@ class PatientEditView(View):
         patient, form_sections = self._get_patient_and_forms_sections(
             patient_id, registry_code, request)
 
-        if not check_patient_user(request.user, patient):
-            raise PermissionDenied()
+        security_check_user_patient(request.user, patient)
         
         registry_model = Registry.objects.get(code=registry_code)
 
@@ -552,8 +551,7 @@ class PatientEditView(View):
         user = request.user
         patient = Patient.objects.get(id=patient_id)
 
-        if not check_patient_user(user, patient):
-            raise PermissionDenied()
+        security_check_user_patient(user, patient)
 
         patient_relatives_forms = None
         actions = []
