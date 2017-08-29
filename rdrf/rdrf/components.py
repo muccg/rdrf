@@ -208,6 +208,8 @@ class RDRFContextLauncherComponent(RDRFComponent):
                 return False
 
         for url, text in self.patient_model.get_forms_by_group(context_form_group):
+            if not text:
+                text = "Not set"
             link_obj = Link(url, text, is_current(url))
             links.append(link_obj)
         return links
@@ -326,8 +328,12 @@ class FormsButton(RDRFComponent):
             else:
                 # multiple group
                 if self.context_form_group.supports_direct_linking:
-                    return self.context_form_group.get_name_from_cde(self.patient_model,
+                    value = self.context_form_group.get_name_from_cde(self.patient_model,
                                                                      self.context_model)
+                    if not value:
+                        return "Not set"
+                    else:
+                        return value
                 else:
                     return self.context_form_group.name + " " + self.form_model.nice_name
 

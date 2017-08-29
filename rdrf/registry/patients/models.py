@@ -823,18 +823,32 @@ class Patient(models.Model):
         # We need this ordering of the group's context accessible from the patient
         # listing and the launcher
         registry_model = multiple_form_group.registry
+        from rdrf.utils import MinType
+        # if values are missing in the record we want to sort on
+        # we get KeyErrors
+        # can't use None to sort so we have to use this tricky thing
+        bottom  = MinType()
         def keyfunc(context_model):
             name_path = multiple_form_group.naming_cde_to_use
             form_name,section_code,cde_code = name_path.split("/")
             section_model = Section.objects.get(code=section_code)
             is_multisection = section_model.allow_multiple
 
-            return self.get_form_value(registry_model.code,
-                                       form_name,
-                                       section_code,
-                                       cde_code,
-                                       multisection=is_multisection,
-                                       context_id=context_model.id)
+            try:
+                value = self.get_form_value(registry_model.code,
+                                            form_name,
+                                            section_code,
+                                            cde_code,
+                                            multisection=is_multisection,
+                                            context_id=context_model.id)
+                
+
+                if value is None:
+                    return bottom
+                else:
+                    return value
+            except KeyError:
+                return bottom
 
         if multiple_form_group.ordering == "N":
             key_func = keyfunc
