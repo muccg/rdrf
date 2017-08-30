@@ -83,7 +83,8 @@ class ConsentDetails(View):
 
     @method_decorator(login_required)
     def get(self, request, registry_code, section_id, patient_id):
-        security_check_user_patient(request.user, patient_id)
+        patient_model = Patient.objects.get(pk=patient_id)
+        security_check_user_patient(request.user, patient_model)
 
         if request.is_ajax:
             values = self._get_consent_details_for_patient(registry_code, section_id, patient_id)
@@ -122,7 +123,8 @@ class ConsentDetailsPrint(ConsentDetails):
 
     @method_decorator(login_required)
     def get(self, request, registry_code, patient_id):
-        security_check_user_patient(request.user, patient_id)
+        patient_model = Patient.objects.get(pk=patient_id)
+        security_check_user_patient(request.user, patient_model)
         context = {}
 
         consent_sections = ConsentSection.objects.filter(registry__code=registry_code)
