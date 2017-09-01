@@ -419,7 +419,7 @@ class EmailNotificationHistoryAdmin(admin.ModelAdmin):
         return "%s (%s)" % (obj.email_notification.registry.name, obj.email_notification.registry.code.upper())
 
     def full_language(self, obj):
-        return dict(settings.LANGUAGES)[obj.language]
+        return dict(settings.LANGUAGES).get(obj.language, obj.language)
 
     full_language.short_description = "Language"
 
