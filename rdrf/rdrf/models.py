@@ -2145,13 +2145,30 @@ class ContextFormGroup(models.Model):
             return "NOT SET"
 
     def get_ordering_value(self, patient_model, context_model):
+        from rdrf.utils import MinType
+        bottom = MinType()
+        if context_model.display_name:
+            display_name = context_model.display_name
+        else:
+            display_name = "Not set"
+            
         if self.is_ordered_by_name:
             if self.naming_scheme == "C":
-                return self.get_value_from_cde(patient_model, context_model)
-            return context_model.display_name
+                try:
+                    value = self.get_value_from_cde(patient_model, context_model)
+
+                    if value is None:
+                        return bottom
+                    else:
+                        return value
+                except:
+                    return bottom
+            return display_name
 
         if self.is_ordered_by_creation:
             return context_model.created_at
+
+        return bottom
 
     @property
     def naming_info(self):

@@ -29,6 +29,14 @@ def reset_password_change_date():
     CustomUser.objects.update(password_change_date=timezone.now())
 
 
+def reset_last_login_date():
+    logger.info('')
+    from registry.groups.models import CustomUser
+    from django.utils import timezone
+    CustomUser.objects.update(last_login=timezone.now())
+    
+
+
 def subprocess_logging(command):
     p = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     stdout, stderr = p.communicate()

@@ -30,6 +30,10 @@ from rdrf.wizard import NavigationWizard, NavigationFormType
 from rdrf.components import RDRFContextLauncherComponent
 from rdrf.components import RDRFPatientInfoComponent
 
+from rdrf.security_checks import security_check_user_patient
+from django.core.exceptions import PermissionDenied
+
+
 import logging
 
 logger = logging.getLogger(__name__)
@@ -502,6 +506,9 @@ class PatientEditView(View):
 
         patient, form_sections = self._get_patient_and_forms_sections(
             patient_id, registry_code, request)
+
+        security_check_user_patient(request.user, patient)
+        
         registry_model = Registry.objects.get(code=registry_code)
 
         context_launcher = RDRFContextLauncherComponent(request.user, registry_model, patient)
@@ -543,6 +550,9 @@ class PatientEditView(View):
     def post(self, request, registry_code, patient_id):
         user = request.user
         patient = Patient.objects.get(id=patient_id)
+        patient_type = patient.patient_type
+        security_check_user_patient(user, patient)
+
         patient_relatives_forms = None
         actions = []
 
@@ -619,6 +629,8 @@ class PatientEditView(View):
                 doctors_to_save.save()
             address_to_save.save()
             patient_instance = patient_form.save()
+            patient_instance.patient_type = patient_type
+            patient_instance.save()
 
             patient_instance.sync_patient_relative()
 

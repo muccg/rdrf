@@ -7,7 +7,7 @@ requirements=[
      "ccg-django-utils==0.4.2",
      "Django==1.10.7",
      "django-ajax-selects==1.5.2",
-     "django-anymail==0.6.1",
+     "django-anymail==0.11.1",
      "django-countries",
      "django-extensions>=0.7.1",
      "django-iprestrict==1.1.1",
@@ -39,7 +39,7 @@ requirements=[
      "six==1.10.0",
      "SQLAlchemy==1.0.16",
      "uwsgi==2.0.13.1",
-     "django_cron",
+     "django_cron==0.5.0",
 ]
 
 
@@ -84,7 +84,7 @@ for package in ['rdrf', 'registry.common', 'registry.genetic',
 
 
 setup(name='django-rdrf',
-      version="2.2.0",
+      version="2.2.3",
       packages=packages,
       description='RDRF',
       long_description='Rare Disease Registry Framework',

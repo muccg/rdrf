@@ -28,6 +28,7 @@ def load_development_fixtures(step):
 def load_export(step, export_name):
     utils.load_export(export_name)
     utils.reset_password_change_date()
+    utils.reset_last_login_date()
 
 
 @step('should see "([^"]+)"$')

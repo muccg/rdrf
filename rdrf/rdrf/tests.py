@@ -228,8 +228,16 @@ class FormTestCase(RDRFTestCase):
     def setUp(self):
         super(FormTestCase, self).setUp()
         self.registry = Registry.objects.get(code='fh')
+        self.wg, created = WorkingGroup.objects.get_or_create(name="testgroup",
+                                                              registry=self.registry)
+
+        if created:
+            self.wg.save()
+            
         self.user = CustomUser.objects.get(username="curator")
         self.user.registry = [self.registry]
+        self.user.working_groups.add(self.wg)
+        
         self.user.save()
 
         self.state, created = State.objects.get_or_create(
@@ -242,6 +250,8 @@ class FormTestCase(RDRFTestCase):
         self.create_forms()
 
         self.patient = self.create_patient()
+        self.patient.working_groups.add(self.wg)
+        self.patient.save()
 
         self.address_type, created = AddressType.objects.get_or_create(pk=1)
 
