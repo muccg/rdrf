@@ -818,15 +818,11 @@ class CdePolicy(models.Model):
     condition = models.TextField(blank=True)
 
     def is_allowed(self, user_groups, patient_model=None):
-        logger.debug("checking cde policy %s %s" % (self.registry, self.cde))
         for ug in user_groups:
-            logger.debug("checking user group %s" % ug)
             if ug in self.groups_allowed.all():
                 if patient_model:
-                    logger.debug("patient model supplied - evaluating against condition")
                     return self.evaluate_condition(patient_model)
                 else:
-                    logger.debug("no patient model so returning True")
                     return True
 
     class Meta:
@@ -834,14 +830,11 @@ class CdePolicy(models.Model):
         verbose_name_plural = "CDE Policies"
 
     def evaluate_condition(self, patient_model):
-        logger.debug("evaluating condition ...")
         if not self.condition:
-            logger.debug("*** condition empty - returning True")
             return True
         # need to think about safety here
         context = {"patient": patient_model}
         result = eval(self.condition, {"__builtins__": None}, context)
-        logger.debug("*** %s eval %s = %s" % (patient_model, self.condition, result))
         return result
 
 
@@ -1012,30 +1005,20 @@ class RegistryForm(models.Model):
         from rdrf.utils import applicable_forms
 
         if patient is None:
-            logger.debug("ap: patient None returning False")
             return False
 
         if not patient.in_registry(self.registry.code):
-            logger.debug("ap: patient not in reg returning False")
             return False
         else:
             allowed_forms = [f.name for f in applicable_forms(self.registry, patient)]
-            logger.debug("allowed forms = %s" % allowed_forms)
             if self.name not in allowed_forms:
-                logger.debug("%s is not in %s: returning False" % (self.name, allowed_forms))
                 return False
 
         # In allowed list for patient type, but is there a patient condition also?
 
-        logger.debug("in allowed list now checking condition")
-
         if not self.applicability_condition:
-            logger.debug("no condition defined so returning True")
             return True
 
-        logger.debug("condition defined - checking ...")
-
-        
         evaluation_context = {"patient": patient}
 
         try:
@@ -1046,10 +1029,7 @@ class RegistryForm(models.Model):
             # allows us to filter out forms for patients
             # which are not related with the assumed structure
             # in the supplied condition
-            logger.debug("Error evaling condition so returning False")
             return False
-
-        logger.debug("condition evaluated to %s" % is_applicable)
 
         return is_applicable
 
@@ -1113,8 +1093,6 @@ class QuestionnaireResponse(models.Model):
             registry=self.registry, is_questionnaire=True).name
 
         value = wrapper.get_nested_cde(self.registry.code, questionnaire_form_name, "PatientData", patient_field)
-
-        logger.debug("_get_patient_field %s = %s" % (patient_field, value))
 
         if value is None:
             return ""
@@ -1322,21 +1300,18 @@ class AdjudicationDefinition(models.Model):
         # adjudication_initiation_form, datapoints, users, working_groups = adj_def.create_adjudication_inititiation_form(patient)
         from registry.groups.models import CustomUser, WorkingGroup
         datapoints, missing_data = self.get_adjudication_form_datapoints(patient_model)
-        logger.debug("datapoints = %s" % datapoints)
         users_or_groups = self.adjudicating_users.split(",")
         users = []
         groups = []
 
         for username_or_working_group_name in users_or_groups:
             try:
-                logger.debug("checking user or group %s" % username_or_working_group_name)
                 user = CustomUser.objects.get(username=username_or_working_group_name)
                 users.append(user)
             except CustomUser.DoesNotExist:
                 try:
                     wg = WorkingGroup.objects.get(
                         registry=self.registry, name=username_or_working_group_name)
-                    logger.debug("Adding working group %s" % wg)
                     groups.append(wg)
                 except WorkingGroup.DoesNotExist:
                     logger.error(
@@ -1825,10 +1800,6 @@ class ConsentSection(models.Model):
             is_applicable = eval(
                 self.applicability_condition, {"__builtins__": None}, function_context)
 
-            if is_applicable:
-                logger.debug("%s is spplicable to %s" % (self, patient))
-            else:
-                logger.debug("%s is NOT applicable to %s" % (self, patient))
             return is_applicable
 
     def is_valid(self, answer_dict):
@@ -1839,7 +1810,6 @@ class ConsentSection(models.Model):
         :return: True or False depending on validation rule
         """
         if not self.validation_rule:
-            logger.debug("no validation rule for %s - returning True" % self.section_label)
             return True
 
         function_context = {}
@@ -1858,14 +1828,7 @@ class ConsentSection(models.Model):
 
             result = eval(self.validation_rule, {"__builtins__": None}, function_context)
             if result not in [True, False, None]:
-                logger.info("validation rule for %s returned %s - returning False!" %
-                            (self.code, result))
                 return False
-
-            if result:
-                logger.debug("validation rule for %s passed!" % self)
-            else:
-                logger.debug("validation rule for %s failed" % self)
 
             return result
         except Exception as ex:
@@ -2329,7 +2292,6 @@ class Modjgo(models.Model):
     lax_validation = True
 
     def _clean_data(self):
-        logger.debug("Validating %s %s" % (self.collection, self.id or ""))
         try:
             self.validate(self.collection, self.data)
         except jsonschema.ValidationError as e:
