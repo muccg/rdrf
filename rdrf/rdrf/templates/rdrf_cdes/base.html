@@ -37,9 +37,9 @@
         </style>
       {% endblock %}
       {% block extrahead %}{% endblock %}
-  
+
 	  <script>
-		$(document).ready(function() {		
+		$(document).ready(function() {
 		  addExtraValidationMethods();
 
 		  $("#submit-btn").click(function() {
@@ -55,9 +55,9 @@
 
   {% block sidebar %}
     {% endblock %}
-  
 
-  
+
+
     <nav class="navbar navbar-inverse navbar-fixed-top">
       <div class="container">
         <div class="navbar-header">
@@ -71,7 +71,7 @@
                 {% block parent_menu %}
                 {% endblock %}
 
-                
+
                 {% if registry_code %}
                     {% if request.user.is_parent  %}
                         <li><a href="{% url 'parent_page' registry_code %}"><span class="glyphicon glyphicon-home"></span> {% trans "Home Page" %}</a></li>
@@ -99,7 +99,7 @@
                         {% endblock %}
                     </ul>
                 </li>
-                
+
                 {% if request.user.is_superuser %}
                     <li class="dropdown">
                         <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
@@ -135,6 +135,9 @@
             {% else %}
                 <li><a href="{% url 'login' %}?next={% url 'login_router' %}"><span class="glyphicon glyphicon-log-in"></span> {% trans "Log in" %}</a></li>
                 <li><a href="{% url 'password_reset' %}"><span class="glyphicon glyphicon-refresh"></span> {% trans "Password Reset" %}</a></li>
+                {% if ACCOUNT_SELF_UNLOCK_ENABLED %}
+                  <li><a href="{% url 'account_unlock' %}"><span class="glyphicon glyphicon-refresh"></span> {% trans "Unlock Account" %}</a></li>
+                {% endif %}
             {% endif %}
           </ul>
         </div><!-- /.navbar-collapse -->
@@ -146,7 +149,7 @@
             {% for message in messages %}
                 <div {% if message.tags %} class="alert alert-{{ message.tags }}"{% endif %}>{{message}}</div>
             {% endfor %}
-        {% endif %}    
+        {% endif %}
 
         {% block content%}
             {% if location %}
@@ -157,7 +160,7 @@
                     </div>
                 </div>
             {% endif %}
-            
+
             {% if header %}
                 <br>
                 <div class="panel panel-info">
