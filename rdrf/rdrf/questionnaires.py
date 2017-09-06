@@ -103,8 +103,6 @@ class QuestionnaireReverseMapper(object):
             if attr == 'working_groups':
                 working_groups = value
                 continue
-            logger.debug(
-                "setting patient demographic field: %s = %s" % (attr, value))
             setattr(self.patient, attr, value)
 
         self.patient.save()
@@ -126,7 +124,6 @@ class QuestionnaireReverseMapper(object):
                     address.save()
 
     def _create_address(self, address_map, patient_model):
-        logger.debug("creating address for %s" % address_map)
         # GeneratedQuestionnaireForbfr____PatientDataAddressSection____State
 
         if self._empty_address_data(address_map):
@@ -135,12 +132,10 @@ class QuestionnaireReverseMapper(object):
         def getcde(address_map, code):
             for k in address_map:
                 if k.endswith("___" + code):
-                    logger.debug("getcde %s = %s" % (code, address_map[k]))
                     return address_map[k]
 
         def get_address_type(address_map):
             value = getcde(address_map, "AddressType")
-            logger.debug("address type = %s" % value)
             # AddressTypeHome --> Home etc
             value = value.replace("AddressType", "")
             try:
@@ -150,28 +145,16 @@ class QuestionnaireReverseMapper(object):
             return address_type_obj
 
         address = PatientAddress()
-        logger.debug("created address object")
         address.patient = patient_model
-        logger.debug("set patient")
-
         address.address_type = get_address_type(address_map)
-        logger.debug("set address type")
-
         address.address = getcde(address_map, "Address")
-        logger.debug("set address")
         address.suburb = getcde(address_map, "SuburbTown")
-        logger.debug("set suburb")
-
         address_postcode = getcde(address_map, "postcode")
         if address_postcode:
             address.postcode = getcde(address_map, "postcode")
         else:
             address.postcode = ""
-        logger.debug("set postcode")
-
         address.country = self._get_country(getcde(address_map, "Country"))
-        logger.debug("set country")
-
         try:
             address.state = self._get_state(
                 getcde(address_map, "State"), address.country)
@@ -187,27 +170,19 @@ class QuestionnaireReverseMapper(object):
 
     def _get_state(self, cde_value, country_code):
         try:
-            logger.debug("_get_state cde_value = %s" % cde_value)
-            logger.debug("_get_state country_code = %s" % country_code)
             state_code = "%s-%s" % (country_code.lower(), cde_value.lower())
             if "-" in cde_value:
                 state_code = cde_value
             else:
                 state_code = "%s-%s" % (country_code, state_code)
 
-            logger.debug("state_code to check = %s" % state_code)
             pycountry_states = list(
                 pycountry.subdivisions.get(country_code=country_code))
             for state in pycountry_states:
-                logger.debug("checking state code %s" % state.code.lower())
                 if state.code.lower() == state_code.lower():
-                    logger.debug("found state!: %s" % state.code)
                     return state.code
 
-            logger.debug("could not find state - returning None")
         except Exception as ex:
-            logger.debug("Error setting state: state = %s country code = %s error = %s" % (
-                cde_value, country_code, ex))
             logger.error("could not find state code for for %s %s" %
                          (country_code, cde_value))
 
@@ -264,15 +239,11 @@ class QuestionnaireReverseMapper(object):
         for item_dict in item_dicts:
             new_item_dict = {}
             for k in item_dict:
-                logger.debug("k = %s" % k)
                 if k is None:
                     continue
                 if k == "DELETE":
-                    logger.debug(
-                        "skipping DELETE key: not applicable in questionnaire response ...")
                     continue
                 value = item_dict[k]
-                logger.debug("value = %s" % value)
                 generated_item_form, generated_item_section, cde_code = k.split(
                     settings.FORM_SECTION_DELIMITER)
                 orig_item_form, orig_item_section = self.parse_generated_section_code(
@@ -286,15 +257,12 @@ class QuestionnaireReverseMapper(object):
 
     def _get_field_data(self, dynamic=True):
         for k in self.questionnaire_data:
-            logger.debug("getting key: %s" % k)
-
             if settings.FORM_SECTION_DELIMITER not in k:
                 continue
             form_name, section_code, cde_code = self._get_key_components(k)
             is_a_dynamic_field = section_code not in self.registry.generic_sections
 
             if dynamic and is_a_dynamic_field:
-                logger.debug("yielding dynamic %s" % k)
                 generated_form_name, generated_section_code, cde_code = self._get_key_components(
                     k)
                 original_form_name, original_section_code = self.parse_generated_section_code(
@@ -304,13 +272,11 @@ class QuestionnaireReverseMapper(object):
                 yield reg_code, original_form_name, original_section_code, cde_code, q_data
 
             if not dynamic and not is_a_dynamic_field:
-                logger.debug("yield non-dynamic %s" % k)
                 patient_attribute, converter = self._get_patient_attribute_and_converter(
                     cde_code)
                 if converter is None:
                     yield patient_attribute, self.questionnaire_data[k]
                 else:
-                    logger.debug("converter = %s" % converter)
                     yield patient_attribute, converter(self.questionnaire_data[k])
 
     def _get_patient_attribute_and_converter(self, cde_code):
@@ -344,7 +310,6 @@ class QuestionnaireReverseMapper(object):
                 converter = self._get_date_of_birth
             return value[0], converter
         else:
-            logger.debug("KEY_MAP[%s] value = %s" % (cde_code, value))
             return value
 
     def _get_demographic_data(self):
@@ -462,7 +427,6 @@ class PatientCreator(object):
         # 	"customconsent_9_1_3" : "on",
 
         for field_key in custom_consent_dict:
-            logger.debug(field_key)
             value = custom_consent_dict[field_key]
             answer = value == "on"
             _, registry_pk, consent_section_pk, consent_question_pk = field_key.split(
@@ -491,7 +455,6 @@ class _ExistingDataWrapper(object):
         self.name = "%s" % self.patient_model
 
     def _get_field_data(self, field_expression, form_model, section_model, cde_model):
-        logger.debug("getting existing data for %s" % field_expression)
         if field_expression in list(KEY_MAP.keys()):
             field_expression = KEY_MAP[field_expression][
                 0]  # the demographic field
@@ -529,9 +492,6 @@ class _ExistingDataWrapper(object):
         """
         l = []
         for question in self.questionnaire.questions:
-            logger.debug("getting existing data for question %s: %s" %
-                         (question.pos, question.name))
-
             if isinstance(question, _ConsentQuestion):
                 existing_answer = {"name": question.name,
                                    "pos": str(question.pos),
@@ -587,7 +547,6 @@ class _ExistingDataWrapper(object):
                                        "is_multi": True,
                                        "answers": self._get_address_labels(question.field_expression)}
 
-            logger.debug("existing data = %s" % existing_answer)
             l.append(existing_answer)
 
         return l
@@ -966,7 +925,6 @@ class _MultiSectionItem(object):
             fields.append("%s=%s" % (display_name, display_value))
 
         csv = ",".join(fields)
-        logger.debug("answer for multisection item: %s" % csv)
         return csv
 
 
@@ -1007,7 +965,6 @@ class Questionnaire(object):
         for form_dict in self.data["forms"]:
             for section_dict in form_dict["sections"]:
                 if not section_dict["allow_multiple"]:
-                    logger.debug("adding section %s" % section_dict["code"])
                     for cde_dict in section_dict["cdes"]:
                         question = _Question(self.registry_model,
                                              self,
@@ -1022,18 +979,13 @@ class Questionnaire(object):
 
                 else:
                     # unit of selection is the entire section ..
-                    logger.debug("adding multisection %s" %
-                                 section_dict["code"])
                     n += 1
                     multisection = _Multisection(self.registry_model,
                                                  self,
                                                  form_dict["name"],
                                                  section_dict["code"])
 
-                    logger.debug("created multisection object")
-
                     for item in section_dict["cdes"]:
-                        logger.debug("adding item %s" % item)
                         value_map = OrderedDict()
                         # each item is a list of cde dicts
                         for cde_dict in item:
@@ -1048,8 +1000,6 @@ class Questionnaire(object):
 
                     multisection.pos = n
                     l.append(multisection)
-
-        logger.debug("questions total = %s" % len(l))
 
         return self._correct_ordering(l)
 
@@ -1107,8 +1057,6 @@ class Questionnaire(object):
             for key in consent_block:
                 _, x, y, z = key.split("_")
                 raw_value = consent_block[key]
-                logger.debug("consent key %s value %s" % (key, raw_value))
-
                 consent_question = _ConsentQuestion(self.registry_model,
                                                     key,
                                                     raw_value)
@@ -1138,11 +1086,7 @@ class Questionnaire(object):
             self.registry_model, non_multi_updates)
 
         errors.extend(single_errors)
-        logger.debug("applied all single updates OK")
-
         multisection_questions = [q for q in selected_questions if q.is_multi]
-        logger.debug("applying %s multisection updates" %
-                     len(multisection_questions))
 
         def correct_structure(ordered_dicts):
             # multisection expects different structure to what was being persisted:
@@ -1169,8 +1113,6 @@ class Questionnaire(object):
             return items
 
         for q in multisection_questions:
-            logger.debug("about to evaluate field expression %s" %
-                         q.field_expression)
             try:
                 if not q.field_expression.startswith("Demographics/"):
                     items = correct_structure(q.value)
