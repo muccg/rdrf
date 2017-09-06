@@ -55,7 +55,6 @@ def convert_registry(registry, dry_run=False):
 
     for gridfs_file_id, django_id in mapping.items():
         if django_id is not None:
-            logger.debug("Deleting GridFS %s" % gridfs_file_id)
             if not dry_run:
                 try:
                     fs.delete(gridfs_file_id)
@@ -76,8 +75,6 @@ def get_gridfs_file_id(cde):
         django_id = val.get("django_file_id")
         if gridfs_id:
             return (gridfs_id, val.get("file_name"))
-        elif django_id:
-            logger.debug("File %s is already a Django file with id %s" % (val.get("file_name"), django_id))
     return (None, None)
 
 

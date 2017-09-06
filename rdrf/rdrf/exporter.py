@@ -21,7 +21,6 @@ def convert_decimal_values(cde_dict):
     for k in cde_dict:
         value = cde_dict[k]
         if isinstance(value, Decimal):
-            # logger.debug("found decimal value: code = %s value = %s" % (cde_dict["code"], value))
             cde_dict[k] = str(value)
     return cde_dict
 
@@ -233,7 +232,6 @@ class Exporter(object):
         else:
             raise Exception("Unknown format: %s" % format)
 
-        logger.debug("Export of Registry %s in %s format" % (self.registry.name, format))
         return export_data
 
     def export_cdes_yaml(self, all_cdes=False):
@@ -320,7 +318,6 @@ class Exporter(object):
     def _get_cdes_in_registry(self, registry_model):
         cdes = set([])
         for registry_form in RegistryForm.objects.filter(registry=registry_model):
-            logger.debug("getting cdes for form %s" % registry_form)
             section_codes = registry_form.get_sections()
             cdes = cdes.union(self._get_cdes_for_sections(section_codes))
 
@@ -373,7 +370,6 @@ class Exporter(object):
     def _get_cdes_for_sections(self, section_codes):
         cdes = set([])
         for section_code in section_codes:
-            logger.debug("getting cdes in section %s" % section_code)
             try:
                 section_model = Section.objects.get(code=section_code)
                 section_cde_codes = section_model.get_elements()

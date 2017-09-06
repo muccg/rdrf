@@ -49,12 +49,8 @@ class RegistrySpecificFieldsHandler(object):
                     elif form_value == FileCommand.DELETE:
                         form_value = {}
 
-                    logger.debug("file cde %s value = %s" % (cde_model.code, form_value))
                     processed_value = self._process_file_cde_value(cde_model, form_value)
-                    logger.debug("after processing = %s" % processed_value)
                     mongo_patient_data[self.registry_model.code][cde_model.code] = processed_value
-
-            logger.debug("************* registry specif data presave to Mongo: %s" % mongo_patient_data)
 
             self.mongo_wrapper.save_registry_specific_data(mongo_patient_data)
 
@@ -82,25 +78,18 @@ class RegistrySpecificFieldsHandler(object):
     def _get_file_form_value(self, file_cde_model, request):
         clear_key = file_cde_model.code + "-clear"
         if file_cde_model.code in request.FILES:
-            logger.debug("file cde in request.FILES")
             in_memory_uploaded_file = request.FILES[file_cde_model.code]
             return in_memory_uploaded_file
 
         elif clear_key in request.POST:
-            logger.debug("clear key %s in request.POST" % clear_key)
             clear_value = request.POST[clear_key]
-            logger.debug("clear value = %s" % clear_value)
             if clear_value == "on":
-                logger.debug("returning delete")
                 return FileCommand.DELETE
 
         elif file_cde_model.code in request.POST:
             posted_value = request.POST[file_cde_model.code]
-            logger.debug("file cde in request.POST value = %s" % posted_value)
             if posted_value == "":
-                logger.debug("returning PRESERVE")
                 return FileCommand.PRESERVE
-            logger.debug("returning [%s]" % posted_value)
             return posted_value
 
         else:
@@ -139,5 +128,4 @@ class RegistrySpecificFieldsHandler(object):
         if self.patient_model is None:
             return {}
         data = self.mongo_wrapper.load_registry_specific_data(self.registry_model)
-        logger.debug("reg spec fields from mongo = %s" % data)
         return data
