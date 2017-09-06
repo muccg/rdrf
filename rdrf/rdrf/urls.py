@@ -2,11 +2,12 @@ from django.conf.urls import url, include
 from django.contrib import admin
 from django.shortcuts import render
 from django.views.generic.base import TemplateView
-import django.contrib.auth.views
+from django.contrib.auth import views as auth_views
 from django.views.i18n import JavaScriptCatalog
 from django.conf import settings
+from django.utils.translation import ugettext as _
 
-from rdrf.auth import RDRFAuthenticationForm
+from rdrf.auth.forms import RDRFAccountUnlockForm, RDRFAuthenticationForm, RDRFPasswordResetForm, RDRFSetPasswordForm
 import rdrf.form_view as form_view
 import rdrf.registry_view as registry_view
 import rdrf.landing_view as landing_view
@@ -75,7 +76,60 @@ urlpatterns += [
     url(r'^rpc', form_view.RPCHandler.as_view(), name='rpc'),
 
     url(r'^admin/', include(admin.site.urls)),
-    url(r'', include('django.contrib.auth.urls')),
+
+    # django.contrib.auth URLs listed expicitly so we can override some of them for custom behaviour
+    # Kept the original urls commented out to have an easy view on which URLs are customised.
+
+    # url(r'^login/$', auth_views.login, name='login'),
+    url(r'^login/?$', auth_views.login,
+        kwargs={'template_name': 'admin/login.html', 'authentication_form': RDRFAuthenticationForm}, name='login'),
+    url(r'^logout/$', auth_views.logout, name='logout'),
+    url(r'^password_change/$', auth_views.password_change, name='password_change'),
+    url(r'^password_change/done/$', auth_views.password_change_done, name='password_change_done'),
+    # url(r'^password_reset/$', views.password_reset, name='password_reset'),
+    url(r'^password_reset/$', auth_views.password_reset,
+        kwargs={'password_reset_form': RDRFPasswordResetForm}, name='password_reset'),
+    url(r'^password_reset/done/$', auth_views.password_reset_done, name='password_reset_done'),
+    # url(r'^reset/(?P<uidb64>[0-9A-Za-z_\-]+)/(?P<token>[0-9A-Za-z]{1,13}-[0-9A-Za-z]{1,20})/$',
+    #     auth_views.password_reset_confirm, name='password_reset_confirm'),
+    url(r'^reset/(?P<uidb64>[0-9A-Za-z_\-]+)/(?P<token>[0-9A-Za-z]{1,13}-[0-9A-Za-z]{1,20})/$',
+        auth_views.password_reset_confirm,
+        kwargs={'set_password_form': RDRFSetPasswordForm},
+        name='password_reset_confirm'),
+    url(r'^reset/done/$', auth_views.password_reset_complete, name='password_reset_complete'),
+]
+
+# Account Unlock URLs (included only if the feature is enabled).
+# Reusing as much as possible of the password reset views from django.contrib.auth.
+if settings.ACCOUNT_SELF_UNLOCK_ENABLED:
+    urlpatterns += [
+        url(r'^account_unlock/$', auth_views.password_reset,
+            kwargs={
+                'password_reset_form': RDRFAccountUnlockForm,
+                'template_name': 'registration/account_unlock_form.html',
+                'subject_template_name': 'registration/account_unlock_subject.txt',
+                'email_template_name': 'registration/account_unlock_email.html',
+                'post_reset_redirect': 'account_unlock_done',
+            },
+            name='account_unlock'),
+        url(r'^account_unlock/done/$', auth_views.password_reset_done,
+            kwargs={'template_name': 'registration/account_unlock_done.html',
+                    'extra_context': {'title': _('Account Unlock Instructions Sent')}},
+            name='account_unlock_done'),
+        url(r'^account_unlock_confirm/(?P<uidb64>[0-9A-Za-z_\-]+)/(?P<token>[0-9A-Za-z]{1,13}-[0-9A-Za-z]{1,20})/$',
+            auth_views.password_reset_confirm,
+            kwargs={
+                'set_password_form': RDRFSetPasswordForm,
+                'post_reset_redirect': 'account_unlock_complete',
+                'extra_context': {'is_account_unlock': True},
+            },
+            name='account_unlock_confirm'),
+        url(r'^account_unlock/complete/$', auth_views.password_reset_complete,
+            kwargs={'template_name': 'registration/account_unlock_complete.html'},
+            name='account_unlock_complete'),
+    ]
+
+urlpatterns += [
     url(r'', include('registry.urls', namespace="registry")),
 
     url(r'^$', landing_view.LandingView.as_view(), name='landing'),
@@ -94,8 +148,6 @@ urlpatterns += [
     url(r'contexts/(?P<registry_code>\w+)/(?P<patient_id>\d+)/(?P<context_id>\d+)/edit/?$',
         RDRFContextEditView.as_view(),
         name="context_edit"),
-    url(r'^login/?$', django.contrib.auth.views.login,
-        kwargs={'template_name': 'admin/login.html', 'authentication_form': RDRFAuthenticationForm}, name='login'),
     url(r'^router/', login_router.RouterView.as_view(), name="login_router"),
 
     url(r"^(?P<registry_code>\w+)/forms/(?P<form_id>\w+)/(?P<patient_id>\d+)/(?P<context_id>add)/?$",
@@ -209,4 +261,5 @@ urlpatterns += [
 
     url(r'^i18n/', include('django.conf.urls.i18n')),
 ]
+
 

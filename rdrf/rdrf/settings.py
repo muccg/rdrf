@@ -109,7 +109,8 @@ TEMPLATES = [
                 "django.template.context_processors.request",
                 "django.template.context_processors.static",
                 "django.template.context_processors.tz",
-                "django.contrib.messages.context_processors.messages"
+                "django.contrib.messages.context_processors.messages",
+                "rdrf.context_processors.common_settings",
             ],
             "debug": DEBUG,
             "loaders": [
@@ -452,6 +453,8 @@ PASSWORD_EXPIRY_WARNING_DAYS = env.get("password_expiry_warning_days", 30)
 # Disable the user's account if they haven't logged in for this time
 ACCOUNT_EXPIRY_DAYS = env.get("account_expiry_days", 100)
 
+# Allow users to unlock their accounts by requesting a reset link in email and then visiting it
+ACCOUNT_SELF_UNLOCK_ENABLED = env.get("account_self_unlock_enabled", True)
 
 INTERNAL_IPS = ('127.0.0.1', '172.16.2.1')
 
