@@ -99,14 +99,9 @@ def update_multisection_file_cdes(registry_code,
                                   multisection_code, form_section_items,
                                   form_model, existing_nested_data, index_map):
 
-    logger.debug("****************** START UPDATE MULTISECTION FILE CDES ****************************")
-    logger.debug("updating any fs files in multisection %s" % multisection_code)
-
     updates = []
 
     for item_index, section_item_dict in enumerate(form_section_items):
-        logger.debug("checking new saved section %s" % item_index)
-
         for key, value in section_item_dict.items():
             cde_code = get_code(key)
             if is_file_cde(cde_code):
@@ -125,7 +120,6 @@ def update_multisection_file_cdes(registry_code,
     for index, key, value in updates:
         form_section_items[index][key] = value
 
-    logger.debug("****************** END UPDATE MULTISECTION FILE CDES ****************************")
     return form_section_items
 
 
@@ -255,12 +249,9 @@ class FormDataParser(object):
         for (form_model, section_model, cde_model), value in self.parsed_data.items():
             if not section_model.allow_multiple:
                 cde_dict = self._get_cde_dict(form_model, section_model, cde_model, d)
-                logger.debug("existing cde dict = %s" % cde_dict)
                 if self._is_file(value):
-                    logger.debug("nested data - file value = %s" % value)
                     # should check here is we're updating a file in fs - the old file needs to be deleted
                     value = self._get_fs_value(value)
-                    logger.debug("value is now: %s" % value)
 
                 cde_dict["value"] = value
 
@@ -336,10 +327,8 @@ class FormDataParser(object):
 
     def _parse_value(self, value):
         if isinstance(value, FileUpload):
-            logger.debug("FileUpload wrapper - returning the fs dict!")
             return value.mongo_data
         elif isinstance(value, InMemoryUploadedFile):
-            logger.debug("InMemoryUploadedFile returning None")
             return None
         elif isinstance(value, list):
             # list of files -- parse each one
@@ -351,7 +340,6 @@ class FormDataParser(object):
     def _parse(self):
         if not self.is_multisection:
             for key in self.form_data:
-                logger.debug("FormDataParser: key = %s" % key)
                 if key == "timestamp":
                     self.global_timestamp = self.form_data[key]
                 elif key.endswith("_timestamp"):
@@ -364,8 +352,6 @@ class FormDataParser(object):
                     form_model, section_model, cde_model = models_from_mongo_key(self.registry_model, key)
                     value = self.form_data[key]
                     self.parsed_data[(form_model, section_model, cde_model)] = self._parse_value(value)
-                else:
-                    logger.debug("don't know how to parse key: %s" % key)
         else:
             # multisections extracted from the form like this (ugh):
             # the delimited keys  will(should) always be cdes from the same form and section
@@ -537,11 +523,9 @@ class DynamicDataWrapper(object):
 
         for registry_code in data:
             wrap_fs_data_for_form(registry_model, data[registry_code])
-        logger.debug("registry_specific_data after wrapping for files = %s" % data)
         return data
 
     def save_registry_specific_data(self, data):
-        logger.debug("saving registry specific mongo data: %s" % data)
         for reg_code in data:
             registry_data = data[reg_code]
             if not registry_data:
@@ -560,23 +544,16 @@ class DynamicDataWrapper(object):
 
     @staticmethod
     def handle_file_upload(registry_code, key, value, current_value):
-        logger.debug("handle_file_upload: key = %s value = %s current_value = %s" % (key,
-                                                                                     value,
-                                                                                     current_value))
-        
         to_delete = False
         ret_value = value
         if value is False and current_value:
             # Django uses a "clear" checkbox value of False to indicate file should be removed
             # we need to delete the file but not here
-            logger.debug("User cleared %s - file will be deleted" % key)
             to_delete = True
             file_ref = current_value
             ret_value = None
         elif value is None:
             # No file upload means keep the current value
-            logger.debug(
-                "User did not change file %s - existing_record will not be updated" % key)
             to_delete = None
             ret_value = current_value
         elif is_uploaded_file(value):
@@ -693,7 +670,6 @@ class DynamicDataWrapper(object):
             form_data[form_timestamp_key] = form_data["timestamp"]
 
         if not record:
-            logger.debug("saving dynamic data - new record")
             record = self._make_record(registry, collection_name)
             record.data["forms"] = []
 
@@ -736,8 +712,6 @@ class DynamicDataWrapper(object):
 
             history = self._make_record(registry_code, "history", data=snapshot)
             history.save()
-            logger.debug("snapshot added for %s patient %s timestamp %s" % (registry_code, patient_id, timestamp))
-
         except Exception as ex:
             logger.error("Couldn't add to history for patient %s: %s" % (patient_id, ex))
 
