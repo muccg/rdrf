@@ -419,9 +419,7 @@ def wrap_uploaded_files(registry_code, post_files_data):
     from rdrf.file_upload import FileUpload
 
     def wrap(key, value):
-        logger.debug("checking key %s" % key)
         if isinstance(value, UploadedFile):
-            logger.debug("Is an UploadedFile ...")
             return FileUpload(registry_code, key, {"file_name": value.name, "django_file_id": 0})
         else:
             return value
@@ -658,10 +656,7 @@ def get_supported_languages():
 
 
 def applicable_forms(registry_model, patient_model):
-    logger.debug("checking applicable forms for patient %s" % patient_model)
-    logger.debug("patient type = %s" % patient_model.patient_type)
     patient_type_map = registry_model.metadata.get("patient_types", None)
-    logger.debug("patient type map = %s" % patient_type_map)
     # type map looks like:
     # { "carrier": { "name": "Female Carrier", "forms": ["CarrierForm"]} }
     all_forms = registry_model.forms
@@ -670,7 +665,6 @@ def applicable_forms(registry_model, patient_model):
         return all_forms
     else:
         patient_type = patient_model.patient_type
-        logger.debug("patient_type = %s" % patient_type)
         if not patient_type:
             # list of form names which are "owned" by some patient type
             # if a patient has no designated patient type they see
@@ -680,18 +674,13 @@ def applicable_forms(registry_model, patient_model):
                            for k in patient_type_map.keys()
                            for form in patient_type_map[k]["forms"]]
             
-            logger.debug("typed forms = %s" % typed_forms)
             return [ f for f in all_forms if f.name not in typed_forms]
         else:
             if patient_type in patient_type_map:
                 applicable_form_names = patient_type_map[patient_type].get("forms",
                                                                            all_forms)
-                logger.debug("applicable form names = %s" % applicable_form_names)
-                
                 forms =  [form for form in all_forms
                           if form.name in applicable_form_names]
-
-                logger.debug("applicable forms = %s" % forms)
                 return forms
             else:
                 return []

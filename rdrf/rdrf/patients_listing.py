@@ -24,6 +24,9 @@ from rdrf.utils import MinType
 from django.utils.translation import ugettext as _
 
 
+from datetime import datetime
+
+
 import logging
 logger = logging.getLogger(__name__)
 
@@ -56,6 +59,8 @@ class PatientsListingView(View):
         # the protocol is the jquery DataTable
         # see http://datatables.net/manual/server-side
 
+        start = datetime.now()
+
         self.user = request.user
         if self.user and self.user.is_anonymous():
             login_url = "%s?next=%s" % (reverse("login"), reverse("login_router"))
@@ -69,6 +74,12 @@ class PatientsListingView(View):
 
         template_context = self.build_context()
         template = self.get_template()
+
+        finish = datetime.now()
+
+        taken = finish - start
+
+        logger.debug("Time take for patient listing = %s" % taken)
 
         return render(request, template, template_context)
 
@@ -197,14 +208,11 @@ class PatientsListingView(View):
 
     def get_results(self, request):
         if self.registry_model is None:
-            logger.debug("registry model is None - returning empty results")
             return []
         if not self.check_security():
-            logger.debug("security check failed - returning empty results")
             return []
 
         patients = self.run_query()
-        logger.debug("got column data for each row in page OK")
         return patients
 
     def check_security(self):
@@ -233,10 +241,6 @@ class PatientsListingView(View):
 
         column_name = "columns[%s][data]" % sort_column_index
         sort_field = request.POST.get(column_name, None)
-        logger.debug("sort_field = %s sort_direction = %s" % (sort_field,
-                                                              sort_direction))
-        
-
         return sort_field, sort_direction
 
     def run_query(self):
@@ -258,8 +262,6 @@ class PatientsListingView(View):
         if context_model.context_form_group:
             assert context_model.context_form_group.is_default, "Expected to always get a context of the default form group"
 
-        logger.debug("retrieved the default context for %s: it is %s" %
-                     (patient_model, context_model))
         return context_model
 
     def apply_custom_ordering(self, qs):
@@ -316,54 +318,32 @@ class PatientsListingView(View):
             self.patients = self.patients.filter(Q(given_names__icontains=self.search_term) |
                                                  Q(family_name__icontains=self.search_term))
 
-            count_after_search = self.patients.count()
-            logger.debug(
-                "search term provided - count after search = %s" % count_after_search)
-
     def filter_by_user_group(self):
         if not self.user.is_superuser:
             if self.user.is_curator:
                 query_patients = Q(rdrf_registry__in=self.registry_queryset) & Q(
                     working_groups__in=self.user.working_groups.all())
                 self.patients = self.patients.filter(query_patients)
-                logger.debug(
-                    "user is curator - returning patients in their working groups")
             elif self.user.is_genetic_staff:
                 self.patients = self.patients.filter(
                     working_groups__in=self.user.working_groups.all())
-                logger.debug(
-                    "user is genetic staff - returning patients in their working groups")
             elif self.user.is_genetic_curator:
                 self.patients = self.patients.filter(
                     working_groups__in=self.user.working_groups.all())
-                logger.debug(
-                    "user is genetic curator - returning patients in their working groups")
             elif self.user.is_working_group_staff:
                 self.patients = self.patients.filter(
                     working_groups__in=self.user.working_groups.all())
-                logger.debug(
-                    "user is working group staff - returning patients in their working groups")
             elif self.user.is_clinician and self.clinicians_have_patients:
                 self.patients = self.patients.filter(clinician=self.user)
-                logger.debug(
-                    "user is a clinician and clinicians have patients - returning their patients")
             elif self.user.is_clinician and not self.clinicians_have_patients:
                 query_patients = Q(rdrf_registry__in=self.registry_queryset) & Q(
                     working_groups__in=self.user.working_groups.all())
                 self.patients = self.patients.filter(query_patients)
-                logger.debug(
-                    "user is a clinician and clinicians don't have patients - returning patients in their working groups")
             elif self.user.is_patient:
                 self.patients = self.patients.filter(user=self.user)
-                logger.debug(
-                    "user is a patient - returning the patient of which I am the user")
             else:
-                logger.debug(
-                    "user not in any recognised group - returning empty quesryset")
                 self.patients = self.patients.none()
         else:
-            logger.debug(
-                "user is superuser - returning all patients in registry %s" % self.registry_model.code)
             self.patients = self.patients.filter(
                 rdrf_registry__in=self.registry_queryset)
 
