@@ -24,7 +24,6 @@ def get_default_context(fh_registry_model, patient_model):
         default_context.display_name = cfg.get_default_name(patient_model)
         default_context.save()
 
-    logger.debug("default context = %s" % default_context)
     return default_context
 
 
@@ -39,13 +38,9 @@ def get_main_context(fh_registry_model, patient_model):
             if context_model.context_form_group.is_default:
                 return context_model
 
-    logger.debug("no main context - ???? - returning None")
-
-
 @hook("patient_created_from_relative")
 def mark_as_relative_in_clinical_form(patient):
     # Ensure that a patient created from a relative is marked as a relative in the clinical form
-    logger.debug("marking patient %s as relative .." % patient.pk)
     if patient.in_registry('fh'):
         fh = Registry.objects.get(code="fh")
         default_context = get_main_context(fh, patient)
@@ -56,41 +51,29 @@ def mark_as_relative_in_clinical_form(patient):
                                "CDEIndexOrRelative",
                                "fh_is_relative",
                                context_model=default_context)
-        logger.debug("marked patient as relative ok")
-
 
 @hook("registry_added")
 def mark_created_patient_as_index(patient, registry_ids):
 
     def has_no_mongo_data(patient, registry_model):
-        logger.debug("checking mongo data")
         context_model = get_main_context(registry_model, patient)
         if context_model is None:
-            logger.debug("context model is None")
             # true when a new patient
             return True
         wrapper = DynamicDataWrapper(patient, rdrf_context_id=context_model.pk)
         data = wrapper.load_dynamic_data(registry_model.code, 'cdes')
-        logger.debug("loaded dynamic data = %s" % data)
         if data is None:
-            logger.debug("mongo data None")
             return True
         else:
-            logger.debug("mongo record exists")
             return False
 
     fh = Registry.objects.get(code="fh")
 
     if fh.has_feature('family_linkage') and fh.pk in registry_ids and has_no_mongo_data(patient, fh):
-        logger.debug("marking patient %s as index .." % patient.pk)
-
         # patient has just been added to fh
         # get the current context form group
         try:
-            logger.debug("fh registry added hook running setting to index")
             default_context = get_main_context(fh, patient)
-            logger.debug("main context for patient %s is %s" % (patient, default_context.pk))
-
             if default_context is None:
                 pass
 
@@ -105,8 +88,5 @@ def mark_created_patient_as_index(patient, registry_ids):
             # The following line mimics what happens on a normal form save
             patient_wrapper = DynamicDataWrapper(patient, rdrf_context_id=default_context.pk)
             patient_wrapper.save_form_progress(fh.code, default_context)
-
-            logger.debug("marked patient as index ok")
-
         except Exception as ex:
             logger.error("error running hook: %s" % ex)
