@@ -287,18 +287,6 @@ class PatientAdmin(admin.ModelAdmin):
         mongo_patient_data = {}
         instance = form.save(commit=False)
         registry_specific_fields_dict = self._get_registry_specific_patient_fields(request.user)
-
-#        for reg_code in registry_specific_fields_dict:
-#            mongo_patient_data[reg_code] = {}
-#            registry_specific_fields = registry_specific_fields_dict[reg_code]
-#            for cde, field_object in registry_specific_fields:
-#                field_name = cde.name
-#                cde_code = cde.code
-#                field_value = request.POST[cde.code]
-#                mongo_patient_data[reg_code][cde_code] = field_value
-
-#                logger.debug("specific field for %s %s = %s" % (reg_code, field_name, field_value))
-
         if mongo_patient_data:
             instance.mongo_patient_data = mongo_patient_data
 
@@ -319,7 +307,6 @@ class PatientAdmin(admin.ModelAdmin):
         """
         if formset.__class__.__name__ == 'PatientRelativeFormFormSet':
             # check to see if we're creating a patient from this relative
-            logger.debug("saving patient relative")
             formset.save()
         else:
             formset.save()

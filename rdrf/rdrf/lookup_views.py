@@ -62,7 +62,6 @@ class FamilyLookup(View):
         result = {}
         try:
             index_patient_pk = request.GET.get("index_pk", None)
-            logger.debug("index_patient_pk = %s" % index_patient_pk)
             patient = Patient.objects.get(pk=index_patient_pk)
         except Patient.DoesNotExist:
             result = {"error": "patient does not exist"}

@@ -51,7 +51,6 @@ class TopLevelExporter(object):
 
         # TODO this code is the same as first section in exporters.DataGroupExporters.export
         datagroup_exporters = self.dfns.exporters_catalogue.datagroups
-        logger.debug('Processing %d datagroups', len(self.dfns.datagroups))
         for dg in self.dfns.datagroups:
             exporter = datagroup_exporters.get(dg)(dg, self.dfns.exporters_catalogue, logger=child_logger)
             if exporter.export(**self.export_context):
@@ -81,7 +80,6 @@ class TopLevelExporter(object):
         return meta_info
 
     def write_out_meta_info(self):
-        logger.debug('Writting out META file')
         with open(os.path.join(self.workdir, 'META'), 'w') as f:
             def handler(obj):
                 if hasattr(obj, 'isoformat'):
@@ -90,7 +88,6 @@ class TopLevelExporter(object):
             json.dump(self.get_meta_info(), f, default=handler, indent=2)
 
     def zip_it(self):
-        logger.debug("Zipping up the '%s' directory", self.tmpdir)
         filename, ext = os.path.splitext(self.zip_file)
         if ext != '.zip':
             raise ValueError("Invalid extension '%s' set on zip_file. Should be '.zip'" % ext)
@@ -98,12 +95,10 @@ class TopLevelExporter(object):
 
     def create_working_dir(self):
         self.tmpdir = tempfile.mkdtemp(suffix='export')
-        logger.debug("Working in '%s'", self.workdir)
         if self.tmpdir != self.workdir:
             os.makedirs(self.workdir)
 
     def remove_working_dir(self):
-        logger.debug("Deleting working dir '%s'", self.tmpdir)
         shutil.rmtree(self.tmpdir)
 
 

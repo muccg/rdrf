@@ -270,8 +270,6 @@ class SpreadSheetReport:
                 for cde_code in cde_codes:
                     self._write_cell(cde_code)
 
-        logger.debug("created sheet %s" % sheet_name)
-
     def _create_sheet(self, title):
         sheet = self.work_book.create_sheet()
         sheet.title = title

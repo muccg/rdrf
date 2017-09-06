@@ -606,7 +606,6 @@ class Patient(models.Model):
             if field == "answer":
                 return False    # ?
             else:
-                logger.debug("consent model not in patient registries")
                 return None
         try:
             cv = ConsentValue.objects.get(patient=self, consent_question=consent_model)

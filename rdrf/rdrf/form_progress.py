@@ -253,7 +253,6 @@ class FormProgress(object):
     def _calculate(self, dynamic_data):
         progress_metadata = self._get_progress_metadata()
         if not progress_metadata:
-            logger.debug("No progress metadata for %s - nothing to calculate" % self.registry_model.code)
             return
 
         self._build_progress_map()

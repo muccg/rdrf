@@ -102,7 +102,6 @@ class Importer(object):
             yaml_data = open(yaml_data_file)
             self.data = yaml.load(yaml_data)
             yaml_data.close()
-            logger.debug("importer.data = %s" % self.data)
             self.state = ImportState.LOADED
         except Exception as ex:
             self.state = ImportState.MALFORMED
@@ -274,10 +273,8 @@ class Importer(object):
                 logger.warning("Import is updating an existing group %s" % pvg.code)
                 existing_values = [pv for pv in CDEPermittedValue.objects.filter(pv_group=pvg)]
                 existing_value_codes = set([pv.code for pv in existing_values])
-                logger.debug("existing value codes = %s" % existing_value_codes)
                 import_value_codes = set([v["code"] for v in pvg_map["values"]])
                 import_missing = existing_value_codes - import_value_codes
-                logger.debug("import missing = %s" % import_missing)
                 # ensure applied import "wins" - this potentially could affect other
                 # registries though
                 # but if value sets are inconsistent we can't help it
@@ -330,10 +327,8 @@ class Importer(object):
 
     def _create_cdes(self, cde_maps):
         for cde_map in cde_maps:
-            logger.debug("importing cde_map %s" % cde_map)
             cde_model, created = CommonDataElement.objects.get_or_create(code=cde_map["code"])
 
-            logger.debug("max_value = %s" % cde_model.max_value)
             if not created:
                 registries_already_using = _registries_using_cde(cde_model)
                 if len(registries_already_using) > 0:
@@ -443,10 +438,6 @@ class Importer(object):
 
         r, created = Registry.objects.get_or_create(code=self.data["code"])
 
-        if created:
-            logger.debug("creating registry with code %s from import of %s" %
-                         (self.data["code"], self.yaml_data_file))
-
         original_forms = set([f.name for f in RegistryForm.objects.filter(registry=r)])
         imported_forms = set([])
         r.code = self.data["code"]
@@ -545,8 +536,6 @@ class Importer(object):
             logger.info("no adjudications to import")
 
         self._create_form_permissions(r)
-        logger.debug("created form permissions OK")
-
         if "demographic_fields" in self.data:
             self._create_demographic_fields(self.data["demographic_fields"])
             logger.info("demographic field definitions OK ")
@@ -723,16 +712,11 @@ class Importer(object):
     def _create_working_groups(self, registry):
         if "working_groups" in self.data:
             working_group_names = self.data["working_groups"]
-            logger.debug("working_groups in metadata")
             existing_groups = set([wg for wg in WorkingGroup.objects.filter(registry=registry)])
             new_groups = set([])
             for working_group_name in working_group_names:
                 working_group, created = WorkingGroup.objects.get_or_create(
                     name=working_group_name, registry=registry)
-                if created:
-                    logger.debug("creating new group %s" % working_group_name)
-                else:
-                    logger.debug("working group %s already exists" % working_group_name)
                 working_group.save()
                 new_groups.add(working_group)
 
@@ -842,7 +826,6 @@ class Importer(object):
                     continue
 
                 group_names = cde_pol_dict["groups_allowed"]
-                logger.debug("group_names = %s" % group_names)
                 groups = [g for g in Group.objects.filter(name__in=group_names)]
 
                 cde_policy = CdePolicy(registry=registry_model,
