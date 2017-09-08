@@ -6,7 +6,7 @@ from operator import attrgetter
 from django.forms.models import model_to_dict
 from rdrf import VERSION
 import datetime
-from rdrf.models import AdjudicationDefinition, DemographicFields, RegistryForm
+from rdrf.models import DemographicFields, RegistryForm
 from explorer.models import Query
 from decimal import Decimal
 
@@ -182,7 +182,6 @@ class Exporter(object):
         data["pvgs"] = [pvg.as_dict() for pvg in self._get_pvgs(export_type)]
         data["REGISTRY_VERSION"] = self._get_registry_version()
         data["metadata_json"] = self.registry.metadata_json
-        data["adjudication_definitions"] = self._get_adjudication_definitions()
         data["consent_sections"] = self._get_consent_sections()
         data["forms_allowed_groups"] = self._get_forms_allowed_groups()
         data["demographic_fields"] = self._get_demographic_fields()
@@ -329,9 +328,7 @@ class Exporter(object):
         cdes = cdes.union(patient_data_section_cdes)
 
         generic_cdes = self._get_generic_cdes()
-        adjudication_cdes = self._get_adjudication_cdes()
         cdes = cdes.union(generic_cdes)
-        cdes = cdes.union(adjudication_cdes)
 
         return self._sort_codes(cdes)
 
@@ -356,17 +353,6 @@ class Exporter(object):
 
         return section_dicts
 
-    def _get_adjudication_cdes(self):
-        adjudication_cdes = set([])
-        for adj_def in AdjudicationDefinition.objects.filter(registry=self.registry):
-            # points to a section containing cdes which capture adjucation ratings
-            adjudication_section_code = adj_def.result_fields
-            # points to a section containing decision fields ( which are mapped to actions )
-            result_section_code = adj_def.decision_field
-            adjudication_cdes = adjudication_cdes.union(
-                self._get_cdes_for_sections([adjudication_section_code, result_section_code]))
-        return adjudication_cdes
-
     def _get_cdes_for_sections(self, section_codes):
         cdes = set([])
         for section_code in section_codes:
@@ -390,36 +376,6 @@ class Exporter(object):
     def _get_working_groups(self):
         from registry.groups.models import WorkingGroup
         return [wg.name for wg in WorkingGroup.objects.filter(registry=self.registry)]
-
-    def _get_adjudication_definitions(self):
-        """
-        fields = models.TextField()
-        result_fields = models.TextField() # section_code containing cde codes of result
-        decision_field = models.TextField(blank=True, null=True) # cde code of a range field with allowed actions
-        adjudicator_username = models.CharField(max_length=80, default="admin")  # an admin user to check the incoming
-        :return:
-        """
-        adj_def_maps = []
-
-        def get_section_maps(adj_def):
-            result_fields_section = self._create_section_map(adj_def.result_fields)
-            decision_fields_section = self._create_section_map(adj_def.decision_field)
-            return {
-                "results_fields": result_fields_section,
-                "decision_fields_section": decision_fields_section}
-
-        for adj_def in AdjudicationDefinition.objects.filter(registry=self.registry):
-            adj_def_map = {}
-            adj_def_map['fields'] = adj_def.fields
-            adj_def_map['result_fields'] = adj_def.result_fields
-            adj_def_map['decision_field'] = adj_def.decision_field   # section for dec
-            adj_def_map['adjudicator_username'] = adj_def.adjudicator_username
-            adj_def_map["adjudicating_users"] = adj_def.adjudicating_users
-            adj_def_map["display_name"] = adj_def.display_name
-            adj_def_map["sections_required"] = get_section_maps(adj_def)
-            adj_def_maps.append(adj_def_map)
-
-        return adj_def_maps
 
     def _get_demographic_fields(self):
         demographic_fields = []
