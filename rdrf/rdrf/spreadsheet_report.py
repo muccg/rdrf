@@ -5,7 +5,7 @@ import functools
 from rdrf.utils import get_cde_value
 from rdrf.utils import cached
 from rdrf.dynamic_data import DynamicDataWrapper
-from rdrf.models import CommonDataElement, Modjgo
+from rdrf.models import CommonDataElement, ClinicalData
 from rdrf.generalised_field_expressions import GeneralisedFieldExpressionParser
 
 logger = logging.getLogger(__name__)
@@ -355,7 +355,7 @@ class SpreadSheetReport:
             return "??ERROR??"
 
     def _get_snapshots(self, patient):
-        history = Modjgo.objects.collection(self.registry_model.code, "history")
+        history = ClinicalData.objects.collection(self.registry_model.code, "history")
         snapshots = history.find(patient, record_type="snapshot")
 
         # # fixme: date filtering was never implemented, but it could

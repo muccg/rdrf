@@ -15,7 +15,7 @@ from .importer import Importer, ImportState
 from .models import Registry, RegistryForm, Section
 from .models import CDEPermittedValueGroup, CDEPermittedValue
 from .models import CommonDataElement
-from .models import Modjgo
+from .models import ClinicalData
 from .form_view import FormView
 from registry.patients.models import Patient
 from registry.patients.models import State, PatientAddress, AddressType
@@ -401,7 +401,7 @@ class FormTestCase(RDRFTestCase):
         view.request = request
         view.post(request, self.registry.code, self.simple_form.pk, self.patient.pk, self.default_context.pk)
 
-        collection = Modjgo.objects.collection(self.registry.code, "cdes")
+        collection = ClinicalData.objects.collection(self.registry.code, "cdes")
         context_id = self.patient.default_context(self.registry).id
         mongo_record = collection.find(self.patient, context_id).data().first()
 
@@ -438,7 +438,7 @@ class LongitudinalTestCase(FormTestCase):
     def test_simple_form(self):
         super(LongitudinalTestCase, self).test_simple_form()
         # should have one snapshot
-        qs = Modjgo.objects.collection(self.registry.code, "history")
+        qs = ClinicalData.objects.collection(self.registry.code, "history")
         snapshots = qs.find(self.patient, record_type="snapshot").data()
         self.assertGreater(len(snapshots), 0,
                            "History should be filled in on save")
@@ -506,12 +506,12 @@ class JavascriptCheckTestCase(TestCase):
         self.assertEqual(err, "")
 
 
-class FakeModjgo(object):
+class FakeClinicalData(object):
             def __init__(self, pk, data):
                 self.pk = pk
                 self.data = data
             def save(self):
-                print("Fake Modjgo save called")
+                print("Fake ClinicalData save called")
 
 
 class TimeStripperTestCase(TestCase):
@@ -548,8 +548,8 @@ class TimeStripperTestCase(TestCase):
 
         
 
-        self.m1 = FakeModjgo(1, self.data_with_date_cdes)
-        self.m2 = FakeModjgo(2, self.data_without_date_cdes)
+        self.m1 = FakeClinicalData(1, self.data_with_date_cdes)
+        self.m2 = FakeClinicalData(2, self.data_without_date_cdes)
 
         self.ts = TimeStripper([self.m1, self.m2])
         self.ts.test_mode = True
@@ -606,7 +606,7 @@ class TimeStripperTestCase(TestCase):
                                                "sections": [multisection]}]}
         
         copy_before_op = deepcopy(data_with_multisections)
-        m = FakeModjgo(23, data_with_multisections)
+        m = FakeClinicalData(23, data_with_multisections)
 
         ts = TimeStripper([m])
         ts.test_mode = True
@@ -992,7 +992,7 @@ class TimeStripperTestCase(TestCase):
                   }
 
         expected_dates = ['2017-02-14']
-        history_record = FakeModjgo(73, history_modjgo_data)
+        history_record = FakeClinicalData(73, history_modjgo_data)
         ts = HistoryTimeStripper([history_record])
         ts.test_mode = True
         ts.date_cde_codes = ['FHconsentDate']
@@ -1031,10 +1031,10 @@ class StructureChecker(TestCase):
         return out_stream.getvalue()
 
     def clear_modjgo_objects(self):
-        Modjgo.objects.all().delete()
+        ClinicalData.objects.all().delete()
 
     def make_modjgo(self, collection, data):
-        m = Modjgo()
+        m = ClinicalData()
         m.registry_code = "foobar"
         m.collection = collection
         m.data = data
@@ -1042,7 +1042,7 @@ class StructureChecker(TestCase):
         return m
         
     def test_cdes(self):
-        from rdrf.models import Modjgo
+        from rdrf.models import ClinicalData
         foobar = Registry()
         foobar.code = "foobar"
         foobar.save()
@@ -1107,7 +1107,7 @@ class StructureChecker(TestCase):
 
 
     def test_history(self):
-        from rdrf.models import Modjgo
+        from rdrf.models import ClinicalData
         foobar = Registry()
         foobar.code = "foobar"
         foobar.save()

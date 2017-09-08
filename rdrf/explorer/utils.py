@@ -8,7 +8,7 @@ from django.db import connection
 from rdrf.utils import get_cached_instance
 from rdrf.utils import timed
 from rdrf.models import Registry, RegistryForm, Section
-from rdrf.models import CommonDataElement, Modjgo
+from rdrf.models import CommonDataElement, ClinicalData
 
 from .models import Query
 from .forms import QueryForm
@@ -140,8 +140,8 @@ class DatabaseUtils(object):
         self.reverse_map = reverse_column_map
         self.col_map = col_map
 
-        collection = Modjgo.objects.collection(self.registry_model.code, self.collection)
-        history = Modjgo.objects.collection(self.registry_model.code, "history")
+        collection = ClinicalData.objects.collection(self.registry_model.code, self.collection)
+        history = ClinicalData.objects.collection(self.registry_model.code, "history")
 
         if self.projection:
             self.mongo_models = [model_triple for model_triple in self._get_mongo_fields()]

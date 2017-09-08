@@ -461,7 +461,7 @@ class TimeStripper(object):
 
     """
     This class exists to fix an error we introduced in the migration
-    moving from Mongo to pure Django models with JSON fields ( "Modjgo" objects.)
+    moving from Mongo to pure Django models with JSON fields ( "ClinicalData" objects.)
     CDE date values were converted  into iso strings including a time T substring.
     This was done recursively for the cdes and history collections
     """
@@ -476,10 +476,10 @@ class TimeStripper(object):
 
     def forward(self):
         for thing in self.dataset:
-            print("Checking Modjgo object pk %s" % thing.pk)
+            print("Checking ClinicalData object pk %s" % thing.pk)
 
             self.update(thing)
-        print("Finished: Updated %s Modjgo objects" % self.num_updates)
+        print("Finished: Updated %s ClinicalData objects" % self.num_updates)
 
     def get_id(self, m):
         pk = m.pk
@@ -494,11 +494,11 @@ class TimeStripper(object):
                 django_model = m.data["django_model"]
             else:
                 django_model = None
-            return "Modjgo pk %s Django Model %s Django id %s" % (pk,
+            return "ClinicalData pk %s Django Model %s Django id %s" % (pk,
                                                                   django_model,
                                                                   django_id)
         else:
-            return "Modjgo pk %s" % pk
+            return "ClinicalData pk %s" % pk
 
     def munge_timestamp(self, datestring):
         if datestring is None:
@@ -557,7 +557,7 @@ class TimeStripper(object):
                     self.num_updates += 1
                 except Exception as ex:
                     print(
-                        "Error saving Modjgo object %s after updating: %s" % (ident,
+                        "Error saving ClinicalData object %s after updating: %s" % (ident,
                                                                               ex))
                     raise   # rollback
 

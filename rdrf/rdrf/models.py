@@ -2207,7 +2207,7 @@ class ContextFormGroupItem(models.Model):
     registry_form = models.ForeignKey(RegistryForm)
 
 
-class ModjgoQuerySet(models.QuerySet):
+class ClinicalDataQuerySet(models.QuerySet):
     def collection(self, registry_code, collection):
         qs = self.filter(registry_code=registry_code, collection=collection)
         return qs.order_by("pk")
@@ -2227,7 +2227,7 @@ class ModjgoQuerySet(models.QuerySet):
         return self.values_list("data", flat=True)
 
 
-class Modjgo(models.Model):
+class ClinicalData(models.Model):
     """
     MongoDB collections in Django.
     """
@@ -2242,7 +2242,7 @@ class Modjgo(models.Model):
     collection = models.CharField(max_length=50, db_index=True, choices=COLLECTIONS)
     data = DataField()
 
-    objects = ModjgoQuerySet.as_manager()
+    objects = ClinicalDataQuerySet.as_manager()
 
     @classmethod
     def for_obj(cls, obj, **kwargs):

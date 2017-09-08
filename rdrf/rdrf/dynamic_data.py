@@ -6,7 +6,7 @@ from django.core.files.uploadedfile import InMemoryUploadedFile
 
 from . import filestorage
 from .file_upload import FileUpload, wrap_fs_data_for_form
-from .models import Registry, Modjgo
+from .models import Registry, ClinicalData
 from .utils import get_code, models_from_mongo_key, is_delimited_key, mongo_key, is_multisection
 from .utils import is_file_cde, is_multiple_file_cde, is_uploaded_file
 
@@ -439,13 +439,13 @@ class DynamicDataWrapper(object):
         return "Dynamic Data Wrapper for %s id=%s" % (self.obj.__class__.__name__, self.obj.pk)
 
     def _get_record(self, registry, collection_name, filter_by_context=True):
-        qs = Modjgo.objects.collection(registry, collection_name)
+        qs = ClinicalData.objects.collection(registry, collection_name)
         return qs.find(self.obj, self.rdrf_context_id if filter_by_context else None)
 
     def _make_record(self, registry_code, collection_name, data=None, **kwargs):
         data = dict(data or {})
         data["context_id"] = self.rdrf_context_id
-        m = Modjgo.for_obj(self.obj, registry_code=registry_code,
+        m = ClinicalData.for_obj(self.obj, registry_code=registry_code,
                               collection=collection_name, data=data, **kwargs)
 
         if collection_name == "history":
@@ -472,7 +472,7 @@ class DynamicDataWrapper(object):
     def get_cde_val(self, registry_code, form_name, section_code, cde_code, collection="cdes"):
         modjgo_queryset = self._get_record(registry_code, collection)
         if modjgo_queryset:
-            # NB data is a Modjgo queryset
+            # NB data is a ClinicalData queryset
             modjgo_object = modjgo_queryset.first()
             return modjgo_object.cde_val(form_name, section_code, cde_code)
         else:
@@ -596,7 +596,7 @@ class DynamicDataWrapper(object):
         # replace entire cdes record with supplied one
         # assumes structure correct ..
 
-        from rdrf.models import Modjgo
+        from rdrf.models import ClinicalData
         from rdrf.models import RDRFContext
 
         # assumes context_id in cdes_record
@@ -606,7 +606,7 @@ class DynamicDataWrapper(object):
             raise Exception("expected context_id in cdes_record")
 
         try:
-            cdes_modjgo = Modjgo.objects.get(registry_code=registry_model.code,
+            cdes_modjgo = ClinicalData.objects.get(registry_code=registry_model.code,
                                              collection="cdes",
                                              data__django_id=self.obj.pk,
                                              data__django_model=self.obj.__class__.__name__,
@@ -615,8 +615,8 @@ class DynamicDataWrapper(object):
                                                 
             cdes_modjgo.data.update(cdes_record)
 
-        except Modjgo.DoesNotExist:
-            cdes_modjgo = Modjgo.for_obj(self.obj,
+        except ClinicalData.DoesNotExist:
+            cdes_modjgo = ClinicalData.for_obj(self.obj,
                                          registry_code=registry_model.code,
                                          collection="cdes",
                                          data=cdes_record)

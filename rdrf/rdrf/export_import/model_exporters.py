@@ -149,6 +149,6 @@ registry_catalogue.register(models.RDRFContext, ModelExporterFilteredByRegistry)
 registry_catalogue.register(models.QuestionnaireResponse, ModelExporterFilteredByRegistry)
 
 registry_catalogue.register(models.CDEFile, ModelExporterFilteredByRegistryCode)
-registry_catalogue.register(models.Modjgo, ModelExporterFilteredByRegistryCode)
+registry_catalogue.register(models.ClinicalData, ModelExporterFilteredByRegistryCode)
 
 registry_catalogue.register(explorermodels.Query, ModelExporterFilteredByRegistry)

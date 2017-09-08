@@ -15,7 +15,7 @@ from rdrf.models import ConsentSection
 from rdrf.models import ConsentQuestion
 from rdrf.models import EmailTemplate
 from rdrf.models import EmailNotification
-from rdrf.models import Modjgo
+from rdrf.models import ClinicalData
 
 
 from rdrf.generalised_field_expressions import MultiSectionItemsExpression
@@ -433,7 +433,7 @@ def delete_existing_models():
                 u.delete()
     classes = [Patient, Laboratory, PatientAddress,
                EmailNotification, EmailTemplate,
-               PatientDoctor, Doctor, Modjgo, Group, WorkingGroup]
+               PatientDoctor, Doctor, ClinicalData, Group, WorkingGroup]
     for k in classes:
         print("deleting all %s" % k)
         print("There are %s %s .." % (k.objects.all().count(), k))
