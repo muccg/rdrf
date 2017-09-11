@@ -1591,10 +1591,10 @@ class ClinicalDataQuerySet(models.QuerySet):
     def find(self, obj=None, context_id=None, **query):
         q = {}
         if obj is not None:
-            q["data__django_model"] = obj.__class__.__name__
-            q["data__django_id"] = obj.id
+            q["django_id"] = obj.id
+            q["django_model"] = obj.__class__.__name__
         if context_id is not None:
-            q["data__context_id"] = context_id
+            q["context_id"] = context_id
         for attr, value in query.items():
             q["data__" + attr] = value
         return self.filter(**q)
@@ -1617,14 +1617,19 @@ class ClinicalData(models.Model):
     registry_code = models.CharField(max_length=10, db_index=True)
     collection = models.CharField(max_length=50, db_index=True, choices=COLLECTIONS)
     data = DataField()
+    django_id = models.IntegerField(db_index=True, default=0)
+    django_model = models.CharField(max_length=80, db_index=True, default="Patient")
+    context_id = models.IntegerField(db_index=True, blank=True, null=True)
 
     objects = ClinicalDataQuerySet.as_manager()
 
     @classmethod
-    def for_obj(cls, obj, **kwargs):
+    def create(cls, obj, **kwargs):
         self = cls(**kwargs)
         self.data["django_model"] = obj.__class__.__name__
         self.data["django_id"] = obj.id
+        self.django_id = obj.id
+        self.django_model = obj.__class__.__name__
         return self
 
     def __str__(self):

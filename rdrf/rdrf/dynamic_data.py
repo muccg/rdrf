@@ -445,8 +445,8 @@ class DynamicDataWrapper(object):
     def _make_record(self, registry_code, collection_name, data=None, **kwargs):
         data = dict(data or {})
         data["context_id"] = self.rdrf_context_id
-        m = ClinicalData.for_obj(self.obj, registry_code=registry_code,
-                              collection=collection_name, data=data, **kwargs)
+        m = ClinicalData.create(self.obj, registry_code=registry_code,
+                                collection=collection_name, data=data, **kwargs)
 
         if collection_name == "history":
             m.data["username"] = None if not self.user else self.user.username
@@ -616,10 +616,10 @@ class DynamicDataWrapper(object):
             cdes_modjgo.data.update(cdes_record)
 
         except ClinicalData.DoesNotExist:
-            cdes_modjgo = ClinicalData.for_obj(self.obj,
-                                         registry_code=registry_model.code,
-                                         collection="cdes",
-                                         data=cdes_record)
+            cdes_modjgo = ClinicalData.create(self.obj,
+                                              registry_code=registry_model.code,
+                                              collection="cdes",
+                                              data=cdes_record)
 
 
         from rdrf.jsonb import _convert_datetime_to_str

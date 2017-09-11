@@ -44,5 +44,4 @@ def run_hooks(hook_name, *args, **kwargs):
                 hooks_to_run.append(thing)
 
     for hook_func in hooks_to_run:
-        logger.info("running hook func %s for %s" % (hook_func.__name__, hook_name))
         hook_func(*args, **kwargs)
