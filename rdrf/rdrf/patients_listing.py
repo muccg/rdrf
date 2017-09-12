@@ -58,9 +58,6 @@ class PatientsListingView(View):
         # which initiates an ajax/post request on registry select
         # the protocol is the jquery DataTable
         # see http://datatables.net/manual/server-side
-
-        start = datetime.now()
-
         self.user = request.user
         if self.user and self.user.is_anonymous():
             login_url = "%s?next=%s" % (reverse("login"), reverse("login_router"))
@@ -74,12 +71,6 @@ class PatientsListingView(View):
 
         template_context = self.build_context()
         template = self.get_template()
-
-        finish = datetime.now()
-
-        taken = finish - start
-
-        logger.debug("Time take for patient listing = %s" % taken)
 
         return render(request, template, template_context)
 
@@ -272,8 +263,10 @@ class PatientsListingView(View):
         if key_func:
             # we have to retrieve all rows - otherwise , queryset has already been
             # ordered on base model
+            k = key_func[0]
+            
             def key_func_wrapper(thing):
-                value = key_func[0](thing)
+                value = k(thing)
                 if value is None:
                     return self.bottom
                 else:
@@ -298,8 +291,7 @@ class PatientsListingView(View):
         return rows
 
     def append_rows(self, page_object, row_list_to_update):
-        for obj in page_object.object_list:
-            row_list_to_update.append(self._get_row_dict(obj))
+        row_list_to_update.extend([self._get_row_dict(obj) for obj in page_object.object_list])
 
     def _get_row_dict(self, instance):
         # we need to do this so that the progress data for this instance
@@ -311,7 +303,8 @@ class PatientsListingView(View):
     def get_initial_queryset(self):
         self.registry_queryset = Registry.objects.filter(
             code=self.registry_model.code)
-        self.patients = Patient.objects.all()
+        self.patients = Patient.objects.all().prefetch_related("working_groups").prefetch_related("rdrf_registry")
+        
 
     def apply_search_filter(self):
         if self.search_term:
@@ -528,23 +521,26 @@ class ColumnContextMenu(Column):
         if registry:
             # fixme: slow, do intersection instead
             self.free_forms = list(filter(user.can_view, registry.free_forms))
-
+            self.fixed_form_groups = registry.fixed_form_groups
+            self.multiple_form_groups = registry.multiple_form_groups
+            
     def cell(self, patient, supports_contexts=False, form_progress=None, context_manager=None):
         return "".join(self._get_forms_buttons(patient))
 
     def _get_forms_buttons(self, patient, form_progress=None, context_manager=None):
+        
         if not self.registry_has_context_form_groups:
             # if there are no context groups -normal registry
             return [self._get_forms_button(patient, None, self.free_forms)]
         else:
             # display one button per form group
             buttons = []
-            for fixed_form_group in self.registry.fixed_form_groups:
+            for fixed_form_group in self.fixed_form_groups:
                 buttons.append(self._get_forms_button(patient,
                                                       fixed_form_group,
                                                       fixed_form_group.forms))
 
-            for multiple_form_group in self.registry.multiple_form_groups:
+            for multiple_form_group in self.multiple_form_groups:
                 buttons.append(self._get_forms_button(patient,
                                                       multiple_form_group,
                                                       multiple_form_group.forms))
