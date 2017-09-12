@@ -446,6 +446,7 @@ class DynamicDataWrapper(object):
         data = dict(data or {})
         data["context_id"] = self.rdrf_context_id
         m = ClinicalData.create(self.obj, registry_code=registry_code,
+                                context_id=self.rdrf_context_id,
                                 collection=collection_name, data=data, **kwargs)
 
         if collection_name == "history":

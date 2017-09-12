@@ -1630,6 +1630,8 @@ class ClinicalData(models.Model):
         self.data["django_id"] = obj.id
         self.django_id = obj.id
         self.django_model = obj.__class__.__name__
+        if "context_id" in kwargs:
+            self.context_id = kwargs["context_id"]
         return self
 
     def __str__(self):
