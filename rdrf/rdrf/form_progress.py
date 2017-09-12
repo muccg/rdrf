@@ -432,8 +432,10 @@ class FormProgress(object):
         record = self._get_query(patient_model, context_model).first()
         if not record:
             ctx = dict(context_id=context_model.id if context_model else None)
+            context_id = context_model.id if context_model else None
             record = ClinicalData.create(patient_model, collection="progress",
                                          registry_code=self.registry_model.code,
+                                         context_id=context_id,
                                          data=ctx)
         record.data.update(self.progress_data)
         record.save()
