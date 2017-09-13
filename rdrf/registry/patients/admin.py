@@ -88,7 +88,7 @@ class PatientAdmin(admin.ModelAdmin):
                PatientDoctorAdmin, PatientRelativeAdmin]
     search_fields = ["family_name", "given_names"]
     list_display = ['full_name', 'working_groups_display', 'get_reg_list',
-                    'date_of_birth', 'demographic_btn', 'adjudications_btn']
+                    'date_of_birth', 'demographic_btn' ]
 
     list_filter = [RegistryFilter]
 
@@ -106,37 +106,6 @@ class PatientAdmin(admin.ModelAdmin):
 
     demographic_btn.allow_tags = True
     demographic_btn.short_description = 'Demographics'
-
-    def adjudications_btn(self, obj):
-        content = ""
-        if obj.rdrf_registry.count() == 0:
-            return "No registry assigned"
-
-        rdrf_id = self.request.GET.get('registry')
-
-        if not rdrf_id and Registry.objects.count() > 1:
-            return "Please filter registry"
-        registry = Registry.objects.get(pk=rdrf_id)
-        adjudication_actions = registry.get_adjudications()
-        if not adjudication_actions:
-            content = "No actions available"
-
-        if len(adjudication_actions) == 1:
-            action = adjudication_actions[0]
-            args = action.args + [obj.id]
-            url = reverse(action.url_name, args=args)
-            return "<a href='%s' class='btn btn-info btn-small'>%s</a>" % (
-                url, action.display_name)
-
-        for adjudication_action in adjudication_actions:
-            args = adjudication_actions.args + [obj.id]
-            url = reverse(adjudication_action.url_name, args=args)
-            content += "<a href=%s>%s</a><br/>" % (url, adjudication_action.display_name)
-
-        return "<button type='button' class='btn btn-info btn-small' data-toggle='popover' data-content='%s' id='patient-actions-btn'>Available Actions</button>" % content
-
-    adjudications_btn.allow_tags = True
-    adjudications_btn.short_description = 'Available Adjudications'
 
     def get_form(self, request, obj=None, **kwargs):
         """
@@ -287,18 +256,6 @@ class PatientAdmin(admin.ModelAdmin):
         mongo_patient_data = {}
         instance = form.save(commit=False)
         registry_specific_fields_dict = self._get_registry_specific_patient_fields(request.user)
-
-#        for reg_code in registry_specific_fields_dict:
-#            mongo_patient_data[reg_code] = {}
-#            registry_specific_fields = registry_specific_fields_dict[reg_code]
-#            for cde, field_object in registry_specific_fields:
-#                field_name = cde.name
-#                cde_code = cde.code
-#                field_value = request.POST[cde.code]
-#                mongo_patient_data[reg_code][cde_code] = field_value
-
-#                logger.debug("specific field for %s %s = %s" % (reg_code, field_name, field_value))
-
         if mongo_patient_data:
             instance.mongo_patient_data = mongo_patient_data
 
@@ -319,7 +276,6 @@ class PatientAdmin(admin.ModelAdmin):
         """
         if formset.__class__.__name__ == 'PatientRelativeFormFormSet':
             # check to see if we're creating a patient from this relative
-            logger.debug("saving patient relative")
             formset.save()
         else:
             formset.save()

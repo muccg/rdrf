@@ -21,7 +21,6 @@ def get_info_text_expression(fields):
             if consent_section_model.information_text:
                 try:
                     field_path = "rdrf://model/ConsentSection/%s/information_text" % consent_section_model.pk
-                    logger.debug("field path = %s" % field_path)
                     return field_path
                     
                 except Exception as ex:

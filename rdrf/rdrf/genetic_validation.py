@@ -22,8 +22,6 @@ class GeneticValidationError(Exception):
 class GeneticValidator(object):
 
     def validate(self, value, genetic_type):
-        logger.debug("genetic registry about to validate value: %s genetic type: %s" %
-                     (value, genetic_type))
         parse_func = None
         if genetic_type == GeneticType.DNA:
             parse_func = self.validate_sequence
@@ -35,7 +33,6 @@ class GeneticValidator(object):
             parse_func = self.validate_sequence     # ?????!
 
         if parse_func is None:
-            logger.debug("parse_func is None?")
             return False
 
         try:
@@ -65,7 +62,6 @@ class GeneticValidator(object):
             raise GeneticValidationError(_("Protein validation error: %(error)s") % {"error":e})
 
     def validate_sequence(self, value):
-        logger.debug("validate_sequence(%s)" % value)
         try:
             return SequenceVariation(value)
         except SequenceVariation.Error as e:

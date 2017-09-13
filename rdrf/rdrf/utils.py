@@ -419,9 +419,7 @@ def wrap_uploaded_files(registry_code, post_files_data):
     from rdrf.file_upload import FileUpload
 
     def wrap(key, value):
-        logger.debug("checking key %s" % key)
         if isinstance(value, UploadedFile):
-            logger.debug("Is an UploadedFile ...")
             return FileUpload(registry_code, key, {"file_name": value.name, "django_file_id": 0})
         else:
             return value
@@ -463,7 +461,7 @@ class TimeStripper(object):
 
     """
     This class exists to fix an error we introduced in the migration
-    moving from Mongo to pure Django models with JSON fields ( "Modjgo" objects.)
+    moving from Mongo to pure Django models with JSON fields ( "ClinicalData" objects.)
     CDE date values were converted  into iso strings including a time T substring.
     This was done recursively for the cdes and history collections
     """
@@ -478,10 +476,10 @@ class TimeStripper(object):
 
     def forward(self):
         for thing in self.dataset:
-            print("Checking Modjgo object pk %s" % thing.pk)
+            print("Checking ClinicalData object pk %s" % thing.pk)
 
             self.update(thing)
-        print("Finished: Updated %s Modjgo objects" % self.num_updates)
+        print("Finished: Updated %s ClinicalData objects" % self.num_updates)
 
     def get_id(self, m):
         pk = m.pk
@@ -496,11 +494,11 @@ class TimeStripper(object):
                 django_model = m.data["django_model"]
             else:
                 django_model = None
-            return "Modjgo pk %s Django Model %s Django id %s" % (pk,
+            return "ClinicalData pk %s Django Model %s Django id %s" % (pk,
                                                                   django_model,
                                                                   django_id)
         else:
-            return "Modjgo pk %s" % pk
+            return "ClinicalData pk %s" % pk
 
     def munge_timestamp(self, datestring):
         if datestring is None:
@@ -559,7 +557,7 @@ class TimeStripper(object):
                     self.num_updates += 1
                 except Exception as ex:
                     print(
-                        "Error saving Modjgo object %s after updating: %s" % (ident,
+                        "Error saving ClinicalData object %s after updating: %s" % (ident,
                                                                               ex))
                     raise   # rollback
 
@@ -658,10 +656,7 @@ def get_supported_languages():
 
 
 def applicable_forms(registry_model, patient_model):
-    logger.debug("checking applicable forms for patient %s" % patient_model)
-    logger.debug("patient type = %s" % patient_model.patient_type)
     patient_type_map = registry_model.metadata.get("patient_types", None)
-    logger.debug("patient type map = %s" % patient_type_map)
     # type map looks like:
     # { "carrier": { "name": "Female Carrier", "forms": ["CarrierForm"]} }
     all_forms = registry_model.forms
@@ -670,7 +665,6 @@ def applicable_forms(registry_model, patient_model):
         return all_forms
     else:
         patient_type = patient_model.patient_type
-        logger.debug("patient_type = %s" % patient_type)
         if not patient_type:
             # list of form names which are "owned" by some patient type
             # if a patient has no designated patient type they see
@@ -680,18 +674,13 @@ def applicable_forms(registry_model, patient_model):
                            for k in patient_type_map.keys()
                            for form in patient_type_map[k]["forms"]]
             
-            logger.debug("typed forms = %s" % typed_forms)
             return [ f for f in all_forms if f.name not in typed_forms]
         else:
             if patient_type in patient_type_map:
                 applicable_form_names = patient_type_map[patient_type].get("forms",
                                                                            all_forms)
-                logger.debug("applicable form names = %s" % applicable_form_names)
-                
                 forms =  [form for form in all_forms
                           if form.name in applicable_form_names]
-
-                logger.debug("applicable forms = %s" % forms)
                 return forms
             else:
                 return []

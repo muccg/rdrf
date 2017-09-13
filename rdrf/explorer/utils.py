@@ -8,7 +8,7 @@ from django.db import connection
 from rdrf.utils import get_cached_instance
 from rdrf.utils import timed
 from rdrf.models import Registry, RegistryForm, Section
-from rdrf.models import CommonDataElement, Modjgo
+from rdrf.models import CommonDataElement, ClinicalData
 
 from .models import Query
 from .forms import QueryForm
@@ -93,14 +93,11 @@ class DatabaseUtils(object):
 
     @timed
     def dump_results_into_reportingdb(self, reporting_table_generator):
-        logger.debug("*********** running query and dumping to temporary table *******")
         try:
             reporting_table_generator.drop_table()
         except Exception as ex:
             logger.error("Report Error: dropping table: %s" % ex)
             raise
-
-        logger.debug("dropped temporary table")
 
         try:
             self.cursor = self.create_cursor()
@@ -140,53 +137,36 @@ class DatabaseUtils(object):
 
     @timed
     def generate_results(self, reverse_column_map, col_map, max_items):
-        logger.debug("generate_results ...")
         self.reverse_map = reverse_column_map
         self.col_map = col_map
 
-        collection = Modjgo.objects.collection(self.registry_model.code, self.collection)
-        history = Modjgo.objects.collection(self.registry_model.code, "history")
+        collection = ClinicalData.objects.collection(self.registry_model.code, self.collection)
+        history = ClinicalData.objects.collection(self.registry_model.code, "history")
 
-        logger.debug("retrieving mongo models for projection once off")
         if self.projection:
             self.mongo_models = [model_triple for model_triple in self._get_mongo_fields()]
         else:
             self.mongo_models = []
 
-        logger.debug("iterating through sql cursor ...")
-
         if self.mongo_search_type == "C":
-            logger.debug("CURRENT MONGO REPORT")
             # current data - no longitudinal snapshots
             for row in self.cursor:
-                logger.debug("processing sql row ..")
                 sql_columns_dict = {}
                 for i, item in enumerate(row):
                     sql_column_name = self.reverse_map[i]
                     sql_columns_dict[sql_column_name] = item
 
-                logger.debug("created sql dict")
-
                 # A mongo record may not exist ( represented as None )
                 for mongo_columns_dict in self.run_mongo_one_row(sql_columns_dict, collection, max_items):
                     if mongo_columns_dict is None:
-                        logger.debug("no mongo data - yield sql only")
                         sql_columns_dict["snapshot"] = False
                         yield sql_columns_dict
                     else:
-                        logger.debug("mongo data exists")
                         mongo_columns_dict["snapshot"] = False
-                        logger.debug("marked row as not a snapshot")
                         for combined_dict in self._combine_sql_and_mongo(sql_columns_dict, mongo_columns_dict):
-                            logger.debug("yielding combined dict")
-                            if combined_dict is None:
-                                logger.debug("combined dict is None ???")
-
-                            logger.debug("combined_dict = %s" % combined_dict)
                             yield combined_dict
         else:
             # include longitudinal ( snapshot) data
-            logger.debug("LONGITUDINAL MONGO REPORT")
             for row in self.cursor:
                 sql_columns_dict = {}
                 for i, item in enumerate(row):
@@ -278,7 +258,6 @@ class DatabaseUtils(object):
 
     @timed
     def create_cursor(self):
-        logger.debug("creating cursor from sql query: %s" % self.query)
         cursor = connection.cursor()
         cursor.execute(self.query)
         return cursor
@@ -290,8 +269,6 @@ class DatabaseUtils(object):
 
         if not self.projection:
             return data
-
-        logger.debug("number of projections = %s" % len(self.projection))
 
         for cde_dict in self.projection:
             form_model = RegistryForm.objects.get(name=cde_dict["formName"], registry=self.registry_model)
@@ -307,7 +284,6 @@ class DatabaseUtils(object):
                                     cde_model.pk)
 
     def _get_mongo_fields(self):
-        logger.debug("getting mongo fields from projection")
         for cde_dict in self.projection:
             form_model = get_cached_instance(RegistryForm, name=cde_dict["formName"], registry=self.registry_model)
             section_model = get_cached_instance(Section, code=cde_dict["sectionCode"])

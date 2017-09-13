@@ -1,7 +1,7 @@
 from django.core.urlresolvers import reverse
 from django.templatetags.static import static
 from .utils import de_camelcase, parse_iso_datetime
-from .models import Modjgo
+from .models import ClinicalData
 
 import math
 import logging
@@ -72,7 +72,7 @@ class FormProgress(object):
                 self.reset()
 
     def _get_progress_collection(self):
-        return Modjgo.objects.collection(self.registry_model.code, "progress")
+        return ClinicalData.objects.collection(self.registry_model.code, "progress")
 
     def _build_progress_map(self):
         # maps form names to sets of required cde codes
@@ -253,7 +253,6 @@ class FormProgress(object):
     def _calculate(self, dynamic_data):
         progress_metadata = self._get_progress_metadata()
         if not progress_metadata:
-            logger.debug("No progress metadata for %s - nothing to calculate" % self.registry_model.code)
             return
 
         self._build_progress_map()
@@ -433,9 +432,11 @@ class FormProgress(object):
         record = self._get_query(patient_model, context_model).first()
         if not record:
             ctx = dict(context_id=context_model.id if context_model else None)
-            record = Modjgo.for_obj(patient_model, collection="progress",
-                                    registry_code=self.registry_model.code,
-                                    data=ctx)
+            context_id = context_model.id if context_model else None
+            record = ClinicalData.create(patient_model, collection="progress",
+                                         registry_code=self.registry_model.code,
+                                         context_id=context_id,
+                                         data=ctx)
         record.data.update(self.progress_data)
         record.save()
         return self.progress_data

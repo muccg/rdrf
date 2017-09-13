@@ -4,17 +4,17 @@ django.setup()
 from django.db import transaction
 
 from rdrf.utils import TimeStripper, HistoryTimeStripper
-from rdrf.models import Modjgo
+from rdrf.models import ClinicalData
 
 
 def fix_cdes_modjgos():
-    cdes_queryset = Modjgo.objects.filter(collection='cdes')
+    cdes_queryset = ClinicalData.objects.filter(collection='cdes')
     cdes_ts = TimeStripper(cdes_queryset)
 
     try:
         with transaction.atomic():
             cdes_ts.forward()
-            print("Fix succeeded: fixed cdes Modjgo objects OK")
+            print("Fix succeeded: fixed cdes ClinicalData objects OK")
             return True
             
     except Exception as ex:
@@ -24,13 +24,13 @@ def fix_cdes_modjgos():
 
 
 def fix_history_cdes_modjgos():
-    history_queryset = Modjgo.objects.filter(collection='history')
+    history_queryset = ClinicalData.objects.filter(collection='history')
     history_ts = HistoryTimeStripper(history_queryset)
 
     try:
         with transaction.atomic():
             history_ts.forward()
-            print("Fix succeeded: fixed history Modjgo objects OK")
+            print("Fix succeeded: fixed history ClinicalData objects OK")
             return True
             
     except Exception as ex:

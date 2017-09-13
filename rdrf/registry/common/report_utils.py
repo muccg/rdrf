@@ -48,12 +48,10 @@ class SimpleReport(object):
         logger.info("starting report %s" % self.NAME)
 
         for obj in self.query():
-            logger.debug("checking %s" % obj)
             items = {}
             for report_field, selector_function, formatting_function in spec:
                 try:
                     report_value = formatting_function(selector_function(obj))
-                    logger.debug("%s = %s" % (report_field, report_value))
                 except Exception as ex:
                     obj_class_name = obj.__class__.__name__
                     id = obj.pk

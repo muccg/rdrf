@@ -126,7 +126,6 @@ class RDRFContextLauncherComponent(RDRFComponent):
             "consent_locked": self.consent_locked,
         }
 
-        logger.debug("Launcher data = %s" % data)
         return data
 
     def _is_consent_locked(self):
@@ -247,7 +246,6 @@ class RDRFContextLauncherComponent(RDRFComponent):
             for form_link in self._get_normal_form_links():
                 form = _Form(form_link.url, form_link.text, current=form_link.selected)
                 fg.forms.append(form)
-                logger.debug("added %s" % form)
             return [fg]
         elif registry_type == RegistryType.HAS_CONTEXTS:
             # nothing to show here

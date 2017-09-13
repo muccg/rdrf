@@ -195,7 +195,6 @@ class DownloadQueryView(LoginRequiredMixin, View):
         with NamedTemporaryFile(suffix=".xlsx") as output:
             start = datetime.now()
             spreadsheet_report.run(output.name)
-            logger.debug("report took %s seconds" % (datetime.now() - start))
             response = FileResponse(open(output.name, "rb"), content_type="application/vnd.ms-excel")
             response['Content-Disposition'] = 'attachment; filename="Longitudinal Report.xlsx"'
             return response
@@ -205,7 +204,6 @@ class DownloadQueryView(LoginRequiredMixin, View):
             raise Exception("bad action")
 
         user = request.user
-        logger.debug("user = %s" % user)
         query_model = Query.objects.get(id=query_id)
         registry_model = query_model.registry
         query_form = QueryForm(instance=query_model)
@@ -262,8 +260,6 @@ class SqlQueryView(View):
         form = QueryForm(request.POST)
         database_utils = DatabaseUtils(form, True)
         mongo_search_type = form.data["mongo_search_type"]
-        logger.debug("mongo search type = %s" % mongo_search_type)
-
         def get_report_config_errors(form):
             if not form.is_valid() and "__all__" in form.errors:
                 return form.errors["__all__"]

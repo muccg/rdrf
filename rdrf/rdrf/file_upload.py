@@ -47,9 +47,6 @@ class FileUpload(object):
                             str(self.fs_dict))
 
 
-        logger.debug("FileUpload url property returning empty string?? kwargs = %s" % kwargs)
-        logger.debug("FileUpload fs_dict = %s" % self.fs_dict)
-
         return ""
 
     def __str__(self):
@@ -145,39 +142,19 @@ def wrap_file_cdes(registry_code, section_data, mongo_data, multisection=False,i
                 return False
 
     def should_wrap(section_index, key, value):
-        logger.debug("in should_wrap: section_index %s key = %s value = %s" % (section_index,
-                                                                               key,
-                                                                               value))
-        
         try:
             cde_code = get_code(key)
-            logger.debug("cde_code = %s" % cde_code)
         except:
             # not a delimited mongo key
-            logger.debug("key %s is not delimited so returning False" % key)
             return False
 
         if is_file_cde(cde_code):
-            logger.debug("cde_code %s is a file cde" % cde_code)
             u = is_upload_file(value)
-            if u:
-                logger.debug("cde %s is an upload file u = %s" % (cde_code, u))
-    
             fs = is_filestorage_dict(value)
-            if fs:
-                logger.debug("value %s is a filestorage dict fs = %s" % (value, fs))
             im = is_existing_in_mongo(section_index, key, value)
-            if im:
-                logger.debug("value exists in db im = %s" %   im)
-
-                
             sw = u or fs or im
-            logger.debug("should_wrap returns %s" % sw)
             return sw
         
-
-        
-        logger.debug("cde_code %s is not a file CDE so returning False" % cde_code)
         return False
 
     def wrap_upload(key, value):
@@ -187,9 +164,6 @@ def wrap_file_cdes(registry_code, section_data, mongo_data, multisection=False,i
         return FileUpload(registry_code, key, value)
 
     def get_mongo_value(section_index, key):
-        logger.debug("get_mongo_value for section_index %s key %s" % (section_index,
-                                                                      key))
-        
         if section_index is None:
             value = mongo_data[key]
         else:
@@ -197,33 +171,22 @@ def wrap_file_cdes(registry_code, section_data, mongo_data, multisection=False,i
             section_dicts = mongo_data[section_code]
             correct_section_dict = section_dicts[section_index]
             value = correct_section_dict[key]
-            logger.debug("section code %s correct_section_dict = %s value = %s" % (section_code,
-                                                                                   correct_section_dict,
-                                                                                   value))
-            
-
         return value
 
     def wrap(section_index, key, value):
         # NB we need section index in case we're looking inside a multisection
         # a multisection is just a list of section dicts indexed by
         # section_index
-        logger.debug("in wrap section_index %s key %s value %s" % (section_index, key, value))
         if not should_wrap(section_index, key, value):
-            logger.debug("will NOT wrap %s" % key)
             return value
 
         if is_filestorage_dict(value):
-            logger.debug("will wrap file storage value %s" % value)
-
             return wrap_filestorage_dict(key, value)
 
         if is_upload_file(value):
-            logger.debug("will wrap upload file %s" % value)
             return wrap_upload(key, value)
 
         if is_existing_in_mongo(section_index, key, value):
-            logger.debug("will wrap existing key %s value %s" % (key, value))
             mongo_value = get_mongo_value(section_index, key)
             return wrap_filestorage_dict(key, mongo_value)
 
@@ -250,10 +213,8 @@ def wrap_file_cdes(registry_code, section_data, mongo_data, multisection=False,i
             # and we should extract _that_ to wrap for the form
             for new_index, item in enumerate(multisection_list):
                 if index_map:
-                    logger.debug("index_map non empty so retrieving old index")
                     index = index_map[new_index]
                 else:
-                    logger.debug("index map is empty so using new index")
                     index = new_index
 
                 yield index, item

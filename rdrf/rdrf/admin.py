@@ -5,13 +5,7 @@ from .models import Registry
 from .models import RegistryForm
 from .models import QuestionnaireResponse
 from .models import CDEPermittedValue
-from .models import AdjudicationRequest
-from .models import AdjudicationResponse
-from .models import AdjudicationDecision
-from .models import AdjudicationDefinition
 from .models import Notification
-from .models import AdjudicationRequestState
-from .models import Adjudication
 from .models import CDEPermittedValueGroup
 from .models import CommonDataElement
 from .models import Section
@@ -289,78 +283,6 @@ class CDEPermittedValueGroupAdmin(admin.ModelAdmin):
     inlines = [CDEPermittedValueAdmin]
 
 
-class AdjudicationRequestAdmin(admin.ModelAdmin):
-    list_display = ('requesting_username', 'username', 'adjudicate_link')
-    ordering = ['requesting_username', 'username']
-    list_filter = ['requesting_username', 'username']
-
-    def adjudicate_link(self, obj):
-        if obj.state == AdjudicationRequestState.REQUESTED:
-            url = obj.link
-            url = "<a href='%s'>Adjudicate</a>" % url
-            return url
-        else:
-            if obj.state == 'P':
-                return "Done"
-            elif obj.state == 'C':
-                return "No ready"
-            elif obj.state == 'I':
-                return "Invalid"
-            else:
-                return "Unknown State:%s" % obj.state
-
-    adjudicate_link.allow_tags = True
-    adjudicate_link.short_description = _('Adjudication State')
-
-    def queryset(self, request):
-        user = request.user
-        if user.is_superuser:
-            return AdjudicationRequest.objects.all()
-        else:
-            return AdjudicationRequest.objects.filter(
-                username=user.username,
-                state=AdjudicationRequestState.REQUESTED)
-
-
-class AdjudicationAdmin(admin.ModelAdmin):
-    list_display = (
-        'requesting_username', 'definition', 'requested', 'responded', 'adjudicate_link')
-    ordering = ['requesting_username', 'definition']
-    list_filter = ['requesting_username', 'definition']
-
-    def adjudicate_link(self, obj):
-        if obj.decision:
-            return obj.decision.summary
-        if obj.responded > 0:
-            url = obj.link
-            url = "<a href='%s'>Adjudicate</a>" % url
-            return url
-        else:
-            return "-"
-
-    adjudicate_link.allow_tags = True
-    adjudicate_link.short_description = _('Adjudication')
-
-    def queryset(self, request):
-        user = request.user
-        if user.is_superuser:
-            return Adjudication.objects.all()
-        else:
-            return Adjudication.objects.filter(adjudicator_username=user.username)
-
-
-class AdjudicationDefinitionAdmin(admin.ModelAdmin):
-    list_display = ('registry', 'fields', 'result_fields')
-
-
-class AdjudicationResponseAdmin(admin.ModelAdmin):
-    list_display = ('request', 'response_data')
-
-
-class AdjudicationDecisionAdmin(admin.ModelAdmin):
-    list_display = ('definition', 'patient', 'decision_data')
-
-
 class NotificationAdmin(admin.ModelAdmin):
     list_display = ('created', 'from_username', 'to_username', 'message')
 
@@ -494,11 +416,6 @@ admin.site.register(EmailNotificationHistory, EmailNotificationHistoryAdmin)
 admin.site.register(ContextFormGroup, ContextFormGroupAdmin)
 
 admin.site.register(Notification, NotificationAdmin)
-admin.site.register(Adjudication, AdjudicationAdmin)
-admin.site.register(AdjudicationDefinition, AdjudicationDefinitionAdmin)
-admin.site.register(AdjudicationRequest, AdjudicationRequestAdmin)
-admin.site.register(AdjudicationResponse, AdjudicationResponseAdmin)
-admin.site.register(AdjudicationDecision, AdjudicationDecisionAdmin)
 
 class CDEFileAdmin(admin.ModelAdmin):
     model = CDEFile

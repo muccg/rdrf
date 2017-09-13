@@ -122,18 +122,11 @@ def create_form_class_for_consent_section(
         association with the field named '__all__'.
         """
         from django.core.exceptions import ValidationError
-
-        logger.debug("in clean method of custom consent form")
         # NB super class has : return self.cleaned_data
-
         answer_dict = get_answer_dict_from_form_data(consent_section_model, self.cleaned_data)
 
         if not consent_section_model.is_valid(answer_dict):
-            logger.debug("*********** CUSTOM CONSENT VALIDATION ERROR!  %s" %
-                         consent_section_model.section_label)
             raise ValidationError("%s is invalid" % consent_section_model.section_label)
-
-        logger.debug("All good: cleaned data = %s" % self.cleaned_data)
 
         return self.cleaned_data
 

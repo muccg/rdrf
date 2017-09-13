@@ -48,7 +48,6 @@ class Notifier(object):
             logger.info(
                 "Notification Email: %s from %s to %s with subject %s sent OK" %
                 (message_type, from_email, to_email, subject))
-            logger.debug("Email body =\n%s" % body)
         except Exception as ex:
             logger.error(
                 "Notification Email: %s from %s to %s with subject %s FAILED: %s" %

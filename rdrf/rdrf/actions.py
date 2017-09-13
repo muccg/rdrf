@@ -1,7 +1,4 @@
 from rdrf import rpc_commands
-import logging
-logger = logging.getLogger(__name__)
-
 
 class ActionExecutor(object):
 
@@ -32,11 +29,8 @@ class ActionExecutor(object):
         return client_response
 
     def _locate_command_function(self, rpc_command):
-        logger.info("%s looking for rpc_%s" % (self, rpc_command))
         command_name = "rpc_%s" % rpc_command
         if hasattr(rpc_commands, command_name):
             rpc_function = getattr(rpc_commands, command_name)
             if callable(rpc_function):
                 return rpc_function
-        else:
-            logger.info("could not find a callable with that name")
