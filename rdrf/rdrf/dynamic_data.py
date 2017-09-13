@@ -440,7 +440,8 @@ class DynamicDataWrapper(object):
 
     def _get_record(self, registry, collection_name, filter_by_context=True):
         qs = ClinicalData.objects.collection(registry, collection_name)
-        return qs.find(self.obj, self.rdrf_context_id if filter_by_context else None)
+        context_id_to_search_for =  None if self.rdrf_context_id == "add" else self.rdrf_context_id
+        return qs.find(self.obj, context_id_to_search_for if filter_by_context else None)
 
     def _make_record(self, registry_code, collection_name, data=None, **kwargs):
         data = dict(data or {})
@@ -691,6 +692,9 @@ class DynamicDataWrapper(object):
             # create context_model NOW  to get context_id
             # CREATE MODE is used ONLY by multiple context form groups to enable cancellation in GUI
             context_id = self._create_context_model_on_fly()
+            # we've refactored the ClinicalData object so that context_id is now on the model:
+            record.context_id = context_id
+            # keeping this line for backward compatibility for now 
             nested_data["context_id"] = context_id
             # not any subsequent calls won't try to create new context models
             self.CREATE_MODE = False
