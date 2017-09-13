@@ -9,7 +9,6 @@ except ImportError:
     mongo_django = undjango_mongo = None
 
 def copy_collections(apps, schema_editor):
-    print("in copy_colections")
     Modjgo = apps.get_model("rdrf", "Modjgo")
     print("got Modjgo okay")
     Registry = apps.get_model("rdrf", "Registry")
