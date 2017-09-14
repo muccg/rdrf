@@ -47,11 +47,11 @@ class ResendEmail(View):
     def _get_template_data(self):
         self.template_data = json.loads(self.template_data)
         for key, value in self.template_data.items():
-            app = value.get("app")
-            model = value.get("model")
-            app_model = apps.get_model(app_label=app, model_name=model)
-            self.template_data[key] = app_model.objects.get(id=value.get("id"))
-
+            if type(value) is dict and 'app' in value and 'model' in value:
+                app = value.get("app")
+                model = value.get("model")
+                app_model = apps.get_model(app_label=app, model_name=model)
+                self.template_data[key] = app_model.objects.get(id=value.get("id"))
 
     def _ensure_registration_not_expired(self):
         registration = self.template_data.get('registration')
