@@ -10,6 +10,7 @@
      <script type="text/javascript" src="{% static 'datatables-1.10.12/js/jquery.dataTables.min.js' %}"></script>
 
     <script>
+
         $(document).ready(function() {
 
         $.fn.dataTable.ext.errMode = 'throw';
@@ -30,6 +31,35 @@
                     var csrfToken = '{{ csrf_token }}';
                     xhr.setRequestHeader('X-CSRFToken', csrfToken);
         }});
+
+        function wireUpFormsButtons() {
+
+	    $(".patient-forms-button").click(function() {
+		var button = $(this);
+		var registryCode = getSelectedRegistry();
+
+		function showFormsList(html) {
+		    var ul = button.parent().find("ul.dropdown-menu");
+		    if(html.indexOf("<li>") == -1) html = "<li>No Data</li>";
+		    $(ul).html(html);
+		}
+	    
+		var patientId = parseInt(button.data("patient"));
+		var formGroupId = parseInt(button.data("formgroup"));
+
+		rpc.send("get_forms_list", [registryCode, patientId, formGroupId], function(response) {
+                if (response.status == "fail") {
+		    alert(response.error);
+		    
+	    } else {
+		var html= response.result.html;
+		showFormsList(html);
+	    }
+	    });
+	
+
+	  });
+	}
 
         function getDrawLength() {
             try {
@@ -81,7 +111,9 @@
             context_list = $("#patients_table").DataTable({
                 "processing": true,
                 "serverSide": true,
-                //"sAjaxDataProp" : "data",
+		"fnDrawCallback": function( oSettings ) {
+		    wireUpFormsButtons();
+                },
                 ajax: {
                         url: getApiUrl(registryCode, getDrawLength()),
                         dataSrc: "rows",
@@ -112,6 +144,7 @@
             var registryCode= $("#registry_options > option:selected").attr("id");
             var apiUrl = getApiUrl(registryCode, getDrawLength());
             load_contexts_list(apiUrl);
+	    wireUpFormsButtons();
         });
 
 

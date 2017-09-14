@@ -422,3 +422,46 @@ class FormsButton(RDRFComponent):
                 return self.context_form_group.forms[0].nice_name + "s"
             else:
                 return self.context_form_group.name
+
+
+
+class FormGroupButton(RDRFComponent):
+    """
+    A button which when clicked, loads a patient's forms
+    via Ajax.
+    """
+    
+    TEMPLATE = "rdrf_cdes/form_group_button_component.html"
+    def __init__(self, registry_model, user, patient_model, context_form_group):
+        self.registry_model = registry_model
+        self.user = user
+        self.patient_model = patient_model
+        self.context_form_group = context_form_group
+
+    def _get_template_data(self):    
+        if self.context_form_group is None:
+            form_group_id = None
+            registry_type = "normal"
+        else:
+            form_group_id = self.context_form_group.id
+            registry_type = "has_groups"
+            
+            
+        return {"button_caption": self.button_caption,
+                "patient_id": self.patient_model.id,
+                "form_group_id": form_group_id,
+                "registry_type": registry_type}
+
+    @property
+    def button_caption(self):
+        if self.context_form_group is None:
+            return "Modules"
+        else:
+            if self.context_form_group.supports_direct_linking:
+                # we know there is one form
+                return self.context_form_group.forms[0].nice_name + "s"
+            else:
+                return self.context_form_group.name
+
+
+
