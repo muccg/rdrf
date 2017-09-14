@@ -12,8 +12,6 @@ from django.http import HttpResponseRedirect
 from django.shortcuts import render
 from django.db.models import Q
 from django.core.paginator import Paginator, InvalidPage
-from django.utils.safestring import mark_safe
-from useraudit.password_expiry import should_warn_about_password_expiry, days_to_password_expiry
 from rdrf.models import Registry
 from rdrf.form_progress import FormProgress
 from rdrf.contexts_api import RDRFContextManager
