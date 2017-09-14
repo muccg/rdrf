@@ -2,7 +2,9 @@ import datetime
 import logging
 import threading
 
-from django.contrib.auth import get_user_model
+from django import forms
+
+from django.contrib.auth import get_user_model, password_validation
 from django.contrib.auth.forms import AuthenticationForm, PasswordResetForm, SetPasswordForm
 from django.contrib.auth.tokens import default_token_generator
 from django.contrib import messages
@@ -17,11 +19,11 @@ from django.utils.http import urlsafe_base64_encode
 from useraudit import models as uam
 from useraudit.middleware import get_request
 
+
 logger = logging.getLogger(__name__)
 
 
 _login_failure_limit = getattr(settings, 'LOGIN_FAILURE_LIMIT', 0)
-
 
 _msg_default = 'Please enter a correct %(username)s and password (case-sensitive).'
 _msg_limit = ('For security reasons, accounts are temporarily locked after '
@@ -30,8 +32,6 @@ _msg_limit = ('For security reasons, accounts are temporarily locked after '
 # Making sure both text are available for translators indepenedent on the current LOGIN_FAILURE_LIMIT setting
 _MSG_NO_LIMIT = _(_msg_default)
 _MSG_WITH_LIMIT = _(_msg_default + ' ' + _msg_limit)
-_MSG_LOCKED_OUT = _('For security reasons, your account has been locked.')
-# TODO contact your registry owner or use unlock account
 
 
 class RDRFAuthenticationForm(AuthenticationForm):
@@ -42,44 +42,6 @@ class RDRFAuthenticationForm(AuthenticationForm):
     error_messages.update({
         'invalid_login': _(_invalid_login_msg)
     })
-
-    def clean(self):
-        try:
-            super().clean()
-        except ValidationError as e:
-            improved_error = self._maybe_improve_error_msg(e)
-            if improved_error is None:
-                raise
-            else:
-                raise improved_error
-
-    def _maybe_improve_error_msg(self, e):
-        if getattr(e, 'code') != 'invalid_login':
-            return None
-        if _login_failure_limit == 0:
-            return None
-        login_failure_time_limit = getattr(settings, 'LOGIN_FAILURE_TOLERANCE_TIME', 0)
-        if login_failure_time_limit == 0:
-            return None
-
-        username = self.cleaned_data.get('username')
-        ip = extract_ip_address(self.request)
-        since = timezone.now() - datetime.timedelta(minutes=login_failure_time_limit)
-
-        def successfull_logins_since(login):
-            return uam.LoginLog.objects.filter(username=username, ip_address=ip, timestamp__gt=login.timestamp)
-
-        failed_logins = list(uam.FailedLoginLog.objects.filter(username=username, ip_address=ip, timestamp__gte=since))
-        failed_logins_count = len(failed_logins)
-        oldest_failed_login = failed_logins[_login_failure_limit - 1] if len(failed_logins) >= _login_failure_limit else None
-
-        if failed_logins_count >= _login_failure_limit and not successfull_logins_since(oldest_failed_login).exists():
-            return ValidationError(
-                _MSG_LOCKED_OUT,
-                code=e.code,
-                params=e.params
-            )
-        return None
 
 
 # Same as django.contrib.auth.forms.PasswordResetForm but also allows password reset functionality
@@ -101,47 +63,62 @@ class RDRFPasswordResetForm(PasswordResetForm):
 
 # Similar to django.contrib.auth.forms.PasswordResetForm but sends account unlock email link to the user.
 # Also, sends a different email if the user tried to unlock their account but the account isn't locked.
-class RDRFAccountUnlockForm(PasswordResetForm):
+class RDRFLoginAssistanceForm(PasswordResetForm):
 
     def get_users(self, email):
-        users = get_user_model()._default_manager.filter(email__iexact=email)
-        return (u for u in users if u.is_active or not u.prevent_self_unlock)
+        return get_user_model()._default_manager.filter(email__iexact=email)
+
+    def _common_context(self, domain_override=None, request=None, use_https=False, extra_email_context=None):
+        if not domain_override:
+            current_site = get_current_site(request)
+            site_name = current_site.name
+            domain = current_site.domain
+        else:
+            site_name = domain = domain_override
+        context = {
+            'domain': domain,
+            'site_name': site_name,
+            'protocol': 'https' if use_https else 'http',
+        }
+        if extra_email_context is not None:
+            context.update(extra_email_context)
+        return context
 
     def save(self, domain_override=None,
-             subject_template_name='registration/account_unlock_subject.txt',
-             email_template_name='registration/account_unlock_email.html',
-             account_unlocked_email_template_name='registration/account_unlock_requested_but_account_not_locked_email.html',
+             subject_template_name='registration/login_assistance_subject.txt',
+             email_template_name='registration/login_assistance_email.html',
+             account_unlocked_email_template_name='registration/login_assistance_account_not_locked_email.html',
+             can_not_self_unlock_email_template_name='registration/login_assistance_can_not_self_unlock_email.html',
              use_https=False, token_generator=default_token_generator,
              from_email=None, request=None, html_email_template_name=None,
              extra_email_context=None):
-        """
-        Generates a one-use only link for resetting password and sends to the
-        user.
-        """
+
         email = self.cleaned_data["email"]
+        context = self._common_context(request=request,
+                domain_override=domain_override, use_https=use_https, extra_email_context=extra_email_context)
+
+        def _user_is_nonprivileged(user):
+            return user.is_patient or user.is_parent or user.is_carrier
+
+        def _choose_template(user):
+            if user.is_active:
+                return subject_template_name, account_unlocked_email_template_name
+            if not (getattr(settings, 'ACCOUNT_SELF_UNLOCK_ENABLED', False) and
+                    _user_is_nonprivileged(user) and
+                    not user.prevent_self_unlock):
+                return subject_template_name, can_not_self_unlock_email_template_name
+
+            return subject_template_name, email_template_name
+
         for user in self.get_users(email):
-            if not domain_override:
-                current_site = get_current_site(request)
-                site_name = current_site.name
-                domain = current_site.domain
-            else:
-                site_name = domain = domain_override
-            context = {
+            context.update({
                 'email': user.email,
-                'domain': domain,
-                'site_name': site_name,
                 'user': user,
-            }
-            if not user.is_active:
-                context['uid'] = urlsafe_base64_encode(force_bytes(user.pk))
-                context['token'] = token_generator.make_token(user)
-                context['protocol'] = 'https' if use_https else 'http'
+                'uid': urlsafe_base64_encode(force_bytes(user.pk)),
+                'token': token_generator.make_token(user),
+            })
 
-            if extra_email_context is not None:
-                context.update(extra_email_context)
-
-            template_name = account_unlocked_email_template_name if user.is_active else email_template_name
-
+            subject_template_name, template_name = _choose_template(user)
             self.send_mail(subject_template_name, template_name, context, from_email, user.email)
 
 
@@ -163,6 +140,64 @@ class RDRFSetPasswordForm(SetPasswordForm):
                 if request:
                     messages.add_message(request, messages.ERROR, _('Your password has been changed, but your account is locked. '
                         'Please contact your registry owner for further information.'))
+        if commit:
+            self.user.save()
+        return self.user
+
+
+class UserVerificationForm(forms.Form):
+    first_name = forms.CharField(label=_('First Name'), max_length=254)
+    last_name = forms.CharField(label=_('Surname'), max_length=254)
+    date_of_birth = forms.DateField(label=_("Date of Birth"), input_formats=['%Y-%m-%d'])
+
+    def __init__(self, user_data, *args, **kwargs):
+        self.user_data = user_data
+        super().__init__(*args, **kwargs)
+
+    def clean(self):
+        cleaned_data = super().clean()
+
+        first_name = cleaned_data.get('first_name')
+        last_name = cleaned_data.get('last_name')
+        date_of_birth = cleaned_data.get('date_of_birth')
+
+        if first_name and last_name and date_of_birth:
+            if not self.matches_data(first_name, last_name, date_of_birth):
+                raise ValidationError(_("The data you've entered is incorrect"))
+
+    def matches_data(self, first_name, last_name, date_of_birth):
+
+        def laid_back_eql(s1, s2):
+            return s1.strip().lower() == s2.strip().lower()
+
+        return (laid_back_eql(first_name, self.user_data['first_name']) and
+                laid_back_eql(last_name, self.user_data['last_name']) and
+                date_of_birth == self.user_data['date_of_birth'])
+
+
+class ReactivateAccountForm(SetPasswordForm):
+
+    def __init__(self, request, user, is_password_change_required, *args, **kwargs):
+        self.request = request
+        self.is_password_change_required = is_password_change_required
+        super().__init__(user, *args, **kwargs)
+
+    def clean(self):
+        if self.is_password_change_required and not self.cleaned_data.get('new_password1'):
+            raise ValidationError(_('You are required to change your password.'))
+
+    def is_valid(self):
+        is_valid = super().is_valid()
+        if (not self.is_password_change_required and
+                not self.request.POST.get('new_password1') and
+                not self.request.POST.get('new_password2')):
+            return True
+        return is_valid
+
+    def save(self, commit=True):
+        if self.cleaned_data.get('new_password1'):
+            super().save(commit=False)
+        self.user.is_active = True
         if commit:
             self.user.save()
         return self.user

@@ -1,0 +1,43 @@
+{% extends "rdrf_cdes/base.html" %}
+{% load i18n %}
+{% load static from staticfiles %}
+
+{% block content %}
+
+{% if validlink %}
+  <div class="row">
+      <div class="col-md-6 col-md-offset-3">
+          <div class="alert alert-info">
+              {% trans "Please enter the following information so we can verify your identity." %}
+          </div>
+          <form action="" method="post" class="form" id="new-password-form">
+              {% csrf_token %}
+              {{ form.non_field_errors }}
+              <div class="form-group">
+                  <label for="first_name">First Name:</label>
+                  {{ form.first_name.errors }}
+                  <input id="first_name" name="first_name" type="text" value="{{ form.first_name.value }}" class="form-control" required />
+              </div>
+              <div class="form-group">
+                  <label for="last_name">Surname:</label>
+                  {{ form.last_name.errors }}
+                  <input id="last_name" name="last_name" type="text" value="{{ form.last_name.value }}" class="form-control" required />
+              </div>
+               <div class="form-group">
+                  <label for="date_of_birth">Date of Birth:</label>
+                  {{ form.date_of_birth.errors }}
+                  <input id="date_of_birth" name="date_of_birth" type="text" value="{{ form.date_of_birth.value }}" placeholder="YYYY-MM-DD" class="form-control" required />
+              </div>
+              <div class="form-group">
+                  <input type="submit" value="{% trans 'Verify' %}" class="btn btn-success" />
+              </div>
+          </form>
+      </div>
+  </div>
+{% else %}
+    <div class="alert alert-danger">
+        {% trans "The link is invalid, possibly because it has already been used. Please try requesting a new link." %}
+    </div>
+{% endif %}
+
+{% endblock %}

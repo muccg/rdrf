@@ -7,7 +7,8 @@ from django.views.i18n import JavaScriptCatalog
 from django.conf import settings
 from django.utils.translation import ugettext as _
 
-from rdrf.auth.forms import RDRFAccountUnlockForm, RDRFAuthenticationForm, RDRFPasswordResetForm, RDRFSetPasswordForm
+from rdrf.auth.forms import RDRFAuthenticationForm, RDRFLoginAssistanceForm, RDRFPasswordResetForm, RDRFSetPasswordForm
+from rdrf.auth.views import login_assistance_confirm
 import rdrf.form_view as form_view
 import rdrf.registry_view as registry_view
 import rdrf.landing_view as landing_view
@@ -97,39 +98,29 @@ urlpatterns += [
         kwargs={'set_password_form': RDRFSetPasswordForm},
         name='password_reset_confirm'),
     url(r'^reset/done/$', auth_views.password_reset_complete, name='password_reset_complete'),
-]
 
-# Account Unlock URLs (included only if the feature is enabled).
-# Reusing as much as possible of the password reset views from django.contrib.auth.
-if settings.ACCOUNT_SELF_UNLOCK_ENABLED:
-    urlpatterns += [
-        url(r'^account_unlock/$', auth_views.password_reset,
-            kwargs={
-                'password_reset_form': RDRFAccountUnlockForm,
-                'template_name': 'registration/account_unlock_form.html',
-                'subject_template_name': 'registration/account_unlock_subject.txt',
-                'email_template_name': 'registration/account_unlock_email.html',
-                'post_reset_redirect': 'account_unlock_done',
-            },
-            name='account_unlock'),
-        url(r'^account_unlock/done/$', auth_views.password_reset_done,
-            kwargs={'template_name': 'registration/account_unlock_done.html',
-                    'extra_context': {'title': _('Account Unlock Instructions Sent')}},
-            name='account_unlock_done'),
-        url(r'^account_unlock_confirm/(?P<uidb64>[0-9A-Za-z_\-]+)/(?P<token>[0-9A-Za-z]{1,13}-[0-9A-Za-z]{1,20})/$',
-            auth_views.password_reset_confirm,
-            kwargs={
-                'set_password_form': RDRFSetPasswordForm,
-                'post_reset_redirect': 'account_unlock_complete',
-                'extra_context': {'is_account_unlock': True},
-            },
-            name='account_unlock_confirm'),
-        url(r'^account_unlock/complete/$', auth_views.password_reset_complete,
-            kwargs={'template_name': 'registration/account_unlock_complete.html'},
-            name='account_unlock_complete'),
-    ]
+    # Login trouble self assistance URLs
+    url(r'^login_assistance/$', auth_views.password_reset,
+        kwargs={
+            'password_reset_form': RDRFLoginAssistanceForm,
+            'template_name': 'registration/login_assistance_form.html',
+            'subject_template_name': 'registration/login_assistance_subject.txt',
+            'email_template_name': 'registration/login_assistance_email.html',
+            'post_reset_redirect': 'login_assistance_email_sent',
+        },
+        name='login_assistance'),
+    url(r'^login_assistance/sent/$', auth_views.password_reset_done,
+        kwargs={'template_name': 'registration/login_assistance_sent.html',
+                'extra_context': {'title': _('Login Assitance Email Sent')}},
+        name='login_assistance_email_sent'),
+    url(r'^login_assistance_confirm/(?P<uidb64>[0-9A-Za-z_\-]+)/(?P<token>[0-9A-Za-z]{1,13}-[0-9A-Za-z]{1,20})/$',
+        login_assistance_confirm,
+        name='login_assistance_confirm'),
+    url(r'^login_assistance/complete/$', auth_views.password_reset_complete,
+        kwargs={'template_name': 'registration/login_assistance_complete.html'},
+        name='login_assistance_complete'),
 
-urlpatterns += [
+
     url(r'', include('registry.urls', namespace="registry")),
 
     url(r'^$', landing_view.LandingView.as_view(), name='landing'),

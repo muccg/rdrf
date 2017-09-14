@@ -1,0 +1,45 @@
+{% extends "rdrf_cdes/base.html" %}
+{% load i18n %}
+{% load static from staticfiles %}
+
+{% block content %}
+
+<div class="row">
+    <div class="col-md-6 col-md-offset-3">
+        <div class="alert alert-info">
+          {{ reason }}
+          {% if password_change_required %}
+              {% trans "In order to reactivate your account it is required that you set a new password." %}
+          {% else %}
+              {% trans "In addition to reactivating your account you might also want to change your password." %}
+          {% endif %}
+        </div>
+
+        <div class="alert alert-info">
+          {% if password_change_required %}
+            {% trans "Please enter our new password twice so we can verify you typed it in correctly." %}
+          {% else %}
+            {% trans "If you wish to change your password, please enter your new password twice so we can verify you typed it in correctly." %}
+          {% endif %}
+        </div>
+        <form action="" method="post" class="form" id="new-password-form">
+            {% csrf_token %}
+            {{ form.non_field_errors }}
+            <div class="form-group">
+                <label for="id_new_password1">New Password:</label>
+                {{ form.new_password1.errors }}
+                <input id="id_new_password1" name="new_password1" type="password" placeholder="New Password" class="form-control" value="{{ form.new_password1.value }}" />
+            </div>
+            <div class="form-group">
+                <label for="id_new_password2">New Password (again):</label>
+                {{ form.new_password2.errors }}
+                <input id="id_new_password2" name="new_password2" type="password" placeholder="Confirm password" class="form-control" value="{{ form.new_password2.value }}" />
+            </div>
+            <div class="form-group">
+              <input type="submit" value="{% trans 'Reactivate my account' %}" class="btn btn-success" />
+            </div>
+      </form>
+    </div>
+</div>
+
+{% endblock %}

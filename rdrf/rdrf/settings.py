@@ -269,13 +269,6 @@ DATA_UPLOAD_MAX_NUMBER_FIELDS = env.get("data_upload_max_number_fields", 30000) 
 # If the settings is not set or set to 0, the feature is disabled.
 LOGIN_FAILURE_LIMIT = env.get("login_failure_limit", 3)
 
-# When the same user fails to log in consecutively more than `LOGIN_FAILURE_LIMIT` times from the same IP
-# the login page error message will change to "For security reasons, your account has been locked".
-# This setting allows to tune what consecutive means. It is the time window in which the failed logins
-# are counted.
-# Value is in minutes, if not set or 0 the feature is disabled.
-LOGIN_FAILURE_TOLERANCE_TIME = env.get("login_failure_tolerance_time", 60)
-
 # APPLICATION SPECIFIC SETTINGS
 AUTH_PROFILE_MODULE = 'groups.User'
 ALLOWED_HOSTS = env.getlist("allowed_hosts", ["localhost"])
@@ -491,4 +484,25 @@ LOCALE_PATHS = env.getlist("locale_paths", [os.path.join(WEBAPP_ROOT, "translati
 
 CRON_CLASSES = []
 
-
+AUTH_PASSWORD_VALIDATORS = [{
+        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
+        'OPTIONS': {
+            'min_length': 8,
+        }
+    },
+    {
+        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
+    },
+    {
+        'NAME': 'rdrf.auth.password_validation.HasUppercaseLetterValidator',
+    },
+    {
+        'NAME': 'rdrf.auth.password_validation.HasLowercaseLetterValidator',
+    },
+    {
+        'NAME': 'rdrf.auth.password_validation.HasNumberValidator',
+    },
+    {
+        'NAME': 'rdrf.auth.password_validation.HasSpecialCharacterValidator',
+    },
+]

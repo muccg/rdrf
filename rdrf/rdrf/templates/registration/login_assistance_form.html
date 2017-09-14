@@ -6,7 +6,7 @@
 <br>
 
 <div class="alert alert-warning">
-    {% trans "Is your account locked? Enter your email address below, and we'll email instructions about unlocking it." %}
+  {% trans "Trouble signing in? Did you forgot your password or your account has been locked for security reasons? Enter your email address below, and we'll email you instructions on what to do." %}
 </div>
 
 <form class="form-inline" action="" method="post">{% csrf_token %}
@@ -14,7 +14,7 @@
     <div class="form-group">
         <input id="id_email" maxlength="254" name="email" type="email" class="form-control" placeholder="Email address">
     </div>
-    <input type="submit" class="btn btn-warning" value="{% trans 'Unlock my account' %}" />
+    <input type="submit" class="btn btn-warning" value="{% trans "Send" %}" />
 </form>
 
 {% endblock %}

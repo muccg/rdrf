@@ -1,0 +1,18 @@
+{% load i18n %}{% autoescape off %}
+Hello  Mr/Ms {{user.last_name}},
+
+{% blocktrans %}You're receiving this email because you were having trouble signing in and requested help.{% endblocktrans %}
+
+{% blocktrans %}Your account has been locked for security purposes and the system needs to reverify you.{% endblocktrans %}
+
+{% trans "Please go to the following page for further information:" %}
+
+{% block reset_link %}
+{{ protocol }}://{{ domain }}{% url 'login_assistance_confirm' uidb64=uid token=token %}
+{% endblock %}
+
+{% trans "Thanks for using our site!" %}
+
+{% blocktrans %}The RDRF team.{% endblocktrans %}
+
+{% endautoescape %}

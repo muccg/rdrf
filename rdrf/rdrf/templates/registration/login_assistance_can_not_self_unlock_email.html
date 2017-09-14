@@ -1,0 +1,15 @@
+{% load i18n %}{% autoescape off %}
+Hello  Mr/Ms {{user.last_name}},
+
+{% blocktrans %}You're receiving this email because you were having trouble signing in and requested help.{% endblocktrans %}
+
+{% blocktrans %}Your account has been locked for security reasons.{% endblocktrans %}
+{% blocktrans %}Please contact the registry's operators for further assistance.{% endblocktrans %}
+
+{% trans "Your username, in case you've forgotten:" %} {{ user.get_username }}
+
+{% trans "Thanks for using our site!" %}
+
+{% blocktrans %}The RDRF team.{% endblocktrans %}
+
+{% endautoescape %}
