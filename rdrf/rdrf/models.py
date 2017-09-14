@@ -1550,7 +1550,8 @@ class ContextFormGroup(models.Model):
         if self.patient_can_add(patient_model):
             num_forms = len(self.form_models)
             # Direct link to form if num forms is 1 ( handler redirects transparently)
-            action_title = "Add %s" % self.form_models[0].name if num_forms == 1 else "Add %s" % self.name
+            from rdrf.utils import de_camelcase as dc
+            action_title = "Add %s" % dc(self.form_models[0].name) if num_forms == 1 else "Add %s" % dc(self.name)
 
             if not self.supports_direct_linking:
                 # We can't go directly to the form - so we first land on the add context view, which on save
