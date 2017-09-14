@@ -299,6 +299,7 @@ class FormsButton(RDRFComponent):
     A button/popover which pressed shows links to forms in a registry or a form group
     """
     TEMPLATE = "rdrf_cdes/forms_button.html"
+    MULTIPLE_LIMIT = 10 # Only show the last <MULTIPLE_LIMIT> items for multiple context form groups
 
     class FormWrapper(object):
 
@@ -395,7 +396,11 @@ class FormsButton(RDRFComponent):
         else:
             # multiple group
             # we may have more than one assessment etc
+            # NB. We LIMIT the number of forms shown to the last 10
+            
             context_models = self.patient_model.get_multiple_contexts(self.context_form_group)
+            context_models = context_models[:self.MULTIPLE_LIMIT]
+            
 
             return [
                 self.FormWrapper(self.registry_model,
