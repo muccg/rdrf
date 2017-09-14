@@ -365,9 +365,13 @@ class FormsButton(RDRFComponent):
         else:
             heading = "Modules"
 
+        add_link, add_link_text = self._get_add_link()
+
         return {
             "heading": heading,
             "forms": self._get_form_link_wrappers(),
+            "add_link": add_link,
+            "add_link_text": add_link_text,
         }
 
     def _get_form_link_wrappers(self):
@@ -400,7 +404,6 @@ class FormsButton(RDRFComponent):
             
             context_models = self.patient_model.get_multiple_contexts(self.context_form_group)
             context_models = context_models[:self.MULTIPLE_LIMIT]
-            
 
             return [
                 self.FormWrapper(self.registry_model,
@@ -416,6 +419,12 @@ class FormsButton(RDRFComponent):
             return 0
         else:
             return self.context_form_group.pk
+
+    def _get_add_link(self):
+        if self.context_form_group and self.context_form_group.context_type == "M":
+            link_url, link_text = self.context_form_group.get_add_action(self.patient_model)
+            return link_url, link_text
+        return None, None
 
     @property
     def button_caption(self):
