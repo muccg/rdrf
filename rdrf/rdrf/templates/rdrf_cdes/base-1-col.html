@@ -119,13 +119,12 @@
                         {% if request.user.is_parent and registry_code %}
                             <li><a href="{% url 'parent_edit' registry_code parent.id %}"><span class="glyphicon glyphicon-wrench"></span> {% trans 'Account' %}</a></li>
                         {% endif %}
-                        <li><a href="{% url 'password_reset' %}"><span class="glyphicon glyphicon-random"></span> {% trans 'Password Reset' %}</a></li>
+                        <li><a href="{% url 'password_change' %}"><span class="glyphicon glyphicon-random"></span> {% trans 'Change Password' %}</a></li>
                         <li><a href="{% url 'logout' %}?next={% url 'login_router' %}"><span class="glyphicon glyphicon-log-out"></span> {% trans 'Logout' %}</a></li>
                       </ul>
                     </li>
                 {% else %}
                     <li><a href="{% url 'login' %}?next={% url 'login_router' %}"><span class="glyphicon glyphicon-log-in"></span> {% trans 'Log in' %}</a></li>
-                    <li><a href="{% url 'password_reset' %}"><span class="glyphicon glyphicon-refresh"></span> {% trans 'Password Reset' %}</a></li>
                 {% endif %}
               </ul>
             </div><!-- /.navbar-collapse -->

@@ -78,32 +78,13 @@ class PatientsListingView(View):
         return template
 
     def build_context(self):
-        messages = self.maybe_add_messages()
-
         return {
             "registries": self.registries,
             "location": _("Patient Listing"),
             "patient_id": self.patient_id,
             "registry_code": self.registry_model.code if self.registry_model else None,
             "columns": [col.to_dict(i) for (i, col) in enumerate(self.get_configure_columns())],
-            "messages": messages,
         }
-
-    def maybe_add_messages(self):
-        messages = [
-            self._password_about_to_expire_msg(),
-        ]
-
-        return [m for m in messages if m]
-
-    def _password_about_to_expire_msg(self):
-        if should_warn_about_password_expiry(self.user):
-            days_left = days_to_password_expiry(self.user)
-            if days_left is not None:
-                return Message.warning(mark_safe(
-                    'Your password will expire in %d days.'
-                    'Please use <a href="%s" class="alert-link">Password Reset</a> to change it.' %
-                    (days_left, reverse('password_reset'))))
 
     def get_columns(self):
         return [
@@ -235,7 +216,7 @@ class PatientsListingView(View):
         sort_field = request.POST.get(column_name, None)
         logger.debug("sort_field = %s sort_direction = %s" % (sort_field,
                                                               sort_direction))
-        
+
 
         return sort_field, sort_direction
 
@@ -401,7 +382,7 @@ class Column(object):
 
     def get_sort_value_for_none(self):
         return self.bottom
-        
+
 
     def sort_key(self, supports_contexts=False,
                  form_progress=None, context_manager=None):
@@ -414,7 +395,7 @@ class Column(object):
                 return value
 
         return sort_func
-    
+
         #return lambda patient: self.cell(patient, supports_contexts, form_progress, context_manager)
 
     def cell(self, patient, supports_contexts=False,
@@ -422,7 +403,7 @@ class Column(object):
         if "__" in self.field:
             patient_field, related_object_field = self.field.split("__")
             related_object = getattr(patient, patient_field)
-                
+
             if related_object.__class__.__name__== 'ManyRelatedManager':
                 related_object = related_object.first()
 
@@ -573,7 +554,7 @@ class ColumnContextMenu(Column):
             return buttons
 
     def _get_forms_button(self, patient_model, context_form_group, forms):
-        
+
         button = FormsButton(self.registry, self.user, patient_model,
                              context_form_group, [f for f in forms if f.applicable_to(patient_model)])
 
