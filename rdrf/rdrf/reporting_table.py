@@ -116,7 +116,6 @@ class ReportingTableGenerator(object):
     @timed
     def create_table(self):
         self.table.create()
-        logger.debug("created table based on schema")
 
     def _get_blank_row(self):
         return {column_name: None for column_name in self.column_names}
@@ -127,16 +126,12 @@ class ReportingTableGenerator(object):
         conn = self.engine.connect()
         try:
             conn.execute(drop_table_sql)
-            logger.debug("dropped temp table %s" % self.table_name)
         except:
             pass
         conn.close()
 
     def set_table_name(self, obj):
-        logger.debug("setting table name from %s %s" %
-                     (self.user.username, obj))
         self.table_name = temporary_table_name(obj, self.user)
-        logger.info("table name = %s" % self.table_name)
 
     def _add_reverse_mapping(self, key, value):
         self.reverse_map[key] = value
@@ -145,15 +140,10 @@ class ReportingTableGenerator(object):
         # These columns will always appear
         self.columns.append(self._create_column("context_id", alc.Integer))
         self._add_reverse_mapping("context_id", "context_id")
-        logger.debug("COLUMN: context_id")
-
         self.columns.append(self._create_column("timestamp", alc.String))
         self._add_reverse_mapping("timestamp", "timestamp")
-        logger.debug("COLUMN: timestamp")
-
         self.columns.append(self._create_column("snapshot", alc.Boolean))
         self._add_reverse_mapping("snapshot", "snapshot")
-        logger.debug("COLUMN: snapshot")
 
     def _create_sql_columns(self, sql_metadata):
         # Columns from sql query
@@ -237,7 +227,6 @@ class ReportingTableGenerator(object):
                                                                 self.section_model,
                                                                 self.cde_model)
 
-                logger.debug("created column %s" % column_name)
                 return column_name
 
         class ColumnOps(object):
@@ -307,10 +296,7 @@ class ReportingTableGenerator(object):
         column_ops = ColumnOps(max_items=self.max_items)
 
         for ((form_model, section_model, cde_model), column_name) in list(column_map.items()):
-            logger.debug("creating column op for %s %s %s ( %s )" % (form_model.name,
-                                                                     section_model.code,
-                                                                     cde_model.code,
-                                                                     column_name))
+
             column_op = ColumnOp(self,
                                  self.columns,
                                  form_model,
@@ -343,7 +329,6 @@ class ReportingTableGenerator(object):
         else:
             datatype = alc.String
 
-        logger.debug("COLUMN: %s" % column_name)
         return self._create_column(column_name, datatype)
 
     def _create_column_from_mongo(self, column_name, form_model, section_model, cde_model):
@@ -365,19 +350,11 @@ class ReportingTableGenerator(object):
         for row in database_utils.generate_results(self.reverse_map,
                                                    self.col_map,
                                                    max_items=self.max_items):
-            # try:
-
             new_row = self._get_blank_row()
             new_row.update(row)
             self.insert_row(new_row)
             row_num += 1
-            logger.debug("inserted row OK. row_num = %s" % row_num)
-            # except Exception, ex:
-            #    errors += 1
-            #    src = "query"
-            #    logger.error("report error: query %s row after %s error: %s" % (src,
-            #                                                                    row_num,
-            #                                                                    ex))
+
         if errors > 0:
             logger.info("query errors: %s" % errors)
             self.error_messages.append(
@@ -401,9 +378,6 @@ class ReportingTableGenerator(object):
 
     def create_schema(self):
         self.drop_table()
-        logger.debug("creating table schema")
-        logger.debug("There are %s columns" % len(self.columns))
-        logger.debug("table name will be = %s" % self.table_name)
         self.table = alc.Table(self.table_name, MetaData(
             self.engine), *self.columns, schema=None)
 
@@ -481,7 +455,6 @@ class MongoFieldSelector(object):
         return self.field_info
 
     def _get_saved_value(self, form_model, section_model, cde_model):
-        logger.debug("existing data = %s" % self.existing_data)
         if self.existing_data is None:
             return False, False
 
@@ -606,13 +579,9 @@ class ReportTable(object):
                 sort_direction = params["sort_direction"]
 
                 sort_column = getattr(self.table.c, sort_field)
-                logger.debug("sorting by %s" % sort_column.name)
-
                 if sort_direction == "asc":
-                    logger.debug("sort direction is ascending")
                     sort_column = sort_column.asc()
                 else:
-                    logger.debug("sort direction is descending")
                     sort_column = sort_column.desc()
 
                 query = query.order_by(sort_column)

@@ -15,7 +15,7 @@ from rdrf.models import ConsentSection
 from rdrf.models import ConsentQuestion
 from rdrf.models import EmailTemplate
 from rdrf.models import EmailNotification
-from rdrf.models import Modjgo
+from rdrf.models import ClinicalData
 
 
 from rdrf.generalised_field_expressions import MultiSectionItemsExpression
@@ -303,21 +303,6 @@ AdminOnly: delete_patientrelative
 AdminOnly: add_state
 AdminOnly: change_state
 AdminOnly: delete_state
-AdminOnly: add_adjudication
-AdminOnly: change_adjudication
-AdminOnly: delete_adjudication
-AdminOnly: add_adjudicationdecision
-AdminOnly: change_adjudicationdecision
-AdminOnly: delete_adjudicationdecision
-AdminOnly: add_adjudicationdefinition
-AdminOnly: change_adjudicationdefinition
-AdminOnly: delete_adjudicationdefinition
-AdminOnly: add_adjudicationrequest
-AdminOnly: change_adjudicationrequest
-AdminOnly: delete_adjudicationrequest
-AdminOnly: add_adjudicationresponse
-AdminOnly: change_adjudicationresponse
-AdminOnly: delete_adjudicationresponse
 AdminOnly: add_cdepermittedvalue
 AdminOnly: change_cdepermittedvalue
 AdminOnly: delete_cdepermittedvalue
@@ -431,7 +416,7 @@ def delete_existing_models():
                 u.delete()
     classes = [Patient, Laboratory, PatientAddress,
                EmailNotification, EmailTemplate,
-               PatientDoctor, Doctor, Modjgo, Group, WorkingGroup]
+               PatientDoctor, Doctor, ClinicalData, Group, WorkingGroup]
     for k in classes:
         kill(k)
     delusers()

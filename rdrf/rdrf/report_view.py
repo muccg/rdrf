@@ -85,14 +85,12 @@ class ReportDataTableView(LoginRequiredMixin, View):
             return HttpResponseRedirect("/")
 
         query_parameters = self._get_query_parameters(request)
-        logger.debug("query parameters = %s" % query_parameters)
         report_table = ReportTable(user, query_model)
 
         a = datetime.now()
         rows = report_table.run_query(query_parameters)
         logger.info("number of rows returned = %s" % len(rows))
         b = datetime.now()
-        logger.debug("time to run query = %s" % (b - a))
 
         try:
             c = datetime.now()

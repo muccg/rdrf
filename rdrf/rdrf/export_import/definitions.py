@@ -66,8 +66,6 @@ _REGISTRY_DEF_GROUP = GroupDefinition(
         'groups.WorkingGroup',
         'auth.Group',
         'rdrf.RegistryForm',
-        # Lee says adjudication code is dead so not including AdjudicationDefinitions
-        # 'rdrf.AdjudicationDefinition',
         'rdrf.CdePolicy',
         'rdrf.ConsentSection',
         'rdrf.ConsentQuestion',
@@ -193,7 +191,7 @@ REGISTRY_WITH_DATA_EXPORT_DEFINITION = ExportDefinition(
                     dirname='clinical_data',
                     models=(
                         'rdrf.CDEFile',
-                        'rdrf.Modjgo',
+                        'rdrf.ClinicalData',
                     )),
             )
         ),

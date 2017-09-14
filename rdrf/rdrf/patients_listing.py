@@ -22,6 +22,9 @@ from rdrf.utils import MinType
 from django.utils.translation import ugettext as _
 
 
+from datetime import datetime
+
+
 import logging
 logger = logging.getLogger(__name__)
 
@@ -53,7 +56,6 @@ class PatientsListingView(View):
         # which initiates an ajax/post request on registry select
         # the protocol is the jquery DataTable
         # see http://datatables.net/manual/server-side
-
         self.user = request.user
         if self.user and self.user.is_anonymous():
             login_url = "%s?next=%s" % (reverse("login"), reverse("login_router"))
@@ -176,14 +178,11 @@ class PatientsListingView(View):
 
     def get_results(self, request):
         if self.registry_model is None:
-            logger.debug("registry model is None - returning empty results")
             return []
         if not self.check_security():
-            logger.debug("security check failed - returning empty results")
             return []
 
         patients = self.run_query()
-        logger.debug("got column data for each row in page OK")
         return patients
 
     def check_security(self):
@@ -212,10 +211,6 @@ class PatientsListingView(View):
 
         column_name = "columns[%s][data]" % sort_column_index
         sort_field = request.POST.get(column_name, None)
-        logger.debug("sort_field = %s sort_direction = %s" % (sort_field,
-                                                              sort_direction))
-
-
         return sort_field, sort_direction
 
     def run_query(self):
@@ -237,8 +232,6 @@ class PatientsListingView(View):
         if context_model.context_form_group:
             assert context_model.context_form_group.is_default, "Expected to always get a context of the default form group"
 
-        logger.debug("retrieved the default context for %s: it is %s" %
-                     (patient_model, context_model))
         return context_model
 
     def apply_custom_ordering(self, qs):
@@ -249,8 +242,10 @@ class PatientsListingView(View):
         if key_func:
             # we have to retrieve all rows - otherwise , queryset has already been
             # ordered on base model
+            k = key_func[0]
+            
             def key_func_wrapper(thing):
-                value = key_func[0](thing)
+                value = k(thing)
                 if value is None:
                     return self.bottom
                 else:
@@ -275,8 +270,7 @@ class PatientsListingView(View):
         return rows
 
     def append_rows(self, page_object, row_list_to_update):
-        for obj in page_object.object_list:
-            row_list_to_update.append(self._get_row_dict(obj))
+        row_list_to_update.extend([self._get_row_dict(obj) for obj in page_object.object_list])
 
     def _get_row_dict(self, instance):
         # we need to do this so that the progress data for this instance
@@ -288,16 +282,13 @@ class PatientsListingView(View):
     def get_initial_queryset(self):
         self.registry_queryset = Registry.objects.filter(
             code=self.registry_model.code)
-        self.patients = Patient.objects.all()
+        self.patients = Patient.objects.all().prefetch_related("working_groups").prefetch_related("rdrf_registry")
+        
 
     def apply_search_filter(self):
         if self.search_term:
             self.patients = self.patients.filter(Q(given_names__icontains=self.search_term) |
                                                  Q(family_name__icontains=self.search_term))
-
-            count_after_search = self.patients.count()
-            logger.debug(
-                "search term provided - count after search = %s" % count_after_search)
 
     def filter_by_user_group(self):
         if not self.user.is_superuser:
@@ -305,44 +296,26 @@ class PatientsListingView(View):
                 query_patients = Q(rdrf_registry__in=self.registry_queryset) & Q(
                     working_groups__in=self.user.working_groups.all())
                 self.patients = self.patients.filter(query_patients)
-                logger.debug(
-                    "user is curator - returning patients in their working groups")
             elif self.user.is_genetic_staff:
                 self.patients = self.patients.filter(
                     working_groups__in=self.user.working_groups.all())
-                logger.debug(
-                    "user is genetic staff - returning patients in their working groups")
             elif self.user.is_genetic_curator:
                 self.patients = self.patients.filter(
                     working_groups__in=self.user.working_groups.all())
-                logger.debug(
-                    "user is genetic curator - returning patients in their working groups")
             elif self.user.is_working_group_staff:
                 self.patients = self.patients.filter(
                     working_groups__in=self.user.working_groups.all())
-                logger.debug(
-                    "user is working group staff - returning patients in their working groups")
             elif self.user.is_clinician and self.clinicians_have_patients:
                 self.patients = self.patients.filter(clinician=self.user)
-                logger.debug(
-                    "user is a clinician and clinicians have patients - returning their patients")
             elif self.user.is_clinician and not self.clinicians_have_patients:
                 query_patients = Q(rdrf_registry__in=self.registry_queryset) & Q(
                     working_groups__in=self.user.working_groups.all())
                 self.patients = self.patients.filter(query_patients)
-                logger.debug(
-                    "user is a clinician and clinicians don't have patients - returning patients in their working groups")
             elif self.user.is_patient:
                 self.patients = self.patients.filter(user=self.user)
-                logger.debug(
-                    "user is a patient - returning the patient of which I am the user")
             else:
-                logger.debug(
-                    "user not in any recognised group - returning empty quesryset")
                 self.patients = self.patients.none()
         else:
-            logger.debug(
-                "user is superuser - returning all patients in registry %s" % self.registry_model.code)
             self.patients = self.patients.filter(
                 rdrf_registry__in=self.registry_queryset)
 
@@ -527,23 +500,26 @@ class ColumnContextMenu(Column):
         if registry:
             # fixme: slow, do intersection instead
             self.free_forms = list(filter(user.can_view, registry.free_forms))
-
+            self.fixed_form_groups = registry.fixed_form_groups
+            self.multiple_form_groups = registry.multiple_form_groups
+            
     def cell(self, patient, supports_contexts=False, form_progress=None, context_manager=None):
         return "".join(self._get_forms_buttons(patient))
 
     def _get_forms_buttons(self, patient, form_progress=None, context_manager=None):
+        
         if not self.registry_has_context_form_groups:
             # if there are no context groups -normal registry
             return [self._get_forms_button(patient, None, self.free_forms)]
         else:
             # display one button per form group
             buttons = []
-            for fixed_form_group in self.registry.fixed_form_groups:
+            for fixed_form_group in self.fixed_form_groups:
                 buttons.append(self._get_forms_button(patient,
                                                       fixed_form_group,
                                                       fixed_form_group.forms))
 
-            for multiple_form_group in self.registry.multiple_form_groups:
+            for multiple_form_group in self.multiple_form_groups:
                 buttons.append(self._get_forms_button(patient,
                                                       multiple_form_group,
                                                       multiple_form_group.forms))

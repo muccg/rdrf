@@ -10,6 +10,7 @@ except ImportError:
 
 def copy_collections(apps, schema_editor):
     Modjgo = apps.get_model("rdrf", "Modjgo")
+    print("got Modjgo okay")
     Registry = apps.get_model("rdrf", "Registry")
     if mongo_django:
         mongo_django(Modjgo, Registry.objects.all())

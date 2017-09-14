@@ -73,7 +73,6 @@ class OtherPleaseSpecifyWidget(MultiWidget):
             return [value, ""]
 
     def value_from_datadict(self, data, files, name):
-        logger.debug("value from datadict: data = %s name = %s" % (data, name))
         if name in data:
             return data[name]
         else:
@@ -333,7 +332,6 @@ class DataSourceSelect(ParametrisedSelectWidget):
         :return: [(code, value), ... ] pairs from the metadata json from the registry context
         """
         from rdrf import datasources
-        logger.debug("checking for data source: %s" % self._widget_parameter)
         if hasattr(datasources, self._widget_parameter):
             datasource_class = getattr(datasources, self._widget_parameter)
             datasource = datasource_class(self._widget_context)
@@ -384,7 +382,6 @@ class ReadOnlySelect(widgets.Select):
         m = pattern.match(html)
         if m:
             option_display_text = m.groups(1)[0]
-            logger.debug("option display text: [%s]" % option_display_text)
             return """<span class="label label-default">%s</span>""" % option_display_text
         else:
             return html

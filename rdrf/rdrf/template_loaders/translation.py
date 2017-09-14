@@ -19,9 +19,6 @@ class Loader(BaseLoader):
     def get_contents(self, origin):
         name = origin.name
         if not name.startswith(self.PREFIX):
-            logger.debug("template %s does not start with %s" % (name,
-                                                                 self.PREFIX))
-            
             raise TemplateDoesNotExist("test")
         
         return self._get_template_html(name)
@@ -37,9 +34,7 @@ class Loader(BaseLoader):
     def _get_template_html(self, template_name):
         try:
             _, field_path = template_name.split(self.PREFIX)
-            logger.debug("template field path = %s" % field_path)
             html =  get_registry_definition_value(field_path)
-            logger.debug("retrieved field ok")
             return self.PRELUDE + "\n" + html
         except ValueError as verr:
             raise TemplateDoesNotExist("Bad template name %s: %s" % (template_name,

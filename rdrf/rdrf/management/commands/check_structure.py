@@ -1,7 +1,7 @@
 import sys
 from django.core.management import BaseCommand
 from rdrf.models import Registry
-from rdrf.models import Modjgo
+from rdrf.models import ClinicalData
 import yaml
 import jsonschema
 import errno
@@ -48,7 +48,7 @@ class Command(BaseCommand):
         if collection == "registry_specific":
            collection = "registry_specific_patient_data"
 
-        for modjgo_model in Modjgo.objects.filter(registry_code=registry_code,
+        for modjgo_model in ClinicalData.objects.filter(registry_code=registry_code,
                                                   collection=collection):
             data = modjgo_model.data
             problem = self._check_for_problem(collection, data)

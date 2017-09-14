@@ -41,9 +41,7 @@ def run_hooks(hook_name, *args, **kwargs):
             "rdrf.hooks." + defined_hook_module_name, fromlist=['rdrf.hooks'])
         for thing_name, thing in inspect.getmembers(defined_hook_module):
             if isinstance(thing, collections.Callable) and hasattr(thing, "rdrf_hook") and thing.rdrf_hook == hook_name:
-                logger.debug("found hook %s for %s" % (thing_name, hook_name))
                 hooks_to_run.append(thing)
 
     for hook_func in hooks_to_run:
-        logger.info("running hook func %s for %s" % (hook_func.__name__, hook_name))
         hook_func(*args, **kwargs)

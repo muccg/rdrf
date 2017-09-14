@@ -168,7 +168,6 @@ class PokeFieldExpression(GeneralisedFieldExpression):
     # 
     
     def __init__(self, registry_model, field_expression):
-        logger.debug("init PokeFieldExpression")
         self.registry_model = registry_model
         self._parse_poke(field_expression)
 
@@ -207,12 +206,9 @@ class PokeFieldExpression(GeneralisedFieldExpression):
 
 
     def _iterate_through_forms(self, mongo_data, **kwargs):
-        logger.debug("in iterate through forms")
         is_setting = "value" in kwargs
-        logger.debug("is setting = %s" % is_setting)
         
         for form_dict in mongo_data["forms"]:
-            logger.debug("checking form %s" % form_dict["name"])
             if form_dict["name"] == self.form_model.name:
                 if self.section_model.code not in [ x["code"] for x in form_dict["sections"]]:
                     if is_setting:
@@ -233,13 +229,11 @@ class PokeFieldExpression(GeneralisedFieldExpression):
                         return True
                     
                 for section_dict in form_dict["sections"]:
-                    logger.debug("checking section %s" % section_dict["code"])
                     if section_dict["code"] == self.section_model.code:
                         if not section_dict["allow_multiple"]:
                             raise Exception("Can't get cde in item if not a multisection")
                         else:
                             if len(section_dict["cdes"]) == 0:
-                                logger.debug("empty items")
                                 # if we're setting, create an item with one cde
                                 if is_setting:
                                     cde_dict = {"code": self.cde_model.code,
@@ -247,17 +241,14 @@ class PokeFieldExpression(GeneralisedFieldExpression):
                                     item = [cde_dict]
                                     items = [item]
                                     section_dict["cdes"] = items
-                                    logger.debug("poked cde into a new first item")
                                     return True
                                 
                             for item_index, cde_dict_list in enumerate(section_dict["cdes"]):
                                 num = item_index + 1
-                                logger.debug("checking item no. %s" % num)
                                 if num == self.item_number:
                                     if is_setting:
                                         if self.cde_model.code not in [ x["code"] for x in cde_dict_list]:
                                             # missing cde dict in correct item
-                                            logger.debug("creating cde dict")
                                             cde_dict = {"code": self.cde_model.code,
                                                         "value": kwargs["value"]}
                                             cde_dict_list.append(cde_dict)
@@ -271,13 +262,7 @@ class PokeFieldExpression(GeneralisedFieldExpression):
                                             else:
                                                 return cde_dict["value"]
 
-                                    if is_setting:
-                                        logger.debug("cde list = %s" % cde_dict_list)
-                                        
-
         if is_setting:
-            logger.debug("couldn't find cde")
-            logger.debug("data = %s" % mongo_data)
             return False
         else:
             raise ValueError("can't retrieve value")
@@ -336,10 +321,8 @@ class PatientFieldExpression(GeneralisedFieldExpression):
         if self.field == "next_of_kin_relationship":
             self._set_next_of_kin_relationship(patient_model, new_value)
         elif self.field == "working_groups":
-            logger.debug("field is working group")
             from registry.groups.models import WorkingGroup
             if isinstance(new_value, str):
-                logger.debug("updating working group to %s" % new_value)
                 try:
                     working_group = WorkingGroup.objects.get(registry=self.registry_model,
                                                              name=new_value)
@@ -349,7 +332,6 @@ class PatientFieldExpression(GeneralisedFieldExpression):
                     logger.error("Working group %s does not exist" % new_value)
                     raise Exception("can't update working group on %s" % patient_model)
             elif isinstance(new_value, WorkingGroup):
-                logger.debug("updating from an object")
                 patient_model.working_groups = [new_value]
                 patient_model.save()
             else:
@@ -384,8 +366,6 @@ class ConsentExpression(GeneralisedFieldExpression):
     def set_value(self, patient_model, mongo_data, new_value, **kwargs):
         # must be answer field , True False for new_value
         # ignores applicability?!
-        logger.debug("** CONSENT EXPRESSION: setting new consent %s field %s new_value %s" %
-                     (self.consent_question_model.question_label, self.field, new_value))
         if self.field not in ["answer", "last_update", "first_save"]:
             raise ValueError("Unknown consent field: %s" % self.field)
 
@@ -395,15 +375,12 @@ class ConsentExpression(GeneralisedFieldExpression):
                                                            consent_question=self.consent_question_model)
             setattr(consent_value_model, self.field, new_value)  # allow answer, first_save, last_update now
             consent_value_model.save()
-            logger.debug("updated answer to %s OK" % consent_value_model.answer)
         except ConsentValue.DoesNotExist:
-            logger.debug("consent answer does not exist - creating")
             consent_value_model = ConsentValue()
             consent_value_model.patient = patient_model
             consent_value_model.consent_question = self.consent_question_model
             consent_value_model.answer = new_value
             consent_value_model.save()
-            logger.debug("updated answer to %s OK" % consent_value_model.answer)
         return patient_model, mongo_data
 
 
@@ -458,13 +435,10 @@ class AddressesExpression(GeneralisedFieldExpression):
 
         # delete existing addresses ...
         from registry.patients.models import PatientAddress
-        logger.debug("AddressesExpression - setting new addresses")
         for patient_address in PatientAddress.objects.filter(patient=patient_model):
-            logger.debug("deleting existing address")
             patient_address.delete()
 
         for address_map in address_maps:
-            logger.debug("processing address map: %s" % address_map)
             patient_address = PatientAddress(patient=patient_model)
             address_type = address_map.get("AddressType", "AddressTypeHome")
             address_type_object = self._get_address_type(address_type)
@@ -475,7 +449,6 @@ class AddressesExpression(GeneralisedFieldExpression):
             patient_address.state = address_map.get("State", "")
             patient_address.country = address_map.get("Country", "")
             patient_address.save()
-            logger.debug("saved new address ok")
 
         return patient_model, mongo_record
 
@@ -611,31 +584,22 @@ class GeneralisedFieldExpressionParser(object):
         return s
 
     def parse(self, field_expression):
-        logger.debug("field_expression = %s" % field_expression)
         try:
             if field_expression.startswith("Consents/"):
-                logger.debug("GFE Parser: consents")
                 return self._parse_consent_expression(field_expression)
             elif field_expression.startswith("poke/"):
-                logger.debug("GFE Parser: poke")
                 return self._parse_poke_expression(field_expression)
             elif field_expression.startswith("@"):
-                logger.debug("GFE Parser: @")
                 return self._parse_report_function_expression(field_expression)
             elif field_expression.startswith("$ms"):
-                logger.debug("GFE Parser: $ms")
                 return self._parse_ms_expression(field_expression)
             elif field_expression.startswith("Demographics/Address/"):
-                logger.debug("GFE Parser: address")
                 return self._parse_address_expression(field_expression)
             elif field_expression == "Demographics/Addresses":
-                logger.debug("GFE Parser: addresses")
                 return AddressesExpression(self.registry_model)
             elif "/" in field_expression:
-                logger.debug("GFE Parser: clinical")
                 return self._parse_clinical_form_expression(field_expression)
             elif field_expression in self.patient_fields:
-                logger.debug("GFE Parser: patient field")
                 return self._parse_patient_fields_expression(field_expression)
             else:
                 return BadColumnExpression()

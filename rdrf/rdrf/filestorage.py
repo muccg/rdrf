@@ -17,8 +17,6 @@ def get_id(value):
 
 def delete_file_wrapper(file_ref):
     django_file_id = file_ref.get("django_file_id")
-    logger.debug("existing file ids: django = %s" % django_file_id)
-
     if django_file_id is not None:
         try:
             CDEFile.objects.get(id=django_file_id).delete()

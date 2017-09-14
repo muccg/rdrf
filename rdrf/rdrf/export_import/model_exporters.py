@@ -53,9 +53,6 @@ class SectionExporter(ModelExporter):
             yield registry.patient_data_section
         for section_code in registry.generic_sections:
             yield models.Section.objects.get(code=section_code)
-        for adj_def in models.AdjudicationDefinition.objects.filter(registry=registry):
-            yield models.Section.objects.get(code=adj_def.result_fields)
-            yield models.Section.objects.get(code=adj_def.decision_field)
 
     @property
     def queryset(self):
@@ -123,7 +120,6 @@ class PatientExporter(ModelExporter):
 registry_catalogue.register(models.Registry, RegistryExporter)
 registry_catalogue.register(groupmodels.WorkingGroup, ModelExporterFilteredByRegistry)
 registry_catalogue.register(models.RegistryForm, ModelExporterFilteredByRegistry)
-registry_catalogue.register(models.AdjudicationDefinition, ModelExporterFilteredByRegistry)
 registry_catalogue.register(models.Section, SectionExporter)
 registry_catalogue.register(models.CommonDataElement, CommonDataElementExporter)
 registry_catalogue.register(models.ConsentSection, ModelExporterFilteredByRegistry)
@@ -149,6 +145,6 @@ registry_catalogue.register(models.RDRFContext, ModelExporterFilteredByRegistry)
 registry_catalogue.register(models.QuestionnaireResponse, ModelExporterFilteredByRegistry)
 
 registry_catalogue.register(models.CDEFile, ModelExporterFilteredByRegistryCode)
-registry_catalogue.register(models.Modjgo, ModelExporterFilteredByRegistryCode)
+registry_catalogue.register(models.ClinicalData, ModelExporterFilteredByRegistryCode)
 
 registry_catalogue.register(explorermodels.Query, ModelExporterFilteredByRegistry)

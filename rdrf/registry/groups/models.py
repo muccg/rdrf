@@ -100,12 +100,8 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
 
         if self.is_superuser:
             value =  True
-            logger.debug("user is super user so can archive")
         else:
-            logger.debug("user is NOT superuser")
             value = self.has_perm("patients.delete_patient")
-            logger.debug("%s delete patient perm = %s" % (self, value))
-
         return value
 
     @property

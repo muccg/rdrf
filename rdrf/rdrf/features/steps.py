@@ -298,12 +298,8 @@ def login_as_role(step, role):
     # Could map from role to user later if required
 
     world.user = role  # ?
-    logger.debug("about to login as %s registry %s" % (world.user, world.registry))
     go_to_registry(step, world.registry)
-    logger.debug("selected registry %s OK" % world.registry)
     login_as_user(step, role, role)
-    logger.debug("login_as_user %s OK" % role)
-
 
 @step('log in as "(.*)" with "(.*)" password')
 def login_as_user(step, username, password):
@@ -351,21 +347,15 @@ def go_home(step):
 
 @step('go to the registry "(.*)"')
 def go_to_registry(step, name):
-    logger.debug("**********  in go_to_registry *******")
     world.browser.get(world.site_url)
-    logger.debug("navigated to %s" % world.site_url)
     utils.click(world.browser.find_element_by_link_text('Registries on this site'))
-    logger.debug("clicked dropdown for registry")
     utils.click(world.browser.find_element_by_partial_link_text(name))
-    logger.debug("found link text to click")
-
 
 @step('go to page "(.*)"')
 def go_to_page(setp, page_ref):
     if page_ref.startswith("/"):
         page_ref = page_ref[1:]
     url = world.site_url + page_ref
-    logger.debug("going to go to page url %s" % url)
     world.browser.get(url)
 
 

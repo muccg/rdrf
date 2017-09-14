@@ -1,12 +1,12 @@
 from rdrf.utils import TimeStripper, HistoryTimeStripper
 from django.test import TestCase
 
-class FakeModjgo(object):
+class FakeClinicalData(object):
             def __init__(self, pk, data):
                 self.pk = pk
                 self.data = data
             def save(self):
-                print("Fake Modjgo save called")
+                print("Fake ClinicalData save called")
 
 
 class TimeStripperTestCase(TestCase):
@@ -43,8 +43,8 @@ class TimeStripperTestCase(TestCase):
 
         
 
-        self.m1 = FakeModjgo(1, self.data_with_date_cdes)
-        self.m2 = FakeModjgo(2, self.data_without_date_cdes)
+        self.m1 = FakeClinicalData(1, self.data_with_date_cdes)
+        self.m2 = FakeClinicalData(2, self.data_without_date_cdes)
 
         self.ts = TimeStripper([self.m1, self.m2])
         self.ts.test_mode = True
@@ -101,7 +101,7 @@ class TimeStripperTestCase(TestCase):
                                                "sections": [multisection]}]}
         
         copy_before_op = deepcopy(data_with_multisections)
-        m = FakeModjgo(23, data_with_multisections)
+        m = FakeClinicalData(23, data_with_multisections)
 
         ts = TimeStripper([m])
         ts.test_mode = True
@@ -488,7 +488,7 @@ class TimeStripperTestCase(TestCase):
                   }
 
         expected_dates = ['2017-02-14']
-        history_record = FakeModjgo(73, history_modjgo_data)
+        history_record = FakeClinicalData(73, history_modjgo_data)
         ts = HistoryTimeStripper([history_record])
         ts.test_mode = True
         ts.date_cde_codes = ['FHconsentDate']

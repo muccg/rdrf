@@ -10,9 +10,9 @@ from django.db import transaction
 from django.conf import settings
 
 from ccg_django_utils.conf import EnvConfig
-from ...models import Registry, Modjgo
+from ...models import Registry, ClinicalData
 
-COLLECTIONS = [c for (c, _) in Modjgo.COLLECTIONS]
+COLLECTIONS = [c for (c, _) in ClinicalData.COLLECTIONS]
 
 logger = logging.getLogger(__name__)
 
@@ -34,7 +34,7 @@ class Command(BaseCommand):
                 logger.warning("Registry \"%s\" does not exist." % registry_code)
 
         rs = Registry.objects.filter(code__in=options["registry"] or all_codes)
-        mongo_django(Modjgo, rs, dry_run=options["dry_run"])
+        mongo_django(ClinicalData, rs, dry_run=options["dry_run"])
 
 
 def mongo_client():
@@ -55,27 +55,27 @@ def mongo_client():
 ############################################################################
 # The conversion script
 
-def mongo_django(Modjgo, registries, dry_run=False):
+def mongo_django(ClinicalData, registries, dry_run=False):
     client = mongo_client()
     for registry in registries:
         collection = settings.MONGO_DB_PREFIX + registry.code
         logger.info("Converting mongodb %s: %s" % (collection, registry.name))
         db = client[collection]
-        convert_registry(Modjgo, registry, db, dry_run=dry_run)
+        convert_registry(ClinicalData, registry, db, dry_run=dry_run)
         logger.info("Finished %s" % collection)
 
-def undjango_mongo(Modjgo, registries, dry_run=False):
+def undjango_mongo(ClinicalData, registries, dry_run=False):
     client = mongo_client()
     dead_ids = []
     for registry in registries:
         collection = settings.MONGO_DB_PREFIX + registry.code
         logger.info("Reverting mongodb %s: %s" % (collection, registry.name))
         db = client[collection]
-        revert_registry(Modjgo, registry, db, dead_ids, dry_run=dry_run)
+        revert_registry(ClinicalData, registry, db, dead_ids, dry_run=dry_run)
         logger.info("Finished %s" % collection)
 
     if not dry_run:
-        Modjgo.objects.filter(id__in=dead_ids).delete()
+        ClinicalData.objects.filter(id__in=dead_ids).delete()
 
 def clean_doc(doc):
     if isinstance(doc, dict):
@@ -92,7 +92,7 @@ def clean_doc(doc):
 class DryRun(Exception):
     pass
 
-def convert_registry(Modjgo, registry, db, dry_run=False):
+def convert_registry(ClinicalData, registry, db, dry_run=False):
     def finish_convert(obj, collection, doc, key):
         try:
             with transaction.atomic(using="clinical"):
@@ -115,7 +115,7 @@ def convert_registry(Modjgo, registry, db, dry_run=False):
             "clinical_id": { "$exists": False },
         }
         for doc in collection.find(record_query):
-            m = Modjgo(registry_code=registry.code,
+            m = ClinicalData(registry_code=registry.code,
                        collection=collection.name,
                        data=clean_doc(doc))
             finish_convert(m, collection, doc, "clinical_id")
@@ -123,7 +123,7 @@ def convert_registry(Modjgo, registry, db, dry_run=False):
     for c in COLLECTIONS:
         convert_collection(db[c])
 
-def revert_registry(Modjgo, registry, db, dead_ids, dry_run=False):
+def revert_registry(ClinicalData, registry, db, dead_ids, dry_run=False):
     def revert_collection(collection):
         record_query = {
             "clinical_id": { "$exists": True },

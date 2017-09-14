@@ -15,6 +15,7 @@ class RegistryRouter:
         ("rdrf", "patientdata"),
         ("rdrf", "formprogress"),
         ("rdrf", "modjgo"),
+        ("rdrf", "clinicaldata"),
     )
 
     @classmethod
