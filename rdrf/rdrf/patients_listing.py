@@ -1,9 +1,7 @@
-from operator import itemgetter
 from itertools import chain
 import json
 from django.views.generic.base import View
 from django.template.context_processors import csrf
-from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import PermissionDenied
 from django.core.urlresolvers import reverse
 from django.shortcuts import redirect, get_object_or_404
@@ -17,17 +15,11 @@ from useraudit.password_expiry import should_warn_about_password_expiry, days_to
 from rdrf.models import Registry
 from rdrf.form_progress import FormProgress
 from rdrf.contexts_api import RDRFContextManager
-from rdrf.components import FormsButton
 from rdrf.components import FormGroupButton
 from registry.patients.models import Patient
 from .utils import Message
 from rdrf.utils import MinType
-from rdrf.utils import timed
 from django.utils.translation import ugettext as _
-
-
-from datetime import datetime
-
 
 import logging
 logger = logging.getLogger(__name__)
@@ -156,8 +148,6 @@ class PatientsListingView(View):
         json_data = json.dumps(data)
         return HttpResponse(json_data, content_type="application/json")
 
-    ########################   POST #################################
-    @timed
     def post(self, request):
         # see http://datatables.net/manual/server-side
         self.user = request.user
@@ -221,7 +211,6 @@ class PatientsListingView(View):
 
     def get_ordering(self, request):
         # columns[0][data]:full_name
-        #...
         # order[0][column]:1
         # order[0][dir]:asc
         sort_column_index = None
@@ -267,7 +256,7 @@ class PatientsListingView(View):
             # we have to retrieve all rows - otherwise , queryset has already been
             # ordered on base model
             k = key_func[0]
-            
+
             def key_func_wrapper(thing):
                 value = k(thing)
                 if value is None:
@@ -307,7 +296,6 @@ class PatientsListingView(View):
         self.registry_queryset = Registry.objects.filter(
             code=self.registry_model.code)
         self.patients = Patient.objects.all().prefetch_related("working_groups").prefetch_related("rdrf_registry")
-        
 
     def apply_search_filter(self):
         if self.search_term:
@@ -345,8 +333,10 @@ class PatientsListingView(View):
 
     def apply_ordering(self):
         if self.sort_field and self.sort_direction:
-            dir = lambda field: "-" + field if self.sort_direction == "desc" else field
-            sort_fields = chain(*[map(dir, col.sort_fields)
+            def sdir(field):
+                return "-" + field if self.sort_direction == "desc" else field
+
+            sort_fields = chain(*[map(sdir, col.sort_fields)
                                   for col in self.columns
                                   if col.field == self.sort_field])
 
@@ -359,6 +349,7 @@ class PatientsListingView(View):
             "recordsFiltered": total_filtered_records,
             "rows": rows
         }
+
 
 class Column(object):
     field = "id"
@@ -377,7 +368,6 @@ class Column(object):
 
     def get_sort_value_for_none(self):
         return self.bottom
-        
 
     def sort_key(self, supports_contexts=False,
                  form_progress=None, context_manager=None):
@@ -390,20 +380,17 @@ class Column(object):
                 return value
 
         return sort_func
-    
-        #return lambda patient: self.cell(patient, supports_contexts, form_progress, context_manager)
 
     def cell(self, patient, supports_contexts=False,
              form_progress=None, context_manager=None):
         if "__" in self.field:
             patient_field, related_object_field = self.field.split("__")
             related_object = getattr(patient, patient_field)
-                
-            if related_object.__class__.__name__== 'ManyRelatedManager':
+            if related_object.__class__.__name__ == 'ManyRelatedManager':
                 related_object = related_object.first()
 
             if related_object is not None:
-                related_value  = getattr(related_object, related_object_field)
+                related_value = getattr(related_object, related_object_field)
             else:
                 related_value = None
             return related_value
@@ -420,6 +407,7 @@ class Column(object):
             "order": i,
         }
 
+
 class ColumnFullName(Column):
     field = "full_name"
     sort_fields = ["family_name", "given_names"]
@@ -430,12 +418,13 @@ class ColumnFullName(Column):
             return "<span>%d %s</span>"
 
         # cache reversed url because urlroute searches are slow
-        base_url = reverse("patient_edit", kwargs={ "registry_code": registry.code,
-                                                    "patient_id": 0})
+        base_url = reverse("patient_edit", kwargs={"registry_code": registry.code,
+                                                   "patient_id": 0})
         self.link_template = '<a href="%s">%%s</a>' % (base_url.replace("/0", "/%d"))
 
     def cell(self, patient, supports_contexts=False, form_progress=None, context_manager=None):
         return self.link_template % (patient.id, patient.display_name)
+
 
 class ColumnDateOfBirth(Column):
     field = "date_of_birth"
@@ -443,6 +432,7 @@ class ColumnDateOfBirth(Column):
 
     def fmt(self, val):
         return val.strftime("%d-%m-%Y") if val is not None else ""
+
 
 class ColumnNonContexts(Column):
     sort_fields = []
@@ -454,17 +444,17 @@ class ColumnNonContexts(Column):
         return self.cell_non_contexts(patient, form_progress, context_manager)
 
     def fmt(self, val):
-        return self.icon(None)  if val is None else self.fmt_non_contexts(val)
+        return self.icon(None) if val is None else self.fmt_non_contexts(val)
 
     def sort_key(self, supports_contexts=False,
                  form_progress=None, context_manager=None):
 
         def sk(patient):
-           value = self.cell(patient, supports_contexts, form_progress, context_manager)
-           if value is None:
-               return self.bottom
-           else:
-               return value
+            value = self.cell(patient, supports_contexts, form_progress, context_manager)
+            if value is None:
+                return self.bottom
+            else:
+                return value
 
         return sk
 
@@ -480,9 +470,11 @@ class ColumnNonContexts(Column):
         # fixme: replace inline style with css class
         return "<span class='glyphicon glyphicon-%s' style='color:%s'></span>" % (icon, color)
 
+
 class ColumnWorkingGroups(Column):
     field = "working_groups__name"
     sort_fields = ["working_groups__name"]
+
 
 class ColumnDiagnosisProgress(ColumnNonContexts):
     field = "diagnosis_progress"
@@ -496,6 +488,7 @@ class ColumnDiagnosisProgress(ColumnNonContexts):
                    "<span class='progress-label'>%s%%</span></div></div>"
         return template % (progress_number, progress_number, progress_number)
 
+
 class ColumnDiagnosisCurrency(ColumnNonContexts):
     field = "diagnosis_currency"
 
@@ -505,6 +498,7 @@ class ColumnDiagnosisCurrency(ColumnNonContexts):
     def fmt_non_contexts(self, diagnosis_currency):
         return self.icon(diagnosis_currency)
 
+
 class ColumnGeneticDataMap(ColumnNonContexts):
     field = "genetic_data_map"
 
@@ -513,6 +507,7 @@ class ColumnGeneticDataMap(ColumnNonContexts):
 
     def fmt_non_contexts(self, has_genetic_data):
         return self.icon(has_genetic_data)
+
 
 class ColumnContextMenu(Column):
     field = "context_menu"
@@ -526,12 +521,11 @@ class ColumnContextMenu(Column):
             self.free_forms = list(filter(user.can_view, registry.free_forms))
             self.fixed_form_groups = registry.fixed_form_groups
             self.multiple_form_groups = registry.multiple_form_groups
-            
+
     def cell(self, patient, supports_contexts=False, form_progress=None, context_manager=None):
         return " ".join(self._get_forms_buttons(patient))
 
     def _get_forms_buttons(self, patient, form_progress=None, context_manager=None):
-        
         if not self.registry_has_context_form_groups:
             # if there are no context groups -normal registry
             return [self._get_forms_button(patient, None, self.free_forms)]
@@ -547,8 +541,6 @@ class ColumnContextMenu(Column):
                 buttons.append(self._get_forms_button(patient,
                                                       multiple_form_group,
                                                       multiple_form_group.forms))
-
-
             return buttons
 
     def _get_forms_button(self, patient_model, context_form_group, forms):
