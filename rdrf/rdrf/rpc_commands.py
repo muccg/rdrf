@@ -70,7 +70,7 @@ def rpc_validate_protein(request, field_value):
     return validator.validate(field_value, GeneticType.PROTEIN)
 
 
-def rpc_reporting_command(request, queryId, registry_id, command, arg):
+def rpc_reporting_command(request, query_id, registry_id, command, arg):
     # 2 possible commands/invocations client side from report definition screen:
     # get_field_data: used to build all the checkboxes for client
     # get_projection: process the checked checkboxes and get json representation
@@ -79,10 +79,10 @@ def rpc_reporting_command(request, queryId, registry_id, command, arg):
     from rdrf.models import Registry
     from explorer.models import Query
     user = request.user
-    if queryId == "new":
+    if query_id == "new":
         query_model = None
     else:
-        query_model = Query.objects.get(pk=int(queryId))
+        query_model = Query.objects.get(pk=int(query_id))
 
     registry_model = Registry.objects.get(pk=int(registry_id))
     if command == "get_projection":
@@ -142,9 +142,8 @@ def rpc_update_selected_cdes_from_questionnaire(
     patient_model = Patient.objects.get(pk=patient_id)
     registry_model = questionnaire_response_model.registry
     questionnaire = Questionnaire(registry_model, questionnaire_response_model)
-    mongo_data_before_update = patient_model.get_dynamic_data(registry_model)
     data_to_update = [question for question in questionnaire.questions if question.src_id in questionnaire_checked_ids]
-    
+
     try:
         with transaction.atomic():
             errors = questionnaire.update_patient(patient_model, data_to_update)
@@ -158,6 +157,7 @@ def rpc_update_selected_cdes_from_questionnaire(
         questionnaire_response_model.patient_id = patient_model.pk
         questionnaire_response_model.save()
         return {"status": "success", "message": "Patient updated successfully"}
+
 
 def rpc_create_patient_from_questionnaire(request, questionnaire_response_id):
     from rdrf.models import QuestionnaireResponse
@@ -199,6 +199,7 @@ def rpc_create_patient_from_questionnaire(request, questionnaire_response_id):
             "patient_link": patient_link,
             "patient_blurb": patient_blurb}
 
+
 def rpc_get_forms_list(request, registry_code, patient_id, form_group_id):
     from rdrf.models import ContextFormGroup
     from rdrf.models import Registry
@@ -215,7 +216,7 @@ def rpc_get_forms_list(request, registry_code, patient_id, form_group_id):
         registry_model = Registry.objects.get(code=registry_code)
     except Registry.DoesNotExist:
         return fail_response
-    
+
     try:
         patient_model = Patient.objects.get(id=patient_id)
     except Patient.DoesNotExist:
@@ -240,9 +241,9 @@ def rpc_get_forms_list(request, registry_code, patient_id, form_group_id):
             return fail_response
     else:
         context_form_group = None
-        
+
     forms = context_form_group.forms if context_form_group else registry_model.forms
-    
+
     form_models = [f for f in forms
                    if f.applicable_to(patient_model) and user.can_view(f)]
 
@@ -254,13 +255,3 @@ def rpc_get_forms_list(request, registry_code, patient_id, form_group_id):
 
     return {"status": "success",
             "html": html}
-
-
-    
-
-    
-
-    
-    
-
-    
