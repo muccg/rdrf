@@ -6,175 +6,171 @@
 
 {% block extrastyle %}
     {{ block.super }}
-     <link rel="stylesheet" href="{% static 'datatables-1.10.12/css/jquery.dataTables.min.css' %}">
-     <script type="text/javascript" src="{% static 'datatables-1.10.12/js/jquery.dataTables.min.js' %}"></script>
-
+    <link rel="stylesheet" href="{% static 'datatables-1.10.12/css/jquery.dataTables.min.css' %}">
+    <script type="text/javascript" src="{% static 'datatables-1.10.12/js/jquery.dataTables.min.js' %}"></script>
     <script>
+        $(document).ready(function () {
+            $.fn.dataTable.ext.errMode = 'throw';
 
-        $(document).ready(function() {
-
-        $.fn.dataTable.ext.errMode = 'throw';
-
-        var initialPatientId = "{{patient_id}}";
-        var contextFormGroupId = "{{context_form_group_id}}";
-        var CONTEXT_LINK_COLUMN_INDEX= 2;
-        var CONTEXT_CREATED_DATE_COLUMN_INDEX =  3;
-        var CONTEXT_COLUMNS = [CONTEXT_LINK_COLUMN_INDEX, CONTEXT_CREATED_DATE_COLUMN_INDEX];
+            var initialPatientId = "{{patient_id}}";
+            var contextFormGroupId = "{{context_form_group_id}}";
+            var CONTEXT_LINK_COLUMN_INDEX = 2;
+            var CONTEXT_CREATED_DATE_COLUMN_INDEX = 3;
+            var CONTEXT_COLUMNS = [CONTEXT_LINK_COLUMN_INDEX, CONTEXT_CREATED_DATE_COLUMN_INDEX];
 
 
-        var api_url = "{% url 'patientslisting'  %}";
-        var rpc = new RPC.RPC("{% url 'rpc' %}", "{{csrf_token}}");
+            var api_url = "{% url 'patientslisting'  %}";
+            var rpc = new RPC.RPC("{% url 'rpc' %}", "{{csrf_token}}");
 
-        $("contextmenu").popover({html: true});
+            $("contextmenu").popover({ html: true });
 
-        $.ajaxSetup({beforeSend: function (xhr) {
+            $.ajaxSetup({
+                beforeSend: function (xhr) {
                     var csrfToken = '{{ csrf_token }}';
                     xhr.setRequestHeader('X-CSRFToken', csrfToken);
-        }});
+                }
+            });
 
-        function wireUpFormsButtons() {
+            function wireUpFormsButtons() {
 
-	    $(".patient-forms-button").click(function() {
-		var button = $(this);
-		var registryCode = getSelectedRegistry();
+                $(".patient-forms-button").click(function () {
+                    var button = $(this);
+                    var registryCode = getSelectedRegistry();
 
-		function showFormsList(html) {
-		    var ul = button.parent().find("ul.dropdown-menu");
-		    if(html.indexOf("<li>") == -1) html = "<li>No Data</li>";
-		    $(ul).html(html);
-		}
-	    
-		var patientId = parseInt(button.data("patient"));
-		var formGroupId = parseInt(button.data("formgroup"));
+                    function showFormsList(html) {
+                        var ul = button.parent().find("ul.dropdown-menu");
+                        if (html.indexOf("<li>") == -1) html = "<li>No Data</li>";
+                        $(ul).html(html);
+                    }
 
-		rpc.send("get_forms_list", [registryCode, patientId, formGroupId], function(response) {
-                    if (response.status != "fail") {
-	                var status = response.result.status;
-	                if (status == "success") {
-	                   var html= response.result.html;
-	                   showFormsList(html);
-	                }
-	            }
-	        });
-	  });
-	}
+                    var patientId = parseInt(button.data("patient"));
+                    var formGroupId = parseInt(button.data("formgroup"));
 
-        function getDrawLength() {
-            try {
-                var length = $("#patients_table_length").val();
-                if (length == undefined || length == "") {
+                    rpc.send("get_forms_list", [registryCode, patientId, formGroupId], function (response) {
+                        if (response.status == "fail") {
+                            alert(response.error);
+
+                        } else {
+                            var html = response.result.html;
+                            showFormsList(html);
+                        }
+                    });
+
+
+                });
+            }
+
+            function getDrawLength() {
+                try {
+                    var length = $("#patients_table_length").val();
+                    if (length == undefined || length == "") {
+                        return 10;
+                    }
+                    return length;
+                }
+
+                catch (err) {
                     return 10;
                 }
-                return length;
             }
 
-            catch(err) {
-                return 10;
-            }
-        }
-
-        function getSelectedRegistry() {
-            var code = $("#registry_options > option:selected").attr('id');
-            return code;
-        }
-
-        function getApiUrl(registryCode, drawLength) {
-            var url;
-
-            if (initialPatientId=='None'){
-                url =   api_url + "?registry_code=" + registryCode +
-                    "&length=" + drawLength;
-            }
-            else {
-                url =   api_url + "?registry_code=" + registryCode +
-                    "&length=" + drawLength + "&patient_id=" + initialPatientId;
+            function getSelectedRegistry() {
+                var code = $("#registry_options > option:selected").attr('id');
+                return code;
             }
 
-            if (contextFormGroupId != 'None') {
-                url += "&context_form_group_id=" + contextFormGroupId;
+            function getApiUrl(registryCode, drawLength) {
+                var url;
+
+                if (initialPatientId == 'None') {
+                    url = api_url + "?registry_code=" + registryCode +
+                        "&length=" + drawLength;
+                }
+                else {
+                    url = api_url + "?registry_code=" + registryCode +
+                        "&length=" + drawLength + "&patient_id=" + initialPatientId;
+                }
+
+                if (contextFormGroupId != 'None') {
+                    url += "&context_form_group_id=" + contextFormGroupId;
+                }
+
+                return url;
             }
 
-            return url;
-        }
+            if ({{ registries.0| has_feature:"no_add_patient_button" | yesno:"false,true" }} == false) {
+                $("#add_patient").hide();
+            }
 
-        if ( {{ registries.0|has_feature:"no_add_patient_button"|yesno:"false,true" }} == false) {
-            $("#add_patient").hide();
-        }
+            var registryCode = getSelectedRegistry();
 
-        var registryCode = getSelectedRegistry();
-
-        var load_contexts_list;
-        var context_list;
-        {% if columns %}
-            context_list = $("#patients_table").DataTable({
-                "processing": true,
-                "serverSide": true,
-		"fnDrawCallback": function( oSettings ) {
-		    wireUpFormsButtons();
-                },
-                ajax: {
+            var load_contexts_list;
+            var context_list;
+            {% if columns %}
+                context_list = $("#patients_table").DataTable({
+                    "processing": true,
+                    "serverSide": true,
+                    "fnDrawCallback": function (oSettings) {
+                        wireUpFormsButtons();
+                    },
+                    ajax: {
                         url: getApiUrl(registryCode, getDrawLength()),
                         dataSrc: "rows",
                         type: "POST"
-                },
-                columns: {{columns|safe}}
-            }).on("draw", function () {
-                $("#loading_text").hide();
-                $('button[data-toggle=popover]').popover({
-                    'html': true,
-                    'title': '',
-                    'trigger': 'click',
-                    'placement': 'bottom',
-                    'container': 'body'
-                });
-            });
-            load_contexts_list = function(apiUrl) {
-              if (context_list) {
-                  context_list.ajax.url(apiUrl).load();
-              }
-            }
-        {% else %}
-            load_contexts_list = function() { $("#loading_text").hide(); }
-        {% endif %}
-
-        $("#registry_options").change(function () {
-            $("#loading_text").show();
-            var registryCode= $("#registry_options > option:selected").attr("id");
-            var apiUrl = getApiUrl(registryCode, getDrawLength());
-            load_contexts_list(apiUrl);
-	    wireUpFormsButtons();
-        });
-
-
-        $("#add_patient").click(function () {
-            var registryCode = null;
-            var addPatientUrl = '{% url "patient_add" "xxx" %}';
-            try {
-                registryCode = $("#registry_options option:selected").attr('id');
-                if (registryCode == "---") {
-                    alert("Please select registry first");
-                    return;
+                    },
+                    columns: {{columns|safe }}
+                    }).on("draw", function () {
+                        $("#loading_text").hide();
+                        $('button[data-toggle=popover]').popover({
+                            'html': true,
+                            'title': '',
+                            'trigger': 'click',
+                            'placement': 'bottom',
+                            'container': 'body'
+                        });
+                    });
+                load_contexts_list = function (apiUrl) {
+                    if (context_list) {
+                        context_list.ajax.url(apiUrl).load();
+                    }
                 }
+            {% else %}
+                load_contexts_list = function () { $("#loading_text").hide(); }
+            {% endif %}
 
-                if (registryCode == undefined) {
+            $("#registry_options").change(function () {
+                $("#loading_text").show();
+                var registryCode = $("#registry_options > option:selected").attr("id");
+                var apiUrl = getApiUrl(registryCode, getDrawLength());
+                load_contexts_list(apiUrl);
+                wireUpFormsButtons();
+            });
+
+
+            $("#add_patient").click(function () {
+                var registryCode = null;
+                var addPatientUrl = '{% url "patient_add" "xxx" %}';
+                try {
+                    registryCode = $("#registry_options option:selected").attr('id');
+                    if (registryCode == "---") {
+                        alert("Please select registry first");
+                        return;
+                    }
+
+                    if (registryCode == undefined) {
+                        registryCode = "{{registries.0.code}}";
+                    }
+                } catch (err) {
+                    // one registry ?
                     registryCode = "{{registries.0.code}}";
                 }
-            } catch (err) {
-                // one registry ?
-                registryCode = "{{registries.0.code}}";
-            }
-            var location = addPatientUrl.replace("xxx", registryCode);
-            window.location.replace(location);
-        });
+                var location = addPatientUrl.replace("xxx", registryCode);
+                window.location.replace(location);
+            });
 
-
-        $("#registry_options").trigger("change");
-
+            $("#registry_options").trigger("change");
 
         });
-
-
-
     </script>
 {% endblock %}
 
