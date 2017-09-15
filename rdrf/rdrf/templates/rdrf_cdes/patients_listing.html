@@ -48,16 +48,14 @@
 		var formGroupId = parseInt(button.data("formgroup"));
 
 		rpc.send("get_forms_list", [registryCode, patientId, formGroupId], function(response) {
-                if (response.status == "fail") {
-		    alert(response.error);
-		    
-	    } else {
-		var html= response.result.html;
-		showFormsList(html);
-	    }
-	    });
-	
-
+                    if (response.status != "fail") {
+	                var status = response.result.status;
+	                if (status == "success") {
+	                   var html= response.result.html;
+	                   showFormsList(html);
+	                }
+	            }
+	        });
 	  });
 	}
 
