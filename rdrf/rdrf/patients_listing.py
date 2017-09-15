@@ -18,9 +18,11 @@ from rdrf.models import Registry
 from rdrf.form_progress import FormProgress
 from rdrf.contexts_api import RDRFContextManager
 from rdrf.components import FormsButton
+from rdrf.components import FormGroupButton
 from registry.patients.models import Patient
 from .utils import Message
 from rdrf.utils import MinType
+from rdrf.utils import timed
 from django.utils.translation import ugettext as _
 
 
@@ -155,6 +157,7 @@ class PatientsListingView(View):
         return HttpResponse(json_data, content_type="application/json")
 
     ########################   POST #################################
+    @timed
     def post(self, request):
         # see http://datatables.net/manual/server-side
         self.user = request.user
@@ -525,7 +528,7 @@ class ColumnContextMenu(Column):
             self.multiple_form_groups = registry.multiple_form_groups
             
     def cell(self, patient, supports_contexts=False, form_progress=None, context_manager=None):
-        return "".join(self._get_forms_buttons(patient))
+        return " ".join(self._get_forms_buttons(patient))
 
     def _get_forms_buttons(self, patient, form_progress=None, context_manager=None):
         
@@ -549,18 +552,8 @@ class ColumnContextMenu(Column):
             return buttons
 
     def _get_forms_button(self, patient_model, context_form_group, forms):
-        
-        button = FormsButton(self.registry, self.user, patient_model,
-                             context_form_group, [f for f in forms if f.applicable_to(patient_model)])
-
-        return """
-            <div class="dropdown">
-                <button class="btn btn-primary btn-sm dropdown-toggle" type="button" id="forms_button_%s" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
-                    %s <span class="caret"></span>
-                </button>
-                <ul class="dropdown-menu" aria-labelledby="forms_button_%s">%s</ul>
-            </div>
-        """ % (button.id, _(button.button_caption), button.id, button.html)
+        button = FormGroupButton(self.registry, self.user, patient_model, context_form_group)
+        return button.html
 
     def sort_key(self, *args, **kwargs):
         return None
