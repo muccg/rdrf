@@ -3,8 +3,6 @@ Hello  Mr/Ms {{user.last_name}},
 
 {% blocktrans %}You're receiving this email because you were having trouble signing in and requested help.{% endblocktrans %}
 
-{% blocktrans %}Your account is NOT locked. You should be able to log in if you're providing the correct username and password.{% endblocktrans %}
-
 {% trans "Your username, in case you've forgotten:" %} {{ user.get_username }}
 
 {% trans "In case you were using the correct username and you were unable to log in, the password you entered must have been incorrect." %}
