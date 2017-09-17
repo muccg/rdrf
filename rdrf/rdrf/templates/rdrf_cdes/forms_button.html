@@ -1,4 +1,5 @@
 {% load static %}
+{% load i18n %}
 {% load translate %}
 
 {% for form in forms %}
@@ -15,3 +16,7 @@
 		  {{form.title|translate}}</a>
 	</li>
 {% endfor %}
+{% if add_link %}
+     <li><a href="{{add_link}}">{% trans add_link_text %}</a></li>
+{% endif %}
+	

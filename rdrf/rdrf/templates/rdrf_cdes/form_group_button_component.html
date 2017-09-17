@@ -1,0 +1,15 @@
+{% load static %}
+{% load i18n %}
+{% load translate %}
+<div class="dropdown" >
+  <button class="btn btn-sm btn-outline-dark btn-block  dropdown-toggle patient-forms-button" id="forms_button_{{patient_id}}" type="button"
+	  data-toggle="dropdown"
+	  data-patient="{{ patient_id }}"
+	  data-formgroup="{{ form_group_id }}"
+	  aria-haspopup="true"
+	  aria-expanded="false">
+    {% trans button_caption %}
+    <span class="caret"></span>
+</button>
+<ul class="dropdown-menu forms-list" aria-labelledby="forms_button_{{patient_id}}"></ul>
+</div>
