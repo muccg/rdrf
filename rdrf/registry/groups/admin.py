@@ -98,7 +98,7 @@ class CustomUserAdmin(UserAdmin):
         (None, {'fields': ('username', 'password')}),
         ('Personal information', {'fields': ('first_name', 'last_name', 'title', 'email', 'preferred_language')}),
         ('Permissions', {
-         'fields': ('is_active', 'is_staff', 'is_superuser', 'groups', 'working_groups', 'registry')}),
+         'fields': ('is_active', 'prevent_self_unlock', 'is_staff', 'is_superuser', 'groups', 'working_groups', 'registry')}),
     )
 
     # curators shouldn't see checkbox to create super user

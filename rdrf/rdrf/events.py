@@ -4,6 +4,7 @@ class EventType:
     NEW_PATIENT_PARENT = "new-patient-parent"
     ACCOUNT_LOCKED = "account-locked"
     ACCOUNT_VERIFIED = "account-verified"
+    PASSWORD_EXPIRY_WARNING = "password-expiry-warning"
     REMINDER = "reminder"
 
     @classmethod

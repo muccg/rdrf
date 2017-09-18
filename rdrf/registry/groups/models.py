@@ -58,6 +58,9 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
                                    help_text=_('Designates whether the user can log into this admin site.'))
     is_active = models.BooleanField(_('active'), default=False, help_text=_(
         'Designates whether this user should be treated as active. Unselect this instead of deleting accounts.'))
+    prevent_self_unlock = models.BooleanField(_('prevent self unlock'), default=False, help_text=_(
+        'Explicitly prevent this user to unlock their account using the Unlock Account functionality.'))
+
     date_joined = models.DateTimeField(_('date joined'), default=timezone.now)
 
     working_groups = models.ManyToManyField(WorkingGroup, blank=True, related_name='working_groups')
