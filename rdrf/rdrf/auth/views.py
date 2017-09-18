@@ -1,7 +1,8 @@
 import logging
 
 from django.conf import settings
-# Avoid shadowing the login() and logout() views below.
+
+from django.contrib import messages
 from django.contrib.auth import get_user_model
 
 from django.contrib.auth.decorators import login_required
@@ -24,6 +25,7 @@ from useraudit.password_expiry import is_password_expired
 
 from registry.patients.models import Patient, ParentGuardian
 
+from . import can_user_self_unlock
 from .forms import UserVerificationForm, RDRFSetPasswordForm, ReactivateAccountForm
 
 
@@ -48,17 +50,23 @@ def login_assistance_confirm(request, uidb64=None, token=None):
     template_name='registration/login_assistance_verify_user.html'
     validlink = user is not None and default_token_generator.check_token(user, token)
 
+    error_context = {
+        'title' : _('Login self assistance confirmation unsuccessful'),
+        'hideVerification': True,
+    }
+
     # There are multiple steps, all handled by this view:
 
     # Step 1
     # First the user is following the link they've received in the email.
     # If the link expired, is wrong we will just display an error.
     if not validlink:
-        context = {
-            'title' : _('Login self assistance confirmation unsuccessful'),
-            'validLink': False,
-        }
-        return TemplateResponse(request, template_name, context)
+        messages.error(request, _('The link is invalid, possibly because it has already been used. Please try requesting a new link.'))
+        return TemplateResponse(request, template_name, error_context)
+
+    if not can_user_self_unlock(user):
+        messages.warning(request, _("Unfortunately the system can't verify your identity. Please contact the registry owners for further information."))
+        return TemplateResponse(request, template_name, error_context)
 
     # If the link is correct and the user hasn't been verified yet
     # we will verify the user's identity by asking them for information like Name and Date of Birth
@@ -73,19 +81,14 @@ def login_assistance_confirm(request, uidb64=None, token=None):
         def verification_page(form=None):
             context = {
                 'title': _('Verify User'),
-                'validlink': True,
                 'form': form,
             }
             return TemplateResponse(request, 'registration/login_assistance_verify_user.html', context)
 
         if request.method != 'POST':
             if user_data is None:
-                context = {
-                    'title':  _("Can't verify user")
-                }
-                template_name = 'registration/login_assistance_can_not_verify.html'
-                return TemplateResponse(request, template_name, context)
-
+                messages.warning(request, _("Unfortunately we don't have the required information to verify your identity. Please contact the registry owners for assistance."))
+                return TemplateResponse(request, template_name, error_context)
             return verification_page()
 
         else:

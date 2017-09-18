@@ -4,7 +4,7 @@
 
 {% block content %}
 
-{% if validlink %}
+{% if not hideVerification %}
   <div class="row">
       <div class="col-md-6 col-md-offset-3">
           <div class="alert alert-info">
@@ -34,10 +34,6 @@
           </form>
       </div>
   </div>
-{% else %}
-    <div class="alert alert-danger">
-        {% trans "The link is invalid, possibly because it has already been used. Please try requesting a new link." %}
-    </div>
 {% endif %}
 
 {% endblock %}

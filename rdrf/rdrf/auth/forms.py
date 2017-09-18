@@ -19,6 +19,8 @@ from django.utils.http import urlsafe_base64_encode
 from useraudit import models as uam
 from useraudit.middleware import get_request
 
+from . import can_user_self_unlock
+
 
 logger = logging.getLogger(__name__)
 
@@ -97,16 +99,11 @@ class RDRFLoginAssistanceForm(PasswordResetForm):
         context = self._common_context(request=request,
                 domain_override=domain_override, use_https=use_https, extra_email_context=extra_email_context)
 
-        def _user_is_nonprivileged(user):
-            return user.is_patient or user.is_parent or user.is_carrier
-
         def _choose_template(user):
             if user.is_active:
                 return subject_template_name, account_unlocked_email_template_name
-            if not (getattr(settings, 'ACCOUNT_SELF_UNLOCK_ENABLED', False) and
-                    _user_is_nonprivileged(user) and
-                    not user.prevent_self_unlock):
-                return subject_template_name, can_not_self_unlock_email_template_name
+            if not can_user_self_unlock(user):
+               return subject_template_name, can_not_self_unlock_email_template_name
 
             return subject_template_name, email_template_name
 
