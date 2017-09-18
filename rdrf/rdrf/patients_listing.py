@@ -365,7 +365,6 @@ class Column(object):
         if "__" in self.field:
             patient_field, related_object_field = self.field.split("__")
             related_object = getattr(patient, patient_field)
-            if related_object.__class__.__name__== 'ManyRelatedManager':
             if related_object.__class__.__name__ == 'ManyRelatedManager':
                 related_object = related_object.first()
 
