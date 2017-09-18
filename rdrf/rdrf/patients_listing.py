@@ -10,8 +10,6 @@ from django.http import HttpResponseRedirect
 from django.shortcuts import render
 from django.db.models import Q
 from django.core.paginator import Paginator, InvalidPage
-from django.utils.safestring import mark_safe
-from useraudit.password_expiry import should_warn_about_password_expiry, days_to_password_expiry
 from rdrf.models import Registry
 from rdrf.form_progress import FormProgress
 from rdrf.contexts_api import RDRFContextManager
@@ -74,32 +72,13 @@ class PatientsListingView(View):
         return template
 
     def build_context(self):
-        messages = self.maybe_add_messages()
-
         return {
             "registries": self.registries,
             "location": _("Patient Listing"),
             "patient_id": self.patient_id,
             "registry_code": self.registry_model.code if self.registry_model else None,
             "columns": [col.to_dict(i) for (i, col) in enumerate(self.get_configure_columns())],
-            "messages": messages,
         }
-
-    def maybe_add_messages(self):
-        messages = [
-            self._password_about_to_expire_msg(),
-        ]
-
-        return [m for m in messages if m]
-
-    def _password_about_to_expire_msg(self):
-        if should_warn_about_password_expiry(self.user):
-            days_left = days_to_password_expiry(self.user)
-            if days_left is not None:
-                return Message.warning(mark_safe(
-                    'Your password will expire in %d days.'
-                    'Please use <a href="%s" class="alert-link">Password Reset</a> to change it.' %
-                    (days_left, reverse('password_reset'))))
 
     def get_columns(self):
         return [

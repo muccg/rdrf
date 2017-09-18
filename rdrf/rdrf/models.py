@@ -1312,6 +1312,7 @@ class EmailNotification(models.Model):
         (EventType.NEW_PATIENT, "New Patient Registered"),
         (EventType.NEW_PATIENT_PARENT, "New Patient Registered (Parent)"),
         (EventType.ACCOUNT_VERIFIED, "Account Verified"),
+        (EventType.PASSWORD_EXPIRY_WARNING, "Password Expiry Warning"),
         (EventType.REMINDER, "Reminder")
     )
 

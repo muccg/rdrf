@@ -1,0 +1,21 @@
+{% load i18n %}{% autoescape off %}
+Hello  Mr/Ms {{user.last_name}},
+
+{% blocktrans %}You're receiving this email because you were having trouble signing in and requested help.{% endblocktrans %}
+
+{% trans "Your username, in case you've forgotten:" %} {{ user.get_username }}
+
+{% trans "In case you were using the correct username and you were unable to log in, the password you entered must have been incorrect." %}
+
+{% trans "You can change your password by going to the following page:" %}
+
+{% block reset_link %}
+{{ protocol }}://{{ domain }}{% url 'password_reset_confirm' uidb64=uid token=token %}
+{% endblock %}
+
+
+{% trans "Thanks for using our site!" %}
+
+{% blocktrans %}The RDRF team.{% endblocktrans %}
+
+{% endautoescape %}

@@ -1,0 +1,20 @@
+{% extends "rdrf_cdes/base.html" %}
+{% load i18n %}
+
+{% block content %}
+
+<br>
+
+<div class="alert alert-warning">
+  {% trans "Trouble signing in? Did you forgot your username or password? Enter your email address below and we'll email you instructions on what to do." %}
+</div>
+
+<form class="form-inline" action="" method="post">{% csrf_token %}
+    {{ form.email.errors }}
+    <div class="form-group">
+        <input id="id_email" maxlength="254" name="email" type="email" class="form-control" placeholder="Email address">
+    </div>
+    <input type="submit" class="btn btn-warning" value="{% trans "Send" %}" />
+</form>
+
+{% endblock %}

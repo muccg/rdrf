@@ -1,0 +1,15 @@
+{% extends "rdrf_cdes/base.html" %}
+{% load i18n %}
+
+{% block content %}
+<br>
+
+<div class="alert alert-info">
+{% trans "If an account exists with the email you entered we will email you instructions to verify your account. You should receive the email shortly." %}
+</div>
+
+<div class="alert alert-warning">
+{% trans "If you don't receive an email, please make sure you've entered the address you registered with, and check your spam folder." %}
+</div>
+
+{% endblock %}

@@ -109,7 +109,8 @@ TEMPLATES = [
                 "django.template.context_processors.request",
                 "django.template.context_processors.static",
                 "django.template.context_processors.tz",
-                "django.contrib.messages.context_processors.messages"
+                "django.contrib.messages.context_processors.messages",
+                "rdrf.context_processors.common_settings",
             ],
             "debug": DEBUG,
             "loaders": [
@@ -267,13 +268,6 @@ DATA_UPLOAD_MAX_NUMBER_FIELDS = env.get("data_upload_max_number_fields", 30000) 
 # The setting `LOGIN_FAILURE_LIMIT` allows to enable a number of allowed login attempts.
 # If the settings is not set or set to 0, the feature is disabled.
 LOGIN_FAILURE_LIMIT = env.get("login_failure_limit", 3)
-
-# When the same user fails to log in consecutively more than `LOGIN_FAILURE_LIMIT` times from the same IP
-# the login page error message will change to "For security reasons, your account has been locked".
-# This setting allows to tune what consecutive means. It is the time window in which the failed logins
-# are counted.
-# Value is in minutes, if not set or 0 the feature is disabled.
-LOGIN_FAILURE_TOLERANCE_TIME = env.get("login_failure_tolerance_time", 60)
 
 # APPLICATION SPECIFIC SETTINGS
 AUTH_PROFILE_MODULE = 'groups.User'
@@ -452,6 +446,8 @@ PASSWORD_EXPIRY_WARNING_DAYS = env.get("password_expiry_warning_days", 30)
 # Disable the user's account if they haven't logged in for this time
 ACCOUNT_EXPIRY_DAYS = env.get("account_expiry_days", 100)
 
+# Allow users to unlock their accounts by requesting a reset link in email and then visiting it
+ACCOUNT_SELF_UNLOCK_ENABLED = env.get("account_self_unlock_enabled", True)
 
 INTERNAL_IPS = ('127.0.0.1', '172.16.2.1')
 
@@ -488,4 +484,25 @@ LOCALE_PATHS = env.getlist("locale_paths", [os.path.join(WEBAPP_ROOT, "translati
 
 CRON_CLASSES = []
 
-
+AUTH_PASSWORD_VALIDATORS = [{
+        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
+        'OPTIONS': {
+            'min_length': 8,
+        }
+    },
+    {
+        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
+    },
+    {
+        'NAME': 'rdrf.auth.password_validation.HasUppercaseLetterValidator',
+    },
+    {
+        'NAME': 'rdrf.auth.password_validation.HasLowercaseLetterValidator',
+    },
+    {
+        'NAME': 'rdrf.auth.password_validation.HasNumberValidator',
+    },
+    {
+        'NAME': 'rdrf.auth.password_validation.HasSpecialCharacterValidator',
+    },
+]

@@ -43,7 +43,7 @@ class RdrfEmail(object):
                 # If the recipient template does not evaluate to a valid email address this will be
                 # true
                 return
-            for recipient in self._get_recipients():
+            for recipient in recipients:
                 language = self._get_preferred_language(recipient)
                 if self.language and self.language != language:
                     # skip recipients with diff language
@@ -138,11 +138,14 @@ class RdrfEmail(object):
 
         for key, value in self.template_data.items():
             if value:
-                _template_data[key] = {
-                    "app": value._meta.app_label,
-                    "model": value.__class__.__name__,
-                    "id": value.id
-                }
+                if hasattr(value, '_meta') and hasattr(getattr(value, '_meta'), 'app_label'):
+                    _template_data[key] = {
+                        "app": value._meta.app_label,
+                        "model": value.__class__.__name__,
+                        "id": value.id
+                    }
+                else:
+                    _template_data[key] = value
 
         enh = EmailNotificationHistory(
             language=language,
