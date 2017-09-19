@@ -684,3 +684,7 @@ def applicable_forms(registry_model, patient_model):
                 return forms
             else:
                 return []
+
+
+def is_generated_form(form_model):
+    return form_model.name.startswith(form_model.registry.generated_questionnaire_name)

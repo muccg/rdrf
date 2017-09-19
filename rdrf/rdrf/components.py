@@ -3,6 +3,7 @@ from rdrf.models import RegistryType, RDRFContext, ContextFormGroup
 from django.contrib.contenttypes.models import ContentType
 from rdrf.utils import get_form_links
 from rdrf.utils import consent_status_for_patient
+from rdrf.utils import is_generated_form
 from django.core.urlresolvers import reverse
 from django.utils.translation import ugettext_lazy as _
 from rdrf.form_progress import FormProgress
@@ -354,7 +355,7 @@ class FormsButton(RDRFComponent):
         self.user = user
         self.patient_model = patient_model
         self.context_form_group = context_form_group
-        self.forms = [f for f in form_models if self.user.can_view(f)]
+        self.forms = [f for f in form_models if self.user.can_view(f) and not is_generated_form(f)]
 
     def _get_template_data(self):
         # subclass should build dictionary for template
