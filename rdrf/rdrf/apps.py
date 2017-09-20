@@ -7,6 +7,6 @@ class RDRFConfig(AppConfig):
     name = 'rdrf'
     
     def ready(self):
-        logger.debug("running RDRFConfig.ready ... ")
+        logger.info("running RDRFConfig.ready ... ")
         import rdrf.backends 
 
