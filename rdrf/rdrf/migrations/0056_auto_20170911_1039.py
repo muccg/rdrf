@@ -38,5 +38,5 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.RunPython(extract_model_field_data_from_clinical_data_json_field, hints={'target_db': 'clinical'}),
+        migrations.RunPython(extract_model_field_data_from_clinical_data_json_field),
     ]
