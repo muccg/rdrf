@@ -5,6 +5,15 @@ from django.db import migrations
 from django.db.utils import ProgrammingError
 
 def extract_model_field_data_from_clinical_data_json_field(apps, schema_editor):
+    # Our database router ignores hints (below)
+    # from the Django source code this looks like dbname
+    print("Extracting ClinicalData field data ..")
+    dbname = schema_editor.connection.alias
+    print("This is database %s" % dbname)
+    if dbname != "clinical":
+        print("Not running on non-clinical database")
+        return
+    
     try:
         ClinicalData = apps.get_model("rdrf", "ClinicalData")
         num_records = ClinicalData.objects.all().count()
@@ -29,5 +38,5 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.RunPython(extract_model_field_data_from_clinical_data_json_field),
+        migrations.RunPython(extract_model_field_data_from_clinical_data_json_field, hints={'target_db': 'clinical'}),
     ]
