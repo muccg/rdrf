@@ -7,11 +7,16 @@ from django.db.utils import ProgrammingError
 def extract_model_field_data_from_clinical_data_json_field(apps, schema_editor):
     try:
         ClinicalData = apps.get_model("rdrf", "ClinicalData")
+        num_records = ClinicalData.objects.all().count()
+        print("Number of ClinicalData objects = %s" % num_records)
+        print("Starting to iterate through ClinicalData objects")
         for clinical_data in ClinicalData.objects.all():
             clinical_data.django_model = clinical_data.data.get("django_model", "")
             clinical_data.django_id = clinical_data.data.get("django_id", 0)
             clinical_data.context_id = clinical_data.data.get("context_id", None)
             clinical_data.save()
+            print("Saved clinical data %s OK" % clinical_data.pk)
+        print("All done")
     except ProgrammingError:
         # thrown when run on wrong db
         print("not running clinical data update on main db")
