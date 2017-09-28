@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 from django.db import migrations
+from rdrf.migration_utils import ClinicalDBRunPython
 
 try:
     from ..management.commands.mongo_django import mongo_django, undjango_mongo
@@ -30,5 +31,5 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.RunPython(copy_collections, uncopy_collections),
+        ClinicalDBRunPython(copy_collections, uncopy_collections),
     ]
