@@ -7,15 +7,90 @@ from aloe_webdriver.webdriver import contains_content
 
 from nose.tools import assert_true, assert_equal
 
+from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.alert import Alert
 
 from . import utils
 
+from collections import OrderedDict
+import time
 
 logger = logging.getLogger(__name__)
 
 # Clearing all the aloe step definitions before we register our own.
 STEP_REGISTRY.clear()
+
+
+@step('I try to log in')
+def try_to_login(step):
+    world.browser.get(world.site_url + "login?next=/router/")
+
+
+@step('I try to register as an "([^"]+)" user')
+def try_to_register(step, registry):
+    registry_code = ''
+
+    if registry == 'Angelman':
+        registry_code = 'ang'
+
+    world.browser.get(world.site_url + registry_code + "/register")
+
+    # Plain text field parameters
+    params = OrderedDict([
+        ('id_username', 'sample@email.com'),
+        ('id_password1', 'admin123'),
+        ('id_password2', 'admin123'),
+        ('id_parent_guardian_first_name', 'John'),
+        ('id_parent_guardian_last_name', 'Smith'),
+        ('id_parent_guardian_date_of_birth', '1980-09-01'),
+        # Gender radio button
+        ('id_parent_guardian_address', 'Australia'),
+        ('id_parent_guardian_suburb', 'Australia'),
+        # Country dropdown
+        # State dropdown
+        ('id_parent_guardian_postcode', '6000'),
+        ('id_parent_guardian_phone', '98765432')
+    ])
+
+    # Populate plain text fields
+    for key, value in params.items():
+        # print("{0} {1}".format(key, value))
+        world.browser.find_element_by_id(key).send_keys(value + Keys.TAB)
+
+    # Select the gender radio button
+    # Male - 1, Female - 2, Indeterminate - 3
+    world.browser.find_element_by_css_selector("input[type='radio'][value='1']").click()
+
+    # Select the country and state dropdowns
+    world.browser.find_element_by_xpath("//select[@name='parent_guardian_country']/option[text()='Australia']").click()
+    world.browser.find_element_by_xpath("//select[@name='parent_guardian_state']/option[text()='Western Australia']").click()
+
+    # Fill out the patient details
+    world.browser.find_element_by_id('ui-id-2').click()
+
+    patient_params = OrderedDict([
+        ('id_first_name', 'Patient_First'),
+        ('id_surname', 'Patient_Surname'),
+        ('id_date_of_birth', '1985-01-01'),
+        # There is a gender field here
+        # Tick the "same details" box here
+    ])
+
+    for key, value in patient_params.items():
+        world.browser.find_element_by_id(key).send_keys(value + Keys.TAB)
+
+    radio = world.browser.find_element_by_id('id_gender')
+    world.browser.execute_script("arguments[0].click();", radio)
+
+    world.browser.find_element_by_id('same_address').send_keys(Keys.SPACE)
+
+    captcha_iframe_element = world.browser.find_element_by_xpath("//iframe[@title='recaptcha widget']")
+    world.browser.switch_to.frame(captcha_iframe_element)
+    captcha_element = world.browser.find_element_by_id('recaptcha-anchor').send_keys(Keys.SPACE)
+
+    time.sleep(4)
+    world.browser.switch_to_default_content()
+    world.browser.find_element_by_id('registration-submit').click()
 
 
 @step('development fixtures')
@@ -117,8 +192,8 @@ def enter_cde_on_form_multisection(step, cde_value, form, section, cde, item):
     def correct_item(input_element):
         input_id = input_element.get_attribute("id")
         return formset_string in input_id
-    
-    
+
+
     location_is(step, form)  # sanity check
 
     form_block = world.browser.find_element_by_id("main-form")
@@ -138,7 +213,7 @@ def enter_cde_on_form_multisection(step, cde_value, form, section, cde, item):
             input_id = input_element.get_attribute("id")
             print("input id %s sent keys '%s'" % (input_id,
                                                   cde_value))
-            
+
             return
         except:
             pass
@@ -423,7 +498,7 @@ def upload_file(step, upload_filename, section, cde):
     input_element = utils.scroll_to_element(step, section, cde)
     input_element.send_keys(upload_filename)
 
-    
+
 @step('scroll to section "(.*)" cde "(.*)"')
 def scroll_to_element(step, section, cde):
     input_element = utils.scroll_to_cde(section, cde)
@@ -459,7 +534,7 @@ def should_not_be_able_download(step, download_name):
         raise Exception("should NOT be able to download %s" % download_name)
     else:
         print("%s is not downloadable as expected" % download_name)
-        
+
 
 
 @step('History for form "(.*)" section "(.*)" cde "(.*)" shows "(.*)"')
@@ -468,7 +543,7 @@ def check_history_popup(step, form, section, cde, history_values_csv):
     from selenium.webdriver.common.by import By
     from selenium.webdriver.support import expected_conditions as EC
     from selenium.webdriver.support.ui import WebDriverWait
-    
+
     history_values = history_values_csv.split(",")
     form_block = world.browser.find_element_by_id("main-form")
     section_div_heading = form_block.find_element_by_xpath(
@@ -487,7 +562,7 @@ def check_history_popup(step, form, section, cde, history_values_csv):
     mover.move_to_element(input_element).perform()
 
     history_widget.click()
-    
+
     modal = WebDriverWait(world.browser, 60).until(
         EC.visibility_of_element_located((By.XPATH, ".//a[@href='#cde-history-table']"))
     )
@@ -495,8 +570,8 @@ def check_history_popup(step, form, section, cde, history_values_csv):
     def find_cell(historical_value):
         element = world.browser.find_element_by_xpath('//td[@data-value="%s"]' % historical_value)
         if element is None:
-            raise Exception("Can't locate history value '%s'" % historical_value) 
-        
+            raise Exception("Can't locate history value '%s'" % historical_value)
+
 
     for historical_value in history_values:
         table_cell = find_cell(historical_value)
@@ -535,7 +610,7 @@ def clear_file_upload(step, section, cde, download_name):
 
     if not succeeded:
         raise Exception("Could not click the file clear checkbox")
-    
+
 
 @step('when I scroll to section "(.*)"')
 def scroll_to_section(step, section):
@@ -560,7 +635,7 @@ def add_multisection_item(step, section):
   add_link.click()
   # sometimes the next cde send keys was going to the wrong item
   wait_n_seconds(step, 5)
-  
+
 
 
 @step('I wait (\d+) seconds')
@@ -578,7 +653,7 @@ def mark_item_for_deletion(step, multisection, item):
     # now locate the delete checkbox for the item
     checkbox_xpath = ".//input[@type='checkbox' and contains(@id, '-DELETE') and contains(@id, '%s')]" % formset_string
     delete_checkbox = default_panel.find_element_by_xpath(checkbox_xpath)
-    
+
     if delete_checkbox:
         print("found delete_checkbox for multisection %s item %s" % (multisection,
                                                                      item))
@@ -600,10 +675,5 @@ def check_multisection_value(step, multisection, cde, item, expected_value):
                                                                                   item,
                                                                                   expected_value,
                                                                                   actual_value)
-    
+
     assert(actual_value == expected_value, error_msg)
-
-
-  
-
-    

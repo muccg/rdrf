@@ -36,9 +36,10 @@ def with_browser():
     yield
 
     if do_teardown():
-        world.browser.quit()
+        #world.browser.quit()
+        pass
 
-    delattr(world, "browser")
+    #delattr(world, "browser")
 
 
 def set_site_url():
