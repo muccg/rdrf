@@ -1647,6 +1647,8 @@ class OldRegistryImporter(object):
             items.append(item)
 
         if len(items) > 0:
+            self.log("%s multisection items for code %s" % (len(items),
+                                                            self.section_model.code))
             self._save_new_multisection_data(items)
 
     def _get_old_multisection_model(self, section_code):
@@ -1664,11 +1666,14 @@ class OldRegistryImporter(object):
             raise Exception("need field map for multisection %s" %
                             self.section_model.code)
 
-        # for some reason - the set_value method on the mutlisection items expr
-        # expects list of these ...
-        new_dict = {}
+        item = []
+
+        # item should be a list of {code:  value: } dicts 
+        
 
         for old_field in old_item["fields"].keys():
+            d = {}
+            
             if old_field == key_field:
                 continue
 
@@ -1692,17 +1697,13 @@ class OldRegistryImporter(object):
             else:
                 value = old_value
 
-            new_dict[new_cde_code] = value
+            d["code"] = new_cde_code
+            d["value"] = value
+            item.append(d)
 
-        return new_dict
+        return item
 
     def _save_new_multisection_data(self, new_multisection_data):
-        # replace existing items
-        # parser wasn't returning the expression object correctly?
-        # creating by hand ..
-        # new_multisection_data is a list of dicts like:
-        # [ {"cdecodeA": value, "cdecodeB": value, ... }, {.. } ]
-
         field_expression = "$op/%s/%s/items" % (self.form_model.name,
                                                 self.section_model.code)
 
