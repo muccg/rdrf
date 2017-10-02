@@ -616,6 +616,9 @@ class DynamicDataWrapper(object):
             
                                                 
             cdes_modjgo.data.update(cdes_record)
+            # ensure context id created
+            cdes_modjgo.context_id = context_id
+
 
         except ClinicalData.DoesNotExist:
             cdes_modjgo = ClinicalData.create(self.obj,
