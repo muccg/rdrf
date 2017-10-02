@@ -792,6 +792,8 @@ DATA_MAP = {"field_expression111": {"field": "ip_group",
                                    "model": "patients.patient"},
             "family_name": {"field": "family_name",
                             "model": "patients.patient"},
+            "active": {"field": "active",
+                       "model": "patients.patient"},
             "field_expression43": {"field": "date_of_birth",
                                    "model": "patients.patient"},
             "field_expression42": {"field": "state",
@@ -1368,6 +1370,10 @@ class OldRegistryImporter(object):
                 self.section_model = section_model
                 self._process_section()
 
+        if not self.active:
+            self.patient_model.active = False
+            self.patient_model.save()
+
     @meta("DEMOGRAPHICS")
     def _create_patient(self):
         p = Patient()
@@ -1377,11 +1383,16 @@ class OldRegistryImporter(object):
         p.date_of_birth = self.record.get("date_of_birth")
         p.consent = self.record.get("consent")
         p.active = self.record.get("active")
+        if not p.active:
+            self.active = False
+        else:
+            self.active = True
         p.umrn = self.record.get("umrn")
         p.home_phone = self.record.get("home_phone")
         p.mobile_phone = self.record.get("mobile_phone")
         p.work_phone = self.record.get("work_phone")
         p.email = self.record.get("email")
+        p.active = self.record.get("active")
         p.inactive_reason = self.record.get("inactive_reason")
 
         # next of kin fields
