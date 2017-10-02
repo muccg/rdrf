@@ -26,6 +26,37 @@ def try_to_login(step):
     world.browser.get(world.site_url + "login?next=/router/")
 
 
+@step ('I login as an Angelman user "([^"]+)"')
+def login_as_angelman_user(step, user_name):
+    world.expected_login_message = "Welcome {0} to the Angelman Registry".format(user_name)
+
+
+@step('I should be at the angelman registry landing page')
+def angelman_user_logged_in(step):
+    login_message = world.browser.find_element_by_tag_name('h4').text
+
+    # Ensure that the user sees the expected page after successfully logging in
+    assert world.expected_login_message in login_message
+
+
+@step('the administrator manually activates the user')
+def try_to_manually_activate_new_user(step):
+    world.browser.get(world.site_url + "admin/registration/registrationprofile/")
+    world.browser.find_element_by_id('action-toggle').send_keys(Keys.SPACE)
+
+    world.browser.find_element_by_xpath("//select[@name='action']/option[text()='Activate users']").click()
+    world.browser.find_element_by_xpath("//*[@title='Run the selected action']").click()
+
+
+@step('the user should be activated')
+def check_user_activated(step):
+    # Ensure that the user has been successfully activated by checking for the green tick icon
+    assert not (world.browser.find_elements_by_css_selector('img[src$="/static/admin/img/icon-yes.svg"].ng-hide'))
+
+    # Log out as the admin user
+    world.browser.get(world.site_url + "logout?next=/router/")
+
+
 @step('I try to register as an "([^"]+)" user')
 def try_to_register(step, registry):
     registry_code = ''
@@ -54,11 +85,10 @@ def try_to_register(step, registry):
 
     # Populate plain text fields
     for key, value in params.items():
-        # print("{0} {1}".format(key, value))
         world.browser.find_element_by_id(key).send_keys(value + Keys.TAB)
 
     # Select the gender radio button
-    # Male - 1, Female - 2, Indeterminate - 3
+    # 1 - Male, 2 - Female, 3 - Indeterminate
     world.browser.find_element_by_css_selector("input[type='radio'][value='1']").click()
 
     # Select the country and state dropdowns
@@ -72,8 +102,8 @@ def try_to_register(step, registry):
         ('id_first_name', 'Patient_First'),
         ('id_surname', 'Patient_Surname'),
         ('id_date_of_birth', '1985-01-01'),
-        # There is a gender field here
-        # Tick the "same details" box here
+        # Gender radio button
+        # "Same details" checkbox
     ])
 
     for key, value in patient_params.items():
@@ -93,8 +123,18 @@ def try_to_register(step, registry):
     world.browser.find_element_by_id('registration-submit').click()
 
 
-@step('I try to surf the site')
+@step('I should have successfully registered')
+def registration_successful(step):
+    # Ensure that the registration has successfully completed
+    success_message = world.browser.find_element_by_tag_name('h3').text
+    assert 'Thank you for registration.' in success_message
+
+
+@step('I try to surf the site...')
 def sleep_for_admin(step):
+    '''
+    This is just a helper function to prevent the browser from closing.
+    '''
     time.sleep(200000)
 
 
