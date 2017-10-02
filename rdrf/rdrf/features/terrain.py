@@ -37,7 +37,6 @@ def with_browser():
 
     if do_teardown():
         world.browser.quit()
-        pass
 
     delattr(world, "browser")
 

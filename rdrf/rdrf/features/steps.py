@@ -93,6 +93,11 @@ def try_to_register(step, registry):
     world.browser.find_element_by_id('registration-submit').click()
 
 
+@step('I try to surf the site')
+def sleep_for_admin(step):
+    time.sleep(200000)
+
+
 @step('development fixtures')
 def load_development_fixtures(step):
     utils.django_init_dev()
