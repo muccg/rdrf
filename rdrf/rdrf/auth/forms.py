@@ -36,16 +36,6 @@ _MSG_NO_LIMIT = _(_msg_default)
 _MSG_WITH_LIMIT = _(_msg_default + ' ' + _msg_limit)
 
 
-class RDRFAuthenticationForm(AuthenticationForm):
-    error_messages = AuthenticationForm.error_messages
-
-    _invalid_login_msg = _MSG_WITH_LIMIT if _login_failure_limit > 0 else _MSG_NO_LIMIT
-
-    error_messages.update({
-        'invalid_login': _(_invalid_login_msg)
-    })
-
-
 # Same as django.contrib.auth.forms.PasswordResetForm but also allows password reset functionality
 # for inactive users if the Unlock Account feature is enabled and the user isn't explicitly prevented
 # to unlock their account

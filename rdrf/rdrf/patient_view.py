@@ -457,7 +457,7 @@ class AddPatientView(PatientFormMixin, CreateView):
     def get(self, request, registry_code):
         if not request.user.is_authenticated():
             patient_add_url = reverse('patient_add', args=[registry_code])
-            login_url = reverse('login')
+            login_url = reverse('two_factor:login')
             return redirect("%s?next=%s" % (login_url, patient_add_url))
 
         self._set_registry_model(registry_code)
@@ -501,7 +501,7 @@ class PatientEditView(View):
     def get(self, request, registry_code, patient_id):
         if not request.user.is_authenticated():
             patient_edit_url = reverse('patient_edit', args=[registry_code, patient_id, ])
-            login_url = reverse('login')
+            login_url = reverse('two_factor:login')
             return redirect("%s?next=%s" % (login_url, patient_edit_url))
 
         patient, form_sections = self._get_patient_and_forms_sections(

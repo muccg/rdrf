@@ -128,6 +128,10 @@ MESSAGE_TAGS = {
     message_constants.INFO: 'alert alert-info'
 }
 
+# Always store messages in the session, as the default storage sometimes
+# shows up messages addressed to other users.
+MESSAGE_STORAGE = 'django.contrib.messages.storage.session.SessionStorage'
+
 MIDDLEWARE_CLASSES = (
     'useraudit.middleware.RequestToThreadLocalMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -135,6 +139,8 @@ MIDDLEWARE_CLASSES = (
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.locale.LocaleMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'django_otp.middleware.OTPMiddleware',
+    'registry.common.middleware.EnforceTwoFactorAuthMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
@@ -167,6 +173,10 @@ INSTALLED_APPS = [
     'registration',
     'storages',
     'django_cron',
+    'django_otp',
+    'django_otp.plugins.otp_static',
+    'django_otp.plugins.otp_totp',
+    'two_factor',
 ]
 
 
@@ -193,6 +203,7 @@ EMAIL_SUBJECT_PREFIX = env.get("email_subject_prefix", "DEV {0}".format(SCRIPT_N
 DEFAULT_FROM_EMAIL = env.get('default_from_email', 'No Reply <no-reply@mg.ccgapps.com.au>')
 SERVER_EMAIL = env.get('server_email', DEFAULT_FROM_EMAIL)
 EMAIL_BACKEND = 'anymail.backends.mailgun.EmailBackend'
+
 ANYMAIL = {
     'MAILGUN_API_KEY': env.get('DJANGO_MAILGUN_API_KEY', ''),
 }
@@ -459,7 +470,7 @@ AJAX_LOOKUP_CHANNELS = {
 
 ACCOUNT_ACTIVATION_DAYS = 2
 
-LOGIN_URL = '{0}/login'.format(SCRIPT_NAME)
+LOGIN_URL = '{0}/account/login'.format(SCRIPT_NAME)
 LOGIN_REDIRECT_URL = '{0}/'.format(SCRIPT_NAME)
 
 

@@ -52,7 +52,7 @@ class PatientsListingView(View):
         # see http://datatables.net/manual/server-side
         self.user = request.user
         if self.user and self.user.is_anonymous():
-            login_url = "%s?next=%s" % (reverse("login"), reverse("login_router"))
+            login_url = "%s?next=%s" % (reverse("two_factor:login"), reverse("login_router"))
             return redirect(login_url)
 
         self.do_security_checks()
@@ -131,7 +131,7 @@ class PatientsListingView(View):
         # see http://datatables.net/manual/server-side
         self.user = request.user
         if self.user and self.user.is_anonymous():
-            login_url = "%s?next=%s" % (reverse("login"), reverse("login_router"))
+            login_url = "%s?next=%s" % (reverse("two_factor:login"), reverse("login_router"))
             return redirect(login_url)
         self.set_parameters(request)
         self.set_csrf(request)

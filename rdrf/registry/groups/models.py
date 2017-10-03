@@ -58,6 +58,8 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
                                    help_text=_('Designates whether the user can log into this admin site.'))
     is_active = models.BooleanField(_('active'), default=False, help_text=_(
         'Designates whether this user should be treated as active. Unselect this instead of deleting accounts.'))
+    require_2_fact_auth = models.BooleanField(_('require two-factor authentication'), default=False, help_text=_(
+         'Requires this user to use two factor authentication to access the system.'))
     prevent_self_unlock = models.BooleanField(_('prevent self unlock'), default=False, help_text=_(
         'Explicitly prevent this user to unlock their account using the Unlock Account functionality.'))
 

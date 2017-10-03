@@ -1,0 +1,40 @@
+
+{% extends "two_factor/_base_focus.html" %}
+{% load i18n %}
+
+{% block content %}
+  <form action="" method="post">
+    {% csrf_token %}
+      <div class="panel panel-default">
+        <div class="panel-heading">Disable Two-Factor Authentication</div>
+        <div class="panel-body">
+          <div class="row">
+            <div class="col-xs-12">
+              {% if user.require_2_fact_auth %}
+                <p>{% blocktrans %}You are about to disable two-factor authentication.
+                However, your account requires two-factor authentication to be set up.{% endblocktrans %}</p>
+                <p>{% blocktrans %}This means <strong>you won't be able to use the site</strong> until you set up two-factor authentication again.{% endblocktrans %}</p>
+              {% else %}
+                <p>{% blocktrans %}You are about to disable two-factor authentication.
+                This compromises your account security.{% endblocktrans %}</p>
+              {% endif %}
+              <p>{% blocktrans %}Are you sure?{% endblocktrans %}
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-check-label">
+              <input type="checkbox" class="form-check-input" name="understand" />
+              {% trans "Yes, I am sure" %}
+            </label>
+          </div>
+          <div class="row">
+            <div class="col-sm-12">
+              <button class="btn btn-danger" type="submit">{% trans "Disable" %}</button>
+            </div>
+          </div>
+      </div>
+
+  </form>
+
+{% endblock %}
