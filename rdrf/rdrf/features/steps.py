@@ -127,10 +127,10 @@ def try_to_register(step, registry, client_name, email_address, password):
 
 
 @step('I should have successfully registered and would see a "([^"]+)" message')
-def registration_successful(step, success_message):
+def registration_successful(step, expected_success_message):
     # Ensure that the registration has successfully completed
-    success_message = world.browser.find_element_by_tag_name('h3').text
-    assert 'Thank you for registration.' in success_message
+    actual_message = world.browser.find_element_by_tag_name('h3').text
+    assert expected_success_message in actual_message
 
 
 @step('I try to surf the site...')
