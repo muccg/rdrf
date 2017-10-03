@@ -31,7 +31,7 @@ def login_as_angelman_user(step, user_name):
     world.expected_login_message = "Welcome {0} to the Angelman Registry".format(user_name)
 
 
-@step('I should be at the angelman registry landing page and see a message which says "([^"]+)"')
+@step('I should be at the welcome page and see a message which says "([^"]+)"')
 def angelman_user_logged_in(step, welcome_message):
     login_message = world.browser.find_element_by_tag_name('h4').text
 
