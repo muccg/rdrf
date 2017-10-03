@@ -26,13 +26,13 @@ def try_to_login(step):
     world.browser.get(world.site_url + "login?next=/router/")
 
 
-@step ('I login as an Angelman user "([^"]+)"')
+@step ('I should be logged in as an Angelman user called "([^"]+)"')
 def login_as_angelman_user(step, user_name):
     world.expected_login_message = "Welcome {0} to the Angelman Registry".format(user_name)
 
 
-@step('I should be at the angelman registry landing page')
-def angelman_user_logged_in(step):
+@step('I should be at the angelman registry landing page and see a message which says "([^"]+)"')
+def angelman_user_logged_in(step, welcome_message):
     login_message = world.browser.find_element_by_tag_name('h4').text
 
     # Ensure that the user sees the expected page after successfully logging in
@@ -57,8 +57,8 @@ def check_user_activated(step):
     world.browser.get(world.site_url + "logout?next=/router/")
 
 
-@step('I try to register as an "([^"]+)" user')
-def try_to_register(step, registry):
+@step('I try to register as an "([^"]+)" user called "([^"]+)" using the email address "([^"]+)" and the password "([^"]+)"')
+def try_to_register(step, registry, client_name, email_address, password):
     registry_code = ''
 
     if registry == 'Angelman':
@@ -66,13 +66,16 @@ def try_to_register(step, registry):
 
     world.browser.get(world.site_url + registry_code + "/register")
 
+    client_first_name = client_name.split()[0]
+    client_last_name = client_name.split()[1]
+
     # Plain text field parameters
     params = OrderedDict([
-        ('id_username', 'sample@email.com'),
-        ('id_password1', 'admin123'),
-        ('id_password2', 'admin123'),
-        ('id_parent_guardian_first_name', 'John'),
-        ('id_parent_guardian_last_name', 'Smith'),
+        ('id_username', email_address),
+        ('id_password1', password),
+        ('id_password2', password),
+        ('id_parent_guardian_first_name', client_first_name),
+        ('id_parent_guardian_last_name', client_last_name),
         ('id_parent_guardian_date_of_birth', '1980-09-01'),
         # Gender radio button
         ('id_parent_guardian_address', 'Australia'),
@@ -123,8 +126,8 @@ def try_to_register(step, registry):
     world.browser.find_element_by_id('registration-submit').click()
 
 
-@step('I should have successfully registered')
-def registration_successful(step):
+@step('I should have successfully registered and would see a "([^"]+)" message')
+def registration_successful(step, success_message):
     # Ensure that the registration has successfully completed
     success_message = world.browser.find_element_by_tag_name('h3').text
     assert 'Thank you for registration.' in success_message
