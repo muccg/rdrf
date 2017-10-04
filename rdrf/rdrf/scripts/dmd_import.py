@@ -632,7 +632,7 @@ MULTISECTION_MAP = {
                           "protein_variation": {"cde_code": "DMDProteinVariation",
                                                 "converter": None},
                           "technique": {"cde_code": "NMDTechnique",
-                                        "converter": Conv.NMDTechnique},
+                                        "converter": "NMDTechnique"},
                           "all_exons_in_male_relative": {"cde_code": "DMDExonTestMaleRelatives",
                                                          "converter": Conv.YNU},
                           "exon_boundaries_known": {"cde_code": "DMDExonBoundaries",
@@ -1561,6 +1561,17 @@ class OldRegistryImporter(object):
             if thing["pk"] == gene_id and thing["model"] == "genetic.gene":
                 symb = thing["fields"]["symbol"]
                 return symb
+
+
+    def convert_NMDTechnique(self, technique):
+        NMDTechnique = {
+             "MLPA": "MLPA",
+             "Genomic DNA sequencing": "Genomic DNA sequencing",
+             "Array": "Array",
+             "cDNA sequencing": "cDNA sequencing",
+        }
+
+        return NMDTechnique.get(technique, technique)
 
     def _get_working_group(self):
         wg_old_pk = self.record.get("working_group")
