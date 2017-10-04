@@ -320,9 +320,9 @@ def should_be_logged_in(step):
 
 @step('should be on the login page')
 def should_be_on_the_login_page(step):
+    world.browser.find_element_by_xpath('.//div[@class="panel-heading"][text()[contains(.,"Login")]]')
     world.browser.find_element_by_xpath('.//label[text()[contains(.,"Username")]]')
     world.browser.find_element_by_xpath('.//label[text()[contains(.,"Password")]]')
-    world.browser.find_element_by_xpath('.//input[@type="submit" and @value="Log in"]')
 
 
 @step('click the User Dropdown Menu')
