@@ -714,6 +714,7 @@ class DynamicDataWrapper(object):
                         "django_model": record.data.get("django_model", None),
                         "registry_code": registry_code,
                         "record_type": "snapshot",
+                        "username": self.user.username if self.user else None,
                         "timestamp": timestamp,
                         "record": record.data,
                         }
