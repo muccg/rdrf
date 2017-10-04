@@ -40,7 +40,7 @@ logger = logging.getLogger(__name__)
 
 @receiver(user_logged_in)
 def user_login_callback(sender, request=None, user=None, **kwargs):
-    if is_user_privileged(user) and default_device(user) is None:
+    if is_user_privileged(user) and not user.require_2_fact_auth and default_device(user) is None:
         link = ('<a href="%(url)s" class="alert-link">' + _('click here') + '</a>') % {'url': reverse('two_factor:setup')}
         msg = mark_safe(
                 _('We strongly recommend that you protect your account with Two-Factor authentication. '
