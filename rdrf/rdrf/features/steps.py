@@ -304,9 +304,9 @@ def login_as_role(step, role):
 @step('log in as "(.*)" with "(.*)" password')
 def login_as_user(step, username, password):
     utils.click(world.browser.find_element_by_link_text("Log in"))
-    username_field = world.browser.find_element_by_xpath('.//input[@name="username"]')
+    username_field = world.browser.find_element_by_xpath('.//input[@name="auth-username"]')
     username_field.send_keys(username)
-    password_field = world.browser.find_element_by_xpath('.//input[@name="password"]')
+    password_field = world.browser.find_element_by_xpath('.//input[@name="auth-password"]')
     password_field.send_keys(password)
     password_field.submit()
 
