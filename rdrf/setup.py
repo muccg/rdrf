@@ -40,6 +40,14 @@ requirements=[
      "SQLAlchemy==1.0.16",
      "uwsgi==2.0.13.1",
      "django_cron==0.5.0",
+
+     # django-two-factor-auth dependencies
+     "django-formtools==2.0",
+     "django-otp==0.4.1.1",
+     "django-phonenumber-field==1.3.0",
+     "django-two-factor-auth==1.6.2",
+     "phonenumberslite==8.8.1",
+     "qrcode==4.0.4",
 ]
 
 

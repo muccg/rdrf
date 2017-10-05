@@ -53,7 +53,7 @@ class RouterView(View):
             else:
                 redirect_url = reverse(_PATIENTS_LISTING)
         else:
-            redirect_url = "%s?next=%s" % (reverse("login"), reverse("login_router"))
+            redirect_url = "%s?next=%s" % (reverse("two_factor:login"), reverse("login_router"))
 
         self._maybe_warn_about_password_expiry(request)
 
