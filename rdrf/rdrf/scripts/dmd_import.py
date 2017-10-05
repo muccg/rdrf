@@ -792,6 +792,8 @@ DATA_MAP = {"field_expression111": {"field": "ip_group",
                                    "model": "patients.patient"},
             "family_name": {"field": "family_name",
                             "model": "patients.patient"},
+            "place_of_birth": {"field": "place_of_birth",
+                               "model": "patients.patient"},
             "active": {"field": "active",
                        "model": "patients.patient"},
             "field_expression43": {"field": "date_of_birth",
@@ -1379,6 +1381,7 @@ class OldRegistryImporter(object):
         p = Patient()
         p.family_name = self.record.get("family_name")
         p.given_names = self.record.get("given_names")
+        p.place_of_birth = self.record.get("place_of_birth")
         p.sex = Conv.MeteorSexChoices.get(self.record.get("sex"), None)
         p.date_of_birth = self.record.get("date_of_birth")
         p.consent = self.record.get("consent")
