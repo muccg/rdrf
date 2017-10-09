@@ -8,9 +8,6 @@ from django.contrib.auth.models import Group
 from django.contrib.auth.models import Permission
 
 from rdrf.models import Registry
-from rdrf.models import RegistryForm
-from rdrf.models import Section
-from rdrf.models import CommonDataElement
 from rdrf.models import ConsentSection
 from rdrf.models import ConsentQuestion
 from rdrf.models import EmailTemplate
@@ -437,6 +434,7 @@ class Path:
     THROUGH_PATIENT = 2
     THROUGH_MOLECULAR_DATA = 3
 
+
 SKIP_FIELDS = ["dna_variation_validation_override",
                "exon_validation_override",
                "protein_variation_validation_override",
@@ -478,7 +476,7 @@ class Conv:
     }
 
     TypeOfMedicalProfessional = {
-        "GP (Primary Care)" : 1,
+        "GP (Primary Care)": 1,
         "Specialist (Lipid)": 2,
         "Primary Care": 3,
         "Paediatric Neurologist": 4,
@@ -492,16 +490,13 @@ class Conv:
 
     GROUPS = {
         "Clinical Staff": RDRF_GROUPS.CLINICAL,
-        "Genetic Curators" : RDRF_GROUPS.GENETIC_CURATOR,
-        "Genetic Staff":     RDRF_GROUPS.GENETIC_STAFF,
+        "Genetic Curators": RDRF_GROUPS.GENETIC_CURATOR,
+        "Genetic Staff": RDRF_GROUPS.GENETIC_STAFF,
         "Working Group Curators": RDRF_GROUPS.WORKING_GROUP_CURATOR,
         "Working Group Staff (Patient Registration)": RDRF_GROUPS.WORKING_GROUP_STAFF,
     }
-    
 
 
-
-    
 class PatientRecord(object):
 
     def __init__(self, patient_dict, all_data):
@@ -582,10 +577,8 @@ MULTISECTION_MAP = {
     "DMDHeartMedication": {"model": "dmd.heartmedication",
                            "field_map": {
                                "status": {"cde_code": "DMDStatus",
-                                          "converter": Conv.DMDStatus,
-                                          },
-                               "drug":  {"cde_code": "DMDDrug",
-                                         }
+                                          "converter": Conv.DMDStatus},
+                               "drug": {"cde_code": "DMDDrug"}
                            }
 
                            },
@@ -1107,7 +1100,7 @@ def meta(stage, run_after=False):
                 self.log(log_line)
             except ImportError as ierr:
                 log_line = "%s: IMPORT ERROR! - %s" % (log_prefix,
-                                                       ex)
+                                                       ierr)
 
                 value = None
                 error_message = "%s" % ierr
@@ -1148,7 +1141,7 @@ class OldRegistryImporter(object):
                 self.log("could not parse line [%s] of permissions: %s" % (line,
                                                                            ex))
                 continue
-            
+
             if group_name in p:
                 p[group_name].append(codename)
             else:
@@ -1158,12 +1151,13 @@ class OldRegistryImporter(object):
                 group_model = Group.objects.get(name=group_name)
                 for codename in codenames:
                     try:
-                        permission_model = Permission.objects.get(codename=codename)
+                        permission_model = Permission.objects.get(
+                            codename=codename)
                         group_model.permissions.add(permission_model)
                         group_model.save()
                         self.log("Added permission %s to group %s" % (permission_model,
                                                                       group_model))
-                        
+
                     except Permission.DoesNotExist:
                         self.log("permission %s not exist" % codename)
             except Group.DoesNotExist:
@@ -1185,7 +1179,7 @@ class OldRegistryImporter(object):
             s = "PATIENT"
         else:
             s = ""
-            
+
         return "%s/%s %s" % (self.rdrf_id,
                              self.old_id,
                              s)
@@ -1193,7 +1187,7 @@ class OldRegistryImporter(object):
     def log(self, msg):
         line = "IMPORTER [%s]> %s\n" % (self.moniker,
                                         msg)
-        
+
         self._log.write(line)
 
     def _get_rdrf_id(self):
@@ -1227,19 +1221,24 @@ class OldRegistryImporter(object):
     def _wire_up_family_members(self):
         for patient_model in Patient.objects.all():
             for family_member in self._get_family_members(patient_model,
-                                                          "DMDFamilyMembers",
+                                                          "ClinicalDiagnosis",
+                                                          "DMDFamilyMember",
                                                           "NMDRegistryPatient"):
                 new_id = patient_map.get(family_member.old_id, None)
                 if new_id:
-                    self._update_family_member(family_member, new_id)
+                    self._update_family_member(family_member,
+                                               "ClinicalDiagnosis",
+                                               "DMDFamilyMember",
+                                               "NMDRegistryPatient",
+                                               new_id)
                 else:
-                    print("family member with old id %s doesn't exist in RDRF" % family_member.old_id)
-
+                    print("family member with old id %s doesn't exist in RDRF" %
+                          family_member.old_id)
 
     @meta("FAMILY MEMBER")
-    def _update_family_member(self, family_member, new_id):
-        #PokeFieldExpression(GeneralisedFieldExpression):
-        # "[pick|poke]/<FORMNAME>/<SECTIONCODE/items/2/CDECODE"
+    def _update_family_member(self, family_member, form_name, section_code, cde_code, new_id):
+        # PokeFieldExpression(GeneralisedFieldExpression):
+        # "[pick|poke]/<FORMNAME>/<SECTIONCODE/2/CDECODE"
 
         section_code = "DMDFamilyMember"
         cde_code = "NMDRegistryPatient"
@@ -1247,10 +1246,11 @@ class OldRegistryImporter(object):
         patient_id = family_member.owning_rdrf_patient_id
 
         patient_model = Patient.objects.get(pk=patient_id)
-        field_expression = "poke/ClinicalData/%s/%s/items/%s/%s" % (section_code,
-                                                                    item_index,
-                                                                    cde_code)
-        
+        field_expression = "poke/%s/%s/%s/%s" % (form_name,
+                                                 section_code,
+                                                 item_index,
+                                                 cde_code)
+
         patient_model.evaluate_field_expression(self.registry_model,
                                                 field_expression,
                                                 value=new_id)
@@ -1259,27 +1259,31 @@ class OldRegistryImporter(object):
                                                                 family_member.old_id,
                                                                 new_id))
 
+    def _get_family_members(self, patient_model, form_name, section_code, cde_code):
+        self.log("attempting to get family members for %s %s" %
+                 (patient_model, patient_model.pk))
 
-    def _get_family_members(self, patient_model, section_code, cde_code):
         class FamilyMember(object):
             def __init__(self):
                 self.old_id = None
                 self.owning_rdrf_patient_id = None
                 self.item_index = None
 
-
         try:
             clinical_data = ClinicalData.objects.get(collection="cdes",
-                                                    django_model="Patient",
-                                                    django_id=patient_model.pk)
+                                                     registry_code="DMD",
+                                                     django_model="Patient",
+                                                     django_id=patient_model.pk)
         except ClinicalData.DoesNotExist:
-            self.log("no family members")
+
+            self.log("no cd object therefore no family members")
             return []
 
         family_members = []
+        self.log("Starting to wire up family members for %s" % patient_model)
         if clinical_data.data and "forms" in clinical_data.data:
             for form_dict in clinical_data.data["forms"]:
-                if form_dict["name"] == "ClinicalData":
+                if form_dict["name"] == form_name:
                     for section_dict in form_dict["sections"]:
                         if section_dict["code"] == section_code:
                             for item_index, item in enumerate(section_dict["cdes"]):
@@ -1287,43 +1291,43 @@ class OldRegistryImporter(object):
                                     if cde_dict["code"] == cde_code:
                                         old_id = cde_dict["value"]
                                         if old_id:
+                                            self.log("item %s old_id %s" %
+                                                     (item_index, old_id))
                                             fm = FamilyMember()
                                             fm.old_id = old_id
                                             fm.owning_rdrf_patient_id = patient_model.pk
-                                            fm.item_index = item_index
+                                            fm.item_index = item_index + 1  # field expression uses 1 based index
                                             family_members.append(fm)
 
         if len(family_members) == 0:
-            self.log("no family members")
+            self.log("no family members (len=0)")
         else:
             self.log("There are %s family members" % len(family_members))
-                    
+
         return family_members
-                    
-                    
 
     def _load_json_data(self):
         with open(self.json_file) as jf:
             return json.load(jf)
+
+    def update_family_members(self):
+        self._wire_up_family_members()
 
     def run(self):
         self._map_auth_groups()
         self._create_doctors()
         self._create_labs()
         self._create_users()
-        
+
         for patient_dict in self.data.patients:
             self.record = PatientRecord(patient_dict, self.data)
             self._process_record()
 
         self._assign_user_working_groups()
-        #self._assign_permissions_to_groups()
+        # self._assign_permissions_to_groups()
         self._add_parsed_permissions()
         self._create_email_templates()
-
         self._wire_up_family_members()
-        
-
 
     def _map_auth_groups(self):
         for thing in self.data.data:
@@ -1331,14 +1335,17 @@ class OldRegistryImporter(object):
                 name = thing["fields"]["name"]
                 rdrf_group_name = Conv.GROUPS.get(name, None)
                 if rdrf_group_name is None:
-                    raise Exception("Bad group name: %s" % name)
-                try:
-                    group_model = Group.objects.get(name__iexact=rdrf_group_name)
-                except Group.DoesNotExist:
-                    raise Exception("Group model %s does not exust?" % rdrf_group_name)
-                
-                self._group_map[thing["pk"]] = group_model
+                    self.log("Bad group name: %s" % name)
+                    raise Exception("Bad group: %s" % name)
 
+                try:
+                    group_model = Group.objects.get(
+                        name__iexact=rdrf_group_name)
+                except Group.DoesNotExist:
+                    raise Exception(
+                        "Group model %s does not exist?" % rdrf_group_name)
+
+                self._group_map[thing["pk"]] = group_model
 
     def _create_users(self):
         for thing in self.data.data:
@@ -1346,7 +1353,7 @@ class OldRegistryImporter(object):
                 username = thing["fields"]["username"]
                 if username == "admin":
                     continue
-                
+
                 user = CustomUser()
                 user.username = username
                 user.first_name = thing["fields"]["first_name"]
@@ -1362,14 +1369,12 @@ class OldRegistryImporter(object):
                 self._user_map[user.pk] = thing["pk"]
                 user.registry = [self.registry_model]
                 user.save()
-                
-                self._assign_user_groups(user, thing["fields"]["groups"])
-                #self._assign_user_working_groups(user, thing["pk"])
 
+                self._assign_user_groups(user, thing["fields"]["groups"])
 
     def _assign_permissions_to_groups(self):
         permission_map = {}
-        
+
         for thing in self.data.data:
             if thing["model"] == "auth.permission":
                 permission_map[thing["pk"]] = thing["fields"]["codename"]
@@ -1382,17 +1387,15 @@ class OldRegistryImporter(object):
                         codename = permission_map.get(old_perm_id, None)
                         if codename is not None:
                             try:
-                                permission_model = Permission.objects.get(codename=codename)
+                                permission_model = Permission.objects.get(
+                                    codename=codename)
                                 group_model.permissions.add(permission_model)
                                 group_model.save()
                                 self.log("Added %s permission to group %s" % (codename,
                                                                               group_model))
                             except Permission.DoesNotExist:
-                                self.log("permission %s does not exist" % codename)
-    
-
-            
-                
+                                self.log("permission %s does not exist" %
+                                         codename)
 
     def _assign_user_working_groups(self):
         # working group info is stored in the parent class "groups.user" ...
@@ -1405,25 +1408,26 @@ class OldRegistryImporter(object):
             custom_user_old_id = self._user_map.get(user_model.pk, None)
             if custom_user_old_id is None:
                 continue
-            
+
             for thing in self.data.data:
                 if thing["pk"] == custom_user_old_id:
                     if thing["model"] == "groups.user":
                         for old_working_group_id in thing["fields"]["working_groups"]:
-                            working_group_model = self._working_group_map.get(old_working_group_id, None)
+                            working_group_model = self._working_group_map.get(
+                                old_working_group_id, None)
                             if working_group_model is not None:
-                                user_model.working_groups.add(working_group_model)
+                                user_model.working_groups.add(
+                                    working_group_model)
                                 user_model.save()
                                 self.log("Assigned user %s to working group %s" % (user_model,
                                                                                    working_group_model))
                             else:
-                                self.log("missing working group with old id %s" % old_working_group_id)
-
+                                self.log(
+                                    "missing working group with old id %s" % old_working_group_id)
 
                         # title is stored on this object too
                         user_model.title = thing["fields"]["title"]
                         user_model.save()
-
 
     def _assign_user_groups(self, user_model, old_group_ids):
         for old_group_id in old_group_ids:
@@ -1433,18 +1437,16 @@ class OldRegistryImporter(object):
                 user_model.save()
                 self.log("Added user %s to group %s" % (user_model,
                                                         group_model))
-                
+
             else:
                 self.log("Unknown group id %s" % old_group_id)
-                
-
 
     def _process_record(self):
         self.patient_model = self._create_patient()
         self._assign_address()
         self._set_consent()
         self._assign_doctors()
-        
+
         self._id_map[self.record.patient_id] = self.patient_model.pk
 
         for form_model in self.registry_model.forms:
@@ -1491,17 +1493,14 @@ class OldRegistryImporter(object):
         self._set_field(p, "next_of_kin_postcode")
         self._set_field(p, "next_of_kin_relationship")
 
-
         # old system assumes Au for nok
         nok_state = self.record.get("next_of_kin_state")
         if nok_state is not None:
             p.next_of_kin_state = "AU-" + self.record.get("next_of_kin_state")
-            
-        p.next_of_kin_country = "AU"  
-        
+
+        p.next_of_kin_country = "AU"
         self._set_field(p, "next_of_kin_suburb")
         self._set_field(p, "next_of_kin_work_phone")
-
         p.save()
         p.rdrf_registry = [self.registry_model]
         p.save()
@@ -1515,14 +1514,10 @@ class OldRegistryImporter(object):
         self.context_model = self.rdrf_context_manager.get_or_create_default_context(
             p, new_patient=True)
         self.log("created default context %s" % self.context_model)
-
-
         # ensure that we have a map of old patient ids to new ones
         patient_map[self.record.patient_id] = p.pk
         self.log("Updated patient map: %s -> %s" % (self.record.patient_id,
                                                     p.pk))
-        
-
         return p
 
     def _set_field(self, patient_model, attr, conv=None):
@@ -1532,26 +1527,22 @@ class OldRegistryImporter(object):
         else:
             setattr(patient_model, attr, conv(value))
 
-
     def _set_consent(self):
         # this sets the visible consent
         consent_value = self.record.get("consent")
-        
+
         consent_section_model = ConsentSection.objects.get(code="dmdconsentsection1",
                                                            registry=self.registry_model)
 
         consent_question_model = ConsentQuestion.objects.get(section=consent_section_model,
                                                              code="c1")
-        
-        
+
         answer_field_expression = "Consents/%s/%s/answer" % (consent_section_model.code,
                                                              consent_question_model.code)
 
         self.patient_model.evaluate_field_expression(self.registry_model,
-                                               answer_field_expression,
-                                               value=consent_value)
-
-
+                                                     answer_field_expression,
+                                                     value=consent_value)
 
     def _assign_address(self):
         address = self.record.get("address")
@@ -1583,25 +1574,21 @@ class OldRegistryImporter(object):
                 doc.address = flds["address"]
                 doc.phone = flds["phone"]
                 doc.suburb = flds["suburb"]
-                doc.state = None #todo
+                doc.state = None  # todo
                 doc.save()
                 self._doctor_map[thing["pk"]] = doc
 
-
     def _assign_doctors(self):
         # create them if they don't exist
-        my_doctors  = []
-        
+        my_doctors = []
+
         for thing in self.data.data:
             if thing["model"] == "patients.patientdoctor":
                 if thing["fields"]["patient"] == self.record.patient_id:
                     my_doctors.append(thing)
 
-
         for doctor_dict in my_doctors:
             self._assign_doctor(doctor_dict)
-
-
 
     def _assign_doctor(self, doctor_dict):
         # doctors have already been created
@@ -1613,18 +1600,18 @@ class OldRegistryImporter(object):
             patient_doctor.patient = self.patient_model
             patient_doctor.doctor = doctor_model
             old_relationship = doctor_dict["fields"]["relationship"]
-            
+
             relationship_num = Conv.TypeOfMedicalProfessional.get(old_relationship,
-                                                                 None)
+                                                                  None)
             if relationship_num is not None:
                 patient_doctor.relationship = relationship_num
             else:
                 self.log("Unknown relationship: %s" % old_relationship)
-                
+
             patient_doctor.save()
             self.log("assigned doctor %s " % doctor_model.pk)
         else:
-            self.log("can't locate doctor with old pk %s" % doctor_old_pk) 
+            self.log("can't locate doctor with old pk %s" % doctor_old_pk)
 
     def _create_labs(self):
         for thing in self.data.data:
@@ -1650,16 +1637,15 @@ class OldRegistryImporter(object):
                 symb = thing["fields"]["symbol"]
                 return symb
 
-
     def convert_NMDTechnique(self, technique):
-        NMDTechnique = {
-             "MLPA": "MLPA",
-             "Genomic DNA sequencing": "Genomic DNA sequencing",
-             "Array": "Array",
-             "cDNA sequencing": "cDNA sequencing",
+        d = {
+            "MLPA": "MLPA",
+            "Genomic DNA sequencing": "Genomic DNA sequencing",
+            "Array": "Array",
+            "cDNA sequencing": "cDNA sequencing",
         }
 
-        return NMDTechnique.get(technique, technique)
+        return d.get(technique, technique)
 
     def _get_working_group(self):
         wg_old_pk = self.record.get("working_group")
@@ -1671,12 +1657,14 @@ class OldRegistryImporter(object):
                                                                                       registry=self.registry_model)
 
                     if created:
-                        self.log("created working group %s" % working_group_name)
+                        self.log("created working group %s" %
+                                 working_group_name)
                         working_group_model.save()
 
                     if thing["pk"] not in self._working_group_map:
-                        self._working_group_map[thing["pk"]] = working_group_model
-                                                
+                        self._working_group_map[thing["pk"]
+                                                ] = working_group_model
+
                     return working_group_model
 
     @meta("SECTION")
@@ -1735,7 +1723,7 @@ class OldRegistryImporter(object):
         l = len(old_items)
         self.log("Number of old %s = %s" % (old_model,
                                             l))
-        
+
         for item in old_items:
             item = self._create_new_multisection_item(
                 item, key_field=related_model_field)
@@ -1763,12 +1751,11 @@ class OldRegistryImporter(object):
 
         item = []
 
-        # item should be a list of {code:  value: } dicts 
-        
+        # item should be a list of {code:  value: } dicts
 
         for old_field in old_item["fields"].keys():
             d = {}
-            
+
             if old_field == key_field:
                 continue
 
@@ -1878,7 +1865,7 @@ class OldRegistryImporter(object):
                 self.log("range value is None so skipping")
                 return
             range_members = self.cde_model.get_range_members()
-            if not value in range_members:
+            if value not in range_members:
                 raise Exception("Bad range member: %s not in %s" %
                                 (value, range_members))
 
@@ -1894,20 +1881,16 @@ class OldRegistryImporter(object):
                                                      field_expression,
                                                      value=value)
 
-
     def _create_email_templates(self):
         for thing in self.data.data:
             if thing["model"] == "configuration.emailtemplate":
                 self._create_email_template(thing)
 
     def _create_email_template(self, email_template_dict):
-        body = email_template_dict["fields"]["body"]
-        event_trigger = email_template_dict["fields"]["target"]
-        description = email_template_dict["fields"]["description"]
-        groups = filter(lambda x : x is not None,
+        groups = filter(lambda x: x is not None,
                         [self._group_map.get(k, None) for k
                          in email_template_dict["fields"]["groups"]])
-        
+
         email_template = EmailTemplate()
         email_template.language = "en"
         email_template.description = email_template_dict["fields"]["name"]
