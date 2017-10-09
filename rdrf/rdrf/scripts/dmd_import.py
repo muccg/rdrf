@@ -404,6 +404,8 @@ AdminOnly: change_query
 AdminOnly: delete_query
 """
 
+patient_map = {}
+
 
 def delete_existing_models():
     def kill(klass):
@@ -591,8 +593,7 @@ MULTISECTION_MAP = {
     "DMDFamilyMember": {"model": "dmd.familymember",
 
                         "field_map": {
-                            "registry_patient": {"cde_code": "NMDRegistryPatient",
-                                                 "converter": "registry_patient"},
+                            "registry_patient": {"cde_code": "NMDRegistryPatient"},
 
                             "family_member_diagnosis": {"cde_code": "DMDFamilyDiagnosis",
                                                         "converter": Conv.DMDFamilyDiagnosis},
@@ -1223,6 +1224,84 @@ class OldRegistryImporter(object):
         else:
             return t
 
+    def _wire_up_family_members(self):
+        for patient_model in Patient.objects.all():
+            for family_member in self._get_family_members(patient_model,
+                                                          "DMDFamilyMembers",
+                                                          "NMDRegistryPatient"):
+                new_id = patient_map.get(family_member.old_id, None)
+                if new_id:
+                    self._update_family_member(family_member, new_id)
+                else:
+                    print("family member with old id %s doesn't exist in RDRF" % family_member.old_id)
+
+
+    @meta("FAMILY MEMBER")
+    def _update_family_member(self, family_member, new_id):
+        #PokeFieldExpression(GeneralisedFieldExpression):
+        # "[pick|poke]/<FORMNAME>/<SECTIONCODE/items/2/CDECODE"
+
+        section_code = "DMDFamilyMember"
+        cde_code = "NMDRegistryPatient"
+        item_index = family_member.item_index
+        patient_id = family_member.owning_rdrf_patient_id
+
+        patient_model = Patient.objects.get(pk=patient_id)
+        field_expression = "poke/ClinicalData/%s/%s/items/%s/%s" % (section_code,
+                                                                    item_index,
+                                                                    cde_code)
+        
+        patient_model.evaluate_field_expression(self.registry_model,
+                                                field_expression,
+                                                value=new_id)
+
+        self.log("Updated family member id for %s: %s -> %s" % (patient_model.pk,
+                                                                family_member.old_id,
+                                                                new_id))
+
+
+    def _get_family_members(self, patient_model, section_code, cde_code):
+        class FamilyMember(object):
+            def __init__(self):
+                self.old_id = None
+                self.owning_rdrf_patient_id = None
+                self.item_index = None
+
+
+        try:
+            clinical_data = ClinicalData.objects.get(collection="cdes",
+                                                    django_model="Patient",
+                                                    django_id=patient_model.pk)
+        except ClinicalData.DoesNotExist:
+            self.log("no family members")
+            return []
+
+        family_members = []
+        if clinical_data.data and "forms" in clinical_data.data:
+            for form_dict in clinical_data.data["forms"]:
+                if form_dict["name"] == "ClinicalData":
+                    for section_dict in form_dict["sections"]:
+                        if section_dict["code"] == section_code:
+                            for item_index, item in enumerate(section_dict["cdes"]):
+                                for cde_dict in item:
+                                    if cde_dict["code"] == cde_code:
+                                        old_id = cde_dict["value"]
+                                        if old_id:
+                                            fm = FamilyMember()
+                                            fm.old_id = old_id
+                                            fm.owning_rdrf_patient_id = patient_model.pk
+                                            fm.item_index = item_index
+                                            family_members.append(fm)
+
+        if len(family_members) == 0:
+            self.log("no family members")
+        else:
+            self.log("There are %s family members" % len(family_members))
+                    
+        return family_members
+                    
+                    
+
     def _load_json_data(self):
         with open(self.json_file) as jf:
             return json.load(jf)
@@ -1241,6 +1320,8 @@ class OldRegistryImporter(object):
         #self._assign_permissions_to_groups()
         self._add_parsed_permissions()
         self._create_email_templates()
+
+        self._wire_up_family_members()
         
 
 
@@ -1435,6 +1516,13 @@ class OldRegistryImporter(object):
             p, new_patient=True)
         self.log("created default context %s" % self.context_model)
 
+
+        # ensure that we have a map of old patient ids to new ones
+        patient_map[self.record.patient_id] = p.pk
+        self.log("Updated patient map: %s -> %s" % (self.record.patient_id,
+                                                    p.pk))
+        
+
         return p
 
     def _set_field(self, patient_model, attr, conv=None):
@@ -1556,9 +1644,6 @@ class OldRegistryImporter(object):
 
         return "AU"  # ???
 
-    def convert_registry_patient(self, old_id):
-        return self._id_map.get(old_id)
-
     def convert_gene(self, gene_id):
         for thing in self.data.data:
             if thing["pk"] == gene_id and thing["model"] == "genetic.gene":
@@ -1593,10 +1678,6 @@ class OldRegistryImporter(object):
                         self._working_group_map[thing["pk"]] = working_group_model
                                                 
                     return working_group_model
-
-    @meta("FAMILY_MEMBER", run_after=True)
-    def _create_family_member(self, patient_model, family_member_dict):
-        existing_relative_patient_model = None
 
     @meta("SECTION")
     def _process_section(self):
