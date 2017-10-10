@@ -861,7 +861,7 @@ DATA_MAP = {"field_expression111": {"field": "ip_group",
             "field_expression31": {"field": "consent",
                                    "model": "patients.patient"},
             "field_expression38": {"field": "working_group",
-                                   "model": "patients.patient"},
+                                   "model": "patients.patient"}
             "field_expression39": {"field": "next_of_kin_parent_place_of_birth",
                                    "model": "patients.patient"},
             "field_expression185": {"field": "comment",
@@ -1496,9 +1496,14 @@ class OldRegistryImporter(object):
         # old system assumes Au for nok
         nok_state = self.record.get("next_of_kin_state")
         if nok_state is not None:
-            p.next_of_kin_state = "AU-" + self.record.get("next_of_kin_state")
+            if nok_state == "NZN":
+                # NZ patients are anomolous in old registry ...
+                p.next_of_kin_state = None
+                p.next_of_kin_country = "NZ"
+            else:
+                p.next_of_kin_state = "AU-" + self.record.get("next_of_kin_state")
+                p.next_of_kin_country = "AU"
 
-        p.next_of_kin_country = "AU"
         self._set_field(p, "next_of_kin_suburb")
         self._set_field(p, "next_of_kin_work_phone")
         p.save()
