@@ -27,9 +27,7 @@ from registry.groups.models import WorkingGroup
 from registry.groups.models import CustomUser
 
 from registry.genetic.models import Laboratory
-
 from registry.groups import GROUPS as RDRF_GROUPS
-
 
 FAMILY_MEMBERS_CODE = "xxx"
 
@@ -1159,13 +1157,16 @@ class OldRegistryImporter(object):
         # old system assumes Au for nok
         nok_state = self.record.get("next_of_kin_state")
         if nok_state is not None:
-            p.next_of_kin_state = "AU-" + self.record.get("next_of_kin_state")
-
-        p.next_of_kin_country = "AU"
+            if nok_state == "NZN":
+                # NZ patients are anomolous in old registry ...
+                p.next_of_kin_state = None
+                p.next_of_kin_country = "NZ"
+            else:
+                p.next_of_kin_state = "AU-" + self.record.get("next_of_kin_state")
+                p.next_of_kin_country = "AU"
 
         self._set_field(p, "next_of_kin_suburb")
         self._set_field(p, "next_of_kin_work_phone")
-
         p.save()
         p.rdrf_registry = [self.registry_model]
         p.save()
@@ -1179,12 +1180,10 @@ class OldRegistryImporter(object):
         self.context_model = self.rdrf_context_manager.get_or_create_default_context(
             p, new_patient=True)
         self.log("created default context %s" % self.context_model)
-
         # ensure that we have a map of old patient ids to new ones
         patient_map[self.record.patient_id] = p.pk
         self.log("Updated patient map: %s -> %s" % (self.record.patient_id,
                                                     p.pk))
-
         return p
 
     def _set_field(self, patient_model, attr, conv=None):
@@ -1399,12 +1398,17 @@ class OldRegistryImporter(object):
 
     def _create_new_multisection_item(self, old_item, key_field="diagnosis"):
         mm_map = MULTISECTION_MAP[self.section_model.code]
+
         field_map = mm_map["field_map"]
+
         if not field_map:
             raise Exception("need field map for multisection %s" %
                             self.section_model.code)
+
         item = []
+
         # item should be a list of {code:  value: } dicts
+
         for old_field in old_item["fields"].keys():
             d = {}
 
