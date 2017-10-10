@@ -32,7 +32,7 @@ from registry.groups import GROUPS as RDRF_GROUPS
 FAMILY_MEMBERS_CODE = "xxx"
 
 
-NZ_WORKING_GROUP_ID = 8
+NZ_WORKING_GROUP_ID = 4
 NZ_ABBREV = "NZ"
 
 
@@ -987,9 +987,16 @@ class OldRegistryImporter(object):
         self._create_users()
 
         for patient_dict in self.data.patients:
+            pk = patient_dict["pk"]
+            self.log("checking patient %s" % pk)
             if self._in_country(patient_dict):
+                self.log("Patient is in %s" % self.country)
                 self.record = PatientRecord(patient_dict, self.data)
                 self._process_record()
+            else:
+                self.log("patient %s is not in %s" % (pk,
+                                                      self.country))
+                
 
         self._assign_user_working_groups()
         # self._assign_permissions_to_groups()
