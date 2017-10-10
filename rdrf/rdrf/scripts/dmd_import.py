@@ -861,7 +861,7 @@ DATA_MAP = {"field_expression111": {"field": "ip_group",
             "field_expression31": {"field": "consent",
                                    "model": "patients.patient"},
             "field_expression38": {"field": "working_group",
-                                   "model": "patients.patient"}
+                                   "model": "patients.patient"},
             "field_expression39": {"field": "next_of_kin_parent_place_of_birth",
                                    "model": "patients.patient"},
             "field_expression185": {"field": "comment",
