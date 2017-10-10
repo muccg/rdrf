@@ -33,6 +33,7 @@ FAMILY_MEMBERS_CODE = "xxx"
 
 
 NZ_WORKING_GROUP_ID = 8
+NZ_ABBREV = "NZ"
 
 
 PERMISSIONS_ON_STAGING = """
@@ -1191,7 +1192,7 @@ class OldRegistryImporter(object):
         # old system assumes Au for nok
         nok_state = self.record.get("next_of_kin_state")
         if nok_state is not None:
-            if nok_state == "NZN":
+            if nok_state == NZ_ABBREV:
                 # NZ patients are anomolous in old registry ...
                 p.next_of_kin_state = None
                 p.next_of_kin_country = "NZ"
@@ -1326,7 +1327,7 @@ class OldRegistryImporter(object):
                 self.log("created lab %s" % lab)
 
     def _get_country_code(self, state):
-        if state == "NZN":
+        if state == NZ_ABBREV:
             return "NZ"
 
         return "AU"  # ???
