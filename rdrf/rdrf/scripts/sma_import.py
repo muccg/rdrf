@@ -31,6 +31,10 @@ from registry.groups import GROUPS as RDRF_GROUPS
 
 FAMILY_MEMBERS_CODE = "xxx"
 
+
+NZ_WORKING_GROUP_ID = 8
+
+
 PERMISSIONS_ON_STAGING = """
 Clinical Staff: add_laboratory
 Clinical Staff: change_laboratory
@@ -974,21 +978,31 @@ class OldRegistryImporter(object):
     def update_family_members(self):
         self._wire_up_family_members()
 
-    def run(self):
+    def run(self, country):
+        self.country = country
         self._map_auth_groups()
         self._create_doctors()
         self._create_labs()
         self._create_users()
 
         for patient_dict in self.data.patients:
-            self.record = PatientRecord(patient_dict, self.data)
-            self._process_record()
+            if self._in_country(patient_dict):
+                self.record = PatientRecord(patient_dict, self.data)
+                self._process_record()
 
         self._assign_user_working_groups()
         # self._assign_permissions_to_groups()
         self._add_parsed_permissions()
         self._create_email_templates()
         self._wire_up_family_members()
+
+    def _in_country(self, patient_dict):
+        working_group_id = patient_dict["fields"]["working_group"]
+        self.log("working_group_id = %s" % working_group_id)
+        if self.country == "NZ":
+            return working_group_id == NZ_WORKING_GROUP_ID
+        else:
+            return working_group_id != NZ_WORKING_GROUP_ID
 
     def _map_auth_groups(self):
         for thing in self.data.data:
@@ -1012,6 +1026,10 @@ class OldRegistryImporter(object):
         for thing in self.data.data:
             if thing["model"] == "auth.user":
                 username = thing["fields"]["username"]
+                if not self._user_in_country(thing):
+                    self.log("user %s not in %s - skipping" % (username,
+                                                               self.country))
+                    continue
                 if username == "admin":
                     continue
 
@@ -1032,6 +1050,22 @@ class OldRegistryImporter(object):
                 user.save()
 
                 self._assign_user_groups(user, thing["fields"]["groups"])
+
+    def _user_in_country(self, user_dict):
+        self.log("user_dict = %s" % user_dict)
+        working_groups = self._get_working_groups_for_user(user_dict)
+        if self.country == "NZ":
+            return NZ_WORKING_GROUP_ID in working_groups
+        else:
+            return NZ_WORKING_GROUP_ID not in working_groups
+
+
+    def _get_working_groups_for_user(self, user_dict):
+        pk = user_dict["pk"]
+        for thing in self.data.data:
+            if thing["model"] == "groups.user" and thing["pk"] == pk:
+                return thing["fields"]["working_groups"]
+        return []
 
     def _assign_permissions_to_groups(self):
         permission_map = {}
@@ -1576,12 +1610,13 @@ class OldRegistryImporter(object):
 
 if __name__ == "__main__":
     registry_code = sys.argv[1]
-    json_file = sys.argv[2]
+    country = sys.argv[2]
+    json_file = sys.argv[3]
     registry_model = Registry.objects.get(code=registry_code)
     importer = OldRegistryImporter(registry_model, json_file)
     try:
         with transaction.atomic():
-            importer.run()
+            importer.run(country)
             importer.log("run completed")
     except Exception as ex:
         importer.log("run failed - rolled back: %s" % ex)
