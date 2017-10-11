@@ -616,6 +616,9 @@ class DynamicDataWrapper(object):
             
                                                 
             cdes_modjgo.data.update(cdes_record)
+            # ensure context id created
+            cdes_modjgo.context_id = context_id
+
 
         except ClinicalData.DoesNotExist:
             cdes_modjgo = ClinicalData.create(self.obj,
@@ -711,6 +714,7 @@ class DynamicDataWrapper(object):
                         "django_model": record.data.get("django_model", None),
                         "registry_code": registry_code,
                         "record_type": "snapshot",
+                        "username": self.user.username if self.user else None,
                         "timestamp": timestamp,
                         "record": record.data,
                         }

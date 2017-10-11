@@ -733,9 +733,6 @@ class FormView(View):
                         initial_data = wrap_fs_data_for_form(
                             self.registry, self.dynamic_data[s])
                     except KeyError as ke:
-                        logger.error(
-                            "patient %s section %s data could not be retrieved: %s" %
-                            (self.patient_id, s, ke))
                         initial_data = [""]  # * len(section_elements)
                 else:
                     # initial_data = [""] * len(section_elements)
