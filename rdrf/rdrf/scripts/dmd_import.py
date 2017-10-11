@@ -2,6 +2,8 @@ import django
 django.setup()
 import sys
 import json
+from datetime import datetime, timedelta
+
 
 from django.db import transaction
 from django.contrib.auth.models import Group
@@ -14,6 +16,7 @@ from rdrf.models import EmailTemplate
 from rdrf.models import EmailNotification
 from rdrf.models import ClinicalData
 
+from rdrf.utils import parse_iso_datetime
 
 from rdrf.generalised_field_expressions import MultiSectionItemsExpression
 from rdrf.contexts_api import RDRFContextManager
@@ -34,6 +37,9 @@ FAMILY_MEMBERS_CODE = "xxx"
 
 NZ_WORKING_GROUP_ID = 8
 NZ_ABBREV = "NZN" # this is different in sma and dmd !
+
+ONE_YEAR_AGO = datetime.now() - timedelta(days=365)
+
 
 
 PERMISSIONS_ON_STAGING = """
@@ -407,6 +413,9 @@ AdminOnly: delete_query
 """
 
 patient_map = {}
+
+diagnosis_currency_map = {}
+
 
 
 def delete_existing_models():
@@ -1335,6 +1344,8 @@ class OldRegistryImporter(object):
         self._add_parsed_permissions()
         self._create_email_templates()
         self._wire_up_family_members()
+        self._update_form_progress()
+        self._munge_diagnosis_currency()
 
     def _in_country(self, patient_dict):
         working_group_id = patient_dict["fields"]["working_group"]
@@ -1478,6 +1489,7 @@ class OldRegistryImporter(object):
 
     def _process_record(self):
         self.patient_model = self._create_patient()
+        self._update_diagnosis_currency_map(self.patient_model, self.old_id)
         self._assign_address()
         self._set_consent()
         self._assign_doctors()
@@ -1493,6 +1505,16 @@ class OldRegistryImporter(object):
         if not self.active:
             self.patient_model.active = False
             self.patient_model.save()
+
+    def _update_diagnosis_currency_map(self, patient_model, old_id):
+        def get_updated(pk):
+            for thing in self.data.data:
+                if thing["pk"] == pk:
+                    if thing["model"] == "dmd.diagnosis":
+                        return thing["fields"]["updated"]
+
+        diagnosis_currency_map[patient_model.pk] = get_updated(old_id)
+        
 
     @meta("DEMOGRAPHICS")
     def _create_patient(self):
@@ -1920,6 +1942,64 @@ class OldRegistryImporter(object):
         self.patient_model.evaluate_field_expression(self.registry_model,
                                                      field_expression,
                                                      value=value)
+
+    def _update_form_progress(self):
+        from django.core.management import call_command
+        call_command('update_form_progress', 'DMD')
+
+    def _munge_diagnosis_currency(self):
+        for patient_id, old_timestamp in diagnosis_currency_map.items():
+            self.log("Updating %s with old timestamp %s" % (patient_id,
+                                                            old_timestamp))
+            try:
+                patient_model = Patient.objects.get(pk=patient_id)
+            except Patient.DoesNotExist:
+                self.log("can't munge timestamp for %s patient doesn't exist" % patient_id)
+                continue
+
+            try:
+                clinical_data = ClinicalData.objects.get(django_model="Patient",
+                                                         django_id=patient_model.pk,
+                                                         collection="cdes")
+                if clinical_data.data and "forms" in clinical_data.data:
+                    data = clinical_data.data
+                    for form_dict in data["forms"]:
+                        name = form_dict["name"].lower()
+                        if "genetic" in name:
+                            continue
+
+                        for k in form_dict.keys():
+                            if "timestamp" in k:
+                                form_dict[k] = old_timestamp
+
+                    clinical_data.data = data
+                    clinical_data.save()
+                    self.log("saved updated clinical data for %s" % patient_id)
+            except ClinicalData.DoesNotExist:
+                self.log("clinical data does not exist")
+
+            # update diagnosis group currency
+            self._update_diagnosis_group_currency(patient_model, old_timestamp)
+
+
+    def _update_diagnosis_group_currency(self, patient_model, old_timestamp):
+        self.log("Updating diagnosis group currency for %s --> %s" % (patient_model.pk,
+                                                                      old_timestamp))
+        updated_dt = parse_iso_datetime(old_timestamp)
+        current =  updated_dt < ONE_YEAR_AGO
+
+        try:
+            progress = ClinicalData.objects.get(collection="progess",
+                                                registry_code="DMD",
+                                                data__django_id=patient_model.pk,
+                                                data__django_model="Patient")
+            if progress.data:
+               progress.data["diagnosis_group_current"] = current
+               progress.save()
+               self.log("Updated patient %s diagnosis_group_current = %s" % (patient_model.pk,
+                                                                             current))
+        except ClinicalData.DoesNotExist:
+            self.log("no progress object for patient %s" % patient_model.pk)
 
     def _create_email_templates(self):
         for thing in self.data.data:
