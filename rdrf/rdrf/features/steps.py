@@ -427,9 +427,9 @@ def login_as_role(step, role):
 @step('log in as "(.*)" with "(.*)" password')
 def login_as_user(step, username, password):
     utils.click(world.browser.find_element_by_link_text("Log in"))
-    username_field = world.browser.find_element_by_xpath('.//input[@name="username"]')
+    username_field = world.browser.find_element_by_xpath('.//input[@name="auth-username"]')
     username_field.send_keys(username)
-    password_field = world.browser.find_element_by_xpath('.//input[@name="password"]')
+    password_field = world.browser.find_element_by_xpath('.//input[@name="auth-password"]')
     password_field.send_keys(password)
     password_field.submit()
 
@@ -443,9 +443,9 @@ def should_be_logged_in(step):
 
 @step('should be on the login page')
 def should_be_on_the_login_page(step):
+    world.browser.find_element_by_xpath('.//div[@class="panel-heading"][text()[contains(.,"Login")]]')
     world.browser.find_element_by_xpath('.//label[text()[contains(.,"Username")]]')
     world.browser.find_element_by_xpath('.//label[text()[contains(.,"Password")]]')
-    world.browser.find_element_by_xpath('.//input[@type="submit" and @value="Log in"]')
 
 
 @step('click the User Dropdown Menu')

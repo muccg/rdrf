@@ -7,8 +7,11 @@ from django.views.i18n import JavaScriptCatalog
 from django.conf import settings
 from django.utils.translation import ugettext as _
 
-from rdrf.auth.forms import RDRFAuthenticationForm, RDRFLoginAssistanceForm, RDRFPasswordResetForm, RDRFSetPasswordForm
-from rdrf.auth.views import login_assistance_confirm
+from two_factor import views as twv
+
+from rdrf.auth.forms import RDRFLoginAssistanceForm, RDRFPasswordResetForm, RDRFSetPasswordForm
+from rdrf.auth.views import login_assistance_confirm, QRGeneratorView, SetupView
+
 import rdrf.form_view as form_view
 import rdrf.registry_view as registry_view
 import rdrf.landing_view as landing_view
@@ -66,6 +69,58 @@ if settings.DEBUG is True:
         url(r'^raise', handlerException, name='test exception'),
     ]
 
+
+two_factor_auth_urls = [
+    url(
+        regex=r'^account/login/?$',
+        view=twv.LoginView.as_view(),
+        name='login',
+    ),
+    url(
+        regex=r'^account/two_factor/setup/?$',
+        view=SetupView.as_view(),
+        name='setup',
+    ),
+    url(
+        regex=r'^account/two_factor/qrcode/?$',
+        view=QRGeneratorView.as_view(),
+        name='qr',
+    ),
+    url(
+        regex=r'^account/two_factor/setup/complete/?$',
+        view=twv.SetupCompleteView.as_view(),
+        name='setup_complete',
+    ),
+#    We're not using a few of these urls currently
+#
+#    url(
+#        regex=r'^account/two_factor/backup/tokens/?$',
+#        view=twv.BackupTokensView.as_view(),
+#        name='backup_tokens',
+#    ),
+#    url(
+#        regex=r'^account/two_factor/backup/phone/register/?$',
+#        view=twv.PhoneSetupView.as_view(),
+#        name='phone_create',
+#    ),
+#    url(
+#        regex=r'^account/two_factor/backup/phone/unregister/(?P<pk>\d+)/?$',
+#        view=twv.PhoneDeleteView.as_view(),
+#        name='phone_delete',
+#    ),
+#    url(
+#        regex=r'^account/two_factor/?$',
+#        view=twv.ProfileView.as_view(),
+#        name='profile',
+#    ),
+    url(
+        regex=r'^account/two_factor/disable/?$',
+        view=twv.DisableView.as_view(),
+        name='disable',
+    ),
+]
+
+
 urlpatterns += [
     url(r'^translations/jsi18n/$', JavaScriptCatalog.as_view(), name='javascript-catalog'),
     url(r'^iprestrict/', include('iprestrict.urls')),
@@ -78,12 +133,12 @@ urlpatterns += [
 
     url(r'^admin/', include(admin.site.urls)),
 
+    url(r'', include(two_factor_auth_urls, 'two_factor')),
+
     # django.contrib.auth URLs listed expicitly so we can override some of them for custom behaviour
     # Kept the original urls commented out to have an easy view on which URLs are customised.
+    # Login is done by two_factor:login included above
 
-    # url(r'^login/$', auth_views.login, name='login'),
-    url(r'^login/?$', auth_views.login,
-        kwargs={'template_name': 'admin/login.html', 'authentication_form': RDRFAuthenticationForm}, name='login'),
     url(r'^logout/?$', auth_views.logout, name='logout'),
     url(r'^password_change/?$', auth_views.password_change, name='password_change'),
     url(r'^password_change/done/?$', auth_views.password_change_done, name='password_change_done'),

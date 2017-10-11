@@ -1,0 +1,16 @@
+
+{% extends "two_factor/_base_focus.html" %}
+{% load i18n %}
+
+{% block content %}
+  <div class="panel panel-default">
+    <div class="panel-heading">Enable Two-Factor Authentication</div>
+    <div class="panel-body">
+      <div class="row">
+        <div class="col-sm-12">
+          {% blocktrans %}Congratulations, you've successfully enabled two-factor authentication.{% endblocktrans %}
+        </div>
+      </div>
+    </div>
+  </div>
+{% endblock %}

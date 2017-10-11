@@ -131,7 +131,7 @@ def get_full_link(request, partial_link, login_link=False):
     if login_link:
         # return a redirect login
         # https://rdrf.ccgapps.com.au/ophg/login?next=/ophg/admin/
-        login_url = "/login?next=" + partial_link
+        login_url = "/account/login?next=" + partial_link
         return get_site_url(request, login_url)
     else:
         return get_site_url(request, partial_link)

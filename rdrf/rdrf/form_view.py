@@ -1477,7 +1477,7 @@ class CustomConsentFormView(View):
     def get(self, request, registry_code, patient_id, context_id=None):
         if not request.user.is_authenticated():
             consent_form_url = reverse('consent_form_view', args=[registry_code, patient_id])
-            login_url = reverse('login')
+            login_url = reverse('two_factor:login')
             return redirect("%s?next=%s" % (login_url, consent_form_url))
 
 
@@ -1587,7 +1587,7 @@ class CustomConsentFormView(View):
     def post(self, request, registry_code, patient_id, context_id=None):
         if not request.user.is_authenticated():
             consent_form_url = reverse('consent_form_view', args=[registry_code, patient_id, context_id])
-            login_url = reverse('login')
+            login_url = reverse('two_factor:login')
             return redirect("%s?next=%s" % (login_url, consent_form_url))
 
         registry_model = Registry.objects.get(code=registry_code)

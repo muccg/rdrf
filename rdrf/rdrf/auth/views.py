@@ -6,30 +6,63 @@ from django.contrib import messages
 from django.contrib.auth import get_user_model
 
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.signals import user_logged_in
 from django.contrib.auth.forms import SetPasswordForm
 
 from django.contrib.auth.tokens import default_token_generator
 from django.core.exceptions import ObjectDoesNotExist
+from django.dispatch import receiver
 from django.http import HttpResponseRedirect
 from django.shortcuts import resolve_url
 from django.template.response import TemplateResponse
 from django.urls import reverse
 from django.utils.encoding import force_text
+from django.utils.safestring import mark_safe
 from django.utils.http import urlsafe_base64_decode
 from django.utils.translation import ugettext as _
 from django.views.decorators.cache import never_cache
 from django.views.decorators.debug import sensitive_post_parameters
+
+from two_factor import views as tfv
+from two_factor.utils import default_device
 
 from useraudit.models import UserDeactivation
 from useraudit.password_expiry import is_password_expired
 
 from registry.patients.models import Patient, ParentGuardian
 
-from . import can_user_self_unlock
+from . import can_user_self_unlock, is_user_privileged
 from .forms import UserVerificationForm, RDRFSetPasswordForm, ReactivateAccountForm
 
 
 logger = logging.getLogger(__name__)
+
+
+@receiver(user_logged_in)
+def user_login_callback(sender, request=None, user=None, **kwargs):
+    if is_user_privileged(user) and not user.require_2_fact_auth and default_device(user) is None:
+        link = ('<a href="%(url)s" class="alert-link">' + _('click here') + '</a>') % {'url': reverse('two_factor:setup')}
+        msg = mark_safe(
+                _('We strongly recommend that you protect your account with Two-Factor authentication. '
+                  'Please %(link)s to set it up.') % {'link': link})
+
+        if msg not in [m.message for m in messages.get_messages(request)]:
+            messages.info(request, msg)
+
+
+# Customised Two Factor views
+
+
+@tfv.utils.class_view_decorator(never_cache)
+@tfv.utils.class_view_decorator(login_required)
+class QRGeneratorView(tfv.core.QRGeneratorView):
+    session_key_name = 'two_fact_auth_key'
+
+
+@tfv.utils.class_view_decorator(never_cache)
+@tfv.utils.class_view_decorator(login_required)
+class SetupView(tfv.core.SetupView):
+    session_key_name = 'two_fact_auth_key'
 
 
 # Doesn't need csrf_protect since no-one can guess the URL

@@ -41,8 +41,8 @@ class BaseConsentForm(forms.BaseForm):
                             pk=consent_section_pk)
                         questions.append(field)
         return (
-            "%s %s" %
-            (self.registry_model.code.upper(),
+            "%s" %
+            (
              _(consent_section_model.section_label)),
             questions)
 
