@@ -473,6 +473,7 @@ class Conv:
         "I": 3
     }
 
+
     NMDTechnique = {
         "MLPA": "MLPA",
         "Genomic DNA sequencing": "Genomic DNA sequencing",
@@ -496,6 +497,10 @@ class Conv:
     SMN1 = {'Homozygous': 'SMAHomozygous',
             'Heterozygous': 'SMAHeterozygous',
             'No': 'SMANo'}
+
+    SMN1_CHOICES  = {1: 'SMAHomozygous',
+                     2: 'SMAHeterozygous',
+                     3: 'SMANo'}
 
     GROUPS = {
         "Clinical Staff": RDRF_GROUPS.CLINICAL,
@@ -619,7 +624,7 @@ MULTISECTION_MAP = {
                                        "converter": Conv.NMDTechnique},
 
                          "exon_7_smn1_deletion": {"cde_code": "SMAExon7Deletion",
-                                                  "converter": Conv.SMN1},
+                                                  "converter": Conv.SMN1_CHOICES},
 
                          "exon_7_sequencing": {"cde_code": "SMAExon7Sequencing"},
 
@@ -887,14 +892,14 @@ class OldRegistryImporter(object):
     def _wire_up_family_members(self):
         for patient_model in Patient.objects.all():
             for family_member in self._get_family_members(patient_model,
-                                                          "ClinicalDiagnosis",
-                                                          "DMDFamilyMember",
+                                                          "ClinicalDiagnoses",
+                                                          "SMAFamilyMember",
                                                           "NMDRegistryPatient"):
                 new_id = patient_map.get(family_member.old_id, None)
                 if new_id:
                     self._update_family_member(family_member,
-                                               "ClinicalDiagnosis",
-                                               "DMDFamilyMember",
+                                               "ClinicalDiagnoses",
+                                               "SMAFamilyMember",
                                                "NMDRegistryPatient",
                                                new_id)
                 else:
@@ -906,7 +911,7 @@ class OldRegistryImporter(object):
         # PokeFieldExpression(GeneralisedFieldExpression):
         # "[pick|poke]/<FORMNAME>/<SECTIONCODE/2/CDECODE"
 
-        section_code = "DMDFamilyMember"
+        section_code = "SMAFamilyMember"
         cde_code = "NMDRegistryPatient"
         item_index = family_member.item_index
         patient_id = family_member.owning_rdrf_patient_id
@@ -937,7 +942,7 @@ class OldRegistryImporter(object):
 
         try:
             clinical_data = ClinicalData.objects.get(collection="cdes",
-                                                     registry_code="DMD",
+                                                     registry_code="SMA",
                                                      django_model="Patient",
                                                      django_id=patient_model.pk)
         except ClinicalData.DoesNotExist:
