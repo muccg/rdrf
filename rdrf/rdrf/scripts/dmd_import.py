@@ -1294,7 +1294,7 @@ class OldRegistryImporter(object):
             return []
 
         family_members = []
-        self.log("Starting to wire up family members for %s" % patient_model)
+        self.log("Starting to wire up family members for %s" % patient_model.pk)
         if clinical_data.data and "forms" in clinical_data.data:
             for form_dict in clinical_data.data["forms"]:
                 if form_dict["name"] == form_name:
@@ -1986,7 +1986,10 @@ class OldRegistryImporter(object):
         self.log("Updating diagnosis group currency for %s --> %s" % (patient_model.pk,
                                                                       old_timestamp))
         updated_dt = parse_iso_datetime(old_timestamp)
-        current =  updated_dt < ONE_YEAR_AGO
+        if updated_dt is None:
+            current = False
+        else:
+            current =  updated_dt < ONE_YEAR_AGO
 
         try:
             progress = ClinicalData.objects.get(collection="progess",
