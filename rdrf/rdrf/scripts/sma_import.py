@@ -413,6 +413,9 @@ AdminOnly: delete_query
 
 patient_map = {}
 
+diagnosis_currency_map = {}
+
+
 
 def delete_existing_models():
     def kill(klass):
@@ -1645,7 +1648,10 @@ class OldRegistryImporter(object):
         self.log("Updating diagnosis group currency for %s --> %s" % (patient_model.pk,
                                                                       old_timestamp))
         updated_dt = parse_iso_datetime(old_timestamp)
-        current =  updated_dt < ONE_YEAR_AGO
+        if updated_dt is None:
+            current = False
+        else:
+            current =  updated_dt < ONE_YEAR_AGO
 
         try:
             progress = ClinicalData.objects.get(collection="progess",
