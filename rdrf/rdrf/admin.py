@@ -351,74 +351,68 @@ class EmailNotificationHistoryAdmin(admin.ModelAdmin):
     resend.allow_tags = True
 
 
-class ContextFormGroupItemAdmin(admin.StackedInline):
-    model = ContextFormGroupItem
+if settings.DESIGN_MODE:
+    class ContextFormGroupItemAdmin(admin.StackedInline):
+        model = ContextFormGroupItem
 
 
-class ContextFormGroupAdmin(admin.ModelAdmin):
-    model = ContextFormGroup
-    list_display = ('name', 'registry')
-    inlines = [ContextFormGroupItemAdmin]
+    class ContextFormGroupAdmin(admin.ModelAdmin):
+        model = ContextFormGroup
+        list_display = ('name', 'registry')
+        inlines = [ContextFormGroupItemAdmin]
 
-    def registry(obj):
-        return obj.registry.name
-
+        def registry(obj):
+            return obj.registry.name
 
 admin.site.register(Registry, RegistryAdmin)
 admin.site.register(QuestionnaireResponse, QuestionnaireResponseAdmin)
-admin.site.register(
-    CDEPermittedValue,
-    create_restricted_model_admin_class(
+
+if settings.DESIGN_MODE:
+    admin.site.register(
         CDEPermittedValue,
-        ordering=['code'],
-        search_fields=[
-            'code',
-            'value',
-            'pv_group__code'],
-        list_display=[
-            'code',
-            'value',
-            'questionnaire_value_formatted',
-            'pvg_link',
-            'position_formatted']))
-admin.site.register(CDEPermittedValueGroup, CDEPermittedValueGroupAdmin)
-# admin.site.register(CDEPermittedValueGroup, create_restricted_model_admin_class(CDEPermittedValueGroup, ordering=['code'], search_fields=['code']))
-admin.site.register(
-    CommonDataElement,
-    create_restricted_model_admin_class(
+        create_restricted_model_admin_class(
+            CDEPermittedValue,
+            ordering=['code'],
+            search_fields=[
+                'code',
+                'value',
+                'pv_group__code'],
+            list_display=[
+                'code',
+                'value',
+                'questionnaire_value_formatted',
+                'pvg_link',
+                'position_formatted']))
+    
+    admin.site.register(CDEPermittedValueGroup, CDEPermittedValueGroupAdmin)
+    admin.site.register(
         CommonDataElement,
-        ordering=['code'],
-        search_fields=[
-            'code',
-            'name',
-            'datatype'],
-        list_display=[
-            'code',
-            'name',
-            'datatype',
-            'widget_name']))
-admin.site.register(RegistryForm, RegistryFormAdmin)
+        create_restricted_model_admin_class(
+            CommonDataElement,
+            ordering=['code'],
+            search_fields=[
+                'code',
+                'name',
+                'datatype'],
+            list_display=[
+                'code',
+                'name',
+                'datatype',
+                'widget_name']))
 
-admin.site.register(Section, SectionAdmin)
+    admin.site.register(RegistryForm, RegistryFormAdmin)
+    admin.site.register(Section, SectionAdmin)
+    admin.site.register(ConsentSection, ConsentSectionAdmin)
+    admin.site.register(CdePolicy, CdePolicyAdmin)
+    admin.site.register(ContextFormGroup, ContextFormGroupAdmin)
+    class CDEFileAdmin(admin.ModelAdmin):
+        model = CDEFile
+        list_display = ("form_name", "section_code", "cde_code", "item")
 
-admin.site.register(ConsentSection, ConsentSectionAdmin)
-
-admin.site.register(DemographicFields, DemographicFieldsAdmin)
-
-admin.site.register(CdePolicy, CdePolicyAdmin)
+    admin.site.register(CDEFile, CDEFileAdmin)
 
 admin.site.register(EmailNotification, EmailNotificationAdmin)
-
 admin.site.register(EmailTemplate, EmailTemplateAdmin)
-
 admin.site.register(EmailNotificationHistory, EmailNotificationHistoryAdmin)
-
-admin.site.register(ContextFormGroup, ContextFormGroupAdmin)
-
 admin.site.register(Notification, NotificationAdmin)
-
-class CDEFileAdmin(admin.ModelAdmin):
-    model = CDEFile
-    list_display = ("form_name", "section_code", "cde_code", "item")
-
-admin.site.register(CDEFile, CDEFileAdmin)
+admin.site.register(DemographicFields, DemographicFieldsAdmin)

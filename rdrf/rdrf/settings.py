@@ -417,6 +417,10 @@ LOGGING = {
     }
 }
 
+# Design Mode:
+# True means forms. sections, cdes can be edited in Django admin
+# False ( the default) means registry definition cannot be edited on site
+DESIGN_MODE = env.get('design_mode', False) 
 
 ############################################################################
 # Legacy Mongo Settings

@@ -332,6 +332,8 @@ class FormView(View):
         # we provide a "path" to the header field which contains an embedded Django template
         context["header"] = self.registry_form.header
         context["header_expression"] = "rdrf://model/RegistryForm/%s/header" % self.registry_form.pk
+        context["settings"] = settings
+        
 
         patient_info_component = RDRFPatientInfoComponent(self.registry, patient_model)
         
@@ -599,6 +601,7 @@ class FormView(View):
             "show_archive_button": request.user.can_archive if not self.CREATE_MODE else False,
             "context_launcher": context_launcher.html,
             "have_dynamic_data": all_sections_valid,
+            'settings': settings,
         }
 
         if request.user.is_parent:
@@ -766,6 +769,7 @@ class FormView(View):
             "metadata_json_for_sections": self._get_metadata_json_dict(self.registry_form),
             "has_form_progress": self.registry_form.has_progress_indicator,
             "have_dynamic_data": bool(self.dynamic_data),
+            "settings": settings,
         }
 
         if not self.registry_form.is_questionnaire and self.registry_form.has_progress_indicator:

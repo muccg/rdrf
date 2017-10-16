@@ -188,7 +188,7 @@
                 <div class="panel panel-default">
     
                     <div class="panel-heading">
-                        {% if request.user.is_superuser %}
+                        {% if request.user.is_superuser and settings.DESIGN_MODE %}
                             <a target="_blank" href="{% url 'admin:rdrf_section_change' section_ids|get_section_id:s %}"><strong>{{display_names|get_display_name:s}}</strong></a>
                         {% else %}
                             <strong>{{display_names|get_display_name:s}}</strong>

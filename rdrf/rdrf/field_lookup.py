@@ -14,6 +14,7 @@ from .models import CommonDataElement
 
 from django.utils.functional import lazy
 from django.utils.translation import ugettext_lazy as _
+from django.conf import settings
 import collections
 
 mark_safe_lazy = lazy(mark_safe, str)
@@ -119,6 +120,8 @@ class FieldFactory(object):
             return self._get_cde_link(q_field_text) if self.is_superuser else q_field_text
 
     def _get_cde_link(self, name):
+        if not settings.DESIGN_MODE:
+            return name
         cde_url = reverse('admin:rdrf_commondataelement_change', args=[self.cde.code])
         label_link = mark_safe_lazy("<a target='_blank' href='%s'>%s</a>" % (cde_url, name))
         return label_link

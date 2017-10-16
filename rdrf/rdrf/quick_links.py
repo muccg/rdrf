@@ -2,6 +2,7 @@ from collections import OrderedDict
 from django.core.urlresolvers import reverse
 from django.utils.translation import ugettext_lazy as _
 from django.urls.exceptions import NoReverseMatch
+from django.conf import settings
 
 from registry.groups import GROUPS as RDRF_GROUPS
 
@@ -39,20 +40,11 @@ class Links:
     Users = QuickLink(reverse("admin:groups_customuser_changelist"), _('Users'))
     WorkingGroups = QuickLink(reverse("admin:groups_workinggroup_changelist"), _("Working Groups"))
     Registries = QuickLink(reverse("admin:rdrf_registry_changelist"), _("Registries"))
-    RegistryForms = QuickLink(reverse("admin:rdrf_registryform_changelist"), _("Registry Forms"))
-    Sections = QuickLink(reverse("admin:rdrf_section_changelist"), _("Registry Sections"))
-    DataElements = QuickLink(reverse("admin:rdrf_commondataelement_changelist"), _("Registry Common Data Elements"))
-    PermissibleValueGroups = QuickLink(reverse("admin:rdrf_cdepermittedvaluegroup_changelist"),
-                                       _("Registry Permissible Value Groups"))
-    PermissibleValues = QuickLink(reverse("admin:rdrf_cdepermittedvalue_changelist"), _("Registry Permissible Values"))
-    ConsentSections = QuickLink(reverse("admin:rdrf_consentsection_changelist"), _("Registry Consent Sections"))
-    ConsentValues = QuickLink(reverse("admin:patients_consentvalue_changelist"), _("Registry Consent Values"))
-    DemographicsFields = QuickLink(reverse("admin:rdrf_demographicfields_changelist"), _("Registry Demographics Fields"))
+
     Importer = QuickLink(reverse("import_registry"), _("Importer"))
     Groups = QuickLink(reverse("admin:auth_group_changelist"), _("Groups"))
     NextOfKinRelationship = QuickLink(reverse("admin:patients_nextofkinrelationship_changelist"),
                                       _("Next of Kin Relationship"))
-    CdePolicy = QuickLink(reverse("admin:rdrf_cdepolicy_changelist"), _("Registry Common Data Elements Policy"))
     States = QuickLink(reverse("admin:patients_state_changelist"), _("States"))
     ClinicianOther = QuickLink(reverse("admin:patients_clinicianother_changelist"), _("Other Clinicians"))
     EmailNotification = QuickLink(reverse("admin:rdrf_emailnotification_changelist"), _("Email Notifications"))
@@ -70,7 +62,23 @@ class Links:
     IPRestrictRule = QuickLink(reverse("admin:iprestrict_rule_changelist"), _("IP Restrict Rules"))
     Sites = QuickLink(reverse("admin:sites_site_changelist"), _("Sites"))
     ParentGuardian = QuickLink(reverse("admin:patients_parentguardian_changelist"), _("Parents/Guardians"))
-    ContextFormGroups = QuickLink(reverse("admin:rdrf_contextformgroup_changelist"), _("Registry Context Form Groups"))
+
+    Doctors = QuickLink(reverse("admin:patients_doctor_changelist"), _("Doctors"))
+    DemographicsFields = QuickLink(reverse("admin:rdrf_demographicfields_changelist"), _("Registry Demographics Fields"))
+
+
+    if settings.DESIGN_MODE:
+        RegistryForms = QuickLink(reverse("admin:rdrf_registryform_changelist"), _("Registry Forms"))
+        Sections = QuickLink(reverse("admin:rdrf_section_changelist"), _("Registry Sections"))
+        DataElements = QuickLink(reverse("admin:rdrf_commondataelement_changelist"), _("Registry Common Data Elements"))
+        PermissibleValueGroups = QuickLink(reverse("admin:rdrf_cdepermittedvaluegroup_changelist"),
+                                           _("Registry Permissible Value Groups"))
+        PermissibleValues = QuickLink(reverse("admin:rdrf_cdepermittedvalue_changelist"), _("Registry Permissible Values"))
+        ConsentSections = QuickLink(reverse("admin:rdrf_consentsection_changelist"), _("Registry Consent Sections"))
+        ConsentValues = QuickLink(reverse("admin:patients_consentvalue_changelist"), _("Registry Consent Values"))
+        CdePolicy = QuickLink(reverse("admin:rdrf_cdepolicy_changelist"), _("Registry Common Data Elements Policy"))
+        ContextFormGroups = QuickLink(reverse("admin:rdrf_contextformgroup_changelist"), _("Registry Context Form Groups"))
+        
 
     # related links are grouped or convenience
     AUDITING = {
@@ -95,29 +103,42 @@ class Links:
             IPRestrictGeoGroup.text: IPRestrictGeoGroup,
             IPRestrictRule.text: IPRestrictRule
             }
-    OTHER = {
-            Sites.text: Sites,
-            Groups.text: Groups,
-            Importer.text: Importer,
-            DemographicsFields.text: DemographicsFields,
-            NextOfKinRelationship.text: NextOfKinRelationship,
-            ArchivedPatients.text: ArchivedPatients,
-            }
+    if settings.DESIGN_MODE:
+        OTHER = {
+                Sites.text: Sites,
+                Groups.text: Groups,
+                Importer.text: Importer,
+                DemographicsFields.text: DemographicsFields,
+                NextOfKinRelationship.text: NextOfKinRelationship,
+                ArchivedPatients.text: ArchivedPatients,
+                }
+    else:
+        OTHER = {
+                Sites.text: Sites,
+                Groups.text: Groups,
+                DemographicsFields.text: DemographicsFields,
+                Importer.text: Importer,
+                NextOfKinRelationship.text: NextOfKinRelationship,
+                ArchivedPatients.text: ArchivedPatients,
+                }
+        
     EXPLORER = {
             Explorer.text: Explorer,
             }
-    REGISTRY_DESIGN = {
-            Registries.text: Registries,
-            RegistryForms.text: RegistryForms,
-            Sections.text: Sections,
-            DataElements.text: DataElements,
-            CdePolicy.text: CdePolicy,
-            PermissibleValueGroups.text: PermissibleValueGroups,
-            PermissibleValues.text: PermissibleValues,
-            ConsentSections.text: ConsentSections,
-            ConsentValues.text: ConsentValues,
-            ContextFormGroups.text: ContextFormGroups,
-            }
+
+    if settings.DESIGN_MODE:
+        REGISTRY_DESIGN = {
+                          Registries.text: Registries,
+                          RegistryForms.text: RegistryForms,
+                          Sections.text: Sections,
+                          DataElements.text: DataElements,
+                          CdePolicy.text: CdePolicy,
+                          PermissibleValueGroups.text: PermissibleValueGroups,
+                          PermissibleValues.text: PermissibleValues,
+                          ConsentSections.text: ConsentSections,
+                          ConsentValues.text: ConsentValues,
+                          ContextFormGroups.text: ContextFormGroups,
+                          }
     REPORTING = {
             Reports.text: Reports,
             }
@@ -244,7 +265,27 @@ class QuickLinks(object):
                 }
 
         # menu with everything, used for the admin page
-        MenuConfig().all = {
+        if not settings.DESIGN_MODE:
+            MenuConfig().all = {
+                **Links.AUDITING,
+                **Links.CONSENT,
+                **Links.DATA_ENTRY,
+                **Links.DOCTORS,
+                **Links.EMAIL,
+                **Links.FAMILY_LINKAGE,
+                **Links.GENETIC,
+                **Links.IP_RESTRICT,
+                **Links.OTHER,
+                **Links.PERMISSIONS,
+                **Links.QUESTIONNAIRE,
+                **Links.REGISTRATION,
+                **Links.REPORTING,
+                **Links.STATE_MANAGEMENT,
+                **Links.USER_MANAGEMENT,
+                **Links.WORKING_GROUPS,
+                }
+        else:
+            MenuConfig().all = {
                 **Links.AUDITING,
                 **Links.CONSENT,
                 **Links.DATA_ENTRY,
@@ -263,6 +304,7 @@ class QuickLinks(object):
                 **Links.USER_MANAGEMENT,
                 **Links.WORKING_GROUPS,
                 }
+            
 
     def _group_links(self, group):
         # map RDRF user groups to quick links menu sets
@@ -284,6 +326,7 @@ class QuickLinks(object):
         # enable dynamic links and build the menu
         self._consent_links()
         self._family_linkage_links()
+        self._doctors_link()
         self._questionnaire_links()
         self._permission_matrix_links()
         self._registration_links()
@@ -312,6 +355,14 @@ class QuickLinks(object):
             if registry.has_feature('registration'):
                 Links.REGISTRATION = Links.ENABLED_REGISTRATION
                 break
+            else:
+                Links.DOCTORS = Links.ENABLED_DOCTORS
+
+
+    def _doctors_link(self):
+        pass
+
+                
 
     def _questionnaire_links(self):
         # enable questionnaire links if any registry uses questionnaires
