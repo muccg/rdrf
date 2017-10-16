@@ -325,8 +325,8 @@ class QuickLinks(object):
 
         # enable dynamic links and build the menu
         self._consent_links()
-        self._family_linkage_links()
         self._doctors_link()
+        self._family_linkage_links()
         self._questionnaire_links()
         self._permission_matrix_links()
         self._registration_links()
@@ -355,14 +355,12 @@ class QuickLinks(object):
             if registry.has_feature('registration'):
                 Links.REGISTRATION = Links.ENABLED_REGISTRATION
                 break
-            else:
-                Links.DOCTORS = Links.ENABLED_DOCTORS
-
 
     def _doctors_link(self):
-        pass
-
-                
+        for registry in self._registries:
+            if registry.has_feature("doctors_list"):
+                Links.DOCTORS = Links.ENABLED_DOCTORS
+                break
 
     def _questionnaire_links(self):
         # enable questionnaire links if any registry uses questionnaires

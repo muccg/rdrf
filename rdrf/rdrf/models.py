@@ -134,6 +134,31 @@ class Registry(models.Model):
     def natural_key(self):
         return (self.code, )
 
+    def add_feature(self, feature):
+        metadata = self.metadata
+        features = metadata.get("features", [])
+        if feature not in features:
+            features.append(feature)
+            metadata["features"] = features
+            self.metadata_json = json.dumps(metadata)
+
+    def remove_feature(self, feature):
+        metadata = self.metadata
+        features = metadata.get("features", [])
+        features.remove(feature)
+        metadata["features"] = features
+        self.metadata_json = json.dumps(metadata)
+
+    @property
+    def features(self):
+        return self.metadata.get("features", [])
+            
+    @features.setter
+    def features(self, features):
+        metadata = self.metadata
+        metadata["features"] = features
+        self.metadata_json = json.dumps(metadata)
+    
     @property
     def registry_type(self):
         if not self.has_feature("contexts"):
