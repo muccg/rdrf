@@ -84,6 +84,7 @@ class PatientsListingView(View):
         return [
             ColumnFullName(_("Patient"), "patients.can_see_full_name"),
             ColumnDateOfBirth(_("Date of Birth"), "patients.can_see_dob"),
+            ColumnPatientType(_("Patient Type"), "patients.can_see_patient_type"),
             ColumnWorkingGroups(_("Working Groups"), "patients.can_see_working_groups"),
             ColumnDiagnosisProgress(_("Diagnosis Entry Progress"), "patients.can_see_diagnosis_progress"),
             ColumnDiagnosisCurrency(_("Updated < 365 days"), "patients.can_see_diagnosis_currency"),
@@ -411,6 +412,18 @@ class ColumnDateOfBirth(Column):
 
     def fmt(self, val):
         return val.strftime("%d-%m-%Y") if val is not None else ""
+
+
+class ColumnPatientType(Column):
+    field = "patient_type"
+
+    def fmt(self, val):
+        if val == "carrier":
+            return "C"
+        elif val == "deceased":
+            return "D"
+        else:
+            return "N"
 
 
 class ColumnNonContexts(Column):
