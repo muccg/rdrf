@@ -188,6 +188,13 @@ class PatientForm(forms.ModelForm):
         self.fields["clinician"].queryset = CustomUser.objects.filter(
             id__in=clinicians_filtered)
 
+        # clinicians field should only be visible for registries which
+        # support linking of patient to an "owning" clinician
+        if self.registry_model:
+            if not self.registry_model.has_feature("clinicians_have_patients"):
+                self.fields["clinician"].widget = forms.HiddenInput()
+                
+
         registries = Registry.objects.all()
         if self.registry_model:
             registries = registries.filter(id=self.registry_model.id)
