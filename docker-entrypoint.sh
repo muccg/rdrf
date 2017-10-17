@@ -54,9 +54,6 @@ function wait_for_services {
     if [[ "$WAIT_FOR_RUNSERVER" ]] ; then
         dockerwait "$RUNSERVER" "$RUNSERVERPORT"
     fi
-    if [[ "$WAIT_FOR_MONGO" ]] ; then
-        dockerwait "$MONGOSERVER" "$MONGOPORT"
-    fi
     if [[ "$WAIT_FOR_HOST_PORT" ]]; then
         dockerwait "$DOCKER_ROUTE" "$WAIT_FOR_HOST_PORT"
     fi
@@ -90,8 +87,6 @@ function defaults {
     : "${CACHESERVER:=cache}"
     : "${CACHEPORT:=11211}"
     : "${MEMCACHE:=${CACHESERVER}:${CACHEPORT}}"
-    : "${MONGOSERVER:=mongo}"
-    : "${MONGOPORT:=27017}"
 
     # variables to control where tests will look for the app (aloe via selenium hub)
     : "${TEST_APP_SCHEME:=http}"
@@ -106,7 +101,7 @@ function defaults {
 
     : "${DJANGO_FIXTURES:=none}"
 
-    export DBSERVER DBPORT DBUSER DBNAME DBPASS MONGOSERVER MONGOPORT MEMCACHE DOCKER_ROUTE
+    export DBSERVER DBPORT DBUSER DBNAME DBPASS MEMCACHE DOCKER_ROUTE
     export CLINICAL_DBSERVER CLINICAL_DBPORT CLINICAL_DBUSER CLINICAL_DBNAME CLINICAL_DBPASS
     export TEST_APP_URL TEST_APP_SCHEME TEST_APP_HOST TEST_APP_PORT TEST_APP_PATH TEST_BROWSER TEST_WAIT TEST_SELENIUM_HUB
     export DJANGO_FIXTURES
