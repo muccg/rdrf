@@ -21,11 +21,6 @@ services:
       file: docker-compose-common.yml
       service: cache
 
-  mongotest:
-    extends:
-      file: docker-compose-common.yml
-      service: mongo
-
   runservertest:
     extends:
       file: docker-compose-common.yml
@@ -39,11 +34,9 @@ services:
       - CACHESERVER=cachetest
       - DBSERVER=dbtest
       - CLINICAL_DBSERVER=dbclinicaltest
-      - MONGOSERVER=mongotest
     depends_on:
       - dbtest
       - dbclinicaltest
       - cachetest
-      - mongotest
     ports:
       - "18000:8000"

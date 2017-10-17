@@ -1,3 +1,0 @@
-#!/bin/sh
-#python whack.py
-python patient_importer.py dmd /data/testimport/dumpsdmd DMD /data/testimport/migration_map_dmd.json

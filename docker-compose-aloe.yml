@@ -19,7 +19,6 @@ services:
       - WAIT_FOR_RUNSERVER=1
       - WAIT_FOR_DB=1
       - WAIT_FOR_CLINICAL_DB=1
-      - WAIT_FOR_MONGO=1
       - TEST_WAIT=10
       - TEST_BROWSER=chrome
       - DEBUG=0
@@ -27,7 +26,6 @@ services:
       - CLINICAL_DBSERVER=dbclinicaltest
       - DBSERVER=dbtest
       - CACHESERVER=cachetest
-      - MONGOSERVER=mongotest
     volumes_from:
       - datadevselenium
 
@@ -39,7 +37,6 @@ services:
       - WAIT_FOR_UWSGI=1
       - WAIT_FOR_DB=1
       - WAIT_FOR_CLINICAL_DB=1
-      - WAIT_FOR_MONGO=1
       - TEST_APP_HOST=nginxtest
       - TEST_APP_PORT=443
       - TEST_APP_SCHEME=https
@@ -51,7 +48,6 @@ services:
       - CLINICAL_DBSERVER=dbclinicaltest
       - DBSERVER=dbtest
       - CACHESERVER=cachetest
-      - MONGOSERVER=mongotest
       - UWSGISERVER=uwsgitest
     volumes_from:
       - dataprodselenium

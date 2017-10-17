@@ -23,11 +23,6 @@ services:
       file: docker-compose-common.yml
       service: cache
 
-  mongo:
-    extends:
-      file: docker-compose-common.yml
-      service: mongo
-
   nginx:
     extends:
       file: docker-compose-common.yml
@@ -44,7 +39,6 @@ services:
     depends_on:
       - db
       - cache
-      - mongo
       - jasper
     ports:
       - "8000:8000"
@@ -57,6 +51,5 @@ services:
     depends_on:
       - db
       - cache
-      - mongo
       - runserver
       - jasper

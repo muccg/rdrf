@@ -3,11 +3,7 @@ from __future__ import unicode_literals
 from django.db import migrations
 from rdrf.migration_utils import ClinicalDBRunPython
 
-try:
-    from ..management.commands.mongo_django import mongo_django, undjango_mongo
-except ImportError:
-    # pymongo unavailable
-    mongo_django = undjango_mongo = None
+mongo_django = undjango_mongo = None
 
 def copy_collections(apps, schema_editor):
     Modjgo = apps.get_model("rdrf", "Modjgo")

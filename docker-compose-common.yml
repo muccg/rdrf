@@ -50,10 +50,6 @@ services:
   cache:
     image: memcached:1.4
 
-  mongo:
-    image: mongo:3.0
-    command: mongod --smallfiles
-
   triplestore:
     image: muccg/allegro:4.14.1
     ports:
@@ -73,7 +69,6 @@ services:
       - WAIT_FOR_DB=1
       - WAIT_FOR_CLINICAL_DB=1
       - WAIT_FOR_CACHE=1
-      - WAIT_FOR_MONGO=1
       - DJANGO_MAILGUN_API_KEY=${DJANGO_MAILGUN_API_KEY}
 
   uwsgi:
@@ -83,7 +78,6 @@ services:
       - WAIT_FOR_DB=1
       - WAIT_FOR_CLINICAL_DB=1
       - WAIT_FOR_CACHE=1
-      - WAIT_FOR_MONGO=1
       - WAIT_FOR_RUNSERVER=1
       # note: important to wait for runserver in dev as both will attempt to syncdb etc
     ports:

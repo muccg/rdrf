@@ -422,31 +422,6 @@ LOGGING = {
 # False ( the default) means registry definition cannot be edited on site
 DESIGN_MODE = env.get('design_mode', False) 
 
-############################################################################
-# Legacy Mongo Settings
-################################################################################
-
-MONGOSERVER = env.get("mongoserver", "localhost")
-MONGOPORT = env.get("mongoport", 27017)
-MONGO_DB_PREFIX = env.get("mongo_db_prefix", "")
-
-MONGO_CLIENT_MAX_POOL_SIZE = env.get("mongo_max_pool_size", 100)
-MONGO_CLIENT_TZ_AWARE = env.get("mongo_client_tz_aware", False)
-MONGO_CLIENT_CONNECT = env.get("mongo_client_connect", True)
-
-MONGO_CLIENT_SOCKET_TIMEOUT_MS = env.get("mongo_client_socket_timeout_ms", "") or None
-MONGO_CLIENT_CONNECT_TIMEOUT_MS = env.get("mongo_client_connect_timeout_ms", 20000)
-MONGO_CLIENT_WAIT_QUEUE_TIMEOUT_MS = env.get("mongo_client_wait_queue_timeout_ms", "") or None
-MONGO_CLIENT_WAIT_QUEUE_MULTIPLE = env.get("mongo_client_wait_queue_multiple", "") or None
-MONGO_CLIENT_SOCKET_KEEP_ALIVE = env.get("mongo_client_socket_keep_alive", False)
-
-MONGO_CLIENT_SSL = env.get("mongo_client_ssl", False)
-MONGO_CLIENT_SSL_KEYFILE = env.get("mongo_client_ssl_keyfile", "") or None
-MONGO_CLIENT_SSL_CERTFILE = env.get("mongo_client_ssl_certfile", "") or None
-MONGO_CLIENT_SSL_CERT_REQS = env.get("mongo_client_ssl_cert_reqs", "") or ssl.CERT_NONE
-MONGO_CLIENT_SSL_CA_CERTS = env.get("mongo_client_ssl_ca_certs", "") or None
-
-
 ################################################################################
 # Customize settings for each registry below
 ################################################################################

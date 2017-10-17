@@ -47,7 +47,7 @@ class ColumnLabeller(object):
                 dontcare, form_pk, section_pk, cde_code, column_index = column_name.split(
                     "_")
             elif num_parts == 1:
-                # non clinical/mongo field
+                # non clinical field
                 return self._get_sql_field_label(column_name)
             else:
                 return column_name
@@ -159,9 +159,9 @@ class ReportingTableGenerator(object):
         self.columns = []
         self._create_sql_columns(sql_metadata)
         self._create_must_exist_columns()
-        self.col_map = self._create_mongo_columns(mongo_metadata)
+        self.col_map = self._create_clinical_columns(mongo_metadata)
 
-    def _create_mongo_columns(self, mongo_metadata):
+    def _create_clinical_columns(self, mongo_metadata):
         # FH-22 ...
         # given triples of form_model, section_model and cde_models + a column name
         # create the correctly typed column in postgres
@@ -243,7 +243,7 @@ class ReportingTableGenerator(object):
                 logger.info("There are %s mongo derived columns" %
                             len(self.column_names))
                 for i, column_name in enumerate(self.column_names):
-                    logger.info("MONGO COLUMN %s %s" % (i, column_name))
+                    logger.info("CLINICAL COLUMN %s %s" % (i, column_name))
                 logger.info("*******************************")
 
             def add(self, column_op):
