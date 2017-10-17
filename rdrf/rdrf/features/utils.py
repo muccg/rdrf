@@ -34,7 +34,7 @@ def reset_last_login_date():
     from registry.groups.models import CustomUser
     from django.utils import timezone
     CustomUser.objects.update(last_login=timezone.now())
-    
+
 
 
 def subprocess_logging(command):
@@ -47,15 +47,6 @@ def subprocess_logging(command):
     if p.returncode != 0:
         logger.error("Return code {0}".format(p.returncode))
     return (p.returncode, str(stdout), str(stderr))
-
-
-def drop_all_mongo():
-    logger.info("Dropping all mongo databases")
-    cmd = "db.getMongo().getDBNames().forEach(function(i){db.getSiblingDB(i).dropDatabase()})"
-    try:
-        subprocess_logging(["mongo", "--host", settings.MONGOSERVER, "--eval", cmd])
-    except subprocess.CalledProcessError:
-        logger.exception("Dropping mongo databases failed")
 
 
 def reset_database_connection():
@@ -112,7 +103,6 @@ def save_snapshot(snapshot_name):
 
 def save_minimal_snapshot():
     # delete everything so we can import clean later
-    drop_all_mongo()
     django_flush()
     django_flush(['--database', 'clinical'])
     django_migrate()
@@ -219,7 +209,7 @@ def scroll_to_multisection_cde(section, cde, item=1):
     xpath = "//div[@class='panel-heading' and contains(., '%s')]" % section
     default_panel = world.browser.find_element_by_xpath(xpath).find_element_by_xpath("..")
     label_expression = ".//label[contains(., '%s')]" % cde
-    
+
     for label_element in default_panel.find_elements_by_xpath(label_expression):
         print("found a label element for cde %s" % cde)
         input_div = label_element.find_element_by_xpath(".//following-sibling::div")
@@ -246,7 +236,7 @@ def scroll_to_cde(section, cde):
         ".//div[@class='panel-heading'][contains(., '%s') and not(contains(.,'__prefix__'))]" % section)
 
     section_div = section_div_heading.find_element_by_xpath("..")
-    
+
     label_expression = ".//label[contains(., '%s')]" % cde
     label_element = section_div.find_element_by_xpath(label_expression)
     input_div = label_element.find_element_by_xpath(".//following-sibling::div")
@@ -263,7 +253,7 @@ def scroll_to_cde(section, cde):
                     input_element = ie
                     break
             raise Exception("Could not locate section %s input %s item %s" % (section, cde, item))
-            
+
     if not input_element:
         raise Exception("could not locate element to scroll to")
     input_id = input_element.get_attribute("id")
