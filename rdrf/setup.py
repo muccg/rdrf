@@ -28,7 +28,6 @@ requirements=[
      "psycopg2==2.7.3",
      "pycountry==1.20",
      "pyinotify==0.9.6",
-     "pymongo==2.9.3",
      "pyodbc==3.0.7",
      "pyparsing==2.1.10",
      "python-dateutil==2.5.3",

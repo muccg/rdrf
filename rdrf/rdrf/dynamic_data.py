@@ -737,12 +737,6 @@ class DynamicDataWrapper(object):
         return form_progress.save_progress(self.obj, dynamic_data, context_model)
 
     def _convert_date_to_datetime(self, data):
-        """
-        pymongo doesn't allow saving datetime.Date
-
-        :param data: dictionary of CDE codes --> values
-        :return:
-        """
         if isinstance(data, list):
             for x in data:
                 self._convert_date_to_datetime(x)
