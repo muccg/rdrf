@@ -84,7 +84,8 @@ class PatientsListingView(View):
         return [
             ColumnFullName(_("Patient"), "patients.can_see_full_name"),
             ColumnDateOfBirth(_("Date of Birth"), "patients.can_see_dob"),
-            ColumnPatientType(_("Patient Type"), "patients.can_see_patient_type"),
+            ColumnPatientType(_("Type"), "patients.can_see_type"),
+            ColumnPatientGender(_("Gender"), "patients.can_see_gender"),
             ColumnWorkingGroups(_("Working Groups"), "patients.can_see_working_groups"),
             ColumnDiagnosisProgress(_("Diagnosis Entry Progress"), "patients.can_see_diagnosis_progress"),
             ColumnDiagnosisCurrency(_("Updated < 365 days"), "patients.can_see_diagnosis_currency"),
@@ -416,14 +417,30 @@ class ColumnDateOfBirth(Column):
 
 class ColumnPatientType(Column):
     field = "patient_type"
+    sort_fields = ["patient_type"]
 
     def fmt(self, val):
+        logger.debug(val)
+
         if val == "carrier":
             return "C"
         elif val == "deceased":
             return "D"
         else:
-            return "N"
+            return ""
+
+
+class ColumnPatientGender(Column):
+    field = "sex"
+    sort_fields = ["sex"]
+
+    def fmt(self, val):
+        if val == "1":
+            return "Male"
+        elif val == "2":
+            return "Female"
+        else:
+            return "Indeterminate"
 
 
 class ColumnNonContexts(Column):
