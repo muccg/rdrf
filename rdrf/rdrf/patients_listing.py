@@ -84,8 +84,7 @@ class PatientsListingView(View):
         return [
             ColumnFullName(_("Patient"), "patients.can_see_full_name"),
             ColumnDateOfBirth(_("Date of Birth"), "patients.can_see_dob"),
-            ColumnPatientType(_("Type"), "patients.can_see_type"),
-            ColumnPatientGender(_("Gender"), "patients.can_see_gender"),
+            ColumnCodeField(_("Code Field"), "patients.can_see_code_field"),
             ColumnWorkingGroups(_("Working Groups"), "patients.can_see_working_groups"),
             ColumnDiagnosisProgress(_("Diagnosis Entry Progress"), "patients.can_see_diagnosis_progress"),
             ColumnDiagnosisCurrency(_("Updated < 365 days"), "patients.can_see_diagnosis_currency"),
@@ -229,26 +228,17 @@ class PatientsListingView(View):
         return context_model
 
     def apply_custom_ordering(self, qs):
-        logger.debug("___CUSTOM_SORTING___")
-
         key_func = [col.sort_key(self.supports_contexts, self.form_progress, self.rdrf_context_manager)
                     for col in self.columns
                     if col.field == self.sort_field and col.sort_key and not col.sort_fields]
 
-        logger.debug("$$${0}".format(key_func))
-
         if key_func:
-
-            logger.debug("___KEY_FUNC___")
-
             # we have to retrieve all rows - otherwise , queryset has already been
             # ordered on base model
             k = key_func[0]
 
             def key_func_wrapper(thing):
                 value = k(thing)
-
-                logger.debug("###{0}".format(value))
 
                 if value is None:
                     return self.bottom
@@ -363,13 +353,8 @@ class Column(object):
     def sort_key(self, supports_contexts=False,
                  form_progress=None, context_manager=None):
 
-        logger.debug("___COLUMN SORT_KEY___")
-
         def sort_func(patient):
             value = self.cell(patient, supports_contexts, form_progress, context_manager)
-            
-            logger.debug("<<<{0}".format(value))
-
             if value is None:
                 return self.bottom
             else:
@@ -430,49 +415,9 @@ class ColumnDateOfBirth(Column):
         return val.strftime("%d-%m-%Y") if val is not None else ""
 
 
-class ColumnPatientType(Column):
-    field = "patient_type"
-    sort_fields = ["patient_type"]
-
-    # def sort_key(self, supports_contexts=False,
-    #              form_progress=None, context_manager=None):
-
-    #     def sort_func(patient):
-    #         value = self.cell(patient, supports_contexts, form_progress, context_manager)
-
-    #         logger.debug(value)
-
-    #         if value is None:
-    #             return self.bottom
-    #         elif value is "":
-    #             return self.bottom
-    #         else:
-    #             return value
-
-    #     return sort_func
-
-    def fmt(self, val):
-        logger.debug(">>>{0}".format(val))
-
-        if val == "carrier":
-            return "C"
-        elif val == "deceased":
-            return "D"
-        else:
-            return ""
-
-
-class ColumnPatientGender(Column):
-    field = "sex"
-    sort_fields = ["sex"]
-
-    def fmt(self, val):
-        if val == "1":
-            return "Male"
-        elif val == "2":
-            return "Female"
-        else:
-            return "Indeterminate"
+class ColumnCodeField(Column):
+    field = 'code_field'
+    sort_fields = []
 
 
 class ColumnNonContexts(Column):
@@ -490,12 +435,8 @@ class ColumnNonContexts(Column):
     def sort_key(self, supports_contexts=False,
                  form_progress=None, context_manager=None):
 
-        logger.debug("___COLUMN NON CONTEXT___")
-
         def sk(patient):
             value = self.cell(patient, supports_contexts, form_progress, context_manager)
-            
-            logger.debug("___COLUMN NON CONTEXT___{0}".format(value))
 
             if value is None:
                 return self.bottom
@@ -594,7 +535,4 @@ class ColumnContextMenu(Column):
         return button.html
 
     def sort_key(self, *args, **kwargs):
-
-        logger.debug("___COL CTX MENU___")
-
         return None
