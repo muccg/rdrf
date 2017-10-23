@@ -262,19 +262,14 @@ class Patient(models.Model):
 
     @property
     def code_field(self):
-        gender_string = ""
+        gender_options = {"1": "Male",
+                          "2": "Female",
+                          "3": "Indeterminate"}
 
-        if self.sex == "1":
-            gender_string = "Male"
-        elif self.sex == "2":
-            gender_string = "Female"
-        elif self.sex == "3":
-            gender_string = "Indeterminate"
-        else:
-            gender_string = "Error" # There should be a gender for each patient type
+        gender_string = gender_options[self.sex]
 
         if self.patient_type is not None:
-            patient_type_string = self.patient_type.capitalize()
+            patient_type_string = _(self.patient_type.capitalize())
 
             return_str = str("{0} {1}".format(gender_string, patient_type_string))
             return return_str
