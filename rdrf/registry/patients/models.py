@@ -262,9 +262,9 @@ class Patient(models.Model):
 
     @property
     def code_field(self):
-        gender_options = {"1": "Male",
-                          "2": "Female",
-                          "3": "Indeterminate"}
+        gender_options = {"1": _("Male"),
+                          "2": _("Female"),
+                          "3": _("Indeterminate")}
 
         gender_string = gender_options[self.sex]
 
