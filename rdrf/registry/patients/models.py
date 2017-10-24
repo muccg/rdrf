@@ -18,7 +18,7 @@ from rdrf.hooking import run_hooks
 import registry.groups.models
 from registry.utils import get_working_groups, get_registries, stripspaces
 from registry.groups.models import CustomUser
-from django.utils.translation import ugettext as _
+from django.utils.translation import ugettext_lazy as _
 
 
 import logging
