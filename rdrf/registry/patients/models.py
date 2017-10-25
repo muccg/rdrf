@@ -258,6 +258,7 @@ class Patient(models.Model):
             ("can_see_diagnosis_currency", _("Can see Diagnosis Currency column")),
             ("can_see_genetic_data_map", _("Can see Genetic Module column")),
             ("can_see_data_modules", _("Can see Data Modules column")),
+            ("can_see_code_field", _("Can see Code Field column"))
         )
 
     @property
