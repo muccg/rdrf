@@ -84,6 +84,7 @@ class PatientsListingView(View):
         return [
             ColumnFullName(_("Patient"), "patients.can_see_full_name"),
             ColumnDateOfBirth(_("Date of Birth"), "patients.can_see_dob"),
+            ColumnCodeField(_("Code Field"), "patients.can_see_code_field"),
             ColumnWorkingGroups(_("Working Groups"), "patients.can_see_working_groups"),
             ColumnDiagnosisProgress(_("Diagnosis Entry Progress"), "patients.can_see_diagnosis_progress"),
             ColumnDiagnosisCurrency(_("Updated < 365 days"), "patients.can_see_diagnosis_currency"),
@@ -238,6 +239,7 @@ class PatientsListingView(View):
 
             def key_func_wrapper(thing):
                 value = k(thing)
+
                 if value is None:
                     return self.bottom
                 else:
@@ -413,6 +415,11 @@ class ColumnDateOfBirth(Column):
         return val.strftime("%d-%m-%Y") if val is not None else ""
 
 
+class ColumnCodeField(Column):
+    field = 'code_field'
+    sort_fields = []
+
+
 class ColumnNonContexts(Column):
     sort_fields = []
 
@@ -430,6 +437,7 @@ class ColumnNonContexts(Column):
 
         def sk(patient):
             value = self.cell(patient, supports_contexts, form_progress, context_manager)
+
             if value is None:
                 return self.bottom
             else:

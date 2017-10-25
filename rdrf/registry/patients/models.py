@@ -18,7 +18,7 @@ from rdrf.hooking import run_hooks
 import registry.groups.models
 from registry.utils import get_working_groups, get_registries, stripspaces
 from registry.groups.models import CustomUser
-from django.utils.translation import ugettext as _
+from django.utils.translation import ugettext_lazy as _
 
 
 import logging
@@ -110,8 +110,8 @@ class PatientManager(models.Manager):
 
     def inactive(self):
         return self.really_all().filter(active=False)
-        
-    
+
+
 
 
 class Patient(models.Model):
@@ -244,7 +244,7 @@ class Patient(models.Model):
                                     blank=True,
                                     null=True,
                                     verbose_name=_("Patient Type"))
-    
+
 
     class Meta:
         ordering = ["family_name", "given_names", "date_of_birth"]
@@ -258,7 +258,25 @@ class Patient(models.Model):
             ("can_see_diagnosis_currency", _("Can see Diagnosis Currency column")),
             ("can_see_genetic_data_map", _("Can see Genetic Module column")),
             ("can_see_data_modules", _("Can see Data Modules column")),
+            ("can_see_code_field", _("Can see Code Field column"))
         )
+
+    @property
+    def code_field(self):
+        gender_options = {"1": _("Male"),
+                          "2": _("Female"),
+                          "3": _("Indeterminate")}
+
+        gender_string = gender_options[self.sex]
+
+        if self.patient_type is not None:
+            patient_type_string = _(self.patient_type.capitalize())
+
+            return_str = str("{0} {1}".format(gender_string, patient_type_string))
+            return return_str
+        else:
+            return_str = str("{0}".format(gender_string))
+            return return_str
 
     @property
     def display_name(self):
@@ -572,7 +590,7 @@ class Patient(models.Model):
             pr = PatientRelative.objects.get(relative_patient=self)
         except PatientRelative.DoesNotExist:
             return
-        
+
         pr.given_names = self.given_names
         pr.family_name = self.family_name
         pr.date_of_birth = self.date_of_birth
@@ -582,7 +600,7 @@ class Patient(models.Model):
         # sever the link if we've deactivated
         if not self.active:
             pr.relative_patient = None
-            
+
         pr.save()
 
     def set_consent(self, consent_model, answer=True, commit=True):
@@ -840,7 +858,7 @@ class Patient(models.Model):
                                             cde_code,
                                             multisection=is_multisection,
                                             context_id=context_model.id)
-                
+
 
                 if value is None:
                     return bottom
@@ -983,8 +1001,8 @@ class ParentGuardian(models.Model):
 
     def is_parent_of(self, other_patient):
         return other_patient in self.children
-    
-        
+
+
 
 @receiver(post_save, sender=ParentGuardian)
 def update_my_user(sender, **kwargs):
