@@ -2,6 +2,7 @@ import sqlalchemy as alc
 from sqlalchemy import create_engine, MetaData
 from django.conf import settings
 from sqlalchemy import create_engine, MetaData
+from rdrf.models import ContextFormGroup
 
 
 # generate relational schema
@@ -21,13 +22,40 @@ from sqlalchemy import create_engine, MetaData
 # one table for relatives
 # one history table (?)
 
-# for registries with form groups/contexts:
+# if there are questionnaires:
+# questionnaire responses ?
+
+# for registries with form groups ( Just FH at the moment)
 
 # same as above but embed the context id in each form and multisection table
 # as well as owning form group name
 
 
+# Column representations which are reused
+class COLUMNS:
+    PATIENT_ID = alc.Column("patient_id", alc.Integer, nullable=False)
+    FORM = alc.Column("form", alc.String, nullable=False)
+    FORM_GROUP = alc.Column("form_group", alc.String, nullable=False)
+    SECTION = alc.Column("section", alc.String, nullable=False) 
+    ITEM = alc.Column("item", alc.Integer, nullable=False)
+    TIMESTAMP = alc.Column("timestamp", alc.Date, nullable=False)
+    CONTEXT = alc.Column("context", alc.Integer, nullable=False)
 
+
+# These columns are structural and exist on the tables
+# regardless of the registry definition:
+
+DEMOGRAPHIC_COLUMNS = [COLUMNS.PATIENT_ID]
+
+FORM_COLUMNS = [COLUMNS.FORM_NAME,
+                COLUMNS.PATIENT_ID,
+                COLUMNS.TIMESTAMP]
+
+MULTISECTION_COLUMNS = [COLUMNS.FORM_NAME,
+                        COLUMNS.SECTION,
+                        COLUMNS.ITEM,
+                        COLUMNS.TIMESTAMP,
+                        COLUMNS.PATIENT_ID]
 
 def pg_uri(db):
     "PostgreSQL connection URI for a django database settings dict"
@@ -52,6 +80,8 @@ TYPE_MAP = {"float": alc.Float,
             "file": alc.String,
 }
 
+
+
 def get_column_type(cde_model):
     datatype = cde_model.datatype.lower().strip()
     return TYPE_MAP.get(datatype, alc.String)
@@ -71,81 +101,83 @@ class Column(object):
 
     @property
     def name(self):
+        # this should be a nice name
         return self.cde_model.code
 
+    @property
+    def postgres(self):
+        return alc.Column(self.name,
+                          self.datatype,
+                          nullable=True)
+
 def get_models(registry_model):
-    # this won't do for form groups ...
     for form_model in registry_model.forms:
-        for section_model in form_model.section_models:
-               for cde_model in section_model.cde_models:
+        if not form_model.is_questionnaire:
+            for section_model in form_model.section_models:
+                for cde_model in section_model.cde_models:
                     yield registry_model, form_model, section_model, cde_model
 
 class SchemaGenerator(object):
     def __init__(self, registry_model):
         self.registry_model = registry_model
         self.engine = self._create_engine()
+        self.has_form_groups = ContextFormGroup.objects.filter(registry=self.registry__model).count() > 0
+        
 
     def _create_engine(self):
         # we should probably add a reporting db ...
         return create_engine(pg_uri(settings.DATABASES["reporting"]))
 
     def clear(self):
+        # drop tables etc
         pass
 
-    def generate(self):
-        demographic_columns = self._get_demographic_columns()
-        clinical_columns = [Column(registry_model,
-                                   form_model,
-                                   section_model,
-                                   cde_model) for registry_model, form_model, section_model, cde_model in
-                            get_models(self.registry_model)]
+    def create_tables(self):
+        demographics_columns = self._get_demographic_columns()
+        self._create_table("patient", demographics_columns)
 
-        main_columns = demographic_columns + [col for col in clinical_columns if not col.in_multisection]
+        for form_model in self.registry_model.forms:
+            columns = self._create_form_columns(form_model)
+            self._create_table(form_model.name, columns)
 
-        self._create_main_table(main_columns)
+            for section_model in form_model.section_models:
+                if section_model.allow_multiple:
+                    columns = self._create_multisection_columns(form_model,
+                                                                section_model)
+                    table_name = form_model.name + "_" + section_model.code
+                    self._create_table(table_name, columns)
 
-        multisection_columns = [col for col in clinical_columns if col._in_multisection]
 
-        self._create_other_tables(multisection_columns)
+    def _create_multisection_columns(self, form_model, section_model):
+        columns = [col for col in MULTISECTION_COLUMNS]
+        if self.has_form_groups:
+            columns.append(COLUMNS.CONTEXT)
+            
+            
+        columns.extend([Column(self.registry_model,
+                               form_model,
+                               section_model,
+                               cde_model).postgres
+                        for cde_model in section_model.cde_models])
+        return columns
+            
+    def _create_form_columns(self, form_model):
+        columns = [col for col in FORM_COLUMNS]
+        if self.has_form_groups:
+            columns.append(COLUMNS.CONTEXT)
+        columns.extend([Column(self.registry_model,
+                       form_model,
+                       section_model,
+                       cde_model).postgres for section_model in form_model.section_models 
+                                           for cde_model in section_model.cde_models
+                                           if not section_model.allow_multiple])
+        return columns
 
+        
     def _get_demographic_columns(self):
         return []
 
-    def _create_main_table(self, columns):
-        self._create_table("patient", columns)
-
-    def _create_other_tables(self, columns):
-        table_map = {}
-        for col in columns:
-            table_code = col.form_model.name + "_" + col.section_model.code
-            if table_code in table_map:
-                table_map[table_code].append(col)
-            else:
-                table_map[table_code] = [col]
-
-        for table_code, cols in table_map.items():
-            self._create_table(table_code,cols)
-
-    def _create_table(self, table_code, cols):
-        # create some universal columns
-        columns = []
-        patient_id_column = alc.Column("patient_id", alc.Integer,nullable=False)
-        context_column = alc.Column("context_id", alc.Integer, nullable=False)
-        last_user_column = alc.Column("user", alc.String, nullable=True)
-        timestamp_column = alc.Column("timestamp", alc.Date, nullable=True)
-        form_group_column = alc.Column("form_group", alc.String, nullable=True)
-
-        columns.extend(patient_id_column,
-                       context_column,
-                       last_user_column,
-                       timestamp_column,
-                       form_group_column)
-
-        columns.extend([self._create_column(col) for col in cols])
-        
+    def _create_table(self, table_code, columns):
         table_name = table_code
         table = alc.Table(table_name, MetaData(self.engine), *columns, schema=None)
         return table
-
-    def _create_column(self, col):
-        return alc.Column(col.name, col.datatype, nullable=True)
