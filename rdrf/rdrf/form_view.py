@@ -534,7 +534,7 @@ class FormView(View):
 
             progress_dict = dyn_patient.save_form_progress(registry_code, context_model=self.rdrf_context)
             # Save one snapshot after all sections have being persisted
-            dyn_patient.save_snapshot(registry_code, "cdes")
+            dyn_patient.save_snapshot(registry_code, "cdes", form_name=form_obj.name, form_user=self.request.user.username)
 
             if self.CREATE_MODE and dyn_patient.rdrf_context_id != "add":
                 # we've created the context on the fly so no redirect to the edit view on the new context

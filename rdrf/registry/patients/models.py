@@ -395,25 +395,35 @@ class Patient(models.Model):
             section_code,
             data_element_code,
             multisection=False,
-            context_id=None):
+            context_id=None,
+            clinical_data=None):
+
+        # if clinical_data is supplied don't reload
+        # ( allows faster retrieval of multiple values
         from rdrf.dynamic_data import DynamicDataWrapper
         from rdrf.utils import mongo_key
-        wrapper = DynamicDataWrapper(self, rdrf_context_id=context_id)
-        mongo_data = wrapper.load_dynamic_data(registry_code, "cdes")
+
+        if clinical_data is None:
+            wrapper = DynamicDataWrapper(self, rdrf_context_id=context_id)
+            data = wrapper.load_dynamic_data(registry_code, "cdes")
+        else:
+            data = clinical_data
+            
         key = mongo_key(form_name, section_code, data_element_code)
-        if mongo_data is None:
-            # no mongo data
+
+        if data is None:
+            # no clinical data
             raise KeyError(key)
         else:
             if multisection:
-                sections = mongo_data[section_code]
+                sections = data[section_code]
                 values = []
                 for section in sections:
                     if key in section and section[key]:
                         values.append(section[key])
                 return values
             else:
-                return mongo_data[key]
+                return data[key]
 
     def update_field_expressions(self, registry_model, field_expressions, context_model=None):
         from rdrf.dynamic_data import DynamicDataWrapper
@@ -478,13 +488,20 @@ class Patient(models.Model):
             setting_value = False
 
         # TODO need to support contexts - supply in kwargs
-        context_model = self.default_context(registry_model)
+        if "context_model" not in kwargs:
+            context_model = self.default_context(registry_model)
+        else:
+            context_model = kwargs["context_model"]
+
+        wrapper = DynamicDataWrapper(self, rdrf_context_id=context_model.pk)
+
+        if "clinical_data" in kwargs:
+            mongo_data = kwargs["clinical_data"]
+        else:
+            mongo_data = wrapper.load_dynamic_data(registry_model.code, "cdes", flattened=False)
 
         from rdrf.generalised_field_expressions import GeneralisedFieldExpressionParser
         parser = GeneralisedFieldExpressionParser(registry_model)
-
-        wrapper = DynamicDataWrapper(self, rdrf_context_id=context_model.pk)
-        mongo_data = wrapper.load_dynamic_data(registry_model.code, "cdes", flattened=False)
 
         if mongo_data is None:
             # ensure we have sane data frame
@@ -793,13 +810,24 @@ class Patient(models.Model):
 
         return total_filled_in, total_required_for_completion
 
-    def get_form_timestamp(self, registry_form):
-        dynamic_store = DynamicDataWrapper(self)
-        timestamp = dynamic_store.get_form_timestamp(registry_form)
+    def get_form_timestamp(self, registry_form, context_model=None):
+        from django.core.exceptions import FieldError
+        if context_model is not None:
+            dynamic_store = DynamicDataWrapper(self, rdrf_context_id=context_model.pk)
+        else:
+            dynamic_store = DynamicDataWrapper(self)
+
+        try:
+            timestamp = dynamic_store.get_form_timestamp(registry_form)
+        except FieldError:
+            timestamp = None
+
         if timestamp:
             if "timestamp" in timestamp:
                 ts = timestamp["timestamp"]
                 return ts
+            else:
+                return timestamp
 
     def form_currency(self, registry_form):
         dynamic_store = DynamicDataWrapper(self)

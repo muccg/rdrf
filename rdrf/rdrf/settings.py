@@ -92,6 +92,15 @@ DATABASES["clinical"] = {
     "PORT": env.get("clinical_dbport", DATABASES["default"]["PORT"]),
 }
 
+DATABASES["reporting"] = {
+    "ENGINE": env.get_db_engine("reporting_dbtype", "pgsql"),
+    "NAME": env.get("reporting_dbname", DATABASES["default"]["NAME"]),
+    "USER": env.get("reporting_dbuser", DATABASES["default"]["USER"]),
+    "PASSWORD": env.get("reporting_dbpass", DATABASES["default"]["PASSWORD"]),
+    "HOST": env.get("reporting_dbserver", DATABASES["default"]["HOST"]),
+    "PORT": env.get("reporting_dbport", DATABASES["default"]["PORT"]),
+}
+
 DATABASE_ROUTERS = ["rdrf.db.RegistryRouter"]
 
 
