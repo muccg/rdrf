@@ -1,8 +1,12 @@
 import sqlalchemy as alc
 from sqlalchemy import create_engine, MetaData
 from django.conf import settings
-from sqlalchemy import create_engine, MetaData
 from rdrf.models import ContextFormGroup
+import logging
+from copy import deepcopy
+
+logger = logging.getLogger(__name__)
+logger.debug = lambda s : print(s)
 
 
 # generate relational schema
@@ -33,25 +37,28 @@ from rdrf.models import ContextFormGroup
 
 # Column representations which are reused
 class COLUMNS:
-    PATIENT_ID = alc.Column("patient_id", alc.Integer, nullable=False)
-    FORM = alc.Column("form", alc.String, nullable=False)
-    FORM_GROUP = alc.Column("form_group", alc.String, nullable=False)
-    SECTION = alc.Column("section", alc.String, nullable=False) 
-    ITEM = alc.Column("item", alc.Integer, nullable=False)
-    TIMESTAMP = alc.Column("timestamp", alc.Date, nullable=False)
-    CONTEXT = alc.Column("context", alc.Integer, nullable=False)
+    PATIENT_ID = ("patient_id", alc.Integer, False)
+    FORM = ("form", alc.String, False)
+    FORM_GROUP = ("form_group", alc.String, False)
+    SECTION = ("section", alc.String, False) 
+    ITEM = ("item", alc.Integer, False)
+    TIMESTAMP = ("timestamp", alc.Date, False)
+    CONTEXT = ("context", alc.Integer, False)
 
+
+def mkcol(triple):
+    return alc.Column(triple[0],triple[1],nullable=triple[2])
 
 # These columns are structural and exist on the tables
 # regardless of the registry definition:
 
 DEMOGRAPHIC_COLUMNS = [COLUMNS.PATIENT_ID]
 
-FORM_COLUMNS = [COLUMNS.FORM_NAME,
+FORM_COLUMNS = [COLUMNS.FORM,
                 COLUMNS.PATIENT_ID,
                 COLUMNS.TIMESTAMP]
 
-MULTISECTION_COLUMNS = [COLUMNS.FORM_NAME,
+MULTISECTION_COLUMNS = [COLUMNS.FORM,
                         COLUMNS.SECTION,
                         COLUMNS.ITEM,
                         COLUMNS.TIMESTAMP,
@@ -94,10 +101,12 @@ class Column(object):
         self.section_model = section_model
         self.cde_model = cde_model
         self.in_multisection = section_model.allow_multiple
+        logger.debug(type(self.cde_model))
+        
 
     @property
     def datatype(self):
-        return get_column_type(self.cde_model.datatype)
+        return get_column_type(self.cde_model)
 
     @property
     def name(self):
@@ -117,16 +126,15 @@ def get_models(registry_model):
                 for cde_model in section_model.cde_models:
                     yield registry_model, form_model, section_model, cde_model
 
-class SchemaGenerator(object):
+class Generator(object):
     def __init__(self, registry_model):
         self.registry_model = registry_model
         self.engine = self._create_engine()
-        self.has_form_groups = ContextFormGroup.objects.filter(registry=self.registry__model).count() > 0
-        
+        self.has_form_groups = ContextFormGroup.objects.filter(registry=registry_model).count() > 0
 
     def _create_engine(self):
         # we should probably add a reporting db ...
-        return create_engine(pg_uri(settings.DATABASES["reporting"]))
+        return create_engine(pg_uri(settings.DATABASES["default"]))
 
     def clear(self):
         # drop tables etc
@@ -149,9 +157,9 @@ class SchemaGenerator(object):
 
 
     def _create_multisection_columns(self, form_model, section_model):
-        columns = [col for col in MULTISECTION_COLUMNS]
+        columns = [mkcol(col) for col in MULTISECTION_COLUMNS]
         if self.has_form_groups:
-            columns.append(COLUMNS.CONTEXT)
+            columns.append(mkcol(COLUMNS.CONTEXT))
             
             
         columns.extend([Column(self.registry_model,
@@ -162,9 +170,10 @@ class SchemaGenerator(object):
         return columns
             
     def _create_form_columns(self, form_model):
-        columns = [col for col in FORM_COLUMNS]
+        columns = [mkcol(col) for col in FORM_COLUMNS]
         if self.has_form_groups:
-            columns.append(COLUMNS.CONTEXT)
+            columns.append(mkcol(COLUMNS.CONTEXT))
+            
         columns.extend([Column(self.registry_model,
                        form_model,
                        section_model,
@@ -178,6 +187,7 @@ class SchemaGenerator(object):
         return []
 
     def _create_table(self, table_code, columns):
-        table_name = table_code
+        table_name = "rep_" + table_code
+        logger.debug("creating table %s" % table_name)
         table = alc.Table(table_name, MetaData(self.engine), *columns, schema=None)
         return table
