@@ -4,9 +4,10 @@ from django.conf import settings
 from rdrf.models import ContextFormGroup
 import logging
 from copy import deepcopy
+from django.db import connections
+import inspect
 
 logger = logging.getLogger(__name__)
-logger.debug = lambda s : print(s)
 
 
 # generate relational schema
@@ -75,18 +76,20 @@ def pg_uri(db):
     return "".join(["postgresql://", userpass if user else "",
                     host, ":" + port if port else "", "/", name])
 
+
+
+# Maps RDRF CDE datatypes to postgres column type
+
 TYPE_MAP = {"float": alc.Float,
             "decimal": alc.Float,
             "calculated": alc.String,
             "integer": alc.Integer,
-            "Integer": alc.Integer,
             "int": alc.Integer,
             "string": alc.String,
             "date": alc.Date,
             "range": alc.String,
             "file": alc.String,
 }
-
 
 
 def get_column_type(cde_model):
@@ -115,6 +118,9 @@ class Column(object):
 
     @property
     def postgres(self):
+        logger.debug("COLUMN: %s %s nullable=%s" % (self.name,
+                                                    self.datatype,
+                                                    True))
         return alc.Column(self.name,
                           self.datatype,
                           nullable=True)
@@ -127,22 +133,119 @@ def get_models(registry_model):
                     yield registry_model, form_model, section_model, cde_model
 
 class Generator(object):
-    def __init__(self, registry_model):
+    def __init__(self, registry_model, db="clinical"):
         self.registry_model = registry_model
-        self.engine = self._create_engine()
+        self.clinical_engine = self._create_engine("clinical")
+        self.default_engine = self._create_engine("default")
         self.has_form_groups = ContextFormGroup.objects.filter(registry=registry_model).count() > 0
 
-    def _create_engine(self):
+        # perhaps better to make this the default 
+        #self.reporting_engine = self._create_engine("reporting")
+        if db == "clinical":
+            self.reporting_engine = self.clinical_engine
+        elif db == "default":
+            self.reporting_engine = self.default_engine
+        else:
+            raise Exception("Unknown db: %s. Should be one of clinical | default" % db)
+        
+
+    def _create_engine(self, db_name="default"):
         # we should probably add a reporting db ...
-        return create_engine(pg_uri(settings.DATABASES["default"]))
+        return create_engine(pg_uri(settings.DATABASES[db_name]))
+
+
+    def _get_table_for_model(self, model, db_name="default"):
+
+        if db_name == "default":
+            engine = self.default_engine
+        else:
+            engine = self.engine
+            
+        return alc.Table(model._meta.db_table, MetaData(engine), autoload=True)
+
+
+    def _create_django_table(self, model_class):
+        table = self._get_table_for_model(model_class)
+        # create using the target engine
+        table.create(self.engine)
+
+
+    def _get_sql_alchemy_type(self, db_type):
+        return alc.String
+        
 
     def clear(self):
         # drop tables etc
-        pass
+        for table in self.table_list:
+            self._drop_table(table)
+
+    def _create_demographic_tables(self):
+        from registry.patients.models import Patient
+        if self.reporting_engine is self.default_engine:
+            raise Exception("reporting db = default!")
+
+        demographic_models = self._get_related_models(Patient).reverse()
+
+        for model in demographic_models:
+            if model is not None:
+                table_name = model._meta.db_table
+                self._mirror_table(table_name, self.default_engine, self.reporting_engine)
+            
+            
+        
+
+    def _create_django_model_tables(self, models):
+        for model in models:
+            logger.debug("creating table for model %s" % model.__name__)
+            self._create_django_table(model)
+
+
+    def _get_django_models_from_module(self, module):
+        from django.db.models import Model
+
+        def _retrieve_objects_from_module(module, predicate_func):
+            things = []
+            for thing_name, thing in inspect.getmembers(module):
+                try:
+                    if predicate_func(thing):
+                        things.append(thing)
+                except:
+                    pass
+            return things
+                        
+
+        def is_django_system_model(thing):
+            return issubclass(thing, Model) and thing.__name__.startswith("django.")
+
+        def is_rdrf_model(thing):
+            return issubclass(thing, Model) and thing.__name__.startswith("django.")
+
+        models =  [ thing for thing_name, thing in inspect.getmembers(module) if is_rdrf_model(thing)]
+        logger.debug("models for module %s = %s" % (module.__name__,
+                                                    models))
+        return models
+
+
+    def _get_related_models(self, model):
+        models = [model]
+        for field in model._meta.related_objects:
+            related_model = field.related_model
+            if not related_model in models:
+                models.append(related_model)
+                models.extend(self._get_related_models(related_model))
+                
+        return models
+
+    def _mirror_table(self, table_name, source_engine, target_engine):
+        source_meta = MetaData(bind=source_engine)
+        table = Table(table_name, source_meta, autoload=True)
+        table.metadata.create_all(self.reporting_engine)
+        
 
     def create_tables(self):
-        demographics_columns = self._get_demographic_columns()
-        self._create_table("patient", demographics_columns)
+        self.table_list = []
+        if self.reporting_engine is not self.default_engine:
+            self._create_demographic_tables()
 
         for form_model in self.registry_model.forms:
             columns = self._create_form_columns(form_model)
@@ -186,8 +289,25 @@ class Generator(object):
     def _get_demographic_columns(self):
         return []
 
+    def _get_table_name(self, name):
+        return name.replace(" ","").lower()
+
     def _create_table(self, table_code, columns):
-        table_name = "rep_" + table_code
+        table_name = self._get_table_name("rep_" + table_code)
+        self._drop_table(table_name)
         logger.debug("creating table %s" % table_name)
         table = alc.Table(table_name, MetaData(self.engine), *columns, schema=None)
+        table.create()
         return table
+
+    def _drop_table(self, table_name):
+        drop_table_sql = "DROP TABLE %s" % table_name
+        conn = self.reporting_engine.connect()
+        try:
+            conn.execute(drop_table_sql)
+        except Exception as ex:
+            logger.debug("could not drop table %s: %s" % (table_name,
+                                                          ex))
+            
+        conn.close()
+
