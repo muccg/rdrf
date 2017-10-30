@@ -184,7 +184,9 @@ class Generator(object):
         if self.reporting_engine is self.default_engine:
             raise Exception("reporting db = default!")
 
-        demographic_models = self._get_related_models(Patient).reverse()
+        demographic_models = self._get_related_models(Patient)
+
+        demographic_models.reverse()
 
         for model in demographic_models:
             if model is not None:
@@ -232,13 +234,13 @@ class Generator(object):
             related_model = field.related_model
             if not related_model in models:
                 models.append(related_model)
-                models.extend(self._get_related_models(related_model))
+            models.extend(self._get_related_models(related_model))
                 
         return models
 
     def _mirror_table(self, table_name, source_engine, target_engine):
         source_meta = MetaData(bind=source_engine)
-        table = Table(table_name, source_meta, autoload=True)
+        table = alc.Table(table_name, source_meta, autoload=True)
         table.metadata.create_all(self.reporting_engine)
         
 
