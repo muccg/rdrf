@@ -68,6 +68,7 @@ services:
     environment:
       - WAIT_FOR_DB=1
       - WAIT_FOR_CLINICAL_DB=1
+      - WAIT_FOR_REPORTING_DB=1
       - WAIT_FOR_CACHE=1
       - DJANGO_MAILGUN_API_KEY=${DJANGO_MAILGUN_API_KEY}
 
@@ -77,6 +78,7 @@ services:
     environment:
       - WAIT_FOR_DB=1
       - WAIT_FOR_CLINICAL_DB=1
+      - WAIT_FOR_REPORTING_DB=1
       - WAIT_FOR_CACHE=1
       - WAIT_FOR_RUNSERVER=1
       # note: important to wait for runserver in dev as both will attempt to syncdb etc

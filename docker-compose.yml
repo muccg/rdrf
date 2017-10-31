@@ -16,6 +16,11 @@ services:
     extends:
       file: docker-compose-common.yml
       service: db
+  
+  reportingdb:
+    extends:
+      file: docker-compose-common.yml
+      service: db
 
   cache:
     extends:

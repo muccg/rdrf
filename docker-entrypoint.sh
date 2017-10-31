@@ -48,6 +48,9 @@ function wait_for_services {
     if [[ "$WAIT_FOR_CLINICAL_DB" ]] ; then
         dockerwait "$CLINICAL_DBSERVER" "$CLINICAL_DBPORT"
     fi
+    if [[ "$WAIT_FOR_REPORTING_DB" ]] ; then
+        dockerwait "$REPORTING_DBSERVER" "$REPORTING_DBPORT"
+    fi
     if [[ "$WAIT_FOR_CACHE" ]] ; then
         dockerwait "$CACHESERVER" "$CACHEPORT"
     fi
@@ -75,6 +78,12 @@ function defaults {
     : "${CLINICAL_DBUSER:=webapp}"
     : "${CLINICAL_DBNAME:=${CLINICAL_DBUSER}}"
     : "${CLINICAL_DBPASS:=${CLINICAL_DBUSER}}"
+    
+    : "${REPORTING_DBSERVER:=reportingdb}"
+    : "${REPORTING_DBPORT:=5432}"
+    : "${REPORTING_DBUSER:=webapp}"
+    : "${REPORTING_DBNAME:=${REPORTING_DBUSER}}"
+    : "${REPORTING_DBPASS:=${REPORTING_DBUSER}}"
 
     : "${DOCKER_ROUTE:=$(/sbin/ip route|awk '/default/ { print $3 }')}"
 
@@ -103,6 +112,7 @@ function defaults {
 
     export DBSERVER DBPORT DBUSER DBNAME DBPASS MEMCACHE DOCKER_ROUTE
     export CLINICAL_DBSERVER CLINICAL_DBPORT CLINICAL_DBUSER CLINICAL_DBNAME CLINICAL_DBPASS
+    export REPORTING_DBSERVER REPORTING_DBPORT REPORTING_DBUSER REPORTING_DBNAME REPORTING_DBPASS
     export TEST_APP_URL TEST_APP_SCHEME TEST_APP_HOST TEST_APP_PORT TEST_APP_PATH TEST_BROWSER TEST_WAIT TEST_SELENIUM_HUB
     export DJANGO_FIXTURES
 }
