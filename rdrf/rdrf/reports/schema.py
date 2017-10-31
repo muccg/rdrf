@@ -193,8 +193,11 @@ class Generator(object):
     def _create_demographic_tables(self):
         from registry.patients.models import Patient
         from registry.patients.models import PatientAddress, AddressType, State
+        from rdrf.models import ConsentQuestion, ConsentSection, Registry, RegistryForm
+        from rdrf.models import Section, CommonDataElement, CDEPermittedValueGroup, CDEPermittedValue
+        
 
-        starting_models = [State, AddressType, PatientAddress, Patient]
+        starting_models = [State, AddressType, PatientAddress, Registry, Section, RegistryForm, CDEPermittedValue, CDEPermittedValueGroup, CommonDataElement,Patient]
         if self.reporting_engine is self.default_engine:
             raise Exception("reporting db = default!")
 
