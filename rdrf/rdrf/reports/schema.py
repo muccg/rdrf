@@ -133,11 +133,13 @@ def get_models(registry_model):
                     yield registry_model, form_model, section_model, cde_model
 
 class Generator(object):
-    def __init__(self, registry_model, db="clinical"):
+    def __init__(self, registry_model, db="reporting"):
         self.registry_model = registry_model
         self.clinical_engine = self._create_engine("clinical")
         self.default_engine = self._create_engine("default")
         self.has_form_groups = ContextFormGroup.objects.filter(registry=registry_model).count() > 0
+        self.alc_tables = []
+        self.table_list = []
 
         # perhaps better to make this the default 
         #self.reporting_engine = self._create_engine("reporting")
@@ -145,6 +147,8 @@ class Generator(object):
             self.reporting_engine = self.clinical_engine
         elif db == "default":
             self.reporting_engine = self.default_engine
+        elif db == "reporting":
+            self.reporting_engine = self._create_engine("reporting")
         else:
             raise Exception("Unknown db: %s. Should be one of clinical | default" % db)
         
@@ -161,14 +165,21 @@ class Generator(object):
         else:
             engine = self.engine
             
-        return alc.Table(model._meta.db_table, MetaData(engine), autoload=True)
+        table = alc.Table(model._meta.db_table, MetaData(engine), autoload=True)
+        return table
+
+    def _copy_table_data(self, src_engine, dest_engine, table):
+        logger.debug("copying data for table %s" % table.name)
+        dest_engine.execute("DROP TABLE IF EXISTS %s CASCADE" % table.name)
+        table.create(dest_engine)
+        self.alc_tables.append(table)
+        rows = src_engine.execute(table.select()).fetchall()
 
 
-    def _create_django_table(self, model_class):
-        table = self._get_table_for_model(model_class)
-        # create using the target engine
-        table.create(self.engine)
-
+        with dest_engine.begin() as con:
+            for row in rows:
+                logger.debug("insert row %s" % row)
+                con.execute(table.insert().values(**row))
 
     def _get_sql_alchemy_type(self, db_type):
         return alc.String
@@ -181,25 +192,35 @@ class Generator(object):
 
     def _create_demographic_tables(self):
         from registry.patients.models import Patient
+        from registry.patients.models import PatientAddress, AddressType, State
+
+        starting_models = [State, AddressType, PatientAddress, Patient]
         if self.reporting_engine is self.default_engine:
             raise Exception("reporting db = default!")
 
-        demographic_models = self._get_related_models(Patient)
+        models = []
 
-        demographic_models.reverse()
-
-        for model in demographic_models:
-            if model is not None:
-                table_name = model._meta.db_table
-                self._mirror_table(table_name, self.default_engine, self.reporting_engine)
-            
-            
+        def exists(model):
+            return model.__name__ in [m.__name__ for m in models]
         
 
-    def _create_django_model_tables(self, models):
+        for model in starting_models:
+            if not exists(model):
+                models.append(model)
+                
+            related_models = self._get_related_models(model)
+            for related_model in related_models:
+                if not exists(related_model):
+                    models.append(related_model)
+
+        models.reverse()
+        logger.debug("demographic models = %s" % [m.__name__ for m in models])
+
         for model in models:
-            logger.debug("creating table for model %s" % model.__name__)
-            self._create_django_table(model)
+            if model is not None:
+                table_name = model._meta.db_table
+                logger.debug("mirroring table %s" % table_name)
+                self._mirror_table(table_name, self.default_engine, self.reporting_engine)
 
 
     def _get_django_models_from_module(self, module):
@@ -229,27 +250,36 @@ class Generator(object):
 
 
     def _get_related_models(self, model):
+        logger.debug("getting related model of %s" % model.__name__)
         models = [model]
         for field in model._meta.related_objects:
             related_model = field.related_model
             if not related_model in models:
                 models.append(related_model)
+                logger.debug("added related model %s" % related_model.__name__)
             models.extend(self._get_related_models(related_model))
                 
         return models
 
     def _mirror_table(self, table_name, source_engine, target_engine):
+        try:
+            self._drop_table(table_name)
+        except:
+            pass
+
         source_meta = MetaData(bind=source_engine)
         table = alc.Table(table_name, source_meta, autoload=True)
-        table.metadata.create_all(self.reporting_engine)
+        #table.metadata.create_all(self.reporting_engine)
+        self._copy_table_data(source_engine, target_engine, table)
         
 
     def create_tables(self):
-        self.table_list = []
         if self.reporting_engine is not self.default_engine:
+            logger.debug("creating demographic tables ...")
             self._create_demographic_tables()
 
         for form_model in self.registry_model.forms:
+            logger.debug("creating table for clinical form %s" % form_model.name)
             columns = self._create_form_columns(form_model)
             self._create_table(form_model.name, columns)
 
@@ -258,6 +288,7 @@ class Generator(object):
                     columns = self._create_multisection_columns(form_model,
                                                                 section_model)
                     table_name = form_model.name + "_" + section_model.code
+                    logger.debug("creating table for multisection %s" % table_name)
                     self._create_table(table_name, columns)
 
 
@@ -295,15 +326,17 @@ class Generator(object):
         return name.replace(" ","").lower()
 
     def _create_table(self, table_code, columns):
+        logger.debug("creating table %s" % table_name)
         table_name = self._get_table_name("rep_" + table_code)
         self._drop_table(table_name)
-        logger.debug("creating table %s" % table_name)
-        table = alc.Table(table_name, MetaData(self.engine), *columns, schema=None)
+        table = alc.Table(table_name, MetaData(self.reporting_engine), *columns, schema=None)
         table.create()
+        # these cause failures in migration ...
+        self.alc_tables.append(table)
         return table
 
     def _drop_table(self, table_name):
-        drop_table_sql = "DROP TABLE %s" % table_name
+        drop_table_sql = "DROP TABLE %s CASCADE" % table_name
         conn = self.reporting_engine.connect()
         try:
             conn.execute(drop_table_sql)
