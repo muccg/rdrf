@@ -20,6 +20,15 @@ services:
       default:
         aliases:
           - dbclinicaltest
+  
+  dbreportingprod:
+    extends:
+      file: docker-compose-common.yml
+      service: db
+    networks:
+      default:
+        aliases:
+          - dbreportingtest
 
   cacheprod:
     extends:
@@ -48,6 +57,7 @@ services:
       - DEBUG=0
       - WAIT_FOR_DB=1
       - WAIT_FOR_CLINICAL_DB=1
+      - WAIT_FOR_REPORTING_DB=1
       - WAIT_FOR_CACHE=1
       - DJANGO_FIXTURES=test
       - ALLOWED_HOSTS=*
@@ -55,11 +65,13 @@ services:
       - CACHESERVER=cacheprod
       - DBSERVER=dbprod
       - CLINICAL_DBSERVER=dbclinicalprod
+      - REPORTING_DBSERVER=dbreportingprod
     volumes:
         - uwsgi-prod-data:/data
     depends_on:
       - dbprod
       - dbclinicalprod
+      - dbreportingprod
       - cacheprod
     ports:
       - "9000:9000"
