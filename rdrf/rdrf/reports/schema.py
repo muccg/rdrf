@@ -174,7 +174,6 @@ class Column(object):
         self.cde_model = cde_model
         self.in_multisection = section_model.allow_multiple
         self.column_map = column_map # ref to global map
-        logger.debug(type(self.cde_model))
 
     @property
     def datatype(self):
