@@ -77,7 +77,10 @@ class DataSource(object):
         self.cde_model = cde_model
         self.field = field
 
-    def get_report_value(self, patient_model, context_model):
+    def get_value(self, patient_model, context_model=None):
+       if context_model is None:
+           context_model = patient_model.default_context(self.registry_model)
+           
        if self.field:
            return self._get_field_value(patient_model, context_model)
        else:
