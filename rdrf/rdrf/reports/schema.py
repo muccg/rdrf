@@ -297,7 +297,7 @@ class Generator(object):
 
         source_meta = MetaData(bind=source_engine)
         table = alc.Table(table_name, source_meta, autoload=True)
-        #table.metadata.create_all(self.reporting_engine)
+        table.metadata.create_all(self.reporting_engine)
         self._copy_table_data(source_engine, target_engine, table)
         
 
