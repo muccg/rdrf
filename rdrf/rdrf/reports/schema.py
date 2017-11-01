@@ -6,6 +6,9 @@ import logging
 from copy import deepcopy
 from django.db import connections
 import inspect
+from psycopg2 import ProgrammingError
+from django.contrib.auth.models import Group
+from django.contrib.contenttypes.models import ContentType
 
 logger = logging.getLogger(__name__)
 
@@ -192,16 +195,16 @@ class Generator(object):
 
     def _create_demographic_tables(self):
         from registry.patients.models import Patient
-        from registry.patients.models import PatientAddress, AddressType, State
+        from registry.patients.models import PatientAddress, AddressType, State, NextOfKinRelationship
         from rdrf.models import ConsentQuestion, ConsentSection, Registry, RegistryForm
         from rdrf.models import Section, CommonDataElement, CDEPermittedValueGroup, CDEPermittedValue
         
 
-        starting_models = [State, AddressType, PatientAddress, Registry, Section, RegistryForm, CDEPermittedValue, CDEPermittedValueGroup, CommonDataElement,Patient]
+        starting_models = [ContentType,Group, State, AddressType,NextOfKinRelationship, PatientAddress, Registry, Section, ConsentSection,  ConsentQuestion, RegistryForm, CDEPermittedValue, CDEPermittedValueGroup, CommonDataElement,Patient]
         if self.reporting_engine is self.default_engine:
             raise Exception("reporting db = default!")
 
-        models = []
+        models = [Patient]
 
         def exists(model):
             return model.__name__ in [m.__name__ for m in models]
@@ -209,21 +212,45 @@ class Generator(object):
 
         for model in starting_models:
             if not exists(model):
-                models.append(model)
+                # keep patient model last
+                patient_model = models[-1]
+                other_models = models[:-1]
+                other_models.append(model)
+                models = other_models + [patient_model]
                 
             related_models = self._get_related_models(model)
             for related_model in related_models:
                 if not exists(related_model):
-                    models.append(related_model)
+                    patient_model = models[-1]
+                    other_models = models[:-1]
+                    other_models.append(related_model)
+                    models = other_models + [patient_model]
 
-        models.reverse()
+        
         logger.debug("demographic models = %s" % [m.__name__ for m in models])
 
+
+        bad_models = []
+        finished = False
+
+        def clone_model(model):
+            table_name = model._meta.db_table
+            self._mirror_table(table_name, self.default_engine, self.reporting_engine)
+            logger.debug("mirrored table %s OK" % table_name)
+            
+        
         for model in models:
             if model is not None:
-                table_name = model._meta.db_table
-                logger.debug("mirroring table %s" % table_name)
-                self._mirror_table(table_name, self.default_engine, self.reporting_engine)
+                try:
+                    clone_model(model)
+                except ProgrammingError:
+                    bad_models.append(model)
+
+        # try 2nd pass
+        for model in bad_models:
+            clone_model(model)
+    
+                    
 
 
     def _get_django_models_from_module(self, module):
@@ -253,13 +280,11 @@ class Generator(object):
 
 
     def _get_related_models(self, model):
-        logger.debug("getting related model of %s" % model.__name__)
         models = [model]
         for field in model._meta.related_objects:
             related_model = field.related_model
             if not related_model in models:
                 models.append(related_model)
-                logger.debug("added related model %s" % related_model.__name__)
             models.extend(self._get_related_models(related_model))
                 
         return models
@@ -329,20 +354,22 @@ class Generator(object):
         return name.replace(" ","").lower()
 
     def _create_table(self, table_code, columns):
-        logger.debug("creating table %s" % table_name)
         table_name = self._get_table_name("rep_" + table_code)
+        logger.debug("creating table %s" % table_name)
         self._drop_table(table_name)
         table = alc.Table(table_name, MetaData(self.reporting_engine), *columns, schema=None)
         table.create()
         # these cause failures in migration ...
         self.alc_tables.append(table)
+        logger.debug("created table %s OK" % table_name)
         return table
 
     def _drop_table(self, table_name):
-        drop_table_sql = "DROP TABLE %s CASCADE" % table_name
+        drop_table_sql = "DROP TABLE IF EXISTS %s CASCADE" % table_name
         conn = self.reporting_engine.connect()
         try:
             conn.execute(drop_table_sql)
+            logger.debug("dropped existing table %s" % table_name)
         except Exception as ex:
             logger.debug("could not drop table %s: %s" % (table_name,
                                                           ex))
