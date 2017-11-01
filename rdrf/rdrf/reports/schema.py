@@ -39,8 +39,6 @@ class COLUMNS:
     CONTEXT = ("context", alc.Integer, False)
 
 
-def mkcol(triple):
-    return alc.Column(triple[0], triple[1], nullable=triple[2])
 
 
 # These columns are structural and exist on the tables
@@ -56,6 +54,85 @@ MULTISECTION_COLUMNS = [COLUMNS.FORM,
                         COLUMNS.ITEM,
                         COLUMNS.TIMESTAMP,
                         COLUMNS.PATIENT_ID]
+
+class TableType:
+    DEMOGRAPHIC = 1
+    CLINICAL_FORM = 2
+    MULTISECTION = 3
+
+
+class DataSource(object):
+    def __init__(self, registry_model,
+                 form_model=None,
+                 section_model=None,
+                 cde_model=None,
+                 field=None):
+        self.registry_model = registry_model
+        self.form_model = form_model
+        self.section_model = section_model
+        if self.section_model:
+            self.is_multiple = section_model.allow_multiple
+        else:
+            self.is_multiple = False
+        self.cde_model = cde_model
+        self.field = field
+
+    def get_report_value(self, patient_model, context_model):
+       if self.field:
+           return self._get_field_value(patient_model, context_model)
+       else:
+           return self._get_cde_value(patient_model, context_model)
+
+    def _get_field_value(self, patient_model, context_model):
+        if self.field == "patient_id":
+            return patient_model.pk
+        elif self.field == "form":
+            return self.form_model.name
+        elif self.field == "context_id":
+            return context_id
+        elif self.field == "section":
+            return self.section_model.display_name
+        else:
+            raise Exception("Unknown field: %s" % self.field)
+
+    def _get_cde_value(self, patient_model, context_model):
+        raw_value = patient_model.get_form_value(self.registry_model.code,
+                                                 self.form_model.name,
+                                                 self.section_model.code,
+                                                 self.cde_model.code,
+                                                 False,
+                                                 context_id=context_model.pk)
+        
+        return self.cde_model.get_display_value(raw_value)
+                                                 
+
+
+class FormExtractor(object):
+    def __init__(self, has_groups, column_map, registry_model, table):
+        self.has_groups = has_groups
+        self.column_map = column_map
+        self.registry_model = registry_model
+        self.table = table
+
+    def get_row(self, patient_model):
+        if not self.has_groups:
+            default_context = patient_model.default_context(self.registry_model)
+            self._extract_context(patient_model, default_context)
+        else:
+            # extract rows for each context
+            #todo
+            pass
+
+    def _extract_context(self, patient_model, context_model):
+        row  = []
+        
+        for column in self.table.columns:
+            datasource = self.column_map[column]
+            report_value = datasource.get_report_value(patient_model, context_model)
+            row.append(report_value)
+        return row
+
+            
 
 
 def pg_uri(db):
@@ -87,12 +164,13 @@ def get_column_type(cde_model):
 
 
 class Column(object):
-    def __init__(self, registry_model, form_model, section_model, cde_model):
+    def __init__(self, registry_model, form_model, section_model, cde_model, column_map):
         self.registry_model = registry_model
         self.form_model = form_model
         self.section_model = section_model
         self.cde_model = cde_model
         self.in_multisection = section_model.allow_multiple
+        self.column_map = column_map # ref to global map
         logger.debug(type(self.cde_model))
 
     @property
@@ -106,20 +184,17 @@ class Column(object):
 
     @property
     def postgres(self):
-        logger.debug("COLUMN: %s %s nullable=%s" % (self.name,
-                                                    self.datatype,
-                                                    True))
-        return alc.Column(self.name,
+        column = alc.Column(self.name,
                           self.datatype,
                           nullable=True)
 
-
-def get_models(registry_model):
-    for form_model in registry_model.forms:
-        if not form_model.is_questionnaire:
-            for section_model in form_model.section_models:
-                for cde_model in section_model.cde_models:
-                    yield registry_model, form_model, section_model, cde_model
+        datasource = DataSource(self.registry_model,
+                                form_model=self.form_model,
+                                section_model=self.section_model,
+                                cde_model=self.cde_model)
+        
+        self.column_map[column] = datasource
+        return column
 
 
 class Generator(object):
@@ -129,8 +204,9 @@ class Generator(object):
         self.default_engine = self._create_engine("default")
         self.has_form_groups = ContextFormGroup.objects.filter(
             registry=registry_model).count() > 0
-        self.alc_tables = []
         self.table_list = []
+        self.clinical_tables = []
+        self.column_map = {}
 
         if db == "clinical":
             self.reporting_engine = self.clinical_engine
@@ -141,6 +217,20 @@ class Generator(object):
         else:
             raise Exception(
                 "Unknown db: %s. Should be one of clinical | default" % db)
+
+    def mkcol(self, triple, form_model=None, section_model=None, cde_model=None, field=None):
+        column_name = triple[0]
+        column_datatype = triple[1]
+        is_nullable = triple[2]
+        datasource = DataSource(self.registry_model,
+                                form_model=form_model,
+                                section_model=section_model,
+                                cde_model=cde_model,
+                                field=field)
+    
+        column = alc.Column(column_name, column_datatype, nullable=is_nullable)
+        self.column_map[column] = datasource
+        return column
 
     def _create_engine(self, db_name="default"):
         # we should probably add a reporting db ...
@@ -161,7 +251,6 @@ class Generator(object):
         logger.debug("copying data for table %s" % table.name)
         dest_engine.execute("DROP TABLE IF EXISTS %s CASCADE" % table.name)
         table.create(dest_engine)
-        self.alc_tables.append(table)
         rows = src_engine.execute(table.select()).fetchall()
 
         with dest_engine.begin() as con:
@@ -258,44 +347,67 @@ class Generator(object):
             logger.debug("creating table for clinical form %s" %
                          form_model.name)
             columns = self._create_form_columns(form_model)
-            self._create_table(form_model.name, columns)
+            table = self._create_table(form_model.name, columns)
+
+            self.clinical_tables.append((TableType.CLINICAL_FORM,
+                                         form_model,
+                                         table))
+            
 
             for section_model in form_model.section_models:
                 if section_model.allow_multiple:
                     columns = self._create_multisection_columns(form_model,
                                                                 section_model)
                     table_name = form_model.name + "_" + section_model.code
-                    logger.debug(
-                        "creating table for multisection %s" % table_name)
-                    self._create_table(table_name, columns)
+                    table = self._create_table(table_name, columns)
+                    self.clinical_tables.append((TableType.MULTISECTION,
+                                                 form_model,
+                                                 section_model,
+                                                 table))
+
+        self._extract_clinical_data()
+        
+
+
+    def _extract_clinical_data(self):
+        for table in self.clinical_tables:
+            datasources = [self.column_map[column] for column in table.columns]
+            if not self.has_groups:
+                for patient_model in Patient.objects.all():
+                    row = [ ds.get_value(patient_model) for ds in datasources]
+                    table.insert(row, engine=self.reporting_engine)
 
     def _create_multisection_columns(self, form_model, section_model):
-        columns = [mkcol(col) for col in MULTISECTION_COLUMNS]
+        columns = [self.mkcol(col, form_model=form_model, field=col[0]) for col in MULTISECTION_COLUMNS]
         if self.has_form_groups:
-            columns.append(mkcol(COLUMNS.CONTEXT))
+            columns.append(self.mkcol(COLUMNS.CONTEXT,
+                                      form_model=form_model,
+                                      section_model=section_model))
 
         columns.extend([Column(self.registry_model,
                                form_model,
                                section_model,
-                               cde_model).postgres
+                               cde_model,
+                               self.column_map).postgres
                         for cde_model in section_model.cde_models])
         return columns
 
     def _create_form_columns(self, form_model):
-        columns = [mkcol(col) for col in FORM_COLUMNS]
+        columns = [self.mkcol(col, form_model=form_model, field=col[0])
+                   for col in FORM_COLUMNS]
         if self.has_form_groups:
-            columns.append(mkcol(COLUMNS.CONTEXT))
+            columns.append(self.mkcol(COLUMNS.CONTEXT,
+                                      form_model=form_model,
+                                      field="context_id"))
 
         columns.extend([Column(self.registry_model,
                                form_model,
                                section_model,
-                               cde_model).postgres for section_model in form_model.section_models
+                               cde_model,
+                               self.column_map).postgres for section_model in form_model.section_models
                         for cde_model in section_model.cde_models
                         if not section_model.allow_multiple])
         return columns
-
-    def _get_demographic_columns(self):
-        return []
 
     def _get_table_name(self, name):
         return name.replace(" ", "").lower()
@@ -308,7 +420,6 @@ class Generator(object):
             self.reporting_engine), *columns, schema=None)
         table.create()
         # these cause failures in migration ...
-        self.alc_tables.append(table)
         logger.debug("created table %s OK" % table_name)
         return table
 
