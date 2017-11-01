@@ -209,22 +209,16 @@ class Generator(object):
         def exists(model):
             return model.__name__ in [m.__name__ for m in models]
         
-
         for model in starting_models:
             if not exists(model):
                 # keep patient model last
-                patient_model = models[-1]
-                other_models = models[:-1]
-                other_models.append(model)
-                models = other_models + [patient_model]
+                models.insert(-1, model)
                 
             related_models = self._get_related_models(model)
             for related_model in related_models:
                 if not exists(related_model):
-                    patient_model = models[-1]
-                    other_models = models[:-1]
-                    other_models.append(related_model)
-                    models = other_models + [patient_model]
+                # keep patient model last
+                    models.insert(-1, related_model)
 
         
         logger.debug("demographic models = %s" % [m.__name__ for m in models])
