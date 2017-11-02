@@ -15,9 +15,9 @@ TRANSLATION_DIR="/data/translations/locale/$LANG/LC_MESSAGES"
 
 # We need copies of the system po file because the extract html strings
 # step clobbers the django po file
-TMPFILE1=/data/TMPFILE1.po
-TMPFILE2=/data/TMPFILE2.po
-TMPFILE3=/data/TMPFILE3.po
+TMPFILE1=/tmp/TMPFILE1.po
+TMPFILE2=/tmp/TMPFILE2.po
+TMPFILE3=/tmp/TMPFILE3.po
 
 echo "removing existing po and mo files for $LANG"
 echo "in $TRANSLATION_DIR ..."
@@ -50,6 +50,8 @@ django-admin compilemessages
 echo "copying the new po amd mo file to /data ..."
 cp django.mo /data/
 cp django.po /data/
+
+find /tmp -name "TMPFILE*.po" -delete
 
 
 
