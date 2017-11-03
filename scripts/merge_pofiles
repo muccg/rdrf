@@ -1,6 +1,8 @@
 #!/usr/bin/env python
+#encoding='utf-8'
 import sys
 import polib
+sys.stdout = open(1, 'w', encoding='utf-8', closefd=False)
 
 PREAMBLE = """# SOME DESCRIPTIVE TITLE.
 # Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER

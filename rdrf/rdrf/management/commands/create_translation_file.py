@@ -9,6 +9,7 @@ from django.core.management import BaseCommand
 from django.core.management.base import CommandError
 from django.core.management import call_command
 
+sys.stdout = open(1, 'w', encoding='utf-8', closefd=False)
 explanation = """
 Usage:
 
@@ -99,7 +100,7 @@ class Command(BaseCommand):
 
         with TemporaryDirectory() as tmp_dir:
             os.chdir(tmp_dir)
-            with open("tmp.rdrfdummyext","w") as f:
+            with open("tmp.rdrfdummyext","w",encoding="utf-8") as f:
                 f.write("\n".join(htmls))
             # This extracts strings from matching files in the current directory and merges them with
             # the existing _system_ po files ( under locals .. LC_MESSAGES )
@@ -107,7 +108,7 @@ class Command(BaseCommand):
 
     def _load_system_messages(self, system_po_file):
         message_pattern = re.compile('^msgid "(.*)"$')
-        with open(system_po_file) as spo:
+        with open(system_po_file,encoding='utf-8') as spo:
             for line in spo.readlines():
                 line = line.strip()
                 m = message_pattern.match(line)
@@ -117,7 +118,7 @@ class Command(BaseCommand):
 
 
     def _load_yaml_file(self, file_name):
-        with open(file_name) as f:
+        with open(file_name, encoding='utf-8') as f:
             try:
                 self.data = yaml.load(f)
             except Exception as ex:

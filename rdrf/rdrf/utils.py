@@ -657,6 +657,7 @@ def get_supported_languages():
 
 def applicable_forms(registry_model, patient_model):
     patient_type_map = registry_model.metadata.get("patient_types", None)
+    supports_types = patient_type_map is not None
     # type map looks like:
     # { "carrier": { "name": "Female Carrier", "forms": ["CarrierForm"]} }
     all_forms = registry_model.forms
@@ -664,26 +665,19 @@ def applicable_forms(registry_model, patient_model):
     if patient_type_map is None:
         return all_forms
     else:
+        # we don't store type as "default"
         patient_type = patient_model.patient_type
         if not patient_type:
-            # list of form names which are "owned" by some patient type
-            # if a patient has no designated patient type they see
-            # the complement of forms which are restricted to any of the
-            # defined types
-            typed_forms = [form
-                           for k in patient_type_map.keys()
-                           for form in patient_type_map[k]["forms"]]
-            
-            return [ f for f in all_forms if f.name not in typed_forms]
-        else:
-            if patient_type in patient_type_map:
-                applicable_form_names = patient_type_map[patient_type].get("forms",
+            patient_type = "default"
+    
+        if patient_type in patient_type_map:
+            applicable_form_names = patient_type_map[patient_type].get("forms",
                                                                            all_forms)
-                forms =  [form for form in all_forms
-                          if form.name in applicable_form_names]
-                return forms
-            else:
-                return []
+            forms =  [form for form in all_forms
+                      if form.name in applicable_form_names]
+            return forms
+        else:
+            return []
 
 
 def is_generated_form(form_model):
