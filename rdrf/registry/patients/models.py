@@ -478,7 +478,10 @@ class Patient(models.Model):
             setting_value = False
 
         # TODO need to support contexts - supply in kwargs
-        context_model = self.default_context(registry_model)
+        if "context_model" not in kwargs:
+            context_model = self.default_context(registry_model)
+        else:
+            context_model = kwargs["context_model"]
 
         from rdrf.generalised_field_expressions import GeneralisedFieldExpressionParser
         parser = GeneralisedFieldExpressionParser(registry_model)

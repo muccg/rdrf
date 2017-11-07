@@ -2,6 +2,7 @@ import sqlalchemy as alc
 from sqlalchemy import create_engine, MetaData
 from django.conf import settings
 from rdrf.models import ContextFormGroup
+from registry.patients.models import Patient
 import logging
 from psycopg2 import ProgrammingError
 from psycopg2 import IntegrityError
@@ -36,7 +37,7 @@ class COLUMNS:
     FORM_GROUP = ("form_group", alc.String, False)
     SECTION = ("section", alc.String, False)
     ITEM = ("item", alc.Integer, False)
-    TIMESTAMP = ("timestamp", alc.Date, False)
+    TIMESTAMP = ("timestamp", alc.Date, True)
     CONTEXT = ("context", alc.Integer, False)
 
 
@@ -63,12 +64,15 @@ class TableType:
 
 
 class DataSource(object):
-    def __init__(self, registry_model,
+    def __init__(self,
+                 registry_model,
+                 column,
                  form_model=None,
                  section_model=None,
                  cde_model=None,
                  field=None):
         self.registry_model = registry_model
+        self.column = column
         self.form_model = form_model
         self.section_model = section_model
         if self.section_model:
@@ -77,6 +81,15 @@ class DataSource(object):
             self.is_multiple = False
         self.cde_model = cde_model
         self.field = field
+
+    @property
+    def datatype(self):
+        return self.cde_model.datatype.lower().strip()
+
+
+    @property
+    def column_name(self):
+        return self.column.name
 
     def get_value(self, patient_model, context_model=None):
        if context_model is None:
@@ -96,48 +109,34 @@ class DataSource(object):
             return context_id
         elif self.field == "section":
             return self.section_model.display_name
+        elif self.field == "timestamp":
+            return None
         else:
             raise Exception("Unknown field: %s" % self.field)
 
     def _get_cde_value(self, patient_model, context_model):
-        raw_value = patient_model.get_form_value(self.registry_model.code,
+        try:
+            raw_value = patient_model.get_form_value(self.registry_model.code,
                                                  self.form_model.name,
                                                  self.section_model.code,
                                                  self.cde_model.code,
                                                  False,
                                                  context_id=context_model.pk)
+
+
+        except KeyError:
+            # the dynamic data record is empty
+            return None
         
-        return self.cde_model.get_display_value(raw_value)
-                                                 
+        value = self.cde_model.get_display_value(raw_value)
+        return self._fix_datatype(value)
 
-
-class FormExtractor(object):
-    def __init__(self, has_groups, column_map, registry_model, table):
-        self.has_groups = has_groups
-        self.column_map = column_map
-        self.registry_model = registry_model
-        self.table = table
-
-    def get_row(self, patient_model):
-        if not self.has_groups:
-            default_context = patient_model.default_context(self.registry_model)
-            self._extract_context(patient_model, default_context)
-        else:
-            # extract rows for each context
-            #todo
-            pass
-
-    def _extract_context(self, patient_model, context_model):
-        row  = []
-        
-        for column in self.table.columns:
-            datasource = self.column_map[column]
-            report_value = datasource.get_report_value(patient_model, context_model)
-            row.append(report_value)
-        return row
-
-            
-
+    def _fix_datatype(self, value):
+        if self.datatype != "string":
+            if value == "":
+                # this is a bug in the display value?
+                return None
+        return value
 
 def pg_uri(db):
     "PostgreSQL connection URI for a django database settings dict"
@@ -192,6 +191,7 @@ class Column(object):
                           nullable=True)
 
         datasource = DataSource(self.registry_model,
+                                column=column,
                                 form_model=self.form_model,
                                 section_model=self.section_model,
                                 cde_model=self.cde_model)
@@ -199,6 +199,63 @@ class Column(object):
         self.column_map[column] = datasource
         return column
 
+class ClinicalTable(object):
+    def __init__(self, table_type,
+                 table,
+                 columns,
+                 form_model,
+                 section_model=None):
+        self.table_type = table_type
+        self.table = table
+        self.columns = columns
+        self.form_model = form_model
+        self.section_model = section_model
+
+    @property
+    def is_multisection(self):
+        return self.section_model and self.section_model.allow_multiple
+
+    def __str__(self):
+        return self.table.name
+
+class MultiSectionExtractor(object):
+    def __init__(self, registry_model, clinical_table, datasources):
+        self.registry_model = registry_model
+        self.clinical_table = clinical_table
+        self.datasources = datasources
+
+    def get_rows(self, patient_model, context_model=None):
+        
+        if context_model is None:
+            context_model = patient_model.default_context(self.registry_model)
+
+        items_list = patient_model.evaluate_field_expression(self.registry_model,
+                                                             self.field_expression)
+
+        return self._convert_to_rows(patient_model, context_model, items_list)
+
+    def _convert_to_rows(self, patient_model, context_model, items_list):
+        for index, item_dict in enumerate(items_list):
+            item_number = index + 1
+            row_dict = {}
+            row_dict["form"] = self.clinical_table.form_model.name
+            row_dict["section"] = self.clinical_table.section_model.display_name
+            row_dict["item"] = item_number
+            row_dict["patient_id"] = patient_model.pk
+            for cde_code in item_dict:
+                raw_value = item_dict[cde_code]
+                reporting_value = self._get_reporting_value(cde_code, raw_value)
+                row_dict[cde_code] = reporting_value
+            yield row_dict
+
+    @property
+    def field_expression(self):
+        return "$ms/%s/%s/items" % (self.clinical_table.form_model.name,
+                                    self.clinical_table.section_model.code)
+    def _get_reporting_value(self, cde_code, raw_value):
+        return raw_value
+    
+        
 
 class Generator(object):
     def __init__(self, registry_model, db="reporting"):
@@ -225,13 +282,14 @@ class Generator(object):
         column_name = triple[0]
         column_datatype = triple[1]
         is_nullable = triple[2]
+        column = alc.Column(column_name, column_datatype, nullable=is_nullable)
         datasource = DataSource(self.registry_model,
+                                column,
                                 form_model=form_model,
                                 section_model=section_model,
                                 cde_model=cde_model,
                                 field=field)
     
-        column = alc.Column(column_name, column_datatype, nullable=is_nullable)
         self.column_map[column] = datasource
         return column
 
@@ -290,7 +348,6 @@ class Generator(object):
             raise Exception("reporting db = default!")
 
         models = []
-        visited = []
 
         def exists(model):
             return model.__name__ in [m.__name__ for m in models]
@@ -329,13 +386,13 @@ class Generator(object):
 
         finished = False
         n = 1
-        while finished == False and n < 100:
+        while not finished and n < 100:
             models = add_models(models)
             finished = len(models) == 0
             n += 1
 
         if not finished:
-            raise Exception("Could not dump all models: %s" % [m.__name__ for m in models])
+            raise Exception("Could not dump all demographic models: %s" % [m.__name__ for m in models])
 
         logger.info("Dumped all demographic data OK")
 
@@ -363,8 +420,10 @@ class Generator(object):
 
     def create_tables(self):
         if self.reporting_engine is not self.default_engine:
-            logger.debug("creating demographic tables ...")
+            logger.info("CREATING DEMOGRAPHIC TABLES")
             self._create_demographic_tables()
+
+        logger.info("CREATING CLINICAL TABLES")
 
         for form_model in self.registry_model.forms:
             logger.debug("creating table for clinical form %s" %
@@ -372,33 +431,71 @@ class Generator(object):
             columns = self._create_form_columns(form_model)
             table = self._create_table(form_model.name, columns)
 
-            self.clinical_tables.append((TableType.CLINICAL_FORM,
-                                         form_model,
-                                         table))
+            single_form_table = ClinicalTable(TableType.CLINICAL_FORM,
+                                              table,
+                                              columns,
+                                              form_model)
             
 
+            self.clinical_tables.append(single_form_table) 
+            
             for section_model in form_model.section_models:
                 if section_model.allow_multiple:
+                    logger.info("creating multisection table for %s %s" % (form_model.name,
+                                                                           section_model.code))
+
                     columns = self._create_multisection_columns(form_model,
                                                                 section_model)
                     table_name = form_model.name + "_" + section_model.code
                     table = self._create_table(table_name, columns)
-                    self.clinical_tables.append((TableType.MULTISECTION,
-                                                 form_model,
-                                                 section_model,
-                                                 table))
+                    multisection_table = ClinicalTable(TableType.MULTISECTION,
+                                                       table,
+                                                       columns,
+                                                       form_model,
+                                                       section_model)
+                    
+                    self.clinical_tables.append(multisection_table)
 
         self._extract_clinical_data()
-        
 
+
+    @property
+    def patients(self):
+        return Patient.objects.filter(rdrf_registry__in=[self.registry_model])
 
     def _extract_clinical_data(self):
-        for table in self.clinical_tables:
-            datasources = [self.column_map[column] for column in table.columns]
-            if not self.has_groups:
-                for patient_model in Patient.objects.all():
-                    row = [ ds.get_value(patient_model) for ds in datasources]
-                    table.insert(row, engine=self.reporting_engine)
+        from registry.patients.models import Patient
+        logger.info("EXTRACTING CLINICAL DATA")
+        logger.debug("column map = %s" % self.column_map)
+        form_tables = [t for t in self.clinical_tables if not t.is_multisection]
+        multi_tables = [t for t in self.clinical_tables if t.is_multisection]
+        for clinical_table in form_tables:
+            logger.debug("processing form table %s" % clinical_table)
+            datasources = [self.column_map[column] for column in clinical_table.columns]
+            if not self.has_form_groups:
+            
+                for patient_model in self.patients:
+                    row = {ds.column_name: ds.get_value(patient_model) for ds in datasources}
+                    self.reporting_engine.execute(clinical_table.table.insert().values(**row))
+                    logger.debug("inserted row: %s" % row)
+            else:
+                raise NotImplementedError("registry has form groups")
+
+        for clinical_table in multi_tables:
+            logger.info("processing table for multisection %s" % clinical_table)
+            datasources = [self.column_map[column] for column in clinical_table.columns]
+            multisection_extractor = MultiSectionExtractor(self.registry_model, clinical_table, datasources)
+            if not self.has_form_groups:
+               for patient_model in self.patients:
+                   for item_row in multisection_extractor.get_rows(patient_model):
+                       self.reporting_engine.execute(clinical_table.table.insert().values(**item_row))
+            else:
+                raise NotImplementedError("registry has form groups")
+                
+                       
+            
+            
+            
 
     def _create_multisection_columns(self, form_model, section_model):
         columns = [self.mkcol(col, form_model=form_model, field=col[0]) for col in MULTISECTION_COLUMNS]
