@@ -336,7 +336,7 @@ class Generator(object):
     
         
 
-        starting_models = [Registry, Group, State, AddressType, NextOfKinRelationship,
+        starting_models = [ContentType,Registry, Group, State, AddressType, NextOfKinRelationship,
                            PatientAddress, Query, Section, ConsentSection, ConsentQuestion,
                            RegistryForm, CDEPermittedValue,
                            CDEPermittedValueGroup, CommonDataElement,Patient]
