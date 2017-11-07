@@ -110,7 +110,8 @@ class DataSource(object):
         elif self.field == "section":
             return self.section_model.display_name
         elif self.field == "timestamp":
-            return None
+            return patient_model.get_form_timestamp(self.form_model, context_model)
+            
         else:
             raise Exception("Unknown field: %s" % self.field)
 

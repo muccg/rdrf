@@ -796,10 +796,21 @@ class Patient(models.Model):
 
         return total_filled_in, total_required_for_completion
 
-    def get_form_timestamp(self, registry_form):
-        dynamic_store = DynamicDataWrapper(self)
-        timestamp = dynamic_store.get_form_timestamp(registry_form)
+    def get_form_timestamp(self, registry_form, context_model=None):
+        from django.core.exceptions import FieldError
+        if context_model is not None:
+            dynamic_store = DynamicDataWrapper(self, rdrf_context_id=context_model.pk)
+        else:
+            dynamic_store = DynamicDataWrapper(self)
+
+        try:
+            timestamp = dynamic_store.get_form_timestamp(registry_form)
+        except FieldError:
+            timestamp = None
+            # if form hasn't been filled in there won't be a timestamp
+
         if timestamp:
+            logger.debug("got timestamp = %s" % timestamp)
             if "timestamp" in timestamp:
                 ts = timestamp["timestamp"]
                 return ts
