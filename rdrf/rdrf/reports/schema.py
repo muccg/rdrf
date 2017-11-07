@@ -4,6 +4,7 @@ from django.conf import settings
 from rdrf.models import ContextFormGroup
 import logging
 from psycopg2 import ProgrammingError
+from psycopg2 import IntegrityError
 from django.contrib.auth.models import Group
 from django.contrib.contenttypes.models import ContentType
 
@@ -257,7 +258,6 @@ class Generator(object):
 
         with dest_engine.begin() as con:
             for row in rows:
-                logger.debug("insert row %s" % row)
                 con.execute(table.insert().values(**row))
 
     def _get_sql_alchemy_type(self, db_type):
@@ -273,34 +273,42 @@ class Generator(object):
         from registry.patients.models import PatientAddress, AddressType, State, NextOfKinRelationship
         from rdrf.models import ConsentQuestion, ConsentSection, Registry, RegistryForm
         from rdrf.models import Section, CommonDataElement, CDEPermittedValueGroup, CDEPermittedValue
+        from explorer.models import Query
 
-        starting_models = [ContentType, Group, State, AddressType, NextOfKinRelationship,
-                           PatientAddress, Registry, Section, ConsentSection, ConsentQuestion,
+    
+        
+
+        starting_models = [Registry, Group, State, AddressType, NextOfKinRelationship,
+                           PatientAddress, Query, Section, ConsentSection, ConsentQuestion,
                            RegistryForm, CDEPermittedValue,
-                           CDEPermittedValueGroup, CommonDataElement, Patient]
+                           CDEPermittedValueGroup, CommonDataElement,Patient]
+
+
+        
 
         if self.reporting_engine is self.default_engine:
             raise Exception("reporting db = default!")
 
-        models = [Patient]
+        models = []
+        visited = []
 
         def exists(model):
             return model.__name__ in [m.__name__ for m in models]
 
-        for model in starting_models:
+        def add_model(model):
+            for m in self._get_related_models(model):
+                if m.__name__ == model.__name__:
+                    continue
+                add_model(m)
             if not exists(model):
-                # keep patient model last
-                models.insert(-1, model)
+                logger.debug("Adding %s" % model.__name__)
+                models.append(model)
+                
 
-            related_models = self._get_related_models(model)
-            for related_model in related_models:
-                if not exists(related_model):
-                    # keep patient model last
-                    models.insert(-1, related_model)
+        for model in starting_models:
+            add_model(model)
 
         logger.debug("demographic models = %s" % [m.__name__ for m in models])
-
-        bad_models = []
 
         def clone_model(model):
             table_name = model._meta.db_table
@@ -308,16 +316,29 @@ class Generator(object):
                 table_name, self.default_engine, self.reporting_engine)
             logger.debug("mirrored table %s OK" % table_name)
 
-        for model in models:
-            if model is not None:
-                try:
-                    clone_model(model)
-                except ProgrammingError:
-                    bad_models.append(model)
 
-        # try 2nd pass
-        for model in bad_models:
-            clone_model(model)
+        def add_models(models):
+            bad = []
+            for model in models:
+                if model is not None:
+                    try:
+                        clone_model(model)
+                    except:
+                        bad.append(model)
+            return bad
+
+        finished = False
+        n = 1
+        while finished == False and n < 100:
+            models = add_models(models)
+            finished = len(models) == 0
+            n += 1
+
+        if not finished:
+            raise Exception("Could not dump all models: %s" % [m.__name__ for m in models])
+
+        logger.info("Dumped all demographic data OK")
+
 
     def _get_related_models(self, model):
         models = [model]
