@@ -806,20 +806,14 @@ class Patient(models.Model):
         try:
             timestamp = dynamic_store.get_form_timestamp(registry_form)
         except FieldError:
-            logger.debug("FieldError getting timestamp")
             timestamp = None
-            # if form hasn't been filled in there won't be a timestamp
 
         if timestamp:
-            logger.debug("got timestamp = %s" % timestamp)
             if "timestamp" in timestamp:
                 ts = timestamp["timestamp"]
                 return ts
             else:
                 return timestamp
-        else:
-            logger.debug("No timestamp returning None")
-
 
     def form_currency(self, registry_form):
         dynamic_store = DynamicDataWrapper(self)

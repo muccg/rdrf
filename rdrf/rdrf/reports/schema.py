@@ -20,11 +20,11 @@ logger = logging.getLogger(__name__)
 class COLUMNS:
     PATIENT_ID = ("patient_id", alc.Integer, False)
     FORM = ("form", alc.String, False)
-    FORM_GROUP = ("form_group", alc.String, False)
+    FORM_GROUP = ("form_group", alc.String, True)
     SECTION = ("section", alc.String, False)
     ITEM = ("item", alc.Integer, False)
     TIMESTAMP = ("timestamp", alc.DateTime, True)
-    CONTEXT = ("context", alc.Integer, False)
+    CONTEXT = ("context_id", alc.Integer, False)
 
 
 # If CDEs are labelled poorly it is possible to generate name clashes within the same table
@@ -36,12 +36,15 @@ nice_name_map = {}
 DEMOGRAPHIC_COLUMNS = [COLUMNS.PATIENT_ID]
 
 FORM_COLUMNS = [COLUMNS.FORM,
+                COLUMNS.CONTEXT,
+                COLUMNS.FORM_GROUP,
                 COLUMNS.PATIENT_ID,
                 COLUMNS.TIMESTAMP]
 
 MULTISECTION_COLUMNS = [COLUMNS.FORM,
                         COLUMNS.SECTION,
                         COLUMNS.ITEM,
+                        COLUMNS.FORM_GROUP,
                         COLUMNS.TIMESTAMP,
                         COLUMNS.PATIENT_ID]
 
@@ -58,6 +61,19 @@ def fix_display_value(datatype, value):
     else:
         return value
 
+def in_context(context_model, clinical_table):
+    # contexts only contain all form data if there are NO form groups explicitly assigned
+    if not context_model.context_form_group:
+        return True
+    else:
+        return clinical_table.form_model in context_model.context_form_group.forms
+
+def get_form_group(context_model):
+    if not context_model.context_form_group:
+        return None
+    else:
+        return context_model.context_form_group.direct_name
+
 
 def nice_name(s):
     """
@@ -65,7 +81,6 @@ def nice_name(s):
     that appear on the screen so that report writers don't have to look
     up cde codes.
     """
-    logger.debug("raw name = %s" % s)
     label = s.lower().strip()
     nice = re.sub(r'[^a-zA-Z0-9]', "_", label)
     re.sub('_+', '_', nice)
@@ -73,8 +88,6 @@ def nice_name(s):
         nice = nice[:-1]
 
     nice = re.sub("_+", "_", nice)
-
-    logger.debug("nice name = %s" % nice)
     return nice
 
 
@@ -120,9 +133,11 @@ class DataSource(object):
         elif self.field == "form":
             return self.form_model.name
         elif self.field == "context_id":
-            return context_id
+            return context_model.pk
         elif self.field == "section":
             return self.section_model.display_name
+        elif self.field == "form_group":
+            return get_form_group(context_model)
         elif self.field == "timestamp":
             return patient_model.get_form_timestamp(self.form_model, context_model)
 
@@ -264,7 +279,9 @@ class MultiSectionExtractor(object):
             row_dict["section"] = self.clinical_table.section_model.display_name
             row_dict["item"] = item_number
             row_dict["patient_id"] = patient_model.pk
+            row_dict["context_id"] = context_model.pk
             row_dict["timestamp"] = form_timestamp
+        
             for cde_code in item_dict:
                 cde_model = CommonDataElement.objects.get(code=cde_code)
                 column_name = nice_name(cde_model.name.lower().strip())
@@ -337,7 +354,6 @@ class Generator(object):
         return table
 
     def _copy_table_data(self, src_engine, dest_engine, table):
-        logger.debug("copying data for table %s" % table.name)
         dest_engine.execute("DROP TABLE IF EXISTS %s CASCADE" % table.name)
         table.create(dest_engine)
         rows = src_engine.execute(table.select()).fetchall()
@@ -379,13 +395,10 @@ class Generator(object):
                     continue
                 add_model(m)
             if not exists(model):
-                logger.debug("Adding %s" % model.__name__)
                 models.append(model)
 
         for model in starting_models:
             add_model(model)
-
-        logger.debug("demographic models = %s" % [m.__name__ for m in models])
 
         def clone_model(model):
             table_name = model._meta.db_table
@@ -482,7 +495,6 @@ class Generator(object):
 
     def _extract_clinical_data(self):
         logger.info("EXTRACTING CLINICAL DATA")
-        logger.debug("column map = %s" % self.column_map)
         form_tables = [
             t for t in self.clinical_tables if not t.is_multisection]
         multi_tables = [t for t in self.clinical_tables if t.is_multisection]
@@ -490,16 +502,15 @@ class Generator(object):
             logger.debug("processing form table %s" % clinical_table)
             datasources = [self.column_map[column]
                            for column in clinical_table.columns]
-            if not self.has_form_groups:
-
-                for patient_model in self.patients:
-                    row = {ds.column_name: ds.get_value(
-                        patient_model) for ds in datasources}
-                    self.reporting_engine.execute(
-                        clinical_table.table.insert().values(**row))
-                    logger.debug("inserted row: %s" % row)
-            else:
-                raise NotImplementedError("registry has form groups")
+            for patient_model in self.patients:
+                for context_model in patient_model.context_models:
+                    if context_model.registry.id == self.registry_model.id:
+                        if in_context(context_model, clinical_table):
+                            row = {ds.column_name: ds.get_value(patient_model, context_model) for ds in datasources}
+                            self.reporting_engine.execute(clinical_table.table.insert().values(**row))
+                            logger.info("Patient %s Context %s %s" % (patient_model.pk,
+                                                                      context_model.pk,
+                                                                      clinical_table))
 
         for clinical_table in multi_tables:
             logger.info("processing table for multisection %s" %
@@ -508,13 +519,16 @@ class Generator(object):
                            for column in clinical_table.columns]
             multisection_extractor = MultiSectionExtractor(
                 self.registry_model, clinical_table, datasources)
-            if not self.has_form_groups:
-                for patient_model in self.patients:
-                    for item_row in multisection_extractor.get_rows(patient_model):
-                        self.reporting_engine.execute(
-                            clinical_table.table.insert().values(**item_row))
-            else:
-                raise NotImplementedError("registry has form groups")
+            for patient_model in self.patients:
+                for context_model in patient_model.context_models:
+                    if context_model.registry.id == self.registry_model.id:
+                        if in_context(context_model, clinical_table):
+                            for item_row in multisection_extractor.get_rows(patient_model):
+                                self.reporting_engine.execute(
+                                    clinical_table.table.insert().values(**item_row))
+                                logger.info("Patient %s Context %s %s" % (patient_model.pk,
+                                                                          context_model.pk,
+                                                                          clinical_table))
 
     def _create_multisection_columns(self, form_model, section_model):
         columns = [self.mkcol(col, form_model=form_model, field=col[0])
