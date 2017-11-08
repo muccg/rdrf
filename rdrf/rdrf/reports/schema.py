@@ -5,33 +5,18 @@ from rdrf.models import ContextFormGroup
 from rdrf.models import CommonDataElement
 from registry.patients.models import Patient
 import logging
-from psycopg2 import ProgrammingError
-from psycopg2 import IntegrityError
 from django.contrib.auth.models import Group
 from django.contrib.contenttypes.models import ContentType
+import re
 
 logger = logging.getLogger(__name__)
 
-# generate relational schema
-# but what schema?
-# most "natural" seems to be this:
-# for registries without form groups, context_id is redundant and confusing
-# so better to not extract at all - hence:
-# one demographics table
-# one table per form
-# multisections of forms have to be separate tables
-# one table for addresses
-# one table for consents
-# one table for relatives
-# one history table (?)
-# if there are questionnaires:
-# questionnaire responses ?
-# for registries with form groups ( Just FH at the moment)
-# same as above but embed the context id in each form and multisection table
-# as well as owning form group name
-
+# Generates relational schema from registry definition plus demographic tables
+# then populates it.
 
 # Column representations which are reused
+
+
 class COLUMNS:
     PATIENT_ID = ("patient_id", alc.Integer, False)
     FORM = ("form", alc.String, False)
@@ -42,7 +27,9 @@ class COLUMNS:
     CONTEXT = ("context", alc.Integer, False)
 
 
-
+# If CDEs are labelled poorly it is possible to generate name clashes within the same table
+# we use a global name map to avoid this
+nice_name_map = {}
 
 # These columns are structural and exist on the tables
 # regardless of the registry definition:
@@ -58,16 +45,37 @@ MULTISECTION_COLUMNS = [COLUMNS.FORM,
                         COLUMNS.TIMESTAMP,
                         COLUMNS.PATIENT_ID]
 
+
 class TableType:
     DEMOGRAPHIC = 1
     CLINICAL_FORM = 2
     MULTISECTION = 3
+
 
 def fix_display_value(datatype, value):
     if value == "" and datatype != "string":
         return None
     else:
         return value
+
+
+def nice_name(s):
+    """
+    Make the column names in postgres easy to work with and match the names
+    that appear on the screen so that report writers don't have to look
+    up cde codes.
+    """
+    logger.debug("raw name = %s" % s)
+    label = s.lower().strip()
+    nice = re.sub(r'[^a-zA-Z0-9]', "_", label)
+    re.sub('_+', '_', nice)
+    if nice.endswith("_"):
+        nice = nice[:-1]
+
+    nice = re.sub("_+", "_", nice)
+
+    logger.debug("nice name = %s" % nice)
+    return nice
 
 
 class DataSource(object):
@@ -93,19 +101,18 @@ class DataSource(object):
     def datatype(self):
         return self.cde_model.datatype.lower().strip()
 
-
     @property
     def column_name(self):
         return self.column.name
 
     def get_value(self, patient_model, context_model=None):
-       if context_model is None:
-           context_model = patient_model.default_context(self.registry_model)
-           
-       if self.field:
-           return self._get_field_value(patient_model, context_model)
-       else:
-           return self._get_cde_value(patient_model, context_model)
+        if context_model is None:
+            context_model = patient_model.default_context(self.registry_model)
+
+        if self.field:
+            return self._get_field_value(patient_model, context_model)
+        else:
+            return self._get_cde_value(patient_model, context_model)
 
     def _get_field_value(self, patient_model, context_model):
         if self.field == "patient_id":
@@ -118,24 +125,23 @@ class DataSource(object):
             return self.section_model.display_name
         elif self.field == "timestamp":
             return patient_model.get_form_timestamp(self.form_model, context_model)
-            
+
         else:
             raise Exception("Unknown field: %s" % self.field)
 
     def _get_cde_value(self, patient_model, context_model):
         try:
             raw_value = patient_model.get_form_value(self.registry_model.code,
-                                                 self.form_model.name,
-                                                 self.section_model.code,
-                                                 self.cde_model.code,
-                                                 False,
-                                                 context_id=context_model.pk)
-
+                                                     self.form_model.name,
+                                                     self.section_model.code,
+                                                     self.cde_model.code,
+                                                     False,
+                                                     context_id=context_model.pk)
 
         except KeyError:
             # the dynamic data record is empty
             return None
-        
+
         value = self.cde_model.get_display_value(raw_value)
         return fix_display_value(self.cde_model.datatype, value)
 
@@ -175,7 +181,7 @@ class Column(object):
         self.section_model = section_model
         self.cde_model = cde_model
         self.in_multisection = section_model.allow_multiple
-        self.column_map = column_map # ref to global map
+        self.column_map = column_map  # ref to global map
 
     @property
     def datatype(self):
@@ -183,23 +189,33 @@ class Column(object):
 
     @property
     def name(self):
-        # this should be a nice name
-        return self.cde_model.code
+        name = nice_name(self.cde_model.name)
+        if self.section_model:
+            key = self.section_model.code
+            names = nice_name_map.setdefault(key, [])
+            if name in names:
+                # name clash within table - avoid!
+                return nice_name(self.cde_model.code.lower())
+            else:
+                nice_name_map[key].append(name)
+                return name
+        return nice_name(self.cde_model.code)
 
     @property
     def postgres(self):
         column = alc.Column(self.name,
-                          self.datatype,
-                          nullable=True)
+                            self.datatype,
+                            nullable=True)
 
         datasource = DataSource(self.registry_model,
                                 column=column,
                                 form_model=self.form_model,
                                 section_model=self.section_model,
                                 cde_model=self.cde_model)
-        
+
         self.column_map[column] = datasource
         return column
+
 
 class ClinicalTable(object):
     def __init__(self, table_type,
@@ -220,6 +236,7 @@ class ClinicalTable(object):
     def __str__(self):
         return self.table.name
 
+
 class MultiSectionExtractor(object):
     def __init__(self, registry_model, clinical_table, datasources):
         self.registry_model = registry_model
@@ -227,7 +244,7 @@ class MultiSectionExtractor(object):
         self.datasources = datasources
 
     def get_rows(self, patient_model, context_model=None):
-        
+
         if context_model is None:
             context_model = patient_model.default_context(self.registry_model)
 
@@ -237,8 +254,9 @@ class MultiSectionExtractor(object):
         return self._convert_to_rows(patient_model, context_model, items_list)
 
     def _convert_to_rows(self, patient_model, context_model, items_list):
-        form_timestamp = patient_model.get_form_timestamp(self.clinical_table.form_model, context_model=context_model)
-        
+        form_timestamp = patient_model.get_form_timestamp(
+            self.clinical_table.form_model, context_model=context_model)
+
         for index, item_dict in enumerate(items_list):
             item_number = index + 1
             row_dict = {}
@@ -248,21 +266,24 @@ class MultiSectionExtractor(object):
             row_dict["patient_id"] = patient_model.pk
             row_dict["timestamp"] = form_timestamp
             for cde_code in item_dict:
+                cde_model = CommonDataElement.objects.get(code=cde_code)
+                column_name = nice_name(cde_model.name.lower().strip())
                 raw_value = item_dict[cde_code]
-                reporting_value = self._get_reporting_value(cde_code, raw_value)
-                row_dict[cde_code] = reporting_value
+                reporting_value = self._get_reporting_value(
+                    cde_code, raw_value)
+                row_dict[column_name] = reporting_value
             yield row_dict
 
     @property
     def field_expression(self):
         return "$ms/%s/%s/items" % (self.clinical_table.form_model.name,
                                     self.clinical_table.section_model.code)
+
     def _get_reporting_value(self, cde_code, raw_value):
         cde_model = CommonDataElement.objects.get(code=cde_code)
         display_value = cde_model.get_display_value(raw_value)
         return fix_display_value(cde_model.datatype.lower().strip(), display_value)
-    
-        
+
 
 class Generator(object):
     def __init__(self, registry_model, db="reporting"):
@@ -296,7 +317,7 @@ class Generator(object):
                                 section_model=section_model,
                                 cde_model=cde_model,
                                 field=field)
-    
+
         self.column_map[column] = datasource
         return column
 
@@ -334,22 +355,15 @@ class Generator(object):
             self._drop_table(table)
 
     def _create_demographic_tables(self):
-        from registry.patients.models import Patient
         from registry.patients.models import PatientAddress, AddressType, State, NextOfKinRelationship
         from rdrf.models import ConsentQuestion, ConsentSection, Registry, RegistryForm
         from rdrf.models import Section, CommonDataElement, CDEPermittedValueGroup, CDEPermittedValue
         from explorer.models import Query
 
-    
-        
-
-        starting_models = [ContentType,Registry, Group, State, AddressType, NextOfKinRelationship,
+        starting_models = [ContentType, Registry, Group, State, AddressType, NextOfKinRelationship,
                            PatientAddress, Query, Section, ConsentSection, ConsentQuestion,
                            RegistryForm, CDEPermittedValue,
-                           CDEPermittedValueGroup, CommonDataElement,Patient]
-
-
-        
+                           CDEPermittedValueGroup, CommonDataElement, Patient]
 
         if self.reporting_engine is self.default_engine:
             raise Exception("reporting db = default!")
@@ -367,7 +381,6 @@ class Generator(object):
             if not exists(model):
                 logger.debug("Adding %s" % model.__name__)
                 models.append(model)
-                
 
         for model in starting_models:
             add_model(model)
@@ -379,7 +392,6 @@ class Generator(object):
             self._mirror_table(
                 table_name, self.default_engine, self.reporting_engine)
             logger.debug("mirrored table %s OK" % table_name)
-
 
         def add_models(models):
             bad = []
@@ -399,10 +411,10 @@ class Generator(object):
             n += 1
 
         if not finished:
-            raise Exception("Could not dump all demographic models: %s" % [m.__name__ for m in models])
+            raise Exception("Could not dump all demographic models: %s" % [
+                            m.__name__ for m in models])
 
         logger.info("Dumped all demographic data OK")
-
 
     def _get_related_models(self, model):
         models = [model]
@@ -442,10 +454,9 @@ class Generator(object):
                                               table,
                                               columns,
                                               form_model)
-            
 
-            self.clinical_tables.append(single_form_table) 
-            
+            self.clinical_tables.append(single_form_table)
+
             for section_model in form_model.section_models:
                 if section_model.allow_multiple:
                     logger.info("creating multisection table for %s %s" % (form_model.name,
@@ -460,52 +471,54 @@ class Generator(object):
                                                        columns,
                                                        form_model,
                                                        section_model)
-                    
+
                     self.clinical_tables.append(multisection_table)
 
         self._extract_clinical_data()
-
 
     @property
     def patients(self):
         return Patient.objects.filter(rdrf_registry__in=[self.registry_model])
 
     def _extract_clinical_data(self):
-        from registry.patients.models import Patient
         logger.info("EXTRACTING CLINICAL DATA")
         logger.debug("column map = %s" % self.column_map)
-        form_tables = [t for t in self.clinical_tables if not t.is_multisection]
+        form_tables = [
+            t for t in self.clinical_tables if not t.is_multisection]
         multi_tables = [t for t in self.clinical_tables if t.is_multisection]
         for clinical_table in form_tables:
             logger.debug("processing form table %s" % clinical_table)
-            datasources = [self.column_map[column] for column in clinical_table.columns]
+            datasources = [self.column_map[column]
+                           for column in clinical_table.columns]
             if not self.has_form_groups:
-            
+
                 for patient_model in self.patients:
-                    row = {ds.column_name: ds.get_value(patient_model) for ds in datasources}
-                    self.reporting_engine.execute(clinical_table.table.insert().values(**row))
+                    row = {ds.column_name: ds.get_value(
+                        patient_model) for ds in datasources}
+                    self.reporting_engine.execute(
+                        clinical_table.table.insert().values(**row))
                     logger.debug("inserted row: %s" % row)
             else:
                 raise NotImplementedError("registry has form groups")
 
         for clinical_table in multi_tables:
-            logger.info("processing table for multisection %s" % clinical_table)
-            datasources = [self.column_map[column] for column in clinical_table.columns]
-            multisection_extractor = MultiSectionExtractor(self.registry_model, clinical_table, datasources)
+            logger.info("processing table for multisection %s" %
+                        clinical_table)
+            datasources = [self.column_map[column]
+                           for column in clinical_table.columns]
+            multisection_extractor = MultiSectionExtractor(
+                self.registry_model, clinical_table, datasources)
             if not self.has_form_groups:
-               for patient_model in self.patients:
-                   for item_row in multisection_extractor.get_rows(patient_model):
-                       self.reporting_engine.execute(clinical_table.table.insert().values(**item_row))
+                for patient_model in self.patients:
+                    for item_row in multisection_extractor.get_rows(patient_model):
+                        self.reporting_engine.execute(
+                            clinical_table.table.insert().values(**item_row))
             else:
                 raise NotImplementedError("registry has form groups")
-                
-                       
-            
-            
-            
 
     def _create_multisection_columns(self, form_model, section_model):
-        columns = [self.mkcol(col, form_model=form_model, field=col[0]) for col in MULTISECTION_COLUMNS]
+        columns = [self.mkcol(col, form_model=form_model, field=col[0])
+                   for col in MULTISECTION_COLUMNS]
         if self.has_form_groups:
             columns.append(self.mkcol(COLUMNS.CONTEXT,
                                       form_model=form_model,
@@ -540,7 +553,7 @@ class Generator(object):
         return name.replace(" ", "").lower()
 
     def _create_table(self, table_code, columns):
-        table_name = self._get_table_name("rep_" + table_code)
+        table_name = self._get_table_name(table_code)
         logger.debug("creating table %s" % table_name)
         self._drop_table(table_name)
         table = alc.Table(table_name, MetaData(
