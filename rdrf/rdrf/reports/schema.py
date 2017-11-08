@@ -2,6 +2,7 @@ import sqlalchemy as alc
 from sqlalchemy import create_engine, MetaData
 from django.conf import settings
 from rdrf.models import ContextFormGroup
+from rdrf.models import CommonDataElement
 from registry.patients.models import Patient
 import logging
 from psycopg2 import ProgrammingError
@@ -37,7 +38,7 @@ class COLUMNS:
     FORM_GROUP = ("form_group", alc.String, False)
     SECTION = ("section", alc.String, False)
     ITEM = ("item", alc.Integer, False)
-    TIMESTAMP = ("timestamp", alc.Date, True)
+    TIMESTAMP = ("timestamp", alc.DateTime, True)
     CONTEXT = ("context", alc.Integer, False)
 
 
@@ -61,6 +62,12 @@ class TableType:
     DEMOGRAPHIC = 1
     CLINICAL_FORM = 2
     MULTISECTION = 3
+
+def fix_display_value(datatype, value):
+    if value == "" and datatype != "string":
+        return None
+    else:
+        return value
 
 
 class DataSource(object):
@@ -130,14 +137,8 @@ class DataSource(object):
             return None
         
         value = self.cde_model.get_display_value(raw_value)
-        return self._fix_datatype(value)
+        return fix_display_value(self.cde_model.datatype, value)
 
-    def _fix_datatype(self, value):
-        if self.datatype != "string":
-            if value == "":
-                # this is a bug in the display value?
-                return None
-        return value
 
 def pg_uri(db):
     "PostgreSQL connection URI for a django database settings dict"
@@ -236,6 +237,8 @@ class MultiSectionExtractor(object):
         return self._convert_to_rows(patient_model, context_model, items_list)
 
     def _convert_to_rows(self, patient_model, context_model, items_list):
+        form_timestamp = patient_model.get_form_timestamp(self.clinical_table.form_model, context_model=context_model)
+        
         for index, item_dict in enumerate(items_list):
             item_number = index + 1
             row_dict = {}
@@ -243,6 +246,7 @@ class MultiSectionExtractor(object):
             row_dict["section"] = self.clinical_table.section_model.display_name
             row_dict["item"] = item_number
             row_dict["patient_id"] = patient_model.pk
+            row_dict["timestamp"] = form_timestamp
             for cde_code in item_dict:
                 raw_value = item_dict[cde_code]
                 reporting_value = self._get_reporting_value(cde_code, raw_value)
@@ -254,7 +258,9 @@ class MultiSectionExtractor(object):
         return "$ms/%s/%s/items" % (self.clinical_table.form_model.name,
                                     self.clinical_table.section_model.code)
     def _get_reporting_value(self, cde_code, raw_value):
-        return raw_value
+        cde_model = CommonDataElement.objects.get(code=cde_code)
+        display_value = cde_model.get_display_value(raw_value)
+        return fix_display_value(cde_model.datatype.lower().strip(), display_value)
     
         
 

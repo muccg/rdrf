@@ -772,9 +772,8 @@ class DynamicDataWrapper(object):
                         yield form_dict, section_dict, cde_dict
 
     def get_form_timestamp(self, registry_form):
-        qs = self._get_record(registry_form.registry.code, "cdes")
+        data = self.load_dynamic_data(registry_form.registry.code,"cdes", flattened=False)
         timestamp_field = registry_form.name + "_timestamp"
-        query_field = "data__%s" % timestamp_field
-        ts = qs.values_list(query_field).first()
-        logger.debug("form timestamp = %s" % ts)
-        return ts
+        if data:
+            return data.get(timestamp_field, None)
+        return None
