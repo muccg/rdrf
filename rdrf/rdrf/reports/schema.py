@@ -3,11 +3,14 @@ from sqlalchemy import create_engine, MetaData
 from django.conf import settings
 from rdrf.models import ContextFormGroup
 from rdrf.models import CommonDataElement
+from rdrf.dynamic_data import DynamicDataWrapper
+from rdrf.utils import cached
 from registry.patients.models import Patient
 import logging
 from django.contrib.auth.models import Group
 from django.contrib.contenttypes.models import ContentType
 import re
+from functools import lru_cache
 
 logger = logging.getLogger(__name__)
 
@@ -25,6 +28,8 @@ class COLUMNS:
     ITEM = ("item", alc.Integer, False)
     TIMESTAMP = ("timestamp", alc.DateTime, True)
     CONTEXT = ("context_id", alc.Integer, False)
+    USER = ("user", alc.String, False) # last user to edit
+    SNAPSHOT = ("snapshot", alc.Integer, True) # snapshot id  - null means CURRENT
 
 
 # If CDEs are labelled poorly it is possible to generate name clashes within the same table
@@ -54,7 +59,6 @@ class TableType:
     CLINICAL_FORM = 2
     MULTISECTION = 3
 
-
 def fix_display_value(datatype, value):
     if value == "" and datatype != "string":
         return None
@@ -74,7 +78,12 @@ def get_form_group(context_model):
     else:
         return context_model.context_form_group.direct_name
 
-
+@cached
+def get_cde_model(code):
+    return CommonDataElement.objects.get(code=code)
+    
+    
+@cached
 def nice_name(s):
     """
     Make the column names in postgres easy to work with and match the names
@@ -89,6 +98,25 @@ def nice_name(s):
 
     nice = re.sub("_+", "_", nice)
     return nice
+
+@cached
+def get_default_context(patient_id, registry_model_id):
+    patient = Patient.objects.get(pk=patient_id)
+    registry_model = Registry.objects.get(pk=registry_model_id)
+    return patient_model.default_context(self.registry_model)
+
+
+@lru_cache(maxsize=100)
+def get_clinical_data(registry_code, patient_id, context_id):
+    patient_model = Patient.objects.get(pk=patient_id)
+    wrapper = DynamicDataWrapper(patient_model, rdrf_context_id=context_id)
+    return wrapper.load_dynamic_data(registry_code, "cdes")
+
+@lru_cache(maxsize=100)
+def get_nested_clinical_data(registry_code, patient_id, context_id):
+    patient_model = Patient.objects.get(pk=patient_id)
+    wrapper = DynamicDataWrapper(patient_model, rdrf_context_id=context_id)
+    return wrapper.load_dynamic_data(registry_code, "cdes", flattened=False)
 
 
 class DataSource(object):
@@ -118,14 +146,12 @@ class DataSource(object):
     def column_name(self):
         return self.column.name
 
-    def get_value(self, patient_model, context_model=None):
-        if context_model is None:
-            context_model = patient_model.default_context(self.registry_model)
-
+    def get_value(self, patient_model, context_model):
         if self.field:
             return self._get_field_value(patient_model, context_model)
         else:
             return self._get_cde_value(patient_model, context_model)
+
 
     def _get_field_value(self, patient_model, context_model):
         if self.field == "patient_id":
@@ -138,20 +164,33 @@ class DataSource(object):
             return self.section_model.display_name
         elif self.field == "form_group":
             return get_form_group(context_model)
+        elif self.field == "user":
+            return self._get_last_user(patient_model, context_model)
         elif self.field == "timestamp":
             return patient_model.get_form_timestamp(self.form_model, context_model)
 
         else:
             raise Exception("Unknown field: %s" % self.field)
 
+    def _get_last_user(self, patient_model, context_model):
+        history = ClinicalData.objects.collection(self.registry_model.code, "history")
+        snapshots = history.find(patient, record_type="snapshot")
+
+
     def _get_cde_value(self, patient_model, context_model):
         try:
+            data = get_clinical_data(self.registry_model.code,
+                                     patient_model.pk,
+                                     context_model.pk)
+            
+
             raw_value = patient_model.get_form_value(self.registry_model.code,
                                                      self.form_model.name,
                                                      self.section_model.code,
                                                      self.cde_model.code,
                                                      False,
-                                                     context_id=context_model.pk)
+                                                     context_id=context_model.pk,
+                                                     clinical_data=data)
 
         except KeyError:
             # the dynamic data record is empty
@@ -258,13 +297,15 @@ class MultiSectionExtractor(object):
         self.clinical_table = clinical_table
         self.datasources = datasources
 
-    def get_rows(self, patient_model, context_model=None):
+    def get_rows(self, patient_model, context_model):
 
-        if context_model is None:
-            context_model = patient_model.default_context(self.registry_model)
-
+        nested_clinical_data = get_nested_clinical_data(self.registry_model.code,
+                                                 patient_model.pk,
+                                                 context_model.pk)
+        
         items_list = patient_model.evaluate_field_expression(self.registry_model,
-                                                             self.field_expression)
+                                                             self.field_expression,
+                                                             clinical_data=nested_clinical_data)
 
         return self._convert_to_rows(patient_model, context_model, items_list)
 
@@ -297,7 +338,7 @@ class MultiSectionExtractor(object):
                                     self.clinical_table.section_model.code)
 
     def _get_reporting_value(self, cde_code, raw_value):
-        cde_model = CommonDataElement.objects.get(code=cde_code)
+        cde_model = get_cde_model(cde_code)
         display_value = cde_model.get_display_value(raw_value)
         return fix_display_value(cde_model.datatype.lower().strip(), display_value)
 
@@ -523,7 +564,7 @@ class Generator(object):
                 for context_model in patient_model.context_models:
                     if context_model.registry.id == self.registry_model.id:
                         if in_context(context_model, clinical_table):
-                            for item_row in multisection_extractor.get_rows(patient_model):
+                            for item_row in multisection_extractor.get_rows(patient_model, context_model):
                                 self.reporting_engine.execute(
                                     clinical_table.table.insert().values(**item_row))
                                 logger.info("Patient %s Context %s %s" % (patient_model.pk,
@@ -549,10 +590,6 @@ class Generator(object):
     def _create_form_columns(self, form_model):
         columns = [self.mkcol(col, form_model=form_model, field=col[0])
                    for col in FORM_COLUMNS]
-        if self.has_form_groups:
-            columns.append(self.mkcol(COLUMNS.CONTEXT,
-                                      form_model=form_model,
-                                      field="context_id"))
 
         columns.extend([Column(self.registry_model,
                                form_model,
