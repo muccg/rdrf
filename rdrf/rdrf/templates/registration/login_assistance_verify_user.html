@@ -14,19 +14,19 @@
               {% csrf_token %}
               {{ form.non_field_errors }}
               <div class="form-group">
-                  <label for="first_name">First Name:</label>
+                  <label for="first_name">{% trans "First Name:" %}</label>
                   {{ form.first_name.errors }}
                   <input id="first_name" name="first_name" type="text" value="{{ form.first_name.value }}" class="form-control" required />
               </div>
               <div class="form-group">
-                  <label for="last_name">Surname:</label>
+                  <label for="last_name">{% trans "Surname:" %}</label>
                   {{ form.last_name.errors }}
                   <input id="last_name" name="last_name" type="text" value="{{ form.last_name.value }}" class="form-control" required />
               </div>
                <div class="form-group">
-                  <label for="date_of_birth">Date of Birth:</label>
+                  <label for="date_of_birth">{% trans "Date of Birth:" %}</label>
                   {{ form.date_of_birth.errors }}
-                  <input id="date_of_birth" name="date_of_birth" type="text" value="{{ form.date_of_birth.value }}" placeholder="YYYY-MM-DD" class="form-control" required />
+                  <input id="date_of_birth" name="date_of_birth" type="text" value="{{ form.date_of_birth.value }}" placeholder="{% trans 'YYYY-MM-DD' %}" class="form-control" required />
               </div>
               <div class="form-group">
                   <input type="submit" value="{% trans 'Verify' %}" class="btn btn-success" />
