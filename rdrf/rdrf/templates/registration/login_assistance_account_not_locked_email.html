@@ -1,5 +1,5 @@
 {% load i18n %}{% autoescape off %}
-Hello  Mr/Ms {{user.last_name}},
+{% trans "Hello Mr/Ms" %} {{user.last_name}},
 
 {% blocktrans %}You're receiving this email because you were having trouble signing in and requested help.{% endblocktrans %}
 
