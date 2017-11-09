@@ -6,7 +6,7 @@
   <form action="" method="post">
     {% csrf_token %}
       <div class="panel panel-default">
-        <div class="panel-heading">Disable Two-Factor Authentication</div>
+        <div class="panel-heading">{% trans "Disable Two-Factor Authentication" %}</div>
         <div class="panel-body">
           <div class="row">
             <div class="col-xs-12">
@@ -15,8 +15,7 @@
                 However, your account requires two-factor authentication to be set up.{% endblocktrans %}</p>
                 <p>{% blocktrans %}This means <strong>you won't be able to use the site</strong> until you set up two-factor authentication again.{% endblocktrans %}</p>
               {% else %}
-                <p>{% blocktrans %}You are about to disable two-factor authentication.
-                This compromises your account security.{% endblocktrans %}</p>
+                <p>{% blocktrans %}You are about to disable two-factor authentication. This compromises your account security.{% endblocktrans %}</p>
               {% endif %}
               <p>{% blocktrans %}Are you sure?{% endblocktrans %}
             </div>
