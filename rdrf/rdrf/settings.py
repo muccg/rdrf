@@ -56,7 +56,7 @@ USE_I18N = env.get("use_i18n", True)
 # This must be a superset of LANGUAGES
 ALL_LANGUAGES = (("en", "English"),
                  ("ar", "Arabic"),
-                 ("po", "Polish"),
+                 ("pl", "Polish"),
                  ("es", "Spanish"),
                  ("de", "German"))
 
