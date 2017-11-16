@@ -173,8 +173,9 @@ class DataSource(object):
             raise Exception("Unknown field: %s" % self.field)
 
     def _get_last_user(self, patient_model, context_model):
-        history = ClinicalData.objects.collection(self.registry_model.code, "history")
-        snapshots = history.find(patient, record_type="snapshot")
+        #history = ClinicalData.objects.collection(self.registry_model.code, "history")
+        #snapshots = history.find(patient, record_type="snapshot")
+        return "TODO"
 
 
     def _get_cde_value(self, patient_model, context_model):
