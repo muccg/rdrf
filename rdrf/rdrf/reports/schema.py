@@ -47,6 +47,7 @@ FORM_COLUMNS = [COLUMNS.FORM,
                 COLUMNS.TIMESTAMP]
 
 MULTISECTION_COLUMNS = [COLUMNS.FORM,
+                        COLUMNS.CONTEXT,
                         COLUMNS.SECTION,
                         COLUMNS.ITEM,
                         COLUMNS.FORM_GROUP,
@@ -244,6 +245,8 @@ class Column(object):
 
     @property
     def name(self):
+        return self.cde_model.code.replace(" ","").lower()
+
         name = nice_name(self.cde_model.name)
         if self.section_model:
             key = self.section_model.code
@@ -326,10 +329,13 @@ class MultiSectionExtractor(object):
         
             for cde_code in item_dict:
                 cde_model = CommonDataElement.objects.get(code=cde_code)
-                column_name = nice_name(cde_model.name.lower().strip())
+                is_file = cde_model.datatype.strip().lower() == "file"
+                    
+                #column_name = nice_name(cde_model.name.lower().strip())
+                column_name = cde_code.replace(" ", "").lower()
                 raw_value = item_dict[cde_code]
                 reporting_value = self._get_reporting_value(
-                    cde_code, raw_value)
+                    cde_code, raw_value,is_file=is_file)
                 row_dict[column_name] = reporting_value
             yield row_dict
 
@@ -338,9 +344,19 @@ class MultiSectionExtractor(object):
         return "$ms/%s/%s/items" % (self.clinical_table.form_model.name,
                                     self.clinical_table.section_model.code)
 
-    def _get_reporting_value(self, cde_code, raw_value):
+    def _get_reporting_value(self, cde_code, raw_value, is_file=False):
         cde_model = get_cde_model(cde_code)
         display_value = cde_model.get_display_value(raw_value)
+        if is_file:
+            try:
+                filename = display_value.get("file_name", "NO_FILE")
+                file_id = display_value.get("django_file_id", "NO_FILE_ID")
+                display_value = "%s/%s" % (filename, file_id)
+            except Exception as ex:
+                logger.info("Error getting file details: %s" % ex)
+                display_value = None
+                
+                
         return fix_display_value(cde_model.datatype.lower().strip(), display_value)
 
 
@@ -414,12 +430,13 @@ class Generator(object):
 
     def _create_demographic_tables(self):
         from registry.patients.models import PatientAddress, AddressType, State, NextOfKinRelationship
+        from registry.patients.models import ConsentValue
         from rdrf.models import ConsentQuestion, ConsentSection, Registry, RegistryForm
         from rdrf.models import Section, CommonDataElement, CDEPermittedValueGroup, CDEPermittedValue
         from explorer.models import Query
 
         starting_models = [ContentType, Registry, Group, State, AddressType, NextOfKinRelationship,
-                           PatientAddress, Query, Section, ConsentSection, ConsentQuestion,
+                           PatientAddress, Query, Section, ConsentSection, ConsentQuestion,ConsentValue,
                            RegistryForm, CDEPermittedValue,
                            CDEPermittedValueGroup, CommonDataElement, Patient]
 
@@ -520,6 +537,10 @@ class Generator(object):
                     columns = self._create_multisection_columns(form_model,
                                                                 section_model)
                     table_name = form_model.name + "_" + section_model.code
+
+                    if "!" in table_name:
+                        table_name = table_name.replace("!","")
+                        
                     table = self._create_table(table_name, columns)
                     multisection_table = ClinicalTable(TableType.MULTISECTION,
                                                        table,
@@ -541,6 +562,7 @@ class Generator(object):
             t for t in self.clinical_tables if not t.is_multisection]
         multi_tables = [t for t in self.clinical_tables if t.is_multisection]
         for clinical_table in form_tables:
+            row_count = 0
             logger.debug("processing form table %s" % clinical_table)
             datasources = [self.column_map[column]
                            for column in clinical_table.columns]
@@ -553,8 +575,15 @@ class Generator(object):
                             logger.info("Patient %s Context %s %s" % (patient_model.pk,
                                                                       context_model.pk,
                                                                       clinical_table))
+                            #logger.info("inserted row = %s" % row)
+                            row_count += 1
+
+            logger.info("Row count = %s" % row_count)
+            logger.info("*********************************************************************")
 
         for clinical_table in multi_tables:
+            row_count = 0
+            current_column_names = set([col.name for col in clinical_table.table.columns])
             logger.info("processing table for multisection %s" %
                         clinical_table)
             datasources = [self.column_map[column]
@@ -566,19 +595,26 @@ class Generator(object):
                     if context_model.registry.id == self.registry_model.id:
                         if in_context(context_model, clinical_table):
                             for item_row in multisection_extractor.get_rows(patient_model, context_model):
+                                self._clean_row(item_row, current_column_names)
                                 self.reporting_engine.execute(
                                     clinical_table.table.insert().values(**item_row))
                                 logger.info("Patient %s Context %s %s" % (patient_model.pk,
                                                                           context_model.pk,
                                                                           clinical_table))
+                                #logger.info("inserted ms row = %s" % item_row)
+                                row_count += 1
+            logger.info("ms row count = %s" % row_count)
+            logger.info("*********************************************************************")
+
+    def _clean_row(self, row, current_column_names):
+        bad_keys = set(row.keys()) - current_column_names
+        logger.info("BAD COLUMNS IN DATA: %s" % bad_keys)
+        for k in bad_keys:
+            row.pop(k, None)
 
     def _create_multisection_columns(self, form_model, section_model):
         columns = [self.mkcol(col, form_model=form_model, field=col[0])
                    for col in MULTISECTION_COLUMNS]
-        if self.has_form_groups:
-            columns.append(self.mkcol(COLUMNS.CONTEXT,
-                                      form_model=form_model,
-                                      section_model=section_model))
 
         columns.extend([Column(self.registry_model,
                                form_model,
@@ -606,6 +642,9 @@ class Generator(object):
 
     def _create_table(self, table_code, columns):
         table_name = self._get_table_name(table_code)
+        if "!" in table_name:
+            table_name = table_name.replace("!","")
+            
         logger.debug("creating table %s" % table_name)
         self._drop_table(table_name)
         table = alc.Table(table_name, MetaData(
