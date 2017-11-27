@@ -22,6 +22,8 @@ logger = logging.getLogger(__name__)
 
 # Column representations which are reused
 
+MAX_TABLE_NAME_LENGTH = 63
+
 
 class COLUMNS:
     PATIENT_ID = ("patient_id", alc.Integer, False)
@@ -567,8 +569,8 @@ class Generator(object):
                                                                 section_model)
                     table_name = form_model.name + "_" + section_model.code
 
-                    if len(table_name) > 62:
-                        table_name = table_name[:62]
+                    if len(table_name) > MAX_TABLE_NAME_LENGTH:
+                        table_name = table_name[:MAX_TABLE_NAME_LENGTH]
                         
 
                     if "!" in table_name:
