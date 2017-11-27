@@ -60,7 +60,6 @@ MULTISECTION_COLUMNS = [COLUMNS.FORM,
                         COLUMNS.ITEM,
                         COLUMNS.FORM_GROUP,
                         COLUMNS.USER,
-                        COLUMNS.PROGRESS,
                         COLUMNS.TIMESTAMP,
                         COLUMNS.PATIENT_ID]
 
