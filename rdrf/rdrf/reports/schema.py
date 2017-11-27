@@ -3,6 +3,7 @@ from sqlalchemy import create_engine, MetaData
 from django.conf import settings
 from rdrf.models import ContextFormGroup
 from rdrf.models import CommonDataElement
+from rdrf.models import ClinicalData
 from rdrf.dynamic_data import DynamicDataWrapper
 from rdrf.utils import cached
 from registry.patients.models import Patient
@@ -11,6 +12,7 @@ from django.contrib.auth.models import Group
 from django.contrib.contenttypes.models import ContentType
 import re
 from functools import lru_cache
+from operator import attrgetter
 
 logger = logging.getLogger(__name__)
 
@@ -28,7 +30,7 @@ class COLUMNS:
     ITEM = ("item", alc.Integer, False)
     TIMESTAMP = ("timestamp", alc.DateTime, True)
     CONTEXT = ("context_id", alc.Integer, False)
-    USER = ("user", alc.String, False) # last user to edit
+    USER = ("username", alc.String, True) # last user to edit
     SNAPSHOT = ("snapshot", alc.Integer, True) # snapshot id  - null means CURRENT
 
 
@@ -44,6 +46,7 @@ FORM_COLUMNS = [COLUMNS.FORM,
                 COLUMNS.CONTEXT,
                 COLUMNS.FORM_GROUP,
                 COLUMNS.PATIENT_ID,
+                COLUMNS.USER,
                 COLUMNS.TIMESTAMP]
 
 MULTISECTION_COLUMNS = [COLUMNS.FORM,
@@ -51,6 +54,7 @@ MULTISECTION_COLUMNS = [COLUMNS.FORM,
                         COLUMNS.SECTION,
                         COLUMNS.ITEM,
                         COLUMNS.FORM_GROUP,
+                        COLUMNS.USER,
                         COLUMNS.TIMESTAMP,
                         COLUMNS.PATIENT_ID]
 
@@ -82,8 +86,7 @@ def get_form_group(context_model):
 @cached
 def get_cde_model(code):
     return CommonDataElement.objects.get(code=code)
-    
-    
+
 @cached
 def nice_name(s):
     """
@@ -118,6 +121,7 @@ def get_nested_clinical_data(registry_code, patient_id, context_id):
     patient_model = Patient.objects.get(pk=patient_id)
     wrapper = DynamicDataWrapper(patient_model, rdrf_context_id=context_id)
     return wrapper.load_dynamic_data(registry_code, "cdes", flattened=False)
+
 
 
 class DataSource(object):
@@ -165,7 +169,7 @@ class DataSource(object):
             return self.section_model.display_name
         elif self.field == "form_group":
             return get_form_group(context_model)
-        elif self.field == "user":
+        elif self.field == "username":
             return self._get_last_user(patient_model, context_model)
         elif self.field == "timestamp":
             return patient_model.get_form_timestamp(self.form_model, context_model)
@@ -174,9 +178,18 @@ class DataSource(object):
             raise Exception("Unknown field: %s" % self.field)
 
     def _get_last_user(self, patient_model, context_model):
-        #history = ClinicalData.objects.collection(self.registry_model.code, "history")
-        #snapshots = history.find(patient, record_type="snapshot")
-        return "TODO"
+        # last user to edit context
+        history = ClinicalData.objects.collection(self.registry_model.code, "history")
+        snapshots = history.find(patient_model, record_type="snapshot")
+        snapshots = sorted([s for s in snapshots], key=attrgetter("pk"), reverse=True)
+        logger.debug("got %s snapshots" % len(snapshots))
+        for snapshot in snapshots:
+            if snapshot.data and "record" in snapshot.data:
+                record = snapshot.data["record"]
+                if "context_id" in record:
+                    if context_model.pk == record["context_id"]:
+                        if "username" in snapshot.data:
+                            return snapshot.data["username"]
 
 
     def _get_cde_value(self, patient_model, context_model):
@@ -537,6 +550,10 @@ class Generator(object):
                     columns = self._create_multisection_columns(form_model,
                                                                 section_model)
                     table_name = form_model.name + "_" + section_model.code
+
+                    if len(table_name) > 62:
+                        table_name = table_name[:62]
+                        
 
                     if "!" in table_name:
                         table_name = table_name.replace("!","")
