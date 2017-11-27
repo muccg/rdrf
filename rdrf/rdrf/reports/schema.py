@@ -547,6 +547,8 @@ class Generator(object):
         logger.info("CREATING CLINICAL TABLES")
 
         for form_model in self.registry_model.forms:
+            if form_model.name.startswith("GeneratedQuestionnaire"):
+                continue
             logger.debug("creating table for clinical form %s" %
                          form_model.name)
             columns = self._create_form_columns(form_model)
