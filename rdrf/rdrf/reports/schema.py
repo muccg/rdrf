@@ -5,6 +5,7 @@ from rdrf.models import ContextFormGroup
 from rdrf.models import CommonDataElement
 from rdrf.models import ClinicalData
 from rdrf.dynamic_data import DynamicDataWrapper
+from rdrf.form_progress import FormProgress
 from rdrf.utils import cached
 from registry.patients.models import Patient
 import logging
@@ -30,6 +31,7 @@ class COLUMNS:
     ITEM = ("item", alc.Integer, False)
     TIMESTAMP = ("timestamp", alc.DateTime, True)
     CONTEXT = ("context_id", alc.Integer, False)
+    PROGRESS = ("progress", alc.Integer, True)
     USER = ("username", alc.String, True) # last user to edit
     SNAPSHOT = ("snapshot", alc.Integer, True) # snapshot id  - null means CURRENT
 
@@ -47,6 +49,7 @@ FORM_COLUMNS = [COLUMNS.FORM,
                 COLUMNS.FORM_GROUP,
                 COLUMNS.PATIENT_ID,
                 COLUMNS.USER,
+                COLUMNS.PROGRESS,
                 COLUMNS.TIMESTAMP]
 
 MULTISECTION_COLUMNS = [COLUMNS.FORM,
@@ -55,6 +58,7 @@ MULTISECTION_COLUMNS = [COLUMNS.FORM,
                         COLUMNS.ITEM,
                         COLUMNS.FORM_GROUP,
                         COLUMNS.USER,
+                        COLUMNS.PROGRESS,
                         COLUMNS.TIMESTAMP,
                         COLUMNS.PATIENT_ID]
 
@@ -136,6 +140,8 @@ class DataSource(object):
         self.column = column
         self.form_model = form_model
         self.section_model = section_model
+        self.form_progress = FormProgress(self.registry_model)
+        self.progress_percentage = None
         if self.section_model:
             self.is_multiple = section_model.allow_multiple
         else:
@@ -173,9 +179,19 @@ class DataSource(object):
             return self._get_last_user(patient_model, context_model)
         elif self.field == "timestamp":
             return patient_model.get_form_timestamp(self.form_model, context_model)
-
+        elif self.field == "progress":
+            return self._get_form_progress(patient_model, context_model)
         else:
             raise Exception("Unknown field: %s" % self.field)
+
+    def _get_form_progress(self, patient_model, context_model):
+        if self.progress_percentage is None:
+            self.progress_percentage = self.form_progress.get_form_progress(self.form_model,
+                                                                            patient_model,
+                                                                            context_model)
+        return self.progress_percentage
+                                                                    
+        
 
     def _get_last_user(self, patient_model, context_model):
         # last user to edit context
