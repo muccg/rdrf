@@ -195,7 +195,7 @@ class DataSource(object):
         
 
     def _get_last_user(self, patient_model, context_model):
-        # last user to edit context
+        # last user to edit the _form_ in this context
         history = ClinicalData.objects.collection(self.registry_model.code, "history")
         snapshots = history.find(patient_model, record_type="snapshot")
         snapshots = sorted([s for s in snapshots], key=attrgetter("pk"), reverse=True)
@@ -205,8 +205,11 @@ class DataSource(object):
                 record = snapshot.data["record"]
                 if "context_id" in record:
                     if context_model.pk == record["context_id"]:
-                        if "username" in snapshot.data:
-                            return snapshot.data["username"]
+                        if "form_name" in snapshot.data:
+                            form_name = snapshot.data["form_name"]
+                            if form_name == self.form_model.name:
+                                if "form_user" in snapshot.data:
+                                    return snapshot.data["form_user"]
 
 
     def _get_cde_value(self, patient_model, context_model):
