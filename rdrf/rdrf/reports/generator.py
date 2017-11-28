@@ -647,7 +647,8 @@ class Generator(object):
 
     def _clean_row(self, row, current_column_names):
         bad_keys = set(row.keys()) - current_column_names
-        logger.info("BAD COLUMNS IN DATA: %s" % bad_keys)
+        if bad_keys:
+            logger.info("BAD COLUMNS IN DATA: %s" % bad_keys)
         for k in bad_keys:
             row.pop(k, None)
 
