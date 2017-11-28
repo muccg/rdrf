@@ -47,6 +47,7 @@ services:
     depends_on:
       - db
       - clinicaldb
+      - reportingdb
       - cache
     networks:
       default:
@@ -62,4 +63,5 @@ services:
     depends_on:
       - db
       - clinicaldb
+      - reportingdb
       - cache
