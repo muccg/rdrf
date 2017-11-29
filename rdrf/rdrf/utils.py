@@ -682,3 +682,14 @@ def applicable_forms(registry_model, patient_model):
 
 def is_generated_form(form_model):
     return form_model.name.startswith(form_model.registry.generated_questionnaire_name)
+
+
+def patients_family_in_users_groups(patient, user):
+    patient_wgs = set([wg.id for wg in patient.working_groups.all()])
+    user_wgs = set([wg.id for wg in user.working_groups.all()])
+    if not user_wgs.intersection(patient_wgs):
+        family_wgs = set([wg.id for wg in patient.family.working_groups])
+        return user_wgs.intersection(family_wgs)
+
+
+
