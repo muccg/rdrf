@@ -39,6 +39,24 @@ class State(models.Model):
         return self.name
 
 
+        
+class Family(object):
+    def __init__(self, patient):
+        if patient.is_index:
+            self.index = patient
+        else:
+            self.index = patient.as_a_relative.patient
+
+        self.relatives = [pr for pr in self.index.relatives.all()]
+
+    @property
+    def working_groups(self):
+        # all the working groups this family spans
+        # we need this for checking security
+        wgs = [wg for wg in self.index.working_groups.all()]
+        wgs = wgs + [wg for pr in self.relatives for wg in pr.relative_patient.working_groups.all() if pr.relative_patient]
+        return wgs
+
 class Doctor(models.Model):
     SEX_CHOICES = (("1", "Male"), ("2", "Female"), ("3", "Indeterminate"))
 
@@ -955,6 +973,10 @@ class Patient(models.Model):
         logger.info("New Mongo data record = %s" % new_mongo_data)
         if new_mongo_data is not None:
             wrapper.update_dynamic_data(registry_model, new_mongo_data)
+
+    @property
+    def family(self):
+        return Family(self)
 
 
 class ClinicianOther(models.Model):
