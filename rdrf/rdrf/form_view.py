@@ -1652,8 +1652,8 @@ class CustomConsentFormView(View):
         if all(valid_forms):
             patient_consent_file_forms.save()
             custom_consent_form.save()
-            messages.success(self.request, "Patient %s %s saved successfully" % (patient_model.given_names,
-                                                                                 patient_model.family_name))
+            patient_name = "%s" % patient_model
+            messages.success(self.request, _("Patient %(patient_name)s saved successfully") % {"patient_name": patient_name})
             return HttpResponseRedirect(self._get_success_url(registry_model, patient_model))
         else:
             try:
