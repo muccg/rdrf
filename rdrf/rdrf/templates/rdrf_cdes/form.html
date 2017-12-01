@@ -149,6 +149,10 @@
                     yearRange: '-100:+0',
                     buttonImage: "{% static 'images/calendar.gif' %}",
                     buttonImageOnly: true,
+                    "dayNamesShort": $.datepicker.regional['{{request.LANGUAGE_CODE.lower}}' ].dayNamesShort,
+                    "dayNames": $.datepicker.regional['{{request.LANGUAGE_CODE.lower}}' ].dayNames,
+                    "monthNamesShort": $.datepicker.regional['{{request.LANGUAGE_CODE.lower}}'].monthNamesShort,
+                    "monthNames": $.datepicker.regional[ '{{request.LANGUAGE_CODE.lower}}' ].monthNames
                 });
             });
         });
