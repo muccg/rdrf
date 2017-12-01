@@ -19,8 +19,24 @@
       <link rel="stylesheet" type="text/css" href="{% static 'css/rdrf.css' %}" media="all">
       <link rel="stylesheet" type="text/css" href="{% static 'css/simple-sidebar.css' %}" media="all">
 
+
       <script type="text/javascript" src="{% static 'js/vendor/jquery-1.11.3.min.js' %}" ></script>
       <script type="text/javascript" src="{% static 'js/vendor/jquery-ui-1.11.4.min.js' %}"></script>
+
+      {% if request.LANGUAGE_CODE.lower == "de" %}
+      <script src="{% static 'js/vendor/i18n/datepicker-de.js' %}"></script>
+      {% endif %}
+
+      {% if request.LANGUAGE_CODE.lower == "es" %}
+      <script src="{% static 'js/vendor/i18n/datepicker-es.js' %}"></script>
+      {% endif %}
+      
+      {% if request.LANGUAGE_CODE.lower == "pl" %}
+      <script src="{% static 'js/vendor/i18n/datepicker-pl.js' %}"></script>
+      {% endif %}
+
+
+
       <script type="text/javascript" src="{% static 'bootstrap-3.3.6/js/bootstrap.min.js' %}"></script>
       <script type="text/javascript" src="{% static 'js/vendor/underscore-1.5.2.min.js' %}"></script>
       <script type="text/javascript" src="{% static 'js/calculated_field_plugin.js' %}"></script>
@@ -28,6 +44,8 @@
       <script type="text/javascript" src="{% static 'js/rpc_module.js' %}"></script>
       <script type="text/javascript" src="{% url 'javascript-catalog' %}"></script>
       <script type="text/javascript">var django = { $: $.noConflict() }; if (!$) $ = django.$; </script>
+
+
 
       {% block extrastyle %}
       {% endblock %}

@@ -19,7 +19,6 @@
     <link rel="stylesheet" href="{% static 'css/jquery-1.11.4/themes/smoothness/jquery-ui.min.css' %}">
     
     <script type="text/javascript" src={% static 'js/rpc_module.js' %}></script>
-    <script type="text/javascript" src="{% static 'js/vendor/jquery-ui-1.11.4.min.js' %}"></script>
     
     <script>
         function setPatientRelativeFormVisiblity(visible) {
@@ -112,7 +111,11 @@
                         "yearRange": "-120:+0",
                         "maxDate": 0,
                         "changeMonth": true,
-                        "changeYear": true
+                        "changeYear": true,
+	                "dayNamesShort": $.datepicker.regional['{{request.LANGUAGE_CODE.lower}}' ].dayNamesShort,
+                        "dayNames": $.datepicker.regional['{{request.LANGUAGE_CODE.lower}}' ].dayNames,
+                        "monthNamesShort": $.datepicker.regional['{{request.LANGUAGE_CODE.lower}}'].monthNamesShort,
+                        "monthNames": $.datepicker.regional[ '{{request.LANGUAGE_CODE.lower}}' ].monthNames
                     })
                 }
             });
