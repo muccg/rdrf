@@ -166,6 +166,12 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
         else:
             return Registry.objects.all().order_by("name")
 
+
+    def can_view_patient_link(self, patient_model):
+        my_wgs = set([wg.id for wg in self.working_groups.all()])
+        patient_wgs = set([wg.id for wg in patient_model.working_groups.all()])
+        return my_wgs.intersection(patient_wgs)
+
     def has_feature(self, feature):
         if not self.is_superuser:
             return any([r.has_feature(feature) for r in self.registry.all()])

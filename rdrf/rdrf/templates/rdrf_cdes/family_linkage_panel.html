@@ -1,0 +1,26 @@
+{% load i18n %}
+{% load translate %}
+{% load has_feature %}
+
+{% if patient %}
+    {% if patient|has_feature:"family_linkage" %}
+        <div class="panel panel-default">
+                        <div class="panel-heading">
+                            {% if patient.is_index %}
+                                <strong><a href="{% url 'family_linkage' registry_code patient.id %}">{% trans 'Family Linkage' %}</a></strong>
+                            {% else %}
+                                <strong><a href="{% url 'family_linkage' registry_code patient.my_index.id %}">{% trans 'Family Linkage' %}</a></strong>
+                            {% endif %}
+                        </div>
+                        <div class="panel-body">
+                            {% if patient.my_index %}
+                                {% trans 'This patient is a relative of index' %} <a href="{% url 'patient_edit' registry_code patient.my_index.id %}">{{ patient.my_index}} ({% trans 'DOB' %} {{patient.my_index.date_of_birth}})</a>
+                            {% else %}
+                                {% if patient.is_index %}
+                                    {% trans 'This patient is an index' %}
+                                {% endif %}
+                            {% endif %}
+                        </div>
+                    </div>
+                {% endif %}
+            {% endif %}

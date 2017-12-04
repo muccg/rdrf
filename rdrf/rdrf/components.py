@@ -479,4 +479,19 @@ class FormGroupButton(RDRFComponent):
                 return self.context_form_group.name
 
 
+class FamilyLinkagePanel(RDRFComponent):
+    def __init__(self, registry_model, user, patient_model):
+       self.registy_model = registry_model
+       self.user = user
+       self.patient_model = patient_model
+    def _get_template_data(self):
+        data = {"patient": self.patient_model}
+
+
+    def _allowed_view_link(self):
+        return self.user.can_view_patient_link(self.patient_model)
+    
+    
+
+
 
