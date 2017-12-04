@@ -138,6 +138,10 @@
             if (patient.link) {
                patient_link = link({url: patient.link, text: "Demographics"});
             }
+	
+	    if (patient.working_group) {
+	        patient_link = patient.working_group;
+	    }
 
             $("#indexpatient table").append(index_row({given_names: patient.given_names,
                                                        family_name: patient.family_name,
@@ -171,6 +175,10 @@
             if (relative.link) {
                 relative_link = link({url: relative.link, text: "Demographics"});
             }
+	    if (relative.working_group) {
+	        relative_link = relative.working_group;
+	    }
+	
             var relationship_select = createRelationshipSelect(relationships, relative);
 
             var table_row = relative_row({given_names: relative.given_names,

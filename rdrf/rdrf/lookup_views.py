@@ -14,6 +14,7 @@ from registry.patients.models import Patient
 from django.contrib.contenttypes.models import ContentType
 from rdrf.models import RDRFContext, RDRFContextError
 
+
 import logging
 logger = logging.getLogger(__name__)
 
@@ -71,11 +72,19 @@ class FamilyLookup(View):
             result = {"error": "patient is not an index"}
             return HttpResponse(json.dumps(result))
 
-        link = reverse("patient_edit", args=[reg_code, patient.pk])
+
+        if self._allowed_view_link(request.user, patient):
+            link = reverse("patient_edit", args=[reg_code, patient.pk])
+            working_group = None
+        else:
+            link = None
+            working_group = self._get_working_group_name(patient)
+            
         result["index"] = {"pk": patient.pk,
                            "given_names": patient.given_names,
                            "family_name": patient.family_name,
                            "class": "Patient",
+                           "working_group": working_group,
                            "link": link}
         result["relatives"] = []
 
@@ -84,10 +93,16 @@ class FamilyLookup(View):
 
         for relative in patient.relatives.all():
             patient_created = relative.relative_patient
+            working_group = None
 
             if patient_created:
-                relative_link = reverse("patient_edit", args=[reg_code,
-                                                              patient_created.pk])
+                if self._allowed_view_link(request.user, patient_created):
+                    relative_link = reverse("patient_edit", args=[reg_code,
+                                                                  patient_created.pk])
+                else:
+                    relative_link = None
+                    working_group = self._get_working_group_name(patient_created)
+                    
             else:
                 relative_link = None
 
@@ -96,6 +111,7 @@ class FamilyLookup(View):
                              "family_name": relative.family_name,
                              "relationship": relative.relationship,
                              "class": "PatientRelative",
+                             "working_group": working_group,
                              "link": relative_link}
 
             result["relatives"].append(relative_dict)
@@ -105,6 +121,17 @@ class FamilyLookup(View):
     def _get_relationships(self):
         from registry.patients.models import PatientRelative
         return [pair[0] for pair in PatientRelative.RELATIVE_TYPES]
+
+
+    def _allowed_view_link(self, user, patient):
+        user_wgs = set([wg.id for wg in user.working_groups.all()])
+        patient_wgs = set([wg.id for wg in patient.working_groups.all()])
+        
+        return user_wgs.intersection(patient_wgs)
+
+    def _get_working_group_name(self, patient_model):
+        wgs = ",".join(sorted([wg.name for wg in patient_model.working_groups.all()]))
+        return "No link - patient in " + wgs
 
 
 class UsernameLookup(View):
