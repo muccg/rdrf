@@ -57,7 +57,7 @@ class PatientRelativeForm(forms.ModelForm):
             attrs={
                 'class': 'datepicker'},
             format='%d-%m-%Y'),
-        help_text="DD-MM-YYYY",
+        help_text=_("DD-MM-YYYY"),
         input_formats=['%d-%m-%Y'])
 
     def __init__(self, *args, **kwargs):
@@ -300,7 +300,7 @@ class PatientForm(forms.ModelForm):
             attrs={
                 'class': 'datepicker'},
             format='%d-%m-%Y'),
-        help_text="DD-MM-YYYY",
+        help_text=_("DD-MM-YYYY"),
         input_formats=['%d-%m-%Y'])
 
     date_of_migration = forms.DateField(
@@ -308,7 +308,7 @@ class PatientForm(forms.ModelForm):
             attrs={
                 'class': 'datepicker'},
             format='%d-%m-%Y'),
-        help_text="DD-MM-YYYY",
+        help_text=_("DD-MM-YYYY"),
         required=False,
         input_formats=['%d-%m-%Y'])
     
