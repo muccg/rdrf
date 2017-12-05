@@ -73,7 +73,7 @@ class FamilyLookup(View):
             return HttpResponse(json.dumps(result))
 
 
-        if self._allowed_view_link(request.user, patient):
+        if request.user.can_view_patient_link(patient):
             link = reverse("patient_edit", args=[reg_code, patient.pk])
             working_group = None
         else:
@@ -96,7 +96,7 @@ class FamilyLookup(View):
             working_group = None
 
             if patient_created:
-                if self._allowed_view_link(request.user, patient_created):
+                if request.user.can_view_patient_link(patient_created):
                     relative_link = reverse("patient_edit", args=[reg_code,
                                                                   patient_created.pk])
                 else:
@@ -121,13 +121,6 @@ class FamilyLookup(View):
     def _get_relationships(self):
         from registry.patients.models import PatientRelative
         return [pair[0] for pair in PatientRelative.RELATIVE_TYPES]
-
-
-    def _allowed_view_link(self, user, patient):
-        user_wgs = set([wg.id for wg in user.working_groups.all()])
-        patient_wgs = set([wg.id for wg in patient.working_groups.all()])
-        
-        return user_wgs.intersection(patient_wgs)
 
     def _get_working_group_name(self, patient_model):
         wgs = ",".join(sorted([wg.name for wg in patient_model.working_groups.all()]))

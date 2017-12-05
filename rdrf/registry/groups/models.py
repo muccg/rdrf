@@ -168,6 +168,9 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
 
 
     def can_view_patient_link(self, patient_model):
+        # can this user view a link to this patient?
+        if self.is_superuser:
+            return True
         my_wgs = set([wg.id for wg in self.working_groups.all()])
         patient_wgs = set([wg.id for wg in patient_model.working_groups.all()])
         return my_wgs.intersection(patient_wgs)

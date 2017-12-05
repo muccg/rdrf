@@ -480,18 +480,28 @@ class FormGroupButton(RDRFComponent):
 
 
 class FamilyLinkagePanel(RDRFComponent):
-    def __init__(self, registry_model, user, patient_model):
-       self.registy_model = registry_model
+    TEMPLATE = "rdrf_cdes/family_linkage_panel.html"
+    def __init__(self, user, registry_model, patient_model):
        self.user = user
+       self.link_allowed = True
+       self.registry_model = registry_model
        self.patient_model = patient_model
+       self.is_index = patient_model.is_index
+       if not self.is_index:
+           # if we can't see the link to the index
+           # we want to know the working groups of the index at least
+           self.link_allowed = user.can_view_patient_link(patient_model.my_index)
+
+           self.index_working_groups = ",".join(sorted([wg.name for wg in self.patient_model.my_index.working_groups.all()]))
+       else:
+           self.index_working_groups = None
+       
+       
     def _get_template_data(self):
-        data = {"patient": self.patient_model}
+        data = {"patient": self.patient_model,
+                "link_allowed": self.link_allowed,
+                "is_index": self.is_index,
+                "registry_code": self.registry_model.code,
+                "index_working_groups": self.index_working_groups}
 
-
-    def _allowed_view_link(self):
-        return self.user.can_view_patient_link(self.patient_model)
-    
-    
-
-
-
+        return data

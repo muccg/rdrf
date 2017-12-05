@@ -29,6 +29,7 @@ from rdrf.utils import get_error_messages
 from rdrf.wizard import NavigationWizard, NavigationFormType
 from rdrf.components import RDRFContextLauncherComponent
 from rdrf.components import RDRFPatientInfoComponent
+from rdrf.components import FamilyLinkagePanel
 
 from rdrf.security_checks import security_check_user_patient
 from django.core.exceptions import PermissionDenied
@@ -514,11 +515,17 @@ class PatientEditView(View):
         context_launcher = RDRFContextLauncherComponent(request.user, registry_model, patient)
         patient_info = RDRFPatientInfoComponent(registry_model, patient)
 
+        family_linkage_panel = FamilyLinkagePanel(request.user,
+                                                  registry_model,
+                                                  patient)
+        
+
         context = {
             "location": "Demographics",
             "context_launcher": context_launcher.html,
             "patient_info": patient_info.html,
             "forms": form_sections,
+            "family_linkage_panel": family_linkage_panel.html,
             "patient": patient,
             "patient_id": patient.id,
             "registry_code": registry_code,
@@ -682,6 +689,12 @@ class PatientEditView(View):
                                   None,
                                   None)
 
+
+        family_linkage_panel = FamilyLinkagePanel(request.user,
+                                                  registry_model,
+                                                  patient)
+
+
         context["next_form_link"] = wizard.next_link
         context["previous_form_link"] = wizard.previous_link
         context["patient_info"] = patient_info.html
@@ -691,6 +704,7 @@ class PatientEditView(View):
         context["location"] = _("Demographics")
         context["form_links"] = []
         context["not_linked"] = not patient.is_linked
+        context["family_linkage_panel"] = family_linkage_panel.html
         context["show_archive_button"] = request.user.can_archive
         context["archive_patient_url"] =  patient.get_archive_url(registry_model) if request.user.can_archive else ""
         context["consent"] = consent_status_for_patient(registry_code, patient)
