@@ -101,11 +101,10 @@ def nice_name(s):
     """
     label = s.lower().strip()
     nice = re.sub(r'[^a-zA-Z0-9]', "_", label)
-    re.sub('_+', '_', nice)
+    nice = re.sub("_+", "_", nice)
     if nice.endswith("_"):
         nice = nice[:-1]
 
-    nice = re.sub("_+", "_", nice)
     return nice
 
 @cached
