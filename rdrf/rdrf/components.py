@@ -482,9 +482,15 @@ class FormGroupButton(RDRFComponent):
 class FamilyLinkagePanel(RDRFComponent):
     TEMPLATE = "rdrf_cdes/family_linkage_panel.html"
     def __init__(self, user, registry_model, patient_model):
+       self.registry_model = registry_model
+       if not registry_model.has_feature("family_linkage"):
+           self.patient_model = None
+           self.link_allowed = self.is_index = None
+           self.index_working_groups = None
+           return
+           
        self.user = user
        self.link_allowed = True
-       self.registry_model = registry_model
        self.patient_model = patient_model
        self.is_index = patient_model.is_index
        if not self.is_index:
