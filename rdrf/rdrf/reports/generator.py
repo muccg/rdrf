@@ -17,12 +17,15 @@ from operator import attrgetter
 
 logger = logging.getLogger(__name__)
 
-# Generates relational schema from registry definition plus demographic tables
-# then populates it.
-
-# Column representations which are reused
-
 MAX_TABLE_NAME_LENGTH = 63
+
+
+def lower_strip(s):
+    return s.lower().strip()
+
+
+def no_space_lower(s):
+    return s.replace(" ", "").lower()
 
 
 class COLUMNS:
@@ -34,12 +37,14 @@ class COLUMNS:
     TIMESTAMP = ("timestamp", alc.DateTime, True)
     CONTEXT = ("context_id", alc.Integer, False)
     PROGRESS = ("progress", alc.Integer, True)
-    USER = ("username", alc.String, True) # last user to edit
-    SNAPSHOT = ("snapshot", alc.Integer, True) # snapshot id  - null means CURRENT
+    USER = ("username", alc.String, True)  # last user to edit
+    # snapshot id  - null means CURRENT
+    SNAPSHOT = ("snapshot", alc.Integer, True)
 
 
 # If CDEs are labelled poorly it is possible to generate name clashes within the same table
 # we use a global name map to avoid this
+
 nice_name_map = {}
 
 # These columns are structural and exist on the tables
@@ -69,11 +74,13 @@ class TableType:
     CLINICAL_FORM = 2
     MULTISECTION = 3
 
+
 def fix_display_value(datatype, value):
     if value == "" and datatype != "string":
         return None
     else:
         return value
+
 
 def in_context(context_model, clinical_table):
     # contexts only contain all form data if there are NO form groups explicitly assigned
@@ -82,15 +89,18 @@ def in_context(context_model, clinical_table):
     else:
         return clinical_table.form_model in context_model.context_form_group.forms
 
+
 def get_form_group(context_model):
     if not context_model.context_form_group:
         return None
     else:
         return context_model.context_form_group.direct_name
 
+
 @cached
 def get_cde_model(code):
     return CommonDataElement.objects.get(code=code)
+
 
 @cached
 def nice_name(s):
@@ -99,19 +109,12 @@ def nice_name(s):
     that appear on the screen so that report writers don't have to look
     up cde codes.
     """
-    label = s.lower().strip()
-    nice = re.sub(r'[^a-zA-Z0-9]', "_", label)
+    label = lower_strip(s)
+    nice = re.sub(r'[^a-z0-9]', "_", label)
     nice = re.sub("_+", "_", nice)
     if nice.endswith("_"):
         nice = nice[:-1]
-
     return nice
-
-@cached
-def get_default_context(patient_id, registry_model_id):
-    patient = Patient.objects.get(pk=patient_id)
-    registry_model = Registry.objects.get(pk=registry_model_id)
-    return patient_model.default_context(self.registry_model)
 
 
 @lru_cache(maxsize=100)
@@ -120,6 +123,7 @@ def get_clinical_data(registry_code, patient_id, context_id):
     wrapper = DynamicDataWrapper(patient_model, rdrf_context_id=context_id)
     return wrapper.load_dynamic_data(registry_code, "cdes")
 
+
 @lru_cache(maxsize=100)
 def get_nested_clinical_data(registry_code, patient_id, context_id):
     patient_model = Patient.objects.get(pk=patient_id)
@@ -127,8 +131,7 @@ def get_nested_clinical_data(registry_code, patient_id, context_id):
     return wrapper.load_dynamic_data(registry_code, "cdes", flattened=False)
 
 
-
-class DataSource(object):
+class DataSource:
     def __init__(self,
                  registry_model,
                  column,
@@ -151,7 +154,7 @@ class DataSource(object):
 
     @property
     def datatype(self):
-        return self.cde_model.datatype.lower().strip()
+        return lower_strip(self.cde_model.datatype)
 
     @property
     def column_name(self):
@@ -162,7 +165,6 @@ class DataSource(object):
             return self._get_field_value(patient_model, context_model)
         else:
             return self._get_cde_value(patient_model, context_model)
-
 
     def _get_field_value(self, patient_model, context_model):
         if self.field == "patient_id":
@@ -190,14 +192,14 @@ class DataSource(object):
                                                                             patient_model,
                                                                             context_model)
         return self.progress_percentage
-                                                                    
-        
 
     def _get_last_user(self, patient_model, context_model):
         # last user to edit the _form_ in this context
-        history = ClinicalData.objects.collection(self.registry_model.code, "history")
+        history = ClinicalData.objects.collection(
+            self.registry_model.code, "history")
         snapshots = history.find(patient_model, record_type="snapshot")
-        snapshots = sorted([s for s in snapshots], key=attrgetter("pk"), reverse=True)
+        snapshots = sorted([s for s in snapshots],
+                           key=attrgetter("pk"), reverse=True)
         logger.debug("got %s snapshots" % len(snapshots))
         for snapshot in snapshots:
             if snapshot.data and "record" in snapshot.data:
@@ -210,13 +212,11 @@ class DataSource(object):
                                 if "form_user" in snapshot.data:
                                     return snapshot.data["form_user"]
 
-
     def _get_cde_value(self, patient_model, context_model):
         try:
             data = get_clinical_data(self.registry_model.code,
                                      patient_model.pk,
                                      context_model.pk)
-            
 
             raw_value = patient_model.get_form_value(self.registry_model.code,
                                                      self.form_model.name,
@@ -258,11 +258,11 @@ TYPE_MAP = {"float": alc.Float,
 
 
 def get_column_type(cde_model):
-    datatype = cde_model.datatype.lower().strip()
+    datatype = lower_strip(cde_model.datatype)
     return TYPE_MAP.get(datatype, alc.String)
 
 
-class Column(object):
+class Column:
     def __init__(self, registry_model, form_model, section_model, cde_model, column_map):
         self.registry_model = registry_model
         self.form_model = form_model
@@ -277,19 +277,7 @@ class Column(object):
 
     @property
     def name(self):
-        return self.cde_model.code.replace(" ","").lower()
-
-        name = nice_name(self.cde_model.name)
-        if self.section_model:
-            key = self.section_model.code
-            names = nice_name_map.setdefault(key, [])
-            if name in names:
-                # name clash within table - avoid!
-                return nice_name(self.cde_model.code.lower())
-            else:
-                nice_name_map[key].append(name)
-                return name
-        return nice_name(self.cde_model.code)
+        return no_space_lower(self.cde_model.code)
 
     @property
     def postgres(self):
@@ -307,7 +295,7 @@ class Column(object):
         return column
 
 
-class ClinicalTable(object):
+class ClinicalTable:
     def __init__(self, table_type,
                  table,
                  columns,
@@ -327,7 +315,7 @@ class ClinicalTable(object):
         return self.table.name
 
 
-class MultiSectionExtractor(object):
+class MultiSectionExtractor:
     def __init__(self, registry_model, clinical_table, datasources):
         self.registry_model = registry_model
         self.clinical_table = clinical_table
@@ -336,9 +324,9 @@ class MultiSectionExtractor(object):
     def get_rows(self, patient_model, context_model):
 
         nested_clinical_data = get_nested_clinical_data(self.registry_model.code,
-                                                 patient_model.pk,
-                                                 context_model.pk)
-        
+                                                        patient_model.pk,
+                                                        context_model.pk)
+
         items_list = patient_model.evaluate_field_expression(self.registry_model,
                                                              self.field_expression,
                                                              clinical_data=nested_clinical_data)
@@ -358,16 +346,14 @@ class MultiSectionExtractor(object):
             row_dict["patient_id"] = patient_model.pk
             row_dict["context_id"] = context_model.pk
             row_dict["timestamp"] = form_timestamp
-        
+
             for cde_code in item_dict:
                 cde_model = CommonDataElement.objects.get(code=cde_code)
-                is_file = cde_model.datatype.strip().lower() == "file"
-                    
-                #column_name = nice_name(cde_model.name.lower().strip())
-                column_name = cde_code.replace(" ", "").lower()
+                is_file = lower_strip(cde_model.datatype) == "file"
+                column_name = no_space_lower(cde_code)
                 raw_value = item_dict[cde_code]
                 reporting_value = self._get_reporting_value(
-                    cde_code, raw_value,is_file=is_file)
+                    cde_code, raw_value, is_file=is_file)
                 row_dict[column_name] = reporting_value
             yield row_dict
 
@@ -387,12 +373,11 @@ class MultiSectionExtractor(object):
             except Exception as ex:
                 logger.info("Error getting file details: %s" % ex)
                 display_value = None
-                
-                
+
         return fix_display_value(cde_model.datatype.lower().strip(), display_value)
 
 
-class Generator(object):
+class Generator:
     def __init__(self, registry_model, db="reporting"):
         self.registry_model = registry_model
         self.clinical_engine = self._create_engine("clinical")
@@ -452,9 +437,6 @@ class Generator(object):
             for row in rows:
                 con.execute(table.insert().values(**row))
 
-    def _get_sql_alchemy_type(self, db_type):
-        return alc.String
-
     def clear(self):
         # drop tables etc
         for table in self.table_list:
@@ -468,7 +450,7 @@ class Generator(object):
         from explorer.models import Query
 
         starting_models = [ContentType, Registry, Group, State, AddressType, NextOfKinRelationship,
-                           PatientAddress, Query, Section, ConsentSection, ConsentQuestion,ConsentValue,
+                           PatientAddress, Query, Section, ConsentSection, ConsentQuestion, ConsentValue,
                            RegistryForm, CDEPermittedValue,
                            CDEPermittedValueGroup, CommonDataElement, Patient]
 
@@ -574,11 +556,10 @@ class Generator(object):
 
                     if len(table_name) > MAX_TABLE_NAME_LENGTH:
                         table_name = table_name[:MAX_TABLE_NAME_LENGTH]
-                        
 
                     if "!" in table_name:
-                        table_name = table_name.replace("!","")
-                        
+                        table_name = table_name.replace("!", "")
+
                     table = self._create_table(table_name, columns)
                     multisection_table = ClinicalTable(TableType.MULTISECTION,
                                                        table,
@@ -608,20 +589,23 @@ class Generator(object):
                 for context_model in patient_model.context_models:
                     if context_model.registry.id == self.registry_model.id:
                         if in_context(context_model, clinical_table):
-                            row = {ds.column_name: ds.get_value(patient_model, context_model) for ds in datasources}
-                            self.reporting_engine.execute(clinical_table.table.insert().values(**row))
+                            row = {ds.column_name: ds.get_value(
+                                patient_model, context_model) for ds in datasources}
+                            self.reporting_engine.execute(
+                                clinical_table.table.insert().values(**row))
                             logger.info("Patient %s Context %s %s" % (patient_model.pk,
                                                                       context_model.pk,
                                                                       clinical_table))
-                            #logger.info("inserted row = %s" % row)
                             row_count += 1
 
             logger.info("Row count = %s" % row_count)
-            logger.info("*********************************************************************")
+            logger.info(
+                "*********************************************************************")
 
         for clinical_table in multi_tables:
             row_count = 0
-            current_column_names = set([col.name for col in clinical_table.table.columns])
+            current_column_names = set(
+                [col.name for col in clinical_table.table.columns])
             logger.info("processing table for multisection %s" %
                         clinical_table)
             datasources = [self.column_map[column]
@@ -639,10 +623,10 @@ class Generator(object):
                                 logger.info("Patient %s Context %s %s" % (patient_model.pk,
                                                                           context_model.pk,
                                                                           clinical_table))
-                                #logger.info("inserted ms row = %s" % item_row)
                                 row_count += 1
             logger.info("ms row count = %s" % row_count)
-            logger.info("*********************************************************************")
+            logger.info(
+                "*********************************************************************")
 
     def _clean_row(self, row, current_column_names):
         bad_keys = set(row.keys()) - current_column_names
@@ -677,13 +661,13 @@ class Generator(object):
         return columns
 
     def _get_table_name(self, name):
-        return name.replace(" ", "").lower()
+        return no_space_lower(name)
 
     def _create_table(self, table_code, columns):
         table_name = self._get_table_name(table_code)
         if "!" in table_name:
-            table_name = table_name.replace("!","")
-            
+            table_name = table_name.replace("!", "")
+
         logger.debug("creating table %s" % table_name)
         self._drop_table(table_name)
         table = alc.Table(table_name, MetaData(
