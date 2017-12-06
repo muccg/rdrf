@@ -16,6 +16,11 @@ services:
       file: docker-compose-common.yml
       service: db
 
+  dbreportingtest:
+    extends:
+      file: docker-compose-common.yml
+      service: db
+
   cachetest:
     extends:
       file: docker-compose-common.yml
@@ -34,9 +39,11 @@ services:
       - CACHESERVER=cachetest
       - DBSERVER=dbtest
       - CLINICAL_DBSERVER=dbclinicaltest
+      - REPORTING_DBSERVER=dbreportingtest
     depends_on:
       - dbtest
       - dbclinicaltest
+      - dbreportingtest
       - cachetest
     ports:
       - "18000:8000"

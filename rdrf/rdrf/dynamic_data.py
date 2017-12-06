@@ -706,7 +706,7 @@ class DynamicDataWrapper(object):
         record.data.update(nested_data)
         record.save()
 
-    def _save_longitudinal_snapshot(self, registry_code, record):
+    def _save_longitudinal_snapshot(self, registry_code, record, form_name=None, form_user=None):
         try:
             timestamp = str(datetime.datetime.now())
             patient_id = record.data['django_id']
@@ -716,6 +716,8 @@ class DynamicDataWrapper(object):
                         "record_type": "snapshot",
                         "username": self.user.username if self.user else None,
                         "timestamp": timestamp,
+                        "form_user": form_user,
+                        "form_name": form_name,
                         "record": record.data,
                         }
 
@@ -724,10 +726,13 @@ class DynamicDataWrapper(object):
         except Exception as ex:
             logger.error("Couldn't add to history for patient %s: %s" % (patient_id, ex))
 
-    def save_snapshot(self, registry_code, collection_name):
+    def save_snapshot(self, registry_code, collection_name, form_name=None, form_user=None):
         record = self._get_record(registry_code, collection_name).first()
         if record is not None:
-            self._save_longitudinal_snapshot(registry_code, record)
+            self._save_longitudinal_snapshot(registry_code,
+                                             record,
+                                             form_name=form_name,
+                                             form_user=form_user)
 
     def save_form_progress(self, registry_code, context_model=None):
         from rdrf.form_progress import FormProgress
@@ -772,7 +777,8 @@ class DynamicDataWrapper(object):
                         yield form_dict, section_dict, cde_dict
 
     def get_form_timestamp(self, registry_form):
-        qs = self._get_record(registry_form.registry.code, "cdes")
-        qs = qs.exclude(data__timestamp="")
-        qs = qs.exclude(data__timestamp__isnull=True)
-        return qs.values_list("data__timestamp").first()
+        data = self.load_dynamic_data(registry_form.registry.code,"cdes", flattened=False)
+        timestamp_field = registry_form.name + "_timestamp"
+        if data:
+            return data.get(timestamp_field, None)
+        return None
