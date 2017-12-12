@@ -1641,6 +1641,7 @@ class Annotation(models.Model):
     section_code = models.CharField(max_length=100)
     item = models.IntegerField(null=True)
     cde_code = models.CharField()
+    cde_value = models.TextField()
     username = models.CharField(max_length=254)
     timestamp = models.DateTimeField(auto_now_add=True)
     comment = models.TextField()
