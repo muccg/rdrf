@@ -117,7 +117,9 @@ def try_to_register(step, registry, client_name, email_address, password):
 
     world.browser.find_element_by_id('same_address').send_keys(Keys.SPACE)
 
-    captcha_iframe_element = world.browser.find_element_by_xpath("//iframe[@role='presentation']")
+    #captcha_iframe_element = world.browser.find_element_by_xpath("//iframe[@role='presentation']")
+    captcha_iframe_element = world.browser.find_element_by_xpath("//iframe[@title='recaptcha widget']")
+
     world.browser.switch_to.frame(captcha_iframe_element)
     utils.scroll_to_y(500)
 
