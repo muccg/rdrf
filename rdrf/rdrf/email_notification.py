@@ -58,6 +58,7 @@ class RdrfEmail(object):
             logger.info("Sent email(s) %s" % self.description)
             logger.info("Email %s saved in history table" % self.description)
         except RdrfEmailException as rdrfex:
+            logger.error("RdrfEmailException: %s" % rdrfex)
             logger.warning("No notification available for %s (%s)" % (self.reg_code, self.description))
         except Exception as e:
             logger.exception("Email has failed to send")

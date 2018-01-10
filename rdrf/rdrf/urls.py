@@ -33,6 +33,7 @@ from rdrf.lookup_views import UsernameLookup
 from rdrf.lookup_views import RecaptchaValidator
 from rdrf.context_views import RDRFContextCreateView, RDRFContextEditView
 from rdrf import patients_listing
+from rdrf import clinician_view
 
 import logging
 
@@ -237,6 +238,9 @@ urlpatterns += [
         consent_view.ConsentDetailsPrint.as_view(), name="print_consent_details"),
 
     #-------------------------------------------
+    #---- Clinician related URLs -----------------
+    url(r"^(?P<registry_code>\w+)/(?P<patient_id>\d+)/clinician/?$",
+        clinician_view.ClinicianFormView.as_view(), name="clinician_form_view"),
 
     #---- Email Notifications URLs -------------
     url(r"^resend_email/(?P<notification_history_id>\w+)/?$",

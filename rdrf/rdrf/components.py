@@ -110,6 +110,7 @@ class RDRFContextLauncherComponent(RDRFComponent):
         # associated with a multiple context form group
         self.current_rdrf_context_model = current_rdrf_context_model
         self.consent_locked = self._is_consent_locked()
+        
 
     def _get_template_data(self):
         existing_data_link = self._get_existing_data_link()
@@ -125,9 +126,17 @@ class RDRFContextLauncherComponent(RDRFComponent):
             "consents_link": self._get_consents_link(),
             "family_linkage_link": self._get_family_linkage_link(),
             "consent_locked": self.consent_locked,
+            "clinician_form_link": self._get_clinician_form_link(),
         }
 
         return data
+
+    def _get_clinician_form_link(self):
+        if not self.registry_model.has_feature("clinician_form"):
+            return None
+
+        return reverse("clinician_form_view", args=[self.registry_model.code, self.patient_model.pk])
+
 
     def _is_consent_locked(self):
         if self.registry_model.has_feature("consent_lock"):

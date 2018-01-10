@@ -1,0 +1,156 @@
+{% extends "rdrf_cdes/base-2-cols.html" %}
+
+{% load add_attr %}
+{% load static from staticfiles %}
+{% load is_checkbox %}
+{% load is_patient_relative_widget %}
+{% load is_formset_obj %}
+{% load get_information_link %}
+{% load get_info_text_expression %}
+{% load i18n %}
+{% load translate %}
+{% load add_language_modifier %}
+
+
+{% block extrastyle %}
+    {{block.super}}
+    <link rel="stylesheet" href="{% static 'css/jquery-1.11.4/themes/smoothness/jquery-ui.min.css' %}">
+
+    <script type="text/javascript" src={% static 'js/rpc_module.js' %}></script>
+    <script type="text/javascript" src="{% static 'js/vendor/jquery-ui-1.11.4.min.js' %}"></script>
+
+    <script>
+    function showOtherClinicianFields(visible) {
+	if(visible) {
+	    $("#clinician_panel .hideable").show();
+
+	}
+	else {
+	    $("#clinician_panel .hideable").hide();
+
+	}
+	
+    }
+
+    function initialiseSelect() {
+       var useOther = $("#id_use_other").val() == "True";
+       if (useOther) $("#id_user").val("-2");
+    }
+
+    $(document).ready(function(){
+            $(":input").not(':input[type=checkbox], :input[type=radio], :input[type=button], :input[type=submit], :input[type=reset]').addClass("form-control");
+            $("textarea").addClass("form-control");
+            $("select").addClass("form-control");
+             
+            $(window).bind('beforeunload', function(e){
+                if($('#main-form').serialize()!=$('#main-form').data('serialize')) {
+                    return "{% trans 'You have unsaved changes!' %}";
+                } else {
+                    e=null;
+                }
+            });
+            
+            $("#main-form").submit(function() {
+                $(window).unbind("beforeunload");
+            });
+
+	$("#id_user").change(function() {
+	    var otherSelected = $("#id_user").val() == '-2';
+	    showOtherClinicianFields(otherSelected);
+	});
+
+        initialiseSelect();
+        $('#main-form').data('serialize', $('#main-form').serialize());
+        $("#id_user").trigger("change");
+    
+        });
+    </script>
+
+{% endblock %}
+
+{% block formlinks %}
+{% endblock %}
+
+{% block sidebar %}
+    {{ context_launcher | safe }}
+{% endblock %}
+
+{% block formbtns %}
+	<div class="btn-group" role="group" aria-label="...">
+		<button id="submit-btn" type="submit" class="btn btn-success" value="Save">
+			<span class="glyphicon glyphicon-floppy-save" aria-hidden="true"></span> {% trans 'Save' %}
+		</button>
+
+		<a href="" class="btn btn-danger">
+			<span class="glyphicon glyphicon-remove" aria-hidden="true"></span> {% trans 'Cancel' %}
+		</a>
+	</div>
+{% endblock %}	
+
+{% block content %}
+
+			<a class="previous-form" href="{{ previous_form_link }}">
+				<span class="glyphicon glyphicon-chevron-left" aria-hidden="true"></span>
+			</a>
+		
+			<a class="next-form" href="{{ next_form_link }}">
+				<span class="glyphicon glyphicon-chevron-right" aria-hidden="true"></span>
+			</a>
+    <br>
+    <div class="row">
+        <div class="col-md-12">
+            {% if message %}
+                <div class="alert alert-success" role="alert">
+                    {{ message }}
+                </div>
+            {% endif %}
+
+            <form class="form-horizontal" method="post" id="main-form" enctype="multipart/form-data">
+	      {% csrf_token %}
+              <div id="clinician_panel" class="panel panel-default">
+		<div class="panel-heading"><strong>{{form_name}}</strong></div>
+                <div class="panel-body">
+		   <div class="alert alert-warning">
+                            Please select your supervising clinician below. This clinician should be someone that you are able to access through an appointment at a later date for them to verify that the data you have entered is correct. If your clinician is not listed below, please choose ‘other’ and provide their details. If you do not wish to nominate a clinician, please skip this step.
+                        </div>
+                    {% for field in form %}
+                    {% if field.name == "user" %}
+		       <div class="form-group">
+		    {% else %} 
+		       <div class="form-group hideable">
+                    {% endif %}
+
+		    <label  style="text-align: left; display: {{field.is_hidden|yesno:"None,block"}}" class="col-sm-3 control-label">
+                        {{ field.label|translate }}
+			<br>
+			{% if not field.is_hidden %}
+                          <small class="text-muted">
+                            {{ field.help_text|translate }}
+                          </small>
+		        {% endif %}
+                        {% if field.required %}
+                          <span class="glyphicon glyphicon-asterisk" style="color: red;" aria-hidden="true"></span>
+                        {% endif %}
+                    </label>
+		    
+                    <div class="col-sm-9">
+                        {% if not field|is_checkbox %}
+                          {{ field | add_attr:"class,form-control" }}
+                        {% else %}
+                          {{ field }}
+                        {% endif %}
+
+			{% if field.errors %}
+                          <span class="label label-danger">{{ field.errors.as_text }}</span>
+                        {% endif %}
+                    </div>
+		    
+                  </div>  <!-- form group -->
+                {% endfor %}
+	        </div>  <!-- panel body -->
+                </div>  <!-- panel -->
+		</form>
+	    </div>
+	</div>
+		      
+{% endblock %}

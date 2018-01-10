@@ -1008,13 +1008,66 @@ class Patient(models.Model):
 
 
 class ClinicianOther(models.Model):
+    use_other = models.BooleanField(default=False)
     patient = models.ForeignKey(Patient, null=True)
-    clinician_name = models.CharField(max_length=200, null=True)
-    clinician_hospital = models.CharField(max_length=200, null=True)
-    clinician_address = models.CharField(max_length=200, null=True)
+    clinician_name = models.CharField(max_length=200, blank=True,null=True)
+    clinician_hospital = models.CharField(max_length=200, blank=True, null=True)
+    clinician_address = models.CharField(max_length=200, blank=True, null=True)
     clinician_email = models.EmailField(max_length=254, null=True, blank=True)
     clinician_phone_number = models.CharField(max_length=254, null=True, blank=True)
+    user = models.ForeignKey(CustomUser, blank=True, null=True)
 
+    def synchronise_working_group(self):
+        if self.user:
+            if not self.use_other:
+                if self.patient:
+                    self.patient.working_groups = [ wg for wg in self.user.working_groups.all()]
+                    self.patient.save()
+                    # if there user/parent of this patient then need to update their working
+                    # groups also
+                    try:
+                        parent = ParentGuardian.objects.get(patient=self.patient)
+                        if parent.user:
+                            for wg in self.patient.working_groups.all():
+                                parent.user.working_groups.add(wg)
+                                parent.user.save()
+                    except ParentGuardian.DoesNotExist:
+                        pass
+                else:
+                    logger.debug("can't synch - patient not set")
+            else:
+                logger.debug("can't synch - user_other is True", None)
+
+
+@receiver(post_save, sender=ClinicianOther)
+def other_clinician_post_save(sender, instance, created, raw, using, update_fields, **kwargs):
+
+    if not instance.user and instance.use_other:
+        # User has NOT selected an existing clinician
+        from rdrf.events import EventType
+        from rdrf.email_notification import process_notification
+        
+        other_clinican = instance
+        patient = other_clinican.patient
+        registry_model = patient.rdrf_registry.first()
+        # model allows for patient to have more than one parent ...
+        try:
+            parent = ParentGuardian.objects.filter(patient=patient).first()
+        except:
+            # if patient was created not as child of a user
+            parent = None
+        
+        logger.debug("send notification")
+        template_data = {
+            "patient": patient,
+            "parent": parent,
+            "other_clinician": instance,
+            }
+        
+        process_notification(registry_model.code,
+                                 EventType.OTHER_CLINICIAN,
+                                 template_data)
+        
 
 class ParentGuardian(models.Model):
     GENDER_CHOICES = (("1", "Male"), ("2", "Female"), ("3", "Indeterminate"))
