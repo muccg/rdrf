@@ -4,6 +4,7 @@
 {% load get_forms %}
 {% load get_elements %}
 {% load i18n %}
+{% load project_logo %}
 {% load project_title %}
 {% load project_title_link %}
 {% load translate %}
@@ -30,7 +31,7 @@
       {% if request.LANGUAGE_CODE.lower == "es" %}
       <script src="{% static 'js/vendor/i18n/datepicker-es.js' %}"></script>
       {% endif %}
-      
+
       {% if request.LANGUAGE_CODE.lower == "pl" %}
       <script src="{% static 'js/vendor/i18n/datepicker-pl.js' %}"></script>
       {% endif %}
@@ -72,7 +73,19 @@
         <div class="row">
           <div class="col-md-10 col-md-offset-1">
             <div class="navbar-header">
-              <a class="navbar-brand" href="{% project_title_link %}">{% project_title %}</a>
+                {% if project_logo is not "no_project_logo" %}
+                    {% static "" as baseUrl %}
+                    <div class="project_logo" style="">
+                      <img src="{{ baseUrl }}/{% project_logo %}" class="project_logo"></img>
+                    </div>
+                    <a class="navbar-brand project_title_with_logo" href="{% project_title_link %}">
+                        {% project_title %}
+                    </a>
+                {% else %}
+                <a class="navbar-brand" href="{% project_title_link %}">
+                    {% project_title %}
+                </a>
+                {% endif %}
             </div>
 
             <!-- Collect the nav links, forms, and other content for toggling -->
@@ -169,21 +182,21 @@
               <h3><span  class="glyphicon glyphicon-list-alt" aria-hidden="true"></span> {% block location %}{{ location|safe|translate }}{% endblock %}</h3>
 	    </div>
 	    <div class="col-md-4 col-sm-4 col-xs-4">
-              {{ patient_info }}	
+              {{ patient_info }}
 	    </div>
 
 	    <div class="col-md-4 col-sm-4 col-xs-4" style="text-align: right">
 	      <h3>
-		
+
 	       {% if patient_link %}
                 {{ patient_link | safe}}
               {% elif patient %}
                 <i class="text-muted"><span class="glyphicon glyphicon-user" aria-hidden="true"></span> {{ patient }}</i>
               {% endif %}
 		</h3>
-	      
+
 	    </div>
- 
+
 	  </div>
 
 	  <div class="row">
@@ -194,7 +207,7 @@
 	                <a class="btn btn-danger" href="" data-toggle="modal" data-target="#archive_modal" target="_blank">
 				<span class="glyphicon glyphicon-remove" aria-hidden="true"></span> {% trans "Delete " %}
 			</a>
-	       </div>       
+	       </div>
 	       {% endif %}
 
            </div>
@@ -206,7 +219,7 @@
 
 
 	  </div>
-	  
+
          </div>
       </div>
     {% endif %}
@@ -238,8 +251,8 @@
             {% block content %}
 
             {% include 'rdrf_cdes/archive_modal.html' %}
-	    
-	    
+
+
                 {% if header %}
                     <div class="panel panel-info">
                         <div class="panel-body">
