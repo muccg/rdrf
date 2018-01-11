@@ -505,11 +505,14 @@ class PatientEditView(View):
             login_url = reverse('two_factor:login')
             return redirect("%s?next=%s" % (login_url, patient_edit_url))
 
+        # Section variable hardcoded for now
+        section_blacklist=('Registry', 'Next of Kin')
+
         patient, form_sections = self._get_patient_and_forms_sections(
-            patient_id, registry_code, request)
+            patient_id, registry_code, request, section_blacklist=section_blacklist)
 
         security_check_user_patient(request.user, patient)
-        
+
         registry_model = Registry.objects.get(code=registry_code)
 
         context_launcher = RDRFContextLauncherComponent(request.user, registry_model, patient)
@@ -758,7 +761,8 @@ class PatientEditView(View):
                                         patient_form=None,
                                         patient_address_form=None,
                                         patient_doctor_form=None,
-                                        patient_relatives_forms=None):
+                                        patient_relatives_forms=None,
+                                        section_blacklist=None):
 
         user = request.user
         hide_registry_specific_fields_section = False
@@ -906,7 +910,16 @@ class PatientEditView(View):
                     (patient_form, (registry_specific_section_fields,))
                 )
 
-        return patient, form_sections
+        whitelisted_form_sections = []
+
+        for form, sections in form_sections:
+            for name, vals in sections:
+                if name in section_blacklist:
+                    pass
+                else:
+                    whitelisted_form_sections.append((form, sections))
+
+        return patient, whitelisted_form_sections
 
     def _get_registry_specific_fields(self, user, registry_model):
         """
