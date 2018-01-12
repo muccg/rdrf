@@ -497,7 +497,19 @@ class AddPatientView(PatientFormMixin, CreateView):
                                      errors=errors)
 
 
+
+
 class PatientEditView(View):
+
+    def _check_for_blacklisted_sections(self, registry_model):
+        if "section_blacklist" in registry_model.metadata:
+            section_blacklist = registry_model.metadata["section_blacklist"]
+            section_blacklist = [_(x) for x in section_blacklist]
+        else:
+            section_blacklist = []
+
+        return section_blacklist
+
 
     def get(self, request, registry_code, patient_id):
         if not request.user.is_authenticated():
@@ -505,14 +517,9 @@ class PatientEditView(View):
             login_url = reverse('two_factor:login')
             return redirect("%s?next=%s" % (login_url, patient_edit_url))
 
-
         registry_model = Registry.objects.get(code=registry_code)
 
-        if "section_blacklist" in registry_model.metadata:
-            section_blacklist = registry_model.metadata["section_blacklist"]
-            section_blacklist = [_("{}".format(x)) for x in section_blacklist]
-        else:
-            section_blacklist = []
+        section_blacklist = self._check_for_blacklisted_sections(registry_model)
 
         patient, form_sections = self._get_patient_and_forms_sections(
             patient_id, registry_code, request)
@@ -717,13 +724,7 @@ class PatientEditView(View):
         context["archive_patient_url"] =  patient.get_archive_url(registry_model) if request.user.can_archive else ""
         context["consent"] = consent_status_for_patient(registry_code, patient)
 
-
-        if "section_blacklist" in registry_model.metadata:
-            section_blacklist = registry_model.metadata["section_blacklist"]
-            section_blacklist = [_("{}".format(x)) for x in section_blacklist]
-        else:
-            section_blacklist = []
-
+        section_blacklist = _check_for_blacklisted_sections(registry_model)
         context["section_blacklist"] = section_blacklist
 
         return render(request, 'rdrf_cdes/patient_edit.html', context)

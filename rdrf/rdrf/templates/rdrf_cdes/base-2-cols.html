@@ -73,7 +73,7 @@
         <div class="row">
           <div class="col-md-10 col-md-offset-1">
             <div class="navbar-header">
-                {% if project_logo is not "no_project_logo" %}
+                {% if project_logo %}
                     {% static "" as baseUrl %}
                     <div class="project_logo" style="">
                       <img src="{{ baseUrl }}/{% project_logo %}" class="project_logo"></img>

@@ -5,4 +5,5 @@ register = template.Library()
 
 @register.simple_tag
 def project_logo():
-    return "%s" % (settings.PROJECT_LOGO)
+    if hasattr(settings, "PROJECT_LOGO"):
+        return "%s" % (settings.PROJECT_LOGO)

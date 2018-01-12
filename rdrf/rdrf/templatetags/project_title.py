@@ -5,7 +5,4 @@ register = template.Library()
 
 @register.simple_tag
 def project_title():
-    try:
-        return "%s" % (settings.PROJECT_TITLE)
-    except:
-        return "no_project_logo"
+    return "%s" % (settings.PROJECT_TITLE)
