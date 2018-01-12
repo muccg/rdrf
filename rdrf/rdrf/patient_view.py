@@ -505,15 +505,20 @@ class PatientEditView(View):
             login_url = reverse('two_factor:login')
             return redirect("%s?next=%s" % (login_url, patient_edit_url))
 
-        # Section variable hardcoded for now
-        section_blacklist=('Registry', 'Next of Kin')
+
+        registry_model = Registry.objects.get(code=registry_code)
+
+        if "section_blacklist" in registry_model.metadata:
+            section_blacklist = registry_model.metadata["section_blacklist"]
+            section_blacklist = [_("{}".format(x)) for x in section_blacklist]
+        else:
+            section_blacklist = []
 
         patient, form_sections = self._get_patient_and_forms_sections(
-            patient_id, registry_code, request, section_blacklist=section_blacklist)
+            patient_id, registry_code, request)
 
         security_check_user_patient(request.user, patient)
 
-        registry_model = Registry.objects.get(code=registry_code)
 
         context_launcher = RDRFContextLauncherComponent(request.user, registry_model, patient)
         patient_info = RDRFPatientInfoComponent(registry_model, patient)
@@ -521,7 +526,6 @@ class PatientEditView(View):
         family_linkage_panel = FamilyLinkagePanel(request.user,
                                                   registry_model,
                                                   patient)
-        
 
         context = {
             "location": "Demographics",
@@ -535,13 +539,14 @@ class PatientEditView(View):
             "form_links": [],
             "show_archive_button": request.user.can_archive,
             "archive_patient_url": patient.get_archive_url(registry_model) if request.user.can_archive else "",
-            "consent": consent_status_for_patient(registry_code, patient)
+            "consent": consent_status_for_patient(registry_code, patient),
+            "section_blacklist": section_blacklist
         }
         if request.GET.get('just_created', False):
             context["message"] = _("Patient added successfully")
 
         context["not_linked"] = not patient.is_linked
-        
+
         wizard = NavigationWizard(request.user,
                                   registry_model,
                                   patient,
@@ -712,14 +717,20 @@ class PatientEditView(View):
         context["archive_patient_url"] =  patient.get_archive_url(registry_model) if request.user.can_archive else ""
         context["consent"] = consent_status_for_patient(registry_code, patient)
 
-        if request.user.is_parent:
-            context['parent'] = ParentGuardian.objects.get(user=request.user)
+
+        if "section_blacklist" in registry_model.metadata:
+            section_blacklist = registry_model.metadata["section_blacklist"]
+            section_blacklist = [_("{}".format(x)) for x in section_blacklist]
+        else:
+            section_blacklist = []
+
+        context["section_blacklist"] = section_blacklist
 
         return render(request, 'rdrf_cdes/patient_edit.html', context)
 
 
     def _is_linked(self, registry_model, patient_model):
-        # is this patient linked to others?  
+        # is this patient linked to others?
         if not registry_model.has_feature("family_linkage"):
             return False
 
@@ -761,8 +772,7 @@ class PatientEditView(View):
                                         patient_form=None,
                                         patient_address_form=None,
                                         patient_doctor_form=None,
-                                        patient_relatives_forms=None,
-                                        section_blacklist=None):
+                                        patient_relatives_forms=None):
 
         user = request.user
         hide_registry_specific_fields_section = False
@@ -910,16 +920,7 @@ class PatientEditView(View):
                     (patient_form, (registry_specific_section_fields,))
                 )
 
-        whitelisted_form_sections = []
-
-        for form, sections in form_sections:
-            for name, vals in sections:
-                if name in section_blacklist:
-                    pass
-                else:
-                    whitelisted_form_sections.append((form, sections))
-
-        return patient, whitelisted_form_sections
+        return patient, form_sections
 
     def _get_registry_specific_fields(self, user, registry_model):
         """

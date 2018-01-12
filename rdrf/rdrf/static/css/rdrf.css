@@ -153,3 +153,7 @@ form .aligned ul.errorlist {
     height: 70px;
     position: absolute;
 }
+
+.section_blacklist_hidden {
+    display: none;
+}

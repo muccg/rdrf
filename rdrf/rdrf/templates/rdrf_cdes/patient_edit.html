@@ -17,9 +17,9 @@
 {% block extrastyle %}
     {{block.super}}
     <link rel="stylesheet" href="{% static 'css/jquery-1.11.4/themes/smoothness/jquery-ui.min.css' %}">
-    
+
     <script type="text/javascript" src={% static 'js/rpc_module.js' %}></script>
-    
+
     <script>
         function setPatientRelativeFormVisiblity(visible) {
             var rpc = new RPC.RPC("{% url 'rpc' %}", "{{csrf_token}}");
@@ -43,7 +43,7 @@
                 setPatientRelativeFormVisiblity(data.result);
             })
         }
-        
+
         function select_country(obj) {
             state_id = obj.id.replace("country", "state");
             state_select = $('#' + state_id);
@@ -62,7 +62,7 @@
             var mgmt_form = $("#mgmt_" + prefix);
             var empty_form = $("#empty_" + prefix);
             var forms = $("#forms_" + prefix);
-            
+
             var total_forms = mgmt_form.find("input[id=id_"+ prefix +"-TOTAL_FORMS]");
 
             var new_form = empty_form.clone(true, true);
@@ -89,13 +89,13 @@
             $("<hr>").attr("style", "border: solid 1px gray").appendTo(new_form);
             new_form.prependTo(forms).slideDown("fast");
         }
-    
+
         function delete_form(form_div, prefix) {
             var mgmt_form = $("#mgmt_" + prefix);
             var total_forms = mgmt_form.find("input[id=id_"+ prefix +"-TOTAL_FORMS]")
             var total_forms_dec = parseInt(total_forms.val()) - 1;
             total_forms.attr("value", total_forms_dec);
-    
+
             $(form_div).parent().parent().parent().slideUp(function() {
                 $(form_div).parent().parent().parent().remove();
             });
@@ -123,9 +123,9 @@
             $(":input").not(':input[type=checkbox], :input[type=radio], :input[type=button], :input[type=submit], :input[type=reset]').addClass("form-control");
             $("textarea").addClass("form-control");
             $("select").addClass("form-control");
-            
+
             $('#main-form').data('serialize', $('#main-form').serialize());
-            
+
             $(window).bind('beforeunload', function(e){
                 if($('#main-form').serialize()!=$('#main-form').data('serialize')) {
                     return "{% trans "You have unsaved changes!" %}";
@@ -133,7 +133,7 @@
                     e=null;
                 }
             });
-            
+
             $("#main-form").submit(function() {
                 $(window).unbind("beforeunload");
             });
@@ -157,7 +157,7 @@
                     {% endfor %}
         </ul>
     </li>
-{% endif %} 
+{% endif %}
 {% endblock %}
 
 {% block sidebar %}
@@ -183,13 +183,13 @@
 		{% endif %}
 
 		</div>
-{% endblock %}	
+{% endblock %}
 
 {% block content %}
-   
+
                 {% include 'rdrf_cdes/archive_modal.html' %}
-   	
-	
+
+
 	<a class="previous-form" href="{{ previous_form_link }}">
 		<span class="glyphicon glyphicon-chevron-left" aria-hidden="true"></span>
 	</a>
@@ -197,7 +197,7 @@
 	<a class="next-form" href="{{ next_form_link }}">
 		<span class="glyphicon glyphicon-chevron-right" aria-hidden="true"></span>
 	</a>
-    
+
     <br>
 
     <div class="row">
@@ -207,13 +207,13 @@
                     {{ message }}
                 </div>
             {% endif %}
-        
+
             {{ family_linkage_panel|safe }}
 
             <form class="form-horizontal" method="post" id="main-form" enctype="multipart/form-data">
-            
-                {% csrf_token %}        
-                
+
+                {% csrf_token %}
+
                 {% if errors %}
                     <div class="alert alert-danger" role="alert">
                         {% trans 'Please correct errors below' %}:<br>
@@ -222,9 +222,13 @@
                         {% endfor %}
                     </div>
                 {% endif %}
-                
+
                 {% for form, sections in forms %}
-                    {% if form|is_formset_obj %}
+                    {% for name, section in sections %}
+                        {% if name in section_blacklist %}
+                        <div class="section_blacklist_hidden">
+                        {% endif %}
+                        {% if form|is_formset_obj %}
                         <div id="mgmt_{{form.prefix}}">{{form.management_form}}</div>
                         <div style="display: none;" id="empty_{{form.prefix}}">
                             <div class="form-group">
@@ -332,6 +336,7 @@
                                     </div>
                                 </div>
                             </div>
+                        <!-- </div> -->
                         {% endfor %}
                     {% else %}
                         {% for name, section in sections %}
@@ -397,6 +402,12 @@
                             </div>
                         {% endfor %}
                     {% endif %}
+
+                    {% if name in section_blacklist %}
+                </div>
+                    {% endif %}
+
+                    {% endfor %}
                 {% endfor %}
             </div>
         </form>
