@@ -23,19 +23,11 @@
       <script type="text/javascript" src="{% static 'js/vendor/jquery-1.11.3.min.js' %}" ></script>
       <script type="text/javascript" src="{% static 'js/vendor/jquery-ui-1.11.4.min.js' %}"></script>
 
-      {% if request.LANGUAGE_CODE.lower == "de" %}
-      <script src="{% static 'js/vendor/i18n/datepicker-de.js' %}"></script>
-      {% endif %}
 
-      {% if request.LANGUAGE_CODE.lower == "es" %}
-      <script src="{% static 'js/vendor/i18n/datepicker-es.js' %}"></script>
+      {% if request.LANGUAGE_CODE.lower is not "en" %}
+        {% static "" as baseUrl %}
+        <script src = "{{ baseUrl }}/js/vendor/i18n/datepicker-{{ request.LANGUAGE_CODE }}.js"></script>
       {% endif %}
-      
-      {% if request.LANGUAGE_CODE.lower == "pl" %}
-      <script src="{% static 'js/vendor/i18n/datepicker-pl.js' %}"></script>
-      {% endif %}
-
-
 
       <script type="text/javascript" src="{% static 'bootstrap-3.3.6/js/bootstrap.min.js' %}"></script>
       <script type="text/javascript" src="{% static 'js/vendor/underscore-1.5.2.min.js' %}"></script>
@@ -63,7 +55,6 @@
 
   </head>
 <body>
-
 
 <div id="wrap">
 
@@ -169,21 +160,21 @@
               <h3><span  class="glyphicon glyphicon-list-alt" aria-hidden="true"></span> {% block location %}{{ location|safe|translate }}{% endblock %}</h3>
 	    </div>
 	    <div class="col-md-4 col-sm-4 col-xs-4">
-              {{ patient_info }}	
+              {{ patient_info }}
 	    </div>
 
 	    <div class="col-md-4 col-sm-4 col-xs-4" style="text-align: right">
 	      <h3>
-		
+
 	       {% if patient_link %}
                 {{ patient_link | safe}}
               {% elif patient %}
                 <i class="text-muted"><span class="glyphicon glyphicon-user" aria-hidden="true"></span> {{ patient }}</i>
               {% endif %}
 		</h3>
-	      
+
 	    </div>
- 
+
 	  </div>
 
 	  <div class="row">
@@ -194,7 +185,7 @@
 	                <a class="btn btn-danger" href="" data-toggle="modal" data-target="#archive_modal" target="_blank">
 				<span class="glyphicon glyphicon-remove" aria-hidden="true"></span> {% trans "Delete " %}
 			</a>
-	       </div>       
+	       </div>
 	       {% endif %}
 
            </div>
@@ -206,7 +197,7 @@
 
 
 	  </div>
-	  
+
          </div>
       </div>
     {% endif %}
