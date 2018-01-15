@@ -724,7 +724,7 @@ class PatientEditView(View):
         context["archive_patient_url"] =  patient.get_archive_url(registry_model) if request.user.can_archive else ""
         context["consent"] = consent_status_for_patient(registry_code, patient)
 
-        section_blacklist = _check_for_blacklisted_sections(registry_model)
+        section_blacklist = self._check_for_blacklisted_sections(registry_model)
         context["section_blacklist"] = section_blacklist
 
         return render(request, 'rdrf_cdes/patient_edit.html', context)
