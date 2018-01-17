@@ -58,7 +58,9 @@ ALL_LANGUAGES = (("en", "English"),
                  ("ar", "Arabic"),
                  ("pl", "Polish"),
                  ("es", "Spanish"),
-                 ("de", "German"))
+                 ("de", "German"),
+                 ("fr", "French"),
+                 ("it", "Italian"))
 
 
 # EnvConfig can't handle structure of tuple of tuples so we pass in a flat association list
@@ -430,7 +432,7 @@ LOGGING = {
 # Design Mode:
 # True means forms. sections, cdes can be edited in Django admin
 # False ( the default) means registry definition cannot be edited on site
-DESIGN_MODE = env.get('design_mode', False) 
+DESIGN_MODE = env.get('design_mode', False)
 
 ################################################################################
 # Customize settings for each registry below
