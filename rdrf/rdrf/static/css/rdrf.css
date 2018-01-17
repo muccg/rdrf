@@ -28,7 +28,7 @@ body {
     font-size: 2em;
     z-index: 99;
 }
-			
+
 .banner {
     position: fixed;
     width: 100%;
@@ -44,7 +44,7 @@ body {
 .footer-wrap {
     border-top: 5px solid #e1e3e5;;
     height: 60px;
-    position: fixed; 
+    position: fixed;
     width: 100%;
     z-index: 99;
     background-color: #eeeeee;
@@ -52,7 +52,7 @@ body {
     bottom: 0px;
     box-shadow: 0 -2px 30px #888888;
     -moz-box-shadow: 0 -2px 30px #888888;
-    -webkit-box-shadow: 0 -2px 30px #888888;			  
+    -webkit-box-shadow: 0 -2px 30px #888888;
 }
 
 .footer-wrap .version {
@@ -136,4 +136,24 @@ form .aligned ul.errorlist {
 
 .multi-file-widget .add-button {
   margin-top: 5px;
+}
+
+/**************************************************************************
+ * Project Title and Logo                                                 */
+
+.project_title_with_logo {
+    padding-left: 100px;
+    /*width: 550px;*/
+}
+
+.project_logo {
+    /*float: left;*/
+    padding-right: 50px;
+    /*z-index: 999;*/
+    height: 70px;
+    position: absolute;
+}
+
+.section_blacklist_hidden {
+    display: none;
 }

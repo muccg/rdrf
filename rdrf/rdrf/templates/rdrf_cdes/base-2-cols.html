@@ -4,6 +4,7 @@
 {% load get_forms %}
 {% load get_elements %}
 {% load i18n %}
+{% load project_logo %}
 {% load project_title %}
 {% load project_title_link %}
 {% load translate %}
@@ -22,7 +23,6 @@
 
       <script type="text/javascript" src="{% static 'js/vendor/jquery-1.11.3.min.js' %}" ></script>
       <script type="text/javascript" src="{% static 'js/vendor/jquery-ui-1.11.4.min.js' %}"></script>
-
 
       {% if request.LANGUAGE_CODE.lower != "en" %}
         {% static "" as baseUrl %}
@@ -63,7 +63,19 @@
         <div class="row">
           <div class="col-md-10 col-md-offset-1">
             <div class="navbar-header">
-              <a class="navbar-brand" href="{% project_title_link %}">{% project_title %}</a>
+                {% if project_logo %}
+                    {% static "" as baseUrl %}
+                    <div class="project_logo" style="">
+                      <img src="{{ baseUrl }}/{% project_logo %}" class="project_logo"></img>
+                    </div>
+                    <a class="navbar-brand project_title_with_logo" href="{% project_title_link %}">
+                        {% project_title %}
+                    </a>
+                {% else %}
+                <a class="navbar-brand" href="{% project_title_link %}">
+                    {% project_title %}
+                </a>
+                {% endif %}
             </div>
 
             <!-- Collect the nav links, forms, and other content for toggling -->

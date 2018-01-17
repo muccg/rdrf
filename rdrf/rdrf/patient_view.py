@@ -497,7 +497,19 @@ class AddPatientView(PatientFormMixin, CreateView):
                                      errors=errors)
 
 
+
+
 class PatientEditView(View):
+
+    def _check_for_blacklisted_sections(self, registry_model):
+        if "section_blacklist" in registry_model.metadata:
+            section_blacklist = registry_model.metadata["section_blacklist"]
+            section_blacklist = [_(x) for x in section_blacklist]
+        else:
+            section_blacklist = []
+
+        return section_blacklist
+
 
     def get(self, request, registry_code, patient_id):
         if not request.user.is_authenticated():
@@ -505,12 +517,15 @@ class PatientEditView(View):
             login_url = reverse('two_factor:login')
             return redirect("%s?next=%s" % (login_url, patient_edit_url))
 
+        registry_model = Registry.objects.get(code=registry_code)
+
+        section_blacklist = self._check_for_blacklisted_sections(registry_model)
+
         patient, form_sections = self._get_patient_and_forms_sections(
             patient_id, registry_code, request)
 
         security_check_user_patient(request.user, patient)
-        
-        registry_model = Registry.objects.get(code=registry_code)
+
 
         context_launcher = RDRFContextLauncherComponent(request.user, registry_model, patient)
         patient_info = RDRFPatientInfoComponent(registry_model, patient)
@@ -518,7 +533,6 @@ class PatientEditView(View):
         family_linkage_panel = FamilyLinkagePanel(request.user,
                                                   registry_model,
                                                   patient)
-        
 
         context = {
             "location": "Demographics",
@@ -532,13 +546,14 @@ class PatientEditView(View):
             "form_links": [],
             "show_archive_button": request.user.can_archive,
             "archive_patient_url": patient.get_archive_url(registry_model) if request.user.can_archive else "",
-            "consent": consent_status_for_patient(registry_code, patient)
+            "consent": consent_status_for_patient(registry_code, patient),
+            "section_blacklist": section_blacklist
         }
         if request.GET.get('just_created', False):
             context["message"] = _("Patient added successfully")
 
         context["not_linked"] = not patient.is_linked
-        
+
         wizard = NavigationWizard(request.user,
                                   registry_model,
                                   patient,
@@ -709,14 +724,14 @@ class PatientEditView(View):
         context["archive_patient_url"] =  patient.get_archive_url(registry_model) if request.user.can_archive else ""
         context["consent"] = consent_status_for_patient(registry_code, patient)
 
-        if request.user.is_parent:
-            context['parent'] = ParentGuardian.objects.get(user=request.user)
+        section_blacklist = self._check_for_blacklisted_sections(registry_model)
+        context["section_blacklist"] = section_blacklist
 
         return render(request, 'rdrf_cdes/patient_edit.html', context)
 
 
     def _is_linked(self, registry_model, patient_model):
-        # is this patient linked to others?  
+        # is this patient linked to others?
         if not registry_model.has_feature("family_linkage"):
             return False
 
