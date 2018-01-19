@@ -70,7 +70,7 @@
             $("textarea").addClass("form-control");
             $("select").addClass("form-control");
             $('#main-form').data('serialize', $('#main-form').serialize());
-            
+
             $(window).bind('beforeunload', function(e){
                 if($('#main-form').serialize()!=$('#main-form').data('serialize')) {
                     return "{% trans 'You have unsaved changes!' %}";
@@ -78,7 +78,7 @@
                     e=null;
                 }
             });
-            
+
             $("#main-form").submit(function() {
                 $(window).unbind("beforeunload");
             });
@@ -112,7 +112,7 @@
 			</a>
 		{% endif %}
 	</div>
-{% endblock %}	
+{% endblock %}
 
 {% block content %}
         {% include 'rdrf_cdes/archive_modal.html' %}
@@ -122,7 +122,7 @@
 			<a class="previous-form" href="{{ previous_form_link }}">
 				<span class="glyphicon glyphicon-chevron-left" aria-hidden="true"></span>
 			</a>
-		
+
 			<a class="next-form" href="{{ next_form_link }}">
 				<span class="glyphicon glyphicon-chevron-right" aria-hidden="true"></span>
 			</a>
@@ -131,10 +131,10 @@
 		<a class="previous-form" href="{{ previous_form_link }}">
 			<span class="glyphicon glyphicon-chevron-left" aria-hidden="true"></span>
 		</a>
-	
+
 		<a class="next-form" href="{{ next_form_link }}">
 			<span class="glyphicon glyphicon-chevron-right" aria-hidden="true"></span>
-		</a>		
+		</a>
 	{% endif %}
 
     <br>
@@ -273,8 +273,8 @@
                                 {% with info_text_expression=section|get_info_text_expression %}
                                 {% with docfile=link|add_language_modifier %}
 				{% with doc="docs/"|add:docfile %}
-				  
-                                {% if link %}<br><a href="{% static doc %}">{% trans 'Download or print a copy of this information to keep' %}</a>{% endif %}
+
+                                {% if link %}<br><a href="{% static doc %}" target="_blank">{% trans 'Download or print a copy of this information to keep' %}</a>{% endif %}
                                     {% if info_text_expression %}
                                         <br>
                                         <hr>
