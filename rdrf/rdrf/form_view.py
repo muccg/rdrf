@@ -126,7 +126,7 @@ class SectionInfo(object):
     Used so we save everything _after_ all sections have validated.
     Also the file upload links weren't being created post save for the POST response
     because the forms had already been instantiated and "wrapped" too early.
-    
+
     """
 
     def __init__(self,
@@ -171,7 +171,7 @@ class SectionInfo(object):
             dynamic_data = self.data[self.section_code] # the cleaned data from the form submission
         else:
             dynamic_data = self.data
-                    
+
         wrapped_data = wrap_file_cdes(self.registry_code, dynamic_data, current_data, multisection=self.is_multiple)
 
         if self.is_multiple:
@@ -333,10 +333,10 @@ class FormView(View):
         context["header"] = self.registry_form.header
         context["header_expression"] = "rdrf://model/RegistryForm/%s/header" % self.registry_form.pk
         context["settings"] = settings
-        
+
 
         patient_info_component = RDRFPatientInfoComponent(self.registry, patient_model)
-        
+
         if not self.CREATE_MODE:
             context["CREATE_MODE"] = False
             context["show_print_button"] = True
@@ -405,7 +405,7 @@ class FormView(View):
         patient = Patient.objects.get(pk=patient_id)
 
         security_check_user_patient(request.user, patient)
-        
+
         self.patient_id = patient_id
 
         self.rdrf_context_manager = RDRFContextManager(self.registry)
@@ -529,8 +529,8 @@ class FormView(View):
             # submission data
             for section_info in sections_to_save:
                 section_info.save()
-                form_instance = section_info.recreate_form_instance()                  
-                form_section[section_info.section_code] = form_instance 
+                form_instance = section_info.recreate_form_instance()
+                form_section[section_info.section_code] = form_instance
 
             progress_dict = dyn_patient.save_form_progress(registry_code, context_model=self.rdrf_context)
             # Save one snapshot after all sections have being persisted
@@ -564,7 +564,7 @@ class FormView(View):
                                                         patient,
                                                         self.registry_form.name,
                                                         self.rdrf_context)
-        
+
         patient_info_component = RDRFPatientInfoComponent(registry, patient)
 
         context = {
@@ -624,7 +624,7 @@ class FormView(View):
 
         context.update(csrf(request))
         if error_count == 0:
-            success_message = _("Patient %(patient_name)s saved successfully") % {"patient_name": patient_name}
+            success_message = _("Patient %(patient_name)s saved successfully. Please now use the blue arrow on the right to continue.") % {"patient_name": patient_name}
             messages.add_message(request,
                                  messages.SUCCESS,
                                  success_message)
@@ -1488,7 +1488,7 @@ class CustomConsentFormView(View):
         patient_model = Patient.objects.get(pk=patient_id)
 
         security_check_user_patient(request.user, patient_model)
-        
+
         registry_model = Registry.objects.get(code=registry_code)
         form_sections = self._get_form_sections(registry_model, patient_model)
         wizard = NavigationWizard(request.user,
@@ -1598,7 +1598,7 @@ class CustomConsentFormView(View):
         patient_model = Patient.objects.get(id=patient_id)
 
         security_check_user_patient(request.user, patient_model)
-        
+
         context_launcher = RDRFContextLauncherComponent(request.user,
                                                         registry_model,
                                                         patient_model,
@@ -1648,12 +1648,12 @@ class CustomConsentFormView(View):
             else:
                 valid_forms.append(True)
 
-       
+
         if all(valid_forms):
             patient_consent_file_forms.save()
             custom_consent_form.save()
             patient_name = "%s %s" % (patient_model.given_names, patient_model.family_name)
-            messages.success(self.request, _("Patient %(patient_name)s saved successfully") % {"patient_name": patient_name})
+            messages.success(self.request, _("Patient %(patient_name)s saved successfully. Please now use the blue arrow on the right to continue.") % {"patient_name": patient_name})
             return HttpResponseRedirect(self._get_success_url(registry_model, patient_model))
         else:
             try:
