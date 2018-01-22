@@ -76,7 +76,7 @@ class RDRFPatientInfoComponent(RDRFComponent):
         self.patient_model = patient_model
         self.registry_model = registry_model
 
-    def _get_template_data(self):    
+    def _get_template_data(self):
         patient_type = self._get_patient_type()
         return {"patient_type": patient_type}
 
@@ -85,11 +85,9 @@ class RDRFPatientInfoComponent(RDRFComponent):
         if patient_type:
             metadata = self.registry_model.metadata
             type_dict = metadata.get("patient_types", {})
-            info_dict= type_dict.get(patient_type, {})
+            info_dict = type_dict.get(patient_type, {})
             return info_dict.get("name", patient_type)
         return ""
-
-                
 
 
 class RDRFContextLauncherComponent(RDRFComponent):
@@ -110,7 +108,6 @@ class RDRFContextLauncherComponent(RDRFComponent):
         # associated with a multiple context form group
         self.current_rdrf_context_model = current_rdrf_context_model
         self.consent_locked = self._is_consent_locked()
-        
 
     def _get_template_data(self):
         existing_data_link = self._get_existing_data_link()
@@ -135,8 +132,11 @@ class RDRFContextLauncherComponent(RDRFComponent):
         if not self.registry_model.has_feature("clinician_form"):
             return None
 
-        return reverse("clinician_form_view", args=[self.registry_model.code, self.patient_model.pk])
-
+        return reverse(
+            "clinician_form_view",
+            args=[
+                self.registry_model.code,
+                self.patient_model.pk])
 
     def _is_consent_locked(self):
         if self.registry_model.has_feature("consent_lock"):
@@ -146,7 +146,11 @@ class RDRFContextLauncherComponent(RDRFComponent):
             return False
 
     def _get_consents_link(self):
-        return reverse("consent_form_view", args=[self.registry_model.code, self.patient_model.pk])
+        return reverse(
+            "consent_form_view",
+            args=[
+                self.registry_model.code,
+                self.patient_model.pk])
 
     def _get_demographics_link(self):
         return reverse("patient_edit", args=[self.registry_model.code, self.patient_model.pk])
@@ -184,8 +188,8 @@ class RDRFContextLauncherComponent(RDRFComponent):
         # reuses the patient/context listing
         patients_listing_url = reverse("patientslisting")
         links = []
-        for context_form_group in ContextFormGroup.objects.filter(registry=self.registry_model,
-                                                                  context_type="M").order_by("name"):
+        for context_form_group in ContextFormGroup.objects.filter(
+                registry=self.registry_model, context_type="M").order_by("name"):
             name = _("All " + context_form_group.direct_name + "s")
             filter_url = patients_listing_url + "?registry_code=%s&patient_id=%s&context_form_group_id=%s" % (
                 self.registry_model.code, self.patient_model.pk, context_form_group.pk)
@@ -265,7 +269,8 @@ class RDRFContextLauncherComponent(RDRFComponent):
             for fixed_context_group in self._get_fixed_context_form_groups():
                 rdrf_context = self._get_context_for_group(fixed_context_group)
                 fg = _FormGroup(fixed_context_group.name)
-                for form_link in self._get_visible_form_links(fixed_context_group, rdrf_context):
+                for form_link in self._get_visible_form_links(
+                        fixed_context_group, rdrf_context):
                     form = _Form(form_link.url, form_link.text, current=form_link.selected)
                     fg.forms.append(form)
                 fixed_contexts.append(fg)
@@ -309,11 +314,17 @@ class FormsButton(RDRFComponent):
     A button/popover which pressed shows links to forms in a registry or a form group
     """
     TEMPLATE = "rdrf_cdes/forms_button.html"
-    MULTIPLE_LIMIT = 10 # Only show the last <MULTIPLE_LIMIT> items for multiple context form groups
+    MULTIPLE_LIMIT = 10  # Only show the last <MULTIPLE_LIMIT> items for multiple context form groups
 
     class FormWrapper(object):
 
-        def __init__(self, registry_model, patient_model, form_model, context_form_group, context_model=None):
+        def __init__(
+                self,
+                registry_model,
+                patient_model,
+                form_model,
+                context_form_group,
+                context_model=None):
             self.registry_model = registry_model
             self.context_form_group = context_form_group
             self.patient_model = patient_model
@@ -338,7 +349,7 @@ class FormsButton(RDRFComponent):
                 # multiple group
                 if self.context_form_group.supports_direct_linking:
                     value = self.context_form_group.get_name_from_cde(self.patient_model,
-                                                                     self.context_model)
+                                                                      self.context_model)
                     if not value:
                         return "Not set"
                     else:
@@ -348,11 +359,13 @@ class FormsButton(RDRFComponent):
 
         @property
         def progress_percentage(self):
-            return self.progress.get_form_progress(self.form_model, self.patient_model, self.context_model)
+            return self.progress.get_form_progress(
+                self.form_model, self.patient_model, self.context_model)
 
         @property
         def is_current(self):
-            return self.progress.get_form_currency(self.form_model, self.patient_model, self.context_model)
+            return self.progress.get_form_currency(
+                self.form_model, self.patient_model, self.context_model)
 
     def __init__(self,
                  registry_model,
@@ -364,7 +377,8 @@ class FormsButton(RDRFComponent):
         self.user = user
         self.patient_model = patient_model
         self.context_form_group = context_form_group
-        self.forms = [f for f in form_models if self.user.can_view(f) and not is_generated_form(f)]
+        self.forms = [f for f in form_models if self.user.can_view(
+            f) and not is_generated_form(f)]
 
     def _get_template_data(self):
         # subclass should build dictionary for template
@@ -394,12 +408,15 @@ class FormsButton(RDRFComponent):
                                      default_context) for form_model in self.forms]
         elif self.context_form_group.context_type == "F":
             # there should only be one context
-            contexts = list(RDRFContext.objects.filter(registry=self.registry_model,
-                                                       context_form_group=self.context_form_group,
-                                                       object_id=self.patient_model.pk,
-                                                       content_type__model="patient"))
+            contexts = list(
+                RDRFContext.objects.filter(
+                    registry=self.registry_model,
+                    context_form_group=self.context_form_group,
+                    object_id=self.patient_model.pk,
+                    content_type__model="patient"))
 
-            assert len(contexts) == 1, "There should only be one context in %s" % self.context_form_group
+            assert len(
+                contexts) == 1, "There should only be one context in %s" % self.context_form_group
 
             context_model = contexts[0]
             return [self.FormWrapper(self.registry_model,
@@ -411,7 +428,7 @@ class FormsButton(RDRFComponent):
             # multiple group
             # we may have more than one assessment etc
             # NB. We LIMIT the number of forms shown to the last 10
-            
+
             context_models = self.patient_model.get_multiple_contexts(self.context_form_group)
             context_models = context_models[:self.MULTIPLE_LIMIT]
 
@@ -448,29 +465,28 @@ class FormsButton(RDRFComponent):
                 return self.context_form_group.name
 
 
-
 class FormGroupButton(RDRFComponent):
     """
     A button which when clicked, loads a patient's forms
     via Ajax.
     """
-    
+
     TEMPLATE = "rdrf_cdes/form_group_button_component.html"
+
     def __init__(self, registry_model, user, patient_model, context_form_group):
         self.registry_model = registry_model
         self.user = user
         self.patient_model = patient_model
         self.context_form_group = context_form_group
 
-    def _get_template_data(self):    
+    def _get_template_data(self):
         if self.context_form_group is None:
             form_group_id = None
             registry_type = "normal"
         else:
             form_group_id = self.context_form_group.id
             registry_type = "has_groups"
-            
-            
+
         return {"button_caption": self.button_caption,
                 "patient_id": self.patient_model.id,
                 "form_group_id": form_group_id,
@@ -490,28 +506,29 @@ class FormGroupButton(RDRFComponent):
 
 class FamilyLinkagePanel(RDRFComponent):
     TEMPLATE = "rdrf_cdes/family_linkage_panel.html"
-    def __init__(self, user, registry_model, patient_model):
-       self.registry_model = registry_model
-       if not registry_model.has_feature("family_linkage"):
-           self.patient_model = None
-           self.link_allowed = self.is_index = None
-           self.index_working_groups = None
-           return
-           
-       self.user = user
-       self.link_allowed = True
-       self.patient_model = patient_model
-       self.is_index = patient_model.is_index
-       if not self.is_index:
-           # if we can't see the link to the index
-           # we want to know the working groups of the index at least
-           self.link_allowed = user.can_view_patient_link(patient_model.my_index)
 
-           self.index_working_groups = ",".join(sorted([wg.name for wg in self.patient_model.my_index.working_groups.all()]))
-       else:
-           self.index_working_groups = None
-       
-       
+    def __init__(self, user, registry_model, patient_model):
+        self.registry_model = registry_model
+        if not registry_model.has_feature("family_linkage"):
+            self.patient_model = None
+            self.link_allowed = self.is_index = None
+            self.index_working_groups = None
+            return
+
+        self.user = user
+        self.link_allowed = True
+        self.patient_model = patient_model
+        self.is_index = patient_model.is_index
+        if not self.is_index:
+            # if we can't see the link to the index
+            # we want to know the working groups of the index at least
+            self.link_allowed = user.can_view_patient_link(patient_model.my_index)
+
+            self.index_working_groups = ",".join(
+                sorted([wg.name for wg in self.patient_model.my_index.working_groups.all()]))
+        else:
+            self.index_working_groups = None
+
     def _get_template_data(self):
         data = {"patient": self.patient_model,
                 "link_allowed": self.link_allowed,
