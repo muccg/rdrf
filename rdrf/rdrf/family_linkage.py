@@ -44,21 +44,35 @@ class MongoUndo(object):
 
 class FamilyLinkageManager(object):
 
-    def __init__(self, registry_model, packet):
+    def __init__(self, registry_model, packet=None):
         self.registry_model = registry_model
         self.packet = packet
         if not registry_model.has_feature("family_linkage"):
             raise FamilyLinkageError("need family linkages feature to use FamilyManager")
-        self.index_dict = self.packet["index"]
-        self.original_index_dict = self.packet["original_index"]
-        self.original_index = int(self.original_index_dict["pk"])
 
-        self.relatives = self.packet["relatives"]
-        self.index_patient = self._get_index_patient()
+        if packet is not None:
+            # used by family linkage view to accept ajax packets
+            # which re-assign patients in families
+            self.index_dict = self.packet["index"]
+            self.original_index_dict = self.packet["original_index"]
+            self.original_index = int(self.original_index_dict["pk"])
 
-        self.working_groups = [wg for wg in self.index_patient.working_groups.all()]
+            self.relatives = self.packet["relatives"]
+            self.index_patient = self._get_index_patient()
+
+            self.working_groups = [wg for wg in self.index_patient.working_groups.all()]
+
+        
         self.mongo_undos = []
 
+        # the following allows pokes of the data into arbritrary forms
+        self.family_linkage_form_name = registry_model.metadata["family_linkage_form_name"]
+        self.family_linkage_section_code = registry_model.metadata["family_linkage_section_code"]
+        self.family_linkage_cde_code = registry_model.metadata["family_linkage_cde_code"]
+        self.family_linkage_index_value = registry_model.metadata["family_linkage_index_value"]
+        self.family_linkage_relative_value = registry_model.metadata["family_linkage_relative_value"]
+        
+        
     def _get_index_patient(self):
         try:
             return Patient.objects.get(pk=self.original_index)
@@ -90,7 +104,7 @@ class FamilyLinkageManager(object):
                 rel.relationship = relative_dict["relationship"]
                 rel.relative_patient = patient
                 rel.save()
-                self._set_as_relative(patient)
+                self.set_as_relative(patient)
 
     def _index_changed(self):
         if self.original_index_dict["class"] != self.index_dict["class"]:
@@ -135,7 +149,7 @@ class FamilyLinkageManager(object):
                 fml_log("deleted old patient relative")
 
     def _change_index(self, old_index_patient, new_index_patient):
-        self._set_as_index_patient(new_index_patient)
+        self.set_as_index_patient(new_index_patient)
         updated_rels = set([])
         original_relatives = set([r.pk for r in old_index_patient.relatives.all()])
         for relative_dict in self.relatives:
@@ -156,7 +170,7 @@ class FamilyLinkageManager(object):
                 new_patient_relative.relative_patient = patient
                 new_patient_relative.given_names = relative_dict["given_names"]
                 new_patient_relative.family_name = relative_dict["family_name"]
-                self._set_as_relative(patient)
+                self.set_as_relative(patient)
                 new_patient_relative.relationship = relative_dict["relationship"]
                 new_patient_relative.save()
                 updated_rels.add(new_patient_relative.pk)
@@ -178,19 +192,26 @@ class FamilyLinkageManager(object):
         undo = MongoUndo(patient, value)
         self.mongo_undos.append(undo)
 
-    def _set_as_relative(self, patient):
+    def _set_linkage_value(self, patient, value):
+        # "poke" the data in the clinical form
         main_context_model = self._get_main_context(patient)
-        patient.set_form_value("fh", "ClinicalData", "fhDateSection",
-                               "CDEIndexOrRelative", "fh_is_relative", main_context_model)
-        fml_log("set patient %s to relative" % patient)
-        self._add_undo(patient, "fh_is_relative")
+        
+        patient.set_form_value(self.registry_model.code,
+                               self.family_linkage_form_name,
+                               self.family_linkage_section_code,
+                               self.family_linkage_cde_code,
+                               value,
+                               main_context_model)
 
-    def _set_as_index_patient(self, patient):
-        main_context_model = self._get_main_context(patient)
-        patient.set_form_value("fh", "ClinicalData", "fhDateSection",
-                               "CDEIndexOrRelative", "fh_is_index", main_context_model)
-        fml_log("set patient %s to index" % patient)
-        self._add_undo(patient, "fh_is_index")
+        fml_log("set patient %s to %s" % (patient, value))
+        self._add_undo(patient, value)
+        
+
+    def set_as_relative(self, patient):
+        self._set_linkage_value(patient, self.family_linkage_relative_value)
+        
+    def set_as_index_patient(self, patient):
+        self._set_linkage_value(patient, self.family_linkage_index_value)
 
     def _get_main_context(self, patient_model):
         # return the correct context which contains the clinical form we need to update

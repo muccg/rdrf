@@ -40,6 +40,7 @@ services:
       service: runserver
     environment:
       - DJANGO_FIXTURES=dev
+      - DESIGN_MODE=1
     volumes_from:
       - datadev
     ports:

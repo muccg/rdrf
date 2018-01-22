@@ -14,7 +14,6 @@ import pycountry
 
 from rdrf.dynamic_data import DynamicDataWrapper
 from rdrf.models import Registry, Section, ConsentQuestion
-from rdrf.hooking import run_hooks
 import registry.groups.models
 from registry.utils import get_working_groups, get_registries, stripspaces
 from registry.groups.models import CustomUser
@@ -592,7 +591,7 @@ class Patient(models.Model):
     @property
     def my_index(self):
         # This property is only applicable to FH
-        if self.in_registry("fh"):
+        if self.has_feature("family_linkage"):
             # try to find patient relative object corresponding to this patient and
             # then locate that relative's index patient
             try:
@@ -696,7 +695,7 @@ class Patient(models.Model):
         if not self.active:
             return False
 
-        if not self.in_registry("fh"):
+        if not self.has_feature("family_linkage"):
             return False
         else:
             if not self.my_index:
@@ -1214,9 +1213,13 @@ class PatientRelative(models.Model):
         p.rdrf_registry = [registry_model]
         p.working_groups = working_groups
         p.save()
-        run_hooks('patient_created_from_relative', p)
         self.relative_patient = p
         self.save()
+        # explicitly set relative cde
+        if registry_model.has_feature("family_linkage"):
+            from rdrf.family_linkage import FamilyLinkageManager
+            flm = FamilyLinkageManager(registry_model)
+            flm.set_as_relative(p)
         return p
 
     def sync_relative_patient(self):
@@ -1246,6 +1249,25 @@ def clean_consents(sender, instance, **kwargs):
     instance.clean_consents()
 
 
+
+@receiver(post_save, sender=Patient)
+def update_family_linkage_fields(sender, instance, **kwargs):
+    logger.debug("updating family linkage fields")
+    for registry_model in instance.rdrf_registry.all():
+        logger.debug("checking %s" % registry_model)
+        if registry_model.has_feature("family_linkage"):
+            logger.debug("%s has family linkage" % registry_model)
+            from rdrf.family_linkage import FamilyLinkageManager
+            flm = FamilyLinkageManager(registry_model, None)
+            if instance.is_index:
+                logger.debug("%s is an index" % instance)
+                flm.set_as_index_patient(instance)
+            else:
+                logger.debug("%s is a relative" % instance)
+                flm.set_as_relative(instance)
+                
+
+
 def _get_registry_for_mongo(regs):
     registry_obj = Registry.objects.filter(pk__in=regs)
     json_str = serializers.serialize("json", registry_obj)
@@ -1260,15 +1282,6 @@ def _get_registry_for_mongo(regs):
 
     return json_final
 
-
-@receiver(post_save, sender=Patient)
-def save_patient_hooks(sender, instance, created, **kwargs):
-    if created:
-        run_hooks('patient_created', instance)
-    else:
-        run_hooks('existing_patient_saved', instance)
-
-
 @receiver(m2m_changed, sender=Patient.rdrf_registry.through)
 def registry_changed_on_patient(sender, **kwargs):
     if kwargs["action"] == "post_add":
@@ -1276,8 +1289,6 @@ def registry_changed_on_patient(sender, **kwargs):
         instance = kwargs['instance']
         registry_ids = kwargs['pk_set']
         create_rdrf_default_contexts(instance, registry_ids)
-        run_hooks('registry_added', instance, registry_ids)
-
 
 class ConsentValue(models.Model):
     patient = models.ForeignKey(Patient, related_name="consents")
