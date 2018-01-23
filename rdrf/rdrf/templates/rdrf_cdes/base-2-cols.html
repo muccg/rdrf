@@ -63,10 +63,11 @@
         <div class="row">
           <div class="col-md-10 col-md-offset-1">
             <div class="navbar-header">
-                {% if project_logo %}
+                {% project_logo as PL %}
+                {% if PL %}
                     {% static "" as baseUrl %}
                     <div class="project_logo" style="">
-                      <img src="{{ baseUrl }}/{% project_logo %}" class="project_logo"></img>
+                      <img src="{{ baseUrl }}/{{ PL }}" class="project_logo"></img>
                     </div>
                     <a class="navbar-brand project_title_with_logo" href="{% project_title_link %}">
                         {% project_title %}
