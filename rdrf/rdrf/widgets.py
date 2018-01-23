@@ -556,3 +556,34 @@ class ConsentFileInput(ClearableFileInput):
             'initial': conditional_escape(patient_consent.filename),
             'initial_url': conditional_escape(value.url),
         }
+
+
+
+
+class SliderWidget(widgets.TextInput):
+     def render(self, name, value, attrs=None):
+         if not value or not isinstance(value, int):
+             value = 0
+
+         context = """
+             <script>
+                 $(function() {
+                     $( "#%s" ).slider({
+                         value: '%s',
+                         min: 0,
+                         max: 100,
+                         slide: function( event, ui ) {
+                             $( "#%s" ).val( ui.value );
+                         }
+                     });
+                 });
+             </script>
+             <input type="hidden" id="%s" name="%s" value="%s"/>
+             <p>
+                 <div class='col-md-2' style="color: green; font-size: x-small"><strong><i>No pain</i></strong></div>
+                 <div class='col-md-7' id='%s'></div>
+                 <div class='col-md-3' style="color: red; font-size: x-small"><strong><i>Worst possible pain</i></strong></div>
+             </p>
+         """ % (name, value, attrs['id'], attrs['id'], name, value, name)
+         
+         return context
