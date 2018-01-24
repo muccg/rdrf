@@ -36,7 +36,6 @@ from django.core.exceptions import PermissionDenied
 
 
 import logging
-
 logger = logging.getLogger(__name__)
 
 
@@ -726,6 +725,9 @@ class PatientEditView(View):
 
         section_blacklist = self._check_for_blacklisted_sections(registry_model)
         context["section_blacklist"] = section_blacklist
+
+        if request.user.is_parent:
+            context['parent'] = ParentGuardian.objects.get(user=request.user)
 
         return render(request, 'rdrf_cdes/patient_edit.html', context)
 
