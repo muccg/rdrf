@@ -1018,25 +1018,27 @@ class ClinicianOther(models.Model):
     user = models.ForeignKey(CustomUser, blank=True, null=True)
 
     def synchronise_working_group(self):
-        if self.user:
-            if not self.use_other:
-                if self.patient:
-                    self.patient.working_groups = [ wg for wg in self.user.working_groups.all()]
-                    self.patient.save()
-                    # if there user/parent of this patient then need to update their working
-                    # groups also
-                    try:
-                        parent = ParentGuardian.objects.get(patient=self.patient)
-                        if parent.user:
-                            for wg in self.patient.working_groups.all():
-                                parent.user.working_groups.add(wg)
-                                parent.user.save()
-                    except ParentGuardian.DoesNotExist:
-                        pass
-                else:
-                    logger.debug("can't synch - patient not set")
+        if not self.user:
+            return
+        
+        if not self.use_other:
+            if self.patient:
+                self.patient.working_groups = [ wg for wg in self.user.working_groups.all()]
+                self.patient.save()
+                # if there user/parent of this patient then need to update their working
+                # groups also
+                try:
+                    parent = ParentGuardian.objects.get(patient=self.patient)
+                    if parent.user:
+                        for wg in self.patient.working_groups.all():
+                            parent.user.working_groups.add(wg)
+                            parent.user.save()
+                except ParentGuardian.DoesNotExist:
+                    pass
             else:
-                logger.debug("can't synch - user_other is True", None)
+                logger.debug("can't synch - patient not set")
+        else:
+            logger.debug("can't synch - user_other is True", None)
 
 
 @receiver(post_save, sender=ClinicianOther)
