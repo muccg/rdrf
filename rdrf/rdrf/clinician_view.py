@@ -186,6 +186,7 @@ class ClinicianFormView(View):
         else:
             self.parent = None
         self.patient_model = get_object_or_404(Patient, pk=patient_id)
+
         if not security_check_user_patient(self.user, self.patient_model):
             raise PermissionDenied
         self.registry_model = get_object_or_404(Registry, code=registry_code)
@@ -232,9 +233,6 @@ class ClinicianFormView(View):
 
         if self.clinician_form.is_valid():
             other_clinician_model = self.clinician_form.save()
-            logger.debug(
-                "saved other clinician with pk %s" %
-                other_clinician_model.pk)
             if other_clinician_model.user:
                 other_clinician_model.patient.clinician = other_clinician_model.user
                 other_clinician_model.patient.save()
