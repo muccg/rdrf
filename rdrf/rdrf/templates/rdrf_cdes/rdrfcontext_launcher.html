@@ -44,6 +44,20 @@
   </div>
 </div>
 
+
+{% if clinician_form_link %}
+<div width="100%" class="panel panel-default collapsible">
+  <div class="panel-body">
+    {% if current_form_name == "Clinician" %}
+     <i>{% trans 'Clinician' %}</i>
+  {% else %}
+     <a href="{{clinician_form_link}}">{% trans 'Clinician' %}</a>
+  {% endif %}
+  </div>
+</div>
+{% endif %}
+
+
 {% if family_linkage_link %}
 <div width="100%" class="panel panel-default collapsible">
   <div class="panel-body">

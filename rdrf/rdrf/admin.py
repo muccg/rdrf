@@ -19,6 +19,7 @@ from .models import EmailNotificationHistory
 from .models import ContextFormGroup
 from .models import ContextFormGroupItem
 from .models import CDEFile
+from .models import ConsentRule
 
 import logging
 from django.http import HttpResponse
@@ -350,6 +351,11 @@ class EmailNotificationHistoryAdmin(admin.ModelAdmin):
         return "<a class='btn btn-info btn-xs' href='%s'>Resend</a>" % email_url
     resend.allow_tags = True
 
+class ConsentRuleAdmin(admin.ModelAdmin):
+    model = ConsentRule
+    list_display = ("registry", "user_group", "capability", "consent_question","enabled")
+    
+
 
 if settings.DESIGN_MODE:
     class ContextFormGroupItemAdmin(admin.StackedInline):
@@ -416,3 +422,4 @@ admin.site.register(EmailTemplate, EmailTemplateAdmin)
 admin.site.register(EmailNotificationHistory, EmailNotificationHistoryAdmin)
 admin.site.register(Notification, NotificationAdmin)
 admin.site.register(DemographicFields, DemographicFieldsAdmin)
+admin.site.register(ConsentRule, ConsentRuleAdmin)

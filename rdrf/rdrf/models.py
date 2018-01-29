@@ -1306,6 +1306,18 @@ class ConsentQuestion(models.Model):
     def __str__(self):
         return "%s" % self.question_label
 
+class ConsentRule(models.Model):
+    # restrictions on what a user can do with a patient
+    # based on patient consent
+    # e.g. restrict clinical users from seeing patients' data
+    # if the patient has not given explicit consent
+    CAPABILITIES = (('see_patient', 'See Patient'),)
+    registry = models.ForeignKey(Registry)
+    user_group = models.ForeignKey(Group)
+    capability = models.CharField(max_length=50, choices=CAPABILITIES)
+    consent_question = models.ForeignKey(ConsentQuestion)
+    enabled = models.BooleanField(default=True)
+    
 
 class DemographicFields(models.Model):
     FIELD_CHOICES = []
@@ -1628,6 +1640,37 @@ class ClinicalDataQuerySet(models.QuerySet):
 
     def data(self):
         return self.values_list("data", flat=True)
+
+
+
+class Annotation(models.Model):
+    ANNOTATION_TYPES = (("verified", "verfied"),
+                        ("unknown", "unknown"))
+    
+    annotation_type = models.CharField(max_length=80, db_index=True, choices=ANNOTATION_TYPES)
+    patient_id = models.IntegerField(db_index=True)
+    context_id = models.IntegerField(db_index=True, blank=True, null=True)
+    registry_code = models.CharField(max_length=10)
+    form_name = models.CharField(max_length=80)
+    section_code = models.CharField(max_length=100)
+    item = models.IntegerField(null=True)
+    cde_code = models.CharField(max_length=30)
+    cde_value = models.TextField()
+    username = models.CharField(max_length=254)
+    timestamp = models.DateTimeField(auto_now_add=True)
+    comment = models.TextField()
+
+    @staticmethod
+    def score(klass, registry_model, patient_model):
+        query = Annotation.objects.filter(patient_id=patient_model.id,
+                                          registry_code=registry_model.code)
+        num = query.count()
+        num_verified = query.filter(annotation_type="verified").count()
+        try:
+            return 100.00 * ( float(num_verified) / float(num))
+        except ZeroDivisionError:
+            return None
+    
 
 
 class ClinicalData(models.Model):

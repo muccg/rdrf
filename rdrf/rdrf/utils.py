@@ -692,4 +692,24 @@ def patients_family_in_users_groups(patient, user):
         return user_wgs.intersection(family_wgs)
 
 
+def consent_check(registry_model, user_model, patient_model, capability):
+    # if there are any consent rules for user's group , perform the check
+    # if any fail , fail, otherwise pass (return True)
+    from rdrf.models import ConsentRule
+    if user_model.is_superuser:
+        return True
+    for user_group in user_model.groups.all():
+        for consent_rule in ConsentRule.objects.filter(registry=registry_model,
+                                                       capability=capability,
+                                                       user_group=user_group,
+                                                       enabled=True):
+
+            consent_answer = patient_model.get_consent(consent_rule.consent_question)
+            if not consent_answer:
+                return False
+
+    return True
+
+
+
 

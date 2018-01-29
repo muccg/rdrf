@@ -526,6 +526,16 @@ class PatientEditView(View):
         security_check_user_patient(request.user, patient)
 
 
+        if registry_model.has_feature("consent_checks"):
+            from rdrf.utils import consent_check
+            if not consent_check(registry_model,
+                                 request.user,
+                                 patient,
+                                 "see_patient"):
+                raise PermissionDenied
+            
+                                 
+
         context_launcher = RDRFContextLauncherComponent(request.user, registry_model, patient)
         patient_info = RDRFPatientInfoComponent(registry_model, patient)
 

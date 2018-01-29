@@ -190,6 +190,7 @@ class Exporter(object):
         data["cde_policies"] = self._get_cde_policies()
         data["context_form_groups"] = self._get_context_form_groups()
         data["email_notifications"] = self._get_email_notifications()
+        data["consent_rules"] = self._get_consent_rules()
 
         if self.registry.patient_data_section:
             data["patient_data_section"] = self._create_section_map(
@@ -477,6 +478,19 @@ class Exporter(object):
 
             en_dict["disabled"] = email_notification.disabled
             data.append(en_dict)
+        return data
+
+    def _get_consent_rules(self):
+        from rdrf.models import ConsentRule
+        data = []
+        for consent_rule in ConsentRule.objects.filter(registry=self.registry):
+            consent_rule_dict = {}
+            consent_rule_dict["user_group"] = consent_rule.user_group.name
+            consent_rule_dict["capability"] = consent_rule.capability
+            consent_rule_dict["consent_section_code"] = consent_rule.consent_question.section.code
+            consent_rule_dict["consent_question_code"] = consent_rule.consent_question.code
+            consent_rule_dict["enabled"] = consent_rule.enabled
+            data.append(consent_rule_dict)
         return data
 
 

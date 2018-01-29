@@ -13,6 +13,7 @@ class NavigationFormType:
     DEMOGRAPHICS = 1
     CONSENTS = 2
     CLINICAL = 3
+    CLINICIAN = 4  # other clinician
 
 class NavigationWizard(object):
 
@@ -26,6 +27,7 @@ class NavigationWizard(object):
         self.current_form_model = current_form_model
         self.links = []
         self.current_index = None  # set by method below
+        self.has_clinician_form = self.registry_model.has_feature("clinician_form")
 
         self._construct_links()
 
@@ -37,6 +39,10 @@ class NavigationWizard(object):
         self.links.append(demographics_link)
         consents_link = self._construct_consents_link()
         self.links.append(consents_link)
+
+        if self.has_clinician_form:
+            clinician_form_link = self._construct_clinican_form_link()
+            self.links.append(clinician_form_link)
 
         # there is one context per fixed group (always)
         for fixed_form_group in self._fixed_form_groups():
@@ -83,6 +89,9 @@ class NavigationWizard(object):
     def _construct_consents_link(self):
         return ("consents", None, reverse("consent_form_view", args=[self.registry_model.code, self.patient_model.pk]))
 
+    def _construct_clinican_form_link(self):
+        return ("clinician", None, reverse("clinician_form_view", args=[self.registry_model.code, self.patient_model.pk]))
+
     def _construct_fixed_form_link(self, fixed_form_group, form_model):
         context_models = list(RDRFContext.objects.filter(context_form_group=fixed_form_group,
                                                          object_id=self.patient_model.pk,
@@ -107,10 +116,17 @@ class NavigationWizard(object):
             return 0  # because demographics is always added first
         elif self.form_type == NavigationFormType.CONSENTS:
             return 1
+        elif self.form_type == NavigationFormType.CLINICIAN:
+            return 2
         else:
             # we're on some form
+            if self.has_clinician_form:
+                special_names = ['demographic', 'consents','clinician']
+            else:
+                special_names = ['demographic', 'consents']
+                
             for index, (name, form_id, link) in enumerate(self.links):
-                if name in ['demographic', 'consents']:
+                if name in special_names:
                     continue
                 # form link so get the models
                 form_model = RegistryForm.objects.get(pk=form_id)

@@ -236,6 +236,7 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
         return links
 
 
+
 @receiver(user_registered)
 def user_registered_callback(sender, user, request, **kwargs):
 

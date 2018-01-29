@@ -65,6 +65,7 @@ class Links:
 
     Doctors = QuickLink(reverse("admin:patients_doctor_changelist"), _("Doctors"))
     DemographicsFields = QuickLink(reverse("admin:rdrf_demographicfields_changelist"), _("Registry Demographics Fields"))
+    ConsentRules = QuickLink(reverse("admin:rdrf_consentrule_changelist"), _("Consent Rules"))
 
 
     if settings.DESIGN_MODE:
@@ -111,6 +112,7 @@ class Links:
                 DemographicsFields.text: DemographicsFields,
                 NextOfKinRelationship.text: NextOfKinRelationship,
                 ArchivedPatients.text: ArchivedPatients,
+                ConsentRules.text: ConsentRules,
                 }
     else:
         OTHER = {
@@ -120,6 +122,7 @@ class Links:
                 Importer.text: Importer,
                 NextOfKinRelationship.text: NextOfKinRelationship,
                 ArchivedPatients.text: ArchivedPatients,
+                ConsentRules.text: ConsentRules,
                 }
         
     EXPLORER = {

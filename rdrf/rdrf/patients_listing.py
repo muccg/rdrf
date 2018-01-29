@@ -17,6 +17,7 @@ from rdrf.components import FormGroupButton
 from registry.patients.models import Patient
 from .utils import Message
 from rdrf.utils import MinType
+from rdrf.utils import consent_check
 from django.utils.translation import ugettext as _
 
 import logging
@@ -264,7 +265,14 @@ class PatientsListingView(View):
         return rows
 
     def append_rows(self, page_object, row_list_to_update):
-        row_list_to_update.extend([self._get_row_dict(obj) for obj in page_object.object_list])
+        if self.registry_model.has_feature("consent_checks"):
+            row_list_to_update.extend([self._get_row_dict(obj) for obj in page_object.object_list
+                                       if consent_check(self.registry_model,
+                                                        self.user,
+                                                        obj,
+                                                        "see_patient")])
+        else:
+            row_list_to_update.extend([self._get_row_dict(obj) for obj in page_object.object_list])
 
     def _get_row_dict(self, instance):
         # we need to do this so that the progress data for this instance

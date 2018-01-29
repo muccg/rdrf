@@ -563,7 +563,38 @@ class Importer(object):
             self._create_email_notifications(r)
             logger.info("imported email notifications OK")
 
+        if "consent_rules" in self.data:
+            self._create_consent_rules(r)
+            logger.info("imported consent rules OK")
+
         logger.info("end of import registry objects!")
+
+    def _create_consent_rules(self, registry_model):
+        from rdrf.models import ConsentRule
+        ConsentRule.objects.filter(registry=registry_model).delete()
+        logger.info("Deleted existing consent rules ...")
+        for consent_rule_dict in self.data["consent_rules"]:
+            cr = ConsentRule()
+            cr.registry = registry_model
+            cr.enabled = consent_rule_dict["enabled"]
+            cr.capability = consent_rule_dict["capability"]
+            logger.info("cap = %s" % cr.capability)
+            cr.user_group = Group.objects.get(name=consent_rule_dict["user_group"])
+            consent_section_code = consent_rule_dict["consent_section_code"]
+            logger.info("consent section code = %s" % consent_section_code)
+
+            consent_question_code = consent_rule_dict["consent_question_code"]
+            logger.info("consent question code = %s" % consent_question_code)
+            consent_section_model = ConsentSection.objects.get(registry=registry_model,
+                                                               code=consent_section_code)
+            consent_question_model = ConsentQuestion.objects.get(section=consent_section_model,
+                                                                 code=consent_question_code)
+            
+            cr.consent_question = consent_question_model
+            cr.save()
+            logger.info("Imported Consent Rule for %s %s" % (cr.capability,
+                                                             cr.user_group))
+            
 
     def _create_email_notifications(self, registry):
         from rdrf.models import EmailNotification
