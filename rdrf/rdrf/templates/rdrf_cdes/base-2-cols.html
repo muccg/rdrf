@@ -5,6 +5,7 @@
 {% load get_elements %}
 {% load i18n %}
 {% load project_logo %}
+{% load project_logo_padding %}
 {% load project_title %}
 {% load project_title_link %}
 {% load translate %}
@@ -69,13 +70,21 @@
                     <div class="project_logo" style="">
                       <img src="{{ baseUrl }}/{{ PL }}" class="project_logo"></img>
                     </div>
-                    <a class="navbar-brand project_title_with_logo" href="{% project_title_link %}">
+                    
+                    {% project_logo_padding as PLP %}
+                    {% if PLP %}
+                        <a class="navbar-brand project_title_with_logo" href="{% project_title_link %}" style="padding-left: {{ PLP }}">
+                            {% project_title %}
+                        </a>
+                    {% else %}
+                        <a class="navbar-brand project_title_with_logo" href="{% project_title_link %}" >
+                            {% project_title %}
+                        </a>
+                    {% endif %}
+                {% else %}
+                    <a class="navbar-brand" href="{% project_title_link %}">
                         {% project_title %}
                     </a>
-                {% else %}
-                <a class="navbar-brand" href="{% project_title_link %}">
-                    {% project_title %}
-                </a>
                 {% endif %}
             </div>
 
