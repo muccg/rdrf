@@ -5,6 +5,7 @@
 {% load get_elements %}
 {% load i18n %}
 {% load project_logo %}
+{% load project_stylesheet %}
 {% load project_title %}
 {% load project_title_link %}
 {% load translate %}
@@ -19,6 +20,14 @@
       <link rel="stylesheet" href="{% static 'bootstrap-3.1.1/css/bootstrap.min.css' %}">
       <link rel="stylesheet" type="text/css" href="{% static 'css/rdrf.css' %}" media="all">
       <link rel="stylesheet" type="text/css" href="{% static 'css/simple-sidebar.css' %}" media="all">
+
+
+      {% project_stylesheet as PSS %}
+      {% if PSS %}
+            {% static "" as baseUrl %}
+            <link rel="stylesheet" type="text/css" href="{{ baseUrl }}/{{ PSS }}" media="all">
+      {% endif %}
+
 
 
       <script type="text/javascript" src="{% static 'js/vendor/jquery-1.11.3.min.js' %}" ></script>
@@ -69,13 +78,14 @@
                     <div class="project_logo" style="">
                       <img src="{{ baseUrl }}/{{ PL }}" class="project_logo"></img>
                     </div>
+
                     <a class="navbar-brand project_title_with_logo" href="{% project_title_link %}">
                         {% project_title %}
                     </a>
                 {% else %}
-                <a class="navbar-brand" href="{% project_title_link %}">
-                    {% project_title %}
-                </a>
+                    <a class="navbar-brand" href="{% project_title_link %}">
+                        {% project_title %}
+                    </a>
                 {% endif %}
             </div>
 
