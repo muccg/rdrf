@@ -1035,11 +1035,6 @@ class ClinicianOther(models.Model):
                             parent.user.save()
                 except ParentGuardian.DoesNotExist:
                     pass
-            else:
-                logger.debug("can't synch - patient not set")
-        else:
-            logger.debug("can't synch - user_other is True", None)
-
 
 @receiver(post_save, sender=ClinicianOther)
 def other_clinician_post_save(sender, instance, created, raw, using, update_fields, **kwargs):
