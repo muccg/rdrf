@@ -12,6 +12,7 @@ from django.forms import ChoiceField
 from django.core.exceptions import ValidationError
 from django.contrib.auth.models import Group
 from django.contrib import messages
+from django.db import transaction
 
 from registry.patients.models import Patient
 from registry.patients.models import ParentGuardian
@@ -227,6 +228,7 @@ class ClinicianFormView(View):
 
         self.wizard = self._get_navigation_wizard()
 
+    @transaction.atomic()
     @method_decorator(login_required)
     def post(self, request, registry_code, patient_id):
         self._get_objects(request, registry_code, patient_id)
