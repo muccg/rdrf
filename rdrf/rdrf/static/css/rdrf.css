@@ -143,13 +143,10 @@ form .aligned ul.errorlist {
 
 .project_title_with_logo {
     padding-left: 100px;
-    /*width: 550px;*/
 }
 
 .project_logo {
-    /*float: left;*/
     padding-right: 50px;
-    /*z-index: 999;*/
     height: 70px;
     position: absolute;
 }

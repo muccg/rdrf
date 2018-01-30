@@ -4,6 +4,8 @@
 {% load get_forms %}
 {% load get_elements %}
 {% load i18n %}
+{% load project_logo %}
+{% load project_stylesheet %}
 {% load project_title %}
 {% load project_title_link %}
 {% load translate %}
@@ -17,6 +19,12 @@
       <link rel="stylesheet" href="{% static 'bootstrap-3.1.1/css/bootstrap.min.css' %}">
       <link rel="stylesheet" type="text/css" href="{% static 'css/rdrf.css' %}" media="all">
       <link rel="stylesheet" type="text/css" href="{% static 'css/simple-sidebar.css' %}" media="all">
+
+      {% project_stylesheet as PSS %}
+      {% if PSS %}
+            {% static "" as baseUrl %}
+            <link rel="stylesheet" type="text/css" href="{{ baseUrl }}/{{ PSS }}" media="all">
+      {% endif %}
 
       <script type="text/javascript" src="{% static 'js/vendor/jquery-1.11.3.min.js' %}" ></script>
       <script type="text/javascript" src="{% static 'js/vendor/jquery-ui-1.11.4.min.js' %}"></script>
@@ -53,8 +61,21 @@
         <div class="row">
           <div class="col-md-12">
             <div class="navbar-header">
-              <a class="navbar-brand" href="{% project_title_link %}">{% trans "Rare Disease Registry Framework" %}</a>
-            </div>
+                <div class="col_project_header">
+                    {% project_logo as PL %}
+                    {% if PL %}
+                        {% static "" as baseUrl %}
+                            <img src="{{ baseUrl }}/{{ PL }}" class="project_logo"></img>
+                            <a class="navbar-brand project_title_with_logo" href="{% project_title_link %}">
+                                {% project_title %}
+                            </a>
+                    {% else %}
+                            <a class="navbar-brand" href="{% project_title_link %}">
+                                {% project_title %}
+                            </a>
+                    {% endif %}
+                </div>
+          </div>
 
             <!-- Collect the nav links, forms, and other content for toggling -->
             <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
@@ -62,7 +83,6 @@
                 {% if request.user.is_authenticated %}
                     {% block parent_menu %}
                     {% endblock %}
-
 
                     {% if registry_code %}
                         {% if request.user.is_parent  %}
