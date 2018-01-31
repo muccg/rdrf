@@ -81,7 +81,6 @@ for package in ['rdrf', 'registry.common', 'registry.genetic',
             'fixtures',
             'features',
             'schemas',
-            'hooks',
             'templatetags',
             'management'):
         package_data[package].extend([add_file_for_package(package, subdir, f) for (
