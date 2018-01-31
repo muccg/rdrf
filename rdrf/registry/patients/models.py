@@ -38,7 +38,6 @@ class State(models.Model):
         return self.name
 
 
-        
 class Family(object):
     def __init__(self, patient):
         if patient.is_index:
@@ -53,24 +52,36 @@ class Family(object):
         # all the working groups this family spans
         # we need this for checking security
         wgs = [wg for wg in self.index.working_groups.all()]
-        wgs = wgs + [wg for pr in self.relatives for wg in pr.relative_patient.working_groups.all() if pr.relative_patient]
+        wgs = wgs + [wg for pr in self.relatives for wg in pr.relative_patient.working_groups.all()
+                     if pr.relative_patient]
         return wgs
+
 
 class Doctor(models.Model):
     SEX_CHOICES = (("1", "Male"), ("2", "Female"), ("3", "Indeterminate"))
 
     # TODO: Is it possible for one doctor to work with multiple working groups?
     title = models.CharField(max_length=4, blank=True, null=True)
-    family_name = models.CharField(max_length=100, db_index=True, verbose_name=_("Family/Last name"))
-    given_names = models.CharField(max_length=100, db_index=True, verbose_name=_("Given/First names"))
+    family_name = models.CharField(
+        max_length=100,
+        db_index=True,
+        verbose_name=_("Family/Last name"))
+    given_names = models.CharField(
+        max_length=100,
+        db_index=True,
+        verbose_name=_("Given/First names"))
     sex = models.CharField(max_length=1, choices=SEX_CHOICES, blank=True, null=True)
     surgery_name = models.CharField(max_length=100, blank=True)
     speciality = models.CharField(max_length=100)
     address = models.TextField()
     suburb = models.CharField(max_length=50, verbose_name=_("Suburb/Town/City"))
     postcode = models.CharField(max_length=20, blank=True, null=True)
-    state = models.ForeignKey(State, verbose_name=_("State/Province/Territory"), blank=True, null=True,
-                              on_delete=models.SET_NULL)
+    state = models.ForeignKey(
+        State,
+        verbose_name=_("State/Province/Territory"),
+        blank=True,
+        null=True,
+        on_delete=models.SET_NULL)
     phone = models.CharField(max_length=30, blank=True, null=True)
     email = models.EmailField(blank=True, null=True)
 
@@ -102,7 +113,9 @@ class PatientManager(models.Manager):
         return self.model.objects.filter(working_groups__in=get_working_groups(user))
 
     def get_by_registry_and_working_group(self, registry, user):
-        return self.model.objects.filter(rdrf_registry=registry, working_groups__in=get_working_groups(user))
+        return self.model.objects.filter(
+            rdrf_registry=registry,
+            working_groups__in=get_working_groups(user))
 
     def get_filtered(self, user):
         return self.model.objects.filter(
@@ -114,12 +127,10 @@ class PatientManager(models.Manager):
             working_groups__in=get_working_groups(user)).exclude(
             rdrf_registry__isnull=False)
 
-
     # what's returned when an ordinary query like Patient.objects.all() is used
     def get_queryset(self):
         # do NOT include inactive ( soft-deleted/archived) patients
         return super(PatientManager, self).get_queryset().filter(active=True)
-
 
     def really_all(self):
         # shows archived ( soft-deleted/archived ) patients also
@@ -127,8 +138,6 @@ class PatientManager(models.Manager):
 
     def inactive(self):
         return self.really_all().filter(active=False)
-
-
 
 
 class Patient(models.Model):
@@ -164,9 +173,14 @@ class Patient(models.Model):
     LIVING_STATES = (('Alive', _('Living')), ('Deceased', _('Deceased')))
 
     objects = PatientManager()
-    rdrf_registry = models.ManyToManyField(Registry, related_name='patients', verbose_name=_("Rdrf Registry"))
+    rdrf_registry = models.ManyToManyField(
+        Registry,
+        related_name='patients',
+        verbose_name=_("Rdrf Registry"))
     working_groups = models.ManyToManyField(
-        registry.groups.models.WorkingGroup, related_name="my_patients", verbose_name=_("Centre"))
+        registry.groups.models.WorkingGroup,
+        related_name="my_patients",
+        verbose_name=_("Centre"))
     consent = models.BooleanField(
         null=False,
         blank=False,
@@ -193,20 +207,41 @@ class Patient(models.Model):
     maiden_name = models.CharField(
         max_length=100, null=True, blank=True, verbose_name=_("Maiden name (if applicable)"))
     umrn = models.CharField(
-        max_length=50, null=True, blank=True, db_index=True, verbose_name=_("Hospital/Clinic ID"))
+        max_length=50,
+        null=True,
+        blank=True,
+        db_index=True,
+        verbose_name=_("Hospital/Clinic ID"))
     date_of_birth = models.DateField(verbose_name=_("Date of birth"))
     place_of_birth = models.CharField(
         max_length=100, null=True, blank=True, verbose_name=_("Place of birth"))
 
-    date_of_migration = models.DateField(blank=True, null=True, verbose_name=_("Date of migration"))
+    date_of_migration = models.DateField(
+        blank=True, null=True, verbose_name=_("Date of migration"))
     country_of_birth = models.CharField(
         max_length=100, null=True, blank=True, verbose_name=_("Country of birth"))
     ethnic_origin = models.CharField(
-        choices=ETHNIC_ORIGIN, max_length=100, blank=True, null=True, verbose_name=_('Ethnic origin'))
+        choices=ETHNIC_ORIGIN,
+        max_length=100,
+        blank=True,
+        null=True,
+        verbose_name=_('Ethnic origin'))
     sex = models.CharField(max_length=1, choices=SEX_CHOICES, verbose_name=_("Sex"))
-    home_phone = models.CharField(max_length=30, blank=True, null=True, verbose_name=_("Home phone"))
-    mobile_phone = models.CharField(max_length=30, blank=True, null=True, verbose_name=_("Mobile phone"))
-    work_phone = models.CharField(max_length=30, blank=True, null=True, verbose_name=_("Work phone"))
+    home_phone = models.CharField(
+        max_length=30,
+        blank=True,
+        null=True,
+        verbose_name=_("Home phone"))
+    mobile_phone = models.CharField(
+        max_length=30,
+        blank=True,
+        null=True,
+        verbose_name=_("Mobile phone"))
+    work_phone = models.CharField(
+        max_length=30,
+        blank=True,
+        null=True,
+        verbose_name=_("Work phone"))
     email = models.EmailField(blank=True, null=True, verbose_name=_("Email"))
     next_of_kin_family_name = models.CharField(
         max_length=100, blank=True, null=True, verbose_name=_("Family name"))
@@ -223,7 +258,8 @@ class Patient(models.Model):
         max_length=50, blank=True, null=True, verbose_name=_("Suburb/Town"))
     next_of_kin_state = models.CharField(
         max_length=20, verbose_name=_("State/Province/Territory"), blank=True, null=True)
-    next_of_kin_postcode = models.IntegerField(verbose_name=_("Postcode"), blank=True, null=True)
+    next_of_kin_postcode = models.IntegerField(
+        verbose_name=_("Postcode"), blank=True, null=True)
     next_of_kin_home_phone = models.CharField(
         max_length=30, blank=True, null=True, verbose_name=_("Home phone"))
     next_of_kin_mobile_phone = models.CharField(
@@ -236,15 +272,18 @@ class Patient(models.Model):
     next_of_kin_country = models.CharField(
         max_length=100, blank=True, null=True, verbose_name=_("Country"))
     doctors = models.ManyToManyField(Doctor, through="PatientDoctor")
-    active = models.BooleanField(
-        default=True,
-        help_text=_("Ticked if active in the registry, ie not a deleted record, or deceased patient."))
+    active = models.BooleanField(default=True, help_text=_(
+        "Ticked if active in the registry, ie not a deleted record, or deceased patient."))
     inactive_reason = models.TextField(
         blank=True,
         null=True,
         verbose_name=_("Reason"),
         help_text=_("Please provide reason for deactivating the patient"))
-    clinician = models.ForeignKey(CustomUser, blank=True, null=True, verbose_name=_("Clinician"))
+    clinician = models.ForeignKey(
+        CustomUser,
+        blank=True,
+        null=True,
+        verbose_name=_("Clinician"))
     user = models.ForeignKey(
         CustomUser,
         blank=True,
@@ -252,7 +291,11 @@ class Patient(models.Model):
         related_name="user_object",
         on_delete=models.SET_NULL)
 
-    living_status = models.CharField(choices=LIVING_STATES, max_length=80, default='Alive', verbose_name=_("Living status"))
+    living_status = models.CharField(
+        choices=LIVING_STATES,
+        max_length=80,
+        default='Alive',
+        verbose_name=_("Living status"))
 
     # The following is intended as a hidden field which is set only
     # via registration process for those registries which support registration
@@ -261,7 +304,6 @@ class Patient(models.Model):
                                     blank=True,
                                     null=True,
                                     verbose_name=_("Patient Type"))
-
 
     class Meta:
         ordering = ["family_name", "given_names", "date_of_birth"]
@@ -322,7 +364,7 @@ class Patient(models.Model):
         try:
             age_in_years = calculate_age(self.date_of_birth)
             return age_in_years
-        except:
+        except BaseException:
             return None
 
     def has_feature(self, feature):
@@ -425,7 +467,7 @@ class Patient(models.Model):
             data = wrapper.load_dynamic_data(registry_code, "cdes")
         else:
             data = clinical_data
-            
+
         key = mongo_key(form_name, section_code, data_element_code)
 
         if data is None:
@@ -474,7 +516,8 @@ class Patient(models.Model):
                 continue
 
             try:
-                self, mongo_data = expression_object.set_value(self, mongo_data, new_value, context_id=context_model.pk)
+                self, mongo_data = expression_object.set_value(
+                    self, mongo_data, new_value, context_id=context_model.pk)
                 succeeded += 1
             except NotImplementedError:
                 errors += 1
@@ -524,7 +567,7 @@ class Patient(models.Model):
             # ensure we have sane data frame
             mongo_data = {"django_id": self.pk,
                           "django_model": "Patient",
-                          "timestamp":  datetime.datetime.now(),
+                          "timestamp": datetime.datetime.now(),
                           "context_id": context_model.pk,
                           "forms": []}
 
@@ -541,7 +584,14 @@ class Patient(models.Model):
             patient_model.save()
             return wrapper.update_dynamic_data(registry_model, mongo_data)
 
-    def set_form_value(self, registry_code, form_name, section_code, data_element_code, value, context_model=None):
+    def set_form_value(
+            self,
+            registry_code,
+            form_name,
+            section_code,
+            data_element_code,
+            value,
+            context_model=None):
         from rdrf.dynamic_data import DynamicDataWrapper
         from rdrf.utils import mongo_key
         from rdrf.form_progress import FormProgress
@@ -668,7 +718,8 @@ class Patient(models.Model):
             elif field == "last_update":
                 return cv.last_update
             else:
-                raise ValueError("only consent_value answer, first_save, last_update fields allowed")
+                raise ValueError(
+                    "only consent_value answer, first_save, last_update fields allowed")
 
         except ConsentValue.DoesNotExist:
             if field == "answer":
@@ -744,7 +795,6 @@ class Patient(models.Model):
             self.active = False
             self.save()
             self.sync_patient_relative()
-
 
     def _hard_delete(self, *args, **kwargs):
         # real delete!
@@ -875,8 +925,9 @@ class Patient(models.Model):
         contexts = []
         content_type = ContentType.objects.get_for_model(self)
 
-        for context_model in RDRFContext.objects.filter(content_type=content_type,
-                                                        object_id=self.pk).order_by("created_at"):
+        for context_model in RDRFContext.objects.filter(
+                content_type=content_type,
+                object_id=self.pk).order_by("created_at"):
             contexts.append(context_model)
         return contexts
 
@@ -889,10 +940,11 @@ class Patient(models.Model):
         # if values are missing in the record we want to sort on
         # we get KeyErrors
         # can't use None to sort so we have to use this tricky thing
-        bottom  = MinType()
+        bottom = MinType()
+
         def keyfunc(context_model):
             name_path = multiple_form_group.naming_cde_to_use
-            form_name,section_code,cde_code = name_path.split("/")
+            form_name, section_code, cde_code = name_path.split("/")
             section_model = Section.objects.get(code=section_code)
             is_multisection = section_model.allow_multiple
 
@@ -904,7 +956,6 @@ class Patient(models.Model):
                                             multisection=is_multisection,
                                             context_id=context_model.id)
 
-
                 if value is None:
                     return bottom
                 else:
@@ -915,13 +966,12 @@ class Patient(models.Model):
         if multiple_form_group.ordering == "N":
             key_func = keyfunc
         else:
-            key_func = lambda c : c.created_at
+            def key_func(c): return c.created_at
 
         contexts = [c for c in self.context_models
                     if c.context_form_group is not None and c.context_form_group.pk == multiple_form_group.pk]
 
         return sorted(contexts, key=key_func, reverse=True)
-
 
     def get_forms_by_group(self, context_form_group):
         """
@@ -932,13 +982,16 @@ class Patient(models.Model):
         assert context_form_group.supports_direct_linking, "Context Form group must only contain one form"
         form_model = context_form_group.form_models[0]
 
-        matches_context_form_group = lambda cm: cm.context_form_group and cm.context_form_group.pk == context_form_group.pk
+        def matches_context_form_group(
+            cm): return cm.context_form_group and cm.context_form_group.pk == context_form_group.pk
 
-        context_models = sorted([cm for cm in self.context_models if matches_context_form_group(cm)],
-                                key=lambda cm: cm.context_form_group.get_ordering_value(self, cm), reverse=True)
+        context_models = sorted([cm for cm in self.context_models if matches_context_form_group(
+            cm)], key=lambda cm: cm.context_form_group.get_ordering_value(self, cm), reverse=True)
 
-        link_text = lambda cm: cm.context_form_group.get_name_from_cde(self, cm)
-        link_url = lambda cm: reverse('registry_form', args=(cm.registry.code, form_model.id, self.pk, cm.id))
+        def link_text(cm): return cm.context_form_group.get_name_from_cde(self, cm)
+
+        def link_url(cm): return reverse('registry_form', args=(
+            cm.registry.code, form_model.id, self.pk, cm.id))
 
         return [(link_url(cm), link_text(cm)) for cm in context_models]
 
@@ -952,7 +1005,9 @@ class Patient(models.Model):
             if num_contexts == 1:
                 return my_contexts[0]
             else:
-                raise Exception("default context could not be returned: num contexts = %s" % num_contexts)
+                raise Exception(
+                    "default context could not be returned: num contexts = %s" %
+                    num_contexts)
 
         elif registry_type == RegistryType.HAS_CONTEXTS:
             return None
@@ -989,14 +1044,16 @@ class Patient(models.Model):
             if default_context is not None:
                 context_id = default_context.pk
             else:
-                raise Exception("need context id to get update dynamic data for patient %s" % self.pk)
+                raise Exception(
+                    "need context id to get update dynamic data for patient %s" %
+                    self.pk)
 
         wrapper = DynamicDataWrapper(self, rdrf_context_id=context_id)
         # NB warning this completely replaces the existing mongo record for the patient
         # useful for "rolling back" after questionnaire update failure
-        logger.info("Warning! : Updating existing dynamic data for %s(%s) in registry %s" % (self,
-                                                                                             self.pk,
-                                                                                             registry_model))
+        logger.info(
+            "Warning! : Updating existing dynamic data for %s(%s) in registry %s" %
+            (self, self.pk, registry_model))
         logger.info("New Mongo data record = %s" % new_mongo_data)
         if new_mongo_data is not None:
             wrapper.update_dynamic_data(registry_model, new_mongo_data)
@@ -1052,7 +1109,6 @@ class ParentGuardian(models.Model):
         return other_patient in self.children
 
 
-
 @receiver(post_save, sender=ParentGuardian)
 def update_my_user(sender, **kwargs):
     """
@@ -1065,6 +1121,7 @@ def update_my_user(sender, **kwargs):
         user.first_name = parent_guardian.first_name
         user.last_name = parent_guardian.last_name
         user.save()
+
 
 class AddressTypeManager(models.Manager):
 
@@ -1249,7 +1306,6 @@ def clean_consents(sender, instance, **kwargs):
     instance.clean_consents()
 
 
-
 @receiver(post_save, sender=Patient)
 def update_family_linkage_fields(sender, instance, **kwargs):
     logger.debug("updating family linkage fields")
@@ -1265,7 +1321,6 @@ def update_family_linkage_fields(sender, instance, **kwargs):
             else:
                 logger.debug("%s is a relative" % instance)
                 flm.set_as_relative(instance)
-                
 
 
 def _get_registry_for_mongo(regs):
@@ -1282,6 +1337,7 @@ def _get_registry_for_mongo(regs):
 
     return json_final
 
+
 @receiver(m2m_changed, sender=Patient.rdrf_registry.through)
 def registry_changed_on_patient(sender, **kwargs):
     if kwargs["action"] == "post_add":
@@ -1289,6 +1345,7 @@ def registry_changed_on_patient(sender, **kwargs):
         instance = kwargs['instance']
         registry_ids = kwargs['pk_set']
         create_rdrf_default_contexts(instance, registry_ids)
+
 
 class ConsentValue(models.Model):
     patient = models.ForeignKey(Patient, related_name="consents")

@@ -39,7 +39,12 @@ class MongoUndo(object):
 
     def __call__(self):
         reversed_value = self.reverse_op[self.linkage_type]
-        self.patient.set_form_value("fh", "ClinicalData", "fhDateSection", "CDEIndexOrRelative", reversed_value)
+        self.patient.set_form_value(
+            "fh",
+            "ClinicalData",
+            "fhDateSection",
+            "CDEIndexOrRelative",
+            reversed_value)
 
 
 class FamilyLinkageManager(object):
@@ -62,7 +67,6 @@ class FamilyLinkageManager(object):
 
             self.working_groups = [wg for wg in self.index_patient.working_groups.all()]
 
-        
         self.mongo_undos = []
 
         # the following allows pokes of the data into arbritrary forms
@@ -71,8 +75,7 @@ class FamilyLinkageManager(object):
         self.family_linkage_cde_code = registry_model.metadata["family_linkage_cde_code"]
         self.family_linkage_index_value = registry_model.metadata["family_linkage_index_value"]
         self.family_linkage_relative_value = registry_model.metadata["family_linkage_relative_value"]
-        
-        
+
     def _get_index_patient(self):
         try:
             return Patient.objects.get(pk=self.original_index)
@@ -132,7 +135,8 @@ class FamilyLinkageManager(object):
                 fml_log("patient has been created from this relative so setting index to it")
                 self._change_index(old_index_patient, patient_relative.relative_patient)
                 fml_log("deleting patient relative %s" % patient_relative)
-                # set a flag on patient_relative so the delete signal doesn't archive the patient..
+                # set a flag on patient_relative so the delete signal doesn't archive the
+                # patient..
                 fml_log("setting skip_archiving attribute on PatientRelative")
                 patient_relative.skip_archiving = True
                 patient_relative.delete()
@@ -140,7 +144,8 @@ class FamilyLinkageManager(object):
             else:
                 # create a new patient from relative first
                 fml_log("setting PatientRelatibe with no patient to index - need to create patient first")
-                new_patient = patient_relative.create_patient_from_myself(self.registry_model, self.working_groups)
+                new_patient = patient_relative.create_patient_from_myself(
+                    self.registry_model, self.working_groups)
                 fml_log("new patient created from relative = %s" % new_patient)
                 self._change_index(old_index_patient, new_patient)
                 fml_log("changed index ok to new patient")
@@ -195,7 +200,7 @@ class FamilyLinkageManager(object):
     def _set_linkage_value(self, patient, value):
         # "poke" the data in the clinical form
         main_context_model = self._get_main_context(patient)
-        
+
         patient.set_form_value(self.registry_model.code,
                                self.family_linkage_form_name,
                                self.family_linkage_section_code,
@@ -205,11 +210,10 @@ class FamilyLinkageManager(object):
 
         fml_log("set patient %s to %s" % (patient, value))
         self._add_undo(patient, value)
-        
 
     def set_as_relative(self, patient):
         self._set_linkage_value(patient, self.family_linkage_relative_value)
-        
+
     def set_as_index_patient(self, patient):
         self._set_linkage_value(patient, self.family_linkage_index_value)
 
