@@ -40,11 +40,13 @@ logger = logging.getLogger(__name__)
 
 @receiver(user_logged_in)
 def user_login_callback(sender, request=None, user=None, **kwargs):
-    if is_user_privileged(user) and not user.require_2_fact_auth and default_device(user) is None:
-        link = ('<a href="%(url)s" class="alert-link">' + _('click here') + '</a>') % {'url': reverse('two_factor:setup')}
+    if is_user_privileged(
+            user) and not user.require_2_fact_auth and default_device(user) is None:
+        link = ('<a href="%(url)s" class="alert-link">' + _('click here') +
+                '</a>') % {'url': reverse('two_factor:setup')}
         msg = mark_safe(
-                _('We strongly recommend that you protect your account with Two-Factor authentication. '
-                  'Please %(link)s to set it up.') % {'link': link})
+            _('We strongly recommend that you protect your account with Two-Factor authentication. '
+              'Please %(link)s to set it up.') % {'link': link})
 
         if msg not in [m.message for m in messages.get_messages(request)]:
             messages.info(request, msg)
@@ -80,11 +82,11 @@ def login_assistance_confirm(request, uidb64=None, token=None):
         user = None
 
     form = None
-    template_name='registration/login_assistance_verify_user.html'
+    template_name = 'registration/login_assistance_verify_user.html'
     validlink = user is not None and default_token_generator.check_token(user, token)
 
     error_context = {
-        'title' : _('Login self assistance confirmation unsuccessful'),
+        'title': _('Login self assistance confirmation unsuccessful'),
         'hideVerification': True,
     }
 
@@ -94,15 +96,20 @@ def login_assistance_confirm(request, uidb64=None, token=None):
     # First the user is following the link they've received in the email.
     # If the link expired, is wrong we will just display an error.
     if not validlink:
-        messages.error(request, _('The link is invalid, possibly because it has already been used. Please try requesting a new link.'))
+        messages.error(
+            request,
+            _('The link is invalid, possibly because it has already been used. Please try requesting a new link.'))
         return TemplateResponse(request, template_name, error_context)
 
     if not can_user_self_unlock(user):
-        messages.warning(request, _("Unfortunately the system can't verify your identity. Please contact the registry owners for further information."))
+        messages.warning(
+            request,
+            _("Unfortunately the system can't verify your identity. Please contact the registry owners for further information."))
         return TemplateResponse(request, template_name, error_context)
 
     # If the link is correct and the user hasn't been verified yet
-    # we will verify the user's identity by asking them for information like Name and Date of Birth
+    # we will verify the user's identity by asking them for information like
+    # Name and Date of Birth
 
     def user_needs_verification():
         verification = request.session.get('user_verified', {})
@@ -116,11 +123,14 @@ def login_assistance_confirm(request, uidb64=None, token=None):
                 'title': _('Verify User'),
                 'form': form,
             }
-            return TemplateResponse(request, 'registration/login_assistance_verify_user.html', context)
+            return TemplateResponse(
+                request, 'registration/login_assistance_verify_user.html', context)
 
         if request.method != 'POST':
             if user_data is None:
-                messages.warning(request, _("Unfortunately we don't have the required information to verify your identity. Please contact the registry owners for assistance."))
+                messages.warning(
+                    request,
+                    _("Unfortunately we don't have the required information to verify your identity. Please contact the registry owners for assistance."))
                 return TemplateResponse(request, template_name, error_context)
             return verification_page()
 
@@ -136,7 +146,7 @@ def login_assistance_confirm(request, uidb64=None, token=None):
                 }
                 # Redirect to the same page for the next phase
                 return HttpResponseRedirect(reverse('login_assistance_confirm',
-                    kwargs={'uidb64': uidb64, 'token': token}))
+                                                    kwargs={'uidb64': uidb64, 'token': token}))
             else:
                 # User verification failed, display same page with errors
                 return verification_page(form)
@@ -162,7 +172,8 @@ def login_assistance_confirm(request, uidb64=None, token=None):
     def is_password_change_required(user):
         # If the password has expired always make them change their password or they will
         # be locked out when they try to log in next time.
-        return deactivation_reason == UserDeactivation.PASSWORD_EXPIRED or is_password_expired(user)
+        return deactivation_reason == UserDeactivation.PASSWORD_EXPIRED or is_password_expired(
+            user)
 
     def user_is_verified_page(form=None):
         context = {
@@ -171,14 +182,21 @@ def login_assistance_confirm(request, uidb64=None, token=None):
             'reason': reason,
             'password_change_required': is_password_change_required(user),
         }
-        return TemplateResponse(request, 'registration/login_assistance_user_verified.html', context)
+        return TemplateResponse(
+            request,
+            'registration/login_assistance_user_verified.html',
+            context)
 
     if request.method != 'POST':
         # Display deactivation reason and allow/require them to change password
         return user_is_verified_page()
     else:
         # Validate the new password the user POSTed (if supplied) and activate the user
-        form = ReactivateAccountForm(request, user, is_password_change_required(user), request.POST)
+        form = ReactivateAccountForm(
+            request,
+            user,
+            is_password_change_required(user),
+            request.POST)
         if form.is_valid():
             form.save()
             return HttpResponseRedirect(reverse('login_assistance_complete'))

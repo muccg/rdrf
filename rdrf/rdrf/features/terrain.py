@@ -12,7 +12,8 @@ TEST_BROWSER = os.environ.get('TEST_BROWSER')
 TEST_SELENIUM_HUB = os.environ.get('TEST_SELENIUM_HUB') or 'http://localhost:4444/wd/hub'
 TEST_WAIT = int(os.environ.get('TEST_WAIT') or '10')
 TEST_APP_URL = os.environ.get('TEST_APP_URL')
-TEST_DISABLE_TEARDOWN = bool(os.environ.get('TEST_DISABLE_TEARDOWN')) if 'TEST_DISABLE_TEARDOWN' in os.environ else False
+TEST_DISABLE_TEARDOWN = bool(os.environ.get('TEST_DISABLE_TEARDOWN')
+                             ) if 'TEST_DISABLE_TEARDOWN' in os.environ else False
 
 
 def get_desired_capabilities(browser):
@@ -74,8 +75,8 @@ def before_scenario(scenario, outline, steps):
 def after_scenario(scenario, outline, test_steps):
     logger.info('')
     passfail = "PASS" if test_steps and all(step.passed for step in test_steps) else "FAIL"
-    world.browser.get_screenshot_as_file(
-        os.path.join(settings.WRITABLE_DIRECTORY, "{0}-scenario-{1}.png".format(passfail, scenario.name)))
+    world.browser.get_screenshot_as_file(os.path.join(
+        settings.WRITABLE_DIRECTORY, "{0}-scenario-{1}.png".format(passfail, scenario.name)))
     if do_teardown():
         utils.restore_minimal_snapshot()
 
@@ -85,5 +86,7 @@ def screenshot_step(step):
     if not step.passed and getattr(step, "scenario", None) is not None:
         step_name = "%s_%s" % (step.scenario.name, step.sentence)
         step_name = step_name.replace(" ", "")
-        file_name = os.path.join(settings.WRITABLE_DIRECTORY, "FAIL-step-{0}.png".format(step_name))
+        file_name = os.path.join(
+            settings.WRITABLE_DIRECTORY,
+            "FAIL-step-{0}.png".format(step_name))
         world.browser.get_screenshot_as_file(file_name)

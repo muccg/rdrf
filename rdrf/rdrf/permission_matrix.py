@@ -81,7 +81,9 @@ class PermissionMatrixView(View):
         try:
             registry_model = Registry.objects.get(code=registry_code)
         except Registry.DoesNotExist:
-            return Http404(_("Registry with code %(registry_code)s does not exist") % {"registry_code": registry_code})
+            return Http404(
+                _("Registry with code %(registry_code)s does not exist") % {
+                    "registry_code": registry_code})
 
         return render(request, "rdrf_cdes/permission_matrix.html", {
             "location": "Permissions",

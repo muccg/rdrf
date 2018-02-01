@@ -43,8 +43,10 @@ logger = logging.getLogger(__name__)
 # very important so that registry admins (genetic, patient, etc) are discovered.
 admin.autodiscover()
 
+
 def handlerException(request):
     raise Exception("Forced exception in /raise")
+
 
 def handler404(request):
     return render(request, "404.html")
@@ -58,6 +60,7 @@ def handlerApplicationError(request):
     return render(request, "rdrf_cdes/application_error.html", {
         "application_error": "Example config Error",
     })
+
 
 JavaScriptCatalog.domain = "django"  # The default domain didn't work for me
 
@@ -92,28 +95,28 @@ two_factor_auth_urls = [
         view=twv.SetupCompleteView.as_view(),
         name='setup_complete',
     ),
-#    We're not using a few of these urls currently
-#
-#    url(
-#        regex=r'^account/two_factor/backup/tokens/?$',
-#        view=twv.BackupTokensView.as_view(),
-#        name='backup_tokens',
-#    ),
-#    url(
-#        regex=r'^account/two_factor/backup/phone/register/?$',
-#        view=twv.PhoneSetupView.as_view(),
-#        name='phone_create',
-#    ),
-#    url(
-#        regex=r'^account/two_factor/backup/phone/unregister/(?P<pk>\d+)/?$',
-#        view=twv.PhoneDeleteView.as_view(),
-#        name='phone_delete',
-#    ),
-#    url(
-#        regex=r'^account/two_factor/?$',
-#        view=twv.ProfileView.as_view(),
-#        name='profile',
-#    ),
+    #    We're not using a few of these urls currently
+    #
+    #    url(
+    #        regex=r'^account/two_factor/backup/tokens/?$',
+    #        view=twv.BackupTokensView.as_view(),
+    #        name='backup_tokens',
+    #    ),
+    #    url(
+    #        regex=r'^account/two_factor/backup/phone/register/?$',
+    #        view=twv.PhoneSetupView.as_view(),
+    #        name='phone_create',
+    #    ),
+    #    url(
+    #        regex=r'^account/two_factor/backup/phone/unregister/(?P<pk>\d+)/?$',
+    #        view=twv.PhoneDeleteView.as_view(),
+    #        name='phone_delete',
+    #    ),
+    #    url(
+    #        regex=r'^account/two_factor/?$',
+    #        view=twv.ProfileView.as_view(),
+    #        name='profile',
+    #    ),
     url(
         regex=r'^account/two_factor/disable/?$',
         view=twv.DisableView.as_view(),
@@ -303,5 +306,3 @@ urlpatterns += [
 
     url(r'^i18n/', include('django.conf.urls.i18n')),
 ]
-
-

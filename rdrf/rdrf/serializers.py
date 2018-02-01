@@ -109,7 +109,15 @@ class RegistrySerializer(serializers.HyperlinkedModelSerializer):
 
     class Meta:
         model = Registry
-        fields = ('pk', 'name', 'code', 'desc', 'version', 'url', 'patients_url', 'clinicians_url')
+        fields = (
+            'pk',
+            'name',
+            'code',
+            'desc',
+            'version',
+            'url',
+            'patients_url',
+            'clinicians_url')
         extra_kwargs = {
             'url': {'lookup_field': 'code'},
         }

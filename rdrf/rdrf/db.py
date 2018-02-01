@@ -4,6 +4,7 @@ import os
 from django.core.management import call_command
 from django.db import connections
 
+
 class RegistryRouter:
 
     clinical_models = (
@@ -57,6 +58,7 @@ def _execute_reset_sql_sequences(commands):
     # this gets nasty because the --database option of
     # sqlsequencereset command doesn't work.
     clinical_tables = ["_".join(m) for m in RegistryRouter.clinical_models]
+
     def for_db(database):
         def _for_db(command):
             is_clinical = any(t in command for t in clinical_tables)

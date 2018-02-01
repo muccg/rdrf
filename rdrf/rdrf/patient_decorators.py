@@ -9,6 +9,7 @@ from .models import Registry
 
 logger = logging.getLogger(__name__)
 
+
 def patient_questionnaire_access(function):
     def is_patient(user):
         try:
@@ -29,7 +30,7 @@ def patient_questionnaire_access(function):
 
         # fixme: check logic
         if (registry.questionnaire.login_required and
-            (not user.is_authenticated() or not is_patient(user))):
+                (not user.is_authenticated() or not is_patient(user))):
             return HttpResponseRedirect(reverse("patient_page", args={registry_code}))
 
         return function(*args, **kwargs)

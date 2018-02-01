@@ -1,5 +1,6 @@
 from django.db import migrations
 
+
 class ClinicalDBRunPython(migrations.RunPython):
     def database_forwards(self, app_label, schema_editor, from_state, to_state):
         if schema_editor.connection.alias == 'clinical':

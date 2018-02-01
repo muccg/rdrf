@@ -16,10 +16,32 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='Modjgo',
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('registry_code', models.CharField(db_index=True, max_length=10)),
-                ('collection', models.CharField(choices=[('cdes', 'cdes'), ('history', 'history'), ('progress', 'progress'), ('registry_specific_patient_data', 'registry_specific_patient_data')], db_index=True, max_length=50)),
-                ('data', rdrf.jsonb.DataField(default=dict)),
+                ('id',
+                 models.AutoField(
+                     auto_created=True,
+                     primary_key=True,
+                     serialize=False,
+                     verbose_name='ID')),
+                ('registry_code',
+                 models.CharField(
+                     db_index=True,
+                     max_length=10)),
+                ('collection',
+                 models.CharField(
+                     choices=[
+                         ('cdes',
+                          'cdes'),
+                         ('history',
+                          'history'),
+                         ('progress',
+                          'progress'),
+                         ('registry_specific_patient_data',
+                          'registry_specific_patient_data')],
+                     db_index=True,
+                     max_length=50)),
+                ('data',
+                 rdrf.jsonb.DataField(
+                     default=dict)),
             ],
         ),
     ]

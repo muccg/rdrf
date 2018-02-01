@@ -15,6 +15,9 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='customuser',
             name='require_2_fact_auth',
-            field=models.BooleanField(default=False, help_text='Requires this user to use two factor authentication to access the system.', verbose_name='require two-factor authentication'),
+            field=models.BooleanField(
+                default=False,
+                help_text='Requires this user to use two factor authentication to access the system.',
+                verbose_name='require two-factor authentication'),
         ),
     ]

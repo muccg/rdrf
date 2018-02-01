@@ -5,6 +5,7 @@ from rdrf.migration_utils import ClinicalDBRunPython
 
 mongo_django = undjango_mongo = None
 
+
 def copy_collections(apps, schema_editor):
     Modjgo = apps.get_model("rdrf", "Modjgo")
     print("got Modjgo okay")
@@ -14,11 +15,14 @@ def copy_collections(apps, schema_editor):
 
 # note: migration is not fully reversable. it just removes the flag
 # which says the mongo document was migrated.
+
+
 def uncopy_collections(apps, schema_editor):
     Modjgo = apps.get_model("rdrf", "Modjgo")
     Registry = apps.get_model("rdrf", "Registry")
     if undjango_mongo:
         undjango_mongo(Modjgo, Registry.objects.all())
+
 
 class Migration(migrations.Migration):
 

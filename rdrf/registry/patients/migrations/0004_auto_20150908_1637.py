@@ -12,15 +12,9 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.AddField(
-            model_name='patient',
-            name='living_status',
-            field=models.CharField(default='Alive', max_length=80, choices=[
-                                   ('Alive', 'Living'), ('Deceased', 'Deceased')]),
-        ),
-        migrations.AlterField(
-            model_name='patientrelative',
-            name='sex',
-            field=models.CharField(max_length=1, choices=[('1', 'Male'),
-                                                          ('2', 'Female'), ('3', 'Indeterminate')]),
-        ),
-    ]
+            model_name='patient', name='living_status', field=models.CharField(
+                default='Alive', max_length=80, choices=[
+                    ('Alive', 'Living'), ('Deceased', 'Deceased')]), ), migrations.AlterField(
+            model_name='patientrelative', name='sex', field=models.CharField(
+                max_length=1, choices=[
+                    ('1', 'Male'), ('2', 'Female'), ('3', 'Indeterminate')]), ), ]

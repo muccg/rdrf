@@ -33,127 +33,165 @@ class Links:
     QuestionnaireResponses = QuickLink(reverse("admin:rdrf_questionnaireresponse_changelist"),
                                        _("Questionnaire Responses"))
     Doctors = QuickLink(reverse("admin:patients_doctor_changelist"), _("Doctors"))
-    ArchivedPatients = QuickLink(reverse("admin:patients_archivedpatient_changelist"), _("Archived Patients"))
+    ArchivedPatients = QuickLink(
+        reverse("admin:patients_archivedpatient_changelist"),
+        _("Archived Patients"))
     Genes = QuickLink(reverse("admin:genetic_gene_changelist"), _("Genes"))
     Laboratories = QuickLink(reverse("admin:genetic_laboratory_changelist"), _("Laboratories"))
     Explorer = QuickLink(reverse("explorer_main"), _("Explorer"))
     Users = QuickLink(reverse("admin:groups_customuser_changelist"), _('Users'))
-    WorkingGroups = QuickLink(reverse("admin:groups_workinggroup_changelist"), _("Working Groups"))
+    WorkingGroups = QuickLink(
+        reverse("admin:groups_workinggroup_changelist"),
+        _("Working Groups"))
     Registries = QuickLink(reverse("admin:rdrf_registry_changelist"), _("Registries"))
 
     Importer = QuickLink(reverse("import_registry"), _("Importer"))
     Groups = QuickLink(reverse("admin:auth_group_changelist"), _("Groups"))
-    NextOfKinRelationship = QuickLink(reverse("admin:patients_nextofkinrelationship_changelist"),
-                                      _("Next of Kin Relationship"))
+    NextOfKinRelationship = QuickLink(
+        reverse("admin:patients_nextofkinrelationship_changelist"),
+        _("Next of Kin Relationship"))
     States = QuickLink(reverse("admin:patients_state_changelist"), _("States"))
-    ClinicianOther = QuickLink(reverse("admin:patients_clinicianother_changelist"), _("Other Clinicians"))
-    EmailNotification = QuickLink(reverse("admin:rdrf_emailnotification_changelist"), _("Email Notifications"))
-    EmailTemplate = QuickLink(reverse("admin:rdrf_emailtemplate_changelist"), _("Email Templates"))
-    EmailNotificationHistory = QuickLink(reverse("admin:rdrf_emailnotificationhistory_changelist"),
-                                         _("Email Notifications History"))
-    RegistrationProfiles = QuickLink(reverse("admin:registration_registrationprofile_changelist"),
-                                     _("Registration Profiles"))
+    ClinicianOther = QuickLink(
+        reverse("admin:patients_clinicianother_changelist"),
+        _("Other Clinicians"))
+    EmailNotification = QuickLink(
+        reverse("admin:rdrf_emailnotification_changelist"),
+        _("Email Notifications"))
+    EmailTemplate = QuickLink(
+        reverse("admin:rdrf_emailtemplate_changelist"),
+        _("Email Templates"))
+    EmailNotificationHistory = QuickLink(
+        reverse("admin:rdrf_emailnotificationhistory_changelist"),
+        _("Email Notifications History"))
+    RegistrationProfiles = QuickLink(
+        reverse("admin:registration_registrationprofile_changelist"),
+        _("Registration Profiles"))
     LoginLog = QuickLink(reverse("admin:useraudit_loginlog_changelist"), _("User Login Log"))
-    FailedLoginLog = QuickLink(reverse("admin:useraudit_failedloginlog_changelist"), _("User Failed Login Log"))
-    LoginAttempts = QuickLink(reverse("admin:useraudit_loginattempt_changelist"), _("User Login Attempts Log"))
-    IPRestrictRangeGroup = QuickLink(reverse("admin:iprestrict_rangebasedipgroup_changelist"), _("IP Restrict Ranges"))
+    FailedLoginLog = QuickLink(
+        reverse("admin:useraudit_failedloginlog_changelist"),
+        _("User Failed Login Log"))
+    LoginAttempts = QuickLink(
+        reverse("admin:useraudit_loginattempt_changelist"),
+        _("User Login Attempts Log"))
+    IPRestrictRangeGroup = QuickLink(
+        reverse("admin:iprestrict_rangebasedipgroup_changelist"),
+        _("IP Restrict Ranges"))
     IPRestrictGeoGroup = QuickLink(reverse("admin:iprestrict_locationbasedipgroup_changelist"),
                                    _("IP Restrict Geolocations"))
-    IPRestrictRule = QuickLink(reverse("admin:iprestrict_rule_changelist"), _("IP Restrict Rules"))
+    IPRestrictRule = QuickLink(
+        reverse("admin:iprestrict_rule_changelist"),
+        _("IP Restrict Rules"))
     Sites = QuickLink(reverse("admin:sites_site_changelist"), _("Sites"))
-    ParentGuardian = QuickLink(reverse("admin:patients_parentguardian_changelist"), _("Parents/Guardians"))
+    ParentGuardian = QuickLink(
+        reverse("admin:patients_parentguardian_changelist"),
+        _("Parents/Guardians"))
 
     Doctors = QuickLink(reverse("admin:patients_doctor_changelist"), _("Doctors"))
-    DemographicsFields = QuickLink(reverse("admin:rdrf_demographicfields_changelist"), _("Registry Demographics Fields"))
+    DemographicsFields = QuickLink(
+        reverse("admin:rdrf_demographicfields_changelist"),
+        _("Registry Demographics Fields"))
     ConsentRules = QuickLink(reverse("admin:rdrf_consentrule_changelist"), _("Consent Rules"))
 
-
     if settings.DESIGN_MODE:
-        RegistryForms = QuickLink(reverse("admin:rdrf_registryform_changelist"), _("Registry Forms"))
+        RegistryForms = QuickLink(
+            reverse("admin:rdrf_registryform_changelist"),
+            _("Registry Forms"))
         Sections = QuickLink(reverse("admin:rdrf_section_changelist"), _("Registry Sections"))
-        DataElements = QuickLink(reverse("admin:rdrf_commondataelement_changelist"), _("Registry Common Data Elements"))
-        PermissibleValueGroups = QuickLink(reverse("admin:rdrf_cdepermittedvaluegroup_changelist"),
-                                           _("Registry Permissible Value Groups"))
-        PermissibleValues = QuickLink(reverse("admin:rdrf_cdepermittedvalue_changelist"), _("Registry Permissible Values"))
-        ConsentSections = QuickLink(reverse("admin:rdrf_consentsection_changelist"), _("Registry Consent Sections"))
-        ConsentValues = QuickLink(reverse("admin:patients_consentvalue_changelist"), _("Registry Consent Values"))
-        CdePolicy = QuickLink(reverse("admin:rdrf_cdepolicy_changelist"), _("Registry Common Data Elements Policy"))
-        ContextFormGroups = QuickLink(reverse("admin:rdrf_contextformgroup_changelist"), _("Registry Context Form Groups"))
-        
+        DataElements = QuickLink(
+            reverse("admin:rdrf_commondataelement_changelist"),
+            _("Registry Common Data Elements"))
+        PermissibleValueGroups = QuickLink(
+            reverse("admin:rdrf_cdepermittedvaluegroup_changelist"),
+            _("Registry Permissible Value Groups"))
+        PermissibleValues = QuickLink(
+            reverse("admin:rdrf_cdepermittedvalue_changelist"),
+            _("Registry Permissible Values"))
+        ConsentSections = QuickLink(
+            reverse("admin:rdrf_consentsection_changelist"),
+            _("Registry Consent Sections"))
+        ConsentValues = QuickLink(
+            reverse("admin:patients_consentvalue_changelist"),
+            _("Registry Consent Values"))
+        CdePolicy = QuickLink(
+            reverse("admin:rdrf_cdepolicy_changelist"),
+            _("Registry Common Data Elements Policy"))
+        ContextFormGroups = QuickLink(
+            reverse("admin:rdrf_contextformgroup_changelist"),
+            _("Registry Context Form Groups"))
 
     # related links are grouped or convenience
     AUDITING = {
-            LoginLog.text: LoginLog,
-            FailedLoginLog.text: FailedLoginLog,
-            LoginAttempts.text: LoginAttempts
-            }
+        LoginLog.text: LoginLog,
+        FailedLoginLog.text: FailedLoginLog,
+        LoginAttempts.text: LoginAttempts
+    }
     DATA_ENTRY = {
-            PatientsListing.text: PatientsListing,
-            }
+        PatientsListing.text: PatientsListing,
+    }
     EMAIL = {
-            EmailNotification.text: EmailNotification,
-            EmailTemplate.text: EmailTemplate,
-            EmailNotificationHistory.text: EmailNotificationHistory,
-            }
+        EmailNotification.text: EmailNotification,
+        EmailTemplate.text: EmailTemplate,
+        EmailNotificationHistory.text: EmailNotificationHistory,
+    }
     GENETIC = {
-            Genes.text: Genes,
-            Laboratories.text: Laboratories,
-            }
+        Genes.text: Genes,
+        Laboratories.text: Laboratories,
+    }
     IP_RESTRICT = {
-            IPRestrictRangeGroup.text: IPRestrictRangeGroup,
-            IPRestrictGeoGroup.text: IPRestrictGeoGroup,
-            IPRestrictRule.text: IPRestrictRule
-            }
+        IPRestrictRangeGroup.text: IPRestrictRangeGroup,
+        IPRestrictGeoGroup.text: IPRestrictGeoGroup,
+        IPRestrictRule.text: IPRestrictRule
+    }
     if settings.DESIGN_MODE:
         OTHER = {
-                Sites.text: Sites,
-                Groups.text: Groups,
-                Importer.text: Importer,
-                DemographicsFields.text: DemographicsFields,
-                NextOfKinRelationship.text: NextOfKinRelationship,
-                ArchivedPatients.text: ArchivedPatients,
-                ConsentRules.text: ConsentRules,
-                }
+            Sites.text: Sites,
+            Groups.text: Groups,
+            Importer.text: Importer,
+            DemographicsFields.text: DemographicsFields,
+            NextOfKinRelationship.text: NextOfKinRelationship,
+            ArchivedPatients.text: ArchivedPatients,
+            ConsentRules.text: ConsentRules,
+        }
     else:
         OTHER = {
-                Sites.text: Sites,
-                Groups.text: Groups,
-                DemographicsFields.text: DemographicsFields,
-                Importer.text: Importer,
-                NextOfKinRelationship.text: NextOfKinRelationship,
-                ArchivedPatients.text: ArchivedPatients,
-                ConsentRules.text: ConsentRules,
-                }
-        
+            Sites.text: Sites,
+            Groups.text: Groups,
+            DemographicsFields.text: DemographicsFields,
+            Importer.text: Importer,
+            NextOfKinRelationship.text: NextOfKinRelationship,
+            ArchivedPatients.text: ArchivedPatients,
+            ConsentRules.text: ConsentRules,
+        }
+
     EXPLORER = {
-            Explorer.text: Explorer,
-            }
+        Explorer.text: Explorer,
+    }
 
     if settings.DESIGN_MODE:
         REGISTRY_DESIGN = {
-                          Registries.text: Registries,
-                          RegistryForms.text: RegistryForms,
-                          Sections.text: Sections,
-                          DataElements.text: DataElements,
-                          CdePolicy.text: CdePolicy,
-                          PermissibleValueGroups.text: PermissibleValueGroups,
-                          PermissibleValues.text: PermissibleValues,
-                          ConsentSections.text: ConsentSections,
-                          ConsentValues.text: ConsentValues,
-                          ContextFormGroups.text: ContextFormGroups,
-                          }
+            Registries.text: Registries,
+            RegistryForms.text: RegistryForms,
+            Sections.text: Sections,
+            DataElements.text: DataElements,
+            CdePolicy.text: CdePolicy,
+            PermissibleValueGroups.text: PermissibleValueGroups,
+            PermissibleValues.text: PermissibleValues,
+            ConsentSections.text: ConsentSections,
+            ConsentValues.text: ConsentValues,
+            ContextFormGroups.text: ContextFormGroups,
+        }
     REPORTING = {
-            Reports.text: Reports,
-            }
+        Reports.text: Reports,
+    }
     STATE_MANAGEMENT = {
-            States.text: States
-            }
+        States.text: States
+    }
     USER_MANAGEMENT = {
-            Users.text: Users,
-            }
+        Users.text: Users,
+    }
     WORKING_GROUPS = {
-            WorkingGroups.text: WorkingGroups,
-            }
+        WorkingGroups.text: WorkingGroups,
+    }
 
     # only appear if related registry specific feature is set
     # Populated at runtime
@@ -166,20 +204,20 @@ class Links:
 
     # When enabled, doctors links
     ENABLED_DOCTORS = {
-            Doctors.text: Doctors,
-            }
+        Doctors.text: Doctors,
+    }
 
     # When enabled, questionnaire links
     ENABLED_QUESTIONNAIRE = {
-            QuestionnaireResponses.text: QuestionnaireResponses,
-            }
+        QuestionnaireResponses.text: QuestionnaireResponses,
+    }
 
     # When enabled, registration links
     ENABLED_REGISTRATION = {
-            ParentGuardian.text: ParentGuardian,
-            RegistrationProfiles.text: RegistrationProfiles,
-            ClinicianOther.text: ClinicianOther
-            }
+        ParentGuardian.text: ParentGuardian,
+        RegistrationProfiles.text: RegistrationProfiles,
+        ClinicianOther.text: ClinicianOther
+    }
 
 
 class MenuConfig(object):
@@ -222,50 +260,50 @@ class QuickLinks(object):
         MenuConfig().parent = {}
 
         MenuConfig().working_group_staff = {
-                **Links.DATA_ENTRY
-                }
+            **Links.DATA_ENTRY
+        }
 
         MenuConfig().working_group_curator = {
-                **Links.CONSENT,
-                **Links.DATA_ENTRY,
-                **Links.DOCTORS,
-                **Links.REPORTING,
-                **Links.USER_MANAGEMENT,
-                **Links.QUESTIONNAIRE,
-                }
+            **Links.CONSENT,
+            **Links.DATA_ENTRY,
+            **Links.DOCTORS,
+            **Links.REPORTING,
+            **Links.USER_MANAGEMENT,
+            **Links.QUESTIONNAIRE,
+        }
 
         MenuConfig().genetic_staff = {
-                **Links.DATA_ENTRY
-                }
+            **Links.DATA_ENTRY
+        }
 
         MenuConfig().genetic_curator = {
-                **Links.DATA_ENTRY,
-                **Links.GENETIC
-                }
+            **Links.DATA_ENTRY,
+            **Links.GENETIC
+        }
 
         MenuConfig().clinical = {
-                **Links.DATA_ENTRY,
-                **Links.QUESTIONNAIRE,
-                }
+            **Links.DATA_ENTRY,
+            **Links.QUESTIONNAIRE,
+        }
 
         # Super user has combined menu of all other users
         MenuConfig().super_user = {
-                **MenuConfig().working_group_staff,
-                **MenuConfig().working_group_curator,
-                **MenuConfig().genetic_staff,
-                **MenuConfig().genetic_curator,
-                **MenuConfig().clinical,
-                }
+            **MenuConfig().working_group_staff,
+            **MenuConfig().working_group_curator,
+            **MenuConfig().genetic_staff,
+            **MenuConfig().genetic_curator,
+            **MenuConfig().clinical,
+        }
 
         # settings menu
         MenuConfig().settings = {
-                **Links.AUDITING,
-                **Links.DOCTORS,
-                **Links.EXPLORER,
-                **Links.FAMILY_LINKAGE,
-                **Links.PERMISSIONS,
-                **Links.REGISTRATION,
-                }
+            **Links.AUDITING,
+            **Links.DOCTORS,
+            **Links.EXPLORER,
+            **Links.FAMILY_LINKAGE,
+            **Links.PERMISSIONS,
+            **Links.REGISTRATION,
+        }
 
         # menu with everything, used for the admin page
         if not settings.DESIGN_MODE:
@@ -286,7 +324,7 @@ class QuickLinks(object):
                 **Links.STATE_MANAGEMENT,
                 **Links.USER_MANAGEMENT,
                 **Links.WORKING_GROUPS,
-                }
+            }
         else:
             MenuConfig().all = {
                 **Links.AUDITING,
@@ -306,8 +344,7 @@ class QuickLinks(object):
                 **Links.STATE_MANAGEMENT,
                 **Links.USER_MANAGEMENT,
                 **Links.WORKING_GROUPS,
-                }
-            
+            }
 
     def _group_links(self, group):
         # map RDRF user groups to quick links menu sets
@@ -348,7 +385,9 @@ class QuickLinks(object):
                 qlink = QuickLink(reverse(url, args=(registry.code,)), _(text))
                 rval[text] = qlink
             except NoReverseMatch:
-                logging.exception('No reverse url for {0} with registry code {1}'.format(url, registry.code))
+                logging.exception(
+                    'No reverse url for {0} with registry code {1}'.format(
+                        url, registry.code))
         return rval
 
     def _registration_links(self):
@@ -376,7 +415,8 @@ class QuickLinks(object):
 
     def _family_linkage_links(self):
         # enable family linkage links if any registry uses family linkage
-        Links.FAMILY_LINKAGE = self._per_registry_links('Family Linkage', 'family_linkage', 'family_linkage')
+        Links.FAMILY_LINKAGE = self._per_registry_links(
+            'Family Linkage', 'family_linkage', 'family_linkage')
 
         # special case: if we have family linkage enabled, we enable doctors links
         if len(Links.FAMILY_LINKAGE) > 0:

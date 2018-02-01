@@ -256,8 +256,7 @@ class Importer(object):
                         msg = "%s\n%s" % (db_msg, yaml_msg)
 
                         raise RegistryImportError(
-                            "CDE codes on imported registry do not match those specified in data file: %s" %
-                            msg)
+                            "CDE codes on imported registry do not match those specified in data file: %s" % msg)
 
                 except Section.DoesNotExist:
                     raise RegistryImportError(
@@ -282,7 +281,9 @@ class Importer(object):
                     logger.info("checking pvg value code %s" % value_code)
                     try:
                         value = CDEPermittedValue.objects.get(code=value_code, pv_group=pvg)
-                        logger.warning("deleting value %s.%s as it is not in import!" % (pvg.code, value.code))
+                        logger.warning(
+                            "deleting value %s.%s as it is not in import!" %
+                            (pvg.code, value.code))
                         value.delete()
                     except CDEPermittedValue.DoesNotExist:
                         logger.info("value does not exist?")
@@ -296,8 +297,9 @@ class Importer(object):
                     value, created = CDEPermittedValue.objects.get_or_create(
                         code=value_map["code"], pv_group=pvg)
                 except MultipleObjectsReturned:
-                    raise ValidationError("range %s code %s is duplicated" % (pvg.code,
-                                                                              value_map["code"]))
+                    raise ValidationError(
+                        "range %s code %s is duplicated" %
+                        (pvg.code, value_map["code"]))
 
                 if not created:
                     if value.value != value_map["value"]:
@@ -474,9 +476,9 @@ class Importer(object):
 
             sections = ",".join([section_map["code"] for section_map in frm_map["sections"]])
 
-            # First create section models so the form save validation passes 
+            # First create section models so the form save validation passes
             self._create_form_sections(frm_map)
-            
+
             f, created = RegistryForm.objects.get_or_create(registry=r, name=frm_map["name"],
                                                             defaults={'sections': sections})
             if not created:
@@ -589,28 +591,29 @@ class Importer(object):
                                                                code=consent_section_code)
             consent_question_model = ConsentQuestion.objects.get(section=consent_section_model,
                                                                  code=consent_question_code)
-            
+
             cr.consent_question = consent_question_model
             cr.save()
             logger.info("Imported Consent Rule for %s %s" % (cr.capability,
                                                              cr.user_group))
-            
 
     def _create_email_notifications(self, registry):
         from rdrf.models import EmailNotification
         from rdrf.models import EmailTemplate
         our_registry_tuple_list = [(registry.pk,)]
         # delete non-shared templates in use by this registry
+
         def non_shared(template_model):
-            using_regs = [x for x in template_model.emailnotification_set.all().values_list('registry__pk')]
+            using_regs = [
+                x for x in template_model.emailnotification_set.all().values_list('registry__pk')]
             if using_regs == our_registry_tuple_list:
                 return True
-            
+
         templates_to_delete = set([t.id for t in EmailTemplate.objects.all() if non_shared(t)])
 
         EmailTemplate.objects.filter(id__in=templates_to_delete).delete()
         EmailNotification.objects.filter(registry=registry).delete()
-        
+
         for en_dict in self.data["email_notifications"]:
             en = EmailNotification(registry=registry)
             en.description = en_dict["description"]
@@ -670,7 +673,8 @@ class Importer(object):
         for cfg_dict in default_first(self.data):
             if cfg_dict is None:
                 continue
-            cfg, created = ContextFormGroup.objects.get_or_create(registry=registry, name=cfg_dict["name"])
+            cfg, created = ContextFormGroup.objects.get_or_create(
+                registry=registry, name=cfg_dict["name"])
             cfg.context_type = cfg_dict["context_type"]
             cfg.name = cfg_dict["name"]
             cfg.naming_scheme = cfg_dict["naming_scheme"]
@@ -688,8 +692,8 @@ class Importer(object):
 
             for form_name in cfg_dict["forms"]:
                 registry_form = get_form(form_name)
-                cfg_item, created = ContextFormGroupItem.objects.get_or_create(context_form_group=cfg,
-                                                                               registry_form=registry_form)
+                cfg_item, created = ContextFormGroupItem.objects.get_or_create(
+                    context_form_group=cfg, registry_form=registry_form)
                 cfg_item.save()
 
             logger.info("imported cfg %s" % cfg.name)
@@ -735,8 +739,10 @@ class Importer(object):
                 section_model, created = ConsentSection.objects.get_or_create(
                     code=code, registry=registry, defaults={'section_label': section_label})
                 section_model.section_label = section_label
-                section_model.information_link = section_dict.get("information_link", section_model.information_link)
-                section_model.information_text = section_dict.get("information_text", section_model.information_text)
+                section_model.information_link = section_dict.get(
+                    "information_link", section_model.information_link)
+                section_model.information_text = section_dict.get(
+                    "information_text", section_model.information_text)
                 section_model.applicability_condition = section_dict["applicability_condition"]
                 if "validation_rule" in section_dict:
                     section_model.validation_rule = section_dict['validation_rule']
@@ -792,7 +798,7 @@ class Importer(object):
             query, created = Query.objects.get_or_create(
                 registry=registry_obj, title=d["title"])
             for ag in d["access_group"]:
-                group, created  = Group.objects.get_or_create(name=ag)
+                group, created = Group.objects.get_or_create(name=ag)
                 if created:
                     group.save()
                 query.access_group.add(group)
@@ -811,7 +817,9 @@ class Importer(object):
         from rdrf.models import CdePolicy
 
         for pol in CdePolicy.objects.filter(registry=registry_model):
-            logger.info("deleting old cde policy object for registry %s cde %s" % (registry_model.code, pol.cde.code))
+            logger.info(
+                "deleting old cde policy object for registry %s cde %s" %
+                (registry_model.code, pol.cde.code))
             pol.delete()
 
         if "cde_policies" in self.data:

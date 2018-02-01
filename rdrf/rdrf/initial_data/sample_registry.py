@@ -14,7 +14,8 @@ def load_data(**kwargs):
         name='Sample Registry',
         desc='Sample Registry',
     ))
-    wg1, _ = WorkingGroup.objects.get_or_create(name='Sample Registry Working Group 1', registry=registry)
+    wg1, _ = WorkingGroup.objects.get_or_create(
+        name='Sample Registry Working Group 1', registry=registry)
 
     for username in ('admin', 'clinical', 'curator', 'genetic'):
         user = CustomUser.objects.get(username=username)

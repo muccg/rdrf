@@ -15,7 +15,11 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='patientconsent',
             name='form',
-            field=models.FileField(storage=registry.patients.models.PatientConsentStorage(),
-                                   upload_to='consents', null=True, verbose_name='Consent form', blank=True),
+            field=models.FileField(
+                storage=registry.patients.models.PatientConsentStorage(),
+                upload_to='consents',
+                null=True,
+                verbose_name='Consent form',
+                blank=True),
         ),
     ]

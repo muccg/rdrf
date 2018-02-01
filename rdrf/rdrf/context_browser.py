@@ -41,7 +41,8 @@ class ContextBrowser(object):
 
         for definition in sorted_by_order:
 
-            # I am now ignoring the default attribute ( was or definition["access"]["default"] or ..)
+            # I am now ignoring the default attribute ( was or
+            # definition["access"]["default"] or ..)
             if self.user.is_superuser or self.user.has_perm(definition["access"]["permission"]):
                 columns.append(
                     {
@@ -91,5 +92,9 @@ class ContextBrowser(object):
         return row
 
     def get_context_menu(self, patient_model, context_model):
-        context_menu = PatientContextMenu(self.user, self.registry_model, patient_model, context_model)
+        context_menu = PatientContextMenu(
+            self.user,
+            self.registry_model,
+            patient_model,
+            context_model)
         return context_menu.html

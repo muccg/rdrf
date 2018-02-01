@@ -20,9 +20,11 @@ def error(msg):
 def info(msg):
     print("INFO: %s" % msg)
 
+
 def blank_lines(n):
     for i in range(n):
         print("")
+
 
 def convert_american_date(american_date_string):
     if not american_date_string:
@@ -87,10 +89,9 @@ class FieldInfo:
             # multiselet checkboxes use this feature
             # values are peristed as lists of codes not single values
             return self._get_multiple_code_list(display_value)
-        
 
         range_value_dicts = self.cde_model.pv_group.as_dict()["values"]
-        
+
         for range_value_dict in range_value_dicts:
             # code is what needs to be stored in the db
             range_display_value = range_value_dict["value"]
@@ -109,9 +110,9 @@ class FieldInfo:
             error("multiple code list [%s] could not be split: %s" % (desc_csv,
                                                                       ex))
             return []
-        
+
         codes = []
-        pv_group =self.cde_model.pv_group
+        pv_group = self.cde_model.pv_group
         values_dict = pv_group.as_dict()
         for desc in descs:
             for value_dict in values_dict["values"]:
@@ -120,7 +121,6 @@ class FieldInfo:
                     codes.append(code)
 
         return codes
-
 
     def should_apply(self, value):
         if self.is_range:
@@ -132,6 +132,7 @@ class FieldInfo:
     @property
     def datatype(self):
         return self.cde_model.datatype.lower().strip()
+
 
 def build_id_map(map_file):
     id_map = {}
@@ -155,7 +156,7 @@ def build_field_map(registry_model, field_map_file):
             section_name = row["SECTION"]
             cde_name = row["CDE"]
             form_model = RegistryForm.objects.get(registry=registry_model,
-                                                      name=form_name)
+                                                  name=form_name)
 
             section_model = None
 
@@ -172,15 +173,15 @@ def build_field_map(registry_model, field_map_file):
                     break
 
             field_info = FieldInfo(registry_model,
-                                       form_model,
-                                       section_model,
-                                       cde_model)
+                                   form_model,
+                                   section_model,
+                                   cde_model)
 
             field_map[fieldnum] = field_info
             field_info.field_num = fieldnum
 
             info("fieldmap %s --> %s" % (fieldnum, field_info))
-                
+
     return field_map
 
 
@@ -233,7 +234,7 @@ class PatientUpdater:
             patient_model.evaluate_field_expression(self.registry_model,
                                                     field_expression,
                                                     value=rdrf_value)
-        
+
     def _get_rdrf_value(self, value, field_info):
         if field_info.is_range:
             return field_info.get_range_code(value)
@@ -245,17 +246,19 @@ class PatientUpdater:
             if field_info.datatype == "float":
                 try:
                     return float(value)
-                except:
+                except BaseException:
                     if value != "":
                         info("%s error converting [%s] to float - returning None" % (field_info,
-                                                                                 value))
+                                                                                     value))
                     return None
             elif field_info.datatype == "integer":
                 try:
                     return int(value)
-                except:
+                except BaseException:
                     if value != "":
-                        info("%s error converting [%s] to integer - returning None" % (field_info,value))
+                        info(
+                            "%s error converting [%s] to integer - returning None" %
+                            (field_info, value))
                     return None
             elif field_info.datatype == "date":
                 return value
@@ -307,7 +310,7 @@ class PatientUpdater:
                         self._apply_field_expression(field_info,
                                                      field_expression,
                                                      patient_model,
-                                                     rdrf_value)            
+                                                     rdrf_value)
                     else:
                         self._update_multisection(field_info,
                                                   rdrf_value,
@@ -320,7 +323,7 @@ class PatientUpdater:
         if field_info.should_apply(rdrf_value):
 
             # update the 1st item
-    
+
             field_expression = "poke/%s/%s/1/%s" % (field_info.form_model.name,
                                                     field_info.section_model.code,
                                                     field_info.cde_model.code)
@@ -332,8 +335,11 @@ class PatientUpdater:
             if rdrf_value is not None:
                 info("will not update multisection %s with bad value [%s]" % (field_info,
                                                                               rdrf_value))
+
+
 def usage():
     print("usage: python cdeimport.py <registry code> <field map file> <id map file> <data file csv>")
+
 
 if __name__ == '__main__':
     try:
@@ -356,7 +362,7 @@ if __name__ == '__main__':
     except Exception as ex:
         error("Could not load id map: %s" % ex)
         sys.exit(1)
-    
+
     blank_lines(2)
 
     try:
@@ -364,9 +370,9 @@ if __name__ == '__main__':
     except Exception as ex:
         error("Could not build field map: %s" % ex)
         sys.exit(1)
-        
+
     blank_lines(2)
-    
+
     try:
         rows = read_patients(csv_file)
     except Exception as ex:
@@ -379,7 +385,6 @@ if __name__ == '__main__':
         error("Could not create updater: %s" % ex)
         sys.exit(1)
 
-    
     info("RUN STARTED")
     try:
         patient_updater.update()

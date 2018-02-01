@@ -11,7 +11,7 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-         migrations.RemoveField(
+        migrations.RemoveField(
             model_name='cdefile',
             name='cde',
         ),
@@ -27,5 +27,5 @@ class Migration(migrations.Migration):
             model_name='cdefile',
             name='section',
         )
-       
+
     ]

@@ -15,6 +15,9 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='registryform',
             name='applicability_condition',
-            field=models.TextField(blank=True, help_text='E.g. patient.deceased == True', null=True),
+            field=models.TextField(
+                blank=True,
+                help_text='E.g. patient.deceased == True',
+                null=True),
         ),
     ]

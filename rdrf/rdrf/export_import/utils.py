@@ -15,7 +15,8 @@ class DelegateMixin():
 
     def __getattr__(self, attr):
         if not hasattr(self, '_delegate_to') or self._delegate_to is None:
-            raise ValueError("DelegateMixin not properly initialised with '_delegate_to' attribute")
+            raise ValueError(
+                "DelegateMixin not properly initialised with '_delegate_to' attribute")
         if hasattr(self._delegate_to, attr):
             return getattr(self._delegate_to, attr)
         raise AttributeError("'%s' object has no attribute '%s'" %
@@ -60,6 +61,7 @@ def maybe_indent(logger):
 def calculate_checksum_str(iterable):
     return calculate_checksum(s.encode("utf-8") for s in iterable)
 
+
 def calculate_checksum(iterable):
     h = hashlib.md5()
     for item in iterable:
@@ -74,5 +76,6 @@ def file_checksum(filename):
 
 def app_schema_version(app_label):
     recorder = MigrationRecorder(connection)
-    applied_migrations = sorted((x[1] for x in recorder.applied_migrations() if x[0] == app_label))
+    applied_migrations = sorted(
+        (x[1] for x in recorder.applied_migrations() if x[0] == app_label))
     return calculate_checksum_str(applied_migrations)

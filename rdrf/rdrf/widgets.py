@@ -558,14 +558,12 @@ class ConsentFileInput(ClearableFileInput):
         }
 
 
-
-
 class SliderWidget(widgets.TextInput):
-     def render(self, name, value, attrs=None):
-         if not value or not isinstance(value, int):
-             value = 0
+    def render(self, name, value, attrs=None):
+        if not value or not isinstance(value, int):
+            value = 0
 
-         context = """
+        context = """
              <script>
                  $(function() {
                      $( "#%s" ).slider({
@@ -585,5 +583,5 @@ class SliderWidget(widgets.TextInput):
                  <div class='col-md-3' style="color: red; font-size: x-small"><strong><i>Worst possible pain</i></strong></div>
              </p>
          """ % (name, value, attrs['id'], attrs['id'], name, value, name)
-         
-         return context
+
+        return context

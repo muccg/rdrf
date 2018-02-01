@@ -12,7 +12,7 @@ def country(patient_model):
     try:
         patient_address = PatientAddress.objects.get(patient=patient_model)
         return patient_address.country
-    except:
+    except BaseException:
         pass
 
 

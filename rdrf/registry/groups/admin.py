@@ -102,11 +102,14 @@ class CustomUserAdmin(UserAdmin):
     )
 
     # curators shouldn't see checkbox to create super user
-    curator_fieldsets = ((None, {'fields': ('username', 'password')}),
-                         ('Personal information', {
-                          'fields': ('first_name', 'last_name', 'title', 'email')}),
-                         ('Permissions', {'fields':
-                                          ('is_active', 'is_staff', 'groups', 'working_groups', 'registry')}))
+    curator_fieldsets = (
+        (None, {
+            'fields': (
+                'username', 'password')}), ('Personal information', {
+                    'fields': (
+                        'first_name', 'last_name', 'title', 'email')}), ('Permissions', {
+                            'fields': (
+                                'is_active', 'is_staff', 'groups', 'working_groups', 'registry')}))
 
     add_fieldsets = (
         (None, {
@@ -126,7 +129,8 @@ class CustomUserAdmin(UserAdmin):
         if user.is_active:
             return 'Active'
         choices = dict(UserDeactivation.DEACTIVATION_REASON_CHOICES)
-        last_deactivation = UserDeactivation.objects.filter(username=user.username).order_by('-timestamp').first()
+        last_deactivation = UserDeactivation.objects.filter(
+            username=user.username).order_by('-timestamp').first()
         if last_deactivation is None or last_deactivation.reason not in choices:
             return 'Inactive'
 

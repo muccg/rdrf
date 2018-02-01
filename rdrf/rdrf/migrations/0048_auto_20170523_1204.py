@@ -15,6 +15,16 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='emailnotification',
             name='description',
-            field=models.CharField(choices=[('account-locked', 'Account Locked'), ('other-clinician', 'Other Clinician'), ('new-patient', 'New Patient Registered'), ('account-verified', 'Account Verified')], max_length=100),
+            field=models.CharField(
+                choices=[
+                    ('account-locked',
+                     'Account Locked'),
+                    ('other-clinician',
+                     'Other Clinician'),
+                    ('new-patient',
+                     'New Patient Registered'),
+                    ('account-verified',
+                     'Account Verified')],
+                max_length=100),
         ),
     ]

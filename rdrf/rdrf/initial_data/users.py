@@ -33,7 +33,8 @@ def create_user(username, password=None, groups=[], **kwargs):
     )
     defaults.update(kwargs)
 
-    user, created = models.CustomUser.objects.get_or_create(username=username, defaults=defaults)
+    user, created = models.CustomUser.objects.get_or_create(
+        username=username, defaults=defaults)
     if created:
         user.set_password(password)
         user.groups.add(*Group.objects.filter(name__in=groups))

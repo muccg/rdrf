@@ -38,7 +38,9 @@ class PatientLookup(View):
                 if not request.user.is_superuser:
                     working_groups = [wg for wg in request.user.working_groups.all()]
                 else:
-                    working_groups = [wg for wg in WorkingGroup.objects.filter(registry=registry_model)]
+                    working_groups = [
+                        wg for wg in WorkingGroup.objects.filter(
+                            registry=registry_model)]
 
                 query = (Q(given_names__icontains=term) | Q(family_name__icontains=term)) & \
                     Q(working_groups__in=working_groups)
@@ -72,14 +74,13 @@ class FamilyLookup(View):
             result = {"error": "patient is not an index"}
             return HttpResponse(json.dumps(result))
 
-
         if request.user.can_view_patient_link(patient):
             link = reverse("patient_edit", args=[reg_code, patient.pk])
             working_group = None
         else:
             link = None
             working_group = self._get_working_group_name(patient)
-            
+
         result["index"] = {"pk": patient.pk,
                            "given_names": patient.given_names,
                            "family_name": patient.family_name,
@@ -102,7 +103,7 @@ class FamilyLookup(View):
                 else:
                     relative_link = None
                     working_group = self._get_working_group_name(patient_created)
-                    
+
             else:
                 relative_link = None
 
@@ -140,7 +141,7 @@ class UsernameLookup(View):
 
         return HttpResponse(json.dumps(result))
 
-    
+
 class RecaptchaValidator(View):
 
     def post(self, request):

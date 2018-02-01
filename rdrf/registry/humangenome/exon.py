@@ -45,7 +45,7 @@ class Variation(sequence.Variation):
         # sequence-level variation.
         try:
             return NoChange(input)
-        except:
+        except BaseException:
             raise Variation.Malformed("Unable to discern exon variation type")
 
     @staticmethod
@@ -111,7 +111,8 @@ class Deletion(sequence.Deletion):
         self.location = Variation.create_position_or_range(location)
 
         if deletion:
-            raise Variation.Malformed("Exon deletions do not support the specification of the deleted nucleotides")
+            raise Variation.Malformed(
+                "Exon deletions do not support the specification of the deleted nucleotides")
 
 
 class Duplication(sequence.Duplication):
@@ -120,7 +121,8 @@ class Duplication(sequence.Duplication):
         self.location = Variation.create_position_or_range(location)
 
         if duplication:
-            raise Variation.Malformed("Exon duplications do not support the specification of the duplicated nucleotides")
+            raise Variation.Malformed(
+                "Exon duplications do not support the specification of the duplicated nucleotides")
 
 
 class NoChange(sequence.NoChange):

@@ -1066,7 +1066,7 @@ class Patient(models.Model):
 class ClinicianOther(models.Model):
     use_other = models.BooleanField(default=False)
     patient = models.ForeignKey(Patient, null=True)
-    clinician_name = models.CharField(max_length=200, blank=True,null=True)
+    clinician_name = models.CharField(max_length=200, blank=True, null=True)
     clinician_hospital = models.CharField(max_length=200, blank=True, null=True)
     clinician_address = models.CharField(max_length=200, blank=True, null=True)
     clinician_email = models.EmailField(max_length=254, null=True, blank=True)
@@ -1076,10 +1076,10 @@ class ClinicianOther(models.Model):
     def synchronise_working_group(self):
         if not self.user:
             return
-        
+
         if not self.use_other:
             if self.patient:
-                self.patient.working_groups = [ wg for wg in self.user.working_groups.all()]
+                self.patient.working_groups = [wg for wg in self.user.working_groups.all()]
                 self.patient.save()
                 # if there user/parent of this patient then need to update their working
                 # groups also
@@ -1092,6 +1092,7 @@ class ClinicianOther(models.Model):
                 except ParentGuardian.DoesNotExist:
                     pass
 
+
 @receiver(post_save, sender=ClinicianOther)
 def other_clinician_post_save(sender, instance, created, raw, using, update_fields, **kwargs):
 
@@ -1099,28 +1100,28 @@ def other_clinician_post_save(sender, instance, created, raw, using, update_fiel
         # User has NOT selected an existing clinician
         from rdrf.events import EventType
         from rdrf.email_notification import process_notification
-        
+
         other_clinican = instance
         patient = other_clinican.patient
         registry_model = patient.rdrf_registry.first()
         # model allows for patient to have more than one parent ...
         try:
             parent = ParentGuardian.objects.filter(patient=patient).first()
-        except:
+        except BaseException:
             # if patient was created not as child of a user
             parent = None
-        
+
         logger.debug("send notification")
         template_data = {
             "patient": patient,
             "parent": parent,
             "other_clinician": instance,
-            }
-        
+        }
+
         process_notification(registry_model.code,
-                                 EventType.OTHER_CLINICIAN,
-                                 template_data)
-        
+                             EventType.OTHER_CLINICIAN,
+                             template_data)
+
 
 class ParentGuardian(models.Model):
     GENDER_CHOICES = (("1", "Male"), ("2", "Female"), ("3", "Indeterminate"))

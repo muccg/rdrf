@@ -4,6 +4,7 @@ from django.db import migrations, models
 
 from registry.patients.models import Patient
 
+
 class Migration(migrations.Migration):
 
     dependencies = [

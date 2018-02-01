@@ -59,10 +59,14 @@ class GeneticValidator(object):
         try:
             return ProteinVariation(value)
         except ProteinVariation.Error as e:
-            raise GeneticValidationError(_("Protein validation error: %(error)s") % {"error":e})
+            raise GeneticValidationError(
+                _("Protein validation error: %(error)s") % {
+                    "error": e})
 
     def validate_sequence(self, value):
         try:
             return SequenceVariation(value)
         except SequenceVariation.Error as e:
-            raise GeneticValidationError(_("Sequence validation error: %(error)s") % {"error":e})
+            raise GeneticValidationError(
+                _("Sequence validation error: %(error)s") % {
+                    "error": e})

@@ -88,12 +88,14 @@ class Section(models.Model):
 
         if missing:
             errors["elements"] = [
-                ValidationError("section %s refers to CDE with code %s which doesn't exist" % (self.display_name, code))
-                for code in missing
-            ]
+                ValidationError(
+                    "section %s refers to CDE with code %s which doesn't exist" %
+                    (self.display_name, code)) for code in missing]
 
         if " " in self.code:
-            errors["code"] = ValidationError("Section %s code '%s' contains spaces" % (self.display_name, self.code))
+            errors["code"] = ValidationError(
+                "Section %s code '%s' contains spaces" %
+                (self.display_name, self.code))
 
         if errors:
             raise ValidationError(errors)
@@ -152,13 +154,13 @@ class Registry(models.Model):
     @property
     def features(self):
         return self.metadata.get("features", [])
-            
+
     @features.setter
     def features(self, features):
         metadata = self.metadata
         metadata["features"] = features
         self.metadata_json = json.dumps(metadata)
-    
+
     @property
     def registry_type(self):
         if not self.has_feature("contexts"):
@@ -296,8 +298,6 @@ class Registry(models.Model):
                 section_map[section_key] = [cde_code]
 
         generated_questionnaire_form_name = self.generated_questionnaire_name
-            
-
 
         # get rid of any existing generated sections
         for section in Section.objects.all():
@@ -525,10 +525,13 @@ class Registry(models.Model):
         self._check_dupes()
 
     def _check_dupes(self):
-        dupes = [r for r in Registry.objects.all() if r.code.lower() == self.code.lower() and r.pk != self.pk]
+        dupes = [r for r in Registry.objects.all() if r.code.lower() ==
+                 self.code.lower() and r.pk != self.pk]
         names = " ".join(["%s %s" % (r.code, r.name) for r in dupes])
         if len(dupes) > 0:
-            raise ValidationError("Code %s already exists ( ignore case) in: %s" % (self.code, names))
+            raise ValidationError(
+                "Code %s already exists ( ignore case) in: %s" %
+                (self.code, names))
 
     @property
     def context_name(self):
@@ -563,8 +566,8 @@ class Registry(models.Model):
 
     @property
     def multiple_form_groups(self):
-        return [cfg for cfg in ContextFormGroup.objects.filter(registry=self,
-                                                               context_type="M").order_by("name")]
+        return [cfg for cfg in ContextFormGroup.objects.filter(
+            registry=self, context_type="M").order_by("name")]
 
     def _check_metadata(self):
         if self.metadata_json == "":
@@ -718,9 +721,17 @@ class CommonDataElement(models.Model):
     max_length = models.IntegerField(
         blank=True, null=True, help_text="Length of field - only used for character fields")
     max_value = models.DecimalField(
-        blank=True, null=True, max_digits=10, decimal_places=2, help_text="Only used for numeric fields")
+        blank=True,
+        null=True,
+        max_digits=10,
+        decimal_places=2,
+        help_text="Only used for numeric fields")
     min_value = models.DecimalField(
-        blank=True, null=True, max_digits=10, decimal_places=2, help_text="Only used for numeric fields")
+        blank=True,
+        null=True,
+        max_digits=10,
+        decimal_places=2,
+        help_text="Only used for numeric fields")
     is_required = models.BooleanField(
         default=False, help_text="Indicate whether field is non-optional")
     pattern = models.CharField(
@@ -803,11 +814,14 @@ class CommonDataElement(models.Model):
         # only use code not cde.name!
 
         if "." in self.name:
-            raise ValidationError("CDE %s  name error '%s' has dots - this causes problems please remove" % (self.code,
-                                                                                                             self.name))
+            raise ValidationError(
+                "CDE %s  name error '%s' has dots - this causes problems please remove" %
+                (self.code, self.name))
 
         if " " in self.code:
-            raise ValidationError("CDE [%s] has space(s) in code - this causes problems please remove" % self.code)
+            raise ValidationError(
+                "CDE [%s] has space(s) in code - this causes problems please remove" %
+                self.code)
 
         # check javascript calculation for naughty code
         if self.calculation.strip():
@@ -880,7 +894,6 @@ class RegistryForm(models.Model):
                                                null=True,
                                                help_text="E.g. patient.deceased == True")
 
-
     def natural_key(self):
         return (self.registry.code, self.name)
 
@@ -890,8 +903,9 @@ class RegistryForm(models.Model):
             if (RegistryForm.objects.filter(registry__code=self.registry.code, name=self.name)
                                     .exclude(pk=self.pk)
                                     .exists()):
-                raise ValidationError("RegistryForm with registry.code '%s' and name '%s' already exists"
-                                      % (self.registry.code, self.name))
+                raise ValidationError(
+                    "RegistryForm with registry.code '%s' and name '%s' already exists" %
+                    (self.registry.code, self.name))
 
     def save(self, *args, **kwargs):
         self.full_clean()
@@ -959,14 +973,25 @@ class RegistryForm(models.Model):
         from rdrf.utils import de_camelcase
         try:
             return de_camelcase(self.name)
-        except:
+        except BaseException:
             return self.name
 
     def get_link(self, patient_model, context_model=None):
         if context_model is None:
-            return reverse('registry_form', args=(self.registry.code, self.id, patient_model.id))
+            return reverse(
+                'registry_form',
+                args=(
+                    self.registry.code,
+                    self.id,
+                    patient_model.id))
         else:
-            return reverse('registry_form', args=(self.registry.code, self.id, patient_model.id, context_model.id))
+            return reverse(
+                'registry_form',
+                args=(
+                    self.registry.code,
+                    self.id,
+                    patient_model.id,
+                    context_model.id))
 
     def _check_completion_cdes(self):
         completion_cdes = set([cde.code for cde in self.complete_form_cdes.all()])
@@ -1000,7 +1025,6 @@ class RegistryForm(models.Model):
             except Section.DoesNotExist:
                 raise ValidationError("Section %s does not exist!" % section_code)
 
-
     def applicable_to(self, patient):
         # 2 levels of restriction:
         # by patient type , set up in the registry metadata
@@ -1032,7 +1056,7 @@ class RegistryForm(models.Model):
             is_applicable = eval(self.applicability_condition,
                                  {"__builtins__": None},
                                  evaluation_context)
-        except:
+        except BaseException:
             # allows us to filter out forms for patients
             # which are not related with the assumed structure
             # in the supplied condition
@@ -1099,7 +1123,11 @@ class QuestionnaireResponse(models.Model):
         questionnaire_form_name = RegistryForm.objects.get(
             registry=self.registry, is_questionnaire=True).name
 
-        value = wrapper.get_nested_cde(self.registry.code, questionnaire_form_name, "PatientData", patient_field)
+        value = wrapper.get_nested_cde(
+            self.registry.code,
+            questionnaire_form_name,
+            "PatientData",
+            patient_field)
 
         if value is None:
             return ""
@@ -1127,7 +1155,6 @@ def appears_in(cde, registry, registry_form, section):
         return False
     else:
         return cde.code in section.get_elements()
-
 
 
 class MissingData(object):
@@ -1170,8 +1197,9 @@ class ConsentSection(models.Model):
             if (ConsentSection.objects.filter(registry__code=self.registry.code, code=self.code)
                                       .exclude(pk=self.pk)
                                       .exists()):
-                raise ValidationError("ConsentSection with registry.code '%s' and code '%s' already exists"
-                                      % (self.registry.code, self.code))
+                raise ValidationError(
+                    "ConsentSection with registry.code '%s' and code '%s' already exists" %
+                    (self.registry.code, self.code))
 
     def save(self, *args, **kwargs):
         self.full_clean()
@@ -1306,6 +1334,7 @@ class ConsentQuestion(models.Model):
     def __str__(self):
         return "%s" % self.question_label
 
+
 class ConsentRule(models.Model):
     # restrictions on what a user can do with a patient
     # based on patient consent
@@ -1317,7 +1346,7 @@ class ConsentRule(models.Model):
     capability = models.CharField(max_length=50, choices=CAPABILITIES)
     consent_question = models.ForeignKey(ConsentQuestion)
     enabled = models.BooleanField(default=True)
-    
+
 
 class DemographicFields(models.Model):
     FIELD_CHOICES = []
@@ -1435,7 +1464,7 @@ class ContextFormGroup(models.Model):
 
     @property
     def forms(self):
-        sort_func = lambda form: form.position
+        def sort_func(form): return form.position
 
         return sorted([item.registry_form for item in self.items.all()],
                       key=sort_func)
@@ -1475,10 +1504,12 @@ class ContextFormGroup(models.Model):
         elif self.naming_scheme == "N":
             registry_model = self.registry
             patient_content_type = ContentType.objects.get(model='patient')
-            existing_contexts = [c for c in RDRFContext.objects.filter(object_id=patient_model.pk,
-                                                                       content_type=patient_content_type,
-                                                                       registry=registry_model,
-                                                                       context_form_group=self)]
+            existing_contexts = [
+                c for c in RDRFContext.objects.filter(
+                    object_id=patient_model.pk,
+                    content_type=patient_content_type,
+                    registry=registry_model,
+                    context_form_group=self)]
             next_number = len(existing_contexts) + 1
             return "%s/%s" % (self.name, next_number)
         elif self.naming_scheme == "C":
@@ -1528,7 +1559,7 @@ class ContextFormGroup(models.Model):
             display_name = context_model.display_name
         else:
             display_name = "Not set"
-            
+
         if self.is_ordered_by_name:
             if self.naming_scheme == "C":
                 try:
@@ -1538,7 +1569,7 @@ class ContextFormGroup(models.Model):
                         return bottom
                     else:
                         return value
-                except:
+                except BaseException:
                     return bottom
             return display_name
 
@@ -1589,11 +1620,14 @@ class ContextFormGroup(models.Model):
             num_forms = len(self.form_models)
             # Direct link to form if num forms is 1 ( handler redirects transparently)
             from rdrf.utils import de_camelcase as dc
-            action_title = "Add %s" % dc(self.form_models[0].name) if num_forms == 1 else "Add %s" % dc(self.name)
+            action_title = "Add %s" % dc(
+                self.form_models[0].name) if num_forms == 1 else "Add %s" % dc(
+                self.name)
 
             if not self.supports_direct_linking:
                 # We can't go directly to the form - so we first land on the add context view, which on save
-                # creates the context with links to the forms provided in that context after save
+                # creates the context with links to the forms provided in that context
+                # after save
                 action_link = reverse("context_add", args=(self.registry.code,
                                                            str(patient_model.pk),
                                                            str(self.pk)))
@@ -1614,7 +1648,8 @@ class ContextFormGroup(models.Model):
 
     @property
     def form_models(self):
-        return sorted([item.registry_form for item in self.items.all()], key=lambda f: f.position)
+        return sorted([item.registry_form for item in self.items.all()],
+                      key=lambda f: f.position)
 
 
 class ContextFormGroupItem(models.Model):
@@ -1642,11 +1677,10 @@ class ClinicalDataQuerySet(models.QuerySet):
         return self.values_list("data", flat=True)
 
 
-
 class Annotation(models.Model):
     ANNOTATION_TYPES = (("verified", "verfied"),
                         ("unknown", "unknown"))
-    
+
     annotation_type = models.CharField(max_length=80, db_index=True, choices=ANNOTATION_TYPES)
     patient_id = models.IntegerField(db_index=True)
     context_id = models.IntegerField(db_index=True, blank=True, null=True)
@@ -1667,10 +1701,9 @@ class Annotation(models.Model):
         num = query.count()
         num_verified = query.filter(annotation_type="verified").count()
         try:
-            return 100.00 * ( float(num_verified) / float(num))
+            return 100.00 * (float(num_verified) / float(num))
         except ZeroDivisionError:
             return None
-    
 
 
 class ClinicalData(models.Model):
@@ -1726,7 +1759,8 @@ class ClinicalData(models.Model):
 
     def _clean_registry_code(self):
         if not Registry.objects.filter(code=self.registry_code).exists():
-            raise ValidationError({ "registry_code": "Registry %s does not exist" % self.registry_code })
+            raise ValidationError(
+                {"registry_code": "Registry %s does not exist" % self.registry_code})
 
     modjgo_schema = None
     modjgo_schema_file = os.path.join(os.path.dirname(__file__), "schemas/modjgo.yaml")
@@ -1736,7 +1770,7 @@ class ClinicalData(models.Model):
             try:
                 with open(cls.modjgo_schema_file) as f:
                     cls.modjgo_schema = yaml.load(f.read())
-            except:
+            except BaseException:
                 logger.exception("Error reading %s" % cls.modjgo_schema_file)
 
         if cls.modjgo_schema:
@@ -1751,7 +1785,7 @@ class ClinicalData(models.Model):
             if self.lax_validation:
                 logger.warning("Failed to validate: %s" % e)
             else:
-                raise ValidationError({ "data": e })
+                raise ValidationError({"data": e})
 
 
 def file_upload_to(instance, filename):

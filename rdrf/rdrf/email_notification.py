@@ -8,6 +8,7 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+
 class RdrfEmailException(Exception):
     pass
 
@@ -24,7 +25,7 @@ class RdrfEmail(object):
 
         self.reg_code = reg_code
         self.description = description
-        self.language = language # used to only send to subset of languages by EmailNotificationHistory resend
+        self.language = language  # used to only send to subset of languages by EmailNotificationHistory resend
 
         if email_notification:
             self.email_notification = email_notification
@@ -33,7 +34,6 @@ class RdrfEmail(object):
 
         else:
             self.email_notification = self._get_email_notification()
-
 
     def send(self):
         try:
@@ -51,7 +51,12 @@ class RdrfEmail(object):
                     continue
 
                 email_subject, email_body = self._get_email_subject_and_body(language)
-                send_mail(email_subject, email_body, self.email_notification.email_from, [recipient], html_message=email_body)
+                send_mail(
+                    email_subject,
+                    email_body,
+                    self.email_notification.email_from,
+                    [recipient],
+                    html_message=email_body)
                 if language not in notification_record_saved:
                     self._save_notification_record(language)
                     notification_record_saved.append(language)
@@ -59,10 +64,11 @@ class RdrfEmail(object):
             logger.info("Email %s saved in history table" % self.description)
         except RdrfEmailException as rdrfex:
             logger.error("RdrfEmailException: %s" % rdrfex)
-            logger.warning("No notification available for %s (%s)" % (self.reg_code, self.description))
+            logger.warning(
+                "No notification available for %s (%s)" %
+                (self.reg_code, self.description))
         except Exception as e:
             logger.exception("Email has failed to send")
-
 
     def _get_preferred_language(self, email_address):
         user_model = self._get_user_from_email(email_address)
@@ -89,7 +95,7 @@ class RdrfEmail(object):
         # and a parent template is registered against the account verified
         # event , the recipient template will evaulate to an empty string ..
 
-        return [r for r in recipients  if self._valid_email(r)]
+        return [r for r in recipients if self._valid_email(r)]
 
     def _valid_email(self, s):
         return "@" in s
@@ -99,9 +105,12 @@ class RdrfEmail(object):
             email_template = self.email_notification.email_templates.get(language=language)
         except EmailTemplate.DoesNotExist:
             try:
-                email_template = self.email_notification.email_templates.get(language=self._DEFAULT_LANGUAGE)
+                email_template = self.email_notification.email_templates.get(
+                    language=self._DEFAULT_LANGUAGE)
             except EmailTemplate.DoesNotExist:
-                raise RdrfEmailException("Can't find any email templates for Email notification %s" % self.email_notification.id)
+                raise RdrfEmailException(
+                    "Can't find any email templates for Email notification %s" %
+                    self.email_notification.id)
 
         context = Context(self.template_data)
 
@@ -115,9 +124,10 @@ class RdrfEmail(object):
 
     def _get_email_notification(self):
         try:
-            return EmailNotification.objects.get(registry__code=self.reg_code, description=self.description)
+            return EmailNotification.objects.get(
+                registry__code=self.reg_code, description=self.description)
         except EmailNotification.DoesNotExist:
-                raise RdrfEmailException()
+            raise RdrfEmailException()
 
     def _get_group_emails(self, group):
         user_emails = []

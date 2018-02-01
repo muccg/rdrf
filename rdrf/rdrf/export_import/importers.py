@@ -35,7 +35,10 @@ class DataGroupImporter(object):
         if len(datagroups_meta) > 0:
             self.logger.debug('Importing %d datagroups', len(datagroups_meta))
         for datagroup_meta in datagroups_meta:
-            importer = self.catalogue.datagroups.get(get_meta_value(datagroup_meta, 'name'))(self.catalogue)
+            importer = self.catalogue.datagroups.get(
+                get_meta_value(
+                    datagroup_meta, 'name'))(
+                self.catalogue)
             importer.do_import(datagroup_meta, workdir, **options)
 
     def import_models(self, models_meta, workdir, **options):
@@ -43,7 +46,14 @@ class DataGroupImporter(object):
             importer = self.catalogue.models.get(get_meta_value(model_meta, 'model_name'))()
             importer.do_import(model_meta, workdir, **options)
 
-    def do_import(self, datagroup_meta, parent_workdir, registry_code=None, logger=None, simulate=False, force=False):
+    def do_import(
+            self,
+            datagroup_meta,
+            parent_workdir,
+            registry_code=None,
+            logger=None,
+            simulate=False,
+            force=False):
         if logger is not None:
             self.logger = logger
         self.child_logger = maybe_indent(self.logger)
@@ -84,9 +94,18 @@ class ModelImporter(object):
     def check_no_data_in_table(self, model_name):
         model = apps.get_model(model_name)
         if model.objects.count() > 0:
-            raise ImportError("Refusing to import over existing data for model '%s'." % model_name)
+            raise ImportError(
+                "Refusing to import over existing data for model '%s'." %
+                model_name)
 
-    def do_import(self, model_meta, workdir, logger=None, simulate=False, force=False, **kwargs):
+    def do_import(
+            self,
+            model_meta,
+            workdir,
+            logger=None,
+            simulate=False,
+            force=False,
+            **kwargs):
         self.logger = logger
         self.child_logger = maybe_indent(self.logger)
         self.force = force

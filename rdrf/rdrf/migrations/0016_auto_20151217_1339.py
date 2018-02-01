@@ -20,9 +20,7 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.AlterField(
-            model_name='mongomigrationdummymodel',
-            name='version',
-            field=models.CharField(max_length=80, choices=[('initial', 'initial'), ('testing', 'testing')]),
-        ),
-        migrations.RunPython(forwards_func, backwards_func),
-    ]
+            model_name='mongomigrationdummymodel', name='version', field=models.CharField(
+                max_length=80, choices=[
+                    ('initial', 'initial'), ('testing', 'testing')]), ), migrations.RunPython(
+            forwards_func, backwards_func), ]

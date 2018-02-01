@@ -9,7 +9,8 @@ from registry.groups.models import CustomUser
 from registry.patients.models import Patient
 from registry.patients.models import ParentGuardian
 
-def send_reminder(user, registry_model,process_func=None):
+
+def send_reminder(user, registry_model, process_func=None):
     if process_func:
         rp = ReminderProcessor(user, registry_model, process_func)
     else:
@@ -18,15 +19,11 @@ def send_reminder(user, registry_model,process_func=None):
     return sent
 
 
-
-
-    
-
 class Command(BaseCommand):
     help = "Lists users who haven't logged in for a while"
 
     def add_arguments(self, parser):
-        parser.add_argument('-r',"--registry_code",
+        parser.add_argument('-r', "--registry_code",
                             action='store',
                             dest='registry_code',
                             help='Code of registry to check')
@@ -40,7 +37,7 @@ class Command(BaseCommand):
         parser.add_argument("-a", "--action",
                             action="store",
                             dest="action",
-                            choices=['print','send-reminders'],
+                            choices=['print', 'send-reminders'],
                             default='print',
                             help="Action to perform")
 
@@ -49,7 +46,7 @@ class Command(BaseCommand):
                             dest="test_mode",
                             default=False,
                             help="Action to perform")
-        
+
     def _print(self, msg):
         self.stdout.write(msg + "\n")
 
@@ -94,24 +91,23 @@ class Command(BaseCommand):
         days = options.get("days", self._get_numdays(registry_model))
         threshold = self._get_threshold(days)
 
-
         test_mode = options.get("test_mode", False)
 
         if action == "print":
-            action_func = lambda user : self._print(user.username)
+            def action_func(user): return self._print(user.username)
         elif action == "send-reminders":
             if test_mode:
-                action_func = lambda user : send_reminder(user,
-                                                          registry_model,
-                                                          self._dummy_send)
-            else: 
-                action_func = lambda user : send_reminder(user,
-                                                          registry_model,
-                                                          process_notification)
+                def action_func(user): return send_reminder(user,
+                                                            registry_model,
+                                                            self._dummy_send)
+            else:
+                def action_func(user): return send_reminder(user,
+                                                            registry_model,
+                                                            process_notification)
         else:
             self._error("Unknown action: %s" % action)
             sys.exit(1)
-            
+
         for user in self._get_users(registry_model):
             if user.last_login is None or user.last_login < threshold:
                 try:
@@ -124,10 +120,8 @@ class Command(BaseCommand):
                                                                         user,
                                                                         ex))
 
-
     def _get_users(self, registry_model):
         for user in CustomUser.objects.filter(registry__in=[registry_model],
                                               is_active=True):
             if user.is_patient or user.is_parent:
                 yield user
-            

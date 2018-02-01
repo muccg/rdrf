@@ -10,6 +10,7 @@ from rdrf.models import CDEPermittedValue
 
 from registry.patients.models import Patient
 
+
 class MissingCodeError(Exception):
     pass
 
@@ -21,16 +22,18 @@ class Codes:
     DESCRIPTION = "FHMutationDescription"
     PATHOGENICITY = "Pathogenicity"
 
+
 class PatientData:
     def __init__(self, patient_id, items):
         self.old_id = patient_id
         self.items = items
 
+
 class Reader:
     def __init__(self, csv_file):
         self.csv_file = csv_file
         self.patient_data = []
-        
+
     def read(self):
         import csv
         patient_map = {}
@@ -45,10 +48,9 @@ class Reader:
             items = self._make_items(patient_id, patient_map[patient_id])
             self.patient_data.append(PatientData(patient_id, items))
 
-
     def _make_items(self, patient_id, rows):
         items = []
-        for row in sorted(rows,key=itemgetter('SectionIndex')):
+        for row in sorted(rows, key=itemgetter('SectionIndex')):
             cde_dicts = []
             if row["GeneVariant"]:
                 cde_dicts.append(self._make_cde_dict(Codes.GENEVARIANT,
@@ -77,12 +79,10 @@ class Reader:
                 error("Missing code for pvg %s display_value '%s'" % (cde_model.pv_group.code,
                                                                       display_value))
                 value = None
-                
+
         else:
             value = display_value
 
-            
-            
         return {"code": code,
                 "value": value}
 
@@ -94,13 +94,11 @@ class Reader:
 
         raise MissingCodeError()
 
-        
-
-    
     def __iter__(self):
         for data in self.patient_data:
             yield data
-           
+
+
 def build_idmap(mapfile):
     idmap = {}
     with open(mapfile) as mf:
@@ -109,16 +107,19 @@ def build_idmap(mapfile):
             idmap[old_id] = new_id
     return idmap
 
+
 def error(msg):
     print("Error: %s" % msg)
+
 
 def info(msg):
     print("Info: %s" % msg)
 
+
 def existing_data(patient_model):
-    return False 
-    
-    
+    return False
+
+
 idmap_file = sys.argv[1]
 csv_file = sys.argv[2]
 
@@ -143,9 +144,8 @@ for patient_data in reader:
             patient_model = Patient.objects.get(pk=rdrf_id)
             moniker = "%s\%s" % (patient_data.old_id,
                                  rdrf_id)
-            
+
             info("Found patient %s" % patient_model)
-            
 
             info("Updating patient %s .." % moniker)
 
@@ -154,11 +154,11 @@ for patient_data in reader:
                     patient_model.evaluate_field_expression(fh_registry,
                                                             field_expression,
                                                             value=patient_data.items)
-                
+
                     info("Updated patient %s OK" % moniker)
             except Exception as ex:
-                    error("Updated failed for %s ( no change to this patient): %s" % (moniker,
-                                                                                      ex))
-                    
+                error("Updated failed for %s ( no change to this patient): %s" % (moniker,
+                                                                                  ex))
+
         except Patient.DoesNotExist:
             error("No patient with id %s - skipping" % rdrf_id)

@@ -6,8 +6,10 @@ from django.contrib.contenttypes.models import ContentType
 import logging
 logger = logging.getLogger(__name__)
 
+
 class NavigationError(Exception):
     pass
+
 
 class NavigationFormType:
     DEMOGRAPHICS = 1
@@ -15,9 +17,17 @@ class NavigationFormType:
     CLINICAL = 3
     CLINICIAN = 4  # other clinician
 
+
 class NavigationWizard(object):
 
-    def __init__(self, user, registry_model, patient_model, form_type, context_id, current_form_model=None):
+    def __init__(
+            self,
+            user,
+            registry_model,
+            patient_model,
+            form_type,
+            context_id,
+            current_form_model=None):
         self.user = user
         self.registry_model = registry_model
         self.patient_model = patient_model
@@ -48,7 +58,9 @@ class NavigationWizard(object):
         for fixed_form_group in self._fixed_form_groups():
             for form_model in fixed_form_group.form_models:
                 if self.user.can_view(form_model):
-                    self.links.append(self._construct_fixed_form_link(fixed_form_group, form_model))
+                    self.links.append(
+                        self._construct_fixed_form_link(
+                            fixed_form_group, form_model))
 
         # for each multiple group, link through each assessment created for that group
         # in form order
@@ -73,8 +85,13 @@ class NavigationWizard(object):
         return self._form_link(form_model, context_model)
 
     def _form_link(self, form_model, context_model):
-        link = reverse('registry_form', args=(self.registry_model.code,
-                                              form_model.id, self.patient_model.pk, context_model.id))
+        link = reverse(
+            'registry_form',
+            args=(
+                self.registry_model.code,
+                form_model.id,
+                self.patient_model.pk,
+                context_model.id))
         return "clinical", form_model.pk, link
 
     def _fixed_form_groups(self):
@@ -84,13 +101,34 @@ class NavigationWizard(object):
         return [cfg for cfg in self.registry_model.multiple_form_groups]
 
     def _construct_demographics_link(self):
-        return ("demographic", None, reverse("patient_edit", args=[self.registry_model.code, self.patient_model.pk]))
+        return (
+            "demographic",
+            None,
+            reverse(
+                "patient_edit",
+                args=[
+                    self.registry_model.code,
+                    self.patient_model.pk]))
 
     def _construct_consents_link(self):
-        return ("consents", None, reverse("consent_form_view", args=[self.registry_model.code, self.patient_model.pk]))
+        return (
+            "consents",
+            None,
+            reverse(
+                "consent_form_view",
+                args=[
+                    self.registry_model.code,
+                    self.patient_model.pk]))
 
     def _construct_clinican_form_link(self):
-        return ("clinician", None, reverse("clinician_form_view", args=[self.registry_model.code, self.patient_model.pk]))
+        return (
+            "clinician",
+            None,
+            reverse(
+                "clinician_form_view",
+                args=[
+                    self.registry_model.code,
+                    self.patient_model.pk]))
 
     def _construct_fixed_form_link(self, fixed_form_group, form_model):
         context_models = list(RDRFContext.objects.filter(context_form_group=fixed_form_group,
@@ -106,7 +144,9 @@ class NavigationWizard(object):
 
     def _free_forms(self):
         if self.registry_model.is_normal:
-            return [f for f in self.registry_model.forms if not f.is_questionnaire and f.applicable_to(self.patient_model)]
+            return [
+                f for f in self.registry_model.forms if not f.is_questionnaire and f.applicable_to(
+                    self.patient_model)]
         else:
             return []
 
@@ -121,10 +161,10 @@ class NavigationWizard(object):
         else:
             # we're on some form
             if self.has_clinician_form:
-                special_names = ['demographic', 'consents','clinician']
+                special_names = ['demographic', 'consents', 'clinician']
             else:
                 special_names = ['demographic', 'consents']
-                
+
             for index, (name, form_id, link) in enumerate(self.links):
                 if name in special_names:
                     continue

@@ -4,6 +4,7 @@ from django.http import HttpResponseRedirect
 from django.template.context_processors import csrf
 from django.contrib.auth.decorators import login_required
 
+
 @login_required
 def patient_report(request):
     from django.http import HttpResponse
@@ -25,7 +26,7 @@ def patient_report(request):
     report_name = report.NAME
     run_date = datetime.now().strftime('%b-%d-%I%M%p-%G')
 
-    response[
-        'Content-Disposition'] = 'attachment; filename=%s_%s_%s.csv' % (app_name, report_name, run_date)
+    response['Content-Disposition'] = 'attachment; filename=%s_%s_%s.csv' % (
+        app_name, report_name, run_date)
 
     return response

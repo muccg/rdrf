@@ -43,8 +43,14 @@ class EnforceTwoFactorAuthMiddleware(MiddlewareMixin):
     Users who are required to have two-factor authentication but aren't verified
     will always be redirected to the two-factor setup page.
     """
+
     def process_request(self, request):
-        whitelisted_views = ('two_factor:login', 'two_factor:setup', 'two_factor:qr', 'logout', 'javascript-catalog')
+        whitelisted_views = (
+            'two_factor:login',
+            'two_factor:setup',
+            'two_factor:qr',
+            'logout',
+            'javascript-catalog')
         logger.debug([reverse(v) for v in whitelisted_views])
         if any([reverse(v) in request.path_info for v in whitelisted_views]):
             return None

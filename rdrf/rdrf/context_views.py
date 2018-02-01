@@ -83,7 +83,8 @@ class ContextFormGroupHelperMixin(object):
             if not user.is_superuser:
                 user_working_groups = set([wg for wg in user.working_groups.all()])
             else:
-                user_working_groups = set([wg for wg in WorkingGroup.objects.filter(registry=registry_model)])
+                user_working_groups = set(
+                    [wg for wg in WorkingGroup.objects.filter(registry=registry_model)])
 
             if is_normal_user and not user.in_registry(registry_model):
                 return False
@@ -101,7 +102,8 @@ class ContextFormGroupHelperMixin(object):
             return HttpResponseRedirect("/")
 
     def create_context_and_goto_form(self, registry_model, patient_model, context_form_group):
-        assert len(context_form_group.form_models) == 1, "Direct link only possible if num forms in form group is 1"
+        assert len(
+            context_form_group.form_models) == 1, "Direct link only possible if num forms in form group is 1"
         patient_content_type = ContentType.objects.get_for_model(patient_model)
         form_model = context_form_group.form_models[0]
         context_model = RDRFContext()
@@ -225,7 +227,8 @@ class RDRFContextEditView(View, ContextFormGroupHelperMixin):
         registry_model = rdrf_context_model.registry
         patient_name = patient_model.display_name
         if rdrf_context_model.context_form_group:
-            context_form_group_model = self.get_context_form_group(rdrf_context_model.context_form_group.pk)
+            context_form_group_model = self.get_context_form_group(
+                rdrf_context_model.context_form_group.pk)
             naming_info = context_form_group_model.naming_info
         else:
             context_form_group_model = None

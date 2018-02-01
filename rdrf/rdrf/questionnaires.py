@@ -140,7 +140,7 @@ class QuestionnaireReverseMapper(object):
             value = value.replace("AddressType", "")
             try:
                 address_type_obj = AddressType.objects.get(type=value)
-            except:
+            except BaseException:
                 address_type_obj = AddressType.objects.get(type="Home")
             return address_type_obj
 
@@ -295,7 +295,7 @@ class QuestionnaireReverseMapper(object):
                 if created:
                     rel.save()
                 return rel
-            except:
+            except BaseException:
                 return None
 
         value = KEY_MAP[cde_code]
@@ -338,8 +338,7 @@ class QuestionnaireReverseMapper(object):
         for form_model in self.registry.forms:
             for section_model in form_model.section_models:
                 if generated_section_code == self.registry._generated_section_questionnaire_code(
-                        form_model.name,
-                        section_model.code):
+                        form_model.name, section_model.code):
                     return form_model.name, section_model.code
         return None, None
 
@@ -535,17 +534,20 @@ class _ExistingDataWrapper(object):
                         question.cde_model)}
             else:
                 if not question.is_address:
-                    existing_answer = {"name": field_name,
-                                       "pos": str(question.pos),
-                                       "is_multi": True,
-                                       "answers": self._get_existing_multisection_data(question.field_expression,
-                                                                                       question.form_model,
-                                                                                       question.section_model)}
+                    existing_answer = {
+                        "name": field_name,
+                        "pos": str(
+                            question.pos),
+                        "is_multi": True,
+                        "answers": self._get_existing_multisection_data(
+                            question.field_expression,
+                            question.form_model,
+                            question.section_model)}
                 else:
-                    existing_answer = {"name": field_name,
-                                       "pos": str(question.pos),
-                                       "is_multi": True,
-                                       "answers": self._get_address_labels(question.field_expression)}
+                    existing_answer = {
+                        "name": field_name, "pos": str(
+                            question.pos), "is_multi": True, "answers": self._get_address_labels(
+                            question.field_expression)}
 
             l.append(existing_answer)
 
@@ -554,8 +556,9 @@ class _ExistingDataWrapper(object):
     def _get_consent_answer(self, consent_question):
         from registry.patients.models import ConsentValue
         try:
-            consent_value_model = ConsentValue.objects.get(patient=self.patient_model,
-                                                           consent_question=consent_question.consent_question_model)
+            consent_value_model = ConsentValue.objects.get(
+                patient=self.patient_model,
+                consent_question=consent_question.consent_question_model)
             if consent_value_model.answer:
                 return "Yes"
         except ConsentValue.DoesNotExist:
@@ -755,11 +758,14 @@ class _Question(object):
             return self.target.display_name
         except Exception as ex:
             logger.error("error getting target: %s" % ex)
-            return "%s/%s/%s" % (self.form_name, self.section_model.display_name, self.cde_model.name)
+            return "%s/%s/%s" % (self.form_name,
+                                 self.section_model.display_name,
+                                 self.cde_model.name)
 
     def _get_display_value(self, value):
         if not self.is_multi:
-            return self.humaniser.display_value2(self.form_model, self.section_model, self.cde_model, value)
+            return self.humaniser.display_value2(
+                self.form_model, self.section_model, self.cde_model, value)
         else:
             if not self.is_address:
                 display = self.humaniser.display_value2
@@ -896,7 +902,13 @@ class _Multisection(object):
 
 class _MultiSectionItem(object):
 
-    def __init__(self, registry_model, target_form_model, target_section_model, value_map, is_address=False):
+    def __init__(
+            self,
+            registry_model,
+            target_form_model,
+            target_section_model,
+            value_map,
+            is_address=False):
         self.registry_model = registry_model
         self.form_model = target_form_model
         self.section_model = target_section_model
@@ -1136,7 +1148,8 @@ class Questionnaire(object):
 
         if num_errors == 0:
             logger.info(
-                "Questionnaire update of Patient %s succeeded without error." % patient_model.pk)
+                "Questionnaire update of Patient %s succeeded without error." %
+                patient_model.pk)
         else:
             logger.info("Questionnaire update of Patient %s had %s errors: " % (
                 patient_model.pk, num_errors))

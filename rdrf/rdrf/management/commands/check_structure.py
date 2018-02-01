@@ -10,15 +10,16 @@ import os
 explanation = "This command checks for schema validation errors"
 SCHEMA_FILE = "modjgo.yaml"
 
+
 class Command(BaseCommand):
     help = 'Checks in clinical db against json schema(s)'
 
     def add_arguments(self, parser):
-        parser.add_argument('-r',"--registry_code",
+        parser.add_argument('-r', "--registry_code",
                             action='store',
                             dest='registry_code',
                             help='Code of registry to check')
-        parser.add_argument('-c','--collection',
+        parser.add_argument('-c', '--collection',
                             action='store',
                             dest='collection',
                             default="cdes",
@@ -34,7 +35,7 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         problem_count = 0
         self.schema = self._load_schema()
-        registry_code = options.get("registry_code",None)
+        registry_code = options.get("registry_code", None)
         if registry_code is None:
             self._print("Error: registry code required")
             sys.exit(1)
@@ -43,27 +44,26 @@ class Command(BaseCommand):
         except Registry.DoesNotExist:
             self._print("Error: registry does not exist")
             sys.exit(1)
-        
+
         collection = options.get("collection", "cdes")
         if collection == "registry_specific":
-           collection = "registry_specific_patient_data"
+            collection = "registry_specific_patient_data"
 
         for modjgo_model in ClinicalData.objects.filter(registry_code=registry_code,
-                                                  collection=collection):
+                                                        collection=collection):
             data = modjgo_model.data
             problem = self._check_for_problem(collection, data)
             if problem is not None:
                 problem_count += 1
                 django_model, django_id, message = problem
                 self._print("%s;%s;%s;%s" % (modjgo_model.pk,
-                                       django_model,
-                                       django_id,
-                                       message))
+                                             django_model,
+                                             django_id,
+                                             message))
 
         if problem_count > 0:
             sys.exit(1)
-            
-                
+
     def _load_schema(self):
         cmd_dir = os.path.dirname(__file__)
         schema_path = os.path.join(os.path.dirname(os.path.dirname(cmd_dir)),
@@ -71,8 +71,8 @@ class Command(BaseCommand):
                                    SCHEMA_FILE)
 
         if os.path.exists(schema_path):
-                with open(schema_path) as sf:
-                    return yaml.load(sf)
+            with open(schema_path) as sf:
+                return yaml.load(sf)
 
         raise FileNotFoundError(errno.ENOENT,
                                 os.strerror(errno.ENOENT),

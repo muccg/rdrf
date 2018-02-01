@@ -85,7 +85,7 @@ class FieldFactory(object):
         try:
             __import__(self.CUSTOM_FIELDS_MODULE)
             return True
-        except:
+        except BaseException:
             return False
 
     def _get_customisation_module(self):
@@ -322,7 +322,7 @@ class FieldFactory(object):
                             main_choices=choices,
                             other_please_specify_value=other_please_specify_value,
                             unset_value=self.UNSET_CHOICE)
-                    except:
+                    except BaseException:
                         widget = widgets.OtherPleaseSpecifyWidget(
                             main_choices=choices,
                             other_please_specify_value=other_please_specify_value,
@@ -369,7 +369,8 @@ class FieldFactory(object):
                         return ChoiceFieldNoValidation(**options)
 
                     if self.cde.code in ['State', 'Country']:
-                        # because these are dynamic lookup fields the usual validation wasn't working
+                        # because these are dynamic lookup fields the usual validation wasn't
+                        # working
                         from rdrf.fields import ChoiceFieldNonBlankValidation
                         return ChoiceFieldNonBlankValidation(**options)
 

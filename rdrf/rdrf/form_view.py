@@ -155,7 +155,8 @@ class SectionInfo(object):
 
     def save(self):
         if not self.is_multiple:
-            self.patient_wrapper.save_dynamic_data(self.registry_code, self.collection_name, self.data)
+            self.patient_wrapper.save_dynamic_data(
+                self.registry_code, self.collection_name, self.data)
         else:
             self.patient_wrapper.save_dynamic_data(self.registry_code,
                                                    self.collection_name,
@@ -168,11 +169,16 @@ class SectionInfo(object):
         # We do this to create a form instance which has correct links to uploaded files
         current_data = self.patient_wrapper.load_dynamic_data(self.registry_code, "cdes")
         if self.is_multiple:
-            dynamic_data = self.data[self.section_code] # the cleaned data from the form submission
+            # the cleaned data from the form submission
+            dynamic_data = self.data[self.section_code]
         else:
             dynamic_data = self.data
 
-        wrapped_data = wrap_file_cdes(self.registry_code, dynamic_data, current_data, multisection=self.is_multiple)
+        wrapped_data = wrap_file_cdes(
+            self.registry_code,
+            dynamic_data,
+            current_data,
+            multisection=self.is_multiple)
 
         if self.is_multiple:
             form_instance = self.form_set_class(initial=wrapped_data, prefix=self.prefix)
@@ -180,6 +186,7 @@ class SectionInfo(object):
             form_instance = self.form_class(dynamic_data, initial=wrapped_data)
 
         return form_instance
+
 
 class FormView(View):
 
@@ -217,21 +224,23 @@ class FormView(View):
         try:
             if context_id is None:
                 if self.registry.has_feature("contexts"):
-                    raise RDRFContextError("Registry %s supports contexts but no context id  passed in url" %
-                                           self.registry)
+                    raise RDRFContextError(
+                        "Registry %s supports contexts but no context id  passed in url" %
+                        self.registry)
                 else:
-                    self.rdrf_context = self.rdrf_context_manager.get_or_create_default_context(patient_model)
+                    self.rdrf_context = self.rdrf_context_manager.get_or_create_default_context(
+                        patient_model)
             else:
-                self.rdrf_context = self.rdrf_context_manager.get_context(context_id, patient_model)
+                self.rdrf_context = self.rdrf_context_manager.get_context(
+                    context_id, patient_model)
 
             if self.rdrf_context is None:
                 raise RDRFContextSwitchError
 
         except RDRFContextError as ex:
-            logger.error("Error setting rdrf context id %s for patient %s in %s: %s" % (context_id,
-                                                                                        patient_model,
-                                                                                        self.registry,
-                                                                                        ex))
+            logger.error(
+                "Error setting rdrf context id %s for patient %s in %s: %s" %
+                (context_id, patient_model, self.registry, ex))
 
             raise RDRFContextSwitchError
 
@@ -294,7 +303,6 @@ class FormView(View):
         except Patient.DoesNotExist:
             raise Http404
 
-
         security_check_user_patient(request.user, patient_model)
 
         self.registry = self._get_registry(registry_code)
@@ -306,7 +314,6 @@ class FormView(View):
                                  patient_model,
                                  "see_patient"):
                 raise PermissionDenied
-            
 
         self.rdrf_context_manager = RDRFContextManager(self.registry)
 
@@ -343,7 +350,6 @@ class FormView(View):
         context["header_expression"] = "rdrf://model/RegistryForm/%s/header" % self.registry_form.pk
         context["settings"] = settings
 
-
         patient_info_component = RDRFPatientInfoComponent(self.registry, patient_model)
 
         if not self.CREATE_MODE:
@@ -352,7 +358,8 @@ class FormView(View):
             context["patient_info"] = patient_info_component.html
             context["show_archive_button"] = request.user.can_archive
             context["not_linked"] = not patient_model.is_linked
-            context["archive_patient_url"] = patient_model.get_archive_url(self.registry) if request.user.can_archive else ""
+            context["archive_patient_url"] = patient_model.get_archive_url(
+                self.registry) if request.user.can_archive else ""
 
         else:
             context["CREATE_MODE"] = True
@@ -430,7 +437,6 @@ class FormView(View):
         else:
             dyn_patient = DynamicDataWrapper(patient, rdrf_context_id='add')
 
-
         dyn_patient.user = request.user
 
         form_obj = self.get_registry_form(form_id)
@@ -469,10 +475,18 @@ class FormView(View):
                 form = form_class(request.POST, files=request.FILES)
                 if form.is_valid():
                     dynamic_data = form.cleaned_data
-                    section_info = SectionInfo(s, dyn_patient, False, registry_code, "cdes", dynamic_data,form_class=form_class)
+                    section_info = SectionInfo(
+                        s,
+                        dyn_patient,
+                        False,
+                        registry_code,
+                        "cdes",
+                        dynamic_data,
+                        form_class=form_class)
                     sections_to_save.append(section_info)
                     current_data = dyn_patient.load_dynamic_data(self.registry.code, "cdes")
-                    form_data = wrap_file_cdes(registry_code, dynamic_data, current_data, multisection=False)
+                    form_data = wrap_file_cdes(
+                        registry_code, dynamic_data, current_data, multisection=False)
                     form_section[s] = form_class(dynamic_data, initial=form_data)
                 else:
                     all_sections_valid = False
@@ -483,7 +497,8 @@ class FormView(View):
                     from rdrf.utils import wrap_uploaded_files
                     request.POST.update(request.FILES)
 
-                    form_section[s] = form_class(wrap_uploaded_files(registry_code, request.POST), request.FILES)
+                    form_section[s] = form_class(wrap_uploaded_files(
+                        registry_code, request.POST), request.FILES)
 
             else:
                 if section_model.extra:
@@ -520,7 +535,12 @@ class FormView(View):
                                                prefix=prefix)
 
                     sections_to_save.append(section_info)
-                    form_data = wrap_file_cdes(registry_code, dynamic_data, current_data, multisection=True, index_map=index_map)
+                    form_data = wrap_file_cdes(
+                        registry_code,
+                        dynamic_data,
+                        current_data,
+                        multisection=True,
+                        index_map=index_map)
                     form_section[s] = form_set_class(initial=form_data, prefix=prefix)
 
                 else:
@@ -541,19 +561,30 @@ class FormView(View):
                 form_instance = section_info.recreate_form_instance()
                 form_section[section_info.section_code] = form_instance
 
-            progress_dict = dyn_patient.save_form_progress(registry_code, context_model=self.rdrf_context)
+            progress_dict = dyn_patient.save_form_progress(
+                registry_code, context_model=self.rdrf_context)
             # Save one snapshot after all sections have being persisted
-            dyn_patient.save_snapshot(registry_code, "cdes", form_name=form_obj.name, form_user=self.request.user.username)
+            dyn_patient.save_snapshot(
+                registry_code,
+                "cdes",
+                form_name=form_obj.name,
+                form_user=self.request.user.username)
 
             if self.CREATE_MODE and dyn_patient.rdrf_context_id != "add":
-                # we've created the context on the fly so no redirect to the edit view on the new context
+                # we've created the context on the fly so no redirect to the edit view on
+                # the new context
                 newly_created_context = RDRFContext.objects.get(id=dyn_patient.rdrf_context_id)
-                dyn_patient.save_form_progress(registry_code, context_model=newly_created_context)
+                dyn_patient.save_form_progress(
+                    registry_code, context_model=newly_created_context)
 
-                return HttpResponseRedirect(reverse('registry_form', args=(registry_code,
-                                                                           form_id,
-                                                                           patient.pk,
-                                                                           newly_created_context.pk)))
+                return HttpResponseRedirect(
+                    reverse(
+                        'registry_form',
+                        args=(
+                            registry_code,
+                            form_id,
+                            patient.pk,
+                            newly_created_context.pk)))
 
             if dyn_patient.rdrf_context_id == "add":
                 raise Exception("Content not created")
@@ -617,7 +648,8 @@ class FormView(View):
             context['parent'] = ParentGuardian.objects.get(user=request.user)
 
         if not self.registry_form.is_questionnaire:
-            form_progress_map = progress_dict.get(self.registry_form.name + "_form_progress", {})
+            form_progress_map = progress_dict.get(
+                self.registry_form.name + "_form_progress", {})
             if "percentage" in form_progress_map:
                 progress_percentage = form_progress_map["percentage"]
             else:
@@ -627,18 +659,19 @@ class FormView(View):
             initial_completion_cdes = {cde_model.name: False for cde_model in
                                        self.registry_form.complete_form_cdes.all()}
 
-
-            context["form_progress_cdes"]  = progress_dict.get(self.registry_form.name + "_form_cdes_status",
-                                                              initial_completion_cdes)
+            context["form_progress_cdes"] = progress_dict.get(
+                self.registry_form.name + "_form_cdes_status", initial_completion_cdes)
 
         context.update(csrf(request))
         if error_count == 0:
-            success_message = _("Patient %(patient_name)s saved successfully. Please now use the blue arrow on the right to continue.") % {"patient_name": patient_name}
+            success_message = _("Patient %(patient_name)s saved successfully. Please now use the blue arrow on the right to continue.") % {
+                "patient_name": patient_name}
             messages.add_message(request,
                                  messages.SUCCESS,
                                  success_message)
         else:
-            failure_message = _("Patient %(patient_name)s not saved due to validation errors") % {"patient_name": patient_name}
+            failure_message = _("Patient %(patient_name)s not saved due to validation errors") % {
+                "patient_name": patient_name}
 
             messages.add_message(request,
                                  messages.ERROR,
@@ -738,7 +771,8 @@ class FormView(View):
                     extra = section_model.extra
                 else:
                     extra = 0
-                form_set_class = formset_factory(form_class, extra=extra, can_delete=self.show_multisection_delete_checkbox)
+                form_set_class = formset_factory(
+                    form_class, extra=extra, can_delete=self.show_multisection_delete_checkbox)
                 if self.dynamic_data:
                     try:
                         # we grab the list of data items by section code not cde code
@@ -794,7 +828,7 @@ class FormView(View):
                                                                   self.rdrf_context)
 
             context["form_progress"] = form_progress_percentage
-            context["form_progress_cdes"] =  form_cdes_status
+            context["form_progress_cdes"] = form_cdes_status
 
         context.update(kwargs)
         return context
@@ -840,7 +874,9 @@ class FormView(View):
 
     # fixme: could replace with TemplateView.get_template_names()
     def _get_template(self):
-        if self.user and self.user.has_perm("rdrf.form_%s_is_readonly" % self.form_id) and not self.user.is_superuser:
+        if self.user and self.user.has_perm(
+            "rdrf.form_%s_is_readonly" %
+                self.form_id) and not self.user.is_superuser:
             return "rdrf_cdes/form_readonly.html"
 
         return "rdrf_cdes/form.html"
@@ -861,7 +897,14 @@ class FormFieldHistoryView(TemplateView):
             raise PermissionDenied()
         return super(FormFieldHistoryView, self).get(request, **kwargs)
 
-    def get_context_data(self, registry_code, form_id, patient_id, context_id, section_code, cde_code):
+    def get_context_data(
+            self,
+            registry_code,
+            form_id,
+            patient_id,
+            context_id,
+            section_code,
+            cde_code):
         context = super(FormFieldHistoryView, self).get_context_data()
 
         # find database objects from url route params
@@ -1249,10 +1292,8 @@ class QuestionnaireView(FormView):
             }
 
             context.update(csrf(request))
-            messages.add_message(
-                request,
-                messages.ERROR,
-                _('The questionnaire was not submitted because of validation errors - please try again'))
+            messages.add_message(request, messages.ERROR, _(
+                'The questionnaire was not submitted because of validation errors - please try again'))
             return render(request, 'rdrf_cdes/questionnaire.html', context)
 
     def _get_patient_id(self):
@@ -1275,7 +1316,8 @@ class QuestionnaireHandlingView(View):
         template_name = "rdrf_cdes/questionnaire_handling.html"
         context["registry_model"] = get_object_or_404(Registry, code=registry_code)
         context["form_model"] = context["registry_model"].questionnaire
-        context["qr_model"] = get_object_or_404(QuestionnaireResponse, id=questionnaire_response_id)
+        context["qr_model"] = get_object_or_404(
+            QuestionnaireResponse, id=questionnaire_response_id)
         context["patient_lookup_url"] = reverse("patient_lookup", args=(registry_code,))
 
         context["questionnaire"] = Questionnaire(context["registry_model"],
@@ -1493,7 +1535,6 @@ class CustomConsentFormView(View):
             login_url = reverse('two_factor:login')
             return redirect("%s?next=%s" % (login_url, consent_form_url))
 
-
         patient_model = Patient.objects.get(pk=patient_id)
 
         security_check_user_patient(request.user, patient_model)
@@ -1554,7 +1595,8 @@ class CustomConsentFormView(View):
         return initial_data
 
     def _get_form_sections(self, registry_model, patient_model):
-        custom_consent_form_generator = CustomConsentFormGenerator(registry_model, patient_model)
+        custom_consent_form_generator = CustomConsentFormGenerator(
+            registry_model, patient_model)
         initial_data = self._get_initial_consent_data(patient_model)
         custom_consent_form = custom_consent_form_generator.create_form(initial_data)
 
@@ -1569,10 +1611,14 @@ class CustomConsentFormView(View):
                                        patient_consent_file_forms,
                                        patient_section_consent_file)
 
-
     def _get_consent_file_formset(self, patient_model):
         patient_consent_file_formset = inlineformset_factory(
-            Patient, PatientConsent, form=PatientConsentFileForm, extra=0, can_delete=True, fields="__all__")
+            Patient,
+            PatientConsent,
+            form=PatientConsentFileForm,
+            extra=0,
+            can_delete=True,
+            fields="__all__")
 
         patient_consent_file_forms = patient_consent_file_formset(instance=patient_model,
                                                                   prefix="patient_consent_file")
@@ -1599,7 +1645,9 @@ class CustomConsentFormView(View):
 
     def post(self, request, registry_code, patient_id, context_id=None):
         if not request.user.is_authenticated():
-            consent_form_url = reverse('consent_form_view', args=[registry_code, patient_id, context_id])
+            consent_form_url = reverse(
+                'consent_form_view', args=[
+                    registry_code, patient_id, context_id])
             login_url = reverse('two_factor:login')
             return redirect("%s?next=%s" % (login_url, consent_form_url))
 
@@ -1630,7 +1678,8 @@ class CustomConsentFormView(View):
                                                                   prefix="patient_consent_file")
         patient_section_consent_file = (_("Upload consent file (if requested)"), None)
 
-        custom_consent_form_generator = CustomConsentFormGenerator(registry_model, patient_model)
+        custom_consent_form_generator = CustomConsentFormGenerator(
+            registry_model, patient_model)
         custom_consent_form = custom_consent_form_generator.create_form(request.POST)
         consent_sections = custom_consent_form.get_consent_sections()
 
@@ -1657,12 +1706,14 @@ class CustomConsentFormView(View):
             else:
                 valid_forms.append(True)
 
-
         if all(valid_forms):
             patient_consent_file_forms.save()
             custom_consent_form.save()
             patient_name = "%s %s" % (patient_model.given_names, patient_model.family_name)
-            messages.success(self.request, _("Patient %(patient_name)s saved successfully. Please now use the blue arrow on the right to continue.") % {"patient_name": patient_name})
+            messages.success(
+                self.request,
+                _("Patient %(patient_name)s saved successfully. Please now use the blue arrow on the right to continue.") % {
+                    "patient_name": patient_name})
             return HttpResponseRedirect(self._get_success_url(registry_model, patient_model))
         else:
             try:
@@ -1674,7 +1725,9 @@ class CustomConsentFormView(View):
                 "location": "Consents",
                 "patient": patient_model,
                 "patient_id": patient_model.id,
-                'patient_link': PatientLocator(registry_model, patient_model).link,
+                'patient_link': PatientLocator(
+                    registry_model,
+                    patient_model).link,
                 "context_id": context_id,
                 "registry_code": registry_code,
                 "show_archive_button": request.user.can_archive,
@@ -1686,8 +1739,9 @@ class CustomConsentFormView(View):
                 "forms": form_sections,
                 "error_messages": [],
                 "parent": parent,
-                "consent": consent_status_for_patient(registry_code, patient_model)
-            }
+                "consent": consent_status_for_patient(
+                    registry_code,
+                    patient_model)}
 
             context["message"] = _("Consent section not complete")
             context["error_messages"] = error_messages

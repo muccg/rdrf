@@ -21,7 +21,7 @@ class ProgressCalculationError(Exception):
 def nice_name(name):
     try:
         return de_camelcase(name)
-    except:
+    except BaseException:
         return name
 
 
@@ -95,19 +95,24 @@ class FormProgress(object):
 
             try:
                 if not section_model.allow_multiple:
-                    value = self._get_value_from_dynamic_data(form_model, section_model, cde_model, dynamic_data)
+                    value = self._get_value_from_dynamic_data(
+                        form_model, section_model, cde_model, dynamic_data)
                     if test_value(value):
                         result["filled"] += 1
                 else:
-                    values = self._get_values_from_multisection(form_model, section_model, cde_model, dynamic_data)
+                    values = self._get_values_from_multisection(
+                        form_model, section_model, cde_model, dynamic_data)
                     filled_in_values = [value for value in values if test_value(value)]
                     result["filled"] += len(filled_in_values)
 
             except Exception as ex:
-                logger.error("Error getting value for %s %s: %s" % (section_model.code, cde_model.code, ex))
+                logger.error(
+                    "Error getting value for %s %s: %s" %
+                    (section_model.code, cde_model.code, ex))
 
         if result["required"] > 0:
-            result["percentage"] = int(100.00 * (float(result["filled"]) / float(result["required"])))
+            result["percentage"] = int(
+                100.00 * (float(result["filled"]) / float(result["required"])))
         else:
             result["percentage"] = 0
 
@@ -204,8 +209,9 @@ class FormProgress(object):
                         groups_dict["diagnosis"].append(form_model.name)
                 return groups_dict
         except Exception as ex:
-            logger.error("Error getting progress metadata for registry %s: %s" % (self.registry_model.code,
-                                                                                  ex))
+            logger.error(
+                "Error getting progress metadata for registry %s: %s" %
+                (self.registry_model.code, ex))
             return {}
 
     def _calculate_form_has_data(self, form_model, dynamic_data):
@@ -230,7 +236,7 @@ class FormProgress(object):
 
         cdes_status = {}
         required_cdes = self.progress_cdes_map[form_model.name]
-        cdes_status = {code : False for code in required_cdes}
+        cdes_status = {code: False for code in required_cdes}
 
         for form_dict in dynamic_data["forms"]:
             if form_dict["name"] == form_model.name:
@@ -289,8 +295,8 @@ class FormProgress(object):
                             progress_group]["has_data"] or form_has_data
 
         for group_name in groups_progress:
-            groups_progress[group_name]["percentage"] = percentage(groups_progress[group_name]["filled"],
-                                                                   groups_progress[group_name]["required"])
+            groups_progress[group_name]["percentage"] = percentage(
+                groups_progress[group_name]["filled"], groups_progress[group_name]["required"])
 
         # now save the metric in form expected by _get_metric
         result = {}
@@ -309,14 +315,16 @@ class FormProgress(object):
         self.progress_data = result
 
     def _get_query(self, patient_model, context_model):
-        return self.progress_collection.find(patient_model, context_id=context_model.id if context_model else None)
+        return self.progress_collection.find(
+            patient_model, context_id=context_model.id if context_model else None)
 
     def _load(self, patient_model, context_model=None):
         self.loaded_data = self._get_query(patient_model, context_model).data().first() or {}
         return self.loaded_data
 
     def _get_metric(self, metric, patient_model, context_model=None):
-        self._set_current(patient_model)  # if new model passed in this causes progress data reload
+        # if new model passed in this causes progress data reload
+        self._set_current(patient_model)
         self.context_model = context_model
         # eg _get_metric((SomeFormModel, "progress"), fred, None)
         # or _get_metric("diagnosis_current", fred, context23) etc
@@ -339,7 +347,9 @@ class FormProgress(object):
             elif tag == "cdes_status":
                 initial_completion_status_cdes = {cde_model.name: False for cde_model
                                                   in form_model.complete_form_cdes.all()}
-                return self.loaded_data.get(form_model.name + "_form_cdes_status", initial_completion_status_cdes)
+                return self.loaded_data.get(
+                    form_model.name + "_form_cdes_status",
+                    initial_completion_status_cdes)
             else:
                 raise FormProgressError("Unknown metric: %s" % metric)
         else:
@@ -415,7 +425,8 @@ class FormProgress(object):
                 if form.has_progress_indicator:
                     src = static(flag)
                     percentage = self.get_form_progress(form, patient_model, context_model)
-                    content += "<img src=%s> <strong>%d%%</strong> %s</br>" % (src, percentage, to_form)
+                    content += "<img src=%s> <strong>%d%%</strong> %s</br>" % (
+                        src, percentage, to_form)
                 else:
                     content += "<img src=%s> %s</br>" % (static(flag), to_form)
 
@@ -449,5 +460,6 @@ class FormProgress(object):
             wrapper = DynamicDataWrapper(patient_model)
         else:
             wrapper = DynamicDataWrapper(patient_model, rdrf_context_id=context_model.pk)
-        dynamic_data = wrapper.load_dynamic_data(self.registry_model.code, "cdes", flattened=False)
+        dynamic_data = wrapper.load_dynamic_data(
+            self.registry_model.code, "cdes", flattened=False)
         return self.save_progress(patient_model, dynamic_data, context_model)

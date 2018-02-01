@@ -74,7 +74,9 @@ class DatabaseUtils(object):
                     columns = sheet["columns"]
                     for column in columns:
                         if not isinstance(column, str):
-                            errors.append("columns in sheet %s not all strings: %s" % (sheet_name, column))
+                            errors.append(
+                                "columns in sheet %s not all strings: %s" %
+                                (sheet_name, column))
 
             except ValueError as ve:
                 errors.append("JSON malformed: %s" % ve)
@@ -157,13 +159,15 @@ class DatabaseUtils(object):
                     sql_columns_dict[sql_column_name] = item
 
                 # A mongo record may not exist ( represented as None )
-                for mongo_columns_dict in self.run_mongo_one_row(sql_columns_dict, collection, max_items):
+                for mongo_columns_dict in self.run_mongo_one_row(
+                        sql_columns_dict, collection, max_items):
                     if mongo_columns_dict is None:
                         sql_columns_dict["snapshot"] = False
                         yield sql_columns_dict
                     else:
                         mongo_columns_dict["snapshot"] = False
-                        for combined_dict in self._combine_sql_and_mongo(sql_columns_dict, mongo_columns_dict):
+                        for combined_dict in self._combine_sql_and_mongo(
+                                sql_columns_dict, mongo_columns_dict):
                             yield combined_dict
         else:
             # include longitudinal ( snapshot) data
@@ -173,13 +177,15 @@ class DatabaseUtils(object):
                     sql_column_name = self.reverse_map[i]
                     sql_columns_dict[sql_column_name] = item
 
-                for mongo_columns_dict in self.run_mongo_one_row(sql_columns_dict, collection, max_items):
+                for mongo_columns_dict in self.run_mongo_one_row(
+                        sql_columns_dict, collection, max_items):
                     if mongo_columns_dict is None:
                         sql_columns_dict["snapshot"] = False
                         yield sql_columns_dict
                     else:
                         mongo_columns_dict["snapshot"] = False
-                        for combined_dict in self._combine_sql_and_mongo(sql_columns_dict, mongo_columns_dict):
+                        for combined_dict in self._combine_sql_and_mongo(
+                                sql_columns_dict, mongo_columns_dict):
                             yield combined_dict
 
                 for mongo_columns_dict in self.run_mongo_one_row_longitudinal(
@@ -188,7 +194,8 @@ class DatabaseUtils(object):
                         yield None
 
                     mongo_columns_dict["snapshot"] = True
-                    for combined_dict in self._combine_sql_and_mongo(sql_columns_dict, mongo_columns_dict):
+                    for combined_dict in self._combine_sql_and_mongo(
+                            sql_columns_dict, mongo_columns_dict):
                         yield combined_dict
 
     def _combine_sql_and_mongo(self, sql_result_dict, mongo_result_dict):
@@ -264,18 +271,21 @@ class DatabaseUtils(object):
 
     @timed
     def _get_mongo_metadata(self):
-        # TODO not sure why this called multisection_column_map as it contains any selected mongo fields
+        # TODO not sure why this called multisection_column_map as it contains any
+        # selected mongo fields
         data = {"multisection_column_map": OrderedDict()}
 
         if not self.projection:
             return data
 
         for cde_dict in self.projection:
-            form_model = RegistryForm.objects.get(name=cde_dict["formName"], registry=self.registry_model)
+            form_model = RegistryForm.objects.get(
+                name=cde_dict["formName"], registry=self.registry_model)
             section_model = Section.objects.get(code=cde_dict["sectionCode"])
             cde_model = CommonDataElement.objects.get(code=cde_dict["cdeCode"])
             column_name = self._get_database_column_name(form_model, section_model, cde_model)
-            data["multisection_column_map"][(form_model, section_model, cde_model)] = column_name
+            data["multisection_column_map"][(
+                form_model, section_model, cde_model)] = column_name
         return data
 
     def _get_database_column_name(self, form_model, section_model, cde_model):
@@ -285,7 +295,10 @@ class DatabaseUtils(object):
 
     def _get_mongo_fields(self):
         for cde_dict in self.projection:
-            form_model = get_cached_instance(RegistryForm, name=cde_dict["formName"], registry=self.registry_model)
+            form_model = get_cached_instance(
+                RegistryForm,
+                name=cde_dict["formName"],
+                registry=self.registry_model)
             section_model = get_cached_instance(Section, code=cde_dict["sectionCode"])
             cde_model = get_cached_instance(CommonDataElement, code=cde_dict["cdeCode"])
 
@@ -371,13 +384,16 @@ class DatabaseUtils(object):
                             for section_item in section_dict["cdes"]:
                                 for cde_dict in section_item:
                                     if cde_dict["code"] == cde_model.code:
-                                        values.append(self._get_sensible_value_from_cde(cde_model, cde_dict["value"]))
+                                        values.append(
+                                            self._get_sensible_value_from_cde(
+                                                cde_model, cde_dict["value"]))
 
                             return values
                         else:
                             for cde_dict in section_dict["cdes"]:
                                 if cde_dict["code"] == cde_model.code:
-                                    value = self._get_sensible_value_from_cde(cde_model, cde_dict["value"])
+                                    value = self._get_sensible_value_from_cde(
+                                        cde_model, cde_dict["value"])
                                     return value
 
         if section_model.allow_multiple:

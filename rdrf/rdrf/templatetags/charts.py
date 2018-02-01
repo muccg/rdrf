@@ -58,4 +58,5 @@ register.tag('pie_chart', create_chart_node)
 def json_filter(value):
     return json.dumps(value, indent=2, cls=DjangoJSONEncoder)
 
+
 register.filter('json', json_filter)

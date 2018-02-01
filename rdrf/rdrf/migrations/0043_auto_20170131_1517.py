@@ -15,6 +15,13 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='contextformgroup',
             name='ordering',
-            field=models.CharField(choices=[('C', 'Creation Time'), ('N', 'Name')], default='C', max_length=1),
+            field=models.CharField(
+                choices=[
+                    ('C',
+                     'Creation Time'),
+                    ('N',
+                     'Name')],
+                default='C',
+                max_length=1),
         ),
     ]

@@ -36,7 +36,7 @@ class BaseHasCharacterValidator():
             )
 
     def get_help_text(self):
-        return ungettext(self.help_text, self.help_text_plural, self.min_occurences) %  {
+        return ungettext(self.help_text, self.help_text_plural, self.min_occurences) % {
             'min_occurences': self.min_occurences}
 
 

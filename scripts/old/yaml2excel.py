@@ -3,8 +3,13 @@ import argparse
 import yaml
 import xlsxwriter as xl
 from xlsxwriter.utility import xl_rowcol_to_cell as get_cell
-_l = lambda s : sorted(s.split("/"))        # to list
-_s = lambda l : "\n".join(l)               # multiline string
+
+
+def _l(s): return sorted(s.split("/"))        # to list
+
+
+def _s(l): return "\n".join(l)               # multiline string
+
 
 TEXT = "TEXT"
 DECIMAL = "DECIMAL"
@@ -38,23 +43,23 @@ STATES = _l("WA/NSW/NT/SA/VIC/TAS/QLD/ACT")
 # Name = Auckland   CODE = NZ-AUK
 # Name = Northland   CODE = NZ-NTL
 
-NZ_STATES =_l("NZ-TKI/NZ-CIT/NZ-NSN/NZ-BOP/NZ-WTC/NZ-GIS/NZ-CAN/NZ-MBH/NZ-HKB/NZ-WGN/NZ-STL/NZ-MWT/NZ-N/NZ-WKO/NZ-OTA/NZ-S/NZ-TAS/NZ-AUK/NZ-NTL")
+NZ_STATES = _l("NZ-TKI/NZ-CIT/NZ-NSN/NZ-BOP/NZ-WTC/NZ-GIS/NZ-CAN/NZ-MBH/NZ-HKB/NZ-WGN/NZ-STL/NZ-MWT/NZ-N/NZ-WKO/NZ-OTA/NZ-S/NZ-TAS/NZ-AUK/NZ-NTL")
 
 STATES.extend(NZ_STATES)
 
 ETHNICITIES = sorted(["Aboriginal",
-                            "Person from Torres Strait Islands",
-                            "Black African/African American",
-                            "Caucasian/European",
-                            "Chinese",
-                            "Indian",
-                            "Maori",
-                            "Aboriginal",
-                            "Middle eastern",
-                            "Person from the Pacific Islands",
-                            "Other Asian",
-                            "Other",
-                            "Decline to Answer"])
+                      "Person from Torres Strait Islands",
+                      "Black African/African American",
+                      "Caucasian/European",
+                      "Chinese",
+                      "Indian",
+                      "Maori",
+                      "Aboriginal",
+                      "Middle eastern",
+                      "Person from the Pacific Islands",
+                      "Other Asian",
+                      "Other",
+                      "Decline to Answer"])
 
 
 class SpreadSheetCreator(object):
@@ -74,41 +79,39 @@ class SpreadSheetCreator(object):
 
     def _patient_demographics_spec(self):
         return [("Family Name", TEXT),
-                 ("Given Names",TEXT),
-                 ("Maiden Name",TEXT),
-                 # DM1 consents - will need to add FH consents
-                 ("Consent given to store data only while individual is living", BOOL),
-                 ("Consent given to store data for the duration of the registry", BOOL),
-                 ("Consent provided by Parent/Guardian only while individual is living", BOOL),
-                 ("Consent provided by Parent/Guardian for the duration of the registry", BOOL),
-                 ("Consent to allow for clinical trials given", BOOL),
-                 ("Consent to be sent information given", BOOL),
-                 ("Centre", TEXT),
-                 ("HOSPITAL/Clinic ID", TEXT),
-                 ("DOB", DATE),
-                 ("Place of Birth", TEXT),
-                 ("Country of Birth", TEXT),
-                 ("Ethnic Origin",  ETHNICITIES),
-                 ("Sex", SEXES),
-                 ("Home Phone", TEXT),
-                 ("Mobile Phone", TEXT),
-                 ("Work Phone", TEXT),
-                 ("Email", TEXT),
-                 ("Address", TEXT),
-                 ("Suburb/Town", TEXT),
-                 ("State", STATES),
-                 ("Country", COUNTRIES)]
-
-
+                ("Given Names", TEXT),
+                ("Maiden Name", TEXT),
+                # DM1 consents - will need to add FH consents
+                ("Consent given to store data only while individual is living", BOOL),
+                ("Consent given to store data for the duration of the registry", BOOL),
+                ("Consent provided by Parent/Guardian only while individual is living", BOOL),
+                ("Consent provided by Parent/Guardian for the duration of the registry", BOOL),
+                ("Consent to allow for clinical trials given", BOOL),
+                ("Consent to be sent information given", BOOL),
+                ("Centre", TEXT),
+                ("HOSPITAL/Clinic ID", TEXT),
+                ("DOB", DATE),
+                ("Place of Birth", TEXT),
+                ("Country of Birth", TEXT),
+                ("Ethnic Origin", ETHNICITIES),
+                ("Sex", SEXES),
+                ("Home Phone", TEXT),
+                ("Mobile Phone", TEXT),
+                ("Work Phone", TEXT),
+                ("Email", TEXT),
+                ("Address", TEXT),
+                ("Suburb/Town", TEXT),
+                ("State", STATES),
+                ("Country", COUNTRIES)]
 
     def _h(self, coord, text):
         header_format = self.workbook.add_format({'border': 1,
-                                             'bg_color': '#C6EFCE',
-                                             'bold': True,
-                                             'text_wrap': True,
-                                             'valign': 'vcenter',
-                                            'indent': 1})
-        self.sheet.write(coord,text,header_format)
+                                                  'bg_color': '#C6EFCE',
+                                                  'bold': True,
+                                                  'text_wrap': True,
+                                                  'valign': 'vcenter',
+                                                  'indent': 1})
+        self.sheet.write(coord, text, header_format)
 
     def _create_demographic_fields(self):
         for field_name, field_info in self._patient_demographics_spec():
@@ -117,26 +120,34 @@ class SpreadSheetCreator(object):
             self._apply_validation(self.current_column, field_info)
             self.current_column += 1
 
-
     def _apply_validation(self, column, datatype, values=None):
-        if isinstance(datatype,list):
+        if isinstance(datatype, list):
             values = datatype
             datatype = RANGE
 
-        if datatype in [ TEXT, FILE, CALC]:
+        if datatype in [TEXT, FILE, CALC]:
             return
         elif datatype == INTEGER:
-            validation = {"validate" : "integer", "criteria" : 'between', "minimum": 0, "maximum" : 1000000}
+            validation = {
+                "validate": "integer",
+                "criteria": 'between',
+                "minimum": 0,
+                "maximum": 1000000}
         elif datatype == DATE:
-            validation = {"validate" : 'date', 'input_title': 'Enter a date dd/mm/yyyy'}
-        elif datatype  == DECIMAL:
-            validation = {"validate" : 'decimal', 'input_title': 'Enter a decimal', 'criteria': 'between', 'minimum': -1000000.00 , "maximum": 1000000.00 }
+            validation = {"validate": 'date', 'input_title': 'Enter a date dd/mm/yyyy'}
+        elif datatype == DECIMAL:
+            validation = {
+                "validate": 'decimal',
+                'input_title': 'Enter a decimal',
+                'criteria': 'between',
+                'minimum': -1000000.00,
+                "maximum": 1000000.00}
         elif datatype == BOOL:
-            validation = {"validate" : 'list', 'source': ['True','False']}
+            validation = {"validate": 'list', 'source': ['True', 'False']}
         elif datatype == RANGE:
             if values is not None:
                 if "---" not in values:
-                    values.insert(0,'---')
+                    values.insert(0, '---')
                 validation = {"validate": 'list', 'source': values}
             else:
                 return
@@ -153,24 +164,24 @@ class SpreadSheetCreator(object):
     def _get_type(self, cde_dict):
         print "getting type for cde %s" % cde_dict
         datatype = cde_dict['datatype'].lower().strip()
-        if datatype in ['string','text']:
+        if datatype in ['string', 'text']:
             return TEXT
         elif datatype in ['bool', 'boolean']:
             return BOOL
         elif datatype in ['integer']:
             return INTEGER
-        elif datatype in ['float','decimal','numeric']:
+        elif datatype in ['float', 'decimal', 'numeric']:
             return DECIMAL
-        elif datatype in ['calculated','calculation']:
+        elif datatype in ['calculated', 'calculation']:
             return CALC
         elif cde_dict['calculation']:
             return CALC
-        elif datatype in ['date','datetime']:
-            return  DATE
+        elif datatype in ['date', 'datetime']:
+            return DATE
         elif datatype == 'file':
-            return  FILE
+            return FILE
         elif datatype in ["range"]:
-            return RANGE 
+            return RANGE
         elif cde_dict["pv_group"]:
             return RANGE
         else:
@@ -184,15 +195,14 @@ class SpreadSheetCreator(object):
         for group_dict in self.registry_dict['pvgs']:
             if pv_group == group_dict['code']:
                 return sorted([v['value'] for v in group_dict['values']])
-        raise Exception("Could get values for group %s"  % pv_group)
-
+        raise Exception("Could get values for group %s" % pv_group)
 
     def _write_header(self, column, text):
         cell = get_cell(0, column)
         self._h(cell, text)
 
     def _write_info(self, column, text):
-        if isinstance(text,list):
+        if isinstance(text, list):
             text = _s(text)
 
         cell = get_cell(1, column)
@@ -217,10 +227,11 @@ class SpreadSheetCreator(object):
                     cde_dict = self._get_cde_dict(cde_code)
                     if cde_dict is None:
                         raise Exception("cde is missing: %s" % cde_code)
-                    field_header = "\n".join([form_dict['name'], section_dict['display_name'], cde_dict['name']])
+                    field_header = "\n".join(
+                        [form_dict['name'], section_dict['display_name'], cde_dict['name']])
                     datatype = self._get_type(cde_dict)
                     if datatype == RANGE:
-                        values  = self._get_values(cde_dict['pv_group'])
+                        values = self._get_values(cde_dict['pv_group'])
                         field_info = "\n".join([RANGE + ":"] + values)
                     else:
                         field_info = datatype
@@ -234,14 +245,12 @@ class SpreadSheetCreator(object):
                     self.current_column += 1
 
 
-
-
-if __name__=="__main__":
+if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--yaml_file","-y", required=True,dest='yaml_file')
-    parser.add_argument("--output","-o", required=True,dest='output_file')
-    parser.add_argument("--exclude","-e", dest='exclude', default="")
-    parser.add_argument("--rows","-r", type=int, dest='nrows', default=300)
+    parser.add_argument("--yaml_file", "-y", required=True, dest='yaml_file')
+    parser.add_argument("--output", "-o", required=True, dest='output_file')
+    parser.add_argument("--exclude", "-e", dest='exclude', default="")
+    parser.add_argument("--rows", "-r", type=int, dest='nrows', default=300)
 
     args = parser.parse_args()
     excludes = args.exclude.split(",")
@@ -250,4 +259,3 @@ if __name__=="__main__":
         data = yaml.load(f)
     spreadsheet = SpreadSheetCreator(data, args.output_file, args.nrows, excludes=excludes)
     spreadsheet.create()
-

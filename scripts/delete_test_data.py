@@ -104,6 +104,7 @@ def delete_single_patient(patient_id):
     patient_model.delete()
     print("deleted patient %s sucessfully" % patient_id)
 
+
 def delete_all_patients():
     print(SKULL_ASCII)
     print("**** This utlity is for deleting TEST patient data ONLY! ****")
@@ -126,7 +127,6 @@ def delete_all_patients():
         display("Aborting! Nothing deleted! Bye")
 
 
-
 def usage():
     print("Usage:")
     print("delete_test_data.py --all ( to interactively delete all patient data)")
@@ -137,7 +137,7 @@ def usage():
 if __name__ == "__main__":
     import re
     number = re.compile(r"^\d+$")
-    
+
     if len(sys.argv) == 2:
         arg = sys.argv[1]
         if arg == "--usage":

@@ -19,9 +19,11 @@ class RegistryView(View):
             if registry_code != "admin":
                 registry_model = Registry.objects.get(code=registry_code)
             else:
-                return render(request, 'rdrf_cdes/splash.html', {'body_expression': ' ',"state": "admin"})
+                return render(request, 'rdrf_cdes/splash.html',
+                              {'body_expression': ' ', "state": "admin"})
         except ObjectDoesNotExist:
-            return render(request, 'rdrf_cdes/splash.html', {'body': _('Oops, wrong registry code...'), "state": "missing"})
+            return render(request, 'rdrf_cdes/splash.html',
+                          {'body': _('Oops, wrong registry code...'), "state": "missing"})
 
         context = {
             'splash_screen_template': "rdrf://model/Registry/%s/splash_screen" % registry_model.pk,

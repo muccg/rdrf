@@ -46,7 +46,6 @@ class FileUpload(object):
                 logger.info("Couldn't make URL for file record %s" %
                             str(self.fs_dict))
 
-
         return ""
 
     def __str__(self):
@@ -85,7 +84,7 @@ def wrap_fs_data_for_form(registry, data):
     return wrap(data, None)
 
 
-def wrap_file_cdes(registry_code, section_data, mongo_data, multisection=False,index_map={}):
+def wrap_file_cdes(registry_code, section_data, mongo_data, multisection=False, index_map={}):
     # Wrap file cde data for display in the form
     # I've refactored the code trying to make it as explicit as possible but it
     # would  still be good to refactor later as it is very painful
@@ -125,7 +124,6 @@ def wrap_file_cdes(registry_code, section_data, mongo_data, multisection=False,i
 
     from rdrf.utils import is_file_cde, get_code, get_form_section_code
 
-
     def is_existing_in_mongo(section_index, key, value):
         if mongo_data is None:
             return False
@@ -138,13 +136,13 @@ def wrap_file_cdes(registry_code, section_data, mongo_data, multisection=False,i
                 section_code = get_form_section_code(key)[-2]
                 section_dict = mongo_data[section_code][section_index]
                 return value is None and key in section_dict
-            except:
+            except BaseException:
                 return False
 
     def should_wrap(section_index, key, value):
         try:
             cde_code = get_code(key)
-        except:
+        except BaseException:
             # not a delimited mongo key
             return False
 
@@ -154,7 +152,7 @@ def wrap_file_cdes(registry_code, section_data, mongo_data, multisection=False,i
             im = is_existing_in_mongo(section_index, key, value)
             sw = u or fs or im
             return sw
-        
+
         return False
 
     def wrap_upload(key, value):
@@ -204,7 +202,7 @@ def wrap_file_cdes(registry_code, section_data, mongo_data, multisection=False,i
             # index map would be {0: 0 ,
             #                     1: 2}
             # meaning that the first item hasn't changed but the 2nd item was originally 3rd
-             
+
             # If C had a value of None for the file cde  this means we need to retrieve
             # the django  file id from the DB ,
             # but because we have deleted the second item and thus changed the index from 2 to 1
@@ -218,8 +216,9 @@ def wrap_file_cdes(registry_code, section_data, mongo_data, multisection=False,i
                     index = new_index
 
                 yield index, item
-            
-        return [wrap_section(section_index, section_dict) for section_index, section_dict in iterate_over_non_deleted_items(multisection_list)]
+
+        return [wrap_section(section_index, section_dict) for section_index,
+                section_dict in iterate_over_non_deleted_items(multisection_list)]
 
     if multisection:
         return wrap_multisection(section_data)

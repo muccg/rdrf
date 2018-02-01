@@ -38,5 +38,9 @@ class PatientLocator(Locator):
         return self.instance.display_name
 
     def get_link(self):
-        patient_edit_url = reverse('patient_edit', args=[self.registry_model.code, self.instance.id])
+        patient_edit_url = reverse(
+            'patient_edit',
+            args=[
+                self.registry_model.code,
+                self.instance.id])
         return patient_edit_url

@@ -6,6 +6,7 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+
 class ReminderProcessor:
     def __init__(self, user, registry_model, process_func=process_notification):
         self.user = user
@@ -13,7 +14,7 @@ class ReminderProcessor:
         self.registry_id = registry_model.id
         self.user_id = user.id
         self.threshold = self.user.last_login
-        self.process_func = process_func # exposed to allow testing
+        self.process_func = process_func  # exposed to allow testing
 
     def _can_send(self):
         # These are the rules for MTM - should we push into config?
@@ -31,11 +32,12 @@ class ReminderProcessor:
 
     def _get_reminders(self):
         # own reminders since last login date
-        history = EmailNotificationHistory.objects.filter(email_notification__description='reminder',
-                                                          date_stamp__gte=self.user.last_login)
+        history = EmailNotificationHistory.objects.filter(
+            email_notification__description='reminder',
+            date_stamp__gte=self.user.last_login)
         history = history.order_by("-date_stamp")
         return [enh for enh in history if self._is_own(enh)]
-        
+
     def _is_own(self, email_notification_model):
         template_data = json.loads(email_notification_model.template_data)
         if not template_data:
@@ -51,8 +53,8 @@ class ReminderProcessor:
         if self._can_send():
             template_data = {"user": self.user,
                              "registry": self.registry_model}
-    
+
             self.process_func(self.registry_model.code,
-                                 "reminder",
-                                 template_data)
+                              "reminder",
+                              template_data)
             return True

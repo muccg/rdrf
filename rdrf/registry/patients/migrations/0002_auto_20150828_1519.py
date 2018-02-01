@@ -19,48 +19,70 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='patient',
             name='rdrf_registry',
-            field=models.ManyToManyField(to='rdrf.Registry'),
+            field=models.ManyToManyField(
+                to='rdrf.Registry'),
         ),
         migrations.AddField(
             model_name='patient',
             name='user',
-            field=models.ForeignKey(related_name='user_object', on_delete=django.db.models.deletion.SET_NULL,
-                                    blank=True, to=settings.AUTH_USER_MODEL, null=True),
+            field=models.ForeignKey(
+                related_name='user_object',
+                on_delete=django.db.models.deletion.SET_NULL,
+                blank=True,
+                to=settings.AUTH_USER_MODEL,
+                null=True),
         ),
         migrations.AddField(
             model_name='patient',
             name='working_groups',
-            field=models.ManyToManyField(related_name='my_patients', verbose_name='Centre', to='groups.WorkingGroup'),
+            field=models.ManyToManyField(
+                related_name='my_patients',
+                verbose_name='Centre',
+                to='groups.WorkingGroup'),
         ),
         migrations.AddField(
             model_name='parentguardian',
             name='patient',
-            field=models.ManyToManyField(to='patients.Patient'),
+            field=models.ManyToManyField(
+                to='patients.Patient'),
         ),
         migrations.AddField(
             model_name='parentguardian',
             name='self_patient',
-            field=models.ForeignKey(related_name='self_patient', blank=True, to='patients.Patient', null=True),
+            field=models.ForeignKey(
+                related_name='self_patient',
+                blank=True,
+                to='patients.Patient',
+                null=True),
         ),
         migrations.AddField(
             model_name='parentguardian',
             name='user',
-            field=models.ForeignKey(related_name='parent_user_object', on_delete=django.db.models.deletion.SET_NULL,
-                                    blank=True, to=settings.AUTH_USER_MODEL, null=True),
+            field=models.ForeignKey(
+                related_name='parent_user_object',
+                on_delete=django.db.models.deletion.SET_NULL,
+                blank=True,
+                to=settings.AUTH_USER_MODEL,
+                null=True),
         ),
         migrations.AddField(
             model_name='doctor',
             name='state',
-            field=models.ForeignKey(verbose_name='State/Province/Territory', to='patients.State'),
+            field=models.ForeignKey(
+                verbose_name='State/Province/Territory',
+                to='patients.State'),
         ),
         migrations.AddField(
             model_name='consentvalue',
             name='consent_question',
-            field=models.ForeignKey(to='rdrf.ConsentQuestion'),
+            field=models.ForeignKey(
+                to='rdrf.ConsentQuestion'),
         ),
         migrations.AddField(
             model_name='consentvalue',
             name='patient',
-            field=models.ForeignKey(related_name='consents', to='patients.Patient'),
+            field=models.ForeignKey(
+                related_name='consents',
+                to='patients.Patient'),
         ),
     ]

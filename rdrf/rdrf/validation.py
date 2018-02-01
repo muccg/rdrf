@@ -39,14 +39,20 @@ def make_validation_func(val_type, cde):
 
         def vf(value):
             if not re_pattern.match(value):
-                raise ValidationError(_("Value of %(value)s for %(cdename)s does not match pattern '%(cdepattern)s'") % {
-                                      "value": value, "cdename": cde.name, "cdepattern": cde.pattern})
+                raise ValidationError(
+                    _("Value of %(value)s for %(cdename)s does not match pattern '%(cdepattern)s'") % {
+                        "value": value,
+                        "cdename": cde.name,
+                        "cdepattern": cde.pattern})
         return vf
     elif val_type == ValidationType.LENGTH:
         def vf(value):
             if len(value) > cde.max_length:
-                raise ValidationError(_("Value of '%(value)s' for %(name)s is longer than max length of %(max)s") %
-                                      {"value": value, "name": cde.name, "max": cde.max_length})
+                raise ValidationError(
+                    _("Value of '%(value)s' for %(name)s is longer than max length of %(max)s") % {
+                        "value": value,
+                        "name": cde.name,
+                        "max": cde.max_length})
         return vf
     else:
         raise Exception(_("Unknown ValidationType %s") % val_type)

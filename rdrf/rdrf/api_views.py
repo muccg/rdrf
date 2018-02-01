@@ -72,11 +72,13 @@ class PatientDetail(generics.RetrieveUpdateDestroyAPIView):
         registry_code = self.kwargs.get('registry_code')
         registry = self._get_registry_by_code(registry_code)
         if registry not in patient.rdrf_registry.all():
-            self.permission_denied(request, message='Patient not available in requested registry')
+            self.permission_denied(
+                request, message='Patient not available in requested registry')
         if request.user.is_superuser:
             return
         if registry not in request.user.registry.all():
-            self.permission_denied(request, message='Not allowed to get Patients from this Registry')
+            self.permission_denied(
+                request, message='Not allowed to get Patients from this Registry')
 
         if not patient.working_groups.filter(pk__in=request.user.working_groups.all()).exists():
             self.permission_denied(request, message='Patient not in your working group')
@@ -107,8 +109,10 @@ class PatientList(generics.ListCreateAPIView):
             # is immutable for empty posts. Post request will fail on validation anyways.
 
             request.data['registry'] = self._get_registry_by_code(registry_code)
-        if not (request.user.is_superuser or request.data['registry'] in request.user.registry.all()):
-            self.permission_denied(request, message='Not allowed to create Patient in this Registry')
+        if not (
+                request.user.is_superuser or request.data['registry'] in request.user.registry.all()):
+            self.permission_denied(
+                request, message='Not allowed to create Patient in this Registry')
         return super(PatientList, self).post(request, *args, **kwargs)
 
 
@@ -174,7 +178,8 @@ class ListStates(APIView):
             states = []
 
         WANTED_FIELDS = ('name', 'code', 'type', 'country_code')
-        to_dict = lambda x: dict([(k, getattr(x, k)) for k in WANTED_FIELDS])
+
+        def to_dict(x): return dict([(k, getattr(x, k)) for k in WANTED_FIELDS])
 
         return Response(list(map(to_dict, states)))
 
@@ -283,4 +288,5 @@ class LookupIndex(APIView):
                 'label': "%s" % patient,
             }
 
-        return Response(list(map(to_dict, [p for p in Patient.objects.filter(query) if p.is_index])))
+        return Response(
+            list(map(to_dict, [p for p in Patient.objects.filter(query) if p.is_index])))

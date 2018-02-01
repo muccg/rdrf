@@ -178,7 +178,8 @@ class DownloadQueryView(LoginRequiredMixin, View):
                                       max_items=query_model.max_items)
         rtg.set_table_name(query_model)
         a = datetime.now()
-        messages_dict = database_utils.dump_results_into_reportingdb(reporting_table_generator=rtg)
+        messages_dict = database_utils.dump_results_into_reportingdb(
+            reporting_table_generator=rtg)
         b = datetime.now()
         logger.info("time to dump query %s into reportingdb: %s secs" % (query_model.id, b - a))
         if action == "view":
@@ -195,7 +196,11 @@ class DownloadQueryView(LoginRequiredMixin, View):
         with NamedTemporaryFile(suffix=".xlsx") as output:
             start = datetime.now()
             spreadsheet_report.run(output.name)
-            response = FileResponse(open(output.name, "rb"), content_type="application/vnd.ms-excel")
+            response = FileResponse(
+                open(
+                    output.name,
+                    "rb"),
+                content_type="application/vnd.ms-excel")
             response['Content-Disposition'] = 'attachment; filename="Longitudinal Report.xlsx"'
             return response
 
@@ -218,7 +223,8 @@ class DownloadQueryView(LoginRequiredMixin, View):
                 params["registry"] = Registry.objects.all()
             if "working_group" in query_params:
                 if user.is_superuser:
-                    params["working_group"] = WorkingGroup.objects.filter(registry=registry_model)
+                    params["working_group"] = WorkingGroup.objects.filter(
+                        registry=registry_model)
                 elif user.is_curator:
                     params["working_group"] = WorkingGroup.objects.filter(
                         id__in=[wg.id for wg in user.get_working_groups()])
@@ -260,6 +266,7 @@ class SqlQueryView(View):
         form = QueryForm(request.POST)
         database_utils = DatabaseUtils(form, True)
         mongo_search_type = form.data["mongo_search_type"]
+
         def get_report_config_errors(form):
             if not form.is_valid() and "__all__" in form.errors:
                 return form.errors["__all__"]
@@ -300,12 +307,14 @@ class Humaniser(object):
     def display_name(self, key):
         if is_delimited_key(key):
             try:
-                form_model, section_model, cde_model = models_from_mongo_key(self.registry_model, key)
+                form_model, section_model, cde_model = models_from_mongo_key(
+                    self.registry_model, key)
             except BadKeyError:
                 logger.error("key %s refers to non-existant models" % key)
                 return key
 
-            human_name = "%s/%s/%s" % (form_model.name, section_model.display_name, cde_model.name)
+            human_name = "%s/%s/%s" % (form_model.name,
+                                       section_model.display_name, cde_model.name)
             return human_name
         else:
             return key
@@ -315,7 +324,8 @@ class Humaniser(object):
         # return the display value for ranges
         if is_delimited_key(key):
             try:
-                form_model, section_model, cde_model = models_from_mongo_key(self.registry_model, key)
+                form_model, section_model, cde_model = models_from_mongo_key(
+                    self.registry_model, key)
             except BadKeyError:
                 logger.error("Key %s refers to non-existant models" % key)
                 return mongo_value
@@ -361,7 +371,8 @@ def _get_non_multiple_mongo_keys(registry_model):
             for section_model in form_model.section_models:
                 if not section_model.allow_multiple:
                     for cde_model in section_model.cde_models:
-                        delimited_key = mongo_key_from_models(form_model, section_model, cde_model)
+                        delimited_key = mongo_key_from_models(
+                            form_model, section_model, cde_model)
                         delimited_keys.append(delimited_key)
     return delimited_keys
 

@@ -39,4 +39,3 @@ class RdrfRegistrationView(RegistrationView):
             return []
         else:
             return languages
-            

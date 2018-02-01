@@ -14,6 +14,7 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='emailnotification',
             name='email_from',
-            field=models.EmailField(default='No Reply <no-reply@mg.ccgapps.com.au>', max_length=254),
-        )
-    ]
+            field=models.EmailField(
+                default='No Reply <no-reply@mg.ccgapps.com.au>',
+                max_length=254),
+        )]

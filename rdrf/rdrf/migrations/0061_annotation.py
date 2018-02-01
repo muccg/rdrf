@@ -13,21 +13,17 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.CreateModel(
-            name='Annotation',
-            fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('annotation_type', models.CharField(choices=[('verified', 'verfied'), ('unknown', 'unknown')], db_index=True, max_length=80)),
-                ('patient_id', models.IntegerField(db_index=True)),
-                ('context_id', models.IntegerField(blank=True, db_index=True, null=True)),
-                ('registry_code', models.CharField(max_length=10)),
-                ('form_name', models.CharField(max_length=80)),
-                ('section_code', models.CharField(max_length=100)),
-                ('item', models.IntegerField(null=True)),
-                ('cde_code', models.CharField(max_length=30)),
-                ('cde_value', models.TextField()),
-                ('username', models.CharField(max_length=254)),
-                ('timestamp', models.DateTimeField(auto_now_add=True)),
-                ('comment', models.TextField()),
-            ],
-        ),
-    ]
+            name='Annotation', fields=[
+                ('id', models.AutoField(
+                    auto_created=True, primary_key=True, serialize=False, verbose_name='ID')), ('annotation_type', models.CharField(
+                        choices=[
+                            ('verified', 'verfied'), ('unknown', 'unknown')], db_index=True, max_length=80)), ('patient_id', models.IntegerField(
+                                db_index=True)), ('context_id', models.IntegerField(
+                                    blank=True, db_index=True, null=True)), ('registry_code', models.CharField(
+                                        max_length=10)), ('form_name', models.CharField(
+                                            max_length=80)), ('section_code', models.CharField(
+                                                max_length=100)), ('item', models.IntegerField(
+                                                    null=True)), ('cde_code', models.CharField(
+                                                        max_length=30)), ('cde_value', models.TextField()), ('username', models.CharField(
+                                                            max_length=254)), ('timestamp', models.DateTimeField(
+                                                                auto_now_add=True)), ('comment', models.TextField()), ], ), ]

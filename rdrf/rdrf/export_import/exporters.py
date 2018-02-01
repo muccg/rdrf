@@ -42,14 +42,17 @@ class DataGroupExporter(DelegateMixin):
         if len(self.datagroups) > 0:
             self.logger.debug("Exporting %d nested datagroups" % len(self.datagroups))
         for dg in self.datagroups:
-            exporter = self.datagroup_exporters.get(dg)(dg, self.exporters_catalogue, child_logger)
+            exporter = self.datagroup_exporters.get(dg)(
+                dg, self.exporters_catalogue, child_logger)
             if exporter.export(**child_context):
                 self.meta['data_groups'].append(exporter.get_meta_info())
 
         if len(self.models) > 0:
             self.logger.debug("Exporting %d models" % len(self.models))
         for model_name in self.models:
-            exporter = self.model_exporters.get(apps.get_model(model_name))(model_name, child_logger)
+            exporter = self.model_exporters.get(
+                apps.get_model(model_name))(
+                model_name, child_logger)
             if exporter.export(**child_context):
                 self.meta['models'].append(exporter.get_meta_info())
 
@@ -62,7 +65,8 @@ class DataGroupExporter(DelegateMixin):
         app_versions = None
         if top_level:
             models = self.collect_all_models(self)
-            app_label = lambda m: m.split('.', 1)[0]
+
+            def app_label(m): return m.split('.', 1)[0]
             apps = set(map(app_label, models))
             app_versions = {app: app_schema_version(app) for app in apps}
 
@@ -110,7 +114,10 @@ class ModelExporter(object):
         self.workdir = self.exporter_context['workdir']
         self.filename = '%s.%s' % (self.model._meta.db_table, self.format)
 
-        self.logger.debug("Exporting model '%s' to '%s'", self.full_modelname, self.full_filename)
+        self.logger.debug(
+            "Exporting model '%s' to '%s'",
+            self.full_modelname,
+            self.full_filename)
 
         with open(self.full_filename, 'w') as out:
             serializers.serialize(self.format, self.queryset,
@@ -123,7 +130,9 @@ class ModelExporter(object):
 
     def get_meta_info(self):
         if not self.export_finished:
-            raise ValueError('Invalid state: Model %s needs to be exported first' % self.full_modelname)
+            raise ValueError(
+                'Invalid state: Model %s needs to be exported first' %
+                self.full_modelname)
         return self.meta_collector.collect()
 
 
