@@ -18,15 +18,15 @@ Modelling
 
 Creation
 --------
-1. Login as an admin and :ref:`navigate <navigation>` to "Registries" via the "Settings" button
-2. Create a :ref:`registry <registries>` object and give it a name and code 
+1. Login as an admin and :ref:`navigate <navigation>` to "Registries" via the "Admin Page" link under the Admin User icon in the banner.
+2. Create a :ref:`registry <registries>` object (Registries link in the Admin Page)  and give it a name and code 
 3. Create any :ref:`permitted value groups <permittedvaluegroup>` required ( adding
-  any :ref:`permitted values <permittedvalue>` to the range.
+  any :ref:`permitted values <permittedvalue>` to the range ( Registry Permissible Value Groups in the Admin Page)
 4. Create DEs (one per data field ) - OR note an existing DE that does the job (*IMPORTANT* deleting a DE
   may affect other registries which use this cde - in the current version there are no safeguards to prevent
   a used DE from being deleted. Proceed with caution!)
-5. Create the section objects and enter the cde codes required into the elements field
-  NB. This *MUST* be a comma-delimited list (E,g  "CDEName, CDEAge" - no quotes)
+5. Create the section objects ( Registry Section link in Admin Page)  and enter the cde codes required into the elements field
+  NB. This *MUST* be a comma-delimited list (E,g  "CDEName,CDEAge" - no quote, no spaces.
 6. Create forms and link them to the registry
 7. Add section codes to the sections field
 
