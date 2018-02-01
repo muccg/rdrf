@@ -16,7 +16,6 @@ from django.db.models.signals import pre_delete
 from django.dispatch.dispatcher import receiver
 from django.forms.models import model_to_dict
 
-from .notifications import Notifier, NotificationError
 from .utils import get_full_link, check_calculation
 from .utils import format_date, parse_iso_date, parse_iso_datetime
 from rdrf.events import EventType

@@ -6,7 +6,6 @@ import logging
 
 from django.utils.translation import ugettext as _
 
-from registry.patients.models import ParentGuardian
 from .models import Registry
 
 logger = logging.getLogger(__name__)

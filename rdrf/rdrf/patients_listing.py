@@ -15,7 +15,6 @@ from rdrf.form_progress import FormProgress
 from rdrf.contexts_api import RDRFContextManager
 from rdrf.components import FormGroupButton
 from registry.patients.models import Patient
-from .utils import Message
 from rdrf.utils import MinType
 from rdrf.utils import consent_check
 from django.utils.translation import ugettext as _

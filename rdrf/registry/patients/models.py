@@ -1,6 +1,5 @@
 import json
 import datetime
-import os.path
 from operator import attrgetter
 
 from django.core.exceptions import ValidationError

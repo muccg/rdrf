@@ -1,6 +1,5 @@
 import logging
 from django import forms
-from django.contrib.admin.widgets import AdminFileWidget
 from django.core.exceptions import ValidationError
 from django.forms.utils import ErrorDict
 

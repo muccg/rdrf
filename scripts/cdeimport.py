@@ -2,14 +2,11 @@ import django
 django.setup()
 
 import sys
-from operator import itemgetter
 import csv
 from django.db import transaction
 
 from rdrf.models import Registry
 from rdrf.models import RegistryForm
-from rdrf.models import CommonDataElement
-from rdrf.models import CDEPermittedValue
 from registry.patients.models import Patient
 
 

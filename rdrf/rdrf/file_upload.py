@@ -1,4 +1,3 @@
-from itertools import zip_longest, chain
 import logging
 from django.core.urlresolvers import reverse, NoReverseMatch
 from django.core.files.uploadedfile import UploadedFile

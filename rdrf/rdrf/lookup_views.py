@@ -11,9 +11,7 @@ import requests
 from registry.groups.models import CustomUser
 from registry.patients.models import Patient
 
-from django.contrib.contenttypes.models import ContentType
 from rdrf.models import RDRFContext, RDRFContextError
-
 
 import logging
 logger = logging.getLogger(__name__)

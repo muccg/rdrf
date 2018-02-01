@@ -8,7 +8,6 @@ from django.http import HttpResponse, FileResponse
 from django.http import HttpResponseRedirect, HttpResponseNotFound
 from django.forms.formsets import formset_factory
 from django.core.urlresolvers import reverse
-from django.contrib.auth import get_user_model
 from django.utils.decorators import method_decorator
 from django.contrib.auth.decorators import login_required
 from .models import RegistryForm, Registry, QuestionnaireResponse
@@ -17,7 +16,6 @@ from registry.patients.models import Patient, ParentGuardian
 from .dynamic_forms import create_form_class_for_section
 from .dynamic_data import DynamicDataWrapper
 from django.http import Http404
-from .questionnaires import PatientCreator
 from .file_upload import wrap_fs_data_for_form
 from .file_upload import wrap_file_cdes
 from . import filestorage
@@ -44,9 +42,7 @@ from collections import OrderedDict
 from django.conf import settings
 from rdrf.actions import ActionExecutor
 from rdrf.utils import FormLink
-from registry.groups.models import CustomUser
 import logging
-from registry.groups.models import WorkingGroup
 from rdrf.dynamic_forms import create_form_class_for_consent_section
 from rdrf.form_progress import FormProgress
 
@@ -54,7 +50,6 @@ from rdrf.contexts_api import RDRFContextError
 from rdrf.locators import PatientLocator
 from rdrf.components import RDRFContextLauncherComponent
 from rdrf.components import RDRFPatientInfoComponent
-from rdrf.questionnaires import PatientCreatorError
 from rdrf.security_checks import security_check_user_patient
 
 
