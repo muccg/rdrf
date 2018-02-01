@@ -70,3 +70,15 @@ Contributing
 2. Make changes on a feature branch
 3. Submit pull request
 
+Updating the Documentation
+--------------------------
+
+Documentation for the Rare Disease Registry Framework is maintained 
+within this git repository, on the ``gh-pages`` branch.
+
+Update the documentation by editing the reStructured Text source
+files as needed. You can then regenerate the HTML version of the
+documentation by running ``build.sh`` within the ``rst/`` directory.
+
+When you are done, commit the result and make a pull-request into
+the ``gh-pages`` branch.
