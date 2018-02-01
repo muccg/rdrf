@@ -24,7 +24,7 @@ In the GUI, individual permissible values will appear as selectable options in a
 Permitted Value Group
 ---------------------
 A permitted value group (PVG) is a set of permissible values. A PVG must be defined first, with PVs then defined and assigned to a PVG.
-PVGS are defined by navigating to "Permissible Value Groups" under "Settings".
+PVGS are defined by navigating to "Permissible Value Groups" under "Admin Page".
 
 Click "Add" to create a new PVG.
 

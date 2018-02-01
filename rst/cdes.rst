@@ -5,7 +5,7 @@ Data Elements (DEs)
 
 RDRF allows creation of resusable fields, which can be dropped into the definition of sections of :ref:`forms <registries>`, simply by entering their code into the elements field of the section definition (in a comma separated list).
 
-A DE is created by an admin user navigating to "Data Elements"  in "Settings"
+A DE is created by an admin user navigating to "Registry Common Data Elements"  in "Admin Page"
 
 DEs can be shared by all registries created within the framework. A DE definition consists of:
 

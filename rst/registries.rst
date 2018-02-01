@@ -7,7 +7,7 @@ Registries, Forms and Sections
 Registry
 --------
 In RDRF, a "registry" is just a named collection of forms. A Registry is created by an admin user
-by selecting "Registries" from "Settings" and clicking "Add".
+by selecting "Registries" from "Admin Page" (under the Admin user icon in the banner on the top right)  and clicking "Add".
 
 A Registry must have a non-blank name and a code (which should not contain spaces).
 
@@ -16,7 +16,7 @@ Forms
 -----
 
 A form is a single "screen" of information in RDRF and consists of a group of named
-Sections. To create a form, select "Registry Form" from "Settings" and clicking "Add".
+Sections. To create a form, select "Registry Form" from "Admin Page" and clicking "Add".
 
 Form names should not include spaces (e.g. ClinicalData), however the form name will appear as Clinical Data if captial letters are used for separate words.
 
