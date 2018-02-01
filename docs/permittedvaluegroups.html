@@ -13,6 +13,8 @@
 
   
   
+  
+  
 
   
 
@@ -30,6 +32,9 @@
   
 
   
+        <link rel="index" title="Index"
+              href="genindex.html"/>
+        <link rel="search" title="Search" href="search.html"/>
     <link rel="top" title="RDRF 1.2.2 documentation" href="index.html"/>
         <link rel="next" title="How To Create a Registry in Ten Minutes" href="howtocreatearegistry.html"/>
         <link rel="prev" title="Datatypes" href="datatypes.html"/> 
@@ -41,6 +46,7 @@
 
 <body class="wy-body-for-nav" role="document">
 
+   
   <div class="wy-grid-for-nav">
 
     
@@ -81,7 +87,10 @@
           
             
             
-                <ul class="current">
+              
+            
+            
+              <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="workflow.html">Creation of a Registry: Workflows for Design and User Modes</a></li>
 <li class="toctree-l1"><a class="reference internal" href="gui.html">RDRF Graphical User Interface</a></li>
 <li class="toctree-l1"><a class="reference internal" href="registries.html">Registries, Forms and Sections</a></li>
@@ -113,8 +122,10 @@
 
       
       <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
-        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-        <a href="index.html">RDRF</a>
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">RDRF</a>
+        
       </nav>
 
 
@@ -123,23 +134,40 @@
         <div class="rst-content">
           
 
- 
+
+
+
+
+
+
+
+
+
+
+
 
 
 
 <div role="navigation" aria-label="breadcrumbs navigation">
+
   <ul class="wy-breadcrumbs">
-    <li><a href="index.html">Docs</a> &raquo;</li>
-      
-    <li>Permissible Values and Permitted Value Groups</li>
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+      <li>Permissible Values and Permitted Value Groups</li>
+    
+    
       <li class="wy-breadcrumbs-aside">
         
-          
-            <a href="_sources/permittedvaluegroups.txt" rel="nofollow"> View page source</a>
+            
+            <a href="_sources/permittedvaluegroups.rst.txt" rel="nofollow"> View page source</a>
           
         
       </li>
+    
   </ul>
+
+  
   <hr/>
 </div>
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
@@ -164,8 +192,8 @@
 <div class="section" id="permitted-value-group">
 <h2>Permitted Value Group<a class="headerlink" href="#permitted-value-group" title="Permalink to this headline">¶</a></h2>
 <p>A permitted value group (PVG) is a set of permissible values. A PVG must be defined first, with PVs then defined and assigned to a PVG.
-PVGS are defined by navigating to &#8220;Permissible Value Groups&#8221; under &#8220;Settings&#8221;.</p>
-<p>Click &#8220;Add&#8221; to create a new PVG.</p>
+PVGS are defined by navigating to “Permissible Value Groups” under “Admin Page”.</p>
+<p>Click “Add” to create a new PVG.</p>
 <p>A value group has a code which must be a unique non blank string value.</p>
 <p>Once a permitted value group has been created, add permissible values to it.</p>
 </div>
@@ -179,15 +207,18 @@ in NINDS <a class="reference external" href="http://www.commondataelements.ninds
 
 
            </div>
+           <div class="articleComments">
+            
+           </div>
           </div>
           <footer>
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="howtocreatearegistry.html" class="btn btn-neutral float-right" title="How To Create a Registry in Ten Minutes" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="howtocreatearegistry.html" class="btn btn-neutral float-right" title="How To Create a Registry in Ten Minutes" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="datatypes.html" class="btn btn-neutral" title="Datatypes" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="datatypes.html" class="btn btn-neutral" title="Datatypes" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   
@@ -221,7 +252,8 @@ in NINDS <a class="reference external" href="http://www.commondataelements.ninds
             VERSION:'1.2.2',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
-            HAS_SOURCE:  true
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
         };
     </script>
       <script type="text/javascript" src="_static/jquery.js"></script>

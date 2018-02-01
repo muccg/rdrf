@@ -13,6 +13,8 @@
 
   
   
+  
+  
 
   
 
@@ -30,6 +32,9 @@
   
 
   
+        <link rel="index" title="Index"
+              href="genindex.html"/>
+        <link rel="search" title="Search" href="search.html"/>
     <link rel="top" title="RDRF 1.2.2 documentation" href="index.html"/>
         <link rel="next" title="Permissible Values and Permitted Value Groups" href="permittedvaluegroups.html"/>
         <link rel="prev" title="Data Elements (DEs)" href="cdes.html"/> 
@@ -41,6 +46,7 @@
 
 <body class="wy-body-for-nav" role="document">
 
+   
   <div class="wy-grid-for-nav">
 
     
@@ -81,7 +87,10 @@
           
             
             
-                <ul class="current">
+              
+            
+            
+              <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="workflow.html">Creation of a Registry: Workflows for Design and User Modes</a></li>
 <li class="toctree-l1"><a class="reference internal" href="gui.html">RDRF Graphical User Interface</a></li>
 <li class="toctree-l1"><a class="reference internal" href="registries.html">Registries, Forms and Sections</a></li>
@@ -158,8 +167,10 @@
 
       
       <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
-        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-        <a href="index.html">RDRF</a>
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">RDRF</a>
+        
       </nav>
 
 
@@ -168,23 +179,40 @@
         <div class="rst-content">
           
 
- 
+
+
+
+
+
+
+
+
+
+
+
 
 
 
 <div role="navigation" aria-label="breadcrumbs navigation">
+
   <ul class="wy-breadcrumbs">
-    <li><a href="index.html">Docs</a> &raquo;</li>
-      
-    <li>Datatypes</li>
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+      <li>Datatypes</li>
+    
+    
       <li class="wy-breadcrumbs-aside">
         
-          
-            <a href="_sources/datatypes.txt" rel="nofollow"> View page source</a>
+            
+            <a href="_sources/datatypes.rst.txt" rel="nofollow"> View page source</a>
           
         
       </li>
+    
   </ul>
+
+  
   <hr/>
 </div>
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
@@ -206,7 +234,7 @@
 <ul class="simple">
 <li>hello world ( a string containing a space)</li>
 <li>Mary ( a word)</li>
-<li>&#8221; &#8221;  ( blank no quotes)</li>
+<li>” ”  ( blank no quotes)</li>
 <li>The string 123</li>
 <li>^^%%$^%$ff  ( non alphanumeric characters )</li>
 </ul>
@@ -272,7 +300,7 @@
 <div class="section" id="id9">
 <h3>Definition<a class="headerlink" href="#id9" title="Permalink to this headline">¶</a></h3>
 <p>A set of allowed values (usually represented as drop down list)</p>
-<p>Ranges in RDRF are specified by the datatype keyword &#8220;range&#8221; and then selecting the appropriate <a class="reference internal" href="permittedvaluegroups.html#permittedvaluegroup"><span class="std std-ref">Permitted Value Group</span></a> This entails that permitted value groups be created first.</p>
+<p>Ranges in RDRF are specified by the datatype keyword “range” and then selecting the appropriate <a class="reference internal" href="permittedvaluegroups.html#permittedvaluegroup"><span class="std std-ref">Permitted Value Group</span></a> This entails that permitted value groups be created first.</p>
 </div>
 <div class="section" id="id10">
 <h3>Examples<a class="headerlink" href="#id10" title="Permalink to this headline">¶</a></h3>
@@ -287,7 +315,7 @@
 <div class="section" id="id11">
 <h3>Definition<a class="headerlink" href="#id11" title="Permalink to this headline">¶</a></h3>
 <p>A value which is computed <em>client-side</em> from other values on the form.</p>
-<p>To created a calculated DE enter &#8220;calculated&#8221; as the datatype and then fill in the calculation field of the DE.</p>
+<p>To created a calculated DE enter “calculated” as the datatype and then fill in the calculation field of the DE.</p>
 </div>
 <div class="section" id="id12">
 <h3>Examples<a class="headerlink" href="#id12" title="Permalink to this headline">¶</a></h3>
@@ -297,7 +325,7 @@
 <span class="n">context</span><span class="o">.</span><span class="n">result</span> <span class="o">=</span> <span class="n">mass</span> <span class="o">/</span> <span class="p">(</span> <span class="n">height</span> <span class="o">*</span> <span class="n">height</span> <span class="p">);</span>
 </pre></div>
 </div>
-<p>The &#8220;context&#8221; here is an abstraction representing the <em>other</em> cdes on the containing form.
+<p>The “context” here is an abstraction representing the <em>other</em> cdes on the containing form.
 (Hence these other DEs must be present in some section of same form as the form containing
 the calculated field, else an error will result).</p>
 </div>
@@ -306,7 +334,7 @@ the calculated field, else an error will result).</p>
 <h2>File Datatype<a class="headerlink" href="#file-datatype" title="Permalink to this headline">¶</a></h2>
 <div class="section" id="id13">
 <h3>Definition<a class="headerlink" href="#id13" title="Permalink to this headline">¶</a></h3>
-<p>A file DE presents a file chooser widget to the user, allowing upload (and download) of a file from the user&#8217;s
+<p>A file DE presents a file chooser widget to the user, allowing upload (and download) of a file from the user’s
 local file system. NB. Only the uploaded file name is displayed - not the content.</p>
 </div>
 <div class="section" id="id14">
@@ -347,15 +375,18 @@ local file system. NB. Only the uploaded file name is displayed - not the conten
 
 
            </div>
+           <div class="articleComments">
+            
+           </div>
           </div>
           <footer>
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="permittedvaluegroups.html" class="btn btn-neutral float-right" title="Permissible Values and Permitted Value Groups" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="permittedvaluegroups.html" class="btn btn-neutral float-right" title="Permissible Values and Permitted Value Groups" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="cdes.html" class="btn btn-neutral" title="Data Elements (DEs)" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="cdes.html" class="btn btn-neutral" title="Data Elements (DEs)" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   
@@ -389,7 +420,8 @@ local file system. NB. Only the uploaded file name is displayed - not the conten
             VERSION:'1.2.2',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
-            HAS_SOURCE:  true
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
         };
     </script>
       <script type="text/javascript" src="_static/jquery.js"></script>

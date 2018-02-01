@@ -13,6 +13,8 @@
 
   
   
+  
+  
 
   
 
@@ -30,6 +32,9 @@
   
 
   
+        <link rel="index" title="Index"
+              href="genindex.html"/>
+        <link rel="search" title="Search" href="search.html"/>
     <link rel="top" title="RDRF 1.2.2 documentation" href="index.html"/>
         <link rel="next" title="Data Elements (DEs)" href="cdes.html"/>
         <link rel="prev" title="RDRF Graphical User Interface" href="gui.html"/> 
@@ -41,6 +46,7 @@
 
 <body class="wy-body-for-nav" role="document">
 
+   
   <div class="wy-grid-for-nav">
 
     
@@ -81,7 +87,10 @@
           
             
             
-                <ul class="current">
+              
+            
+            
+              <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="workflow.html">Creation of a Registry: Workflows for Design and User Modes</a></li>
 <li class="toctree-l1"><a class="reference internal" href="gui.html">RDRF Graphical User Interface</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Registries, Forms and Sections</a><ul>
@@ -127,8 +136,10 @@
 
       
       <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
-        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-        <a href="index.html">RDRF</a>
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">RDRF</a>
+        
       </nav>
 
 
@@ -137,23 +148,40 @@
         <div class="rst-content">
           
 
- 
+
+
+
+
+
+
+
+
+
+
+
 
 
 
 <div role="navigation" aria-label="breadcrumbs navigation">
+
   <ul class="wy-breadcrumbs">
-    <li><a href="index.html">Docs</a> &raquo;</li>
-      
-    <li>Registries, Forms and Sections</li>
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+      <li>Registries, Forms and Sections</li>
+    
+    
       <li class="wy-breadcrumbs-aside">
         
-          
-            <a href="_sources/registries.txt" rel="nofollow"> View page source</a>
+            
+            <a href="_sources/registries.rst.txt" rel="nofollow"> View page source</a>
           
         
       </li>
+    
   </ul>
+
+  
   <hr/>
 </div>
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
@@ -163,14 +191,14 @@
 <span id="registries"></span><h1>Registries, Forms and Sections<a class="headerlink" href="#registries-forms-and-sections" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="registry">
 <h2>Registry<a class="headerlink" href="#registry" title="Permalink to this headline">¶</a></h2>
-<p>In RDRF, a &#8220;registry&#8221; is just a named collection of forms. A Registry is created by an admin user
-by selecting &#8220;Registries&#8221; from &#8220;Settings&#8221; and clicking &#8220;Add&#8221;.</p>
+<p>In RDRF, a “registry” is just a named collection of forms. A Registry is created by an admin user
+by selecting “Registries” from “Admin Page” (under the Admin user icon in the banner on the top right)  and clicking “Add”.</p>
 <p>A Registry must have a non-blank name and a code (which should not contain spaces).</p>
 </div>
 <div class="section" id="forms">
 <h2>Forms<a class="headerlink" href="#forms" title="Permalink to this headline">¶</a></h2>
-<p>A form is a single &#8220;screen&#8221; of information in RDRF and consists of a group of named
-Sections. To create a form, select &#8220;Registry Form&#8221; from &#8220;Settings&#8221; and clicking &#8220;Add&#8221;.</p>
+<p>A form is a single “screen” of information in RDRF and consists of a group of named
+Sections. To create a form, select “Registry Form” from “Admin Page” and clicking “Add”.</p>
 <p>Form names should not include spaces (e.g. ClinicalData), however the form name will appear as Clinical Data if captial letters are used for separate words.</p>
 <p>A form is defined by the following features:</p>
 </div>
@@ -181,7 +209,7 @@ registry at a time.</p>
 </div>
 <div class="section" id="name">
 <h2>Name<a class="headerlink" href="#name" title="Permalink to this headline">¶</a></h2>
-<p>The display name to use (this will appear in the &#8220;Patient Listing&#8221; under &#8220;Modules&#8221;.</p>
+<p>The display name to use (this will appear in the “Patient Listing” under “Modules”.</p>
 </div>
 <div class="section" id="sections">
 <h2>Sections<a class="headerlink" href="#sections" title="Permalink to this headline">¶</a></h2>
@@ -211,21 +239,21 @@ registry at a time.</p>
 <h2>Code<a class="headerlink" href="#code" title="Permalink to this headline">¶</a></h2>
 <p>A section must have a non-blank code (no spaces) which is just a text value. Section codes must be unique.
 The code of a section is used to refer to it, when used in a Form.</p>
-<p>Example: &#8220;FHSECTION34&#8221; or &#8220;SEC001&#8221;</p>
+<p>Example: “FHSECTION34” or “SEC001”</p>
 </div>
 <div class="section" id="display-name">
 <h2>Display Name<a class="headerlink" href="#display-name" title="Permalink to this headline">¶</a></h2>
 <p>A string which will be displayed on the form to mark the start of the section.</p>
-<p>Example: &#8220;Physical Characteristics&#8221; , &#8220;Contact Information&#8221;</p>
+<p>Example: “Physical Characteristics” , “Contact Information”</p>
 </div>
 <div class="section" id="elements">
 <h2>Elements<a class="headerlink" href="#elements" title="Permalink to this headline">¶</a></h2>
 <p>The <a class="reference internal" href="cdes.html#des"><span class="std std-ref">DEs</span></a> codes of any fields comprising that section.</p>
 <p>This <em>must</em> be a comma-demlited list of <a class="reference internal" href="cdes.html#des"><span class="std std-ref">DE codes</span></a>.</p>
-<p>Example: &#8220;CDEName, CDEAge&#8221;</p>
+<p>Example: “CDEName, CDEAge”</p>
 <p>(This would mean that the section would consist of two
-data input fields - one defined by the <a class="reference internal" href="cdes.html#des"><span class="std std-ref">Data Element</span></a> with <a class="reference internal" href="cdes.html#des"><span class="std std-ref">code</span></a> &#8220;CDEName&#8221;
-and one defined by the Common Data Element with code &#8220;CDEAge&#8221;)</p>
+data input fields - one defined by the <a class="reference internal" href="cdes.html#des"><span class="std std-ref">Data Element</span></a> with <a class="reference internal" href="cdes.html#des"><span class="std std-ref">code</span></a> “CDEName”
+and one defined by the Common Data Element with code “CDEAge”)</p>
 <p>NB. Spaces between codes is <em>not</em> significant.</p>
 </div>
 <div class="section" id="allow-multiple">
@@ -234,7 +262,7 @@ and one defined by the Common Data Element with code &#8220;CDEAge&#8221;)</p>
 <div class="section" id="id3">
 <h3>Example<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h3>
 <p>A friends section might be defined with cdes for name and email address etc.
-Marking the section as &#8220;allow multiple&#8221; would cause an &#8220;Add&#8221; and &#8220;Remove&#8221; button
+Marking the section as “allow multiple” would cause an “Add” and “Remove” button
 to be added to the form so multiple friends could be added (or deleted.)</p>
 </div>
 </div>
@@ -246,15 +274,18 @@ to be added to the form so multiple friends could be added (or deleted.)</p>
 
 
            </div>
+           <div class="articleComments">
+            
+           </div>
           </div>
           <footer>
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="cdes.html" class="btn btn-neutral float-right" title="Data Elements (DEs)" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="cdes.html" class="btn btn-neutral float-right" title="Data Elements (DEs)" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="gui.html" class="btn btn-neutral" title="RDRF Graphical User Interface" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="gui.html" class="btn btn-neutral" title="RDRF Graphical User Interface" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   
@@ -288,7 +319,8 @@ to be added to the form so multiple friends could be added (or deleted.)</p>
             VERSION:'1.2.2',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
-            HAS_SOURCE:  true
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
         };
     </script>
       <script type="text/javascript" src="_static/jquery.js"></script>

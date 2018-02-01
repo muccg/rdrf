@@ -13,6 +13,8 @@
 
   
   
+  
+  
 
   
 
@@ -30,6 +32,9 @@
   
 
   
+        <link rel="index" title="Index"
+              href="genindex.html"/>
+        <link rel="search" title="Search" href="search.html"/>
     <link rel="top" title="RDRF 1.2.2 documentation" href="index.html"/>
         <link rel="prev" title="Development Environment" href="development.html"/> 
 
@@ -40,6 +45,7 @@
 
 <body class="wy-body-for-nav" role="document">
 
+   
   <div class="wy-grid-for-nav">
 
     
@@ -80,7 +86,10 @@
           
             
             
-                <ul class="current">
+              
+            
+            
+              <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="workflow.html">Creation of a Registry: Workflows for Design and User Modes</a></li>
 <li class="toctree-l1"><a class="reference internal" href="gui.html">RDRF Graphical User Interface</a></li>
 <li class="toctree-l1"><a class="reference internal" href="registries.html">Registries, Forms and Sections</a></li>
@@ -110,8 +119,10 @@
 
       
       <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
-        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-        <a href="index.html">RDRF</a>
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">RDRF</a>
+        
       </nav>
 
 
@@ -120,23 +131,40 @@
         <div class="rst-content">
           
 
- 
+
+
+
+
+
+
+
+
+
+
+
 
 
 
 <div role="navigation" aria-label="breadcrumbs navigation">
+
   <ul class="wy-breadcrumbs">
-    <li><a href="index.html">Docs</a> &raquo;</li>
-      
-    <li>Security</li>
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+      <li>Security</li>
+    
+    
       <li class="wy-breadcrumbs-aside">
         
-          
-            <a href="_sources/security.txt" rel="nofollow"> View page source</a>
+            
+            <a href="_sources/security.rst.txt" rel="nofollow"> View page source</a>
           
         
       </li>
+    
   </ul>
+
+  
   <hr/>
 </div>
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
@@ -155,7 +183,7 @@ LTS releases get security and data loss fixes applied for a guaranteed period of
 <p>2. CSRF ( Cross-Site Request Forgery ) checking: A method of insuring that man in the middle attacks
 ( falsifying form submissions for example) are impossible.</p>
 <ol class="arabic simple" start="3">
-<li>Login restrictions of all &#8220;views&#8221;</li>
+<li>Login restrictions of all “views”</li>
 </ol>
 <p>4. In addition RDRF uses the Django Secure package ( <a class="reference external" href="http://django-secure.readthedocs.org/en/v0.1.2/">http://django-secure.readthedocs.org/en/v0.1.2/</a>) middleware with
 all settings enabled by default.</p>
@@ -175,13 +203,13 @@ and cannot be addressed by the software itself.</p>
 <p>The registry framework stores data in PostgreSQL and MongoDB. The database these systems use should be encrypted.
 This ensures that data is protected if the storage hardware is (for example) stolen, reused, or returned to the manufacturer to address a fault.</p>
 <p>In this sense, storage includes all physical media which is used to store registry data, including the volumes used by the database software,
-the volume on which the front end is installed, and any volumes used for operating system &#8220;swap&#8221; space.</p>
+the volume on which the front end is installed, and any volumes used for operating system “swap” space.</p>
 <ol class="arabic simple" start="2">
 <li>inter-server / inter-datacentre encryption</li>
 </ol>
-<p>Communication between the front-end and the databases should be encrypted. This is to guard against confidential data being intercepted &#8220;in transit&#8221;.
+<p>Communication between the front-end and the databases should be encrypted. This is to guard against confidential data being intercepted “in transit”.
 In addition to encryption, SSL certificates should be used (and databases and database clients configured to verify them)
-so that a third party cannot impersonate the database or a database client (known as a &#8220;person in the middle&#8221; attack.)</p>
+so that a third party cannot impersonate the database or a database client (known as a “person in the middle” attack.)</p>
 <ol class="arabic simple" start="3">
 <li>encrypted access to front-end</li>
 </ol>
@@ -206,13 +234,16 @@ the risk of data exposure through theft or accidental loss.</p>
 
 
            </div>
+           <div class="articleComments">
+            
+           </div>
           </div>
           <footer>
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
       
-        <a href="development.html" class="btn btn-neutral" title="Development Environment" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="development.html" class="btn btn-neutral" title="Development Environment" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   
@@ -246,7 +277,8 @@ the risk of data exposure through theft or accidental loss.</p>
             VERSION:'1.2.2',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
-            HAS_SOURCE:  true
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
         };
     </script>
       <script type="text/javascript" src="_static/jquery.js"></script>
