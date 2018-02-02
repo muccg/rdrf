@@ -1,10 +1,7 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 from django.contrib.auth import get_user_model
-from django.urls import reverse
-from django.utils.html import format_html
 from django.core.exceptions import ValidationError
-from django.forms import ChoiceField
 
 from .admin_forms import UserChangeForm, RDRFUserCreationForm
 from .models import WorkingGroup

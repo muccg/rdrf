@@ -1,7 +1,6 @@
 from django.core.urlresolvers import reverse
 from rdrf.models import RDRFContext
-from rdrf.models import RegistryForm, Section
-from django.contrib.contenttypes.models import ContentType
+from rdrf.models import RegistryForm
 
 import logging
 logger = logging.getLogger(__name__)

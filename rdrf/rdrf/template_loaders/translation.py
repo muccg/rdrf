@@ -1,5 +1,4 @@
 import logging
-from django.template import Template
 from django.template import Origin
 from django.template import TemplateDoesNotExist
 from django.template.loaders.base import Loader as BaseLoader

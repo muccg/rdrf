@@ -3,7 +3,7 @@ import logging
 from contextlib import contextmanager
 from aloe import before, after, around, world
 from selenium import webdriver
-from . import steps, utils
+from . import utils
 from django.conf import settings
 
 logger = logging.getLogger(__name__)

@@ -6,7 +6,7 @@ from django.forms.utils import ErrorDict
 from .models import *
 from rdrf.dynamic_data import DynamicDataWrapper
 from rdrf.models import ConsentQuestion, ConsentSection, DemographicFields
-from rdrf.widgets import CountryWidget, StateWidget, DateWidget, ReadOnlySelect, ConsentFileInput
+from rdrf.widgets import CountryWidget, StateWidget, ConsentFileInput
 from registry.groups.models import CustomUser, WorkingGroup
 from registry.patients.models import Patient, PatientRelative
 from registry.patients.patient_widgets import PatientRelativeLinkWidget

@@ -1,7 +1,6 @@
 # encoding: utf-8
 import yaml
 import sys
-import csv
 from string import strip
 import codecs
 

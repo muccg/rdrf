@@ -15,7 +15,6 @@ from .models import CommonDataElement
 from django.utils.functional import lazy
 from django.utils.translation import ugettext_lazy as _
 from django.conf import settings
-import collections
 
 mark_safe_lazy = lazy(mark_safe, str)
 

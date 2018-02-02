@@ -1,9 +1,5 @@
 from collections import namedtuple
 
-
-from registry.genetic import models as genemodels
-from registry.patients import models as patientmodels
-from registry.groups import models as groupmodels
 from rdrf import models
 from . import model_exporters, datagroup_exporters
 

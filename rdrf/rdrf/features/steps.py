@@ -1,5 +1,4 @@
 import logging
-import os
 
 from aloe import step, world
 from aloe.registry import STEP_REGISTRY

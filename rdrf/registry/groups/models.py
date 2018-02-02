@@ -6,7 +6,6 @@ from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
 from django.db import models
 from django.dispatch import receiver
-from django.core.exceptions import ValidationError
 
 from registration.signals import user_activated
 from registration.signals import user_registered

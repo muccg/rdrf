@@ -1,6 +1,5 @@
 # Django settings for rdrf project.
 import os
-import ssl
 # A wrapper around environment which has been populated from
 # /etc/rdrf/rdrf.conf in production. Also does type conversion of values
 from ccg_django_utils.conf import EnvConfig

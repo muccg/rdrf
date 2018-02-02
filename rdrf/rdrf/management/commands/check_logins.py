@@ -6,9 +6,6 @@ from rdrf.reminders import ReminderProcessor
 from rdrf.email_notification import process_notification
 
 from registry.groups.models import CustomUser
-from registry.patients.models import Patient
-from registry.patients.models import ParentGuardian
-
 
 def send_reminder(user, registry_model, process_func=None):
     if process_func:
