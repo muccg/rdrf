@@ -28,6 +28,12 @@
 
       <script type="text/javascript" src="{% static 'js/vendor/jquery-1.11.3.min.js' %}" ></script>
       <script type="text/javascript" src="{% static 'js/vendor/jquery-ui-1.11.4.min.js' %}"></script>
+
+      {% if request.LANGUAGE_CODE.lower != "en" %}
+        {% static "" as baseUrl %}
+        <script src = "{{ baseUrl }}/js/vendor/i18n/datepicker-{{ request.LANGUAGE_CODE }}.js"></script>
+      {% endif %}
+
       <script type="text/javascript" src="{% static 'bootstrap-3.3.6/js/bootstrap.min.js' %}"></script>
       <script src="https://ajax.aspnetcdn.com/ajax/jquery.validate/1.13.1/jquery.validate.min.js"></script>
       <script type="text/javascript" src="{% static 'js/date_validation.js' %}">/<script>
