@@ -41,9 +41,8 @@
       <script type="text/javascript" src="{% static 'js/toggle_disabled.js' %}"></script>
       <script type="text/javascript" src="{% static 'js/rpc_module.js' %}"></script>
       <script type="text/javascript" src="{% url 'javascript-catalog' %}"></script>
+      <script type="text/javascript" src="{% static 'js/rdrf.js' %}"></script>
       <script type="text/javascript">var django = { $: $.noConflict() }; if (!$) $ = django.$; </script>
-
-
 
       {% block extrastyle %}
       {% endblock %}
@@ -56,6 +55,8 @@
           $("#submit-btn").click(function() {
               $("#main-form").submit();
           });
+
+          hide_empty_menu();
         });
       </script>
 
@@ -105,7 +106,8 @@
                     {% block formlinks %}
                     {% endblock %}
 
-                    <li class="dropdown">
+
+                     <li class="dropdown dropdown-menu-button">
                         <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
                             <span class="glyphicon glyphicon-tasks"></span> {% trans 'Menu' %}<span class="caret"></span>
                         </a>
