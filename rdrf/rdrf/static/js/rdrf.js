@@ -4,6 +4,4 @@ function hide_empty_menu() {
     if (menu_element_count == 0) {
         $(".dropdown-menu-button").hide();
     }
-
-    console.log(menu_element_count);
 }
