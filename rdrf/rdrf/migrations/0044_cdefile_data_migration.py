@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 
-from django.db import migrations, models
+from django.db import migrations
+
 
 def set_codes(apps, schema_editor):
     CDEFile = apps.get_model("rdrf", "CDEFile")
@@ -30,26 +31,27 @@ def set_codes(apps, schema_editor):
             print("Could not set codes on CDEFile %s: %s" % (f.pk,
                                                              ex))
 
+
 def set_fks(apps, schema_editor):
     from rdrf.models import Registry, RegistryForm, Section, CommonDataElement
-    
-    m = lambda model: apps.get_model("rdrf", model)
+
+    def m(model): return apps.get_model("rdrf", model)
     CDEFile = m("CDEFile")
     for f in CDEFile.objects.all():
         try:
             f.registry = m("Registry").objects.get(code=f.registry_code)
         except Registry.DoesNotExist:
-            msg = "Cannot set registry back on CDEFile %s registry_code = %s" % (f.pk, f.registry_code)
+            msg = "Cannot set registry back on CDEFile %s registry_code = %s" % (
+                f.pk, f.registry_code)
             print(msg)
 
         try:
             f.form = m("RegistryForm").objects.get(name=f.form_name,
-                                               registry=f.registry)
+                                                   registry=f.registry)
         except RegistryForm.DoesNotExist:
             msg = "Cannot set form back on CDEFile %s name = %s" % (f.pk,
                                                                     f.form_name)
             print(msg)
-            
 
         try:
             f.section = m("Section").objects.get(code=f.section_code)
@@ -72,7 +74,7 @@ def set_fks(apps, schema_editor):
             print("could not revert CDEFile %s back: %s" % (f.pk,
                                                             ex))
 
-       
+
 class Migration(migrations.Migration):
 
     dependencies = [
@@ -81,6 +83,6 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.RunPython(set_codes, set_fks)
-        
-       
+
+
     ]

@@ -91,7 +91,14 @@ class ReportingTableGenerator(object):
                 "file": alc.String,
                 }
 
-    def __init__(self, user, registry_model, multisection_handler, humaniser, type_overrides={}, max_items=3):
+    def __init__(
+            self,
+            user,
+            registry_model,
+            multisection_handler,
+            humaniser,
+            type_overrides={},
+            max_items=3):
         self.user = user
         self.col_map = {}
         self.registry_model = registry_model
@@ -126,7 +133,7 @@ class ReportingTableGenerator(object):
         conn = self.engine.connect()
         try:
             conn.execute(drop_table_sql)
-        except:
+        except BaseException:
             pass
         conn.close()
 
@@ -435,7 +442,7 @@ class MongoFieldSelector(object):
         import json
         try:
             return json.loads(query_model.projection)
-        except:
+        except BaseException:
             return []
 
     @property
@@ -558,10 +565,16 @@ class ReportTable(object):
 
     @property
     def columns(self):
-        return [{"data": col.name, "label": self.column_labeller.get_label(col.name)} for col in self.table.columns]
+        return [{"data": col.name, "label": self.column_labeller.get_label(
+            col.name)} for col in self.table.columns]
 
     def _get_table(self):
-        return alc.Table(self.table_name, MetaData(self.engine), autoload=True, autoload_with=self.engine)
+        return alc.Table(
+            self.table_name,
+            MetaData(
+                self.engine),
+            autoload=True,
+            autoload_with=self.engine)
 
     def _create_engine(self):
         return create_engine(pg_uri(settings.DATABASES["default"]))

@@ -4,7 +4,6 @@ from django.conf import settings
 from registry.configuration.models import EmailTemplate
 
 
-
 def default_return_email():
     return getattr(settings, "RETURN_EMAIL", "noreply@ccg.murdoch.edu.au")
 

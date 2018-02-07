@@ -13,7 +13,7 @@ def get_info_text_expression(fields):
     if len(fields) > 0:
         consent_field = fields[0]
         if not consent_field.startswith("customconsent_"):
-            return 
+            return
 
         consent_section_model_pk = consent_field.split("_")[2]
         try:
@@ -22,10 +22,11 @@ def get_info_text_expression(fields):
                 try:
                     field_path = "rdrf://model/ConsentSection/%s/information_text" % consent_section_model.pk
                     return field_path
-                    
+
                 except Exception as ex:
-                    logger.error("Error getting custom consent information text for pk %s: %s" % (consent_section_model.pk,
-                                                                                                  ex))
+                    logger.error(
+                        "Error getting custom consent information text for pk %s: %s" %
+                        (consent_section_model.pk, ex))
                     return
-        except:
+        except BaseException:
             return

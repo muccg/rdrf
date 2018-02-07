@@ -12,7 +12,8 @@ class RegistryFormAdminForm(ModelForm):
         if 'instance' in kwargs:
             instance = kwargs["instance"]
             if instance is not None:
-                sections = Section.objects.filter(code__in=kwargs['instance'].sections.split(","))
+                sections = Section.objects.filter(
+                    code__in=kwargs['instance'].sections.split(","))
                 cdes = []
                 for section in sections:
                     cdes += section.get_elements()
@@ -47,7 +48,7 @@ class EmailTemplateAdminForm(ModelForm):
     If we do this on the model it causes a migration fail in the build.
     """
 
-    def __init__(self, *args, **kwargs): 
+    def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         field_choices = settings.LANGUAGES
         self.fields['language'] = ChoiceField(choices=field_choices)
@@ -55,4 +56,3 @@ class EmailTemplateAdminForm(ModelForm):
     class Meta:
         fields = "__all__"
         model = EmailTemplate
-

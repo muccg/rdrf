@@ -28,6 +28,7 @@ def create_rdrf_default_contexts(patient, registry_ids):
             context_manager = RDRFContextManager(registry_model)
             return context_manager.get_or_create_default_context(patient)
 
+
 class RDRFContextManager(object):
 
     def __init__(self, registry_model):
@@ -68,15 +69,16 @@ class RDRFContextManager(object):
 
             default_context = None
             content_type = ContentType.objects.get_for_model(patient_model)
-            for context_form_group in ContextFormGroup.objects.filter(registry=self.registry_model,
-                                                                      context_type='F'):
+            for context_form_group in ContextFormGroup.objects.filter(
+                    registry=self.registry_model, context_type='F'):
                 # fixed type so create one for the supplied patient
                 fixed_context, created = RDRFContext.objects.get_or_create(registry=self.registry_model,
                                                                            content_type=content_type,
                                                                            object_id=patient_model.pk,
                                                                            context_form_group=context_form_group)
                 if created:
-                    fixed_context.display_name = context_form_group.get_default_name(patient_model)
+                    fixed_context.display_name = context_form_group.get_default_name(
+                        patient_model)
                     fixed_context.save()
                 if context_form_group.is_default:
                     default_context = fixed_context
@@ -84,9 +86,11 @@ class RDRFContextManager(object):
 
     def create_initial_context_for_new_patient(self, patient_model):
         content_type = ContentType.objects.get_for_model(patient_model)
-        contexts = [c for c in RDRFContext.objects.filter(registry=self.registry_model,
-                                                          content_type=content_type,
-                                                          object_id=patient_model.pk).order_by("pk")]
+        contexts = [
+            c for c in RDRFContext.objects.filter(
+                registry=self.registry_model,
+                content_type=content_type,
+                object_id=patient_model.pk).order_by("pk")]
         if len(contexts) > 0:
             return contexts[0]
         else:
@@ -99,7 +103,8 @@ class RDRFContextManager(object):
         default_context_form_group = self.registry_model.default_context_form_group
         if default_context_form_group is not None:
             rdrf_context.context_form_group = default_context_form_group
-            rdrf_context.display_name = default_context_form_group.get_default_name(patient_model)
+            rdrf_context.display_name = default_context_form_group.get_default_name(
+                patient_model)
 
         rdrf_context.save()
         return rdrf_context

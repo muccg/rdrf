@@ -1,8 +1,9 @@
 # -*- coding: utf-8 -*-
 
 
-from django.db import migrations, models
+from django.db import migrations
 import os.path
+
 
 def default_filename(apps, schema_editor):
     PatientConsent = apps.get_model("patients", "PatientConsent")
@@ -10,6 +11,7 @@ def default_filename(apps, schema_editor):
         if not pc.filename:
             pc.filename = os.path.basename(pc.form.name)
             pc.save()
+
 
 def clear_filename(apps, schema_editor):
     PatientConsent = apps.get_model("patients", "PatientConsent")

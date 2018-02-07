@@ -62,6 +62,7 @@ class IsoDateField(DateField):
     A date field which stores dates as strings in iso format, instead
     of as date objects.
     """
+
     def __init__(self, *args, **kwargs):
         kwargs.setdefault("input_formats", []).append("%Y-%m-%d")
         super().__init__(*args, **kwargs)

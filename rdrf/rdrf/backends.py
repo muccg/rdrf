@@ -1,4 +1,3 @@
-from useraudit.backend import AuthFailedLoggerBackend
 from useraudit.signals import login_failure_limit_reached
 from rdrf.events import EventType
 
@@ -7,9 +6,7 @@ logger = logging.getLogger(__name__)
 
 
 def account_lockout_handler(sender, user=None, **kwargs):
-    from django.conf import settings
     from rdrf.email_notification import process_notification
-    from useraudit.middleware import get_request
 
     template_data = {
         "user": user,

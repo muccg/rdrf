@@ -15,7 +15,6 @@ from rdrf.form_progress import FormProgress
 from rdrf.contexts_api import RDRFContextManager
 from rdrf.components import FormGroupButton
 from registry.patients.models import Patient
-from .utils import Message
 from rdrf.utils import MinType
 from rdrf.utils import consent_check
 from django.utils.translation import ugettext as _
@@ -150,7 +149,8 @@ class PatientsListingView(View):
         self.registry_code = request.GET.get("registry_code")
         self.registry_model = get_object_or_404(Registry, code=self.registry_code)
 
-        self.clinicians_have_patients = self.registry_model.has_feature("clinicians_have_patients")
+        self.clinicians_have_patients = self.registry_model.has_feature(
+            "clinicians_have_patients")
         self.form_progress = FormProgress(self.registry_model)
         self.supports_contexts = self.registry_model.has_feature("contexts")
         self.rdrf_context_manager = RDRFContextManager(self.registry_model)
@@ -272,19 +272,26 @@ class PatientsListingView(View):
                                                         obj,
                                                         "see_patient")])
         else:
-            row_list_to_update.extend([self._get_row_dict(obj) for obj in page_object.object_list])
+            row_list_to_update.extend([self._get_row_dict(obj)
+                                       for obj in page_object.object_list])
 
     def _get_row_dict(self, instance):
         # we need to do this so that the progress data for this instance
         # loaded!
         self.form_progress.reset()
-        return {col.field: col.fmt(col.cell(instance, self.supports_contexts, self.form_progress, self.rdrf_context_manager))
-                for col in self.columns}
+        return {
+            col.field: col.fmt(
+                col.cell(
+                    instance,
+                    self.supports_contexts,
+                    self.form_progress,
+                    self.rdrf_context_manager)) for col in self.columns}
 
     def get_initial_queryset(self):
         self.registry_queryset = Registry.objects.filter(
             code=self.registry_model.code)
-        self.patients = Patient.objects.all().prefetch_related("working_groups").prefetch_related("rdrf_registry")
+        self.patients = Patient.objects.all().prefetch_related(
+            "working_groups").prefetch_related("rdrf_registry")
 
     def apply_search_filter(self):
         if self.search_term:

@@ -1,14 +1,13 @@
 from collections import namedtuple
 
-
-from registry.genetic import models as genemodels
-from registry.patients import models as patientmodels
-from registry.groups import models as groupmodels
 from rdrf import models
 from . import model_exporters, datagroup_exporters
 
 
-class GroupDefinition(namedtuple('GroupDefinition', ['name', 'dirname', 'datagroups', 'models'])):
+class GroupDefinition(
+    namedtuple(
+        'GroupDefinition', [
+            'name', 'dirname', 'datagroups', 'models'])):
 
     def __new__(cls, name, dirname, datagroups=(), models=()):
         return super(GroupDefinition, cls).__new__(cls, name, dirname, datagroups, models)
@@ -61,7 +60,7 @@ _REGISTRY_DEF_GROUP = GroupDefinition(
     name='Registry Definition',
     dirname='registry_definition',
     models=(
-        'rdrf.Section', # because registry has a potentially non-null "PatientDataSection" ..
+        'rdrf.Section',  # because registry has a potentially non-null "PatientDataSection" ..
         'rdrf.Registry',
         'groups.WorkingGroup',
         'auth.Group',
@@ -82,7 +81,8 @@ class EXPORT_TYPES(object):
     CDES = ExportType('cdes', 'Common Data Elements', ())
     REFDATA = ExportType('refdata', 'Reference Data', ())
     REGISTRY_DEF = ExportType('registry_def', 'Registry Definition', (CDES, REFDATA))
-    REGISTRY_WITH_DATA = ExportType('registry', 'Registry Definition and Data', (CDES, REFDATA, REGISTRY_DEF))
+    REGISTRY_WITH_DATA = ExportType(
+        'registry', 'Registry Definition and Data', (CDES, REFDATA, REGISTRY_DEF))
 
     all_types = (CDES, REFDATA, REGISTRY_DEF, REGISTRY_WITH_DATA)
 
@@ -171,7 +171,8 @@ REGISTRY_WITH_DATA_EXPORT_DEFINITION = ExportDefinition(
                         'rdrf.RDRFContext',
                         'patients.Patient',
                         'rdrf.QuestionnaireResponse',
-                        # TODO is it ok to include all Doctors or should we include only referred Doctors?
+                        # TODO is it ok to include all Doctors or should we include only
+                        # referred Doctors?
                         'patients.Doctor',
                         'patients.PatientDoctor',
                         'patients.ClinicianOther',

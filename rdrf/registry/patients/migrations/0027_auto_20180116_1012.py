@@ -17,11 +17,16 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='clinicianother',
             name='use_other',
-            field=models.BooleanField(default=False),
+            field=models.BooleanField(
+                default=False),
         ),
         migrations.AlterField(
             model_name='clinicianother',
             name='user',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL),
+            field=models.ForeignKey(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.CASCADE,
+                to=settings.AUTH_USER_MODEL),
         ),
     ]

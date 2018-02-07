@@ -100,6 +100,7 @@ class NINDSReportParser:
                 pvg = NINDSReportParser.parse_pvg(table1_group2)
             NINDSReportParser.parse_cde(table1_group1, pvg)
 
+
 if __name__ == '__main__':
     for report_file in sys.argv[1:]:
         NINDSReportParser.parse_file(report_file)

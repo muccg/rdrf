@@ -3,12 +3,15 @@ from __future__ import unicode_literals
 
 from django.db import migrations, models
 
+
 def make_positive(apps, schema_editor):
     RegistryForm = apps.get_model("rdrf", "RegistryForm")
     RegistryForm.objects.filter(position__lt=0).update(position=0)
 
+
 def do_nothing(apps, schema_editor):
     pass
+
 
 class Migration(migrations.Migration):
 

@@ -16,7 +16,8 @@ def add_permissions_to_group(group, role):
     group.permissions.add(*permissions)
 
 
-# Note: Permissions have been created initially by copying permissions from OPHG staging installation
+# Note: Permissions have been created initially by copying permissions
+# from OPHG staging installation
 PERMISSIONS_BY_ROLES = {
     # Not sure if we need this
     # 'AdminOnly': [],

@@ -150,6 +150,7 @@ def export_registry_action(modeladmin, request, registry_models_selected):
 
         return response
 
+
 export_registry_action.short_description = "Export"
 
 
@@ -160,12 +161,14 @@ def design_registry_action(modeladmin, request, registry_models_selected):
         registry = [r for r in registry_models_selected][0]
         return HttpResponseRedirect(reverse('rdrf_designer', args=(registry.pk,)))
 
+
 design_registry_action.short_description = _("Design")
 
 
 def generate_questionnaire_action(modeladmin, request, registry_models_selected):
     for registry in registry_models_selected:
         registry.generate_questionnaire()
+
 
 generate_questionnaire_action.short_description = _("Generate Questionnaire")
 
@@ -339,7 +342,8 @@ class EmailNotificationHistoryAdmin(admin.ModelAdmin):
     list_display = ("date_stamp", "email_notification", "registry", "full_language", "resend")
 
     def registry(self, obj):
-        return "%s (%s)" % (obj.email_notification.registry.name, obj.email_notification.registry.code.upper())
+        return "%s (%s)" % (obj.email_notification.registry.name,
+                            obj.email_notification.registry.code.upper())
 
     def full_language(self, obj):
         return dict(settings.LANGUAGES).get(obj.language, obj.language)
@@ -351,16 +355,15 @@ class EmailNotificationHistoryAdmin(admin.ModelAdmin):
         return "<a class='btn btn-info btn-xs' href='%s'>Resend</a>" % email_url
     resend.allow_tags = True
 
+
 class ConsentRuleAdmin(admin.ModelAdmin):
     model = ConsentRule
-    list_display = ("registry", "user_group", "capability", "consent_question","enabled")
-    
+    list_display = ("registry", "user_group", "capability", "consent_question", "enabled")
 
 
 if settings.DESIGN_MODE:
     class ContextFormGroupItemAdmin(admin.StackedInline):
         model = ContextFormGroupItem
-
 
     class ContextFormGroupAdmin(admin.ModelAdmin):
         model = ContextFormGroup
@@ -389,7 +392,7 @@ if settings.DESIGN_MODE:
                 'questionnaire_value_formatted',
                 'pvg_link',
                 'position_formatted']))
-    
+
     admin.site.register(CDEPermittedValueGroup, CDEPermittedValueGroupAdmin)
     admin.site.register(
         CommonDataElement,
@@ -411,6 +414,7 @@ if settings.DESIGN_MODE:
     admin.site.register(ConsentSection, ConsentSectionAdmin)
     admin.site.register(CdePolicy, CdePolicyAdmin)
     admin.site.register(ContextFormGroup, ContextFormGroupAdmin)
+
     class CDEFileAdmin(admin.ModelAdmin):
         model = CDEFile
         list_display = ("form_name", "section_code", "cde_code", "item")

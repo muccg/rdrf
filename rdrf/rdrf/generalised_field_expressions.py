@@ -70,7 +70,9 @@ class MultiSectionItemsExpression(GeneralisedFieldExpression):
         self.form_model = form_model
         self.section_model = section_model
         if not self.section_model.allow_multiple:
-            raise Exception("items not defined for non multisection %s" % self.section_model.code)
+            raise Exception(
+                "items not defined for non multisection %s" %
+                self.section_model.code)
 
     def evaluate(self, patient_model, mongo_data):
         # return items ( dictionaries of cde code --> values ) for each added multisection item
@@ -84,7 +86,9 @@ class MultiSectionItemsExpression(GeneralisedFieldExpression):
                 for section_dict in form_dict["sections"]:
                     if section_dict["code"] == self.section_model.code:
                         if not section_dict["allow_multiple"]:
-                            raise Exception("section %s is not multiple in data" % section_dict["code"])
+                            raise Exception(
+                                "section %s is not multiple in data" %
+                                section_dict["code"])
                         else:
                             for cde_dict_list in section_dict["cdes"]:
                                 cde_map = OrderedDict()
@@ -95,7 +99,7 @@ class MultiSectionItemsExpression(GeneralisedFieldExpression):
 
     def set_value(self, patient_model, mongo_data, replacement_items, **kwargs):
         # mongo data must be _nested_
-    
+
         if mongo_data is None:
             mongo_data = {"forms": [{"name": self.form_model.name,
                                      "sections": [{"code": self.section_model.code,
@@ -162,11 +166,12 @@ class AddMultiSectionItemExpression(GeneralisedFieldExpression):
                             raise Exception("cannot add an item to a non multisection!")
         return patient_model, mongo_data
 
+
 class PokeFieldExpression(GeneralisedFieldExpression):
     # "[pick|poke]/<FORMNAME>/<SECTIONCODE/items/2/CDECODE"
     # returns the value of CDECODE in the 2nd item
-    # 
-    
+    #
+
     def __init__(self, registry_model, field_expression):
         self.registry_model = registry_model
         self._parse_poke(field_expression)
@@ -204,17 +209,16 @@ class PokeFieldExpression(GeneralisedFieldExpression):
 
         raise ValueError("cde not found")
 
-
     def _iterate_through_forms(self, mongo_data, **kwargs):
         is_setting = "value" in kwargs
-        
+
         for form_dict in mongo_data["forms"]:
             if form_dict["name"] == self.form_model.name:
-                if self.section_model.code not in [ x["code"] for x in form_dict["sections"]]:
+                if self.section_model.code not in [x["code"] for x in form_dict["sections"]]:
                     if is_setting:
                         section_dict = {"code": self.section_model.code,
                                         "allow_multiple": self.section_model.allow_multiple
-                                    }
+                                        }
 
                         cde_dict = {"code": self.cde_model.code,
                                     "value": kwargs["value"]}
@@ -227,7 +231,7 @@ class PokeFieldExpression(GeneralisedFieldExpression):
                             section_dict["cdes"] = [cde_dict]
                         form_dict["sections"].append(section_dict)
                         return True
-                    
+
                 for section_dict in form_dict["sections"]:
                     if section_dict["code"] == self.section_model.code:
                         if not section_dict["allow_multiple"]:
@@ -242,18 +246,19 @@ class PokeFieldExpression(GeneralisedFieldExpression):
                                     items = [item]
                                     section_dict["cdes"] = items
                                     return True
-                                
+
                             for item_index, cde_dict_list in enumerate(section_dict["cdes"]):
                                 num = item_index + 1
                                 if num == self.item_number:
                                     if is_setting:
-                                        if self.cde_model.code not in [ x["code"] for x in cde_dict_list]:
+                                        if self.cde_model.code not in [
+                                                x["code"] for x in cde_dict_list]:
                                             # missing cde dict in correct item
                                             cde_dict = {"code": self.cde_model.code,
                                                         "value": kwargs["value"]}
                                             cde_dict_list.append(cde_dict)
                                             return True
-                                        
+
                                     for cde_dict in cde_dict_list:
                                         if cde_dict["code"] == self.cde_model.code:
                                             if is_setting:
@@ -371,9 +376,10 @@ class ConsentExpression(GeneralisedFieldExpression):
 
         from registry.patients.models import ConsentValue
         try:
-            consent_value_model = ConsentValue.objects.get(patient=patient_model,
-                                                           consent_question=self.consent_question_model)
-            setattr(consent_value_model, self.field, new_value)  # allow answer, first_save, last_update now
+            consent_value_model = ConsentValue.objects.get(
+                patient=patient_model, consent_question=self.consent_question_model)
+            # allow answer, first_save, last_update now
+            setattr(consent_value_model, self.field, new_value)
             consent_value_model.save()
         except ConsentValue.DoesNotExist:
             consent_value_model = ConsentValue()
@@ -419,7 +425,9 @@ class AddressesExpression(GeneralisedFieldExpression):
         self.registry_model = registry_model
 
     def evaluate(self, patient_model, mongo_data):
-        return [address_object for address_object in PatientAddress.objects.filter(patient=patient_model)]
+        return [
+            address_object for address_object in PatientAddress.objects.filter(
+                patient=patient_model)]
 
     def set_value(self, patient_model, mongo_record, address_maps, **kwargs):
         #  address = models.TextField()
@@ -618,8 +626,9 @@ class GeneralisedFieldExpressionParser(object):
         try:
             if field_expression.startswith("pick/") or field_expression.startswith("poke/"):
                 return self._parse_poke_expression(field_expression)
-                                                   
-            ms_designator, form_name, multisection_code, action_code = field_expression.split("/")
+
+            ms_designator, form_name, multisection_code, action_code = field_expression.split(
+                "/")
         except ValueError:
             raise FieldExpressionError("Cannot parse multisection expression")
 
@@ -685,7 +694,8 @@ class GeneralisedFieldExpressionParser(object):
         """
         try:
             func = getattr(report_field_functions, field_expression[1:])
-            if isinstance(func, collections.Callable) and hasattr(func, "report_function") and func.report_function:
+            if isinstance(func, collections.Callable) and hasattr(
+                    func, "report_function") and func.report_function:
                 return ReportExpression(self.registry_model, func)
             else:
                 raise FieldExpressionError(

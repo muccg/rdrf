@@ -47,7 +47,7 @@ class ResendEmail(View):
     def _get_template_data(self):
         self.template_data = json.loads(self.template_data)
         for key, value in self.template_data.items():
-            if type(value) is dict and 'app' in value and 'model' in value:
+            if isinstance(value, dict) and 'app' in value and 'model' in value:
                 app = value.get("app")
                 model = value.get("model")
                 app_model = apps.get_model(app_label=app, model_name=model)
@@ -56,7 +56,9 @@ class ResendEmail(View):
     def _ensure_registration_not_expired(self):
         registration = self.template_data.get('registration')
         if registration is None:
-            logger.warn('Template data for notification history %s should contain "registration" object', self.notification_history_id)
+            logger.warn(
+                'Template data for notification history %s should contain "registration" object',
+                self.notification_history_id)
             return
         user = registration.user
         if user.is_active:

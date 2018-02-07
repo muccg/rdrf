@@ -420,7 +420,9 @@ def wrap_uploaded_files(registry_code, post_files_data):
 
     def wrap(key, value):
         if isinstance(value, UploadedFile):
-            return FileUpload(registry_code, key, {"file_name": value.name, "django_file_id": 0})
+            return FileUpload(
+                registry_code, key, {
+                    "file_name": value.name, "django_file_id": 0})
         else:
             return value
 
@@ -495,8 +497,8 @@ class TimeStripper(object):
             else:
                 django_model = None
             return "ClinicalData pk %s Django Model %s Django id %s" % (pk,
-                                                                  django_model,
-                                                                  django_id)
+                                                                        django_model,
+                                                                        django_id)
         else:
             return "ClinicalData pk %s" % pk
 
@@ -525,7 +527,8 @@ class TimeStripper(object):
 
             except CommonDataElement.DoesNotExist:
                 print(
-                    "Missing CDE Model! Data has code %s which does not exist on the site" % code)
+                    "Missing CDE Model! Data has code %s which does not exist on the site" %
+                    code)
 
     def update_cde(self, cde):
         code = cde.get("code", None)
@@ -558,7 +561,7 @@ class TimeStripper(object):
                 except Exception as ex:
                     print(
                         "Error saving ClinicalData object %s after updating: %s" % (ident,
-                                                                              ex))
+                                                                                    ex))
                     raise   # rollback
 
     def munge_data(self, data):
@@ -637,13 +640,12 @@ def get_registry_definition_value(field_path):
 def trans_file(request, doc_name_with_out_language):
     from django.conf import settings
     default_language = "EN"
-    languages = [ pair[0].upper() for pair in settings.LANGUAGES]
+    languages = [pair[0].upper() for pair in settings.LANGUAGES]
     language = request.META.get("HTTP_ACCEPT_LANGUAGE", default_language)
     if language != default_language:
         if language in languages:
             new_file_name = language + "_" + doc_name_with_out_language
             return new_file_name
-
 
     return doc_name_with_out_language
 
@@ -652,7 +654,7 @@ def get_supported_languages():
     from collections import namedtuple
     from django.conf import settings
     Language = namedtuple('Language', ['code', 'name'])
-    return [Language(pair[0], pair[1]) for pair in settings.LANGUAGES] 
+    return [Language(pair[0], pair[1]) for pair in settings.LANGUAGES]
 
 
 def applicable_forms(registry_model, patient_model):
@@ -669,12 +671,12 @@ def applicable_forms(registry_model, patient_model):
         patient_type = patient_model.patient_type
         if not patient_type:
             patient_type = "default"
-    
+
         if patient_type in patient_type_map:
             applicable_form_names = patient_type_map[patient_type].get("forms",
-                                                                           all_forms)
-            forms =  [form for form in all_forms
-                      if form.name in applicable_form_names]
+                                                                       all_forms)
+            forms = [form for form in all_forms
+                     if form.name in applicable_form_names]
             return forms
         else:
             return []
@@ -709,7 +711,3 @@ def consent_check(registry_model, user_model, patient_model, capability):
                 return False
 
     return True
-
-
-
-

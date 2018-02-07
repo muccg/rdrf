@@ -1,13 +1,12 @@
 import logging
 from django import forms
-from django.contrib.admin.widgets import AdminFileWidget
 from django.core.exceptions import ValidationError
 from django.forms.utils import ErrorDict
 
 from .models import *
 from rdrf.dynamic_data import DynamicDataWrapper
 from rdrf.models import ConsentQuestion, ConsentSection, DemographicFields
-from rdrf.widgets import CountryWidget, StateWidget, DateWidget, ReadOnlySelect, ConsentFileInput
+from rdrf.widgets import CountryWidget, StateWidget, ConsentFileInput
 from registry.groups.models import CustomUser, WorkingGroup
 from registry.patients.models import Patient, PatientRelative
 from registry.patients.patient_widgets import PatientRelativeLinkWidget
@@ -46,7 +45,9 @@ class PatientRelativeForm(forms.ModelForm):
     class Meta:
         model = PatientRelative
         fields = "__all__"  # Added after upgrading to Django 1.8
-        exclude = ['id']    # Added after upgrading to Django 1.8  - uniqueness check was failing otherwise (RDR-1039)
+        # Added after upgrading to Django 1.8  - uniqueness check was failing
+        # otherwise (RDR-1039)
+        exclude = ['id']
         widgets = {
             'relative_patient': PatientRelativeLinkWidget,
 
@@ -124,7 +125,10 @@ class PatientAddressForm(forms.ModelForm):
         model = PatientAddress
         fields = ('address_type', 'address', 'country', 'state', 'suburb', 'postcode')
 
-    country = forms.ComboField(required=True, widget=CountryWidget(attrs={'onChange': 'select_country(this);'}))
+    country = forms.ComboField(
+        required=True, widget=CountryWidget(
+            attrs={
+                'onChange': 'select_country(this);'}))
     state = forms.ComboField(required=True, widget=StateWidget())
     address = forms.CharField(widget=forms.Textarea(attrs={'rows': 5}))
 
@@ -142,6 +146,7 @@ class PatientConsentFileForm(forms.ModelForm):
         if self.cleaned_data.get("form"):
             self.instance.filename = self.cleaned_data["form"].name
         return super(PatientConsentFileForm, self).save(commit)
+
 
 class PatientForm(forms.ModelForm):
 
@@ -193,7 +198,6 @@ class PatientForm(forms.ModelForm):
         if self.registry_model:
             if not self.registry_model.has_feature("clinicians_have_patients"):
                 self.fields["clinician"].widget = forms.HiddenInput()
-                
 
         registries = Registry.objects.all()
         if self.registry_model:
@@ -209,7 +213,8 @@ class PatientForm(forms.ModelForm):
                     registry=self.registry_model, id__in=[
                         wg.pk for wg in self.user.working_groups.all()])
             else:
-                self.fields["working_groups"].queryset = WorkingGroup.objects.filter(registry=self.registry_model)
+                self.fields["working_groups"].queryset = WorkingGroup.objects.filter(
+                    registry=self.registry_model)
 
             # field visibility restricted no non admins
             if not user.is_superuser:
@@ -251,7 +256,7 @@ class PatientForm(forms.ModelForm):
         from rdrf.file_upload import FileUpload
         from rdrf.file_upload import is_filestorage_dict
         from rdrf.utils import is_file_cde
-        
+
         def wrap_file_cde_dict(registry_code, cde_code, filestorage_dict):
             return FileUpload(registry_code, cde_code, filestorage_dict)
 
@@ -260,9 +265,9 @@ class PatientForm(forms.ModelForm):
                 return wrap_file_cde_dict(registry_code, cde_code, value)
             else:
                 return value
-            
+
         wrapped_dict = {}
-        
+
         for reg_code in registry_specific_data:
             reg_data = registry_specific_data[reg_code]
             wrapped_data = {key: wrap(reg_code, key, value)
@@ -270,8 +275,6 @@ class PatientForm(forms.ModelForm):
             wrapped_dict[reg_code] = wrapped_data
 
         return wrapped_dict
-        
-        
 
     def _update_initial_consent_data(self, patient_model, initial_data):
         if patient_model is None:
@@ -293,7 +296,8 @@ class PatientForm(forms.ModelForm):
             initial_working_groups = user.working_groups.filter(registry=self.registry_model)
             self.fields['working_groups'].queryset = initial_working_groups
         else:
-            self.fields['working_groups'].queryset = WorkingGroup.objects.filter(registry=self.registry_model)
+            self.fields['working_groups'].queryset = WorkingGroup.objects.filter(
+                registry=self.registry_model)
 
     date_of_birth = forms.DateField(
         widget=forms.DateInput(
@@ -311,7 +315,6 @@ class PatientForm(forms.ModelForm):
         help_text=_("DD-MM-YYYY"),
         required=False,
         input_formats=['%d-%m-%Y'])
-    
 
     class Meta:
         model = Patient

@@ -24,7 +24,8 @@ class ModelExporterFilteredByPatient(ModelExporter):
 
     @property
     def queryset(self):
-        return self.model.objects.filter(patient__rdrf_registry__code=self.exporter_context['registry_code'])
+        return self.model.objects.filter(
+            patient__rdrf_registry__code=self.exporter_context['registry_code'])
 
 
 # Catalogue with generic exporters
@@ -73,14 +74,16 @@ class ConsentQuestionExporter(ModelExporter):
 
     @property
     def queryset(self):
-        return self.model.objects.filter(section__registry__code=self.exporter_context['registry_code'])
+        return self.model.objects.filter(
+            section__registry__code=self.exporter_context['registry_code'])
 
 
 class EmailNotificationHistoryExporter(ModelExporter):
 
     @property
     def queryset(self):
-        return self.model.objects.filter(email_notification__registry__code=self.exporter_context['registry_code'])
+        return self.model.objects.filter(
+            email_notification__registry__code=self.exporter_context['registry_code'])
 
 
 class WizardExporter(ModelExporter):
@@ -92,7 +95,8 @@ class WizardExporter(ModelExporter):
 class ContextFormGroupItemExporter(ModelExporter):
     @property
     def queryset(self):
-        return self.model.objects.filter(context_form_group__registry__code=self.exporter_context['registry_code'])
+        return self.model.objects.filter(
+            context_form_group__registry__code=self.exporter_context['registry_code'])
 
 
 class CustomUserExporter(ModelExporter):
@@ -106,7 +110,8 @@ class CustomUserExporter(ModelExporter):
         registry_code = self.exporter_context['registry_code']
         for user in self.model.objects.filter(registry__code=registry_code):
             user.registry = models.Registry.objects.filter(code=registry_code)
-            user.working_groups = groupmodels.WorkingGroup.objects.filter(registry__code=registry_code)
+            user.working_groups = groupmodels.WorkingGroup.objects.filter(
+                registry__code=registry_code)
             yield user
 
 
@@ -114,7 +119,8 @@ class PatientExporter(ModelExporter):
 
     @property
     def queryset(self):
-        return self.model.objects.filter(rdrf_registry__code=self.exporter_context['registry_code'])
+        return self.model.objects.filter(
+            rdrf_registry__code=self.exporter_context['registry_code'])
 
 
 registry_catalogue.register(models.Registry, RegistryExporter)

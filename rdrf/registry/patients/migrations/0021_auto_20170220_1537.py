@@ -15,6 +15,10 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='patient',
             name='next_of_kin_suburb',
-            field=models.CharField(blank=True, max_length=50, null=True, verbose_name='Suburb/Town'),
+            field=models.CharField(
+                blank=True,
+                max_length=50,
+                null=True,
+                verbose_name='Suburb/Town'),
         ),
     ]

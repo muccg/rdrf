@@ -34,7 +34,7 @@ def current_registry(request):
             # it is the "sticky" registry key set when selecting a registry to work with
             try:
                 current_registry = Registry.objects.get(id=int(current_registry)).name
-            except:
+            except BaseException:
                 current_registry = DEFAULT_NAME
 
     return current_registry

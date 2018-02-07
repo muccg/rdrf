@@ -18,6 +18,7 @@ from rdrf.models import Registry
 
 from rdrf.security_checks import security_check_user_patient
 
+
 class ConsentList(View):
 
     def _get_template(self):
@@ -35,8 +36,10 @@ class ConsentList(View):
         if request.user.is_superuser:
             patients = Patient.objects.filter(rdrf_registry__code=registry_code, active=True)
         else:
-            patients = Patient.objects.filter(rdrf_registry__code=registry_code,
-                                              working_groups__in=request.user.working_groups.all(), active=True)
+            patients = Patient.objects.filter(
+                rdrf_registry__code=registry_code,
+                working_groups__in=request.user.working_groups.all(),
+                active=True)
 
         patient_list = {}
         for patient in patients:
@@ -49,7 +52,8 @@ class ConsentList(View):
                     questions = ConsentQuestion.objects.filter(section=consent_section)
                     for question in questions:
                         try:
-                            cv = ConsentValue.objects.get(patient=patient, consent_question=question)
+                            cv = ConsentValue.objects.get(
+                                patient=patient, consent_question=question)
                             answers.append(cv.answer)
                             if cv.first_save:
                                 first_saves.append(cv.first_save)
@@ -87,7 +91,8 @@ class ConsentDetails(View):
         security_check_user_patient(request.user, patient_model)
 
         if request.is_ajax:
-            values = self._get_consent_details_for_patient(registry_code, section_id, patient_id)
+            values = self._get_consent_details_for_patient(
+                registry_code, section_id, patient_id)
             return HttpResponse(json.dumps(values, cls=DjangoJSONEncoder))
 
         return render(request, 'rdrf_cdes/consent_details.html', {})
@@ -99,7 +104,8 @@ class ConsentDetails(View):
         values = []
         for consent_question in consent_questions:
             try:
-                consent_value = ConsentValue.objects.get(consent_question=consent_question, patient__id=patient_id)
+                consent_value = ConsentValue.objects.get(
+                    consent_question=consent_question, patient__id=patient_id)
                 answer = consent_value.answer
                 values.append({
                     "question": _(consent_question.question_label),
@@ -133,7 +139,8 @@ class ConsentDetailsPrint(ConsentDetails):
         details = {}
         for section in consent_sections:
             if section.applicable_to(patient):
-                details[section] = self._get_consent_details_for_patient(registry_code, section.id, patient_id)
+                details[section] = self._get_consent_details_for_patient(
+                    registry_code, section.id, patient_id)
 
         context['details'] = details
         context['patient'] = patient

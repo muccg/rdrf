@@ -15,6 +15,9 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='customuser',
             name='prevent_self_unlock',
-            field=models.BooleanField(default=False, help_text='Explicitly prevent this user to unlock their account using the Unlock Account functionality.', verbose_name='prevent self unlock'),
+            field=models.BooleanField(
+                default=False,
+                help_text='Explicitly prevent this user to unlock their account using the Unlock Account functionality.',
+                verbose_name='prevent self unlock'),
         ),
     ]

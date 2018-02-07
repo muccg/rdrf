@@ -12,8 +12,6 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.AlterField(
-            model_name='query',
-            name='mongo_search_type',
-            field=models.CharField(default='C', max_length=1, choices=[('C', 'Current'), ('L', 'Longitudinal')]),
-        ),
-    ]
+            model_name='query', name='mongo_search_type', field=models.CharField(
+                default='C', max_length=1, choices=[
+                    ('C', 'Current'), ('L', 'Longitudinal')]), ), ]

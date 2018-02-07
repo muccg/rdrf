@@ -4,6 +4,7 @@ from django.core.urlresolvers import reverse
 
 register = template.Library()
 
+
 @register.simple_tag
 def project_title_link():
     url_name = settings.PROJECT_TITLE_LINK

@@ -294,7 +294,8 @@ class Exporter(object):
             pvg = CDEPermittedValueGroup.objects.get(code=group_code)
             group_map["code"] = pvg.code
             group_map["values"] = []
-            for value in CDEPermittedValue.objects.filter(pv_group=pvg).order_by("position", "code"):
+            for value in CDEPermittedValue.objects.filter(
+                    pv_group=pvg).order_by("position", "code"):
                 value_map = {}
                 value_map["code"] = value.code
                 value_map["value"] = value.value
@@ -400,7 +401,8 @@ class Exporter(object):
             if form.complete_form_cdes.exists():
                 form_cdes = {}
                 form_cdes["form_name"] = form.name
-                form_cdes["cdes"] = [cde.code for cde in form.complete_form_cdes.order_by("code")]
+                form_cdes["cdes"] = [
+                    cde.code for cde in form.complete_form_cdes.order_by("code")]
                 complete_fields.append(form_cdes)
 
         return complete_fields
@@ -430,10 +432,12 @@ class Exporter(object):
     def _get_cde_policies(self):
         from rdrf.models import CdePolicy
         cde_policies = []
-        for cde_policy in CdePolicy.objects.filter(registry=self.registry).order_by("cde__code"):
+        for cde_policy in CdePolicy.objects.filter(
+                registry=self.registry).order_by("cde__code"):
             cde_pol_dict = {}
             cde_pol_dict["cde_code"] = cde_policy.cde.code
-            cde_pol_dict["groups_allowed"] = [group.name for group in cde_policy.groups_allowed.order_by("name")]
+            cde_pol_dict["groups_allowed"] = [
+                group.name for group in cde_policy.groups_allowed.order_by("name")]
             cde_pol_dict["condition"] = cde_policy.condition
             cde_policies.append(cde_pol_dict)
         return cde_policies
@@ -458,13 +462,15 @@ class Exporter(object):
     def _get_email_notifications(self):
         from rdrf.models import EmailNotification
         data = []
+
         def get_template_dict(t):
             return {"language": t.language,
                     "description": t.description,
                     "subject": t.subject,
                     "body": t.body}
-        
-        for email_notification in EmailNotification.objects.filter(registry=self.registry).order_by("description"):
+
+        for email_notification in EmailNotification.objects.filter(
+                registry=self.registry).order_by("description"):
             en_dict = {}
             en_dict["description"] = email_notification.description
             en_dict["email_from"] = email_notification.email_from
@@ -505,10 +511,13 @@ def str_presenter(dumper, data):
     else:
         return dumper.represent_scalar('tag:yaml.org,2002:str', data)
 
+
 class ExportDumper(yaml.SafeDumper):
     pass
 
+
 ExportDumper.add_representer(str, str_presenter)
+
 
 def dump_yaml(data):
     return yaml.dump(data, Dumper=ExportDumper, allow_unicode=True,

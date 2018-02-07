@@ -105,7 +105,8 @@ class PatientFormMixin(PatientMixin):
         from rdrf.models import Registry
         registry_model = Registry.objects.get(code=registry_code)
         rdrf_context_manager = RDRFContextManager(registry_model)
-        return rdrf_context_manager.get_or_create_default_context(patient_model, new_patient=True)
+        return rdrf_context_manager.get_or_create_default_context(
+            patient_model, new_patient=True)
 
     def set_patient_model(self, patient_model):
         self.patient_model = patient_model
@@ -237,9 +238,11 @@ class PatientFormMixin(PatientMixin):
                 instance=patient, prefix="patient_address")
 
         personal_header = _('Patients Personal Details')
-        # shouldn't be hardcoding behaviour here plus the html formatting originally here was not being passed as text
+        # shouldn't be hardcoding behaviour here plus the html formatting
+        # originally here was not being passed as text
         if registry_code == "fkrp":
-            personal_header +=  " " + _("Here you can find an overview of all your personal and contact details you have given us. You can update your contact details by changing the information below.")
+            personal_header += " " + \
+                _("Here you can find an overview of all your personal and contact details you have given us. You can update your contact details by changing the information below.")
 
         personal_details_fields = (personal_header, [
             "family_name",
@@ -365,7 +368,8 @@ class PatientFormMixin(PatientMixin):
         self.object.sync_patient_relative()
 
         # save registry specific fields
-        registry_specific_fields_handler = RegistrySpecificFieldsHandler(self.registry_model, self.object)
+        registry_specific_fields_handler = RegistrySpecificFieldsHandler(
+            self.registry_model, self.object)
 
         registry_specific_fields_handler.save_registry_specific_data_in_mongo(self.request)
 
@@ -496,8 +500,6 @@ class AddPatientView(PatientFormMixin, CreateView):
                                      errors=errors)
 
 
-
-
 class PatientEditView(View):
 
     def _check_for_blacklisted_sections(self, registry_model):
@@ -508,7 +510,6 @@ class PatientEditView(View):
             section_blacklist = []
 
         return section_blacklist
-
 
     def get(self, request, registry_code, patient_id):
         if not request.user.is_authenticated():
@@ -525,7 +526,6 @@ class PatientEditView(View):
 
         security_check_user_patient(request.user, patient)
 
-
         if registry_model.has_feature("consent_checks"):
             from rdrf.utils import consent_check
             if not consent_check(registry_model,
@@ -533,8 +533,6 @@ class PatientEditView(View):
                                  patient,
                                  "see_patient"):
                 raise PermissionDenied
-            
-                                 
 
         context_launcher = RDRFContextLauncherComponent(request.user, registry_model, patient)
         patient_info = RDRFPatientInfoComponent(registry_model, patient)
@@ -555,9 +553,10 @@ class PatientEditView(View):
             "form_links": [],
             "show_archive_button": request.user.can_archive,
             "archive_patient_url": patient.get_archive_url(registry_model) if request.user.can_archive else "",
-            "consent": consent_status_for_patient(registry_code, patient),
-            "section_blacklist": section_blacklist
-        }
+            "consent": consent_status_for_patient(
+                registry_code,
+                patient),
+            "section_blacklist": section_blacklist}
         if request.GET.get('just_created', False):
             context["message"] = _("Patient added successfully")
 
@@ -598,15 +597,17 @@ class PatientEditView(View):
         patient_info = RDRFPatientInfoComponent(registry_model, patient)
 
         if registry_model.patient_fields:
-            patient_form_class = self._create_registry_specific_patient_form_class(user,
-                                                                                   PatientForm,
-                                                                                   registry_model,
-                                                                                   patient)
+            patient_form_class = self._create_registry_specific_patient_form_class(
+                user, PatientForm, registry_model, patient)
         else:
             patient_form_class = PatientForm
 
         patient_form = patient_form_class(
-            request.POST, request.FILES, instance=patient, user=request.user, registry_model=registry_model)
+            request.POST,
+            request.FILES,
+            instance=patient,
+            user=request.user,
+            registry_model=registry_model)
 
         patient_address_form_set = inlineformset_factory(
             Patient, PatientAddress, form=PatientAddressForm, fields="__all__")
@@ -669,7 +670,8 @@ class PatientEditView(View):
                 patient_instance.user = patient_user
                 patient_instance.save()
 
-            registry_specific_fields_handler = RegistrySpecificFieldsHandler(registry_model, patient_instance)
+            registry_specific_fields_handler = RegistrySpecificFieldsHandler(
+                registry_model, patient_instance)
             registry_specific_fields_handler.save_registry_specific_data_in_mongo(request)
 
             patient, form_sections = self._get_patient_and_forms_sections(
@@ -713,11 +715,9 @@ class PatientEditView(View):
                                   None,
                                   None)
 
-
         family_linkage_panel = FamilyLinkagePanel(request.user,
                                                   registry_model,
                                                   patient)
-
 
         context["next_form_link"] = wizard.next_link
         context["previous_form_link"] = wizard.previous_link
@@ -730,7 +730,8 @@ class PatientEditView(View):
         context["not_linked"] = not patient.is_linked
         context["family_linkage_panel"] = family_linkage_panel.html
         context["show_archive_button"] = request.user.can_archive
-        context["archive_patient_url"] =  patient.get_archive_url(registry_model) if request.user.can_archive else ""
+        context["archive_patient_url"] = patient.get_archive_url(
+            registry_model) if request.user.can_archive else ""
         context["consent"] = consent_status_for_patient(registry_code, patient)
 
         section_blacklist = self._check_for_blacklisted_sections(registry_model)
@@ -740,7 +741,6 @@ class PatientEditView(View):
             context['parent'] = ParentGuardian.objects.get(user=request.user)
 
         return render(request, 'rdrf_cdes/patient_edit.html', context)
-
 
     def _is_linked(self, registry_model, patient_model):
         # is this patient linked to others?
@@ -765,7 +765,8 @@ class PatientEditView(View):
                 patient_relative_model.save()
                 # explicitly synchronise with the patient that has already been created from
                 # this patient relative ( if any )
-                # to avoid infinite loops we are doing this explicitly in the views ( not overriding save)
+                # to avoid infinite loops we are doing this explicitly in the views ( not
+                # overriding save)
                 patient_relative_model.sync_relative_patient()
 
                 tag = patient_relative_model.given_names + patient_relative_model.family_name
@@ -946,7 +947,8 @@ class PatientEditView(View):
         else:
             return registry_model.patient_fields
 
-    def _create_registry_specific_patient_form_class(self, user, form_class, registry_model, patient=None):
+    def _create_registry_specific_patient_form_class(
+            self, user, form_class, registry_model, patient=None):
         additional_fields = OrderedDict()
         field_pairs = self._get_registry_specific_fields(user, registry_model)
 

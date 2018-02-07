@@ -58,9 +58,16 @@ class PatientContextMenu(object):
         for form in self.get_forms():
             form_name = form.nice_name
             form_link = form.get_link(self.patient_model, self.context_model)
-            progress_percentage = self.form_progress.get_form_progress(form, self.patient_model, self.context_model)
-            currency = self.form_progress.get_form_currency(form, self.patient_model, self.context_model)
-            context_menu_forms.append(ContextMenuForm(form_name, form_link, progress_percentage, currency))
+            progress_percentage = self.form_progress.get_form_progress(
+                form, self.patient_model, self.context_model)
+            currency = self.form_progress.get_form_currency(
+                form, self.patient_model, self.context_model)
+            context_menu_forms.append(
+                ContextMenuForm(
+                    form_name,
+                    form_link,
+                    progress_percentage,
+                    currency))
         return context_menu_forms
 
     def get_patient_edit_link(self):
@@ -107,7 +114,10 @@ class PatientContextMenu(object):
             # no context form groups defined
             # show 1 add button to add a context containing all forms by default
             add_context_title = "Add %s" % self.context_name
-            add_context_link = reverse("context_add", args=(self.registry_model.code, str(self.patient_model.pk)))
+            add_context_link = reverse(
+                "context_add", args=(
+                    self.registry_model.code, str(
+                        self.patient_model.pk)))
             add_context_action = ContextMenuAction(add_context_title, add_context_link)
             return [add_context_action]
         else:
@@ -135,9 +145,8 @@ class PatientContextMenu(object):
             return not frm.name.startswith(self.registry_model.generated_questionnaire_name)
 
         if not self.context_model.context_form_group:
-            forms = [
-                f for f in RegistryForm.objects.filter(
-                    registry=self.registry_model).order_by('position') if not_generated(f) and self.user.can_view(f) and f.applicable_to(self.patient_model)]
+            forms = [f for f in RegistryForm.objects.filter(registry=self.registry_model).order_by(
+                'position') if not_generated(f) and self.user.can_view(f) and f.applicable_to(self.patient_model)]
         else:
             forms = [f for f in self.context_model.context_form_group.forms
                      if not_generated(f)

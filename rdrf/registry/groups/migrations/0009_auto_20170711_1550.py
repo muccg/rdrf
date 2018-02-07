@@ -15,6 +15,10 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='customuser',
             name='preferred_language',
-            field=models.CharField(default='en', help_text='Preferred language (code) for communications', max_length=20, verbose_name='preferred language'),
+            field=models.CharField(
+                default='en',
+                help_text='Preferred language (code) for communications',
+                max_length=20,
+                verbose_name='preferred language'),
         ),
     ]

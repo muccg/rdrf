@@ -23,10 +23,10 @@ class GherkinNoDjangoTestDBTestRunner(NoseTestSuiteRunner):
         """
 
         result_plugin = ResultPlugin()
-        plugins_to_add = [# Disabling the DjangoSetUpPlugin
-                          # DjangoSetUpPlugin(self),
-                          result_plugin,
-                          TestReorderer()]
+        plugins_to_add = [  # Disabling the DjangoSetUpPlugin
+            # DjangoSetUpPlugin(self),
+            result_plugin,
+            TestReorderer()]
 
         for plugin in _get_plugins_from_settings():
             plugins_to_add.append(plugin)

@@ -3,6 +3,7 @@ from django.contrib.postgres.fields import JSONField
 
 __all__ = ["DataField"]
 
+
 class DataField(JSONField):
     """
     JSONField doesn't allow saving dates or datetimes.
@@ -10,6 +11,7 @@ class DataField(JSONField):
     This field is jsonb column with python dates/time objects
     converted to strings.
     """
+
     def __init__(self, *args, **kwargs):
         kwargs.setdefault("default", dict)
         super().__init__(*args, **kwargs)
@@ -21,6 +23,7 @@ class DataField(JSONField):
     def to_python(self, value):
         _convert_datetime_to_str(value)
         return value
+
 
 def _convert_datetime_to_str(data):
     if isinstance(data, list):

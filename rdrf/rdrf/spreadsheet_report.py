@@ -32,10 +32,20 @@ class Cache(object):
             return patient_data
 
     def get_current(self, patient, current_retriever):
-        return self._get_data(patient, "current", self.current, self.LIMIT_CURRENT, current_retriever)
+        return self._get_data(
+            patient,
+            "current",
+            self.current,
+            self.LIMIT_CURRENT,
+            current_retriever)
 
     def get_snapshots(self, patient, snapshots_retriever):
-        return self._get_data(patient, "snapshots", self.snapshots, self.LIMIT_SNAPSHOT, snapshots_retriever)
+        return self._get_data(
+            patient,
+            "snapshots",
+            self.snapshots,
+            self.LIMIT_SNAPSHOT,
+            snapshots_retriever)
 
 
 def attempt(func):
@@ -191,21 +201,19 @@ class SpreadSheetReport:
                     patient_record))
         except Exception as ex:
             patient_id = patient_record["django_id"]
-            logger.error("Error getting cde %s/%s/%s for patient %s snapshot: %s" % (form_model.name,
-                                                                                     section_model.code,
-                                                                                     cde_model.code,
-                                                                                     patient_id,
-                                                                                     ex))
+            logger.error("Error getting cde %s/%s/%s for patient %s snapshot: %s" %
+                         (form_model.name, section_model.code, cde_model.code, patient_id, ex))
 
             return "?ERROR?"
 
     @cached
     def _human(self, form_model, section_model, cde_model, raw_cde_value):
         if not isinstance(raw_cde_value, type([])):
-            return self.humaniser.display_value2(form_model, section_model, cde_model, raw_cde_value)
+            return self.humaniser.display_value2(
+                form_model, section_model, cde_model, raw_cde_value)
         else:
-            return ",".join([str(self.humaniser.display_value2(form_model, section_model, cde_model, x))
-                             for x in raw_cde_value])
+            return ",".join([str(self.humaniser.display_value2(
+                form_model, section_model, cde_model, x)) for x in raw_cde_value])
 
     def _get_value_retriever(self, column):
         if column in self.gfe_func_map:
@@ -298,7 +306,13 @@ class SpreadSheetReport:
         for column_name in universal_columns:
             self._write_cell(self._header_name(column_name))
 
-    def _write_longitudinal_row(self, patient, patient_record, form_model, section_model, cde_codes):
+    def _write_longitudinal_row(
+            self,
+            patient,
+            patient_record,
+            form_model,
+            section_model,
+            cde_codes):
         num_blocks = 0  # a "block" is all cdes in one snapshot or the current set of cdes
         # we will write the current set of cdes last
 
@@ -323,8 +337,15 @@ class SpreadSheetReport:
         self._write_cell(current_timestamp)
         for cde_code in cde_codes:
             cde_model = self.cde_model_map[cde_code]
-            current_value = self._human(form_model, section_model, cde_model, self._get_cde_value_from_current_data(
-                patient_record, form_model, section_model, cde_model))
+            current_value = self._human(
+                form_model,
+                section_model,
+                cde_model,
+                self._get_cde_value_from_current_data(
+                    patient_record,
+                    form_model,
+                    section_model,
+                    cde_model))
 
             #                    snap1        snap2      current
         # E.g 3 blocks  = [date A B C][date A B C][date A B C] - we return
@@ -340,7 +361,12 @@ class SpreadSheetReport:
                     if "timestamp" in form_dict:
                         return form_dict["timestamp"]
 
-    def _get_cde_value_from_current_data(self, patient_record, form_model, section_model, cde_model):
+    def _get_cde_value_from_current_data(
+            self,
+            patient_record,
+            form_model,
+            section_model,
+            cde_model):
         if patient_record is None:
             return None
         try:

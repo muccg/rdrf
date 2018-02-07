@@ -30,7 +30,8 @@ class DataLoader(object):
         self.rows = []
 
         # fields and column names
-        # if one field spans multiple columns we use a list - the values are joined with newlines
+        # if one field spans multiple columns we use a list - the values are
+        # joined with newlines
         self.fields = [("family_name", "C"),
                        ("given_names", "D"),
                        ("title", "B"),

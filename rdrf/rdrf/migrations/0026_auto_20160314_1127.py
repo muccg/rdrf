@@ -19,8 +19,8 @@ def forward_func(apps, schema_editor):
                 context_model.context_form_group = default_context_form_group
                 try:
                     context_model.save()
-                    print("Updated RDRFContext %s context_form_group id = %s" % (context_model.id,
-                                                                                 default_context_form_group.id))
+                    print("Updated RDRFContext %s context_form_group id = %s" %
+                          (context_model.id, default_context_form_group.id))
                 except Exception as ex:
                     print("Error updating RDRFContext %s: %s" % (context_model.id, ex))
 
@@ -30,9 +30,10 @@ def backward_func(apps, schema_editor):
     for registry_model in Registry.objects.all():
         default_context_form_group = registry_model.default_context_form_group
         if default_context_form_group is not None:
-            for context_model in RDRFContext.objects.filter(registry=registry_model,
-                                                            content_type=patient_content_type,
-                                                            context_form_group=default_context_form_group):
+            for context_model in RDRFContext.objects.filter(
+                    registry=registry_model,
+                    content_type=patient_content_type,
+                    context_form_group=default_context_form_group):
                 context_model.context_form_group = None
                 try:
                     context_model.save()

@@ -1,6 +1,5 @@
 # Django settings for rdrf project.
 import os
-import ssl
 # A wrapper around environment which has been populated from
 # /etc/rdrf/rdrf.conf in production. Also does type conversion of values
 from ccg_django_utils.conf import EnvConfig
@@ -66,8 +65,8 @@ ALL_LANGUAGES = (("en", "English"),
 # EnvConfig can't handle structure of tuple of tuples so we pass in a flat association list
 # E.g. ["en","English","ar","Arabic"]
 # This must be a subset of ALL_LANGUAGES
-LANGUAGES_ASSOC_LIST = env.getlist("languages",["en","English"])
-LANGUAGES = tuple(zip(LANGUAGES_ASSOC_LIST[0::2],LANGUAGES_ASSOC_LIST[1::2]))
+LANGUAGES_ASSOC_LIST = env.getlist("languages", ["en", "English"])
+LANGUAGES = tuple(zip(LANGUAGES_ASSOC_LIST[0::2], LANGUAGES_ASSOC_LIST[1::2]))
 
 
 DATABASES = {
@@ -129,7 +128,7 @@ TEMPLATES = [
                 'django.template.loaders.filesystem.Loader',
                 'django.template.loaders.app_directories.Loader',
                 'rdrf.template_loaders.translation.Loader'
-                ]
+            ]
         },
     },
 ]
@@ -238,7 +237,8 @@ STATIC_SERVER_PATH = STATIC_ROOT
 # a directory that will be writable by the webserver, for storing various files...
 WRITABLE_DIRECTORY = env.get("writable_directory", "/tmp")
 
-# valid values django.core.files.storage.FileSystemStorage and storages.backends.database.DatabaseStorage
+# valid values django.core.files.storage.FileSystemStorage and
+# storages.backends.database.DatabaseStorage
 DEFAULT_FILE_STORAGE = env.get("storage_backend", "django.core.files.storage.FileSystemStorage")
 
 # settings used when FileSystemStorage is enabled
@@ -253,7 +253,7 @@ DB_FILES = {
     "size_column": "size",
     "base_url": None,
 }
-DATABASE_ODBC_DRIVER = "{PostgreSQL}" # depends on odbcinst.ini
+DATABASE_ODBC_DRIVER = "{PostgreSQL}"  # depends on odbcinst.ini
 DATABASE_NAME = DATABASES["default"]["NAME"]
 DATABASE_USER = DATABASES["default"]["USER"]
 DATABASE_PASSWORD = DATABASES["default"]["PASSWORD"]
@@ -487,24 +487,24 @@ LOCALE_PATHS = env.getlist("locale_paths", [os.path.join(WEBAPP_ROOT, "translati
 CRON_CLASSES = []
 
 AUTH_PASSWORD_VALIDATORS = [{
-        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
-        'OPTIONS': {
+    'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
+    'OPTIONS': {
             'min_length': 8,
-        }
-    },
+    }
+},
     {
         'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
-    },
+},
     {
         'NAME': 'rdrf.auth.password_validation.HasUppercaseLetterValidator',
-    },
+},
     {
         'NAME': 'rdrf.auth.password_validation.HasLowercaseLetterValidator',
-    },
+},
     {
         'NAME': 'rdrf.auth.password_validation.HasNumberValidator',
-    },
+},
     {
         'NAME': 'rdrf.auth.password_validation.HasSpecialCharacterValidator',
-    },
+},
 ]

@@ -47,6 +47,7 @@ class UserValidationMixin(object):
 
         return self.cleaned_data
 
+
 class RDRFUserCreationForm(UserValidationMixin, forms.ModelForm):
     # set by admin class - used to restrict registry and workign group choices
     CREATING_USER = None

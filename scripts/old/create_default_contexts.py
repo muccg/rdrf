@@ -5,14 +5,16 @@ from registry.patients.models import Patient
 from rdrf.models import Registry
 from rdrf.contexts_api import RDRFContextManager
 
+
 def display(p):
     return "Patient %s (id=%s)" % (p, p.id)
 
+
 def num_contexts(patient_model, registry_model):
-    return len([ c for c in patient_model.context_models if c.registry.code == registry_model.code ])
+    return len([c for c in patient_model.context_models if c.registry.code == registry_model.code])
 
 
-if __name__=="__main__":
+if __name__ == "__main__":
     registry_code = sys.argv[1]
     try:
         registry_model = Registry.objects.get(code=registry_code)
@@ -25,12 +27,12 @@ if __name__=="__main__":
 
     for p in Patient.objects.filter(rdrf_registry__in=[registry_model]):
         if num_contexts(p, registry_model) == 0:
-            print "%s has no default context - creating one" %  display(p)
+            print "%s has no default context - creating one" % display(p)
             try:
                 default_context = rdrf_context_manager.create_initial_context_for_new_patient(p)
                 print "created context OK for %s" % display(p)
                 processed += 1
-            except Exception, ex:
+            except Exception as ex:
                 print "Error creating default context for %s: %s " % (display(p), ex)
                 errors += 1
 

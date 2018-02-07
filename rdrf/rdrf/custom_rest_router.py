@@ -51,4 +51,6 @@ class DefaultRouterWithSimpleViews(routers.DefaultRouter):
 
 
 def is_viewset(thingy):
-    return not isinstance(thingy, types.FunctionType) and issubclass(thingy, viewsets.ViewSetMixin)
+    return not isinstance(
+        thingy, types.FunctionType) and issubclass(
+        thingy, viewsets.ViewSetMixin)

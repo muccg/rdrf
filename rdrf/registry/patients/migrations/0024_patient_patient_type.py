@@ -15,6 +15,10 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='patient',
             name='patient_type',
-            field=models.CharField(blank=True, max_length=80, null=True, verbose_name='Patient Type'),
+            field=models.CharField(
+                blank=True,
+                max_length=80,
+                null=True,
+                verbose_name='Patient Type'),
         ),
     ]

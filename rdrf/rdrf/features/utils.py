@@ -2,8 +2,6 @@ import logging
 import os
 import subprocess
 
-from django.conf import settings
-
 from aloe import world
 
 
@@ -34,7 +32,6 @@ def reset_last_login_date():
     from registry.groups.models import CustomUser
     from django.utils import timezone
     CustomUser.objects.update(last_login=timezone.now())
-
 
 
 def subprocess_logging(command):
@@ -135,7 +132,8 @@ def load_export(export_name):
 
 
 def django_import(export_name):
-    django_admin(["import","{0}/{1}".format(exported_data_path(), export_name)], fail_on_error=True)
+    django_admin(
+        ["import", "{0}/{1}".format(exported_data_path(), export_name)], fail_on_error=True)
 
 
 def django_reloadrules():
@@ -159,7 +157,8 @@ def django_admin(args, fail_on_error=False):
     return_code, _, _ = subprocess_logging(["django-admin.py"] + args)
 
     if fail_on_error and return_code != 0:
-        raise Exception("'%s' command failed with error code %d" % (' '.join(["django-admin.py"] + args), return_code))
+        raise Exception("'%s' command failed with error code %d" %
+                        (' '.join(["django-admin.py"] + args), return_code))
 
 
 def show_stats(export_name):
@@ -188,14 +187,16 @@ def debug_links():
     for link in world.browser.find_elements_by_xpath('//a'):
         logger.debug('link {0} {1}'.format(link.text, link.get_attribute("href")))
 
+
 def scroll_to_y(y):
     world.browser.execute_script("window.scrollTo(0, %s)" % y)
 
+
 def scroll_to(element):
-     loc = element.location_once_scrolled_into_view
-     y = loc["y"]
-     scroll_to_y(y)
-     return y
+    loc = element.location_once_scrolled_into_view
+    y = loc["y"]
+    scroll_to_y(y)
+    return y
 
 
 def scroll_to_multisection_cde(section, cde, item=1):
@@ -215,16 +216,19 @@ def scroll_to_multisection_cde(section, cde, item=1):
         input_div = label_element.find_element_by_xpath(".//following-sibling::div")
         # NB. We avoid matching against the clear checkbox for an uploaded file cde
         try:
-            input_element = input_div.find_element_by_xpath(".//input[contains(@id, '%s') and not(contains(@id, '-clear_id'))]" % formset_string)
+            input_element = input_div.find_element_by_xpath(
+                ".//input[contains(@id, '%s') and not(contains(@id, '-clear_id'))]" %
+                formset_string)
             scroll_to(input_element)
             print("found input element: id = %s" % input_element.get_attribute("id"))
             return input_element
-        except:
+        except BaseException:
             continue
 
     raise Exception("Could not locate multsection %s cde %s item %s" % (section,
                                                                         cde,
                                                                         item))
+
 
 def scroll_to_cde(section, cde):
     """
@@ -252,18 +256,19 @@ def scroll_to_cde(section, cde):
                 if formset_string in input_id:
                     input_element = ie
                     break
-            raise Exception("Could not locate section %s input %s item %s" % (section, cde, item))
+            raise Exception(
+                "Could not locate section %s input %s item %s" %
+                (section, cde, item))
 
     if not input_element:
         raise Exception("could not locate element to scroll to")
     input_id = input_element.get_attribute("id")
     if "__prefix__" in input_id:
         # hack to avoid this error
-        input_id = input_id.replace("__prefix__","0")
+        input_id = input_id.replace("__prefix__", "0")
         input_element = world.browser.find_element_by_id(input_id)
         if not input_element:
             raise Exception("could not locate input with id %s" % input_id)
 
     scroll_to(input_element)
     return input_element
-

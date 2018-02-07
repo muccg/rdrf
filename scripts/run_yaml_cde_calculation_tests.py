@@ -15,6 +15,7 @@ import argparse
 import tempfile
 import json
 
+
 def main():
     parser = argparse.ArgumentParser(description="Tests CDE calculations in YAML.")
     parser.add_argument("registry_yaml", metavar="YAML", nargs=1,
@@ -30,7 +31,8 @@ def main():
 
     args = parser.parse_args()
 
-    if not args.outfile: args.outfile = sys.stdout
+    if not args.outfile:
+        args.outfile = sys.stdout
 
     registry = load_yaml(args.registry_yaml[0])
 
@@ -39,7 +41,9 @@ def main():
         success = run_tests(registry, infile, args) and success
     return 0 if success else 1
 
+
 Registry = namedtuple("Registry", ("names", "calculations"))
+
 
 def load_yaml(file_obj):
     calculations = {}
@@ -53,8 +57,10 @@ def load_yaml(file_obj):
         names[cde["code"]] = cde.get("name")
     return Registry(names, calculations)
 
+
 TestResult = namedtuple("TestResult", ("test", "expected", "actual", "error", "output"))
 TestCase = namedtuple("TestCase", ("file", "number", "check_code", "params", "desc"))
+
 
 def run_tests(registry, csv_file, opts):
     num_tests = 0
@@ -76,15 +82,18 @@ def run_tests(registry, csv_file, opts):
 
     return num_tests == num_success
 
+
 def setup_test(cols, num, filename):
     params = {code: val for code, val in cols.items()
               if code not in ("check", "testcase")}
     desc = cols.get("testcase", "")
     return TestCase(filename, num, cols["check"], params, desc)
 
+
 def load_adsafe_js():
     adsafe_path = "../rdrf/rdrf/static/js/vendor/adsafe-min.js"
     return io.open(os.path.join(os.path.dirname(__file__), adsafe_path)).read()
+
 
 def run_test(registry, test):
     context = {code: val for code, val in test.params.items()
@@ -117,11 +126,13 @@ def run_test(registry, test):
     else:
         return TestResult(test, None, None, True, output)
 
+
 def parse_output(output):
     lines = [o.strip() for o in output.split("\n")]
     non_empty = filter(bool, lines)
     result = non_empty[-1] if non_empty else None
     return (result, "\n".join(lines[0:-1]) + "\n")
+
 
 def exec_script(script):
     with tempfile.NamedTemporaryFile(mode="w+", suffix=".js", prefix="registry_test_") as js:
@@ -142,26 +153,38 @@ def exec_script(script):
             return False, "Couldn't execute %s: %s" % (script, e)
     return False, "Test bug"
 
+
 def print_success(registry, result, params, opts):
     if opts.verbose > 1:
         log(opts, u"PASS: %s:%s %s\n" % (result.test.file, result.test.number, result.test.desc))
 
+
 def print_error(registry, result, params, opts):
     log(opts, u"ERROR: %s\n" % str(result.output))
 
+
 def print_failure(registry, result, params, opts):
-    log(opts, u"FAIL %s:%s: %s (%s) was \"%s\", expected \"%s\".\n" % (result.test.file, result.test.number, result.test.check_code, registry.names[result.test.check_code], result.actual, result.expected))
+    log(opts,
+        u"FAIL %s:%s: %s (%s) was \"%s\", expected \"%s\".\n" % (result.test.file,
+                                                                 result.test.number,
+                                                                 result.test.check_code,
+                                                                 registry.names[result.test.check_code],
+                                                                 result.actual,
+                                                                 result.expected))
     if opts.verbose:
         for param in sorted(params):
             if param in registry.names:
-                log(opts, u"    %s (%s) = \"%s\"\n" % (param, registry.names[param], params[param]))
+                log(opts, u"    %s (%s) = \"%s\"\n" %
+                    (param, registry.names[param], params[param]))
             else:
                 log(opts, u"    Patient %s = \"%s\"\n" % (param, params[param]))
         if result.output:
             log(opts, result.output)
 
+
 def log(opts, text):
     opts.outfile.write(text)
+
 
 if __name__ == '__main__':
     sys.exit(main())

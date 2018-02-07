@@ -449,10 +449,24 @@ class Generator:
         from rdrf.models import Section, CommonDataElement, CDEPermittedValueGroup, CDEPermittedValue
         from explorer.models import Query
 
-        starting_models = [ContentType, Registry, Group, State, AddressType, NextOfKinRelationship,
-                           PatientAddress, Query, Section, ConsentSection, ConsentQuestion, ConsentValue,
-                           RegistryForm, CDEPermittedValue,
-                           CDEPermittedValueGroup, CommonDataElement, Patient]
+        starting_models = [
+            ContentType,
+            Registry,
+            Group,
+            State,
+            AddressType,
+            NextOfKinRelationship,
+            PatientAddress,
+            Query,
+            Section,
+            ConsentSection,
+            ConsentQuestion,
+            ConsentValue,
+            RegistryForm,
+            CDEPermittedValue,
+            CDEPermittedValueGroup,
+            CommonDataElement,
+            Patient]
 
         if self.reporting_engine is self.default_engine:
             raise Exception("reporting db = default!")
@@ -485,7 +499,7 @@ class Generator:
                 if model is not None:
                     try:
                         clone_model(model)
-                    except:
+                    except BaseException:
                         bad.append(model)
             return bad
 
@@ -515,7 +529,7 @@ class Generator:
     def _mirror_table(self, table_name, source_engine, target_engine):
         try:
             self._drop_table(table_name)
-        except:
+        except BaseException:
             pass
 
         source_meta = MetaData(bind=source_engine)
@@ -616,7 +630,8 @@ class Generator:
                 for context_model in patient_model.context_models:
                     if context_model.registry.id == self.registry_model.id:
                         if in_context(context_model, clinical_table):
-                            for item_row in multisection_extractor.get_rows(patient_model, context_model):
+                            for item_row in multisection_extractor.get_rows(
+                                    patient_model, context_model):
                                 self._clean_row(item_row, current_column_names)
                                 self.reporting_engine.execute(
                                     clinical_table.table.insert().values(**item_row))

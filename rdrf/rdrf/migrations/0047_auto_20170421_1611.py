@@ -13,8 +13,6 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.AlterField(
-            model_name='emailtemplate',
-            name='language',
-            field=models.CharField(choices=[('en', 'English'), ('ar', 'Arabic'), ('de', 'German')], max_length=2),
-        ),
-    ]
+            model_name='emailtemplate', name='language', field=models.CharField(
+                choices=[
+                    ('en', 'English'), ('ar', 'Arabic'), ('de', 'German')], max_length=2), ), ]

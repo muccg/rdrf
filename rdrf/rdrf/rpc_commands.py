@@ -88,7 +88,12 @@ def rpc_reporting_command(request, query_id, registry_id, command, arg):
     if command == "get_projection":
         checkbox_ids = arg["checkbox_ids"]
         longitudinal_ids = arg['longitudinal_ids']
-        field_selector = MongoFieldSelector(user, registry_model, query_model, checkbox_ids, longitudinal_ids)
+        field_selector = MongoFieldSelector(
+            user,
+            registry_model,
+            query_model,
+            checkbox_ids,
+            longitudinal_ids)
         result = field_selector.projections_json
         return result
     elif command == "get_field_data":
@@ -117,7 +122,8 @@ def rpc_load_matched_patient_data(request, patient_id, questionnaire_response_id
     from rdrf.models import QuestionnaireResponse
     from rdrf.questionnaires import Questionnaire
 
-    questionnaire_response_model = QuestionnaireResponse.objects.get(pk=questionnaire_response_id)
+    questionnaire_response_model = QuestionnaireResponse.objects.get(
+        pk=questionnaire_response_id)
     patient_model = Patient.objects.get(pk=patient_id)
     registry_model = questionnaire_response_model.registry
     questionnaire = Questionnaire(registry_model, questionnaire_response_model)
@@ -138,11 +144,13 @@ def rpc_update_selected_cdes_from_questionnaire(
     from rdrf.questionnaires import Questionnaire
     from django.db import transaction
 
-    questionnaire_response_model = QuestionnaireResponse.objects.get(pk=questionnaire_response_id)
+    questionnaire_response_model = QuestionnaireResponse.objects.get(
+        pk=questionnaire_response_id)
     patient_model = Patient.objects.get(pk=patient_id)
     registry_model = questionnaire_response_model.registry
     questionnaire = Questionnaire(registry_model, questionnaire_response_model)
-    data_to_update = [question for question in questionnaire.questions if question.src_id in questionnaire_checked_ids]
+    data_to_update = [
+        question for question in questionnaire.questions if question.src_id in questionnaire_checked_ids]
 
     try:
         with transaction.atomic():

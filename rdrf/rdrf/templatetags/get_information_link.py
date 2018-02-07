@@ -16,5 +16,5 @@ def get_information_link(fields):
             consent_section_model = ConsentSection.objects.get(pk=consent_section_model_pk)
             if consent_section_model.information_link:
                 return consent_section_model.information_link
-        except:
+        except BaseException:
             return None

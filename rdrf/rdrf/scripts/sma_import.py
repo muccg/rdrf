@@ -416,7 +416,6 @@ patient_map = {}
 diagnosis_currency_map = {}
 
 
-
 def delete_existing_models():
     def kill(klass):
         klass.objects.all().delete()
@@ -481,7 +480,6 @@ class Conv:
         "I": 3
     }
 
-
     NMDTechnique = {
         "MLPA": "MLPA",
         "Genomic DNA sequencing": "Genomic DNA sequencing",
@@ -506,9 +504,9 @@ class Conv:
             'Heterozygous': 'SMAHeterozygous',
             'No': 'SMANo'}
 
-    SMN1_CHOICES  = {1: 'SMAHomozygous',
-                     2: 'SMAHeterozygous',
-                     3: 'SMANo'}
+    SMN1_CHOICES = {1: 'SMAHomozygous',
+                    2: 'SMAHeterozygous',
+                    3: 'SMANo'}
 
     GROUPS = {
         "Clinical Staff": RDRF_GROUPS.CLINICAL,
@@ -1009,7 +1007,6 @@ class OldRegistryImporter(object):
             else:
                 self.log("patient %s is not in %s" % (pk,
                                                       self.country))
-                
 
         self._assign_user_working_groups()
         # self._assign_permissions_to_groups()
@@ -1082,7 +1079,6 @@ class OldRegistryImporter(object):
         else:
             return NZ_WORKING_GROUP_ID not in working_groups
 
-
     def _get_working_groups_for_user(self, user_dict):
         pk = user_dict["pk"]
         for thing in self.data.data:
@@ -1137,11 +1133,13 @@ class OldRegistryImporter(object):
                                 user_model.working_groups.add(
                                     working_group_model)
                                 user_model.save()
-                                self.log("Assigned user %s to working group %s" % (user_model,
-                                                                                   working_group_model))
+                                self.log(
+                                    "Assigned user %s to working group %s" %
+                                    (user_model, working_group_model))
                             else:
                                 self.log(
-                                    "missing working group with old id %s" % old_working_group_id)
+                                    "missing working group with old id %s" %
+                                    old_working_group_id)
 
                         # title is stored on this object too
                         user_model.title = thing["fields"]["title"]
@@ -1186,7 +1184,6 @@ class OldRegistryImporter(object):
                         return thing["fields"]["updated"]
 
         diagnosis_currency_map[patient_model.pk] = get_updated(old_id)
-        
 
     @meta("DEMOGRAPHICS")
     def _create_patient(self):
@@ -1377,8 +1374,8 @@ class OldRegistryImporter(object):
             if thing["pk"] == wg_old_pk:
                 if thing["model"] == "groups.workinggroup":
                     working_group_name = thing["fields"]["name"]
-                    working_group_model, created = WorkingGroup.objects.get_or_create(name=working_group_name,
-                                                                                      registry=self.registry_model)
+                    working_group_model, created = WorkingGroup.objects.get_or_create(
+                        name=working_group_name, registry=self.registry_model)
 
                     if created:
                         self.log("created working group %s" %
@@ -1566,7 +1563,7 @@ class OldRegistryImporter(object):
             raise Exception("Unknown field expression: %s" % field_expression)
 
     def _get_converter_func(self, converter):
-        if type(converter) is dict:
+        if isinstance(converter, dict):
             return lambda key: converter.get(key, None)
         else:
             converter_func_name = "convert_%s" % converter
@@ -1643,7 +1640,6 @@ class OldRegistryImporter(object):
             # update diagnosis group currency
             self._update_diagnosis_group_currency(patient_model, old_timestamp)
 
-
     def _update_diagnosis_group_currency(self, patient_model, old_timestamp):
         self.log("Updating diagnosis group currency for %s --> %s" % (patient_model.pk,
                                                                       old_timestamp))
@@ -1651,7 +1647,7 @@ class OldRegistryImporter(object):
         if updated_dt is None:
             current = False
         else:
-            current =  updated_dt < ONE_YEAR_AGO
+            current = updated_dt < ONE_YEAR_AGO
 
         try:
             progress = ClinicalData.objects.get(collection="progess",
@@ -1659,10 +1655,10 @@ class OldRegistryImporter(object):
                                                 data__django_id=patient_model.pk,
                                                 data__django_model="Patient")
             if progress.data:
-               progress.data["diagnosis_group_current"] = current
-               progress.save()
-               self.log("Updated patient %s diagnosis_group_current = %s" % (patient_model.pk,
-                                                                             current))
+                progress.data["diagnosis_group_current"] = current
+                progress.save()
+                self.log("Updated patient %s diagnosis_group_current = %s" % (patient_model.pk,
+                                                                              current))
         except ClinicalData.DoesNotExist:
             self.log("no progress object for patient %s" % patient_model.pk)
 

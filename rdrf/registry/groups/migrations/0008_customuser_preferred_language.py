@@ -15,6 +15,15 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='customuser',
             name='preferred_language',
-            field=models.CharField(choices=[('en', 'English'), ('de', 'German')], default='en', help_text='Preferred language for communications', max_length=20, verbose_name='preferred language'),
+            field=models.CharField(
+                choices=[
+                    ('en',
+                     'English'),
+                    ('de',
+                     'German')],
+                default='en',
+                help_text='Preferred language for communications',
+                max_length=20,
+                verbose_name='preferred language'),
         ),
     ]

@@ -52,7 +52,8 @@ class TopLevelExporter(object):
         # TODO this code is the same as first section in exporters.DataGroupExporters.export
         datagroup_exporters = self.dfns.exporters_catalogue.datagroups
         for dg in self.dfns.datagroups:
-            exporter = datagroup_exporters.get(dg)(dg, self.dfns.exporters_catalogue, logger=child_logger)
+            exporter = datagroup_exporters.get(dg)(
+                dg, self.dfns.exporters_catalogue, logger=child_logger)
             if exporter.export(**self.export_context):
                 self.meta.append(exporter.get_meta_info(top_level=True))
         self.exported_at = datetime.now()

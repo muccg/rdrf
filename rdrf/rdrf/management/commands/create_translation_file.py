@@ -23,7 +23,7 @@ A) CDE labels and values translation: Extract strings from a yaml file and pump 
 
 NB. --system_po_file is the path the "standard po file" created by running django makemessages. By passing it
 in the script avoids creating duplicate message ids  which prevent compilation.
-   
+
 B) Embedded HTML for headers, information text and splash screen in the yaml file - IMPORTANT: This
 does NOT pump to standard output but delegates to django's "makemessages" command which unfortunately
 writes out the po file only to the locale directory - so the existing po file there will be overwritten.
@@ -50,7 +50,8 @@ class Command(BaseCommand):
                             dest='system_po_file',
                             default=None,
                             help='System po file')
-        parser.add_argument('--extract_html_strings', action='store_true', help='extract message strings from embedded html in yaml file')
+        parser.add_argument('--extract_html_strings', action='store_true',
+                            help='extract message strings from embedded html in yaml file')
 
     def _usage(self):
         print(explanation)
@@ -66,12 +67,12 @@ class Command(BaseCommand):
         if not file_name:
             self._usage()
             raise CommandError("Must provide yaml file")
-        
+
         if system_po_file:
             # splurp in existing messages in the system file so we don't dupe
             # when we cat this file to it
             self._load_system_messages(system_po_file)
-        
+
         if extract_html_strings:
             self._extract_html_strings(file_name)
         else:
@@ -79,7 +80,7 @@ class Command(BaseCommand):
 
     def _extract_html_strings(self, yaml_file):
         # This dumps the embedded html templates from the yaml into a temporary folder and
-        # and then runs makemessages over it to extract the strings into the 
+        # and then runs makemessages over it to extract the strings into the
         # into the "system" po file
         self._load_yaml_file(yaml_file)
         htmls = []
@@ -100,7 +101,7 @@ class Command(BaseCommand):
 
         with TemporaryDirectory() as tmp_dir:
             os.chdir(tmp_dir)
-            with open("tmp.rdrfdummyext","w",encoding="utf-8") as f:
+            with open("tmp.rdrfdummyext", "w", encoding="utf-8") as f:
                 f.write("\n".join(htmls))
             # This extracts strings from matching files in the current directory and merges them with
             # the existing _system_ po files ( under locals .. LC_MESSAGES )
@@ -108,14 +109,13 @@ class Command(BaseCommand):
 
     def _load_system_messages(self, system_po_file):
         message_pattern = re.compile('^msgid "(.*)"$')
-        with open(system_po_file,encoding='utf-8') as spo:
+        with open(system_po_file, encoding='utf-8') as spo:
             for line in spo.readlines():
                 line = line.strip()
                 m = message_pattern.match(line)
                 if m:
                     msgid = m.groups(1)[0]
                     self.msgids.add(msgid)
-
 
     def _load_yaml_file(self, file_name):
         with open(file_name, encoding='utf-8') as f:
@@ -126,7 +126,6 @@ class Command(BaseCommand):
                                                            ex))
 
                 sys.exit(1)
-        
 
     def _emit_strings_from_yaml(self, file_name):
         self._load_yaml_file(file_name)
@@ -149,7 +148,7 @@ class Command(BaseCommand):
             return
         else:
             self.msgids.add(message_string)
-            
+
         if self.number.match(message_string):
             return
 
@@ -163,8 +162,8 @@ class Command(BaseCommand):
             lines = message_string.split("\n")
             first_line = lines[0]
             lines = lines[1:]
-            
-            print('msgid "%s"' % first_line.replace('"',""))
+
+            print('msgid "%s"' % first_line.replace('"', ""))
             for line in lines:
                 print('"%s"' % line.replace('"', ""))
             print('msgstr "translation goes here"')
@@ -172,9 +171,9 @@ class Command(BaseCommand):
 
         # again we need to escape somwhow
         if '"' in message_string:
-            message_string = message_string.replace('"',"")
+            message_string = message_string.replace('"', "")
 
-        print('msgid "%s"' % message_string) 
+        print('msgid "%s"' % message_string)
         msgstr = "TRANSLATION %s" % self.translation_no
         self.translation_no += 1
         print('msgstr "%s"' % msgstr)
@@ -191,18 +190,18 @@ class Command(BaseCommand):
     def _yield_registry_level_strings(self):
         # registry name
         yield None, self.data["name"]
-        #todo process splashscreen
+        # todo process splashscreen
         splash_screen_html = self.data["splash_screen"]
         yield None, None
 
     def _yield_form_strings(self):
         if self.data is None:
             raise Exception("No data?")
-        
+
         for form_dict in self.data["forms"]:
             name = form_dict["name"]
             name_with_spaces = de_camelcase(name)
-            
+
             comment = None
             yield comment, name_with_spaces
 
@@ -211,10 +210,9 @@ class Command(BaseCommand):
             # todo extract strings from header
             yield None, None
             yield from self._yield_section_strings(form_dict)
-            
 
     def _yield_section_strings(self, form_dict):
-        
+
         for section_dict in form_dict["sections"]:
             comment = None
             display_name = section_dict["display_name"]
@@ -226,9 +224,9 @@ class Command(BaseCommand):
             cde_dict = self._get_cde_dict(cde_code)
             if cde_dict is None:
                 continue
-            
+
             cde_label = cde_dict["name"]
-            
+
             instruction_text = cde_dict["instructions"]
 
             comment = None
@@ -243,12 +241,11 @@ class Command(BaseCommand):
             if cde_dict["code"] == cde_code:
                 return cde_dict
 
-
     def _yield_consent_strings(self):
         for consent_section_dict in self.data["consent_sections"]:
             yield None, consent_section_dict["section_label"]
             information_text = consent_section_dict["information_text"]
-            #todo extract strings from information_text
+            # todo extract strings from information_text
             for question_dict in consent_section_dict["questions"]:
                 yield None, question_dict["question_label"]
                 yield None, question_dict["instructions"]
@@ -265,7 +262,7 @@ class Command(BaseCommand):
                 return
             for value_dict in pvg_dict["values"]:
                 display_value = value_dict["desc"]
-                
+
                 comment = None
                 yield comment, display_value
 
@@ -273,11 +270,9 @@ class Command(BaseCommand):
         for pvg_dict in self.data["pvgs"]:
             if pvg_dict["code"] == pvg_code:
                 return pvg_dict
-            
-
 
     def _get_field(self, thing, field):
-        if type(thing) is dict:
+        if isinstance(thing, dict):
             return thing[field]
         else:
             # assume a model
@@ -286,7 +281,7 @@ class Command(BaseCommand):
     def _yield_menu_items(self):
         # consent
         registry_name = self.data["name"]
-        
+
         msgid = "Consents (%s)s" % registry_name
         yield None, msgid
 
@@ -305,10 +300,14 @@ class Command(BaseCommand):
         from django.contrib.auth.models import Permission
 
         # These aren't in the yaml but depend on the configured auth groups
-        for column_heading in ["Permission", "Clinical Staff", "Genetic Staff","Parents","Patients","Working Group Curators"]:
+        for column_heading in [
+            "Permission",
+            "Clinical Staff",
+            "Genetic Staff",
+            "Parents",
+            "Patients",
+                "Working Group Curators"]:
             yield None, column_heading
-
 
         for permission_object in Permission.objects.all():
             yield None, permission_object.name
-
