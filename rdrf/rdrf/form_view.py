@@ -280,6 +280,8 @@ class FormView(View):
     @login_required_method
     def get(self, request, registry_code, form_id, patient_id, context_id=None):
         # RDR-1398 enable a Create View which context_id of 'add' is provided
+        if context_id is None:
+            raise Http404
         self.CREATE_MODE = False  # Normal edit view; False means Create View and context saved AFTER validity check
         if context_id == 'add':
             self._enable_context_creation_after_save(request,
@@ -391,6 +393,8 @@ class FormView(View):
 
     @login_required_method
     def post(self, request, registry_code, form_id, patient_id, context_id=None):
+        if context_id is None:
+            raise Http404
         all_errors = []
         progress_dict = {}
 
