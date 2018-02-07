@@ -762,4 +762,4 @@ def check_multisection_value(step, multisection, cde, item, expected_value):
     error_msg = "Multisection %s cde %s item %s expected value %s - actual value %s" % (
         multisection, cde, item, expected_value, actual_value)
 
-    assert(actual_value == expected_value, error_msg)
+    assert actual_value == expected_value, error_msg
