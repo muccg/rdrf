@@ -39,5 +39,5 @@ Feature: User operates on multisection items.
     And I should be able to download "develop.sh"
     
     # check some values - we deleted the 1st item so what remains is the original 2nd item
-    And the value of multisection "Carotid Ultrasonography" cde "Date" item 1 is "02-01-2017"
+    And the value of multisection "Carotid Ultrasonography" cde "Date" item 1 is "2-1-2017"
     And the value of multisection "Carotid Ultrasonography" cde "Result" item 1 is "item 2"
