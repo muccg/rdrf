@@ -92,11 +92,11 @@
                     {% endblock %}
 
 
-                    {% if registry_code %}
+                    {% if request.user.registry_code %}
                         {% if request.user.is_parent  %}
-                            <li><a href="{% url 'parent_page' registry_code %}"><span class="glyphicon glyphicon-home"></span>{% trans 'Home Page' %}</a></li>
+                            <li><a href="{% url 'parent_page' request.user.registry_code %}"><span class="glyphicon glyphicon-home"></span> {% trans "Home Page" %}</a></li>
                         {% elif request.user.is_patient %}
-                            <li><a href="{% url 'patient_page' registry_code %}"><span class="glyphicon glyphicon-home"></span>{% trans 'Home Page' %}</a></li>
+                            <li><a href="{% url 'patient_page' request.user.registry_code %}"><span class="glyphicon glyphicon-home"></span> {% trans "Home Page" %}</a></li>
                         {% endif %}
                     {% endif %}
 
@@ -181,7 +181,6 @@
 	    <div class="col-md-4 col-sm-4 col-xs-4">
               {{ patient_info }}
 	    </div>
-
 	    <div class="col-md-4 col-sm-4 col-xs-4" style="text-align: right">
 	      <h3>
 
@@ -191,11 +190,8 @@
                 <i class="text-muted"><span class="glyphicon glyphicon-user" aria-hidden="true"></span> {{ patient }}</i>
               {% endif %}
 		</h3>
-
 	    </div>
-
 	  </div>
-
 	  <div class="row">
 	    <!-- command button row -->
            <div class="col-md-6 col-sm-6 col-xs-6" style="text-align: left">
@@ -206,17 +202,12 @@
 			</a>
 	       </div>
 	       {% endif %}
-
            </div>
-
 	   <div class="col-md-6 col-sm-6 col-xs-6" style="text-align: right">
             {% block formbtns %}
             {% endblock %}
           </div>
-
-
 	  </div>
-
          </div>
       </div>
     {% endif %}
@@ -248,8 +239,6 @@
             {% block content %}
 
             {% include 'rdrf_cdes/archive_modal.html' %}
-
-
                 {% if header %}
                     <div class="panel panel-info">
                         <div class="panel-body">
@@ -257,13 +246,10 @@
                         </div>
                     </div>
                 {% endif %}
-
             {% endblock%}
           </div>
-
         </div>
     </div>
-
 </div>
 
 {% include 'rdrf_cdes/footer.html' %}
