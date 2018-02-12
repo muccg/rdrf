@@ -1,3 +1,4 @@
+from django.contrib.auth.password_validation import validate_password
 from django import forms
 from django.contrib.auth import get_user_model
 from django.contrib.auth.forms import ReadOnlyPasswordHashField
@@ -52,23 +53,26 @@ class RDRFUserCreationForm(UserValidationMixin, forms.ModelForm):
     # set by admin class - used to restrict registry and workign group choices
     CREATING_USER = None
     password1 = forms.CharField(label='Password', widget=forms.PasswordInput)
-    password2 = forms.CharField(label='Password confirmation', widget=forms.PasswordInput)
+    password2 = forms.CharField(
+        label='Password confirmation', widget=forms.PasswordInput)
 
     def __init__(self, *args, **kwargs):
         super(RDRFUserCreationForm, self).__init__(*args, **kwargs)
         if self.CREATING_USER:
-            self._restrict_registry_and_working_groups_choices(self.CREATING_USER)
+            self._restrict_registry_and_working_groups_choices(
+                self.CREATING_USER)
 
     class Meta:
         model = get_user_model()
         fields = ('email',)
 
+
     def clean_password2(self):
-        password1 = self.cleaned_data.get("password1")
         password2 = self.cleaned_data.get("password2")
-        if password1 and password2 and password1 != password2:
-            raise forms.ValidationError("Passwords don't match")
+
+        validate_password(password2)
         return password2
+
 
     def clean_username(self):
         if "username" in self.cleaned_data:
@@ -77,7 +81,8 @@ class RDRFUserCreationForm(UserValidationMixin, forms.ModelForm):
                 raise forms.ValidationError("username cannot be blank")
             try:
                 get_user_model().objects.get(username=username)
-                raise forms.ValidationError('There is already a user with that username!')
+                raise forms.ValidationError(
+                    'There is already a user with that username!')
             except get_user_model().DoesNotExist:
                 return username
         else:
