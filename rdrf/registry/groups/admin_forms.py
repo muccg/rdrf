@@ -53,12 +53,14 @@ class RDRFUserCreationForm(UserValidationMixin, forms.ModelForm):
     # set by admin class - used to restrict registry and workign group choices
     CREATING_USER = None
     password1 = forms.CharField(label='Password', widget=forms.PasswordInput)
-    password2 = forms.CharField(label='Password confirmation', widget=forms.PasswordInput)
+    password2 = forms.CharField(
+        label='Password confirmation', widget=forms.PasswordInput)
 
     def __init__(self, *args, **kwargs):
         super(RDRFUserCreationForm, self).__init__(*args, **kwargs)
         if self.CREATING_USER:
-            self._restrict_registry_and_working_groups_choices(self.CREATING_USER)
+            self._restrict_registry_and_working_groups_choices(
+                self.CREATING_USER)
 
     class Meta:
         model = get_user_model()
@@ -79,7 +81,8 @@ class RDRFUserCreationForm(UserValidationMixin, forms.ModelForm):
                 raise forms.ValidationError("username cannot be blank")
             try:
                 get_user_model().objects.get(username=username)
-                raise forms.ValidationError('There is already a user with that username!')
+                raise forms.ValidationError(
+                    'There is already a user with that username!')
             except get_user_model().DoesNotExist:
                 return username
         else:
