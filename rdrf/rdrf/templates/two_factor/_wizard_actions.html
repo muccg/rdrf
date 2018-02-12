@@ -1,9 +1,22 @@
 {% load i18n %}
 
-{% if cancel_url %}
-  <a href="{{ cancel_url }}"
-     class="btn btn-link pull-right">{% trans "Cancel" %}</a>
+
+{% if request.user.is_authenticated %}
+
+    {% if request.user.registry_code %}
+
+        {% if request.user.is_parent  %}
+            <a href="{% url 'parent_page' request.user.registry_code %}" class="btn btn-link pull-right">{% trans "Cancel" %}</a>
+        {% elif request.user.is_patient %}
+            <a href="{% url 'patient_page' request.user.registry_code %}" class="btn btn-link pull-right">{% trans "Cancel" %}</a>
+        {% else %}
+            <a href="{% url 'patientslisting' %}" class="btn btn-link pull-right">{% trans "Cancel" %}</a>
+        {% endif %}
+
+    {% endif %}
+
 {% endif %}
+
 
 {% if wizard.steps.prev %}
   <button name="wizard_goto_step" type="submit"
