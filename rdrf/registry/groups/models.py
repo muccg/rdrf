@@ -92,12 +92,10 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
     def num_registries(self):
         return self.registry.count()
 
-
     @property
     def registry_code(self):
         if self.num_registries == 1:
             return self.registry.first().code
-
 
     def can(self, verb, datum):
         if verb == "see":

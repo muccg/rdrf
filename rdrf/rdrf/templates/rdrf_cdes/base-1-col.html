@@ -92,11 +92,11 @@
                     {% block parent_menu %}
                     {% endblock %}
 
-                    {% if registry_code %}
+                    {% if request.user.registry_code %}
                         {% if request.user.is_parent  %}
-                            <li><a href="{% url 'parent_page' registry_code %}"><span class="glyphicon glyphicon-home"></span> Home Page</a></li>
+                            <li><a href="{% url 'parent_page' request.user.registry_code %}"><span class="glyphicon glyphicon-home"></span> {% trans "Home Page" %}</a></li>
                         {% elif request.user.is_patient %}
-                            <li><a href="{% url 'patient_page' registry_code %}"><span class="glyphicon glyphicon-home"></span> Home Page</a></li>
+                            <li><a href="{% url 'patient_page' request.user.registry_code %}"><span class="glyphicon glyphicon-home"></span> {% trans "Home Page" %}</a></li>
                         {% endif %}
                     {% endif %}
 
@@ -105,7 +105,6 @@
 
                     {% block formlinks %}
                     {% endblock %}
-
 
                      <li class="dropdown dropdown-menu-button">
                         <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
@@ -216,10 +215,8 @@
 
             {% endblock%}
           </div>
-
         </div>
     </div>
-
 </div>
 
 {% include 'rdrf_cdes/footer.html' %}
