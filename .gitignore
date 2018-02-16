@@ -37,5 +37,6 @@ startup
 .env
 *.po
 *.mo
+.ropeproject
 
 
