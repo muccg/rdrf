@@ -170,7 +170,6 @@ class SpreadSheetReport:
         self._next_row()
 
         for patient in self._get_patients():
-            #patient_record = self._get_patient_record(patient)
             patient_record = self.cache.get_current(patient, self._get_patient_record)
             self._write_row(patient, patient_record, columns)
             self._next_row()
@@ -253,7 +252,6 @@ class SpreadSheetReport:
         for patient in self._get_patients():
             patient_record = self.cache.get_current(patient, self._get_patient_record)
             self._write_universal_columns(patient, patient_record, universal_columns)
-            #self._write_row(patient, patient_record, universal_columns)
             num_snapshots = self._write_longitudinal_row(
                 patient, patient_record, form_model, section_model, cde_codes)
             if num_snapshots > max_snapshots:
@@ -335,19 +333,20 @@ class SpreadSheetReport:
         current_timestamp = self._get_timestamp_from_current_form_data(
             patient_record, form_model)
         self._write_cell(current_timestamp)
-        for cde_code in cde_codes:
-            cde_model = self.cde_model_map[cde_code]
-            current_value = self._human(
-                form_model,
-                section_model,
-                cde_model,
-                self._get_cde_value_from_current_data(
-                    patient_record,
-                    form_model,
-                    section_model,
-                    cde_model))
+        # TODO fix me The following is incomplete?
+        # for cde_code in cde_codes:
+        #     cde_model = self.cde_model_map[cde_code]
+        #     current_value = self._human(
+        #         form_model,
+        #         section_model,
+        #         cde_model,
+        #         self._get_cde_value_from_current_data(
+        #             patient_record,
+        #             form_model,
+        #             section_model,
+        #             cde_model))
 
-            #                    snap1        snap2      current
+        #                    snap1        snap2      current
         # E.g 3 blocks  = [date A B C][date A B C][date A B C] - we return
         # number so we can write the header ...
         return num_blocks
