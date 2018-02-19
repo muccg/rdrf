@@ -1,5 +1,7 @@
-from rdrf.utils import TimeStripper, HistoryTimeStripper
+from rdrf.utils import TimeStripper
+from rdrf.utils import HistoryTimeStripper
 from django.test import TestCase
+from copy import deepcopy
 
 
 class FakeClinicalData(object):
@@ -49,16 +51,14 @@ class TimeStripperTestCase(TestCase):
         self.ts.date_cde_codes = ['DateOfAssessment', 'FHconsentDate']
 
     def test_timestripper(self):
-        a = deepcopy(self.data_with_date_cdes)
-
         expected_date_of_assessment = "1972-06-15"
         expected_fh_consent_date = "2015-01-05"
         expected = [expected_date_of_assessment, expected_fh_consent_date]
-        ClinicalData_timestamp_before = self.data_with_date_cdes["ClinicalData_timestamp"]
+        clinicaldata_timestamp_before = self.data_with_date_cdes["ClinicalData_timestamp"]
         fh_index_before = self.data_with_date_cdes["forms"][0]["sections"][0]["cdes"][0]["value"]
 
         self.ts.forward()
-        ClinicalData_timestamp_after = self.data_with_date_cdes["ClinicalData_timestamp"]
+        clinicaldata_timestamp_after = self.data_with_date_cdes["ClinicalData_timestamp"]
         fh_index_after = self.data_with_date_cdes["forms"][0]["sections"][0]["cdes"][0]["value"]
 
         self.assertTrue(self.ts.converted_date_cdes == expected,
@@ -71,7 +71,7 @@ class TimeStripperTestCase(TestCase):
         self.assertTrue(value2 == expected_fh_consent_date,
                         "FHConsentdate value not modified by TimeStripper")
 
-        self.assertTrue(ClinicalData_timestamp_after == ClinicalData_timestamp_before,
+        self.assertTrue(clinicaldata_timestamp_after == clinicaldata_timestamp_before,
                         "Timestamps which are not date cdes should not be affected by TimeStripper")
         self.assertTrue(fh_index_before == fh_index_after,
                         "Non date cdes should not be affected by TimeStripper")
@@ -96,7 +96,6 @@ class TimeStripperTestCase(TestCase):
         data_with_multisections = {"forms": [{"form": "testing",
                                               "sections": [multisection]}]}
 
-        copy_before_op = deepcopy(data_with_multisections)
         m = FakeClinicalData(23, data_with_multisections)
 
         ts = TimeStripper([m])
@@ -127,13 +126,12 @@ class TimeStripperTestCase(TestCase):
         expected_value3 = "2011-11-05"  # n shouldn't have changed
         actual_value3 = m.data["forms"][0]["sections"][0]["cdes"][2][1]["value"]
         self.assertEqual(
-            expected_value2,
-            actual_value2,
+            expected_value3,
+            actual_value3,
             "Update of multisection failed for third item: actual = %s" %
             actual_value3)
 
     def test_history_munging(self):
-        from rdrf.utils import HistoryTimeStripper
         history_modjgo_data = {"django_id": 1,
                                "record": {
                                    "django_id": 1,
