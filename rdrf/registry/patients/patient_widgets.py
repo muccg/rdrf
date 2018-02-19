@@ -9,7 +9,8 @@ class PatientRelativeLinkWidget(widgets.Widget):
 
     """
     This provides a link to the patient created from the relative
-    Before the patient is created , it provides a checkbox ( Similar to the delete checkbox provided against other inlines )
+    Before the patient is created , it provides a checkbox
+    ( Similar to the delete checkbox provided against other inlines )
     - checking it signals  that a patient should be created from the patient relative data supplied.
     There is also javascript to hide the green plus symbol to avoid the popup
     """
@@ -43,7 +44,6 @@ class PatientRelativeLinkWidget(widgets.Widget):
         return patient_model.default_context(registry_model)
 
     def _get_family_linkage_registry(self, patient_id):
-        from rdrf.models import Registry
         from registry.patients.models import Patient
         patient_model = Patient.objects.get(pk=patient_id)
         family_linkage_regs = [
