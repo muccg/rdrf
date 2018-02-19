@@ -30,6 +30,7 @@ from rdrf.wizard import NavigationWizard, NavigationFormType
 from rdrf.components import RDRFContextLauncherComponent
 from rdrf.components import RDRFPatientInfoComponent
 from rdrf.components import FamilyLinkagePanel
+from rdrf.contexts_api import RDRFContextManager
 
 from rdrf.security_checks import security_check_user_patient
 from django.core.exceptions import PermissionDenied
@@ -376,13 +377,13 @@ class PatientFormMixin(PatientMixin):
         # save addresses
         if self.address_formset:
             self.address_formset.instance = self.object
-            addresses = self.address_formset.save()
+            self.address_formset.save()
 
         # save doctors
         if self.registry_model.get_metadata_item("patient_form_doctors"):
             if self.doctor_formset:
                 self.doctor_formset.instance = self.object
-                doctors = self.doctor_formset.save()
+                self.doctor_formset.save()
 
         # patient relatives
         if self.patient_relative_formset:
