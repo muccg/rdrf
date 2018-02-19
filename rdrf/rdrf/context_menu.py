@@ -149,8 +149,6 @@ class PatientContextMenu(object):
                 'position') if not_generated(f) and self.user.can_view(f) and f.applicable_to(self.patient_model)]
         else:
             forms = [f for f in self.context_model.context_form_group.forms
-                     if not_generated(f)
-                     and self.user.can_view(f)
-                     and f.applicable_to(self.patient_model)]
+                     if not_generated(f) and self.user.can_view(f) and f.applicable_to(self.patient_model)]
 
         return forms
