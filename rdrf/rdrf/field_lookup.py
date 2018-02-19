@@ -4,6 +4,7 @@ from django.forms import MultiValueField, MultiWidget, MultipleChoiceField, File
 from django.forms.widgets import CheckboxSelectMultiple
 from django.utils.safestring import mark_safe
 from django.core.urlresolvers import reverse
+from collections import OrderedDict
 
 from . import fields
 from . import widgets
