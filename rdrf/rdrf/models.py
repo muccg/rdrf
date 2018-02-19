@@ -1020,7 +1020,7 @@ class RegistryForm(models.Model):
     def _check_sections(self):
         for section_code in self.get_sections():
             try:
-                section_model = Section.objects.get(code=section_code)
+                Section.objects.get(code=section_code)
             except Section.DoesNotExist:
                 raise ValidationError("Section %s does not exist!" % section_code)
 
@@ -1463,7 +1463,8 @@ class ContextFormGroup(models.Model):
 
     @property
     def forms(self):
-        def sort_func(form): return form.position
+        def sort_func(form):
+            return form.position
 
         return sorted([item.registry_form for item in self.items.all()],
                       key=sort_func)
@@ -1764,16 +1765,16 @@ class ClinicalData(models.Model):
     modjgo_schema = None
     modjgo_schema_file = os.path.join(os.path.dirname(__file__), "schemas/modjgo.yaml")
 
-    def validate(cls, collection, data):
-        if not cls.modjgo_schema:
+    def validate(self, collection, data):
+        if not self.modjgo_schema:
             try:
-                with open(cls.modjgo_schema_file) as f:
-                    cls.modjgo_schema = yaml.load(f.read())
+                with open(self.modjgo_schema_file) as f:
+                    self.modjgo_schema = yaml.load(f.read())
             except BaseException:
-                logger.exception("Error reading %s" % cls.modjgo_schema_file)
+                logger.exception("Error reading %s" % self.modjgo_schema_file)
 
-        if cls.modjgo_schema:
-            jsonschema.validate({collection: data}, cls.modjgo_schema)
+        if self.modjgo_schema:
+            jsonschema.validate({collection: data}, self.modjgo_schema)
 
     lax_validation = True
 
