@@ -226,7 +226,7 @@ class MenuConfig(object):
     Source https://python-3-patterns-idioms-test.readthedocs.io/
     """
 
-    class __MenuConfig:
+    class MenuConfigInner:
 
         def __init__(self, arg='default'):
             self.val = arg
@@ -238,7 +238,7 @@ class MenuConfig(object):
 
     def __new__(cls):
         if not MenuConfig._instance:
-            MenuConfig._instance = MenuConfig.__MenuConfig()
+            MenuConfig._instance = MenuConfig.MenuConfigInner()
         return MenuConfig._instance
 
     def __getattr__(self, name):
