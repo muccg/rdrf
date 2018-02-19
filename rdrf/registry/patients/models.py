@@ -430,11 +430,11 @@ class Patient(models.Model):
                         for section_model in form_model.section_models:
                             for cde_model in section_model.cde_models:
                                 try:
-                                    value = self.get_form_value(registry_model.code,
-                                                                form_model.name,
-                                                                section_model.code,
-                                                                cde_model.code,
-                                                                section_model.allow_multiple)
+                                    self.get_form_value(registry_model.code,
+                                                        form_model.name,
+                                                        section_model.code,
+                                                        cde_model.code,
+                                                        section_model.allow_multiple)
 
                                     # got value for at least one field
                                     raise Sentinel()
@@ -633,8 +633,8 @@ class Patient(models.Model):
         """
         returns True if patient belongs to the registry with reg code provided
         """
-        for registry in self.rdrf_registry.all():
-            if registry.code == reg_code:
+        for registry_model in self.rdrf_registry.all():
+            if registry_model.code == reg_code:
                 return True
 
     @property
