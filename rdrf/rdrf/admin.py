@@ -370,7 +370,7 @@ if settings.DESIGN_MODE:
         list_display = ('name', 'registry')
         inlines = [ContextFormGroupItemAdmin]
 
-        def registry(obj):
+        def registry(self, obj):
             return obj.registry.name
 
 admin.site.register(Registry, RegistryAdmin)
