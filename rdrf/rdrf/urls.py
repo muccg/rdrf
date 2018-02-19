@@ -24,7 +24,6 @@ from rdrf.registration_rdrf import RdrfRegistrationView
 from rdrf.registry_list_view import RegistryListView
 from rdrf.lookup_views import FamilyLookup
 from rdrf.lookup_views import PatientLookup
-from registry.patients.views import update_session
 from registration.backends.default.views import ActivationView
 from rdrf.family_linkage import FamilyLinkageView
 from rdrf.email_notification_view import ResendEmail
@@ -249,7 +248,6 @@ urlpatterns += [
     url(r"^resend_email/(?P<notification_history_id>\w+)/?$",
         ResendEmail.as_view(), name="resend_email"),
     #-------------------------------------------
-
     url(r"^(?P<registry_code>\w+)/familylinkage/(?P<initial_index>\d+)?$",
         FamilyLinkageView.as_view(), name='family_linkage'),
 
@@ -259,11 +257,7 @@ urlpatterns += [
         name='questionnaire_response'),
     url(r'^(?P<registry_code>\w+)/uploads/(?P<file_id>([0-9a-fA-F]{24})|(\d+))$',
         form_view.FileUploadView.as_view(), name='file_upload'),
-
     url(r'^admin/lookups/', include('ajax_select.urls')),
-
-    url(r'^admin/patients/updatesession/?$',
-        update_session, name='updatesession'),
     url(r'^questionnaireconfig/(?P<form_pk>\d+)/?$',
         form_view.QuestionnaireConfigurationView.as_view(), name='questionnaire_config'),
     url(r'^designer/(?P<reg_pk>\d+)$',
@@ -271,14 +265,13 @@ urlpatterns += [
     url(r'^cdes', form_view.RDRFDesignerCDESEndPoint.as_view(),
         name='rdrf_designer_cdes_endpoint'),
     url(r'^registrystructure/(?P<reg_pk>\d+)$', form_view.RDRFDesignerRegistryStructureEndPoint.as_view(),
-        name='rdrf_designer_registry_structure_endpoint'),
+        name='rdrf_designer_registry_structure_endpoin'),
 
     url(r'api/familylookup/(?P<reg_code>\w+)/?$', FamilyLookup.as_view(), name="family_lookup"),
     url(r'api/patientlookup/(?P<reg_code>\w+)/?$', PatientLookup.as_view(), name="patient_lookup"),
-
     #---- Look-ups URLs -----------------------
     url(r"^lookup/username/(?P<username>[\w.%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,4})/?$",
-        UsernameLookup.as_view(), name="lookup_username"),
+        UsernameLookup.as_view(), name="lookup_username")
 
     url(r"^lookup/recaptcha/?$",
         RecaptchaValidator.as_view(), name="recaptcha_validator"),

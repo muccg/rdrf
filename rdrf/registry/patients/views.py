@@ -7,13 +7,6 @@ from django.http import Http404
 from .models import PatientConsent
 
 
-def update_session(request):
-    key = request.POST["key"]
-    value = request.POST["value"]
-    request.session[key] = value
-    return HttpResponse('ok')
-
-
 class ConsentFileView(View):
 
     @method_decorator(login_required)
