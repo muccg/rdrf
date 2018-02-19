@@ -271,7 +271,7 @@ urlpatterns += [
     url(r'api/patientlookup/(?P<reg_code>\w+)/?$', PatientLookup.as_view(), name="patient_lookup"),
     #---- Look-ups URLs -----------------------
     url(r"^lookup/username/(?P<username>[\w.%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,4})/?$",
-        UsernameLookup.as_view(), name="lookup_username")
+        UsernameLookup.as_view(), name="lookup_username"),
 
     url(r"^lookup/recaptcha/?$",
         RecaptchaValidator.as_view(), name="recaptcha_validator"),
