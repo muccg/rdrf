@@ -212,6 +212,7 @@ class Patient(models.Model):
         db_index=True,
         verbose_name=_("Hospital/Clinic ID"))
     date_of_birth = models.DateField(verbose_name=_("Date of birth"))
+    date_of_death = models.DateField(verbose_name=_("Date of death"), null=True, blank=True)
     place_of_birth = models.CharField(
         max_length=100, null=True, blank=True, verbose_name=_("Place of birth"))
 
