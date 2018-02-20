@@ -265,7 +265,7 @@ urlpatterns += [
     url(r'^cdes', form_view.RDRFDesignerCDESEndPoint.as_view(),
         name='rdrf_designer_cdes_endpoint'),
     url(r'^registrystructure/(?P<reg_pk>\d+)$', form_view.RDRFDesignerRegistryStructureEndPoint.as_view(),
-        name='rdrf_designer_registry_structure_endpoin'),
+        name='rdrf_designer_registry_structure_endpoint'),
 
     url(r'api/familylookup/(?P<reg_code>\w+)/?$', FamilyLookup.as_view(), name="family_lookup"),
     url(r'api/patientlookup/(?P<reg_code>\w+)/?$', PatientLookup.as_view(), name="patient_lookup"),
