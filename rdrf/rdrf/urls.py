@@ -43,7 +43,7 @@ logger = logging.getLogger(__name__)
 admin.autodiscover()
 
 
-def handlerException(request):
+def handler_exceptions(request):
     raise Exception("Forced exception in /raise")
 
 
@@ -69,7 +69,7 @@ if settings.DEBUG is True:
         url(r'^test404', handler404, name='test 404'),
         url(r'^test500', handler500, name='test 500'),
         url(r'^testAppError', handlerApplicationError, name='test application error'),
-        url(r'^raise', handlerException, name='test exception'),
+        url(r'^raise', handler_exceptions, name='test exception'),
     ]
 
 
@@ -223,7 +223,7 @@ urlpatterns += [
     url(r"^(?P<registry_code>\w+)/permissions/?$",
         PermissionMatrixView.as_view(), name='permission_matrix'),
 
-    #---- Consent related URLs -----------------
+    # ---- Consent related URLs -----------------
     url(r"^(?P<registry_code>\w+)/consent/?$",
         consent_view.ConsentList.as_view(), name='consent_list'),
 
@@ -239,15 +239,15 @@ urlpatterns += [
     url(r"^(?P<registry_code>\w+)/(?P<patient_id>\d+)/consents/print/?$",
         consent_view.ConsentDetailsPrint.as_view(), name="print_consent_details"),
 
-    #-------------------------------------------
-    #---- Clinician related URLs -----------------
+    # -------------------------------------------
+    # ---- Clinician related URLs -----------------
     url(r"^(?P<registry_code>\w+)/(?P<patient_id>\d+)/clinician/?$",
         clinician_view.ClinicianFormView.as_view(), name="clinician_form_view"),
 
-    #---- Email Notifications URLs -------------
+    # ---- Email Notifications URLs -------------
     url(r"^resend_email/(?P<notification_history_id>\w+)/?$",
         ResendEmail.as_view(), name="resend_email"),
-    #-------------------------------------------
+    # -------------------------------------------
     url(r"^(?P<registry_code>\w+)/familylinkage/(?P<initial_index>\d+)?$",
         FamilyLinkageView.as_view(), name='family_linkage'),
 

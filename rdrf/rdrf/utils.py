@@ -93,7 +93,6 @@ class FormLink(object):
 
     @property
     def url(self):
-        from django.core.urlresolvers import reverse
         if self.context_model is None:
             return reverse(
                 'registry_form',
@@ -149,7 +148,6 @@ def location_name(registry_form, current_rdrf_context_model=None):
     context_form_group = None
     if registry_form.registry.has_feature("contexts"):
         if current_rdrf_context_model is not None:
-            registry_model = registry_form.registry
             patient_model = current_rdrf_context_model.content_object
             context_form_group = current_rdrf_context_model.context_form_group
             if context_form_group is not None:
