@@ -2,11 +2,10 @@ import sqlalchemy as alc
 from sqlalchemy import create_engine, MetaData
 from rdrf.utils import timed
 from datetime import datetime
+from django.conf import settings
 
 import logging
 logger = logging.getLogger(__name__)
-
-from django.conf import settings
 
 
 def temporary_table_name(query_model, user):
@@ -183,10 +182,6 @@ class ReportingTableGenerator(object):
         # If ITEM_MAX is too small we could miss out some data ; we could calculate it but that's another query ..
         # so for now we have a constant
         column_map = mongo_metadata["multisection_column_map"]
-        multisection_map = {}
-        current_form = None
-        current_section = None
-        column_operations = []
 
         class ColumnOp(object):
             """
@@ -221,18 +216,18 @@ class ReportingTableGenerator(object):
 
             def _create_column(self):
                 if self.column_index is None:
-                    column = self.rtg._create_column_from_mongo(self.column_name,
-                                                                self.form_model,
-                                                                self.section_model,
-                                                                self.cde_model)
+                    self.rtg._create_column_from_mongo(self.column_name,
+                                                       self.form_model,
+                                                       self.section_model,
+                                                       self.cde_model)
                     column_name = self.column_name
                 else:
                     column_name = "%s_%s" % (
                         self.column_name, self.column_index)
-                    column = self.rtg._create_column_from_mongo(column_name,
-                                                                self.form_model,
-                                                                self.section_model,
-                                                                self.cde_model)
+                    self.rtg._create_column_from_mongo(column_name,
+                                                       self.form_model,
+                                                       self.section_model,
+                                                       self.cde_model)
 
                 return column_name
 

@@ -57,7 +57,6 @@ class FamilyLookup(View):
 
     @method_decorator(login_required)
     def get(self, request, reg_code, index=None):
-        from rdrf.models import Registry
         result = {}
         try:
             index_patient_pk = request.GET.get("index_pk", None)

@@ -28,7 +28,8 @@ from rdrf.models import RDRFContext
 from rdrf.consent_forms import CustomConsentFormGenerator
 from rdrf.utils import consent_status_for_patient
 
-from rdrf.contexts_api import RDRFContextManager, RDRFContextError
+from rdrf.contexts_api import RDRFContextManager
+from rdrf.contexts_api import RDRFContextError
 
 from django.shortcuts import redirect
 from django.forms.models import inlineformset_factory
@@ -42,16 +43,15 @@ from collections import OrderedDict
 from django.conf import settings
 from rdrf.actions import ActionExecutor
 from rdrf.utils import FormLink
-import logging
 from rdrf.dynamic_forms import create_form_class_for_consent_section
 from rdrf.form_progress import FormProgress
 
-from rdrf.contexts_api import RDRFContextError
 from rdrf.locators import PatientLocator
 from rdrf.components import RDRFContextLauncherComponent
 from rdrf.components import RDRFPatientInfoComponent
 from rdrf.security_checks import security_check_user_patient
 
+import logging
 
 logger = logging.getLogger(__name__)
 login_required_method = method_decorator(login_required)

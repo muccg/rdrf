@@ -169,7 +169,6 @@ class ExporterTestCase(RDRFTestCase):
                            'extra'],
                           section_map)
 
-        from rdrf.models import CommonDataElement
         dummy_cde = CommonDataElement.objects.create()
         cde_fields = list(model_to_dict(dummy_cde).keys())
         for cde_map in data['cdes']:
@@ -347,7 +346,7 @@ class FormTestCase(RDRFTestCase):
 
         # should not be findable
         with self.assertRaises(Patient.DoesNotExist):
-            dummy = Patient.objects.get(id=my_id)
+            Patient.objects.get(id=my_id)
 
         # test really_all object manager method on Patients
         self.assertEqual(my_id, Patient.objects.really_all().get(id=my_id).id)
@@ -357,10 +356,10 @@ class FormTestCase(RDRFTestCase):
         patient_model._hard_delete()
 
         with self.assertRaises(Patient.DoesNotExist):
-            dummy = Patient.objects.get(id=my_id)
+            Patient.objects.get(id=my_id)
 
         with self.assertRaises(Patient.DoesNotExist):
-            dummy = Patient.objects.really_all().get(id=my_id)
+            Patient.objects.really_all().get(id=my_id)
 
         # test can archive prop on CustomUser
         # by default genetic user can't delete as they don't have patient delete permission
@@ -574,16 +573,14 @@ class TimeStripperTestCase(TestCase):
         self.ts.date_cde_codes = ['DateOfAssessment', 'FHconsentDate']
 
     def test_timestripper(self):
-        a = deepcopy(self.data_with_date_cdes)
-
         expected_date_of_assessment = "1972-06-15"
         expected_fh_consent_date = "2015-01-05"
         expected = [expected_date_of_assessment, expected_fh_consent_date]
-        ClinicalData_timestamp_before = self.data_with_date_cdes["ClinicalData_timestamp"]
+        clinicaldata_timestamp_before = self.data_with_date_cdes["ClinicalData_timestamp"]
         fh_index_before = self.data_with_date_cdes["forms"][0]["sections"][0]["cdes"][0]["value"]
 
         self.ts.forward()
-        ClinicalData_timestamp_after = self.data_with_date_cdes["ClinicalData_timestamp"]
+        clinicaldata_timestamp_after = self.data_with_date_cdes["ClinicalData_timestamp"]
         fh_index_after = self.data_with_date_cdes["forms"][0]["sections"][0]["cdes"][0]["value"]
 
         self.assertTrue(self.ts.converted_date_cdes == expected,
@@ -596,7 +593,7 @@ class TimeStripperTestCase(TestCase):
         self.assertTrue(value2 == expected_fh_consent_date,
                         "FHConsentdate value not modified by TimeStripper")
 
-        self.assertTrue(ClinicalData_timestamp_after == ClinicalData_timestamp_before,
+        self.assertTrue(clinicaldata_timestamp_after == clinicaldata_timestamp_before,
                         "Timestamps which are not date cdes should not be affected by TimeStripper")
         self.assertTrue(fh_index_before == fh_index_after,
                         "Non date cdes should not be affected by TimeStripper")
@@ -621,7 +618,6 @@ class TimeStripperTestCase(TestCase):
         data_with_multisections = {"forms": [{"form": "testing",
                                               "sections": [multisection]}]}
 
-        copy_before_op = deepcopy(data_with_multisections)
         m = FakeClinicalData(23, data_with_multisections)
 
         ts = TimeStripper([m])
@@ -652,8 +648,8 @@ class TimeStripperTestCase(TestCase):
         expected_value3 = "2011-11-05"  # n shouldn't have changed
         actual_value3 = m.data["forms"][0]["sections"][0]["cdes"][2][1]["value"]
         self.assertEqual(
-            expected_value2,
-            actual_value2,
+            expected_value3,
+            actual_value3,
             "Update of multisection failed for third item: actual = %s" %
             actual_value3)
 
@@ -1063,7 +1059,6 @@ class StructureChecker(TestCase):
         return m
 
     def test_cdes(self):
-        from rdrf.models import ClinicalData
         foobar = Registry()
         foobar.code = "foobar"
         foobar.save()
@@ -1125,7 +1120,6 @@ class StructureChecker(TestCase):
         assert output == "", "check_structure test of good data should output nothing"
 
     def test_history(self):
-        from rdrf.models import ClinicalData
         foobar = Registry()
         foobar.code = "foobar"
         foobar.save()
@@ -1147,9 +1141,9 @@ class StructureChecker(TestCase):
                        "registry_code": "foobar"}
 
         self.clear_modjgo_objects()
-        m = self.make_modjgo("history", bad_history)
+        self.make_modjgo("history", bad_history)
         with self.assertRaises(SystemExit) as cm:
-            output = self._run_command(registry_code="foobar", collection="history")
+            self._run_command(registry_code="foobar", collection="history")
 
         self.assertEqual(cm.exception.code, 1)
 

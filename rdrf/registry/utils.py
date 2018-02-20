@@ -1,7 +1,5 @@
 from django.conf import settings
 
-# Utility function to clean a string
-
 
 def stripspaces(s):
     """Remove whitespace chars from both ends of the string returns a new
@@ -17,18 +15,6 @@ def stripspaces(s):
 def get_static_url(url):
     """This method is simply to make formatting urls with static url shorter and tidier"""
     return "{0}{1}".format(settings.STATIC_URL, url)
-
-
-# to run the tests:
-# python stripspaces.py
-if __name__ == "__main__":
-    print("running stripspaces tests...")
-    assert '' == stripspaces(None)
-    assert '' == stripspaces(1)
-    assert '' == stripspaces('')
-    assert 'a' == stripspaces('   a   ')
-    assert 'a b' == stripspaces(' \t  \t\ta\t\t   \t b  \t ')
-    print("stripspaces tests passed!")
 
 
 def get_working_groups(user):

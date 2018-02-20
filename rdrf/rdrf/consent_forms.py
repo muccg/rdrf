@@ -77,8 +77,9 @@ class BaseConsentForm(forms.BaseForm):
                 # are we still applicable?! - maybe some field on patient changed which
                 # means not so any longer?
                 if consent_section_model.applicable_to(self.patient_model):
-                    cv = self.patient_model.set_consent(
-                        consent_question_model, self.custom_consents[consent_field], commit)
+                    self.patient_model.set_consent(consent_question_model,
+                                                   self.custom_consents[consent_field],
+                                                   commit)
 
     def clean(self):
         self.custom_consents = {}

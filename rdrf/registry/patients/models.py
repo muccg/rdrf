@@ -431,11 +431,11 @@ class Patient(models.Model):
                         for section_model in form_model.section_models:
                             for cde_model in section_model.cde_models:
                                 try:
-                                    value = self.get_form_value(registry_model.code,
-                                                                form_model.name,
-                                                                section_model.code,
-                                                                cde_model.code,
-                                                                section_model.allow_multiple)
+                                    self.get_form_value(registry_model.code,
+                                                        form_model.name,
+                                                        section_model.code,
+                                                        cde_model.code,
+                                                        section_model.allow_multiple)
 
                                     # got value for at least one field
                                     raise Sentinel()
@@ -634,8 +634,8 @@ class Patient(models.Model):
         """
         returns True if patient belongs to the registry with reg code provided
         """
-        for registry in self.rdrf_registry.all():
-            if registry.code == reg_code:
+        for registry_model in self.rdrf_registry.all():
+            if registry_model.code == reg_code:
                 return True
 
     @property
@@ -966,7 +966,8 @@ class Patient(models.Model):
         if multiple_form_group.ordering == "N":
             key_func = keyfunc
         else:
-            def key_func(c): return c.created_at
+            def key_func(c):
+                return c.created_at
 
         contexts = [c for c in self.context_models
                     if c.context_form_group is not None and c.context_form_group.pk == multiple_form_group.pk]
@@ -982,16 +983,19 @@ class Patient(models.Model):
         assert context_form_group.supports_direct_linking, "Context Form group must only contain one form"
         form_model = context_form_group.form_models[0]
 
-        def matches_context_form_group(
-            cm): return cm.context_form_group and cm.context_form_group.pk == context_form_group.pk
+        def matches_context_form_group(cm):
+            return cm.context_form_group and cm.context_form_group.pk == context_form_group.pk
 
         context_models = sorted([cm for cm in self.context_models if matches_context_form_group(
             cm)], key=lambda cm: cm.context_form_group.get_ordering_value(self, cm), reverse=True)
 
-        def link_text(cm): return cm.context_form_group.get_name_from_cde(self, cm)
+        def link_text(cm):
+            return cm.context_form_group.get_name_from_cde(self, cm)
 
-        def link_url(cm): return reverse('registry_form', args=(
-            cm.registry.code, form_model.id, self.pk, cm.id))
+        def link_url(cm):
+            return reverse('registry_form', args=(cm.registry.code,
+                                                  form_model.id,
+                                                  self.pk, cm.id))
 
         return [(link_url(cm), link_text(cm)) for cm in context_models]
 

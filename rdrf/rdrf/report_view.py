@@ -11,7 +11,6 @@ from explorer.models import Query
 
 from rdrf.reporting_table import ReportTable
 import json
-from datetime import datetime
 import logging
 logger = logging.getLogger(__name__)
 
@@ -87,18 +86,11 @@ class ReportDataTableView(LoginRequiredMixin, View):
         query_parameters = self._get_query_parameters(request)
         report_table = ReportTable(user, query_model)
 
-        a = datetime.now()
         rows = report_table.run_query(query_parameters)
-        logger.info("number of rows returned = %s" % len(rows))
-        b = datetime.now()
 
         try:
-            c = datetime.now()
             results_dict = self._build_result_dict(rows)
-            j = self._json(results_dict)
-            d = datetime.now()
-            logger.info("time to jsonify = %s" % (d - c))
-            return j
+            return self._json(results_dict)
         except Exception as ex:
             logger.error("Could not jsonify results: %s" % ex)
             return self._json({})
@@ -114,7 +106,7 @@ class ReportDataTableView(LoginRequiredMixin, View):
 
     def _validate_json(self, json_data):
         try:
-            data = json.loads(json_data)
+            json.loads(json_data)
         except ValueError:
             return False
         return True
@@ -139,7 +131,7 @@ class ReportDataTableView(LoginRequiredMixin, View):
 
     def _get_ordering(self, request):
         # columns[0][data]:full_name
-        #...
+        # ...
         # order[0][column]:1
         # order[0][dir]:asc
         sort_column_index = None

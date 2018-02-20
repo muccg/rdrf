@@ -194,7 +194,7 @@ class ClinicianFormView(View):
         if not self.registry_model.has_feature("clinician_form"):
             raise Http404
 
-        self.patient_name = patient_name = '%s %s' % (
+        self.patient_name = '%s %s' % (
             self.patient_model.given_names, self.patient_model.family_name)
 
         try:

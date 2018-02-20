@@ -284,8 +284,7 @@ class QuestionnaireReverseMapper(object):
         def get_working_group(working_group_name):
             from django.db.models import Q
 
-            return [WorkingGroup.objects.get(Q(name__iexact=working_group_name.strip())
-                                             & Q(registry=self.registry))]
+            return [WorkingGroup.objects.get(Q(name__iexact=working_group_name.strip()) & Q(registry=self.registry))]
 
         def set_next_of_kin_relationship(relationship_name):
             from registry.patients.models import NextOfKinRelationship

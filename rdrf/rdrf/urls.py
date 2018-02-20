@@ -24,7 +24,6 @@ from rdrf.registration_rdrf import RdrfRegistrationView
 from rdrf.registry_list_view import RegistryListView
 from rdrf.lookup_views import FamilyLookup
 from rdrf.lookup_views import PatientLookup
-from registry.patients.views import update_session
 from registration.backends.default.views import ActivationView
 from rdrf.family_linkage import FamilyLinkageView
 from rdrf.email_notification_view import ResendEmail
@@ -44,7 +43,7 @@ logger = logging.getLogger(__name__)
 admin.autodiscover()
 
 
-def handlerException(request):
+def handler_exceptions(request):
     raise Exception("Forced exception in /raise")
 
 
@@ -56,7 +55,7 @@ def handler500(request):
     return render(request, "500.html")
 
 
-def handlerApplicationError(request):
+def handler_application_error(request):
     return render(request, "rdrf_cdes/application_error.html", {
         "application_error": "Example config Error",
     })
@@ -69,8 +68,8 @@ if settings.DEBUG is True:
     urlpatterns += [
         url(r'^test404', handler404, name='test 404'),
         url(r'^test500', handler500, name='test 500'),
-        url(r'^testAppError', handlerApplicationError, name='test application error'),
-        url(r'^raise', handlerException, name='test exception'),
+        url(r'^testAppError', handler_application_error, name='test application error'),
+        url(r'^raise', handler_exceptions, name='test exception'),
     ]
 
 
@@ -224,7 +223,7 @@ urlpatterns += [
     url(r"^(?P<registry_code>\w+)/permissions/?$",
         PermissionMatrixView.as_view(), name='permission_matrix'),
 
-    #---- Consent related URLs -----------------
+    # ---- Consent related URLs -----------------
     url(r"^(?P<registry_code>\w+)/consent/?$",
         consent_view.ConsentList.as_view(), name='consent_list'),
 
@@ -240,16 +239,15 @@ urlpatterns += [
     url(r"^(?P<registry_code>\w+)/(?P<patient_id>\d+)/consents/print/?$",
         consent_view.ConsentDetailsPrint.as_view(), name="print_consent_details"),
 
-    #-------------------------------------------
-    #---- Clinician related URLs -----------------
+    # -------------------------------------------
+    # ---- Clinician related URLs -----------------
     url(r"^(?P<registry_code>\w+)/(?P<patient_id>\d+)/clinician/?$",
         clinician_view.ClinicianFormView.as_view(), name="clinician_form_view"),
 
-    #---- Email Notifications URLs -------------
+    # ---- Email Notifications URLs -------------
     url(r"^resend_email/(?P<notification_history_id>\w+)/?$",
         ResendEmail.as_view(), name="resend_email"),
-    #-------------------------------------------
-
+    # -------------------------------------------
     url(r"^(?P<registry_code>\w+)/familylinkage/(?P<initial_index>\d+)?$",
         FamilyLinkageView.as_view(), name='family_linkage'),
 
@@ -259,11 +257,7 @@ urlpatterns += [
         name='questionnaire_response'),
     url(r'^(?P<registry_code>\w+)/uploads/(?P<file_id>([0-9a-fA-F]{24})|(\d+))$',
         form_view.FileUploadView.as_view(), name='file_upload'),
-
     url(r'^admin/lookups/', include('ajax_select.urls')),
-
-    url(r'^admin/patients/updatesession/?$',
-        update_session, name='updatesession'),
     url(r'^questionnaireconfig/(?P<form_pk>\d+)/?$',
         form_view.QuestionnaireConfigurationView.as_view(), name='questionnaire_config'),
     url(r'^designer/(?P<reg_pk>\d+)$',
@@ -275,14 +269,13 @@ urlpatterns += [
 
     url(r'api/familylookup/(?P<reg_code>\w+)/?$', FamilyLookup.as_view(), name="family_lookup"),
     url(r'api/patientlookup/(?P<reg_code>\w+)/?$', PatientLookup.as_view(), name="patient_lookup"),
-
-    #---- Look-ups URLs -----------------------
+    # ---- Look-ups URLs -----------------------
     url(r"^lookup/username/(?P<username>[\w.%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,4})/?$",
         UsernameLookup.as_view(), name="lookup_username"),
 
     url(r"^lookup/recaptcha/?$",
         RecaptchaValidator.as_view(), name="recaptcha_validator"),
-    #-------------------------------------------
+    # -------------------------------------------
 
     url(r'^(?P<registry_code>\w+)/register/?$',
         RdrfRegistrationView.as_view(),

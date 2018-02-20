@@ -148,15 +148,15 @@ class ListCountries(APIView):
         countries = sorted(pycountry.countries, key=lambda c: c.name)
 
         def to_dict(country):
-            # WANTED_FIELDS = ('name', 'alpha2', 'alpha3', 'numeric', 'official_name')
-            WANTED_FIELDS = ('name', 'numeric', 'official_name')
-            ALIASES = {
+            # wanted_fields = ('name', 'alpha2', 'alpha3', 'numeric', 'official_name')
+            wanted_fields = ('name', 'numeric', 'official_name')
+            aliases = {
                 'alpha2': 'country_code',
                 'alpha3': 'country_code3',
             }
 
-            d = dict([(k, getattr(country, k, None)) for k in WANTED_FIELDS])
-            for attr, alias in ALIASES.items():
+            d = dict([(k, getattr(country, k, None)) for k in wanted_fields])
+            for attr, alias in aliases.items():
                 d[alias] = getattr(country, attr)
             d['states'] = reverse('state_lookup', args=[country.alpha2], request=request)
 
@@ -177,9 +177,9 @@ class ListStates(APIView):
             # raise BadRequestError("Invalid country code '%s'" % country_code)
             states = []
 
-        WANTED_FIELDS = ('name', 'code', 'type', 'country_code')
+        wanted_fields = ('name', 'code', 'type', 'country_code')
 
-        def to_dict(x): return dict([(k, getattr(x, k)) for k in WANTED_FIELDS])
+        def to_dict(x): return dict([(k, getattr(x, k)) for k in wanted_fields])
 
         return Response(list(map(to_dict, states)))
 

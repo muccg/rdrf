@@ -8,7 +8,6 @@ from django.db import transaction
 from django.utils.html import strip_tags
 from django.utils.encoding import smart_bytes
 from functools import total_ordering
-from copy import deepcopy
 
 import datetime
 import dateutil.parser
@@ -93,7 +92,6 @@ class FormLink(object):
 
     @property
     def url(self):
-        from django.core.urlresolvers import reverse
         if self.context_model is None:
             return reverse(
                 'registry_form',
@@ -149,7 +147,6 @@ def location_name(registry_form, current_rdrf_context_model=None):
     context_form_group = None
     if registry_form.registry.has_feature("contexts"):
         if current_rdrf_context_model is not None:
-            registry_model = registry_form.registry
             patient_model = current_rdrf_context_model.content_object
             context_form_group = current_rdrf_context_model.context_form_group
             if context_form_group is not None:
@@ -551,7 +548,6 @@ class TimeStripper(object):
         updated = False
         ident = self.get_id(m)
         if m.data:
-            data_copy = deepcopy(m.data)
             updated = self.munge_data(m.data)
             if updated:
                 try:
@@ -659,7 +655,6 @@ def get_supported_languages():
 
 def applicable_forms(registry_model, patient_model):
     patient_type_map = registry_model.metadata.get("patient_types", None)
-    supports_types = patient_type_map is not None
     # type map looks like:
     # { "carrier": { "name": "Female Carrier", "forms": ["CarrierForm"]} }
     all_forms = registry_model.forms

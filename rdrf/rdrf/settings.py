@@ -375,11 +375,6 @@ LOGGING = {
             'class': 'logging.StreamHandler',
             'formatter': 'simple'
         },
-        'console_simple': {
-            'level': 'DEBUG',
-            'class': 'logging.StreamHandler',
-            'formatter': 'simplest'
-        },
         'file': {
             'level': 'INFO',
             'class': 'ccg_django_utils.loghandlers.ParentPathFileHandler',

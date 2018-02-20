@@ -430,16 +430,16 @@ class AddressesExpression(GeneralisedFieldExpression):
                 patient=patient_model)]
 
     def set_value(self, patient_model, mongo_record, address_maps, **kwargs):
-        #  address = models.TextField()
-        #suburb = models.CharField(max_length=100, verbose_name="Suburb/Town")
-        #state = models.CharField(max_length=50, verbose_name="State/Province/Territory")
-        #postcode = models.CharField(max_length=50)
-        #country = models.CharField(max_length=100)
+        # address = models.TextField()
+        # suburb = models.CharField(max_length=100, verbose_name="Suburb/Town")
+        # state = models.CharField(max_length=50, verbose_name="State/Province/Territory")
+        # postcode = models.CharField(max_length=50)
+        # country = models.CharField(max_length=100)
 
         # addresses = [OrderedDict([(u'State', u'AU-NSW'), (u'AddressType', u'AddressTypeHome'), (u'Address', u'11 Green Street'),
-        #(u'postcode', u'2042'), (u'SuburbTown', u'Newtown'),
-        #(u'Country', u'AU')]), OrderedDict([(u'State', u'AU-NSW'),
-        #(u'AddressType', u'AddressTypePostal'), (u'Address', u'23 Station Street'), (u'postcode', u'2000'), (u'SuburbTown', u'Sydney'), (u'Country', u'AU')])]
+        # (u'postcode', u'2042'), (u'SuburbTown', u'Newtown'),
+        # (u'Country', u'AU')]), OrderedDict([(u'State', u'AU-NSW'),
+        # (u'AddressType', u'AddressTypePostal'), (u'Address', u'23 Station Street'), (u'postcode', u'2000'), (u'SuburbTown', u'Sydney'), (u'Country', u'AU')])]
 
         # delete existing addresses ...
         from registry.patients.models import PatientAddress
@@ -485,13 +485,13 @@ class ClinicalFormExpression(GeneralisedFieldExpression):
         return get_cde_value(self.form_model, self.section_model, self.cde_model, mongo_record)
 
     def set_value(self, patient_model, mongo_record, new_value, **kwargs):
-        #"_id" : ObjectId("5732ae5c332cf40056cd0462"),
-        #"ClinicalData_timestamp" : ISODate("2016-05-11T12:00:59.472Z"),
-        #"django_id" : 1,
-        #"context_id" : 1,
-        #"django_model" : "Patient",
-        #"forms" : [
-        #		{
+        # _id" : ObjectId("5732ae5c332cf40056cd0462"),
+        # ClinicalData_timestamp" : ISODate("2016-05-11T12:00:59.472Z"),
+        # django_id" : 1,
+        # context_id" : 1,
+        # django_model" : "Patient",
+        # forms" : [
+        # 		{
         #		"sections" : [
         #			{
         #				"cdes" : [
@@ -503,7 +503,7 @@ class ClinicalFormExpression(GeneralisedFieldExpression):
         #				"code" : "DM1EthnicOrigins",
         #				"allow_multiple" : false
         #			},
-        #
+
         from datetime import datetime
         from rdrf.contexts_api import RDRFContextManager
         context_id = kwargs.get("context_id", None)

@@ -69,10 +69,12 @@ def find_cdes(doc, form_name=None, section_code=None, cde_code=None,
                 yield cde
 
 
-def section_allow_multiple(s, i): return bool(s.get("allow_multiple"))
+def section_allow_multiple(s, i):
+    return bool(s.get("allow_multiple"))
 
 
-def section_not_allow_multiple(s, i): return not s.get("allow_multiple")
+def section_not_allow_multiple(s, i):
+    return not s.get("allow_multiple")
 
 
 def get_mongo_value(registry_code, nested_data, delimited_key,
@@ -88,7 +90,8 @@ def get_mongo_value(registry_code, nested_data, delimited_key,
     if multisection_index is None:
         sectionp = None
     else:
-        def sectionp(s, ij): return ij[1] == multisection_index
+        def sectionp(s, ij):
+            return ij[1] == multisection_index
 
     cdes = find_cdes(nested_data, form_model.name, section_model.code,
                      cde_model.code, sectionp=sectionp,
@@ -369,7 +372,7 @@ class FormDataParser(object):
         else:
             # multisections extracted from the form like this (ugh):
             # the delimited keys  will(should) always be cdes from the same form and section
-            #{u'testmultisection': [
+            # {u'testmultisection': [
             # {u'DELETE': False, u'testform____testmultisection____DM1FatigueTV': u'DM1FatigueDozingNever',
             #  u'testform____testmultisection____DM1FatigueDrug': u'd1'},
             #
@@ -618,7 +621,6 @@ class DynamicDataWrapper(object):
         # assumes structure correct ..
 
         from rdrf.models import ClinicalData
-        from rdrf.models import RDRFContext
 
         # assumes context_id in cdes_record
         if "context_id" in cdes_record:
@@ -667,11 +669,11 @@ class DynamicDataWrapper(object):
             raise Exception("Cannot add this form!")
 
         from django.contrib.contenttypes.models import ContentType
-        PATIENT_CONTENT_TYPE = ContentType.objects.get(model='patient')
+        patient_content_type = ContentType.objects.get(model='patient')
         from rdrf.models import RDRFContext
         context_model = RDRFContext(registry=registry_model,
                                     object_id=self.obj.pk,
-                                    content_type=PATIENT_CONTENT_TYPE)
+                                    content_type=patient_content_type)
         context_model.context_form_group = form_group
         context_model.save()
         return context_model.pk
