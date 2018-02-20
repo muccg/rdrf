@@ -55,7 +55,7 @@ def handler500(request):
     return render(request, "500.html")
 
 
-def handlerApplicationError(request):
+def handler_application_error(request):
     return render(request, "rdrf_cdes/application_error.html", {
         "application_error": "Example config Error",
     })
@@ -68,7 +68,7 @@ if settings.DEBUG is True:
     urlpatterns += [
         url(r'^test404', handler404, name='test 404'),
         url(r'^test500', handler500, name='test 500'),
-        url(r'^testAppError', handlerApplicationError, name='test application error'),
+        url(r'^testAppError', handler_application_error, name='test application error'),
         url(r'^raise', handler_exceptions, name='test exception'),
     ]
 
@@ -269,13 +269,13 @@ urlpatterns += [
 
     url(r'api/familylookup/(?P<reg_code>\w+)/?$', FamilyLookup.as_view(), name="family_lookup"),
     url(r'api/patientlookup/(?P<reg_code>\w+)/?$', PatientLookup.as_view(), name="patient_lookup"),
-    #---- Look-ups URLs -----------------------
+    # ---- Look-ups URLs -----------------------
     url(r"^lookup/username/(?P<username>[\w.%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,4})/?$",
         UsernameLookup.as_view(), name="lookup_username"),
 
     url(r"^lookup/recaptcha/?$",
         RecaptchaValidator.as_view(), name="recaptcha_validator"),
-    #-------------------------------------------
+    # -------------------------------------------
 
     url(r'^(?P<registry_code>\w+)/register/?$',
         RdrfRegistrationView.as_view(),
