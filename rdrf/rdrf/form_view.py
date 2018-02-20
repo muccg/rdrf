@@ -662,6 +662,11 @@ class FormView(View):
                 self.registry_form.name + "_form_cdes_status", initial_completion_cdes)
 
         context.update(csrf(request))
+        self.registry_form = self.get_registry_form(form_id)
+
+        context["header"] = self.registry_form.header
+        context["header_expression"] = "rdrf://model/RegistryForm/%s/header" % self.registry_form.pk
+
         if error_count == 0:
             success_message = _("Patient %(patient_name)s saved successfully. Please now use the blue arrow on the right to continue.") % {
                 "patient_name": patient_name}
