@@ -157,6 +157,7 @@ class UserVerificationForm(forms.Form):
     first_name = forms.CharField(label=_('First Name'), max_length=254)
     last_name = forms.CharField(label=_('Surname'), max_length=254)
     date_of_birth = forms.DateField(label=_("Date of Birth"), input_formats=['%Y-%m-%d'])
+    date_of_death = forms.DateField(label=_("Date of Death"), input_formats=['%Y-%m-%d'])
 
     def __init__(self, user_data, *args, **kwargs):
         self.user_data = user_data
@@ -168,6 +169,7 @@ class UserVerificationForm(forms.Form):
         first_name = cleaned_data.get('first_name')
         last_name = cleaned_data.get('last_name')
         date_of_birth = cleaned_data.get('date_of_birth')
+        date_of_death = cleaned_data.get('date_of_death')
 
         if first_name and last_name and date_of_birth:
             if not self.matches_data(first_name, last_name, date_of_birth):
