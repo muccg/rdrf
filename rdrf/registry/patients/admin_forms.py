@@ -307,6 +307,15 @@ class PatientForm(forms.ModelForm):
         help_text=_("DD-MM-YYYY"),
         input_formats=['%d-%m-%Y'])
 
+    date_of_death = forms.DateField(
+        widget=forms.DateInput(
+            attrs={
+                'class': 'datepicker'},
+            format='%d-%m-%Y'),
+        help_text=_("DD-MM-YYYY"),
+        input_formats=['%d-%m-%Y'],
+        required=False)
+
     date_of_migration = forms.DateField(
         widget=forms.DateInput(
             attrs={
