@@ -121,7 +121,7 @@ TEMPLATES = [
                 "django.template.context_processors.static",
                 "django.template.context_processors.tz",
                 "django.contrib.messages.context_processors.messages",
-                "rdrf.context_processors.common_settings",
+                "apps.rdrf.context_processors.context_processors.common_settings",
             ],
             "debug": DEBUG,
             "loaders": [

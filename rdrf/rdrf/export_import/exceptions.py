@@ -1,2 +1,0 @@
-class ImportError(Exception):
-    pass
