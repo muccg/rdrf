@@ -220,6 +220,7 @@ class ImporterTestCase(TestCase):
     def test_importer(self):
         importer = Importer()
         yaml_file = self._get_yaml_file()
+        logger.info("test_importer yaml file = %s" % yaml_file)
 
         importer.load_yaml(yaml_file)
         importer.create_registry()
