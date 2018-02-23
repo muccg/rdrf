@@ -31,9 +31,9 @@ from django.conf import settings
 
 from django.contrib.auth import get_user_model
 
-from rdrf.admin.forms.admin_forms import RegistryFormAdminForm
-from rdrf.admin.forms.admin_forms import EmailTemplateAdminForm
-from rdrf.admin.forms.admin_forms import DemographicFieldsAdminForm
+from rdrf.admin_forms import RegistryFormAdminForm
+from rdrf.admin_forms import EmailTemplateAdminForm
+from rdrf.admin_forms import DemographicFieldsAdminForm
 from functools import reduce
 
 logger = logging.getLogger(__name__)
