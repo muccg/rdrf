@@ -2,8 +2,8 @@ import yaml
 import sys
 import os.path
 import re
-from rdrf.utils import de_camelcase
-from rdrf.models import Registry
+from rdrf.helpers.utils import de_camelcase
+from rdrf.models.definition.models import Registry
 from tempfile import TemporaryDirectory
 from django.core.management import BaseCommand
 from django.core.management.base import CommandError

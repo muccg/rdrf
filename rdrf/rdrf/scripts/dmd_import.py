@@ -9,17 +9,17 @@ from django.db import transaction
 from django.contrib.auth.models import Group
 from django.contrib.auth.models import Permission
 
-from rdrf.models import Registry
-from rdrf.models import ConsentSection
-from rdrf.models import ConsentQuestion
-from rdrf.models import EmailTemplate
-from rdrf.models import EmailNotification
-from rdrf.models import ClinicalData
+from rdrf.models.definition.models import Registry
+from rdrf.models.definition.models import ConsentSection
+from rdrf.models.definition.models import ConsentQuestion
+from rdrf.models.definition.models import EmailTemplate
+from rdrf.models.definition.models import EmailNotification
+from rdrf.models.definition.models import ClinicalData
 
-from rdrf.utils import parse_iso_datetime
+from rdrf.helpers.utils import parse_iso_datetime
 
-from rdrf.generalised_field_expressions import MultiSectionItemsExpression
-from rdrf.contexts_api import RDRFContextManager
+from rdrf.db.generalised_field_expressions import MultiSectionItemsExpression
+from rdrf.db.contexts_api import RDRFContextManager
 
 from registry.patients.models import Patient
 from registry.patients.models import PatientAddress

@@ -1,5 +1,5 @@
 from django import template
-from rdrf.models import Section
+from rdrf.models.definition.models import Section
 
 register = template.Library()
 

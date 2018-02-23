@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
-from rdrf.models import Registry
-from rdrf.models import RDRFContext
+from rdrf.models.definition.models import Registry
+from rdrf.models.definition.models import RDRFContext
 from django.contrib.contenttypes.models import ContentType
 
 from django.db import migrations

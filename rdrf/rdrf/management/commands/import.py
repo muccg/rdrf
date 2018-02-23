@@ -1,6 +1,6 @@
 from django.core.management.base import BaseCommand
 
-from rdrf.apps.rdrf.services.io.data.export_import import import_zipfile, inspect_zipfile, definitions
+from rdrf.services.io.data.export_import import import_zipfile, inspect_zipfile, definitions
 
 
 class Command(BaseCommand):

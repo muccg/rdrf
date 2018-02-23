@@ -1,5 +1,5 @@
 from django import template
-from rdrf.models import ConsentSection
+from rdrf.models.definition.models import ConsentSection
 import logging
 
 logger = logging.getLogger(__name__)

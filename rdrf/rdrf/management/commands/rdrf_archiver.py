@@ -1,5 +1,5 @@
 from django.core.management.base import BaseCommand, CommandError
-from rdrf.models import Registry
+from rdrf.models.definition.models import Registry
 from registry.patients.models import Patient
 
 

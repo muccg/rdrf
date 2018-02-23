@@ -10,7 +10,7 @@ from django.dispatch import receiver
 from registration.signals import user_activated
 from registration.signals import user_registered
 
-from rdrf.models import Registry
+from rdrf.models.definition.models import Registry
 from registry.groups import GROUPS as RDRF_GROUPS
 
 import logging
@@ -116,7 +116,7 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
 
     @property
     def notices(self):
-        from rdrf.models import Notification
+        from rdrf.models.definition.models import Notification
         return Notification.objects.filter(
             to_username=self.username,
             seen=False).order_by("-created")
@@ -264,8 +264,8 @@ def user_registered_callback(sender, user, request, **kwargs):
 
 @receiver(user_activated)
 def user_activated_callback(sender, user, request, **kwargs):
-    from rdrf.email_notification import process_notification
-    from rdrf.events import EventType
+    from rdrf.services.io.notifications.email_notification import process_notification
+    from rdrf.events.events import EventType
     from registry.patients.models import Patient
     from registry.patients.models import ParentGuardian
 

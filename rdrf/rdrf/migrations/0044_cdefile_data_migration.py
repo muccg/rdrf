@@ -33,7 +33,7 @@ def set_codes(apps, schema_editor):
 
 
 def set_fks(apps, schema_editor):
-    from rdrf.models import Registry, RegistryForm, Section, CommonDataElement
+    from rdrf.models.definition.models import Registry, RegistryForm, Section, CommonDataElement
 
     def m(model): return apps.get_model("rdrf", model)
     CDEFile = m("CDEFile")

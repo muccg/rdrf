@@ -1,7 +1,7 @@
 import sys
 from django.core.management import BaseCommand
-from rdrf.models import Registry
-from rdrf.models import ClinicalData
+from rdrf.models.definition.models import Registry
+from rdrf.models.definition.models import ClinicalData
 import yaml
 import jsonschema
 import errno

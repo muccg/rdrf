@@ -5,8 +5,8 @@ import sys
 import csv
 from django.db import transaction
 
-from rdrf.models import Registry
-from rdrf.models import RegistryForm
+from rdrf.models.definition.models import Registry
+from rdrf.models.definition.models import RegistryForm
 from registry.patients.models import Patient
 
 

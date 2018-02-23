@@ -11,8 +11,8 @@ from django.db.models.signals import post_save, m2m_changed, post_delete
 from django.dispatch import receiver
 import pycountry
 
-from rdrf.dynamic_data import DynamicDataWrapper
-from rdrf.models import Registry, Section, ConsentQuestion
+from rdrf.db.dynamic_data import DynamicDataWrapper
+from rdrf.models.definition.models import Registry, Section, ConsentQuestion
 import registry.groups.models
 from registry.utils import get_working_groups, get_registries, stripspaces
 from registry.groups.models import CustomUser
@@ -459,8 +459,8 @@ class Patient(models.Model):
 
         # if clinical_data is supplied don't reload
         # ( allows faster retrieval of multiple values
-        from rdrf.dynamic_data import DynamicDataWrapper
-        from rdrf.utils import mongo_key
+        from rdrf.db.dynamic_data import DynamicDataWrapper
+        from rdrf.helpers.utils import mongo_key
 
         if clinical_data is None:
             wrapper = DynamicDataWrapper(self, rdrf_context_id=context_id)
@@ -485,15 +485,15 @@ class Patient(models.Model):
                 return data[key]
 
     def update_field_expressions(self, registry_model, field_expressions, context_model=None):
-        from rdrf.dynamic_data import DynamicDataWrapper
-        from rdrf.generalised_field_expressions import GeneralisedFieldExpressionParser
+        from rdrf.db.dynamic_data import DynamicDataWrapper
+        from rdrf.db.generalised_field_expressions import GeneralisedFieldExpressionParser
         if registry_model.has_feature("contexts") and context_model is None:
             raise Exception("No context model set")
         elif not registry_model.has_feature("contexts") and context_model is not None:
             raise Exception("context model should not be explicit for non-supporting registry")
         elif not registry_model.has_feature("contexts") and context_model is None:
             # the usual case
-            from rdrf.contexts_api import RDRFContextManager
+            from rdrf.db.contexts_api import RDRFContextManager
             rdrf_context_manager = RDRFContextManager(registry_model)
             context_model = rdrf_context_manager.get_or_create_default_context(self)
 
@@ -560,7 +560,7 @@ class Patient(models.Model):
         else:
             mongo_data = wrapper.load_dynamic_data(registry_model.code, "cdes", flattened=False)
 
-        from rdrf.generalised_field_expressions import GeneralisedFieldExpressionParser
+        from rdrf.db.generalised_field_expressions import GeneralisedFieldExpressionParser
         parser = GeneralisedFieldExpressionParser(registry_model)
 
         if mongo_data is None:
@@ -592,10 +592,10 @@ class Patient(models.Model):
             data_element_code,
             value,
             context_model=None):
-        from rdrf.dynamic_data import DynamicDataWrapper
-        from rdrf.utils import mongo_key
-        from rdrf.form_progress import FormProgress
-        from rdrf.models import RegistryForm, Registry
+        from rdrf.db.dynamic_data import DynamicDataWrapper
+        from rdrf.helpers.utils import mongo_key
+        from rdrf.forms.progress.form_progress import FormProgress
+        from rdrf.models.definition.models import RegistryForm, Registry
         registry_model = Registry.objects.get(code=registry_code)
         if registry_model.has_feature("contexts") and context_model is None:
             raise Exception("No context model set")
@@ -603,7 +603,7 @@ class Patient(models.Model):
             raise Exception("context model should not be explicit for non-supporting registry")
         elif not registry_model.has_feature("contexts") and context_model is None:
             # the usual case
-            from rdrf.contexts_api import RDRFContextManager
+            from rdrf.db.contexts_api import RDRFContextManager
             rdrf_context_manager = RDRFContextManager(registry_model)
             context_model = rdrf_context_manager.get_or_create_default_context(self)
 
@@ -846,7 +846,7 @@ class Patient(models.Model):
         return cdes_status, percentage
 
     def forms_progress(self, registry_model, forms):
-        from rdrf.utils import mongo_key
+        from rdrf.helpers.utils import mongo_key
         mongo_data = DynamicDataWrapper(self).load_dynamic_data(registry_model.code, "cdes")
         total_filled_in = 0
         total_required_for_completion = 0
@@ -921,7 +921,7 @@ class Patient(models.Model):
     @property
     def context_models(self):
         from django.contrib.contenttypes.models import ContentType
-        from rdrf.models import RDRFContext
+        from rdrf.models.definition.models import RDRFContext
         contexts = []
         content_type = ContentType.objects.get_for_model(self)
 
@@ -936,7 +936,7 @@ class Patient(models.Model):
         # We need this ordering of the group's context accessible from the patient
         # listing and the launcher
         registry_model = multiple_form_group.registry
-        from rdrf.utils import MinType
+        from rdrf.helpers.utils import MinType
         # if values are missing in the record we want to sort on
         # we get KeyErrors
         # can't use None to sort so we have to use this tricky thing
@@ -1001,7 +1001,7 @@ class Patient(models.Model):
 
     def default_context(self, registry_model):
         # return None if doesn't make sense
-        from rdrf.models import RegistryType
+        from rdrf.models.definition.models import RegistryType
         registry_type = registry_model.registry_type
         if registry_type == RegistryType.NORMAL:
             my_contexts = self.context_models
@@ -1024,7 +1024,7 @@ class Patient(models.Model):
             raise Exception("no default context")
 
     def get_dynamic_data(self, registry_model, collection="cdes", context_id=None):
-        from rdrf.dynamic_data import DynamicDataWrapper
+        from rdrf.db.dynamic_data import DynamicDataWrapper
         if context_id is None:
             default_context = self.default_context(registry_model)
             if default_context is not None:
@@ -1042,7 +1042,7 @@ class Patient(models.Model):
         Dangerous - assumes new_mongo_data is correct structure
         Trying it to simulate rollback if questionnaire update fails
         """
-        from rdrf.dynamic_data import DynamicDataWrapper
+        from rdrf.db.dynamic_data import DynamicDataWrapper
         if context_id is None:
             default_context = self.default_context(registry_model)
             if default_context is not None:
@@ -1102,8 +1102,8 @@ def other_clinician_post_save(sender, instance, created, raw, using, update_fiel
 
     if not instance.user and instance.use_other:
         # User has NOT selected an existing clinician
-        from rdrf.events import EventType
-        from rdrf.email_notification import process_notification
+        from rdrf.events.events import EventType
+        from rdrf.services.io.notifications.email_notification import process_notification
 
         other_clinican = instance
         patient = other_clinican.patient
@@ -1329,7 +1329,7 @@ class PatientRelative(models.Model):
         self.save()
         # explicitly set relative cde
         if registry_model.has_feature("family_linkage"):
-            from rdrf.family_linkage import FamilyLinkageManager
+            from rdrf.views.family_linkage import FamilyLinkageManager
             flm = FamilyLinkageManager(registry_model)
             flm.set_as_relative(p)
         return p
@@ -1368,7 +1368,7 @@ def update_family_linkage_fields(sender, instance, **kwargs):
         logger.debug("checking %s" % registry_model)
         if registry_model.has_feature("family_linkage"):
             logger.debug("%s has family linkage" % registry_model)
-            from rdrf.family_linkage import FamilyLinkageManager
+            from rdrf.views.family_linkage import FamilyLinkageManager
             flm = FamilyLinkageManager(registry_model, None)
             if instance.is_index:
                 logger.debug("%s is an index" % instance)
@@ -1396,7 +1396,7 @@ def _get_registry_for_mongo(regs):
 @receiver(m2m_changed, sender=Patient.rdrf_registry.through)
 def registry_changed_on_patient(sender, **kwargs):
     if kwargs["action"] == "post_add":
-        from rdrf.contexts_api import create_rdrf_default_contexts
+        from rdrf.db.contexts_api import create_rdrf_default_contexts
         instance = kwargs['instance']
         registry_ids = kwargs['pk_set']
         create_rdrf_default_contexts(instance, registry_ids)

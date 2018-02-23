@@ -2,7 +2,7 @@
 
 
 from django.db import migrations, models
-import rdrf.models
+import rdrf.models.definition.models
 
 
 class Migration(migrations.Migration):

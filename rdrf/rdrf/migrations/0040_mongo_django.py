@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 from django.db import migrations
-from rdrf.migration_utils import ClinicalDBRunPython
+from rdrf.helpers.migration_utils import ClinicalDBRunPython
 
 mongo_django = undjango_mongo = None
 

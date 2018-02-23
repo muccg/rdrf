@@ -4,8 +4,8 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.forms import ReadOnlyPasswordHashField
 from django.forms import ChoiceField
 from .models import WorkingGroup
-from rdrf.models import Registry
-from rdrf.utils import get_supported_languages
+from rdrf.models.definition.models import Registry
+from rdrf.helpers.utils import get_supported_languages
 from django.core.exceptions import ValidationError
 import logging
 

@@ -7,7 +7,7 @@ from __future__ import print_function
 import io
 import sys
 import yaml
-from rdrf.utils import check_calculation
+from rdrf.helpers.utils import check_calculation
 
 yaml.add_constructor(u'tag:yaml.org,2002:str',
                      yaml.constructor.Constructor.construct_python_unicode)
