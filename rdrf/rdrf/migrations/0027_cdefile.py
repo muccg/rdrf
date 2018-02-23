@@ -16,7 +16,7 @@ class Migration(migrations.Migration):
             name='CDEFile',
             fields=[
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
-                ('item', models.FileField(upload_to=rdrf.models.file_upload_to, max_length=300)),
+                ('item', models.FileField(upload_to=rdrf.models.definition.models.file_upload_to, max_length=300)),
                 ('filename', models.CharField(max_length=255)),
                 ('cde', models.ForeignKey(to='rdrf.CommonDataElement')),
                 ('form', models.ForeignKey(blank=True, to='rdrf.RegistryForm', null=True)),

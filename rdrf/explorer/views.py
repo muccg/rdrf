@@ -13,7 +13,7 @@ from django.shortcuts import render, redirect
 from django.utils.decorators import method_decorator
 from django.views.generic.base import View
 
-from rdrf.apps.explorer import __version__
+from explorer import __version__
 from .forms import QueryForm
 from .models import Query
 from .utils import DatabaseUtils
@@ -22,7 +22,7 @@ from rdrf.models.definition.models import RegistryForm
 from rdrf.models.definition.models import Section
 from registry.groups.models import WorkingGroup
 from rdrf.services.io.reporting.spreadsheet_report import SpreadSheetReport
-from rdrf.reporting_table import ReportingTableGenerator
+from rdrf.services.io.reporting.reporting_table import ReportingTableGenerator
 
 from rdrf.helpers.utils import models_from_mongo_key, is_delimited_key, BadKeyError, cached
 from rdrf.helpers.utils import mongo_key_from_models

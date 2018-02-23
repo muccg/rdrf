@@ -26,7 +26,7 @@ from useraudit.password_expiry import is_password_expired
 
 from registry.patients.models import Patient, ParentGuardian
 
-from rdrf.apps.rdrf.auth import can_user_self_unlock, is_user_privileged
+from rdrf.auth import can_user_self_unlock, is_user_privileged
 
 
 from .forms import UserVerificationForm, ReactivateAccountForm

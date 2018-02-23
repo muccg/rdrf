@@ -30,7 +30,7 @@ class Links:
 
     PatientsListing = QuickLink(reverse("patientslisting"), _("Patient List"))
     Reports = QuickLink(reverse("reports"), _("Reports"))
-    QuestionnaireResponses = QuickLink(reverse("admin:rdrf_questionnaireresponse_changelist"),
+    QuestionnaireResponses = QuickLink(reverse("admin:rdrf_models_questionnaireresponse_changelist"),
                                        _("Questionnaire Responses"))
     Doctors = QuickLink(reverse("admin:patients_doctor_changelist"), _("Doctors"))
     ArchivedPatients = QuickLink(

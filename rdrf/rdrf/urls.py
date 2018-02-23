@@ -129,7 +129,7 @@ urlpatterns += [
     url(r'^iprestrict/', include('iprestrict.urls')),
     url(r'^useraudit/', include('useraudit.urls')),
 
-    url(r'^api/v1/', include('rdrf.api_urls', namespace='v1')),
+    url(r'^api/v1/', include('rdrf.services.rest.urls.api_urls', namespace='v1')),
     url(r'^constructors/(?P<form_name>\w+)/?$',
         form_view.ConstructorFormView.as_view(), name="constructors"),
     url(r'^rpc', form_view.RPCHandler.as_view(), name='rpc'),

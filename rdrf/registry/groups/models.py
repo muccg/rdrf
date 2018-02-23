@@ -211,7 +211,7 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
 
     @property
     def menu_links(self):
-        from rdrf.quick_links import QuickLinks
+        from rdrf.forms.navigation.quick_links import QuickLinks
         qlinks = QuickLinks(self.get_registries_or_all())
         if self.is_superuser:
             links = qlinks.menu_links([RDRF_GROUPS.SUPER_USER])
@@ -225,7 +225,7 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
         links = []
 
         if self.is_superuser:
-            from rdrf.quick_links import QuickLinks
+            from rdrf.forms.navigation.quick_links import QuickLinks
             qlinks = QuickLinks(self.get_registries_or_all())
             links = qlinks.settings_links()
 
@@ -236,7 +236,7 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
         links = []
 
         if self.is_superuser:
-            from rdrf.quick_links import QuickLinks
+            from rdrf.forms.navigation.quick_links import QuickLinks
             qlinks = QuickLinks(self.get_registries_or_all())
             links = qlinks.admin_page_links()
 
