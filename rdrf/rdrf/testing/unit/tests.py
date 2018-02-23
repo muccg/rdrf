@@ -215,7 +215,7 @@ class ExporterTestCase(RDRFTestCase):
 class ImporterTestCase(TestCase):
 
     def _get_yaml_file(self):
-        return os.path.join(os.path.dirname(__file__), 'fixtures', 'exported_fh_registry.yaml')
+        return os.path.join("..","..","..",os.path.dirname(__file__), 'fixtures', 'exported_fh_registry.yaml')
 
     def test_importer(self):
         importer = Importer()
