@@ -217,7 +217,7 @@ class ImporterTestCase(TestCase):
     def _get_yaml_file(self):
         this_dir = os.path.dirname(__file__)
         logger.info("tests.py  dir = %s" % this_dir)
-        test_yaml= os.path.join(this_dir,"..","..","..","fixtures","exported_fh_registry.yaml")
+        test_yaml= os.path.abspath(os.path.join(this_dir,"..","..","fixtures","exported_fh_registry.yaml"))
         logger.info("full path to test yaml = %s" % test_yaml)
         return test_yaml
 
