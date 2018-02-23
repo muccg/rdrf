@@ -7,7 +7,7 @@ from django.core.urlresolvers import reverse
 from collections import OrderedDict
 
 from rdrf.forms.dynamic import fields
-from rdrf.forms import widgets
+from rdrf.forms.widgets import widgets
 import logging
 from rdrf.forms.dynamic.calculated_fields import CalculatedFieldParser, CalculatedFieldParseError
 from rdrf.forms.dynamic.validation import ValidatorFactory
