@@ -378,8 +378,11 @@ def check_calculation(calculation):
     whether it's suitable for running in users' browsers.
     Returns the empty string on success, otherwise an error message.
     """
-    script = os.path.join(os.path.dirname(__file__),
-                          "scripts", "check-calculation.js")
+    script = os.path.abspath(os.path.join(os.path.dirname(__file__),
+                                          "..",
+                                          "..",
+                                          "scripts",
+                                          "check-calculation.js"))
     try:
         p = subprocess.Popen([script], stdin=subprocess.PIPE,
                              stdout=subprocess.PIPE,
