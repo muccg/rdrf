@@ -1,4 +1,4 @@
-from rdrf.models.definitions.models import CDEPermittedValueGroup, CDEPermittedValue, CommonDataElement
+from rdrf.models.definition.models import CDEPermittedValueGroup, CDEPermittedValue, CommonDataElement
 from lxml import etree
 import sys
 
