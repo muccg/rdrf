@@ -1,5 +1,5 @@
 import os
-from setuptools import setup
+from setuptools import setup, find_packages
 
 package_data = {}
 start_dir = os.getcwd()
@@ -128,7 +128,7 @@ for package in ['rdrf', 'registry.common', 'registry.genetic',
 
 setup(name='django-rdrf',
       version="3.2.1",
-      packages=packages,
+      packages=find_packages(),
       description='RDRF',
       long_description='Rare Disease Registry Framework',
       author='Centre for Comparative Genomics',
