@@ -272,6 +272,7 @@ fi
 if [ "$1" = 'aloe' ]; then
     info "[Run] Starting aloe"
     cd /app/rdrf || exit
+    echo "aloe test args: [$@]"
     _aloe "$@"
 fi
 
