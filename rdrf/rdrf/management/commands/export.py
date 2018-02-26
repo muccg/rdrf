@@ -1,7 +1,7 @@
 from django.core.management.base import BaseCommand, CommandError
 
-from rdrf.services.io.data import export_import
-from rdrf.services.io.data.export_import import definitions
+from rdrf.services.io.content import export_import
+from rdrf.services.io.content.export_import import definitions
 from rdrf.models.definition.models import Registry
 
 
