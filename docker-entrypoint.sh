@@ -271,7 +271,7 @@ fi
 # aloe entrypoint
 if [ "$1" = 'aloe' ]; then
     info "[Run] Starting aloe"
-    cd /app/rdrf || exit
+    cd /app/rdrf/rdrf/testing/behaviour || exit
     echo "aloe test args: [$@]"
     _aloe "$@"
 fi
