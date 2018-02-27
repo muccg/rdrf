@@ -10,7 +10,7 @@ from django.dispatch import receiver
 from registration.signals import user_activated
 from registration.signals import user_registered
 
-from rdrf.models import Registry
+from rdrf.models.definition.models import Registry
 from registry.groups import GROUPS as RDRF_GROUPS
 
 import logging
@@ -116,7 +116,7 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
 
     @property
     def notices(self):
-        from rdrf.models import Notification
+        from rdrf.models.definition.models import Notification
         return Notification.objects.filter(
             to_username=self.username,
             seen=False).order_by("-created")
@@ -211,7 +211,7 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
 
     @property
     def menu_links(self):
-        from rdrf.quick_links import QuickLinks
+        from rdrf.forms.navigation.quick_links import QuickLinks
         qlinks = QuickLinks(self.get_registries_or_all())
         if self.is_superuser:
             links = qlinks.menu_links([RDRF_GROUPS.SUPER_USER])
@@ -225,7 +225,7 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
         links = []
 
         if self.is_superuser:
-            from rdrf.quick_links import QuickLinks
+            from rdrf.forms.navigation.quick_links import QuickLinks
             qlinks = QuickLinks(self.get_registries_or_all())
             links = qlinks.settings_links()
 
@@ -236,7 +236,7 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
         links = []
 
         if self.is_superuser:
-            from rdrf.quick_links import QuickLinks
+            from rdrf.forms.navigation.quick_links import QuickLinks
             qlinks = QuickLinks(self.get_registries_or_all())
             links = qlinks.admin_page_links()
 
@@ -264,8 +264,8 @@ def user_registered_callback(sender, user, request, **kwargs):
 
 @receiver(user_activated)
 def user_activated_callback(sender, user, request, **kwargs):
-    from rdrf.email_notification import process_notification
-    from rdrf.events import EventType
+    from rdrf.services.io.notifications.email_notification import process_notification
+    from rdrf.events.events import EventType
     from registry.patients.models import Patient
     from registry.patients.models import ParentGuardian
 

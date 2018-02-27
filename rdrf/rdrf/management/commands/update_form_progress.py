@@ -1,7 +1,7 @@
 from django.core.management.base import BaseCommand
-from rdrf.models import Registry
+from rdrf.models.definition.models import Registry
 from registry.patients.models import Patient
-from rdrf.form_progress import FormProgress
+from rdrf.forms.progress.form_progress import FormProgress
 
 import sys
 

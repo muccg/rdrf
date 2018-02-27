@@ -3,8 +3,8 @@ import django
 django.setup()
 from django.db import transaction
 
-from rdrf.utils import TimeStripper, HistoryTimeStripper
-from rdrf.models import ClinicalData
+from rdrf.helpers.utils import TimeStripper, HistoryTimeStripper
+from rdrf.models.definition.models import ClinicalData
 
 
 def fix_cdes_modjgos():

@@ -1,6 +1,6 @@
 import abc
 
-from rdrf.models import Registry
+from rdrf.models.definition.models import Registry
 from registry.patients.models import PatientAddress, AddressType
 from registry.patients.models import ParentGuardian
 from django.contrib.auth.models import Group

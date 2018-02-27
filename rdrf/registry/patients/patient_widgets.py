@@ -37,7 +37,7 @@ class PatientRelativeLinkWidget(widgets.Widget):
             return html
 
     def _get_default_context(self, reg_code, patient_id):
-        from rdrf.models import Registry
+        from rdrf.models.definition.models import Registry
         from registry.patients.models import Patient
         patient_model = Patient.objects.get(pk=int(patient_id))
         registry_model = Registry.objects.get(code=reg_code)

@@ -1,7 +1,7 @@
 '''
 Sample registry.
 '''
-from ..models import Registry
+from rdrf.models.definition.models import Registry
 from registry.groups.models import CustomUser, WorkingGroup
 
 

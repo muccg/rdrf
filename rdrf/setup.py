@@ -1,5 +1,5 @@
 import os
-from setuptools import setup
+from setuptools import setup, find_packages
 
 package_data = {}
 start_dir = os.getcwd()
@@ -57,6 +57,42 @@ def add_file_for_package(package, subdir, f):
 
 
 packages = ['rdrf',
+            'rdrf.account_handling',
+            'rdrf.auth',
+            'rdrf.context_processors',
+            'rdrf.db',
+            'rdrf.events',
+            'rdrf.forms',
+            'rdrf.forms.dynamic',
+            'rdrf.forms.fields',
+            'rdrf.forms.navigation',
+            'rdrf.forms.progress',
+            'rdrf.forms.validation',
+            'rdrf.forms.widgets',
+            'rdrf.helpers',
+            'rdrf.models',
+            'rdrf.models.definition',
+            'rdrf.reports',
+            'rdrf.routing',
+            'rdrf.security',
+            'rdrf.services',
+            'rdrf.services.io',
+            'rdrf.services.io.content',
+            'rdrf.services.io.content.export_import',
+            'rdrf.services.io.defs',
+            'rdrf.services.io.notifications',
+            'rdrf.services.io.reporting',
+            'rdrf.services.rest',
+            'rdrf.services.rest.urls',
+            'rdrf.services.rest.views',
+            'rdrf.services.rpc',
+            'rdrf.testing',
+            'rdrf.testing.behaviour',
+            'rdrf.testing.unit',
+            'rdrf.views',
+            'rdrf.views.decorators',
+            'rdrf.workflows',
+            'rdrf.workflows.questionnaires',
             'registry',
             'registry.common',
             'registry.patients',
@@ -92,7 +128,7 @@ for package in ['rdrf', 'registry.common', 'registry.genetic',
 
 setup(name='django-rdrf',
       version="3.2.1",
-      packages=packages,
+      packages=find_packages(),
       description='RDRF',
       long_description='Rare Disease Registry Framework',
       author='Centre for Comparative Genomics',

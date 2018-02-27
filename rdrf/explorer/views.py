@@ -13,19 +13,19 @@ from django.shortcuts import render, redirect
 from django.utils.decorators import method_decorator
 from django.views.generic.base import View
 
-from . import __version__
+from explorer import __version__
 from .forms import QueryForm
 from .models import Query
 from .utils import DatabaseUtils
-from rdrf.models import Registry
-from rdrf.models import RegistryForm
-from rdrf.models import Section
+from rdrf.models.definition.models import Registry
+from rdrf.models.definition.models import RegistryForm
+from rdrf.models.definition.models import Section
 from registry.groups.models import WorkingGroup
-from rdrf.spreadsheet_report import SpreadSheetReport
-from rdrf.reporting_table import ReportingTableGenerator
+from rdrf.services.io.reporting.spreadsheet_report import SpreadSheetReport
+from rdrf.services.io.reporting.reporting_table import ReportingTableGenerator
 
-from rdrf.utils import models_from_mongo_key, is_delimited_key, BadKeyError, cached
-from rdrf.utils import mongo_key_from_models
+from rdrf.helpers.utils import models_from_mongo_key, is_delimited_key, BadKeyError, cached
+from rdrf.helpers.utils import mongo_key_from_models
 
 logger = logging.getLogger(__name__)
 
@@ -96,7 +96,7 @@ class DeleteQueryView(LoginRequiredMixin, View):
 class QueryView(LoginRequiredMixin, View):
 
     def get(self, request, query_id):
-        from rdrf.models import Registry
+        from rdrf.models.definition.models import Registry
 
         query_model = Query.objects.get(id=query_id)
         query_form = QueryForm(instance=query_model)
@@ -365,7 +365,7 @@ def _get_non_multiple_mongo_keys(registry_model):
     # skip the generated questionnaire ( the data from which is copied to the target clinical forms anyway)
     # skip multisections  as these are handled separately
     delimited_keys = []
-    from rdrf.utils import mongo_key_from_models
+    from rdrf.helpers.utils import mongo_key_from_models
     for form_model in registry_model.forms:
         if not form_model.is_questionnaire:
             for section_model in form_model.section_models:

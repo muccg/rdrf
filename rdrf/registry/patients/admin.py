@@ -7,12 +7,12 @@ from django.core.urlresolvers import reverse
 import os
 import json
 import datetime
-from rdrf.models import Registry
+from rdrf.models.definition.models import Registry
 from registry.utils import get_static_url
 from registry.utils import get_working_groups
 from .admin_forms import *
 from .models import *
-from rdrf.dynamic_data import DynamicDataWrapper
+from rdrf.db.dynamic_data import DynamicDataWrapper
 from django.contrib.auth import get_user_model
 import logging
 from registry.patients.models import ConsentValue
@@ -136,7 +136,7 @@ class PatientAdmin(admin.ModelAdmin):
         return super(PatientAdmin, self).render_change_form(*args, **kwargs)
 
     def _get_formlinks(self, patient, user):
-        from rdrf.utils import FormLink
+        from rdrf.helpers.utils import FormLink
         links = []
         for registry_model in patient.rdrf_registry.all():
             for form_model in registry_model.forms:

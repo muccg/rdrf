@@ -1,12 +1,12 @@
 import sqlalchemy as alc
 from sqlalchemy import create_engine, MetaData
 from django.conf import settings
-from rdrf.models import ContextFormGroup
-from rdrf.models import CommonDataElement
-from rdrf.models import ClinicalData
-from rdrf.dynamic_data import DynamicDataWrapper
-from rdrf.form_progress import FormProgress
-from rdrf.utils import cached
+from rdrf.models.definition.models import ContextFormGroup
+from rdrf.models.definition.models import CommonDataElement
+from rdrf.models.definition.models import ClinicalData
+from rdrf.db.dynamic_data import DynamicDataWrapper
+from rdrf.forms.progress.form_progress import FormProgress
+from rdrf.helpers.utils import cached
 from registry.patients.models import Patient
 import logging
 from django.contrib.auth.models import Group
@@ -445,8 +445,8 @@ class Generator:
     def _create_demographic_tables(self):
         from registry.patients.models import PatientAddress, AddressType, State, NextOfKinRelationship
         from registry.patients.models import ConsentValue
-        from rdrf.models import ConsentQuestion, ConsentSection, Registry, RegistryForm
-        from rdrf.models import Section, CommonDataElement, CDEPermittedValueGroup, CDEPermittedValue
+        from rdrf.models.definition.models import ConsentQuestion, ConsentSection, Registry, RegistryForm
+        from rdrf.models.definition.models import Section, CommonDataElement, CDEPermittedValueGroup, CDEPermittedValue
         from explorer.models import Query
 
         starting_models = [

@@ -3,7 +3,7 @@ from django.core.urlresolvers import reverse
 from django.contrib.auth.models import Group
 from django.core.exceptions import ValidationError
 
-from rdrf.models import Registry
+from rdrf.models.definition.models import Registry
 
 
 class Query(models.Model):

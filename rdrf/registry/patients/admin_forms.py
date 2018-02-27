@@ -4,9 +4,9 @@ from django.core.exceptions import ValidationError
 from django.forms.utils import ErrorDict
 
 from .models import *
-from rdrf.dynamic_data import DynamicDataWrapper
-from rdrf.models import ConsentQuestion, ConsentSection, DemographicFields
-from rdrf.widgets import CountryWidget, StateWidget, ConsentFileInput
+from rdrf.db.dynamic_data import DynamicDataWrapper
+from rdrf.models.definition.models import ConsentQuestion, ConsentSection, DemographicFields
+from rdrf.forms.widgets.widgets import CountryWidget, StateWidget, ConsentFileInput
 from registry.groups.models import CustomUser, WorkingGroup
 from registry.patients.models import Patient, PatientRelative
 from registry.patients.patient_widgets import PatientRelativeLinkWidget
@@ -253,9 +253,9 @@ class PatientForm(forms.ModelForm):
         return mongo_wrapper.load_registry_specific_data(self.registry_model)
 
     def _wrap_file_cdes(self, registry_specific_data):
-        from rdrf.file_upload import FileUpload
-        from rdrf.file_upload import is_filestorage_dict
-        from rdrf.utils import is_file_cde
+        from rdrf.forms.file_upload import FileUpload
+        from rdrf.forms.file_upload import is_filestorage_dict
+        from rdrf.helpers.utils import is_file_cde
 
         def wrap_file_cde_dict(registry_code, cde_code, filestorage_dict):
             return FileUpload(registry_code, cde_code, filestorage_dict)

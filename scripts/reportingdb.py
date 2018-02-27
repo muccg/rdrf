@@ -1,7 +1,7 @@
 import django
 django.setup()
 
-from rdrf.models import Registry
+from rdrf.models.definition.models import Registry
 from rdrf.reports import generator
 from django.db import transaction
 import logging

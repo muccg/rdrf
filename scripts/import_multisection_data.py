@@ -4,9 +4,9 @@ django.setup()
 import sys
 from operator import itemgetter
 from django.db import transaction
-from rdrf.models import Registry
-from rdrf.models import CommonDataElement
-from rdrf.models import CDEPermittedValue
+from rdrf.models.definition.models import Registry
+from rdrf.models.definition.models import CommonDataElement
+from rdrf.models.definition.models import CDEPermittedValue
 
 from registry.patients.models import Patient
 

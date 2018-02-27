@@ -3,7 +3,7 @@
 from __future__ import unicode_literals
 from django.db import migrations
 from django.db.utils import ProgrammingError
-from rdrf.migration_utils import ClinicalDBRunPython
+from rdrf.helpers.migration_utils import ClinicalDBRunPython
 
 
 def extract_model_field_data_from_clinical_data_json_field(apps, schema_editor):

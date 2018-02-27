@@ -1,25 +1,25 @@
 from django.utils.translation import ugettext as _
 from django.contrib import admin
 from django.core.urlresolvers import reverse
-from .models import Registry
-from .models import RegistryForm
-from .models import QuestionnaireResponse
-from .models import CDEPermittedValue
-from .models import Notification
-from .models import CDEPermittedValueGroup
-from .models import CommonDataElement
-from .models import Section
-from .models import ConsentSection
-from .models import ConsentQuestion
-from .models import DemographicFields
-from .models import CdePolicy
-from .models import EmailNotification
-from .models import EmailTemplate
-from .models import EmailNotificationHistory
-from .models import ContextFormGroup
-from .models import ContextFormGroupItem
-from .models import CDEFile
-from .models import ConsentRule
+from rdrf.models.definition.models import Registry
+from rdrf.models.definition.models import RegistryForm
+from rdrf.models.definition.models import QuestionnaireResponse
+from rdrf.models.definition.models import CDEPermittedValue
+from rdrf.models.definition.models import Notification
+from rdrf.models.definition.models import CDEPermittedValueGroup
+from rdrf.models.definition.models import CommonDataElement
+from rdrf.models.definition.models import Section
+from rdrf.models.definition.models import ConsentSection
+from rdrf.models.definition.models import ConsentQuestion
+from rdrf.models.definition.models import DemographicFields
+from rdrf.models.definition.models import CdePolicy
+from rdrf.models.definition.models import EmailNotification
+from rdrf.models.definition.models import EmailTemplate
+from rdrf.models.definition.models import EmailNotificationHistory
+from rdrf.models.definition.models import ContextFormGroup
+from rdrf.models.definition.models import ContextFormGroupItem
+from rdrf.models.definition.models import CDEFile
+from rdrf.models.definition.models import ConsentRule
 
 import logging
 from django.http import HttpResponse
@@ -31,9 +31,9 @@ from django.conf import settings
 
 from django.contrib.auth import get_user_model
 
-from .admin_forms import RegistryFormAdminForm
-from .admin_forms import EmailTemplateAdminForm
-from .admin_forms import DemographicFieldsAdminForm
+from rdrf.admin_forms import RegistryFormAdminForm
+from rdrf.admin_forms import EmailTemplateAdminForm
+from rdrf.admin_forms import DemographicFieldsAdminForm
 from functools import reduce
 
 logger = logging.getLogger(__name__)

@@ -2,7 +2,7 @@
 import django
 import sys
 django.setup()
-from rdrf.models import Registry
+from rdrf.models.definition.models import Registry
 from registry.patients.models import Patient
 
 # VERY DANGEROUS SCRIPT ALERT!

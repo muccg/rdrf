@@ -5,10 +5,10 @@ import ast
 from django.db import ProgrammingError
 from django.db import connection
 
-from rdrf.utils import get_cached_instance
-from rdrf.utils import timed
-from rdrf.models import Registry, RegistryForm, Section
-from rdrf.models import CommonDataElement, ClinicalData
+from rdrf.helpers.utils import get_cached_instance
+from rdrf.helpers.utils import timed
+from rdrf.models.definition.models import Registry, RegistryForm, Section
+from rdrf.models.definition.models import CommonDataElement, ClinicalData
 
 from .models import Query
 from .forms import QueryForm

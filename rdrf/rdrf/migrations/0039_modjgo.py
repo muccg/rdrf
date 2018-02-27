@@ -3,7 +3,7 @@
 from __future__ import unicode_literals
 
 from django.db import migrations, models
-import rdrf.jsonb
+from rdrf.forms.fields.jsonb import DataField
 
 
 class Migration(migrations.Migration):
@@ -40,8 +40,7 @@ class Migration(migrations.Migration):
                      db_index=True,
                      max_length=50)),
                 ('data',
-                 rdrf.jsonb.DataField(
-                     default=dict)),
+                 DataField(default=dict)),
             ],
         ),
     ]

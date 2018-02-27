@@ -1,8 +1,8 @@
 import os
 from optparse import make_option
 from django.core.management.base import BaseCommand
-from rdrf.spreadsheet_report import SpreadSheetReport
-from rdrf.models import Registry
+from rdrf.services.io.reporting.spreadsheet_report import SpreadSheetReport
+from rdrf.models.definition.models import Registry
 
 
 def get_triple(registry_model, form_name, section_code, cde_code):
@@ -18,9 +18,7 @@ def get_triple(registry_model, form_name, section_code, cde_code):
 class Command(BaseCommand):
     help = 'Creates longitudinal report'
 
-    option_list = BaseCommand.option_list[
-        1:] +
-        (make_option(
+    option_list = BaseCommand.option_list[1:] + (make_option(
             '-r',
             '--registry',
             action='store',

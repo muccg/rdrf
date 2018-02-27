@@ -12,27 +12,27 @@ from two_factor import views as twv
 from rdrf.auth.forms import RDRFLoginAssistanceForm, RDRFPasswordResetForm, RDRFSetPasswordForm
 from rdrf.auth.views import login_assistance_confirm, QRGeneratorView, SetupView
 
-import rdrf.form_view as form_view
-import rdrf.registry_view as registry_view
-import rdrf.landing_view as landing_view
-import rdrf.import_registry_view as import_registry_view
-import rdrf.patient_view as patient_view
-import rdrf.login_router as login_router
-import rdrf.report_view as report_view
-import rdrf.consent_view as consent_view
-from rdrf.registration_rdrf import RdrfRegistrationView
-from rdrf.registry_list_view import RegistryListView
-from rdrf.lookup_views import FamilyLookup
-from rdrf.lookup_views import PatientLookup
+import rdrf.views.form_view as form_view
+import rdrf.views.registry_view as registry_view
+import rdrf.views.landing_view as landing_view
+import rdrf.views.import_registry_view as import_registry_view
+import rdrf.views.patient_view as patient_view
+import rdrf.routing.login_router as login_router
+import rdrf.views.report_view as report_view
+import rdrf.views.consent_view as consent_view
+from rdrf.views.registration_rdrf import RdrfRegistrationView
+from rdrf.views.registry_list_view import RegistryListView
+from rdrf.views.lookup_views import FamilyLookup
+from rdrf.views.lookup_views import PatientLookup
 from registration.backends.default.views import ActivationView
-from rdrf.family_linkage import FamilyLinkageView
-from rdrf.email_notification_view import ResendEmail
-from rdrf.permission_matrix import PermissionMatrixView
-from rdrf.lookup_views import UsernameLookup
-from rdrf.lookup_views import RecaptchaValidator
-from rdrf.context_views import RDRFContextCreateView, RDRFContextEditView
-from rdrf import patients_listing
-from rdrf import clinician_view
+from rdrf.views.family_linkage import FamilyLinkageView
+from rdrf.views.email_notification_view import ResendEmail
+from rdrf.views.permission_matrix import PermissionMatrixView
+from rdrf.views.lookup_views import UsernameLookup
+from rdrf.views.lookup_views import RecaptchaValidator
+from rdrf.views.context_views import RDRFContextCreateView, RDRFContextEditView
+from rdrf.views import patients_listing
+from rdrf.views import clinician_view
 
 import logging
 
@@ -129,7 +129,7 @@ urlpatterns += [
     url(r'^iprestrict/', include('iprestrict.urls')),
     url(r'^useraudit/', include('useraudit.urls')),
 
-    url(r'^api/v1/', include('rdrf.api_urls', namespace='v1')),
+    url(r'^api/v1/', include('rdrf.services.rest.urls.api_urls', namespace='v1')),
     url(r'^constructors/(?P<form_name>\w+)/?$',
         form_view.ConstructorFormView.as_view(), name="constructors"),
     url(r'^rpc', form_view.RPCHandler.as_view(), name='rpc'),

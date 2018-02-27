@@ -1,7 +1,7 @@
 from django.forms import ModelForm, SelectMultiple, ChoiceField
-from .models import RegistryForm, CommonDataElement, Section
+from rdrf.models.definition.models import RegistryForm, CommonDataElement, Section
 from registry.patients.models import Patient
-from rdrf.models import EmailTemplate
+from rdrf.models.definition.models import EmailTemplate
 from django.conf import settings
 
 

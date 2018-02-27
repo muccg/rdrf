@@ -103,7 +103,7 @@ DATABASES["reporting"] = {
     "PORT": env.get("reporting_dbport", DATABASES["default"]["PORT"]),
 }
 
-DATABASE_ROUTERS = ["rdrf.db.RegistryRouter"]
+DATABASE_ROUTERS = ["rdrf.db.db.RegistryRouter"]
 
 
 TEMPLATES = [
@@ -121,7 +121,7 @@ TEMPLATES = [
                 "django.template.context_processors.static",
                 "django.template.context_processors.tz",
                 "django.contrib.messages.context_processors.messages",
-                "rdrf.context_processors.common_settings",
+                "rdrf.context_processors.context_processors.common_settings",
             ],
             "debug": DEBUG,
             "loaders": [

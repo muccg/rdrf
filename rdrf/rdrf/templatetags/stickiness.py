@@ -1,5 +1,5 @@
 from django import template
-from rdrf.models import Registry
+from rdrf.models.definition.models import Registry
 from django.core.urlresolvers import reverse
 from django.contrib.auth.models import AnonymousUser
 

@@ -1,7 +1,7 @@
 import sys
 from django.core.management import BaseCommand
-from rdrf.models import Registry
-from rdrf.models import ClinicalData
+from rdrf.models.definition.models import Registry
+from rdrf.models.definition.models import ClinicalData
 import yaml
 import jsonschema
 import errno
@@ -66,9 +66,12 @@ class Command(BaseCommand):
 
     def _load_schema(self):
         cmd_dir = os.path.dirname(__file__)
-        schema_path = os.path.join(os.path.dirname(os.path.dirname(cmd_dir)),
-                                   "schemas",
-                                   SCHEMA_FILE)
+        schema_path = os.path.abspath(os.path.join(cmd_dir,
+                                                   "..",
+                                                   "..",
+                                                   "db",
+                                                   "schemas",
+                                                   SCHEMA_FILE))
 
         if os.path.exists(schema_path):
             with open(schema_path) as sf:

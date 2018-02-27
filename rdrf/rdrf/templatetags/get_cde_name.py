@@ -1,5 +1,5 @@
 from django import template
-from rdrf.models import CommonDataElement
+from rdrf.models.definition.models import CommonDataElement
 
 register = template.Library()
 

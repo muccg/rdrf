@@ -16,7 +16,7 @@ from django.utils.http import urlsafe_base64_encode
 from useraudit import models as uam
 from useraudit.middleware import get_request
 
-from . import can_user_self_unlock
+from rdrf.auth import can_user_self_unlock
 
 
 logger = logging.getLogger(__name__)
