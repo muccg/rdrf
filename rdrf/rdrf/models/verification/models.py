@@ -1,4 +1,4 @@
-from django import models
+from django.db import models
 from django.utils.translation import ugettext as _
 
 from .definition.models  import Registry, RegistryForm, Section, CommonDataElement
