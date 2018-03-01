@@ -1,41 +1,39 @@
 from django.db import models
 from django.utils.translation import ugettext as _
 
-from .definition.models  import Registry, RegistryForm, Section, CommonDataElement
-from registry.groups.models import CustomUser
+class Annotation(models.Model):
+    class Meta:
+        app_label = "rdrf"
+        
+    ANNOTATION_TYPES = (("verified", _("Verified")),
+                        ("updated", _("Updated")),
+                        ("disputed", _("Disputed")),
+                        ("unknown", _("Unknown")))
 
-class VerificationStatus:
-    VERIFIED = "verified"
-    UNVERIFIED = "unverified"
-    DISPUTED = "disputed"
-    UPDATED = "updated"
-    
-    
-    
-
-class Verification(models.Model):
-    """
-    Stores the result of a vefication from a clinician
-    """
-    
-    VERIFICATION_STATES = (
-        (VerificationStatus.VERIFIED, _(VerificationStatus.VERIFIED)),
-        (VerficationStatus.UNVERIFIED, _(VerificationStatus.UNVERIFIED)),
-        (VerificationStatus.DISPUTED, _(VerificationStatus.DISPUTED)),
-        (VerificationStatus.UPDATED, _(VerificationStatus.UPDATED)))
-    
-    user = models.ForeignKey(CustomUser)
+    annotation_type = models.CharField(max_length=80, db_index=True, choices=ANNOTATION_TYPES)
     patient_id = models.IntegerField(db_index=True)
     context_id = models.IntegerField(db_index=True, blank=True, null=True)
-    status = models.CharField(max_length=50, choices=VERIFICATION_STATES)
     registry_code = models.CharField(max_length=10)
     form_name = models.CharField(max_length=80)
     section_code = models.CharField(max_length=100)
     item = models.IntegerField(null=True)
     cde_code = models.CharField(max_length=30)
-    value = models.TextField()
+    cde_value = models.TextField()
+    username = models.CharField(max_length=254)
     timestamp = models.DateTimeField(auto_now_add=True)
     comment = models.TextField()
+
+    @staticmethod
+    def score(klass, registry_model, patient_model):
+        query = Annotation.objects.filter(patient_id=patient_model.id,
+                                          registry_code=registry_model.code)
+        num = query.count()
+        num_verified = query.filter(annotation_type="verified").count()
+        try:
+            return 100.00 * (float(num_verified) / float(num))
+        except ZeroDivisionError:
+            return None
+
 
 
 
