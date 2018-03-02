@@ -19,7 +19,6 @@ logger = logging.getLogger(__name__)
 
 MAX_TABLE_NAME_LENGTH = 63
 
-
 def lower_strip(s):
     return s.lower().strip()
 
@@ -263,13 +262,27 @@ def get_column_type(cde_model):
 
 
 class Column:
-    def __init__(self, registry_model, form_model, section_model, cde_model, column_map):
+    def __init__(self, registry_model, form_model, section_model, cde_model, column_map, code_map=None):
         self.registry_model = registry_model
         self.form_model = form_model
         self.section_model = section_model
         self.cde_model = cde_model
         self.in_multisection = section_model.allow_multiple
         self.column_map = column_map  # ref to global map
+        self.column_name_prefix = None
+
+        if code_map is not None:
+            code_count = code_map.get(self.cde_model.code, 0)
+            if code_count > 0:
+                # cde model resused on form
+                logger.info("cde %s in form %s section %s is being reused" % (self.cde_model.code,
+                                                                        self.form_model.name,
+                                                                        self.section_model.code))
+                self.column_name_prefix = self.section_model.code
+                code_map[self.cde_model.code] += 1
+            else:
+                code_map[self.cde_model.code] = 1
+                
 
     @property
     def datatype(self):
@@ -277,7 +290,11 @@ class Column:
 
     @property
     def name(self):
-        return no_space_lower(self.cde_model.code)
+        if self.column_name_prefix is not None:
+            return no_space_lower(self.column_name_prefix + "_" + self.cde_model.code)
+        else:
+            return no_space_lower(self.cde_model.code)
+    
 
     @property
     def postgres(self):
@@ -663,14 +680,19 @@ class Generator:
         return columns
 
     def _create_form_columns(self, form_model):
+
+        code_map = {}
+        
         columns = [self.mkcol(col, form_model=form_model, field=col[0])
                    for col in FORM_COLUMNS]
+        
 
         columns.extend([Column(self.registry_model,
                                form_model,
                                section_model,
                                cde_model,
-                               self.column_map).postgres for section_model in form_model.section_models
+                               self.column_map,
+                               code_map).postgres for section_model in form_model.section_models
                         for cde_model in section_model.cde_models
                         if not section_model.allow_multiple])
         return columns
