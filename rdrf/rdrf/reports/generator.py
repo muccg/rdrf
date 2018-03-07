@@ -291,11 +291,6 @@ class Column:
     @property
     def name(self):
         return no_space_lower(self.section_model.code + "_" + self.cde_model.code)
-        if self.column_name_prefix is not None:
-            return no_space_lower(self.column_name_prefix + "_" + self.cde_model.code)
-        else:
-            return no_space_lower(self.cde_model.code)
-    
 
     @property
     def postgres(self):
