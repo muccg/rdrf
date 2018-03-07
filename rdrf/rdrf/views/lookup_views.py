@@ -57,24 +57,15 @@ class VerificationLookup(View):
     def get(self, request, registry_code, patient_id):
         from rdrf.models.definition.models import Registry
         from rdrf.workflows.verification import get_verifiable_cdes
-        try:
-            registry_model = Registry.objects.get(code=registry_code)
-        except Registry.DoesNotExist:
-            results = []
-
-        try:
-            patient_model = Patient.objects.get(id=patient_id,
-                                                rdrf_registry__in=[registry_model])
-        except Patient.DoesNotExist:
-            results = []
-            
-        if not self._user_allowed(request.user, registry_model, patient_model):
-            results = []
-        else:
+        from rdrf.workflows.verification import user_allowed
+        registry_model = Registry.objects.get(code=registry_code)
+        patient_model = Patient.objects.get(id=patient_id,
+                                            rdrf_registry__in=[registry_model])
+        if self._user_allowed(request.user, registry_model, patient_model):
            results = get_verifiable_cdes(registry_model, patient_model)
+           return HttpResponse(json.dumps(results))
 
-        return HttpResponse(json.dumps(results))
-
+        raise PermissionDenied()
         
 
 
