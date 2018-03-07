@@ -50,8 +50,19 @@ class PatientVerificationView(View, VerficationMixin):
                                         registry_model,
                                         patient_model)
 
+        verification_form = make_verification_form(verifications)
+
 
         context = {"verifications": verifications,
+                   "form": verification_form,
                    "patient": patient_model}
 
         return render(request, 'rdrf_cdes/patient_verification_view.html', context)
+
+    def post(self, request, registry_code, patient_id):
+        form = None
+        if form.is_valid():
+            self._create_annotations(form)
+        else:
+            pass
+    
