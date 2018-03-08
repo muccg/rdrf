@@ -558,7 +558,8 @@ def cdes_to_verify(registry_model, patient_model, context_model=None):
     
 
 class DynamicPatientListingView(PatientsListingView):
-    COLUMN_FUNCS = [
+    COLUMN_FUNCS = []
+    
 
     
 

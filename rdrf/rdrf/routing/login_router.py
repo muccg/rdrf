@@ -9,6 +9,7 @@ from useraudit.password_expiry import should_warn_about_password_expiry, days_to
 
 from rdrf.services.io.notifications.email_notification import process_notification
 from rdrf.events.events import EventType
+from rdrf.workflows.verification import verifications_apply
 
 
 # todo update ophg registries to use new demographics and patients listing
@@ -33,6 +34,8 @@ class RouterView(View):
         if user.is_authenticated():
             if user.is_superuser:
                 redirect_url = reverse(_PATIENTS_LISTING)
+            elif user.is_clinician and user.my_registry and verifications_apply(user):
+                redirect_url = reverse("verifications_list", args=[user.registry_code])
             elif user.is_clinician:
                 redirect_url = reverse(_PATIENTS_LISTING)
             elif user.is_genetic_staff:

@@ -1,3 +1,5 @@
+from rdrf.models.verification.models import Annotation
+
 class VerificationError(Exception):
     pass
 
@@ -14,12 +16,12 @@ class VerifiableCDE:
         form_name = cde_dict.get("form", None)
         section_code = cde_dict.get("section", None)
         cde_code = cde_dict.get("cde", None)
-        for form_model in registry_model.form_models:
+        for form_model in self.registry_model.forms:
             if form_model.name == form_name:
                 for section_model in form_model.section_models:
                     if section_model.code == section_code:
                         if not section_model.allow_multiple:
-                            for cde_models in section_model.cde_models:
+                            for cde_model in section_model.cde_models:
                                 if cde_model.code == cde_code:
                                     self.form_model = form_model
                                     self.section_model = section_model
@@ -57,7 +59,6 @@ class VerifiableCDE:
                                                             context_id=context_model.pk,
                                                             form_name=self.form_model.name,
                                                             section_code=self.section_model.code,
-                                                            item=self.item,
                                                             cde_code=self.cde_model.code,
                                                             username=user.username).order_by("-timestamp")]
 
@@ -73,6 +74,8 @@ class VerifiableCDE:
                 # this shouldn't happen - form not filled out
                 # but then annotation shouldn't exist??
                 return True
+
+            # If patient edits the form timestamp will update even though particular cde might not have changed
                 
             if last_annotation.timestamp < form_timestamp and self._value_changed(last_annotation.cde_value,
                                                                                   form_cde_value):
@@ -88,10 +91,10 @@ class VerifiableCDE:
 
         
 def get_verifiable_cdes(registry_model):
-    
     if registry_model.has_feature("verification"):
         return filter(lambda v : v.valid == True,
-                      [VerifiableCDE(registry_model, cde_dict) for cde_dict in metadata.get("verification_cdes", [])])
+                      [VerifiableCDE(registry_model, cde_dict)
+                       for cde_dict in registry_model.metadata.get("verification_cdes", [])])
     
     return []
 
@@ -108,4 +111,29 @@ def user_allowed(user, registry_model, patient_model):
                               user,
                               patient_model,
                               "see_patient")])
+
+
+
+def verifications_needed(user, registry_model, patient_model):
+    verifiable_cdes = get_verifiable_cdes(registry_model)
+    # ignore contexts for now
+    return [ v for v in verifiable_cdes if not v.is_current(user,
+                                                            registry_model,
+                                                            patient_model)]
+
+
+def verifications_apply(user):
+    """
+    Can we redirect to the verifications listing directly
+    """
+    if not user.is_clinician:
+        return False
+    if user.registry.count() != 1:
+        return False
+    registry_model = user.registry.first()
+    return registry_model.has_feature("verification")
+
+                                                            
+                                                            
+    
     
