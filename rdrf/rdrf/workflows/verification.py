@@ -37,13 +37,19 @@ class VerifiableCDE:
             raise VerificationError("Verification CDE dict: %s is not valid" % self.cde_dict)
 
         if context_model is None:
-            context_model = patient_model.default_context_model(self.registry_model)
+            context_model = patient_model.default_context(self.registry_model)
 
-        cde_value = patient_model.get_form_value(self.registry_model.code,
+
+        try:
+
+            cde_value = patient_model.get_form_value(self.registry_model.code,
                                                      self.form_model.name,
                                                      self.section_model.code,
                                                      self.cde_model.code,
                                                      context_id=context_model.pk)
+        except KeyError:
+            # form not filled in
+            return "NOT ENTERED"
 
         return cde_value
 

@@ -1,1 +1,60 @@
-<h1>patient verification for {{patient}}</h1>
+{% extends "rdrf_cdes/base-2-cols.html" %}
+{% load static %}
+{% load i18n %}
+
+{% block extrahead %}
+<script>
+  $(document).ready(function () {
+     $(".well").hide();
+  });
+</script>
+{% endblock %}
+
+{% block content %}
+{{ block.super }}
+{% if request.user.is_authenticated %}
+<div class="row">
+  <div class="col-md-10">
+    <div class="panel panel-default">
+      <div class="panel-heading">Verifications required for {{patient}}</div>
+      <div class="panel-body">
+	<table class="table">
+  <thead>
+    <tr>
+      <th scope="col">#</th>
+      <th scope="col">Info</th>
+      <th scope="col">Patient Value</th>
+      <th scope="col">Response</th>
+      <th scope="col">New Value</th>
+      <th scope="col">Comment</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for field in form %}
+    <tr>
+      <th scope="row">{{forloop.counter}}</th>
+      <td>{{field.label}}</td>
+      <td>{{field.patient_answer}}</td>
+      
+      <td>
+	<select>
+	  <option>Verified</option>
+	  <option>Unverified</option>
+	  </select>
+      </td>
+      <td>{{field|safe}}</td>
+      <td><input type="textarea"></input>
+      </td>
+      
+      
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+      </div>
+    </div> <!-- col -->
+</div> <!-- row -->
+{% else %}
+    <div class="alert alert-info">Please log in to access the registry.</div>
+{% endif %}
+{% endblock %}

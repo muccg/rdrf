@@ -1,5 +1,21 @@
-<h1>Patients requiring verification</h1>
+{% extends "rdrf_cdes/base-2-cols.html" %}
+{% load static %}
 
-{% for patient in patients %}
-<h2>{{patient}} requires verification</h2>
-{% endfor %}
+{% block content %}
+
+{% if request.user.is_authenticated %}
+<div class="row">
+  <div class="col-md-10">
+    <div class="panel panel-default">
+      <div class="panel-heading">Your Patients requiring verfications</div>
+      <div class="panel-body">
+	{% for pv in patient_verifications %}
+	<a href="{{pv.link}}">{{pv.title}} <span class="badge">{{pv.number}}</span></a><br>
+	{% endfor %}
+      </div>
+    </div> <!-- col -->
+</div> <!-- row -->
+{% else %}
+    <div class="alert alert-info">Please log in to access the registry.</div>
+{% endif %}
+{% endblock %}
