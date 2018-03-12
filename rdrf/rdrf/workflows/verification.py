@@ -1,4 +1,6 @@
 from rdrf.models.verification.models import Annotation
+from explorer.views import Humaniser
+
 
 class VerificationError(Exception):
     pass
@@ -9,6 +11,7 @@ class VerifiableCDE:
         self.registry_model = registry_model
         self.cde_dict = cde_dict
         self.valid = False
+        self.humaniser = Humaniser(self.registry_model)
         self._load(cde_dict)
 
     def _load(self, cde_dict):
@@ -51,7 +54,18 @@ class VerifiableCDE:
             # form not filled in
             return "NOT ENTERED"
 
-        return cde_value
+        return self.humaniser.display_value2(self.form_model,
+                                                 self.section_model,
+                                                 self.cde_model,
+                                                 cde_value)
+
+    @property
+    def delimited_key(self):
+        from rdrf.helpers.utils import mongo_key_from_models
+        return mongo_key_from_models(self.form_model,
+                                     self.section_model,
+                                     self.cde_model)
+    
 
 
     def is_current(self, user,registry_model, patient_model, context_model=None):
