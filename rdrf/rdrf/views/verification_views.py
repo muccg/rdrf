@@ -10,6 +10,7 @@ from django.contrib.auth.decorators import login_required
 from rdrf.models.definition.models import Registry
 from rdrf.workflows.verification import get_verifiable_cdes
 from rdrf.workflows.verification import verifications_needed
+from rdrf.workflows.verification import VerificationStatus
 from rdrf.forms.dynamic.verification_form import make_verification_form
 from registry.patients.models import Patient
 
@@ -82,6 +83,9 @@ class PatientVerificationView(View, VerificationSecurityMixin):
 
         verification_form = make_verification_form(verifications)
 
+        def option_state(status, value):
+            return "selected" if status == value else ""
+
         for field in verification_form:
             form_name, section_code, cde_code = field.name.split("____")
             for v in verifications:
@@ -89,9 +93,17 @@ class PatientVerificationView(View, VerificationSecurityMixin):
                         v.section_model.code == section_code,
                         v.cde_model.code == cde_code]):
                     field.patient_answer = v.get_data(patient_model)
+                    field.status = v.status
+                    field.option_state = option_state
+
+
+        options = [(VerificationStatus.UNVERIFIED, "Unverified"),
+                   (VerificationStatus.VERIFIED, "Verified"),
+                   (VerificationStatus.DISPUTED, "Disputed")]
                     
         context = {"form": verification_form,
-                   "patient": patient_model}
+                   "patient": patient_model,
+                   "options": options}
 
         return render(request, 'rdrf_cdes/patient_verification.html', context)
 

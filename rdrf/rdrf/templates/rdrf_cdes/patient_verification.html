@@ -35,11 +35,15 @@
       <th scope="row">{{forloop.counter}}</th>
       <td>{{field.label}}</td>
       <td>{{field.patient_answer}}</td>
-      
       <td>
 	<select>
-	  <option>Verified</option>
-	  <option>Unverified</option>
+	  {% for option in options %}
+	      {% if option.0 == field.status %}
+	          <option selected>{{option.1}}</option>
+	      {% else %}
+	          <option>{{option.1}}</option>
+		  {% endif %}
+	   {% endfor %}
 	  </select>
       </td>
       <td>{{field|safe}}</td>

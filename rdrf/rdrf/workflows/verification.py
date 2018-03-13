@@ -6,6 +6,15 @@ class VerificationError(Exception):
     pass
 
 
+class NoData:
+    pass
+
+class VerificationStatus:
+    UNVERIFIED = "unverified"
+    VERIFIED = "verified"
+    DISPUTED = "disputed"   # do we need this?
+
+
 class VerifiableCDE:
     def __init__(self, registry_model, cde_dict):
         self.registry_model = registry_model
@@ -13,6 +22,9 @@ class VerifiableCDE:
         self.valid = False
         self.humaniser = Humaniser(self.registry_model)
         self._load(cde_dict)
+        self.patient_data = NoData
+        self.patient_display_value = NoData
+        self.status = VerificationStatus.UNVERIFIED
 
     def _load(self, cde_dict):
         self.valid = False
@@ -34,6 +46,7 @@ class VerifiableCDE:
 
 
     def get_data(self, patient_model, context_model=None):
+        # gets the data the Patient has entered ( if at all)
         
         self._load(self.cde_dict)
         if not self.valid:
@@ -50,14 +63,18 @@ class VerifiableCDE:
                                                      self.section_model.code,
                                                      self.cde_model.code,
                                                      context_id=context_model.pk)
+
+            self.patient_data = cde_value
+            
         except KeyError:
             # form not filled in
             return "NOT ENTERED"
 
-        return self.humaniser.display_value2(self.form_model,
+        self.patient_display_value = self.humaniser.display_value2(self.form_model,
                                                  self.section_model,
                                                  self.cde_model,
                                                  cde_value)
+        return self.patient_display_value
 
     @property
     def delimited_key(self):
@@ -68,7 +85,7 @@ class VerifiableCDE:
     
 
 
-    def is_current(self, user,registry_model, patient_model, context_model=None):
+    def has_annotation(self, user,registry_model, patient_model, context_model=None):
         """
         Is there no annotation or is the existing one out of date?
         """
@@ -96,8 +113,10 @@ class VerifiableCDE:
                 return True
 
             # If patient edits the form timestamp will update even though particular cde might not have changed
+
+            
                 
-            if last_annotation.timestamp < form_timestamp and self._value_changed(last_annotation.cde_value,
+            if last_annotation.timestamp < form_timestamp and not self._value_changed(last_annotation.cde_value,
                                                                                   form_cde_value):
                 return True
 
@@ -132,14 +151,21 @@ def user_allowed(user, registry_model, patient_model):
                               patient_model,
                               "see_patient")])
 
-
-
 def verifications_needed(user, registry_model, patient_model):
     verifiable_cdes = get_verifiable_cdes(registry_model)
     # ignore contexts for now
-    return [ v for v in verifiable_cdes if not v.is_current(user,
-                                                            registry_model,
-                                                            patient_model)]
+    verifications = []
+    for v in verifiable_cdes:
+        if v.has_annotation(user,
+                                registry_model,
+                                patient_model):
+            v.status = VerificationStatus.VERIFIED
+        else:
+            v.status = VerificationStatus.UNVERIFIED
+
+        verifications.append(v)
+        
+    return verifications
 
 
 def verifications_apply(user):
