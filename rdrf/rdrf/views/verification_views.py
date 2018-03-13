@@ -6,6 +6,7 @@ from django.shortcuts import render
 from django.utils.translation import ugettext_lazy as _
 from django.core.urlresolvers import reverse
 from django.contrib.auth.decorators import login_required
+from django.template.context_processors import csrf
 
 from rdrf.models.definition.models import Registry
 from rdrf.workflows.verification import get_verifiable_cdes
@@ -13,6 +14,10 @@ from rdrf.workflows.verification import verifications_needed
 from rdrf.workflows.verification import VerificationStatus
 from rdrf.forms.dynamic.verification_form import make_verification_form
 from registry.patients.models import Patient
+
+import logging
+
+logger = logging.getLogger(__name__)
 
 class VerificationSecurityMixin:
     def security_check(self, user, registry_model):
@@ -99,17 +104,38 @@ class PatientVerificationView(View, VerificationSecurityMixin):
 
         options = [(VerificationStatus.UNVERIFIED, "Unverified"),
                    (VerificationStatus.VERIFIED, "Verified"),
-                   (VerificationStatus.DISPUTED, "Disputed")]
+                   (VerificationStatus.CORRECTED, "Corrected")]
                     
-        context = {"form": verification_form,
+        context = {
+                   "location": "Patient Verification Form",
+                   "form": verification_form,
                    "patient": patient_model,
                    "options": options}
+
+        context.update(csrf(request))
+
 
         return render(request, 'rdrf_cdes/patient_verification.html', context)
 
     @method_decorator(login_required)
     def post(self, request, registry_code, patient_id):
-        form = generate_verifcation_form(request, registry_code, patient_id)
+         #[DEBUG:2018-03-13 16:45:40,339:verification_views.py:123:post] key csrfmiddlewaretoken value =5yOaXm6YFIogDkUtw61FKCF6SQpi73FjWQDV5GZCyIV5XmhiN7nJoJFQZoTseud1
+         # runserver_1    | [DEBUG:2018-03-13 16:45:40,339:verification_views.py:123:post] key status_AngelmanRegistryBehaviourAndDevelopment____ANGMuscleTone____ANGBEHDEVMuscleTrunk value =unverified
+         #runserver_1    | [DEBUG:2018-03-13 16:45:40,339:verification_views.py:123:post] key comments_AngelmanRegistryBehaviourAndDevelopment____ANGMuscleTone____ANGBEHDEVMuscleTrunk value =
+         #runserver_1    | [DEBUG:2018-03-13 16:45:40,339:verification_views.py:123:post] key status_AngelmanRegistryBehaviourAndDevelopment____ANGMuscleTone____ANGBEHDEVMuscleLimbs value =unverified
+         #runserver_1    | [DEBUG:2018-03-13 16:45:40,339:verification_views.py:123:post] key comments_AngelmanRegistryBehaviourAndDevelopment____ANGMuscleTone____ANGBEHDEVMuscleLimbs value =
+         #runserver_1    | [DEBUG:2018-03-13 16:45:40,340:verification_views.py:123:post] key status_AngelmanRegistryEpilepsy____ANGFebrileEpilepsy____ANGEpilepsyCease value =corrected
+         #runserver_1    | [DEBUG:2018-03-13 16:45:40,340:verification_views.py:123:post] key AngelmanRegistryEpilepsy____ANGFebrileEpilepsy____ANGEpilepsyCease value =7
+         #runserver_1    | [DEBUG:2018-03-13 16:45:40,340:verification_views.py:123:post] key comments_AngelmanRegistryEpilepsy____ANGFebrileEpilepsy____ANGEpilepsyCease value =
+         #runserver_1    | [DEBUG:2018-03-13 16:45:40,340:verification_views.py:123:post] key status_AngelmanRegistryEpilepsy____ANGFebrileEpilepsy____ANGSeizureFrequencyAFebrile value =verified
+         #runserver_1    | [DEBUG:2018-03-13 16:45:40,340:verification_views.py:123:post] key comments_AngelmanRegistryEpilepsy____ANGFebrileEpilepsy____ANGSeizureFrequencyAFebrile value =low
+
+        verifications = self._get_verifications(request)
+
+        # we'd like to correct the patient's responses sometimes
+        
+        
+
         if form.is_valid():
             self._create_annotations(form)
         else:

@@ -10,9 +10,9 @@ class NoData:
     pass
 
 class VerificationStatus:
-    UNVERIFIED = "unverified"
-    VERIFIED = "verified"
-    DISPUTED = "disputed"   # do we need this?
+    UNVERIFIED = "unverified"    # clinician has not checked or does not know
+    VERIFIED = "verified"        # clinician agrees with patient supplied value     
+    CORRECTED = "corrected"      # clinican provides a new value
 
 
 class VerifiableCDE:

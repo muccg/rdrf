@@ -4,11 +4,28 @@
 
 {% block extrahead %}
 <script>
+  
   $(document).ready(function () {
      $(".well").hide();
+     
   });
 </script>
 {% endblock %}
+
+
+{% block formbtns %}
+	<div class="btn-group" role="group" aria-label="...">
+		<button id="submit-btn" type="submit" class="btn btn-success" value="Save">
+			<span class="glyphicon glyphicon-floppy-save" aria-hidden="true"></span> {% trans "Save" %}
+		</button>
+
+		<a href="" class="btn btn-danger">
+			<span class="glyphicon glyphicon-remove" aria-hidden="true"></span> {% trans "Cancel" %}
+		</a>
+
+	</div>
+{% endblock %}
+
 
 {% block content %}
 {{ block.super }}
@@ -30,29 +47,31 @@
     </tr>
   </thead>
   <tbody>
+    <form id="main-form" method="post">{% csrf_token %}
     {% for field in form %}
     <tr>
       <th scope="row">{{forloop.counter}}</th>
       <td>{{field.label}}</td>
       <td>{{field.patient_answer}}</td>
       <td>
-	<select>
+	<select id="id_status_{{field.name}}" name="status_{{field.name}}">
 	  {% for option in options %}
 	      {% if option.0 == field.status %}
-	          <option selected>{{option.1}}</option>
+	          <option value="{{option.0}}" selected>{{option.1}}</option>
 	      {% else %}
-	          <option>{{option.1}}</option>
-		  {% endif %}
+	          <option value="{{option.0}}">{{option.1}}</option>
+	      {% endif %}
 	   {% endfor %}
 	  </select>
       </td>
-      <td>{{field|safe}}</td>
-      <td><input type="textarea"></input>
+      <td><div id="id_new_value_container_{{field.name}}">{{field|safe}}</div></td>
+      <td><input name="comments_{{field.name}}" type="textarea"></input>
       </td>
       
       
     </tr>
     {% endfor %}
+    </form>
   </tbody>
 </table>
       </div>
