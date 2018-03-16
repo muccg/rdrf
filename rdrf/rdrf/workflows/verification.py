@@ -16,12 +16,27 @@ class VerificationStatus:
 
 
 class VerifiableCDE:
-    def __init__(self, registry_model, cde_dict):
+    def __init__(self,
+                 registry_model,
+                 cde_dict=None,
+                 form_model=None,
+                 section_model=None,
+                 cde_model=None):
         self.registry_model = registry_model
         self.cde_dict = cde_dict
         self.valid = False
         self.humaniser = Humaniser(self.registry_model)
-        self._load(cde_dict)
+        if cde_dict is not None:
+            self._load(cde_dict)
+
+        # Allow easy setup in POST views
+        if form_model is not None:
+            self.form_model = form_model
+        if section_model is not None:
+            self.section_model = section_model
+        if cde_model is not None:
+            self.cde_model = cde_model
+            
         self.patient_data = NoData
         self.patient_display_value = NoData
         self.status = VerificationStatus.UNVERIFIED
