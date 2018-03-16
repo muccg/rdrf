@@ -132,24 +132,31 @@ class PatientVerificationView(View, VerificationSecurityMixin):
          #runserver_1    | [DEBUG:2018-03-13 16:45:40,340:verification_views.py:123:post] key status_AngelmanRegistryEpilepsy____ANGFebrileEpilepsy____ANGSeizureFrequencyAFebrile value =verified
          #runserver_1    | [DEBUG:2018-03-13 16:45:40,340:verification_views.py:123:post] key comments_AngelmanRegistryEpilepsy____ANGFebrileEpilepsy____ANGSeizureFrequencyAFebrile value =low
 
-        verification_map = self._get_verification_map(request)
-        correction_form = make_verification_form([v for v in verification_map.values() if v.status == VerificationStatus.CORRECTED])
+        verification_map = self._get_verification_map(request, registry_code)
+        
+        correction_form = make_verification_form([v for v in verification_map.values()
+                                                  if v.status == VerificationStatus.CORRECTED])
 
         if correction_form.is_valid():
-            create_annotations(verified=verified_verifications, corrected=correct_verifications)
+            registry_model = Registry.objects.get(code=registry_code)
+            patient_model = Patient.objects.get(pk=patient_id)
+            create_annotations(registry_model,
+                               patient_model,
+                               verified=verified_verifications,
+                               corrected=correct_verifications)
         else:
             # report any validation errors
-            return []
+            raise Exception(correction_form.errors)
 
 
     def _get_verification_map(self, request, registry_code):
-        from rdrf.helpers.util import models_from_mongo_key
+        from rdrf.helpers.utils import models_from_mongo_key
         registry_model = Registry.objects.get(code=registry_code)
         verifications = []
         verification_map = {}
 
         def mk_ver(delimited_key):
-            form_model, section_model,cde_model = models_from_mongo_key(delimited_key)
+            form_model, section_model,cde_model = models_from_mongo_key(registry_model,delimited_key)
             v = VerifiableCDE(registry_model,
                               form_model=form_model,
                               section_model=section_model,
@@ -161,7 +168,7 @@ class PatientVerificationView(View, VerificationSecurityMixin):
         for key in request.POST:
             if key.startswith("status_"):
                 status = request.POST[key]
-                delimited_key = key[6:]
+                delimited_key = key[7:]
                 if delimited_key in verification_map:
                     verification_map[delimited_key].status = status
                 else:
@@ -177,15 +184,15 @@ class PatientVerificationView(View, VerificationSecurityMixin):
                     v = mk_ver(delimited_key)
                     v.comments = comments
                     verification_map[delimited_key] = v
-            elif key.startswith("field_"):
+            elif "____" in key:
+                # new value field if there is one
                 field_value = request.POST[key]
-                delimited_key = key[6:]
-                if delimited_key in verification_map:
-                    verification_map[delimited_key].clinician_value = field_value
+                if key in verification_map:
+                    verification_map[key].clinician_value = field_value
                 else:
-                    v = mk_ver(delimited_key)
+                    v = mk_ver(key)
                     v.clinician_value = field_value
-                    verification_map[delimited_key] = v
+                    verification_map[key] = v
 
 
         return verification_map

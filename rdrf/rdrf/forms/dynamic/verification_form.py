@@ -21,6 +21,10 @@ def make_verification_form(verifications):
         field_name = "%s____%s____%s" % (verification.form_model.name,
                                          verification.section_model.code,
                                          verification.cde_model.code)
+
+        if verification.status == "corrected":
+            data[field_name] = verification.clinician_value
+            
         
         base_fields[field_name] = cde_field
 
@@ -28,6 +32,9 @@ def make_verification_form(verifications):
 
     form_class = type(form_class_name, (BaseForm,), form_class_dict)
 
-    form = form_class()
+    if data:
+        form = form_class(data)
+    else:
+        form = form_class()
 
     return form

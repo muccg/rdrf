@@ -194,6 +194,24 @@ def verifications_apply(user):
     registry_model = user.registry.first()
     return registry_model.has_feature("verification")
 
+
+def create_annotations(registry_model, patient_model,corrected_verifications, verified_verifications):
+    for v in corrected_verifications:
+        correct_value = v.clinican_value
+        annotation = Annotation()
+        annotation.registry_code = registry_model.code
+        annotation.form_name = v.form_model.name
+        annotation.section_code = v.section_model.code
+        annotation.cde_code = v.cde_model.code
+        annotation.username = None
+        annotation.comment = v.comments
+        annotation.cde_value = str(correct_value)
+
+        patient_model.set_form_value()
+        
+        
+    
+
                                                             
                                                             
     
