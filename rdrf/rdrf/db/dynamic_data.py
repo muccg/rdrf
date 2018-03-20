@@ -511,6 +511,7 @@ class DynamicDataWrapper(object):
             return {
                 "timestamp": datetime.datetime.strptime(snapshot["timestamp"][:19], "%Y-%m-%d %H:%M:%S"),
                 "value": get_cde_value(form_model, section_model, cde_model, snapshot["record"]),
+                "user": snapshot["username"],
                 "id": str(snapshot_number),
             }
 
