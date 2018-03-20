@@ -6,9 +6,7 @@ class Annotation(models.Model):
         app_label = "rdrf"
         
     ANNOTATION_TYPES = (("verified", _("Verified")),
-                        ("updated", _("Updated")),
-                        ("disputed", _("Disputed")),
-                        ("unknown", _("Unknown")))
+                        ("corrected", _("Corrected")))
 
     annotation_type = models.CharField(max_length=80, db_index=True, choices=ANNOTATION_TYPES)
     patient_id = models.IntegerField(db_index=True)
@@ -18,8 +16,9 @@ class Annotation(models.Model):
     section_code = models.CharField(max_length=100)
     item = models.IntegerField(null=True)
     cde_code = models.CharField(max_length=30)
-    cde_value = models.TextField()
-    username = models.CharField(max_length=254)
+    cde_value = models.TextField()    # holds the corrected value if corrected by a clinician or the original value if verified
+    orig_value = models.TextField()   # holds the original patient value
+    username = models.CharField(max_length=254)   # user who created this annotation
     timestamp = models.DateTimeField(auto_now_add=True)
     comment = models.TextField()
 

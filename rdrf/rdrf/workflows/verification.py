@@ -1,5 +1,10 @@
-from rdrf.models.verification.models import Annotation
+from django.db import transaction
 from explorer.views import Humaniser
+from rdrf.models.verification.models import Annotation
+from rdrf.helpers.utils import parse_iso_datetime
+
+import logging
+logger = logging.getLogger(__name__)
 
 
 class VerificationError(Exception):
@@ -38,8 +43,22 @@ class VerifiableCDE:
             self.cde_model = cde_model
             
         self.patient_data = NoData
+        self.clinician_data = NoData
         self.patient_display_value = NoData
         self.status = VerificationStatus.UNVERIFIED
+        self.comments = ""
+
+
+    def set_clinician_value(self, raw_value):
+        # field has already been validated so type casts are safe
+        if self.cde_model.datatype == "integer":
+            self.clinician_data = int(raw_value)
+        elif self.cde_model.datatype in ["float","decimal","numeric"]:
+            self.clinician_data = float(raw_value)
+        else:
+            # everything else is string
+            self.clinician_data = raw_value
+            
 
     def _load(self, cde_dict):
         self.valid = False
@@ -60,16 +79,12 @@ class VerifiableCDE:
                                     self.valid = True
 
 
-    def get_data(self, patient_model, context_model=None):
+    def get_data(self, patient_model, context_model, display=True):
         # gets the data the Patient has entered ( if at all)
         
         self._load(self.cde_dict)
         if not self.valid:
             raise VerificationError("Verification CDE dict: %s is not valid" % self.cde_dict)
-
-        if context_model is None:
-            context_model = patient_model.default_context(self.registry_model)
-
 
         try:
 
@@ -89,7 +104,11 @@ class VerifiableCDE:
                                                  self.section_model,
                                                  self.cde_model,
                                                  cde_value)
-        return self.patient_display_value
+
+        if display:
+            return self.patient_display_value
+        else:
+            return self.patient_data
 
     @property
     def delimited_key(self):
@@ -97,50 +116,63 @@ class VerifiableCDE:
         return mongo_key_from_models(self.form_model,
                                      self.section_model,
                                      self.cde_model)
-    
 
 
-    def has_annotation(self, user,registry_model, patient_model, context_model=None):
+    def has_annotation(self, user,registry_model, patient_model, context_model):
         """
-        Is there no annotation or is the existing one out of date?
+        Is there no annotation or is the existing one out of date because the value of
+        the cde has changed?
         """
-        if context_model is None:
-            context_model = patient_model.default_context(registry_model)
+        def carp(msg):
+            logger.debug("Annotations Patient %s Context %s CDE %s: %s" % (patient_model,
+                                                                           context_model.id,
+                                                                           self.cde_model.code,
+                                                                           msg))
+
             
-        annotations = [a for a in Annotation.objects.filter(patient_id=patient_model.pk,
-                                                            context_id=context_model.pk,
-                                                            form_name=self.form_model.name,
-                                                            section_code=self.section_model.code,
-                                                            cde_code=self.cde_model.code,
-                                                            username=user.username).order_by("-timestamp")]
+        annotations_query = Annotation.objects.filter(patient_id=patient_model.pk,
+                                                      context_id=context_model.pk,
+                                                      form_name=self.form_model.name,
+                                                      section_code=self.section_model.code,
+                                                      cde_code=self.cde_model.code,
+                                                      username=user.username).order_by("-timestamp")
 
-        if len(annotations) == 0:
-            return False
+        if annotations_query.count() == 0:
+            carp("no annotations")
+            return None
         else:
-            last_annotation = annotations[0]
-            form_cde_value = self.get_data(patient_model, context_model)
-            form_timestamp = patient_model.get_form_timestamp(self.form_model,
-                                                              context_model=context_model)
-
-            if form_timestamp is None:
-                # this shouldn't happen - form not filled out
-                # but then annotation shouldn't exist??
-                return True
-
-            # If patient edits the form timestamp will update even though particular cde might not have changed
-
-            
+            last_annotation = annotations_query.first()
+            carp("last annotation status = %s" % last_annotation.annotation_type)
+            form_cde_value = self.get_data(patient_model, context_model, display=False)
+            if not self._value_changed(last_annotation.cde_value, form_cde_value):
+                carp("value changed : patient value = [%s] annotation value = [%s]" % (last_annotation.cde_value,
+                                                                                       form_cde_value))
                 
-            if last_annotation.timestamp < form_timestamp and not self._value_changed(last_annotation.cde_value,
-                                                                                  form_cde_value):
-                return True
+                logger.debug("returning last annotation as values have not changed: %s" % last_annotation)
+                return last_annotation
+            else:
+                logger.debug("returning None as values have changed so new verification required")
+                return None
 
-            return False
+        # cde will show up as unverified
+        
+        return None
+
 
     def _value_changed(self, annotation_cde_value, form_cde_value):
             # complication here because the stored type is a string
             # let's just string compare
-            return str(annotation_cde_value) != str(form_cde_value)
+        logger.debug("checking value changed for cde %s" % self.cde_model.code)
+        logger.debug("ann cde value = %s" % annotation_cde_value)
+        logger.debug("form cde value = %s" % form_cde_value)
+        values_differ = str(annotation_cde_value) != str(form_cde_value)
+        if values_differ:
+            logger.debug("values differ")
+            return True
+        else:
+            logger.debug("values are the same..")
+            return False
+            
 
 
         
@@ -166,17 +198,29 @@ def user_allowed(user, registry_model, patient_model):
                               patient_model,
                               "see_patient")])
 
-def verifications_needed(user, registry_model, patient_model):
+def get_verifications(user, registry_model, patient_model, context_model):
     verifiable_cdes = get_verifiable_cdes(registry_model)
-    # ignore contexts for now
     verifications = []
     for v in verifiable_cdes:
-        if v.has_annotation(user,
-                                registry_model,
-                                patient_model):
-            v.status = VerificationStatus.VERIFIED
+        logger.debug("getting verification for cde %s" % v.cde_model.code)
+        
+        last_annotation = v.has_annotation(user,
+                                           registry_model,
+                                           patient_model,
+                                           context_model)
+
+        if last_annotation is not None:
+            logger.debug("found an annotation")
+            v.status = last_annotation.annotation_type
+            logger.debug("status = %s" % v.status)
+            v.comments = last_annotation.comment
+            logger.debug("comments = %s" % v.comments)
+            v.clinician_data = last_annotation.cde_value
+            
         else:
+            logger.debug("no annotation")
             v.status = VerificationStatus.UNVERIFIED
+            
 
         verifications.append(v)
         
@@ -195,19 +239,47 @@ def verifications_apply(user):
     return registry_model.has_feature("verification")
 
 
-def create_annotations(registry_model, patient_model,corrected_verifications, verified_verifications):
-    for v in corrected_verifications:
-        correct_value = v.clinican_value
+def create_annotations(user, registry_model, patient_model,context_model, verified=[], corrected=[]):
+    for v in corrected:
+        correct_value = v.clinician_data
         annotation = Annotation()
+        annotation.patient_id = patient_model.pk
+        annotation.context_id = context_model.id
+        annotation.annotation_type = "corrected"
         annotation.registry_code = registry_model.code
         annotation.form_name = v.form_model.name
         annotation.section_code = v.section_model.code
         annotation.cde_code = v.cde_model.code
-        annotation.username = None
+        annotation.username = user.username
         annotation.comment = v.comments
         annotation.cde_value = str(correct_value)
+        annotation.orig_value = str(v.patient_data)
+        annotation.save()
 
-        patient_model.set_form_value()
+        patient_model.set_form_value(v.registry_model.code,
+                                     v.form_model.name,
+                                     v.section_model.code,
+                                     v.cde_model.code,
+                                     correct_value)
+
+
+    for v in verified:
+        annotation = Annotation()
+        annotation.patient_id = patient_model.pk
+        annotation.context_id = context_model.id
+        annotation.annotation_type = "verified"
+        annotation.registry_code = registry_model.code
+        annotation.form_name = v.form_model.name
+        annotation.section_code = v.section_model.code
+        annotation.cde_code = v.cde_model.code
+        annotation.username = user.username
+        annotation.comment = v.comments
+        annotation.cde_value = str(v.patient_data)
+        annotation.orig_value = str(v.patient_data)
+        annotation.save()
+        
+
+        
         
         
     

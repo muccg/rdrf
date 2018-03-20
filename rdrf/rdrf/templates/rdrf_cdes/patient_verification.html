@@ -39,7 +39,7 @@
   <thead>
     <tr>
       <th scope="col">#</th>
-      <th scope="col">Info</th>
+      <th scope="col">Field</th>
       <th scope="col">Patient Value</th>
       <th scope="col">Response</th>
       <th scope="col">New Value</th>
@@ -47,12 +47,22 @@
     </tr>
   </thead>
   <tbody>
+    {% if form_state == "valid" %}
+    <h3>Form saved OK</h3>
+    {% endif %}
+    {% if form_state == "invalid" %}
+    <h3>Form not saved due to errors!</h3>
+    {% for error in errors %}
+       {{error}}<br>
+    {% endfor %}
+    {% endif %}
+    
     <form id="main-form" method="post">{% csrf_token %}
     {% for field in form %}
     <tr>
       <th scope="row">{{forloop.counter}}</th>
       <td>{{field.label}}</td>
-      <td>{{field.patient_answer}}</td>
+      <td>{{field.patient_answer}}<input type="hidden" name="patient_data_{{field.name}}" value="{{field.patient_data}}"></td>
       <td>
 	<select id="id_status_{{field.name}}" name="status_{{field.name}}">
 	  {% for option in options %}
@@ -65,7 +75,7 @@
 	  </select>
       </td>
       <td><div id="id_new_value_container_{{field.name}}">{{field|safe}}</div></td>
-      <td><input name="comments_{{field.name}}" type="textarea"></input>
+      <td><textarea name="comments_{{field.name}}">{{field.comments}}</textarea>
       </td>
       
       

@@ -250,7 +250,7 @@ urlpatterns += [
     url(r"^(?P<registry_code>\w+)/verifications/?$",
         PatientsRequiringVerificationView.as_view(), name='verifications_list'),
 
-    url(r"^(?P<registry_code>\w+)/verifications/(?P<patient_id>\d+)?$",
+    url(r"^(?P<registry_code>\w+)/verifications/(?P<patient_id>\d+)/(?P<context_id>\d+)/?$",
         PatientVerificationView.as_view(), name='patient_verification'),
 
     # ---- Email Notifications URLs -------------

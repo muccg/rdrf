@@ -2,16 +2,13 @@ from django.forms import BaseForm
 from collections import OrderedDict
 from rdrf.forms.dynamic.field_lookup import FieldFactory
 
-
 def make_verification_form(verifications):
-
     # This allows us to present the clinician's form identically to any clinical form
     # as far as cde widgets etc go.
     form_class_name = "VerificationForm"
     base_fields = OrderedDict()
-
+    data = {}
     # create fields for the clinician to override the patient's responses if necessary
-    
     for verification in verifications:
         
         cde_field = FieldFactory(verification.registry_model,
@@ -23,7 +20,7 @@ def make_verification_form(verifications):
                                          verification.cde_model.code)
 
         if verification.status == "corrected":
-            data[field_name] = verification.clinician_value
+            data[field_name] = verification.clinician_data
             
         
         base_fields[field_name] = cde_field
