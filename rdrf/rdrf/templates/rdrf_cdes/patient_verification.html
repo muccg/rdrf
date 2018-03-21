@@ -30,6 +30,15 @@
 {% if request.user.is_authenticated %}
 <div class="row">
   <div class="col-md-12">
+    {% if form_state == "valid" %}
+    <h3>Form saved OK</h3>
+    {% endif %}
+    {% if form_state == "invalid" %}
+    <h3>Form not saved due to errors!</h3>
+    {% for error in errors %}
+       {{error}}<br>
+    {% endfor %}
+    {% endif %}
   <div class="table-responsive">
   <table class="table">
   <thead>
@@ -43,20 +52,11 @@
     </tr>
   </thead>
   <tbody>
-    {% if form_state == "valid" %}
-    <h3>Form saved OK</h3>
-    {% endif %}
-    {% if form_state == "invalid" %}
-    <h3>Form not saved due to errors!</h3>
-    {% for error in errors %}
-       {{error}}<br>
-    {% endfor %}
-    {% endif %}
     
     <form id="main-form" method="post">{% csrf_token %}
     {% for field in form %}
     <tr>
-      <td scope="row">{{forloop.counter}}</td>
+      <td scope="row">{{forloop.counter}}<input type="hidden" name="pos_{{field.name}}" value={{forloop.counter}}></td>
       <td><div class="control-label" style="display: block"> {{field.label}}</div></td>
       <td>{{field.patient_answer}}<input type="hidden" name="patient_data_{{field.name}}" value="{{field.patient_data}}"></td>
       <td>
@@ -76,7 +76,7 @@
 	<div id="id_new_value_container_{{field.name}}" class="form-group">{{field|safe}}
 	  <p class="text-muted"><i>{{field.help_text}}</i></p>
           {% if field.errors %}
-              <span class="label label-danger">{{field.errors.as_text}}</span>
+              <span class="wrap label label-danger">{{field.errors.as_text}}</span>
           {% endif %}
 	</div> 
       </td>

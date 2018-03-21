@@ -131,16 +131,18 @@ class PatientVerificationView(View, VerificationSecurityMixin):
         
         self.security_check(user, registry_model, patient_model)
 
-        verifications = get_verifications(user,
-                                          registry_model,
-                                          patient_model,
-                                          context_model)
-
+        verifications = self._sort_verifications(get_verifications(user,
+                                                                   registry_model,
+                                                                   patient_model,
+                                                                   context_model))
         form = make_verification_form(verifications)
         form = self._wrap_form(patient_model, context_model, form, verifications)
         context = self._build_context(request, patient_model, form)
         
         return render(request, 'rdrf_cdes/patient_verification.html', context)
+
+    def _sort_verifications(self, verifications):
+        return sorted(verifications,key=lambda v: v.position)
 
     def _wrap_form(self, patient_model, context_model,form, verifications):
         # We have to annotate extra properties on the fields so
@@ -199,8 +201,10 @@ class PatientVerificationView(View, VerificationSecurityMixin):
         corrected = [v for v in verification_map.values() if v.status == VerificationStatus.CORRECTED]
         # these are the fields which are deemed to be ok ( patient response is good)
         verified = [v for v in verification_map.values() if v.status == VerificationStatus.VERIFIED]
+        # fields which are unknown
+        unverified = [v for v in verification_map.values() if v.status == VerificationStatus.UNVERIFIED]
         # this are used to 
-        verifications = corrected + verified
+        verifications = self._sort_verifications(corrected + verified + unverified) 
         
         form = make_verification_form(corrected)
 
@@ -220,7 +224,6 @@ class PatientVerificationView(View, VerificationSecurityMixin):
         else:
             form_state = "invalid"
             errors = [e for e in form.errors]
-            logger.debug("errors = %s" % errors)
             form = make_verification_form(verifications)
             form = self._wrap_form(patient_model, context_model, form, verifications)
             context = self._build_context(request, patient_model, form, errors=errors)
@@ -282,6 +285,8 @@ class PatientVerificationView(View, VerificationSecurityMixin):
                     v = mk_ver(delimited_key)
                     v.patient_data = patient_data
                     verification_map[delimited_key] = v
+
+            elif 
                 
             elif "____" in key:
                 # new value from clinician  if there is one

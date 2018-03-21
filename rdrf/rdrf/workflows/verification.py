@@ -26,10 +26,13 @@ class VerifiableCDE:
                  cde_dict=None,
                  form_model=None,
                  section_model=None,
-                 cde_model=None):
+                 cde_model=None,
+                 position=None):
         self.registry_model = registry_model
         self.cde_dict = cde_dict
         self.valid = False
+        self.position = position
+        
         self.humaniser = Humaniser(self.registry_model)
         if cde_dict is not None:
             self._load(cde_dict)
@@ -185,8 +188,8 @@ class VerifiableCDE:
 def get_verifiable_cdes(registry_model):
     if registry_model.has_feature("verification"):
         return filter(lambda v : v.valid == True,
-                      [VerifiableCDE(registry_model, cde_dict)
-                       for cde_dict in registry_model.metadata.get("verification_cdes", [])])
+                      [VerifiableCDE(registry_model, cde_dict,position=index)
+                       for index, cde_dict in enumerate(registry_model.metadata.get("verification_cdes", []))])
     
     return []
 
