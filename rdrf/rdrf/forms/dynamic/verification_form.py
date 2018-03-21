@@ -21,7 +21,6 @@ def make_verification_form(verifications):
 
         if verification.status == "corrected":
             data[field_name] = verification.clinician_data
-            
         
         base_fields[field_name] = cde_field
 

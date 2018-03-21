@@ -7,6 +7,7 @@ from django.utils.translation import ugettext_lazy as _
 from django.core.urlresolvers import reverse
 from django.contrib.auth.decorators import login_required
 from django.template.context_processors import csrf
+from django.http import HttpResponseRedirect
 
 from rdrf.models.definition.models import Registry
 from rdrf.models.definition.models import RDRFContext
@@ -42,7 +43,8 @@ class VerificationSecurityMixin:
                 raise PermissionDenied()
         
 class PatientVerification:
-    def __init__(self, registry_model, patient_model,context_model,verifications):
+    def __init__(self, user, registry_model, patient_model,context_model,verifications):
+        self.user = user
         self.registry_model = registry_model
         self.patient_model = patient_model
         self.context_model = context_model
@@ -55,6 +57,36 @@ class PatientVerification:
     @property
     def number(self):
         return len(self.verifications)
+
+    def _get_annotations(self, status):
+        def annotation_check(v, exists=True):
+            p = v.has_annotation(self.user,
+                                 self.registry_model,
+                                 self.patient_model,
+                                 self.context_model)
+            if exists:
+                return p
+            else:
+                return not p
+
+        if status == "unverified":
+            return [v for v in self.verifications if annotation_check(v, exists=False)]
+        
+        verifications_with_annotations = [v for v in self.verifications if annotation_check(v)]
+        
+        return [v for v in verifications_with_annotations if v.status == status]
+       
+    @property
+    def number_unverified(self):
+        return len(self._get_annotations("unverified"))
+
+    @property
+    def number_verified(self):
+        return len(self._get_annotations("verified"))
+
+    @property
+    def number_corrected(self):
+        return len(self._get_annotations("corrected"))
 
     @property
     def link(self):
@@ -75,7 +107,11 @@ class PatientsRequiringVerificationView(View, VerificationSecurityMixin):
             for context_model in patient_model.context_models:
                 verifications = get_verifications(user, registry_model, patient_model, context_model)
                 if len(verifications) > 0:
-                    patient_verifications.append(PatientVerification(registry_model, patient_model,context_model,verifications))
+                    patient_verifications.append(PatientVerification(user,
+                                                                     registry_model,
+                                                                     patient_model,
+                                                                     context_model,
+                                                                     verifications))
                  
         context = {
             "location": "Clinician Verification",
@@ -101,8 +137,13 @@ class PatientVerificationView(View, VerificationSecurityMixin):
                                           context_model)
 
         form = make_verification_form(verifications)
+        form = self._wrap_form(patient_model, context_model, form, verifications)
+        context = self._build_context(request, patient_model, form)
+        
+        return render(request, 'rdrf_cdes/patient_verification.html', context)
 
-        # We have to annotate extra properties on the field so
+    def _wrap_form(self, patient_model, context_model,form, verifications):
+        # We have to annotate extra properties on the fields so
         # So we show the patient answer also
         for field in form:
             form_name, section_code, cde_code = field.name.split("____")
@@ -123,13 +164,7 @@ class PatientVerificationView(View, VerificationSecurityMixin):
                     logger.debug("field status = %s" % field.status)
                     field.comments = v.comments
                     logger.debug("field comments = %s" % field.comments)
-                    
-
-
-        context = self._build_context(request, patient_model, form)
-
-
-        return render(request, 'rdrf_cdes/patient_verification.html', context)
+        return form
 
 
     def _build_context(self, request, patient_model, form, form_state="initial", errors=[]):
@@ -148,9 +183,51 @@ class PatientVerificationView(View, VerificationSecurityMixin):
         context.update(csrf(request))
         return context
 
-
     @method_decorator(login_required)
     def post(self, request, registry_code, patient_id, context_id):
+        user = request.user
+        registry_model = Registry.objects.get(code=registry_code)
+        patient_model = Patient.objects.get(pk=patient_id)
+        context_model = RDRFContext.objects.get(id=context_id)
+        self.security_check(user, registry_model, patient_model)
+        # these are the verifications posted in the form
+        verification_map = self._get_verification_map(request, registry_code)
+
+        # these are the corrections to the patient responses from the clinician which are new edited values
+        # that require validation
+        # if there are no corrections there is no need to validate
+        corrected = [v for v in verification_map.values() if v.status == VerificationStatus.CORRECTED]
+        # these are the fields which are deemed to be ok ( patient response is good)
+        verified = [v for v in verification_map.values() if v.status == VerificationStatus.VERIFIED]
+        # this are used to 
+        verifications = corrected + verified
+        
+        form = make_verification_form(corrected)
+
+        if len(corrected) == 0 or form.is_valid():
+            form_state = "valid"
+            errors = []
+            create_annotations(user,
+                               registry_model,
+                               patient_model,
+                               context_model,
+                               verified=verified,
+                               corrected=corrected)
+            # we need to re-present the full form to the user
+            form = make_verification_form(verifications)
+            form = self._wrap_form(patient_model, context_model, form, verifications)
+            context = self._build_context(request, patient_model, form)
+        else:
+            form_state = "invalid"
+            errors = [e for e in form.errors]
+            logger.debug("errors = %s" % errors)
+            form = make_verification_form(verifications)
+            form = self._wrap_form(patient_model, context_model, form, verifications)
+            context = self._build_context(request, patient_model, form, errors=errors)
+
+        return render(request, 'rdrf_cdes/patient_verification.html', context)
+
+    def _get_verification_map(self, request, registry_code):
          # fields in the POST look like:
          #runserver_1    | [DEBUG:2018-03-13 16:45:40,339:verification_views.py:123:post] key status_AngelmanRegistryBehaviourAndDevelopment____ANGMuscleTone____ANGBEHDEVMuscleTrunk value =unverified
          #runserver_1    | [DEBUG:2018-03-13 16:45:40,339:verification_views.py:123:post] key comments_AngelmanRegistryBehaviourAndDevelopment____ANGMuscleTone____ANGBEHDEVMuscleTrunk value =
@@ -161,42 +238,6 @@ class PatientVerificationView(View, VerificationSecurityMixin):
          #runserver_1    | [DEBUG:2018-03-13 16:45:40,340:verification_views.py:123:post] key comments_AngelmanRegistryEpilepsy____ANGFebrileEpilepsy____ANGEpilepsyCease value =
          #runserver_1    | [DEBUG:2018-03-13 16:45:40,340:verification_views.py:123:post] key status_AngelmanRegistryEpilepsy____ANGFebrileEpilepsy____ANGSeizureFrequencyAFebrile value =verified
          #runserver_1    | [DEBUG:2018-03-13 16:45:40,340:verification_views.py:123:post] key comments_AngelmanRegistryEpilepsy____ANGFebrileEpilepsy____ANGSeizureFrequencyAFebrile value =low
-
-        user = request.user
-        registry_model = Registry.objects.get(code=registry_code)
-        patient_model = Patient.objects.get(pk=patient_id)
-        context_model = RDRFContext.objects.get(id=context_id)
-        self.security_check(user, registry_model, patient_model)
-
-        # these are the verfications entered
-        verification_map = self._get_verification_map(request, registry_code)
-
-        corrected = [v for v in verification_map.values() if v.status == VerificationStatus.CORRECTED]
-        verified = [v for v in verification_map.values() if v.status == VerificationStatus.VERIFIED]
-        
-        form = make_verification_form(corrected)
-
-        if len(corrected) == 0 or form.is_valid():
-            form_state = "valid"
-            errors = []
-            create_annotations(request.user,
-                               registry_model,
-                               patient_model,
-                               context_model,
-                               verified=verified,
-                               corrected=corrected)
-            
-        else:
-            form_state = "invalid"
-            raise Exception(form)
-            errors = [e for e in form.errors]
-            logger.debug("errors = %s" % errors)
-            
-
-        context = self._build_context(request, patient_model, form, form_state, errors)
-        return render(request, 'rdrf_cdes/patient_verification.html', context)
-
-    def _get_verification_map(self, request, registry_code):
         from rdrf.helpers.utils import models_from_mongo_key
         registry_model = Registry.objects.get(code=registry_code)
         verifications = []

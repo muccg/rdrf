@@ -4,10 +4,8 @@
 
 {% block extrahead %}
 <script>
-  
   $(document).ready(function () {
      $(".well").hide();
-     
   });
 </script>
 {% endblock %}
@@ -31,11 +29,9 @@
 {{ block.super }}
 {% if request.user.is_authenticated %}
 <div class="row">
-  <div class="col-md-10">
-    <div class="panel panel-default">
-      <div class="panel-heading">Verifications required for {{patient}}</div>
-      <div class="panel-body">
-	<table class="table">
+  <div class="col-md-12">
+  <div class="table-responsive">
+  <table class="table">
   <thead>
     <tr>
       <th scope="col">#</th>
@@ -60,11 +56,12 @@
     <form id="main-form" method="post">{% csrf_token %}
     {% for field in form %}
     <tr>
-      <th scope="row">{{forloop.counter}}</th>
-      <td>{{field.label}}</td>
+      <td scope="row">{{forloop.counter}}</td>
+      <td><div class="control-label" style="display: block"> {{field.label}}</div></td>
       <td>{{field.patient_answer}}<input type="hidden" name="patient_data_{{field.name}}" value="{{field.patient_data}}"></td>
       <td>
-	<select id="id_status_{{field.name}}" name="status_{{field.name}}">
+	<div class="form-group">
+	<select id="id_status_{{field.name}}" name="status_{{field.name}}" class="form-control">
 	  {% for option in options %}
 	      {% if option.0 == field.status %}
 	          <option value="{{option.0}}" selected>{{option.1}}</option>
@@ -73,20 +70,29 @@
 	      {% endif %}
 	   {% endfor %}
 	  </select>
+	</div>
       </td>
-      <td><div id="id_new_value_container_{{field.name}}">{{field|safe}}</div></td>
+      <td>
+	<div id="id_new_value_container_{{field.name}}" class="form-group">{{field|safe}}
+	  <p class="text-muted"><i>{{field.help_text}}</i></p>
+          {% if field.errors %}
+              <span class="label label-danger">{{field.errors.as_text}}</span>
+          {% endif %}
+	</div> 
+      </td>
+      
       <td><textarea name="comments_{{field.name}}">{{field.comments}}</textarea>
       </td>
-      
-      
     </tr>
     {% endfor %}
     </form>
   </tbody>
 </table>
-      </div>
-    </div> <!-- col -->
-</div> <!-- row -->
+</div>
+</div>
+</div>
+
+  
 {% else %}
     <div class="alert alert-info">Please log in to access the registry.</div>
 {% endif %}

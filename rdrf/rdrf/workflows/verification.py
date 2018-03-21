@@ -81,8 +81,14 @@ class VerifiableCDE:
 
     def get_data(self, patient_model, context_model, display=True):
         # gets the data the Patient has entered ( if at all)
-        
-        self._load(self.cde_dict)
+
+        if not all([self.registry_model,
+                    self.section_model,
+                    self.cde_model]):
+            
+            self._load(self.cde_dict)
+        else:
+            self.valid = True
         if not self.valid:
             raise VerificationError("Verification CDE dict: %s is not valid" % self.cde_dict)
 
@@ -260,7 +266,9 @@ def create_annotations(user, registry_model, patient_model,context_model, verifi
                                      v.form_model.name,
                                      v.section_model.code,
                                      v.cde_model.code,
-                                     correct_value)
+                                     correct_value,
+                                     save_snapshot=True,
+                                     user=user)
 
 
     for v in verified:
