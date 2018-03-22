@@ -286,8 +286,15 @@ class PatientVerificationView(View, VerificationSecurityMixin):
                     v.patient_data = patient_data
                     verification_map[delimited_key] = v
 
-            elif 
-                
+            elif key.startswith("pos_"):
+                position = int(request.POST[key])
+                delimited_key = key[4:]
+                if delimited_key in verification_map:
+                    verification_map[delimited_key].position = position
+                else:
+                    v = mk_ver(delimited_key)
+                    v.position = position
+                    verification_map[delimited_key] = v
             elif "____" in key:
                 # new value from clinician  if there is one
                 field_value = request.POST[key]
