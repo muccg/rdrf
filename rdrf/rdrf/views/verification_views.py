@@ -235,7 +235,7 @@ class PatientVerificationView(View, VerificationSecurityMixin):
             errors = [e for e in form.errors]
             form = make_verification_form(verifications)
             form = self._wrap_form(patient_model, context_model, form, verifications)
-            messages.add_message(request, messages.ERROR, "Form not saved due to error")
+            messages.add_message(request, messages.ERROR, "Form not saved due to error(s)")
             context = self._build_context(request, registry_model, patient_model, form, errors=errors)
 
         return render(request, 'rdrf_cdes/patient_verification.html', context)
