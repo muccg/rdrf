@@ -18,6 +18,7 @@ from rdrf.workflows.verification import VerifiableCDE
 from rdrf.workflows.verification import create_annotations
 
 from rdrf.forms.dynamic.verification_form import make_verification_form
+from rdrf.forms.navigation.locators import PatientLocator
 from registry.patients.models import Patient
 
 import logging
@@ -137,7 +138,7 @@ class PatientVerificationView(View, VerificationSecurityMixin):
                                                                    context_model))
         form = make_verification_form(verifications)
         form = self._wrap_form(patient_model, context_model, form, verifications)
-        context = self._build_context(request, patient_model, form)
+        context = self._build_context(request, registry_model,patient_model, form)
         
         return render(request, 'rdrf_cdes/patient_verification.html', context)
 
@@ -169,14 +170,20 @@ class PatientVerificationView(View, VerificationSecurityMixin):
         return form
 
 
-    def _build_context(self, request, patient_model, form, form_state="initial", errors=[]):
+    def _build_context(self, request, registry_model, patient_model, form, form_state="initial", errors=[]):
         options = [(VerificationStatus.UNVERIFIED, "Unverified"),
                    (VerificationStatus.VERIFIED, "Verified"),
                    (VerificationStatus.CORRECTED, "Corrected")]
 
+        patient_locator = PatientLocator(registry_model,
+                                         patient_model)
+        
+        demographics_link = patient_locator.get_link()
+        
         context = {
                    "location": "Patient Verification Form",
                    "form": form,
+                   "demographics_link": demographics_link,
                    "form_state": form_state,
                    "errors": errors,
                    "patient": patient_model,
@@ -220,7 +227,7 @@ class PatientVerificationView(View, VerificationSecurityMixin):
             # we need to re-present the full form to the user
             form = make_verification_form(verifications)
             form = self._wrap_form(patient_model, context_model, form, verifications)
-            context = self._build_context(request, patient_model, form)
+            context = self._build_context(request, registry_model, patient_model, form)
         else:
             form_state = "invalid"
             errors = [e for e in form.errors]

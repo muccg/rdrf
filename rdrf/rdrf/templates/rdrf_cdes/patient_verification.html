@@ -30,15 +30,7 @@
 {% if request.user.is_authenticated %}
 <div class="row">
   <div class="col-md-12">
-    {% if form_state == "valid" %}
-    <h3>Form saved OK</h3>
-    {% endif %}
-    {% if form_state == "invalid" %}
-    <h3>Form not saved due to errors!</h3>
-    {% for error in errors %}
-       {{error}}<br>
-    {% endfor %}
-    {% endif %}
+  <h3><a href="{{demographics_link}}">{{patient}}</a></h3>
   <div class="table-responsive">
   <table class="table">
   <thead>
@@ -73,7 +65,7 @@
 	</div>
       </td>
       <td>
-	<div id="id_new_value_container_{{field.name}}" class="form-group">{{field|safe}}
+	<div id="id_new_value_container_{{field.name}}" class="form-group" >{{field|safe}}
 	  <p class="text-muted"><i>{{field.help_text}}</i></p>
           {% if field.errors %}
               <span class="wrap label label-danger">{{field.errors.as_text}}</span>
