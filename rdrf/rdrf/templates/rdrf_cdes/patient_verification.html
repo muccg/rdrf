@@ -52,8 +52,8 @@
       <td><div class="control-label" style="display: block"> {{field.label}}</div></td>
       <td>{{field.patient_answer}}<input type="hidden" name="patient_data_{{field.name}}" value="{{field.patient_data}}"></td>
       <td>
-	<div class="form-group">
-	<select id="id_status_{{field.name}}" name="status_{{field.name}}" class="form-control">
+	<div class="col-sm-9">
+	<select id="id_status_{{field.name}}" name="status_{{field.name}}" style="width: 110px !important;" class="form-control">
 	  {% for option in options %}
 	      {% if option.0 == field.status %}
 	          <option value="{{option.0}}" selected>{{option.1}}</option>
