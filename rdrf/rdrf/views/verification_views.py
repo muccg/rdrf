@@ -8,6 +8,7 @@ from django.core.urlresolvers import reverse
 from django.contrib.auth.decorators import login_required
 from django.template.context_processors import csrf
 from django.http import HttpResponseRedirect
+from django.contrib import messages
 
 from rdrf.models.definition.models import Registry
 from rdrf.models.definition.models import RDRFContext
@@ -227,13 +228,15 @@ class PatientVerificationView(View, VerificationSecurityMixin):
             # we need to re-present the full form to the user
             form = make_verification_form(verifications)
             form = self._wrap_form(patient_model, context_model, form, verifications)
+            messages.add_message(request, messages.SUCCESS, "Form saved successfully")
             context = self._build_context(request, registry_model, patient_model, form)
         else:
             form_state = "invalid"
             errors = [e for e in form.errors]
             form = make_verification_form(verifications)
             form = self._wrap_form(patient_model, context_model, form, verifications)
-            context = self._build_context(request, patient_model, form, errors=errors)
+            messages.add_message(request, messages.ERROR, "Form not saved due to error")
+            context = self._build_context(request, registry_model, patient_model, form, errors=errors)
 
         return render(request, 'rdrf_cdes/patient_verification.html', context)
 
