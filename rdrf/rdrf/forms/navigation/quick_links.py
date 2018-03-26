@@ -201,6 +201,7 @@ class Links:
     PERMISSIONS = {}
     QUESTIONNAIRE = {}
     REGISTRATION = {}
+    VERIFICATION = {}
 
     # When enabled, doctors links
     ENABLED_DOCTORS = {
@@ -284,6 +285,7 @@ class QuickLinks(object):
         MenuConfig().clinical = {
             **Links.DATA_ENTRY,
             **Links.QUESTIONNAIRE,
+            **Links.VERIFICATION,
         }
 
         # Super user has combined menu of all other users
@@ -370,6 +372,7 @@ class QuickLinks(object):
         self._questionnaire_links()
         self._permission_matrix_links()
         self._registration_links()
+        self._verification_links()
         self._build_menu()
 
     def _per_registry_links(self, label, url, feature=None):
@@ -421,6 +424,12 @@ class QuickLinks(object):
         # special case: if we have family linkage enabled, we enable doctors links
         if len(Links.FAMILY_LINKAGE) > 0:
             Links.DOCTORS = Links.ENABLED_DOCTORS
+
+    def _verification_links(self):
+        Links.VERIFICATION = self._per_registry_links('Verifications',
+                                                      'verifications_list',
+                                                      'verification')
+
 
     def _permission_matrix_links(self):
         # enable permission links
