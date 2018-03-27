@@ -34,6 +34,7 @@
                       <th>Date</th>
                       <th>Time</th>
                       <th>Value</th>
+                      <th>User</th>
                       <th></th>
                     </tr>
                   </thead>
@@ -45,6 +46,7 @@
                       <td data-value="{{ snapshot.value }}">
                         {{ snapshot.value|cde_display_value:cde }}
                       </td>
+		      <td>{{snapshot.user}}</td>
                       <td class="text-right">
                         <button type="button" data-id="{{ snapshot.id }}"
                                 class="btn btn-default btn-xs cde-history-restore invisibutton">

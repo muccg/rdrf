@@ -19,6 +19,9 @@ logger = logging.getLogger(__name__)
 
 MAX_TABLE_NAME_LENGTH = 63
 
+def unambigious_name(section_code, cde_code):
+    return no_space_lower(section_code + "_" + cde_code)
+
 def lower_strip(s):
     return s.lower().strip()
 
@@ -290,7 +293,8 @@ class Column:
 
     @property
     def name(self):
-        return no_space_lower(self.section_model.code + "_" + self.cde_model.code)
+        #return no_space_lower(self.section_model.code + "_" + self.cde_model.code)
+        return unambigious_name(self.section_model.code, self.cde_model.code)
 
     @property
     def postgres(self):
@@ -363,7 +367,8 @@ class MultiSectionExtractor:
             for cde_code in item_dict:
                 cde_model = CommonDataElement.objects.get(code=cde_code)
                 is_file = lower_strip(cde_model.datatype) == "file"
-                column_name = no_space_lower(cde_code)
+                #column_name = no_space_lower(cde_code)
+                column_name = unambigious_name(self.clinical_table.section_model.code, cde_code)
                 raw_value = item_dict[cde_code]
                 reporting_value = self._get_reporting_value(
                     cde_code, raw_value, is_file=is_file)
