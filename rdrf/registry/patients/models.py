@@ -591,7 +591,9 @@ class Patient(models.Model):
             section_code,
             data_element_code,
             value,
-            context_model=None):
+            context_model=None,
+            save_snapshot=False,
+            user=None):
         from rdrf.db.dynamic_data import DynamicDataWrapper
         from rdrf.helpers.utils import mongo_key
         from rdrf.forms.progress.form_progress import FormProgress
@@ -608,6 +610,8 @@ class Patient(models.Model):
             context_model = rdrf_context_manager.get_or_create_default_context(self)
 
         wrapper = DynamicDataWrapper(self, rdrf_context_id=context_model.pk)
+        if user:
+            wrapper.user = user
 
         form_model = RegistryForm(name=form_name, registry=registry_model)
         wrapper.current_form_model = form_model
@@ -629,6 +633,14 @@ class Patient(models.Model):
         registry_model = Registry.objects.get(code=registry_code)
         form_progress_calculator = FormProgress(registry_model)
         form_progress_calculator.save_for_patient(self, context_model)
+
+        if save_snapshot and user is not None:
+            wrapper.save_snapshot(
+                registry_code,
+                "cdes",
+                form_name=form_model.name,
+                form_user=user.username)
+
 
     def in_registry(self, reg_code):
         """

@@ -88,7 +88,7 @@ def export_registry_action(modeladmin, request, registry_models_selected):
     export_time = str(datetime.now())
 
     def export_registry(registry, request):
-        from rdrf.exporter import Exporter
+        from rdrf.services.io.defs.exporter import Exporter
         exporter = Exporter(registry)
         logger.info("Exporting Registry %s" % registry.name)
         try:

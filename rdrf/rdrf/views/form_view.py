@@ -927,6 +927,7 @@ class FormFieldHistoryView(TemplateView):
         history = dyn_patient.get_cde_history(registry_code, reg_form.name,
                                               section_code, cde_code)
 
+
         context.update({
             "cde": cde,
             "value": val,

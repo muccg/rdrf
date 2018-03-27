@@ -33,6 +33,9 @@ from rdrf.views.lookup_views import RecaptchaValidator
 from rdrf.views.context_views import RDRFContextCreateView, RDRFContextEditView
 from rdrf.views import patients_listing
 from rdrf.views import clinician_view
+from rdrf.views.verification_views import PatientsRequiringVerificationView
+from rdrf.views.verification_views import PatientVerificationView
+
 
 import logging
 
@@ -243,6 +246,12 @@ urlpatterns += [
     # ---- Clinician related URLs -----------------
     url(r"^(?P<registry_code>\w+)/(?P<patient_id>\d+)/clinician/?$",
         clinician_view.ClinicianFormView.as_view(), name="clinician_form_view"),
+
+    url(r"^(?P<registry_code>\w+)/verifications/?$",
+        PatientsRequiringVerificationView.as_view(), name='verifications_list'),
+
+    url(r"^(?P<registry_code>\w+)/verifications/(?P<patient_id>\d+)/(?P<context_id>\d+)/?$",
+        PatientVerificationView.as_view(), name='patient_verification'),
 
     # ---- Email Notifications URLs -------------
     url(r"^resend_email/(?P<notification_history_id>\w+)/?$",

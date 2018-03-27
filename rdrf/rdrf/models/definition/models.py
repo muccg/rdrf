@@ -1677,35 +1677,6 @@ class ClinicalDataQuerySet(models.QuerySet):
         return self.values_list("data", flat=True)
 
 
-class Annotation(models.Model):
-    ANNOTATION_TYPES = (("verified", "verfied"),
-                        ("unknown", "unknown"))
-
-    annotation_type = models.CharField(max_length=80, db_index=True, choices=ANNOTATION_TYPES)
-    patient_id = models.IntegerField(db_index=True)
-    context_id = models.IntegerField(db_index=True, blank=True, null=True)
-    registry_code = models.CharField(max_length=10)
-    form_name = models.CharField(max_length=80)
-    section_code = models.CharField(max_length=100)
-    item = models.IntegerField(null=True)
-    cde_code = models.CharField(max_length=30)
-    cde_value = models.TextField()
-    username = models.CharField(max_length=254)
-    timestamp = models.DateTimeField(auto_now_add=True)
-    comment = models.TextField()
-
-    @staticmethod
-    def score(klass, registry_model, patient_model):
-        query = Annotation.objects.filter(patient_id=patient_model.id,
-                                          registry_code=registry_model.code)
-        num = query.count()
-        num_verified = query.filter(annotation_type="verified").count()
-        try:
-            return 100.00 * (float(num_verified) / float(num))
-        except ZeroDivisionError:
-            return None
-
-
 class ClinicalData(models.Model):
     """
     MongoDB collections in Django.
@@ -1763,9 +1734,13 @@ class ClinicalData(models.Model):
                 {"registry_code": "Registry %s does not exist" % self.registry_code})
 
     modjgo_schema = None
+    #  need tp fix this path rdrf/db/schemas/modjgo.yaml 
     modjgo_schema_file = os.path.join(os.path.dirname(__file__), "schemas/modjgo.yaml")
 
     def validate(self, collection, data):
+        return
+
+        #to do fithis
         if not self.modjgo_schema:
             try:
                 with open(self.modjgo_schema_file) as f:

@@ -1,0 +1,91 @@
+{% extends "rdrf_cdes/base-2-cols.html" %}
+{% load static %}
+{% load i18n %}
+
+{% block extrahead %}
+<script>
+  $(document).ready(function () {
+     $(".well").hide();
+  });
+</script>
+{% endblock %}
+
+
+{% block formbtns %}
+	<div class="btn-group" role="group" aria-label="...">
+		<button id="submit-btn" type="submit" class="btn btn-success" value="Save">
+			<span class="glyphicon glyphicon-floppy-save" aria-hidden="true"></span> {% trans "Save" %}
+		</button>
+
+		<a href="" class="btn btn-danger">
+			<span class="glyphicon glyphicon-remove" aria-hidden="true"></span> {% trans "Cancel" %}
+		</a>
+
+	</div>
+{% endblock %}
+
+
+{% block content %}
+{{ block.super }}
+{% if request.user.is_authenticated %}
+<div class="row">
+  <div class="col-md-12">
+  <h3><a href="{{demographics_link}}">{{patient}}</a></h3>
+  <div class="table-responsive">
+  <table class="table">
+  <thead>
+    <tr>
+      <th scope="col">#</th>
+      <th scope="col">Field</th>
+      <th scope="col">Patient Value</th>
+      <th scope="col">Response</th>
+      <th scope="col">New Value</th>
+      <th scope="col">Comment</th>
+    </tr>
+  </thead>
+  <tbody>
+    
+    <form id="main-form" method="post">{% csrf_token %}
+    {% for field in form %}
+    <tr>
+      <td scope="row">{{forloop.counter}}<input type="hidden" name="pos_{{field.name}}" value={{forloop.counter}}></td>
+      <td><div class="control-label" style="display: block"> {{field.label}}</div></td>
+      <td>{{field.patient_answer}}<input type="hidden" name="patient_data_{{field.name}}" value="{{field.patient_data}}"></td>
+      <td>
+	<div class="col-sm-9">
+	<select id="id_status_{{field.name}}" name="status_{{field.name}}" style="width: 110px !important;" class="form-control">
+	  {% for option in options %}
+	      {% if option.0 == field.status %}
+	          <option value="{{option.0}}" selected>{{option.1}}</option>
+	      {% else %}
+	          <option value="{{option.0}}">{{option.1}}</option>
+	      {% endif %}
+	   {% endfor %}
+	  </select>
+	</div>
+      </td>
+      <td>
+	<div id="id_new_value_container_{{field.name}}" class="form-group" >{{field|safe}}
+	  <p class="text-muted"><i>{{field.help_text}}</i></p>
+          {% if field.errors %}
+              <span class="wrap label label-danger">{{field.errors.as_text}}</span>
+          {% endif %}
+	</div> 
+      </td>
+      
+      <td><textarea name="comments_{{field.name}}">{{field.comments}}</textarea>
+      </td>
+    </tr>
+    {% endfor %}
+    </form>
+  </tbody>
+</table>
+</div>
+</div>
+</div>
+
+  
+{% else %}
+    <div class="alert alert-info">Please log in to access the registry.</div>
+{% endif %}
+{% endblock %}

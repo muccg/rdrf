@@ -12,3 +12,7 @@ class RDRFConfig(AppConfig):
     def ready(self):
         logger.info("running RDRFConfig.ready ... ")
         import rdrf.account_handling.backends
+        import rdrf.models.definition.models
+        # migration wasn't being found - importing here fixed that
+        import rdrf.models.verification.models
+        
