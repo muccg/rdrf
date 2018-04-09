@@ -1095,8 +1095,16 @@ class ClinicianOther(models.Model):
 
         if not self.use_other:
             if self.patient:
-                self.patient.working_groups = [wg for wg in self.user.working_groups.all()]
+                wgs = [wg for wg in self.user.working_groups.all()]
+                self.patient.working_groups = wgs
                 self.patient.save()
+
+                # fkrp use case
+                # if the patient is a user update the user working groups to match
+                if self.patient.user:
+                    self.patient.user.working_groups = [wg for wg in self.patient.working_groups.all() ]
+                    self.patient.user.save()
+                
                 # if there user/parent of this patient then need to update their working
                 # groups also
                 try:
