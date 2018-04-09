@@ -1,4 +1,4 @@
-{% extends "rdrf_cdes/base.html" %}
+{% extends "rdrf_cdes/base-1-col.html" %}
 
 {% load add_attr %}
 {% load static from staticfiles %}
@@ -62,15 +62,15 @@
             var mgmt_form = $("#mgmt_" + prefix);
             var empty_form = $("#empty_" + prefix);
             var forms = $("#forms_" + prefix);
-            
+
             var total_forms = mgmt_form.find("input[id=id_"+ prefix +"-TOTAL_FORMS]")
-            
+
             var new_form = empty_form.clone(true, true);
-            
+
             new_form.find(":input").each(function() {
                 $(this).attr("id", $(this).attr("id").replace(/__prefix__/g, total_forms.val()));
                 $(this).attr("name", $(this).attr("name").replace(/__prefix__/g, total_forms.val()));
-                
+
                if ($(this).attr('id').match(/date/)) {
                     $(this).datepicker({
                         changeMonth: true,
@@ -82,20 +82,20 @@
                     });
                 }
             });
-    
+
             var total_forms_inc = parseInt(total_forms.val()) + 1;
             total_forms.attr("value", total_forms_inc);
-    
+
             $("<hr>").attr("style", "border: solid 1px gray").appendTo(new_form);
             new_form.appendTo(forms).show("fast");
         }
-    
+
         function delete_form(form_div, prefix) {
             var mgmt_form = $("#mgmt_" + prefix);
             var total_forms = mgmt_form.find("input[id=id_"+ prefix +"-TOTAL_FORMS]")
             var total_forms_dec = parseInt(total_forms.val()) - 1;
             total_forms.attr("value", total_forms_dec);
-    
+
             $(form_div).parent().parent().parent().remove();
         }
 
@@ -118,7 +118,7 @@
             $("textarea").addClass("form-control");
             $("select").addClass("form-control");
             $('#main-form').data('serialize', $('#main-form').serialize());
-            
+
             $(window).bind('beforeunload', function(e){
                 if($('#main-form').serialize()!=$('#main-form').data('serialize')) {
                     return "You have unsaved changes!";
@@ -126,7 +126,7 @@
                     e=null;
                 }
             });
-            
+
             $("#main-form").submit(function() {
                 $(window).unbind("beforeunload");
             });
@@ -134,6 +134,28 @@
     </script>
 
 {% endblock %}
+
+
+{% block formbtns %}
+    <br>
+	<div class="btn-group" role="group" aria-label="...">
+		<button id="submit-btn" type="submit" class="btn btn-success" value="Save">
+			<span class="glyphicon glyphicon-floppy-save" aria-hidden="true"></span> {% trans "Save" %}
+		</button>
+
+		<a href="" class="btn btn-danger">
+			<span class="glyphicon glyphicon-remove" aria-hidden="true"></span> {% trans 'Cancel' %}
+		</a>
+
+		{% if show_print_button %}
+			<a class="btn btn-warning" href="{% url 'registry_form_print' registry_code form_name patient_id %}" target="_blank">
+				<span class="glyphicon glyphicon-print" aria-hidden="true"></span> {% trans "Print" %}
+			</a>
+		{% endif %}
+
+		</div>
+{% endblock %}
+
 
 {% block content %}
     <div class="row">
@@ -320,7 +342,7 @@
                                                     {{ element.label|translate }}
                                                     {% if  element.field.required %}
                                                         <span class="glyphicon glyphicon-asterisk" style="color: red;" aria-hidden="true"></span>
-                                                    {% endif %}                                                
+                                                    {% endif %}
                                                 </label>
                                                 <div class="col-sm-9">
                                             {% endif %}
@@ -349,23 +371,6 @@
                         {% endfor %}
                     {% endif %}
                 {% endfor %}
-        </div>
-        <div class="col-md-2">
-            <div data-spy="affix" style="width: 150px;">
-                <button type="submit" class="btn btn-success btn-block">
-                    <span class="glyphicon glyphicon-floppy-save" aria-hidden="true"></span> {% trans 'Save' %}
-                </button>
-                <a href="" class="btn btn-danger btn-block">
-                    <span class="glyphicon glyphicon-remove" aria-hidden="true"></span> {% trans 'Cancel' %}
-                </a>
-                <a class="btn btn-info btn-block" href="{{ next_form_link }}">
-                    <span class="glyphicon glyphicon-chevron-right" aria-hidden="true"></span> {% trans 'Next' %}
-                </a>
-
-                <a class="btn btn-info btn-block" href="{{ previous_form_link }}">
-                    <span class="glyphicon glyphicon-chevron-left" aria-hidden="true"></span> {% trans 'Previous' %}
-                </a>
-            </div>
         </div>
         </form>
     </div>
