@@ -975,6 +975,11 @@ class RegistryForm(models.Model):
         except BaseException:
             return self.name
 
+    @property
+    def has_progress(self):
+        # does this form define form progress ( completion) cdes?
+        return self.complete_form_cdes.count() > 0
+
     def get_link(self, patient_model, context_model=None):
         if context_model is None:
             return reverse(
