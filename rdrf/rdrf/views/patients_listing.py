@@ -279,6 +279,7 @@ class PatientsListingView(View):
         # we need to do this so that the progress data for this instance
         # loaded!
         self.form_progress.reset()
+        self.form_progress._set_current(instance)
         return {
             col.field: col.fmt(
                 col.cell(
