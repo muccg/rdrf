@@ -53,6 +53,14 @@ class FormProgress(object):
         self.loaded_data = None
         self.current_patient = None
         self.context_model = None
+        # if the following is true, the "type" of patient affects what forms
+        # are applicable/presented/counted:
+        self.uses_patient_types = self.registry_model.has_feature("patient_types")
+        if self.uses_patient_types:
+            self.patient_type_form_map = self.registry_model.metadata["patient_types"]
+        else:
+            self.patient_type_form_map = None
+            
 
     def _get_forms(self):
         if self.context_model is None:
@@ -195,10 +203,12 @@ class FormProgress(object):
                                 yield section_model, cde_model
 
     def _get_progress_metadata(self):
+        pm = {}
+        
         try:
             metadata = self.registry_model.metadata
             if "progress" in metadata:
-                return metadata["progress"]
+                pm = metadata["progress"]
             else:
                 # default behaviour - this is the old behaviour
                 groups_dict = {"diagnosis": [], "genetic": []}
@@ -207,13 +217,35 @@ class FormProgress(object):
                         groups_dict["genetic"].append(form_model.name)
                     else:
                         groups_dict["diagnosis"].append(form_model.name)
-                return groups_dict
+                pm = groups_dict
+
+            # if the registry uses patient types , we need to prefilter the list
+            if self.uses_patient_types:
+                return self._get_applicable_form_progress_dict(pm)
+            else:
+                return pm
+        
         except Exception as ex:
             logger.error(
                 "Error getting progress metadata for registry %s: %s" %
                 (self.registry_model.code, ex))
             return {}
 
+    def _get_applicable_form_progress_dict(self, unfiltered_dict):
+        filtered_dict = {}
+        if not self.current_patient:
+            return unfiltered_dict
+        else:
+            patient_type = self.current_patient.patient_type
+            if not patient_type:
+                patient_type = "default"
+                
+            applicable_forms = self.registry_model.metadata["patient_types"][patient_type]["forms"]
+            for group_name in unfiltered_dict:
+                filtered_dict[group_name] = [form_name for form_name in unfiltered_dict[group_name]
+                                             if form_name in applicable_forms]
+            return filtered_dict
+            
     def _calculate_form_has_data(self, form_model, dynamic_data):
         if dynamic_data is None:
             return False
@@ -256,7 +288,23 @@ class FormProgress(object):
                                         cdes_status[code] = True
         return cdes_status
 
-    def _calculate(self, dynamic_data):
+    def _applicable(self, form_model):
+        if self.patient_type_form_map:
+            if self.current_patient:
+                if not self.current_patient.patient_type:
+                    applicable_forms = self.patient_type_form_map["default"]["forms"]
+                else:
+                    applicable_forms = self.patient_type_form_map[self.current_patient.patient_type]["forms"]
+                return form_model.name in applicable_forms
+        return True
+                    
+
+
+    def _calculate(self, dynamic_data, patient_model=None):
+        logger.info("calculating progress")
+        if patient_model is not None:
+            self.current_patient = patient_model
+            
         progress_metadata = self._get_progress_metadata()
         if not progress_metadata:
             return
@@ -267,7 +315,7 @@ class FormProgress(object):
         forms_progress = {}
 
         for form_model in self.registry_model.forms:
-            if not form_model.is_questionnaire:
+            if not form_model.is_questionnaire and self._applicable(form_model):
                 form_progress_dict = self._calculate_form_progress(form_model, dynamic_data)
                 form_currency = self._calculate_form_currency(form_model, dynamic_data)
                 form_has_data = self._calculate_form_has_data(form_model, dynamic_data)
@@ -439,7 +487,7 @@ class FormProgress(object):
     def save_progress(self, patient_model, dynamic_data, context_model=None):
         if not dynamic_data:
             return self.progress_data
-        self._calculate(dynamic_data)
+        self._calculate(dynamic_data, patient_model)
         record = self._get_query(patient_model, context_model).first()
         if not record:
             ctx = dict(context_id=context_model.id if context_model else None)
