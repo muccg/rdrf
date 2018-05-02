@@ -387,7 +387,7 @@
                                                     {% endif %}
 						    {% if not element.is_hidden %}
                                                     <small class="text-muted">
-                                                        {{ element.help_text }}
+                                                        {{ element.help_text|translate }}
                                                     </small>
 						    {% endif %}
                                                     {% if element.errors %}
