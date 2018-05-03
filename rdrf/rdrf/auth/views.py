@@ -20,8 +20,6 @@ from django.views.decorators.debug import sensitive_post_parameters
 
 from two_factor import views as tfv
 from two_factor.utils import default_device
-from django_otp import devices_for_user
-from django.shortcuts import redirect
 
 from useraudit.models import UserDeactivation
 from useraudit.password_expiry import is_password_expired
@@ -64,16 +62,6 @@ class QRGeneratorView(tfv.core.QRGeneratorView):
 @tfv.utils.class_view_decorator(login_required)
 class SetupView(tfv.core.SetupView):
     session_key_name = 'two_fact_auth_key'
-
-
-@tfv.utils.class_view_decorator(never_cache)
-@tfv.utils.class_view_decorator(login_required)
-class DisableView(tfv.profile.DisableView):
-    def form_valid(self, form):
-        for device in devices_for_user(self.request.user):
-            device.delete()
-
-        return redirect(self.request.POST['redirect_url'])
 
 
 # Doesn't need csrf_protect since no-one can guess the URL

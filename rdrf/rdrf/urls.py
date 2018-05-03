@@ -10,7 +10,7 @@ from django.utils.translation import ugettext as _
 from two_factor import views as twv
 
 from rdrf.auth.forms import RDRFLoginAssistanceForm, RDRFPasswordResetForm, RDRFSetPasswordForm
-from rdrf.auth.views import login_assistance_confirm, QRGeneratorView, SetupView, DisableView
+from rdrf.auth.views import login_assistance_confirm, QRGeneratorView, SetupView
 
 import rdrf.views.form_view as form_view
 import rdrf.views.registry_view as registry_view
@@ -121,7 +121,7 @@ two_factor_auth_urls = [
     #    ),
     url(
         regex=r'^account/two_factor/disable/?$',
-        view=DisableView.as_view(),
+        view=twv.DisableView.as_view(),
         name='disable',
     ),
 ]
