@@ -26,6 +26,19 @@
               <input type="checkbox" class="form-check-input" name="understand" />
               {% trans "Yes, I am sure" %}
             </label>
+            {% if request.user.is_authenticated %}
+                {% if request.user.registry_code %}
+                    {% if request.user.is_parent  %}
+                          <input type="hidden" name="redirect_url" value ="{% url 'parent_page' request.user.registry_code %}">
+                    {% elif request.user.is_patient %}
+                          <input type="hidden" name="redirect_url" value ="{% url 'patient_page' request.user.registry_code %}">
+                    {% else %}
+                          <input type="hidden" name="redirect_url" value ="{% url 'patientslisting' %}">
+                    {% endif %}
+                {% elif cancel_url %}
+                          <input type="hidden" name="redirect_url" value ="{% url 'patientslisting' %}">
+                {% endif %}
+            {% endif %}
           </div>
           <div class="row">
             <div class="col-sm-12">
