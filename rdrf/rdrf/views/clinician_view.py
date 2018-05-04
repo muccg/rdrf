@@ -237,6 +237,8 @@ class ClinicianFormView(View):
             other_clinician_model = self.clinician_form.save()
             if other_clinician_model.user:
                 other_clinician_model.patient.clinician = other_clinician_model.user
+                # hack to get allow the notification
+                other_clinician_model.patient.clinician_flag = True
                 other_clinician_model.patient.save()
 
             other_clinician_model.synchronise_working_group()
