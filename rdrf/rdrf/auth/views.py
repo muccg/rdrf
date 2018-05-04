@@ -50,6 +50,7 @@ def user_login_callback(sender, request=None, user=None, **kwargs):
         if msg not in [m.message for m in messages.get_messages(request)]:
             messages.info(request, msg)
 
+#dummy code
 
 # Customised Two Factor views
 
