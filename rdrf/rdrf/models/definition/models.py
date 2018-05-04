@@ -1383,7 +1383,8 @@ class EmailNotification(models.Model):
         (EventType.NEW_PATIENT_PARENT, "New Patient Registered (Parent)"),
         (EventType.ACCOUNT_VERIFIED, "Account Verified"),
         (EventType.PASSWORD_EXPIRY_WARNING, "Password Expiry Warning"),
-        (EventType.REMINDER, "Reminder")
+        (EventType.REMINDER, "Reminder"),
+        (EventType.CLINICIAN_SELECTED, "Clinician Selected")
     )
 
     description = models.CharField(max_length=100, choices=EMAIL_NOTIFICATIONS)
