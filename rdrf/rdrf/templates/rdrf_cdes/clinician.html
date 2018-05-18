@@ -107,6 +107,12 @@
 
             <form class="form-horizontal" method="post" id="main-form" enctype="multipart/form-data">
 	      {% csrf_token %}
+          <div class="panel panel-info">
+              <div class="panel-body">
+              Please click the green 'save' button before progressing to the next module.
+          </div>
+      </div>
+
               <div id="clinician_panel" class="panel panel-default">
 		<div class="panel-heading"><strong>{{form_name}}</strong></div>
                 <div class="panel-body">
