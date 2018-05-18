@@ -31,7 +31,11 @@
                     {% if form.non_field_errors|length > 1 %}
                       <ul>
                         {% for err in form.non_field_errors %}
-                          <li>{{ err }}</li>
+                            {% if err == original_error_msg %}
+                                <li>{{ err }} {{ additional_error_msg }}</li>
+                            {% else %}
+                                <li>{{ err }}</li>
+                            {% endif %}
                         {% endfor %}
                       </ul>
                     {% else %}
