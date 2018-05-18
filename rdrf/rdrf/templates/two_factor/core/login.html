@@ -20,6 +20,9 @@
           </div>
 
           {% if form.non_field_errors %}
+          {% trans "Please enter a correct username and password. Note that both fields may be case-sensitive." as original_error_msg %}
+          {% trans "If you have forgotten your username or password, please use the ‘Trouble signing in?’ link below. Your account will be locked after 3 incorrect password attempts, and you will be sent an email with instructions on what to do." as additional_error_msg %}
+
             <div class="row">
               <div class="col-xs-12">
                 <div class="alert alert-danger" role="alert">
@@ -32,8 +35,12 @@
                         {% endfor %}
                       </ul>
                     {% else %}
-                      {% for err in form.non_field_errors %}
-                        <div class="text-center">{{ err }}</div>
+                        {% for err in form.non_field_errors %}
+                            {% if err == original_error_msg %}
+                                <div class="text-center">{{ err }} {{ additional_error_msg }}</div>
+                            {% else %}
+                                <div class="text-center">{{ err }}</div>
+                            {% endif %}
                       {% endfor %}
                     {% endif %}
                   </div>
