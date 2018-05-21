@@ -22,7 +22,7 @@
     <script type="text/javascript" src="{% static 'js/vendor/adsafe-min.js' %}"></script>
     <link rel="stylesheet" type="text/css" href="{% static 'css/variation/variation.css' %}" media="all">
     <link rel="stylesheet" href="{% static 'css/jquery-1.11.4/themes/smoothness/jquery-ui.min.css' %}">
-    
+
     <!--[if IE 8]>
 	<script type="text/javascript" src="ie_expand_select_width.js"></script>
 	<script type="text/javascript">
@@ -50,29 +50,29 @@
           * html .ui-autocomplete {
             height: 100px;
         }
-        
+
         ul {
             list-style-type: none;
             margin-left: 0;
         }
-        
+
         table {
             table-layout: fixed;
         }
-        
+
         .progress {
             margin-bottom: 0px;
         }
-        
+
         .badge {
             border-radius: 0px;
         }
-        
+
         .table>thead>tr>th, .table>tbody>tr>th, .table>tfoot>tr>th, .table>thead>tr>td, .table>tbody>tr>td, .table>tfoot>tr>td {
             border-top: 0;
         }
     </style>
-    
+
     <script>
         function goBack() {
             var warning = confirm("Are you sure?\nAll entered or amended data will be lost!");
@@ -81,7 +81,7 @@
             }
         }
     </script>
-    
+
     <script>
     // The following "corrects" the behaviour of the "today" button in the jquery datepicker
     // clicking the today button
@@ -105,7 +105,7 @@
         this._notifyChange(inst);
         this._adjustDate(target);
     }
-    
+
     {% if user.is_superuser and has_form_progress %}
         $(function() {
             $( "#form-progress" ).progressbar({
@@ -113,14 +113,14 @@
             });
         });
     {% endif %}
-    
+
     $(document).ready(function(){
         $("#form-progress-cdes").hide();
-        
+
         $("#show-cdes-btn").click(function() {
             $("#form-progress-cdes").toggle("fast");
         });
-        
+
         $(document).find( ".datepicker" ).each(function() {
             $(this).on("mouseover", function() {
                 $(this).datepicker({
@@ -134,20 +134,20 @@
             });
         });
     });
-    
+
     function add_form(prefix) {
         var mgmt_form = $("#mgmt_" + prefix);
         var empty_form = $("#empty_" + prefix);
         var forms = $("#forms_" + prefix);
-        
+
         var total_forms = mgmt_form.find("input[id=id_"+ prefix +"-TOTAL_FORMS]")
-        
+
         var new_form = empty_form.clone(true, true);
-        
+
         new_form.find(":input").each(function() {
             $(this).attr("id", $(this).attr("id").replace(/__prefix__/g, total_forms.val()));
             $(this).attr("name", $(this).attr("name").replace(/__prefix__/g, total_forms.val()));
-            
+
             if ($(this).hasClass("datepicker")) {
                 $(this).datepicker({
                     changeMonth: true,
@@ -209,7 +209,7 @@
 			</a>
 		{% endif %}
 	</div>
-{% endblock %}	
+{% endblock %}
 
 
 
@@ -230,7 +230,7 @@
         <form class="form-horizontal" enctype="multipart/form-data" method="post">{% csrf_token %}
             {% if has_form_progress %}
                 <div class="well">
-                    <p class="text-muted"><i><strong>Required CDEs for progress indicator</strong></i></p>
+                    <p class="text-muted"><i><strong>Progress on this page</strong></i></p>
                     <div id="form-progress">
                         <ul class="list-group">
                             <li class="list-group-item">
@@ -263,14 +263,14 @@
 
             {% for s in sections %}
                 <div class="panel panel-default">
-    
+
                     <div class="panel-heading">
                         {% if request.user.is_superuser and settings.DESIGN_MODE %}
                             <a target="_blank" href="{% url 'admin:rdrf_section_change' section_ids|get_section_id:s %}"><strong>{{display_names|get_display_name:s}}</strong></a>
                         {% else %}
                             <strong>{{display_names|get_display_name:s}}</strong>
                         {% endif %}
-                        
+
                         {% if forms|is_formset:s %}
                             {% with formset=forms|get_form_object:s %}
                                 <a class="btn btn-primary btn-xs pull-right" onclick="add_form('{{formset.prefix}}');">
@@ -279,7 +279,7 @@
                             {% endwith %}
                         {% endif %}
                     </div>
-    
+
                     <div class="panel-body">
                         {% if forms|is_formset:s %}
                             {% with formset=forms|get_form_object:s %}
@@ -321,7 +321,7 @@
                                             </div>
                                     {% endfor %}
                                 </div>
-                                
+
                                 <div id="forms_{{formset.prefix}}">
                                 {% for f in formset.forms %}
                                     <div>
@@ -382,7 +382,7 @@
             {% endfor %}
         </div>
 
-       
+
     </form>
 
  </div>
@@ -406,7 +406,7 @@
             </div>
         {% endfor %}
     {% endfor %}
-    
+
     {% for error in form.non_field_errors %}
         <div class="alert alert-error">
             <strong>{{ error|escape }}</strong>
@@ -415,5 +415,3 @@
 {% endif %}
 
 {% endblock %}
-
-
