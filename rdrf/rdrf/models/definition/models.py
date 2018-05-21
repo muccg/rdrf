@@ -875,7 +875,7 @@ class RegistryForm(models.Model):
 
     registry = models.ForeignKey(Registry)
     name = models.CharField(max_length=80,
-                            help_text="Internal name: Alphanumeric")
+                            help_text="Internal name used by system: Alphanumeric, no spaces")
     display_name = models.CharField(max_length=200,
                                     blank=True,
                                     null=True,
