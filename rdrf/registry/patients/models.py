@@ -1395,6 +1395,18 @@ def clean_consents(sender, instance, **kwargs):
 
 
 @receiver(post_save, sender=Patient)
+def sync_user(sender, instance, **kwargs):
+    # ensure that changes to a patient name propagate
+    # to any related user objects
+    if instance.user:
+        username = instance.user.username
+        user = CustomUser.objects.get(username=username)
+        user.first_name = instance.given_names
+        user.last_name = instance.family_name
+        user.save()
+
+
+@receiver(post_save, sender=Patient)
 def update_family_linkage_fields(sender, instance, **kwargs):
     logger.debug("updating family linkage fields")
     for registry_model in instance.rdrf_registry.all():
