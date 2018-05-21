@@ -976,7 +976,7 @@ class RegistryForm(models.Model):
     def nice_name(self):
         from rdrf.helpers.utils import de_camelcase
         try:
-            return de_camelcase(self.name)
+            return self.display_name if self.display_name else de_camelcase(self.name)
         except BaseException:
             return self.name
 

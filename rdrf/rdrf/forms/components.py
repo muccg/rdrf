@@ -98,7 +98,8 @@ class RDRFContextLauncherComponent(RDRFComponent):
                  registry_model,
                  patient_model,
                  current_form_name="Demographics",
-                 current_rdrf_context_model=None):
+                 current_rdrf_context_model=None,
+                 registry_form=None):
         self.user = user
         self.registry_model = registry_model
         self.patient_model = patient_model
@@ -108,12 +109,21 @@ class RDRFContextLauncherComponent(RDRFComponent):
         # associated with a multiple context form group
         self.current_rdrf_context_model = current_rdrf_context_model
         self.consent_locked = self._is_consent_locked()
+        self.registry_form = registry_form
+
+    @property
+    def form_name_for_template(self):
+        # registry form may not be set 
+        if self.registry_form and self.registry_form.display_name:
+            return self.registry_form.display_name
+        else:
+            return self.current_form_name
 
     def _get_template_data(self):
         existing_data_link = self._get_existing_data_link()
 
         data = {
-            "current_form_name": self.current_form_name,
+            "current_form_name": self.form_name_for_template,
             "patient_listing_link": existing_data_link,
             "actions": self._get_actions(),
             "fixed_contexts": self._get_fixed_contexts(),
@@ -127,6 +137,7 @@ class RDRFContextLauncherComponent(RDRFComponent):
         }
 
         return data
+
 
     def _get_clinician_form_link(self):
         if not self.registry_model.has_feature("clinician_form"):

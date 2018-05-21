@@ -110,7 +110,7 @@ class FormLink(object):
 
     @property
     def text(self):
-        return de_camelcase(self.form.name)
+        return self.form.nice_name
 
 
 def get_user(username):
@@ -143,7 +143,7 @@ def get_site_url(request, path="/"):
 
 
 def location_name(registry_form, current_rdrf_context_model=None):
-    form_display_name = de_camelcase(registry_form.name)
+    form_display_name = registry_form.nice_name
     context_form_group = None
     if registry_form.registry.has_feature("contexts"):
         if current_rdrf_context_model is not None:

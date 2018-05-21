@@ -340,7 +340,8 @@ class FormView(View):
                                                         self.registry,
                                                         patient_model,
                                                         self.registry_form.name,
-                                                        self.rdrf_context)
+                                                        self.rdrf_context,
+                                                        registry_form=self.registry_form)
 
         context = self._build_context(user=request.user, patient_model=patient_model)
         context["location"] = location_name(self.registry_form, self.rdrf_context)
@@ -445,7 +446,7 @@ class FormView(View):
         dyn_patient.current_form_model = form_obj
         self.registry_form = form_obj
 
-        form_display_name = form_obj.name
+        form_display_name = form_obj.display_name if form_obj.display_name else form_obj.name
         sections, display_names, ids = self._get_sections(form_obj)
         form_section = {}
         section_element_map = {}
@@ -604,14 +605,15 @@ class FormView(View):
                                                         registry,
                                                         patient,
                                                         self.registry_form.name,
-                                                        self.rdrf_context)
+                                                        self.rdrf_context,
+                                                        registry_form=self.registry_form)
 
         patient_info_component = RDRFPatientInfoComponent(registry, patient)
 
         context = {
             'CREATE_MODE': self.CREATE_MODE,
             'current_registry_name': registry.name,
-            'current_form_name': de_camelcase(form_obj.name),
+            'current_form_name': form_obj.display_name if form_obj.display_name else de_camelcase(form_obj.name),
             'registry': registry_code,
             'registry_code': registry_code,
             'form_name': form_id,
@@ -796,7 +798,7 @@ class FormView(View):
             'CREATE_MODE': self.CREATE_MODE,
             'old_style_demographics': self.registry.code != 'fkrp',
             'current_registry_name': self.registry.name,
-            'current_form_name': de_camelcase(self.registry_form.name),
+            'current_form_name': self.registry_form.display_name if self.registry_form.display_name else de_camelcase(self.registry_form.name),
             'registry': self.registry.code,
             'registry_code': self.registry.code,
             'form_name': self.form_id,
