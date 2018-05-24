@@ -38,5 +38,6 @@ startup
 *.po
 *.mo
 .ropeproject
+yarn_cache/
 
 

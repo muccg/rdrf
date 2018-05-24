@@ -16,6 +16,7 @@ node {
             ./develop.sh build base
             ./develop.sh build builder
             ./develop.sh build dev
+            ./develop.sh build node
             ./develop.sh check-migrations
         ''')
     }
@@ -41,6 +42,9 @@ node {
         dockerStage('Prod build') {
             sh('''
                 ./develop.sh run-builder
+                ./develop.sh run-builder checkout
+                ./develop.sh run build node
+                ./develop.sh run-builder releasetarball
                 ./develop.sh build prod
             ''')
         }
