@@ -2,10 +2,27 @@
 {% load i18n %}
 
 {% block content %}
+
+<style>
+/*#two_factor_popover .popover {
+  width: 500px;
+}*/
+</style>
   <form action="" method="post">
     {% csrf_token %}
       <div class="panel panel-default">
-        <div class="panel-heading">{% trans "Enable Two-Factor Authentication" %}</div>
+      <div class="panel-heading">
+          {% trans "Enable Two-Factor Authentication" %}
+          <span 
+            class="glyphicon glyphicon-question-sign two_factor_popover_container" 
+            data-toggle="popover" 
+            data-animation="false"
+            data-content='<b>foobar</b>' 
+            data-placement="bottom"
+            data-trigger="hover"
+            data-original-title='<b>{% trans "Two-factor authentication" %}</b>'>
+          </span>
+        </div>
         <div class="panel-body">
           <div class="row">
             {% if wizard.steps.current == 'welcome' %}
