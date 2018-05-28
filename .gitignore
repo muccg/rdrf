@@ -2,6 +2,7 @@ syntax: glob
 
 *.pyc
 *.swp
+*.swo
 data
 build
 dist
@@ -38,5 +39,17 @@ startup
 *.po
 *.mo
 .ropeproject
+*.js~
+*.html~
+*.tags
+*.tags1
+.env_local
 
 
+node_modules
+yarn-error.log
+rdrf/rdrf/frontend/dist
+rdrf/rdrf/static/js/*-bundle*.js
+
+yarn_cache/
+yarn-error.log
