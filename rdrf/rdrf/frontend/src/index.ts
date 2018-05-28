@@ -1,4 +1,4 @@
-export function testts(s: string) {
-       return "You typed " + s;
+export function foobar(s: string) {
+       return "Yu typed " + s;
 }
 
