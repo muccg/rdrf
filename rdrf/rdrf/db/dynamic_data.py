@@ -322,8 +322,15 @@ class FormDataParser(object):
         for item_dict in multisection_item_list:
             if "DELETE" in item_dict and item_dict["DELETE"]:
                 continue
+
+            # rdrf #606 
+            if not item_dict:
+                continue
+            
             item = []
+                
             for key in item_dict:
+                logger.debug("item_dict = %s" % item_dict)
                 if is_delimited_key(key):
                     value = item_dict[key]
                     form_model, section_model, cde_model = models_from_mongo_key(
@@ -338,6 +345,12 @@ class FormDataParser(object):
                     cde_dict = {"code": cde_model.code, "value": value}
                     item.append(cde_dict)
             items.append(item)
+
+        if the_form_model is None:
+            # rdrf #606
+            # this can arise if a multisection is completely blanked out
+            # no form model / no data
+            return
         self.parsed_multisections[(the_form_model, the_section_model)] = items
 
     def _parse_value(self, value):
