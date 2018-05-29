@@ -49,6 +49,10 @@
             body {
                 padding-top: 60px;
             }
+
+            .popover {
+                max-width: 40%;
+            }
         </style>
       {% endblock %}
       {% block extrahead %}{% endblock %}
@@ -63,7 +67,9 @@
 
           hide_empty_menu(); // Hide the menu dropdown option if there are no elements
 
-          $('[data-toggle="popover"]').popover();
+          $('[data-toggle="popover"]').popover({
+              container: 'body'
+          });
 
 		});
 	  </script>
