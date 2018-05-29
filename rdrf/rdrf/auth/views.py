@@ -65,14 +65,6 @@ class QRGeneratorView(tfv.core.QRGeneratorView):
 class SetupView(tfv.core.SetupView):
     session_key_name = 'two_fact_auth_key'
 
-    def get(self, request, *args, **kwargs):
-        """
-        Start the setup wizard. Redirect if already enabled.
-        """
-        if default_device(self.request.user):
-            return redirect(self.success_url)
-        return super(SetupView, self).get(request, *args, **kwargs)
-
 
 @tfv.utils.class_view_decorator(never_cache)
 @tfv.utils.class_view_decorator(login_required)
