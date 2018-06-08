@@ -400,7 +400,7 @@ class FormView(View):
             raise Http404
         all_errors = []
         progress_dict = {}
-
+        
         self.CREATE_MODE = False  # Normal edit view; False means Create View and context saved AFTER validity check
         sections_to_save = []  # when a section is validated it is added to this list
         all_sections_valid = True
@@ -466,8 +466,8 @@ class FormView(View):
                 section_model,
                 injected_model="Patient",
                 injected_model_id=self.patient_id,
-                is_superuser=self.request.user.is_superuser,
-                user_groups=self.user.working_groups.all(),
+                is_superuser=self.user.is_superuser,
+                user_groups=self.user.groups.all(),
                 patient_model=patient)
             section_elements = section_model.get_elements()
             section_element_map[s] = section_elements

@@ -837,13 +837,16 @@ class CdePolicy(models.Model):
     groups_allowed = models.ManyToManyField(Group, blank=True)
     condition = models.TextField(blank=True)
 
-    def is_allowed(self, user_groups, patient_model=None):
+    def is_allowed(self, user_groups, patient_model=None, is_superuser=False):
+        if is_superuser:
+            return True
         for ug in user_groups:
             if ug in self.groups_allowed.all():
                 if patient_model:
                     return self.evaluate_condition(patient_model)
                 else:
                     return True
+
 
     class Meta:
         verbose_name = "CDE Policy"
@@ -853,6 +856,7 @@ class CdePolicy(models.Model):
         if not self.condition:
             return True
         # need to think about safety here
+
         context = {"patient": patient_model}
         result = eval(self.condition, {"__builtins__": None}, context)
         return result
