@@ -264,7 +264,13 @@ def user_registered_callback(sender, user, request, **kwargs):
         from mtm.patient_registration import MtmRegistration
         patient_reg = MtmRegistration(user, request)
 
-    patient_reg.process()
+    try:
+        patient_reg.process()
+    except Exception as ex:
+        logger.error("Error during registration of %s (rolling back): %s" % (user.username, ex))
+        user.delete()
+        
+        
 
 
 @receiver(user_activated)
