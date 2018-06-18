@@ -1098,13 +1098,11 @@ class ClinicianOther(models.Model):
                 wgs = [wg for wg in self.user.working_groups.all()]
                 self.patient.working_groups = wgs
                 self.patient.save()
-
                 # fkrp use case
                 # if the patient is a user update the user working groups to match
                 if self.patient.user:
                     self.patient.user.working_groups = [wg for wg in self.patient.working_groups.all() ]
                     self.patient.user.save()
-                
                 # if there user/parent of this patient then need to update their working
                 # groups also
                 try:
@@ -1135,7 +1133,6 @@ def other_clinician_post_save(sender, instance, created, raw, using, update_fiel
             # if patient was created not as child of a user
             parent = None
 
-        logger.debug("send notification")
         template_data = {
             "patient": patient,
             "parent": parent,
@@ -1151,7 +1148,6 @@ def other_clinician_post_save(sender, instance, created, raw, using, update_fiel
 def selected_clinician_notification(sender, instance, **kwargs):
     from rdrf.services.io.notifications.email_notification import process_notification
     from rdrf.events.events import EventType
-    
     if instance.clinician and hasattr(instance, "clinician_flag"):
         registry_model = instance.rdrf_registry.first()
         template_data = {"patient": instance}
@@ -1159,6 +1155,9 @@ def selected_clinician_notification(sender, instance, **kwargs):
                              EventType.CLINICIAN_SELECTED,
                              template_data)
 
+        # this is to prevent the working groups synching triggering the same notification
+        # we only allow one per clinician selection event
+        delattr(instance, "clinician_flag")
 
 class ParentGuardian(models.Model):
     GENDER_CHOICES = (("1", "Male"), ("2", "Female"), ("3", "Indeterminate"))
