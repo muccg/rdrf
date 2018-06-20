@@ -1,5 +1,11 @@
-
+from django.shortcuts import redirect
+from django.db import transaction
 from registration.backends.default.views import RegistrationView
+import logging
+
+logger = logging.getLogger(__name__)
+
+
 
 
 class RdrfRegistrationView(RegistrationView):
@@ -12,6 +18,7 @@ class RdrfRegistrationView(RegistrationView):
         form = self.get_form(form_class)
         return self.render_to_response(self.get_context_data(form=form))
 
+    @transaction.atomic
     def post(self, request, *args, **kwargs):
         form_class = self.get_form_class()
         form = self.get_form(form_class)
@@ -35,6 +42,7 @@ class RdrfRegistrationView(RegistrationView):
         # The default list is english only which we don't bother to show
         from rdrf.helpers.utils import get_supported_languages
         languages = get_supported_languages()
+
         if len(languages) == 1 and languages[0].code == "en":
             return []
         else:
