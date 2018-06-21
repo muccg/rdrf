@@ -281,6 +281,7 @@ class Exporter(object):
             cde_map["min_value"] = str(cde_model.min_value)
             cde_map["max_value"] = str(cde_model.max_value)
             cde_map["is_required"] = cde_model.is_required
+            cde_map["important"] = cde_model.important
             cde_map["pattern"] = cde_model.pattern
             cde_map["widget_name"] = cde_model.widget_name
             cde_map["calculation"] = cde_model.calculation
