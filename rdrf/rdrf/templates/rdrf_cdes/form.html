@@ -351,6 +351,9 @@
                                                         {% if  element.field.required %}
                                                             <span class="glyphicon glyphicon-asterisk" style="color: red;" aria-hidden="true"></span>
                                                         {% endif %}
+                                                        {% if  element.field.important %}
+                                                            <span class="glyphicon glyphicon-asterisk" style="color: green;" aria-hidden="true"></span>
+                                                        {% endif %}
                                                     </label>
                                                     <div class="col-sm-9">
                                                         {{ element|safe }}
@@ -385,6 +388,9 @@
                                                             {% if  element.field.required %}
                                                                 <span class="glyphicon glyphicon-asterisk" style="color: red;" aria-hidden="true"></span>
                                                             {% endif %}
+                                                        {% if  element.field.important %}
+                                                            <span class="glyphicon glyphicon-asterisk" style="color: green;" aria-hidden="true"></span>
+                                                        {% endif %}
                                                         {% endif %}
                                                     </label>
                                                     <div class="col-sm-9">
@@ -421,6 +427,9 @@
                                         {{field.label}}
                                         {% if  field.field.required %}
                                             <span class="glyphicon glyphicon-asterisk" style="color: red;" aria-hidden="true"></span>
+                                        {% endif %}
+                                        {% if  element.field.important %}
+                                           <span class="glyphicon glyphicon-asterisk" style="color: green;" aria-hidden="true"></span>
                                         {% endif %}
                                     </label>
                                     <div class="col-sm-9">

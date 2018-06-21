@@ -748,6 +748,8 @@ class CommonDataElement(models.Model):
         blank=True,
         help_text="The text to use in any public facing questionnaires/registration forms")
 
+    important = models.BooleanField(default=False, help_text="Indicate whether the field should be emphasised with a green asterisk")
+
     def __str__(self):
         return "CDE %s:%s" % (self.code, self.name)
 

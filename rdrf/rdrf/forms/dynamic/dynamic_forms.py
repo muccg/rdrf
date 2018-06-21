@@ -70,6 +70,9 @@ def create_form_class_for_section(
             injected_model=injected_model,
             injected_model_id=injected_model_id,
             is_superuser=is_superuser).create_field()
+
+        cde_field.important = cde.important
+
         field_code_on_form = "%s%s%s%s%s" % (registry_form.name,
                                              settings.FORM_SECTION_DELIMITER,
                                              section.code,
