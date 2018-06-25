@@ -162,6 +162,7 @@ class PatientForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         clinicians = CustomUser.objects.all()
+        instance = None
 
         if 'registry_model' in kwargs:
             self.registry_model = kwargs['registry_model']
@@ -209,9 +210,13 @@ class PatientForm(forms.ModelForm):
             # working groups shown should be only related to the groups avail to the
             # user in the registry being edited
             if not user.is_superuser:
-                self.fields["working_groups"].queryset = WorkingGroup.objects.filter(
-                    registry=self.registry_model, id__in=[
-                        wg.pk for wg in self.user.working_groups.all()])
+                if self._is_parent_editing_child(instance):
+                    # see FKRP #472
+                    self.fields["working_groups"].widget = forms.SelectMultiple(attrs={'readonly':'readonly'})
+                    self.fields["working_groups"].queryset = instance.working_groups.all()
+                else:
+                    self.fields["working_groups"].queryset = WorkingGroup.objects.filter(
+                        registry=self.registry_model, id__in=[ wg.pk for wg in self.user.working_groups.all()])
             else:
                 self.fields["working_groups"].queryset = WorkingGroup.objects.filter(
                     registry=self.registry_model)
@@ -245,6 +250,16 @@ class PatientForm(forms.ModelForm):
 
         if self._is_adding_patient(kwargs):
             self._setup_add_form()
+
+
+    def _is_parent_editing_child(self, patient_model):
+        # see FKRP #472
+        if patient_model is not None and hasattr(self, "user"):
+            try:
+                parent_guardian = ParentGuardian.objects.get(user=self.user)
+                return patient_model in parent_guardian.children
+            except ParentGuardian.DoesNotExist:
+                pass
 
     def _get_registry_specific_data(self, patient_model):
         if patient_model is None:
