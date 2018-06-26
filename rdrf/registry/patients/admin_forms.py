@@ -41,7 +41,6 @@ class PatientDoctorForm(forms.ModelForm):
 
 
 class PatientRelativeForm(forms.ModelForm):
-
     class Meta:
         model = PatientRelative
         fields = "__all__"  # Added after upgrading to Django 1.8
@@ -50,14 +49,10 @@ class PatientRelativeForm(forms.ModelForm):
         exclude = ['id']
         widgets = {
             'relative_patient': PatientRelativeLinkWidget,
-
         }
 
     date_of_birth = forms.DateField(
-        widget=forms.DateInput(
-            attrs={
-                'class': 'datepicker'},
-            format='%d-%m-%Y'),
+        widget=forms.DateInput(attrs={'class': 'datepicker'}, format='%d-%m-%Y'),
         help_text=_("DD-MM-YYYY"),
         input_formats=['%d-%m-%Y'])
 
@@ -65,7 +60,7 @@ class PatientRelativeForm(forms.ModelForm):
         self.create_patient_data = None
         super(PatientRelativeForm, self).__init__(*args, **kwargs)
         self.create_patient_flag = False
-        self.tag = None    # used to locate this form
+        self.tag = None  # used to locate this form
 
     def _clean_fields(self):
         self._errors = ErrorDict()
@@ -77,8 +72,7 @@ class PatientRelativeForm(forms.ModelForm):
         # this 'on' value from widget is replaced by the pk of the created patient
         for name, field in list(self.fields.items()):
             try:
-                value = field.widget.value_from_datadict(
-                    self.data, self.files, self.add_prefix(name))
+                value = field.widget.value_from_datadict(self.data, self.files, self.add_prefix(name))
                 if name == "relative_patient":
                     if value == "on":
                         self.cleaned_data[name] = None
@@ -93,7 +87,7 @@ class PatientRelativeForm(forms.ModelForm):
                         raise ValidationError("Date of Birth must be dd-mm-yyyy")
 
                 elif name == 'patient':
-                    continue   # this was causing error in post clean - we set this ourselves
+                    continue  # this was causing error in post clean - we set this ourselves
                 else:
                     self.cleaned_data[name] = value
 
@@ -120,15 +114,11 @@ class PatientRelativeForm(forms.ModelForm):
 
 
 class PatientAddressForm(forms.ModelForm):
-
     class Meta:
         model = PatientAddress
         fields = ('address_type', 'address', 'country', 'state', 'suburb', 'postcode')
 
-    country = forms.ComboField(
-        required=True, widget=CountryWidget(
-            attrs={
-                'onChange': 'select_country(this);'}))
+    country = forms.ComboField(required=True, widget=CountryWidget(attrs={'onChange': 'select_country(this);'}))
     state = forms.ComboField(required=True, widget=StateWidget())
     address = forms.CharField(widget=forms.Textarea(attrs={'rows': 5}))
 
@@ -162,6 +152,7 @@ class PatientForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         clinicians = CustomUser.objects.all()
+        instance = None
 
         if 'registry_model' in kwargs:
             self.registry_model = kwargs['registry_model']
@@ -181,17 +172,15 @@ class PatientForm(forms.ModelForm):
 
             kwargs['initial'] = initial_data
 
-            clinicians = CustomUser.objects.filter(
-                registry__in=kwargs['instance'].rdrf_registry.all())
+            clinicians = CustomUser.objects.filter(registry__in=kwargs['instance'].rdrf_registry.all())
 
         if "user" in kwargs:
             self.user = kwargs.pop("user")
 
-        super(PatientForm, self).__init__(*args, **kwargs)   # NB I have moved the constructor
+        super(PatientForm, self).__init__(*args, **kwargs)  # NB I have moved the constructor
 
         clinicians_filtered = [c.id for c in clinicians if c.is_clinician]
-        self.fields["clinician"].queryset = CustomUser.objects.filter(
-            id__in=clinicians_filtered)
+        self.fields["clinician"].queryset = CustomUser.objects.filter(id__in=clinicians_filtered)
 
         # clinicians field should only be visible for registries which
         # support linking of patient to an "owning" clinician
@@ -209,12 +198,15 @@ class PatientForm(forms.ModelForm):
             # working groups shown should be only related to the groups avail to the
             # user in the registry being edited
             if not user.is_superuser:
-                self.fields["working_groups"].queryset = WorkingGroup.objects.filter(
-                    registry=self.registry_model, id__in=[
-                        wg.pk for wg in self.user.working_groups.all()])
+                if self._is_parent_editing_child(instance):
+                    # see FKRP #472
+                    self.fields["working_groups"].widget = forms.SelectMultiple(attrs={'readonly': 'readonly'})
+                    self.fields["working_groups"].queryset = instance.working_groups.all()
+                else:
+                    self.fields["working_groups"].queryset = WorkingGroup.objects.filter(
+                        registry=self.registry_model, id__in=[wg.pk for wg in self.user.working_groups.all()])
             else:
-                self.fields["working_groups"].queryset = WorkingGroup.objects.filter(
-                    registry=self.registry_model)
+                self.fields["working_groups"].queryset = WorkingGroup.objects.filter(registry=self.registry_model)
 
             # field visibility restricted no non admins
             if not user.is_superuser:
@@ -229,8 +221,7 @@ class PatientForm(forms.ModelForm):
                     readonly = False
                     for wg in working_groups:
                         try:
-                            field_config = DemographicFields.objects.get(
-                                registry=registry, group=wg, field=field)
+                            field_config = DemographicFields.objects.get(registry=registry, group=wg, field=field)
                             hidden = hidden or field_config.hidden
                             readonly = readonly or field_config.readonly
                         except DemographicFields.DoesNotExist:
@@ -240,11 +231,19 @@ class PatientForm(forms.ModelForm):
                         self.fields[field].widget = forms.HiddenInput()
                         self.fields[field].label = ""
                     if readonly and not hidden:
-                        self.fields[field].widget = forms.TextInput(
-                            attrs={'readonly': 'readonly'})
+                        self.fields[field].widget = forms.TextInput(attrs={'readonly': 'readonly'})
 
         if self._is_adding_patient(kwargs):
             self._setup_add_form()
+
+    def _is_parent_editing_child(self, patient_model):
+        # see FKRP #472
+        if patient_model is not None and hasattr(self, "user"):
+            try:
+                parent_guardian = ParentGuardian.objects.get(user=self.user)
+                return patient_model in parent_guardian.children
+            except ParentGuardian.DoesNotExist:
+                pass
 
     def _get_registry_specific_data(self, patient_model):
         if patient_model is None:
@@ -270,8 +269,7 @@ class PatientForm(forms.ModelForm):
 
         for reg_code in registry_specific_data:
             reg_data = registry_specific_data[reg_code]
-            wrapped_data = {key: wrap(reg_code, key, value)
-                            for key, value in reg_data.items()}
+            wrapped_data = {key: wrap(reg_code, key, value) for key, value in reg_data.items()}
             wrapped_dict[reg_code] = wrapped_data
 
         return wrapped_dict
@@ -296,31 +294,21 @@ class PatientForm(forms.ModelForm):
             initial_working_groups = user.working_groups.filter(registry=self.registry_model)
             self.fields['working_groups'].queryset = initial_working_groups
         else:
-            self.fields['working_groups'].queryset = WorkingGroup.objects.filter(
-                registry=self.registry_model)
+            self.fields['working_groups'].queryset = WorkingGroup.objects.filter(registry=self.registry_model)
 
     date_of_birth = forms.DateField(
-        widget=forms.DateInput(
-            attrs={
-                'class': 'datepicker'},
-            format='%d-%m-%Y'),
+        widget=forms.DateInput(attrs={'class': 'datepicker'}, format='%d-%m-%Y'),
         help_text=_("DD-MM-YYYY"),
         input_formats=['%d-%m-%Y'])
 
     date_of_death = forms.DateField(
-        widget=forms.DateInput(
-            attrs={
-                'class': 'datepicker'},
-            format='%d-%m-%Y'),
+        widget=forms.DateInput(attrs={'class': 'datepicker'}, format='%d-%m-%Y'),
         help_text=_("DD-MM-YYYY"),
         input_formats=['%d-%m-%Y'],
         required=False)
 
     date_of_migration = forms.DateField(
-        widget=forms.DateInput(
-            attrs={
-                'class': 'datepicker'},
-            format='%d-%m-%Y'),
+        widget=forms.DateInput(attrs={'class': 'datepicker'}, format='%d-%m-%Y'),
         help_text=_("DD-MM-YYYY"),
         required=False,
         input_formats=['%d-%m-%Y'])
@@ -328,8 +316,14 @@ class PatientForm(forms.ModelForm):
     class Meta:
         model = Patient
         widgets = {
-            'next_of_kin_address': forms.Textarea(attrs={"rows": 3, "cols": 30}),
-            'inactive_reason': forms.Textarea(attrs={"rows": 3, "cols": 30}),
+            'next_of_kin_address': forms.Textarea(attrs={
+                "rows": 3,
+                "cols": 30
+            }),
+            'inactive_reason': forms.Textarea(attrs={
+                "rows": 3,
+                "cols": 30
+            }),
             'user': forms.HiddenInput()
         }
         exclude = ['doctors']
@@ -386,8 +380,8 @@ class PatientForm(forms.ModelForm):
 
                 answer_dict = data[registry_model][consent_section_model]
                 if not consent_section_model.is_valid(answer_dict):
-                    error_message = "Consent Section '%s %s' is not valid" % (
-                        registry_model.code.upper(), consent_section_model.section_label)
+                    error_message = "Consent Section '%s %s' is not valid" % (registry_model.code.upper(),
+                                                                              consent_section_model.section_label)
                     validation_errors.append(error_message)
 
         if len(validation_errors) > 0:
@@ -421,14 +415,10 @@ class PatientForm(forms.ModelForm):
                 # are we still applicable?! - maybe some field on patient changed which
                 # means not so any longer?
                 if consent_section_model.applicable_to(patient_model):
-                    cv = patient_model.set_consent(
-                        consent_question_model, self.custom_consents[consent_field], commit)
+                    cv = patient_model.set_consent(consent_question_model, self.custom_consents[consent_field], commit)
             if not patient_registries:
-                closure = self._make_consent_closure(
-                    registry_model,
-                    consent_section_model,
-                    consent_question_model,
-                    consent_field)
+                closure = self._make_consent_closure(registry_model, consent_section_model, consent_question_model,
+                                                     consent_field)
                 if hasattr(patient_model, 'add_registry_closures'):
                     patient_model.add_registry_closures.append(closure)
                 else:
@@ -436,19 +426,14 @@ class PatientForm(forms.ModelForm):
 
         return patient_model
 
-    def _make_consent_closure(
-            self,
-            registry_model,
-            consent_section_model,
-            consent_question_model,
-            consent_field):
+    def _make_consent_closure(self, registry_model, consent_section_model, consent_question_model, consent_field):
         def closure(patient_model, registry_ids):
             if registry_model.id in registry_ids:
                 if consent_section_model.applicable_to(patient_model):
-                    cv = patient_model.set_consent(
-                        consent_question_model, self.custom_consents[consent_field])
+                    cv = patient_model.set_consent(consent_question_model, self.custom_consents[consent_field])
             else:
                 pass
+
         return closure
 
     def _check_working_groups(self, cleaned_data):
@@ -468,34 +453,17 @@ class PatientForm(forms.ModelForm):
         if bad:
             bad_regs = [Registry.objects.get(code=reg_code).name for reg_code in bad]
             raise forms.ValidationError(
-                "Patient can only belong to one working group per registry. Patient is assigned to more than one working for %s" %
-                ",".join(bad_regs))
+                "Patient can only belong to one working group per registry. Patient is assigned to more than one working for %s"
+                % ",".join(bad_regs))
 
 
 class ParentGuardianForm(forms.ModelForm):
-
     class Meta:
         model = ParentGuardian
         fields = [
-            'first_name',
-            'last_name',
-            'date_of_birth',
-            'gender',
-            'address',
-            'country',
-            'state',
-            'suburb',
-            'postcode',
+            'first_name', 'last_name', 'date_of_birth', 'gender', 'address', 'country', 'state', 'suburb', 'postcode',
             'phone'
         ]
-        exclude = [
-            'user',
-            'patient',
-            'place_of_birth',
-            'date_of_migration'
-        ]
+        exclude = ['user', 'patient', 'place_of_birth', 'date_of_migration']
 
-        widgets = {
-            'state': StateWidget(),
-            'country': CountryWidget()
-        }
+        widgets = {'state': StateWidget(), 'country': CountryWidget()}
