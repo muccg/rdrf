@@ -1,11 +1,11 @@
 from django.shortcuts import redirect
-from django.db import transaction
+from django.core.urlresolvers import reverse
 from registration.backends.default.views import RegistrationView
+import time
 import logging
 
+
 logger = logging.getLogger(__name__)
-
-
 
 
 class RdrfRegistrationView(RegistrationView):
@@ -18,7 +18,6 @@ class RdrfRegistrationView(RegistrationView):
         form = self.get_form(form_class)
         return self.render_to_response(self.get_context_data(form=form))
 
-    @transaction.atomic
     def post(self, request, *args, **kwargs):
         form_class = self.get_form_class()
         form = self.get_form(form_class)
@@ -47,3 +46,31 @@ class RdrfRegistrationView(RegistrationView):
             return []
         else:
             return languages
+
+    def form_valid(self, form):
+        new_user = self.register(form)
+        username = new_user.username
+        success_url = self.get_success_url(new_user)
+        failure_url = reverse("registration_failed")
+        time.sleep(2)
+        try:
+            # despite  this being called form valid,
+            # it's possible errors occurred in the user registered callback.
+            # have we deleted the user because a rollback occurred in the callback?
+            from registry.groups.models import CustomUser
+            user = CustomUser.objects.get(username=username)
+        except CustomUser.DoesNotExist:
+            logger.error("User %s failed to register" % username)
+            return redirect(failure_url)
+
+        # success_url may be a simple string, or a tuple providing the
+        # full argument set for redirect(). Attempting to unpack it
+        # tells us which one it is.
+
+        try:
+            to, args, kwargs = success_url
+        except ValueError:
+            return redirect(success_url)
+        else:
+            return redirect(to, *args, **kwargs)
+

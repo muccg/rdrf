@@ -293,6 +293,10 @@ urlpatterns += [
         TemplateView.as_view(
             template_name='registration/registration_complete.html'),
         name='registration_complete'),
+    url(r'^register/failed/?$',
+        TemplateView.as_view(
+            template_name='registration/registration_failed.html'),
+        name='registration_failed'),
     url(r'^register/closed/?$',
         TemplateView.as_view(
             template_name='registration/registration_closed.html'),
