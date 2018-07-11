@@ -262,7 +262,6 @@ def user_registered_callback(sender, user, request, **kwargs):
         from mtm.patient_registration import MtmRegistration
         patient_reg = MtmRegistration(user, request)
     patient_reg.process()
-    raise Exception("woo")
 
 
 @receiver(user_activated)
