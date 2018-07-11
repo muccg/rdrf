@@ -37,7 +37,7 @@ requirements = [
     "setuptools_scm==1.10.1",
     "six==1.10.0",
     "SQLAlchemy==1.0.16",
-    "uwsgi==2.0.13.1",
+    "uwsgi==2.0.17.1",
     "django_cron==0.5.0",
 
     # django-two-factor-auth dependencies
