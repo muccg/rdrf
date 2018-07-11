@@ -1,6 +1,7 @@
 from django.shortcuts import redirect
 from django.core.urlresolvers import reverse
 from registration.backends.default.views import RegistrationView
+from django.db import transaction
 import time
 import logging
 
@@ -48,24 +49,21 @@ class RdrfRegistrationView(RegistrationView):
             return languages
 
     def form_valid(self, form):
-        new_user = self.register(form)
-        username = new_user.username
-        success_url = self.get_success_url(new_user)
+        # this is only for user validation
+        # if any validation errors occur server side
+        # on related object creation in signal handler occur
+        # we roll back here
         failure_url = reverse("registration_failed")
-        time.sleep(2)
-        try:
-            # despite  this being called form valid,
-            # it's possible errors occurred in the user registered callback.
-            # have we deleted the user because a rollback occurred in the callback?
-            from registry.groups.models import CustomUser
-            user = CustomUser.objects.get(username=username)
-        except CustomUser.DoesNotExist:
-            logger.error("User %s failed to register" % username)
-            return redirect(failure_url)
-
-        # success_url may be a simple string, or a tuple providing the
-        # full argument set for redirect(). Attempting to unpack it
-        # tells us which one it is.
+        username = None
+        with transaction.atomic():
+            try:
+                new_user = self.register(form)
+                username = new_user.username
+                success_url = self.get_success_url(new_user)
+            except Exception as ex:
+                logger.error("Unhandled error in registration for user %s: %s" % (username,
+                                                                                  ex))
+                return redirect(failure_url)
 
         try:
             to, args, kwargs = success_url

@@ -250,9 +250,7 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
 
 @receiver(user_registered)
 def user_registered_callback(sender, user, request, **kwargs):
-
     reg_code = request.POST['registry_code']
-
     patient_reg = None
     if reg_code == "fkrp":
         from fkrp.patient_registration import FkrpRegistration
@@ -263,23 +261,8 @@ def user_registered_callback(sender, user, request, **kwargs):
     elif reg_code == "mtm":
         from mtm.patient_registration import MtmRegistration
         patient_reg = MtmRegistration(user, request)
-
-    cleanup_required = False
-
-    with transaction.atomic():
-        try:
-            patient_reg.process()
-        except Exception as ex:
-            logger.error("Error during registration of %s (rolling back): %s" % (user.username, ex))
-            cleanup_required = True
-
-    if cleanup_required:
-        #  if there are unhandled errors in the registration process
-        # we need to do this outside of the atomic block
-        # see angelman #249
-        logger.info("Error in registration requires orphan user cleanup deletion on user %s" % user.username)
-        user.delete()
-        
+    patient_reg.process()
+    raise Exception("woo")
 
 
 @receiver(user_activated)
