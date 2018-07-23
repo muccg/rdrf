@@ -16,10 +16,10 @@ Feature: User operates on multisection items.
     And I enter value "01-01-2017" for form "Imaging" multisection "Carotid Ultrasonography" cde "Date" in item 1  
     And I enter value "4.0" for form "Imaging" multisection "Carotid Ultrasonography" cde "Result (right)" in item 1
     And I enter value "item 1" for form "Imaging" multisection "Carotid Ultrasonography" cde "Result" in item 1
-    When I upload file "/app/Jenkinsfile" for multisection "Carotid Ultrasonography" cde "Report" in item 1
+    When I upload file "/app/README.rst" for multisection "Carotid Ultrasonography" cde "Report" in item 1
     And I click the "Save" button
     Then I should see "Patient John SMITH saved successfully"
-    And I should be able to download "Jenkinsfile"
+    And I should be able to download "README.rst"
 
     # Enter second item
     When I click the add button for multisection "Carotid Ultrasonography"
@@ -29,13 +29,13 @@ Feature: User operates on multisection items.
     When I upload file "/app/develop.sh" for multisection "Carotid Ultrasonography" cde "Report" in item 2
     And I click the "Save" button
     Then I should see "Patient John SMITH saved successfully"
-    And I should be able to download "Jenkinsfile"
+    And I should be able to download "README.rst"
     And I should be able to download "develop.sh"
    
     # delete the first item of the multisection
     When I mark multisection "Carotid Ultrasonography" item 1 for deletion
     And I click the "Save" button
-    Then I should not be able to download "Jenkinsfile"
+    Then I should not be able to download "README.rst"
     And I should be able to download "develop.sh"
     
     # check some values - we deleted the 1st item so what remains is the original 2nd item

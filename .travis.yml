@@ -1,0 +1,35 @@
+sudo: required
+matrix:
+  fast_finish: true
+services:
+- docker
+before_install:
+- docker pull muccg/ccg-composer
+- docker pull muccg/devpi
+- docker pull muccg/squid-deb-proxy
+- sudo mkdir /srv/squid
+- sudo mkdir /srv/devpi
+- sudo chown 1000:1000 /srv/devpi
+- sudo chown 13:13 /srv/squid
+- docker run -h 'squid' --net bridge -m 0b -p 3128:8000 -d -v /srv/squid:/data -v
+  /etc/localtime:/etc/localtime:ro -e USE_ACL=0 --name squid --restart=always muccg/squid-deb-proxy:latest
+- docker run -h 'devpi' --net bridge -m 0b -p 3141:3141 -d -v /srv/devpi:/data -v
+  /etc/localtime:/etc/localtime:ro --name devpi --restart=always muccg/devpi:latest
+- sleep 10
+- docker ps -a
+- docker images
+script:
+- echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
+- chmod 755 ~/.docker
+- chmod 644 ~/.docker/config.json
+- export "GIT_BRANCH=$TRAVIS_BRANCH"
+- test x"$TRAVIS_PULL_REQUEST_BRANCH" != x"" && export "GIT_BRANCH=$TRAVIS_PULL_REQUEST_BRANCH" || echo "This build is not a PR."
+- export "BRANCH_NAME=$GIT_BRANCH"
+- ./travis-build.sh
+- ./travis-prodbuild.sh
+
+env:
+  global:
+    - DOCKER_USERNAME: ccgbuildbot
+    - secure: "NfTCDwy45/HxXNoXX1JjfNsWMXXJPxbCQIUtncoYGqP2jxZ6vfa3C5IyxuqZ7R5w8MsIHasNqNkPIDEythMgcMoMLKRALlKE6uxAcmS/orPusXPAuLxxh1nRvEjW1ZrQtVM3G0MahFyO5hrF/svf3gVSX9K1MIiogockoKB3/8/SxXsaWrrudEOM/G1+YkC/MY7nxHmFAj4w44B/kSMlPYuHAkn0y+QC3E8WlQkA2CkfFGJp2CfgrdJmDCvBqcbmQRw3oNZXoXM3MfQdFH+3Z+D7qysPEiNDs7DXLBY35DhrtKTA6QPEW6b1YLH2Aa+h59wuVwG8CtTLc9rXdUA+nk3sz1aZjD9gtEqdRgJ9GVP463qtjCjMTtm5BWyjvuwUIxOPry62z9MMVvXk3CnHXXvC9krJdJZiasEzz3xgvDiZCed+n0e3sXMD9suJiAz6lqFuvPWO/apk7OHGvel2PHi0CSSwWGjw+psTMm9WVtFbaBRTUySmx65xppG2j50jlTA2QSXUru9lFXk6e5FM+pIAqnNpKmeyV//g7X4yCwYBhS306nS5lcVGACDp8D4OAagHgnZ9wH4KWzkfNDX0HHwLZ2fnawINw1Tq2OSnQNQNCJ6aY2lFyN4rMfI9LY3bmbcCpjxQuenlU+hgN1bAaNwkcMpIPs5GJj9kgM+8Rmc="
+

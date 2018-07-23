@@ -14,5 +14,4 @@ data
 Dockerfile*
 develop.sh
 lib.sh
-Jenkinsfile
 *.mongo
