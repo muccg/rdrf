@@ -1,5 +1,9 @@
 RDRF
 ====
+
+.. image:: https://travis-ci.org/muccg/rdrf.svg?branch=master
+    :target: https://travis-ci.org/muccg/rdrf
+
 About
 -----
 
