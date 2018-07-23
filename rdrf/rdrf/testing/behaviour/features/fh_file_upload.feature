@@ -22,10 +22,10 @@ Feature: User uploads files.
     And I click the "Save" button
     Then I should see "Patient John SMITH saved successfully"
     
-    When I upload file "/app/Jenkinsfile" for multisection "Laboratory Data" cde "Laboratory Report" in item 1
+    When I upload file "/app/README.rst" for multisection "Laboratory Data" cde "Laboratory Report" in item 1
     And I click the "Save" button
     Then I should see "Patient John SMITH saved successfully"
-    Then I should be able to download "Jenkinsfile"
+    Then I should be able to download "README.rst"
     
 
   Scenario: Update (replace) an existing file cde.
@@ -38,10 +38,10 @@ Feature: User uploads files.
     And I click the "Save" button
     Then I should see "Patient John SMITH saved successfully"
     
-    When I upload file "/app/Jenkinsfile" for multisection "Laboratory Data" cde "Laboratory Report" in item 1
+    When I upload file "/app/README.rst" for multisection "Laboratory Data" cde "Laboratory Report" in item 1
     And I click the "Save" button
     Then I should see "Patient John SMITH saved successfully"
-    Then I should be able to download "Jenkinsfile"
+    Then I should be able to download "README.rst"
     
     When I upload file "/app/develop.sh" for multisection "Laboratory Data" cde "Laboratory Report" in item 1
     And I click the "Save" button
