@@ -5,19 +5,6 @@ services:
 - docker
 before_install:
 - docker pull muccg/ccg-composer
-- docker pull muccg/devpi
-- docker pull muccg/squid-deb-proxy
-- sudo mkdir /srv/squid
-- sudo mkdir /srv/devpi
-- sudo chown 1000:1000 /srv/devpi
-- sudo chown 13:13 /srv/squid
-- docker run -h 'squid' --net bridge -m 0b -p 3128:8000 -d -v /srv/squid:/data -v
-  /etc/localtime:/etc/localtime:ro -e USE_ACL=0 --name squid --restart=always muccg/squid-deb-proxy:latest
-- docker run -h 'devpi' --net bridge -m 0b -p 3141:3141 -d -v /srv/devpi:/data -v
-  /etc/localtime:/etc/localtime:ro --name devpi --restart=always muccg/devpi:latest
-- sleep 30
-- docker ps -a
-- docker images
 script:
 - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
 - chmod 755 ~/.docker
