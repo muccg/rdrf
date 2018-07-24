@@ -7,7 +7,7 @@ requirements = [
     "ccg-django-utils==0.4.2",
     "Django==1.10.8",
     "django-ajax-selects==1.5.2",
-    "django-anymail==0.11.1",
+    "django-anymail==3.0",
     "django-countries",
     "django-extensions>=0.7.1",
     "django-iprestrict==1.1.1",
