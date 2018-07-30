@@ -265,7 +265,14 @@ if [ "$1" = 'runtests' ]; then
     export DJANGO_SETTINGS_MODULE="${DJANGO_SETTINGS_MODULE}"_test
 
     set -x
-    exec django-admin.py test --noinput -v 3 rdrf
+    single_test="$2"
+
+    if [ "$single_test" != "" ]; then
+	exec django-admin.py test --noinput -v 3 "$single_test"
+
+    else
+	exec django-admin.py test --noinput -v 3 rdrf
+    fi
 fi
 
 # aloe entrypoint
