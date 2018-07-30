@@ -1,25 +1,24 @@
 """
-Custom Script
-For Repo: rdrf and Issue#1007(in rdrf-ccg) Move CDEs from one section to another and migrate data on ClinicalData form
+Custom Module
+GitHub Repo: rdrf 
+Issue#1007(in rdrf-ccg repo) 
+Move CDEs from one section to another and migrate data on ClinicalData form
 """
 import sys
 import django
 django.setup()
-#from django.db import transaction, IntegrityError, DatabaseError
 from django.db import transaction
 from rdrf.models.definition.models import ClinicalData
 from rdrf.helpers.transform_cdes import tranform_data_dict
 
+
 def migrate_cdes_clinicaldata():
     cde_codes = ["CDE00016", "FHCRP"]
     source_section_code = "SEC0005"
-    tartget_sction_code = "SEC0003"
+    target_section_code = "SEC0003"
 
-    # if history : cd[0]['record']['forms']
     # Collection are cdes, history, progress or registry_specific_patient_data
-    # cds is ClinicalDataQuerySet
-    # django_id is patient id
-    #cds = ClinicalData.objects.filter(collection='cdes',registry_code="fh",django_model="Patient",django_id=13)
+    # cds is ClinicalDataQuerySet and django_id is patient id
     cds = ClinicalData.objects.filter(collection='cdes', registry_code="fh", django_model="Patient")
 
     if len(cds) == 0:
@@ -29,15 +28,14 @@ def migrate_cdes_clinicaldata():
         with transaction.atomic():
             # cd is object instance of ClinicalData model
             for cd in cds:
-                print("******* Transforming Cdes=%s from source section=%s to target section=%s for Patient id=%s **************" % (cdes_code, source_section_code, target_section_code,cd.django_id))
-                # cd_dict is clinicalData Dictionary
+                print("******* Transforming Cdes=%s from source section=%s to target section=%s for Patient id=%s **************" % (cde_codes, source_section_code, target_section_code, cd.django_id))
                 cd.data = tranform_data_dict(cde_codes, source_section_code, target_section_code, cd.data)
                 cd.save()
                 print("******* CDE Transformation completed successfully **************")
                 print("Result: ")
                 print(cd.data)
     except Exception as ex:
-        cd.log("CDE Transformation failed - rolled back: %s" % ex)
+        print("CDE Transformation failed - rolled back: %s" % ex)
 
 
 if __name__ == "__main__":
