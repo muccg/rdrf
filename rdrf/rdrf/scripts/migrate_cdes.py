@@ -1,6 +1,6 @@
 """
 Custom Script
-For Issue 1007 Move CDEs from one section to another and migrate data on ClinicalData form
+For Repo: rdrf and Issue#1007(in rdrf-ccg) Move CDEs from one section to another and migrate data on ClinicalData form
 """
 import sys
 import django
@@ -11,7 +11,9 @@ from rdrf.models.definition.models import ClinicalData
 from rdrf.helpers.transform_cdes import tranform_data_dict
 
 def migrate_cdes_clinicaldata():
-    params = [["CDE00016", "FHCRP"], "SEC0005", "SEC0003"]
+    cde_codes = ["CDE00016", "FHCRP"]
+    source_section_code = "SEC0005"
+    tartget_sction_code = "SEC0003"
 
     # if history : cd[0]['record']['forms']
     # Collection are cdes, history, progress or registry_specific_patient_data
@@ -27,13 +29,17 @@ def migrate_cdes_clinicaldata():
         with transaction.atomic():
             # cd is object instance of ClinicalData model
             for cd in cds:
+                print("******* Transforming Cdes=%s from source section=%s to target section=%s for Patient id=%s **************" % (cdes_code, source_section_code, target_section_code,cd.django_id))
                 # cd_dict is clinicalData Dictionary
-                cd.data = tranform_data_dict(cd.data, *params)
+                cd.data = tranform_data_dict(cde_codes, source_section_code, target_section_code, cd.data)
                 cd.save()
+                print("******* CDE Transformation completed successfully **************")
+                print("Result: ")
+                print(cd.data)
     except Exception as ex:
-        cd.log("run failed - rolled back: %s" % ex)
+        cd.log("CDE Transformation failed - rolled back: %s" % ex)
 
 
 if __name__ == "__main__":
-    print("Calling migrate_cdes_clinicaldata from s")
+    print("Calling migrate_cdes_clinicaldata ......")
     migrate_cdes_clinicaldata()

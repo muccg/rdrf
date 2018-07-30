@@ -50,7 +50,7 @@ class MigrateCDESTestCase(TestCase):
 
         #print("Input data:")
         # print(self.input_data)
-        out_data = tranform_data_dict(self.input_data, ["CDE00016", "FHCRP"], "SEC0005", "SEC0003")
+        out_data = tranform_data_dict( ["CDE00016", "FHCRP"], "SEC0005", "SEC0003", self.input_data)
         #print("Output data:")
         # print(out_data)
         #print("Source Section:")
