@@ -30,7 +30,7 @@ from rdrf.models.definition.models import EmailNotificationHistory
 from django.core.management import call_command
 import json
 
-from rdrf.helpers.transform_cdes import tranform_data_dict, get_section
+from rdrf.helpers.transform_cdes import tranform_data_dict
 
 logger = logging.getLogger(__name__)
 
@@ -43,9 +43,14 @@ class MigrateCDESTestCase(TestCase):
 
     def test_migrate_cdes_clinicaldata(self):
         out_data = tranform_data_dict(["CDE00016", "FHCRP"], "SEC0005", "SEC0003", self.input_data)
-        s_section = get_section("SEC0005", out_data)
-        t_section = get_section("SEC0003", out_data)
-
+        def find_section(section_code, data_dict):
+            for form in data_dict['forms']:
+                if(form['name'] == "ClinicalData"):
+                    for section in form['sections']:
+                        if(section['code'] == section_code):
+                            return section
+        s_section = find_section("SEC0005", out_data)
+        t_section = find_section("SEC0003", out_data)
         def check_cde_in_section(cde_code, section_dict):
 
             for item in section_dict['cdes']:
