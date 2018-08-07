@@ -1,5 +1,5 @@
 """
-Custom Module
+Custom Script
 GitHub Repo: rdrf 
 Issue#1007(in rdrf-ccg repo) 
 Move CDEs from one section to another and migrate data on ClinicalData form
@@ -28,16 +28,17 @@ def migrate_cdes_clinicaldata():
         with transaction.atomic():
             # cd is object instance of ClinicalData model
             for cd in cds:
-                print("******* Transforming Cdes=%s from source section=%s to target section=%s for Patient id=%s **************" % (cde_codes, source_section_code, target_section_code, cd.django_id))
+                print("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@")
+                print("******* Patient id=%s *******" % cd.django_id)
+                print(" Calling transform_data_dict ......")
                 cd.data = tranform_data_dict(cde_codes, source_section_code, target_section_code, cd.data)
-                cd.save()
-                print("******* CDE Transformation completed successfully **************")
-                print("Result: ")
-                print(cd.data)
+                #cd.save()
+                print("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@")
+                
     except Exception as ex:
-        print("CDE Transformation failed - rolled back: %s" % ex)
+        print("******* Rolling back......CDE migration FAILED with an exception: %s *******" % ex)
 
 
 if __name__ == "__main__":
-    print("Calling migrate_cdes_clinicaldata ......")
+    print(" Calling migrate_cdes_clinicaldata ......")
     migrate_cdes_clinicaldata()
