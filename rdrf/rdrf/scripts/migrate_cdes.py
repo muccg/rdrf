@@ -32,7 +32,7 @@ def migrate_cdes_clinicaldata():
                 print("******* Patient id=%s *******" % cd.django_id)
                 print(" Calling transform_data_dict ......")
                 cd.data = tranform_data_dict(cde_codes, source_section_code, target_section_code, cd.data)
-                #cd.save()
+                cd.save()
                 print("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@")
                 
     except Exception as ex:
