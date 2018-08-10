@@ -27,7 +27,16 @@ def tranform_data_dict(cde_codes, source_section_code, target_section_code, cd_d
     print("******* Source section : %s" % source_section_dict)
     target_section_dict = get_section(target_section_code, cd_form)
     print("******* Target section : %s" % target_section_dict)
+    
+    if not source_section_dict:
+        print("******* Skipping cdes movement......Couldn't find source section with code=%s in 'ClinicalData' form: %s" % (source_section_code, cd_form)) 
+        return cd_data_dict
+    if not target_section_dict:
+        print("******* Skipping cdes movement......Couldn't find target section with code=%s in 'ClinicalData' form: %s" % (target_section_code, cd_form)) 
+        return cd_data_dict
+
     move_cdes(cde_codes, source_section_dict, target_section_dict)
+
     return cd_data_dict
 
 
@@ -36,8 +45,6 @@ def get_section(section_code, form):
     for section in form['sections']:
         if section['code'] == section_code:
             section_found = section
-    if not section_found:
-        raise Exception("******* Couldn't find section with code=%s in 'ClinicalData' form: %s" % (section_code, form))
     return section_found
 
 
