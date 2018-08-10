@@ -9,7 +9,7 @@ import django
 django.setup()
 from django.db import transaction
 from rdrf.models.definition.models import ClinicalData
-from rdrf.helpers.transform_cdes import tranform_data_dict
+from rdrf.helpers.transform_cdes import transform_data_dict, InvalidDictionaryStructureException
 
 
 def migrate_cdes_clinicaldata():
@@ -31,10 +31,12 @@ def migrate_cdes_clinicaldata():
                 print("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@")
                 print("******* Patient id=%s *******" % cd.django_id)
                 print(" Calling transform_data_dict ......")
-                cd.data = tranform_data_dict(cde_codes, source_section_code, target_section_code, cd.data)
-                cd.save()
-                print("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@")
-                
+                new_cd_data = transform_data_dict(cde_codes, source_section_code, target_section_code, cd.data)
+                if(new_cd_data):
+                    print("Saving ClinicalData....")
+                    cd.data = new_cd_data
+                    cd.save()
+                print("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@") 
     except Exception as ex:
         print("******* Rolling back......CDE migration FAILED with an exception: %s *******" % ex)
 
