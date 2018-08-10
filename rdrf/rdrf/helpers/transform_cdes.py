@@ -18,7 +18,7 @@ def tranform_data_dict(cde_codes, source_section_code, target_section_code, cd_d
             cd_form = form
     if not cd_form:
         print("******* Skipping cdes movement...... Couldn't find 'ClinicalData' form in data dictionary...... %s" % cd_data_dict)
-        return
+        return cd_data_dict
     print("@@@@@@@ Moving Cdes=%s from source section=%s to target section=%s in ClinicalData form @@@@@@@" 
             % (cde_codes, source_section_code, target_section_code))
     print(" Getting both sections ......")
