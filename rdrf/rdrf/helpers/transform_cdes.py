@@ -84,5 +84,4 @@ def move_cdes(cde_codes, source_section, target_section):
 
 
 def clean_cdes(cdes_list,cde_codes):
-    cdes_list = [ cde for cde in cdes_list if cde['code'] not in cde_codes]
-    return cdes_list
+    return [ cde for cde in cdes_list if cde['code'] not in cde_codes]
