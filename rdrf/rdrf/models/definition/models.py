@@ -22,6 +22,9 @@ from rdrf.events.events import EventType
 
 from rdrf.forms.fields.jsonb import DataField
 
+# added for cdefile DatabaseStorage
+from storages.backends.database import DatabaseStorage
+
 logger = logging.getLogger(__name__)
 
 
@@ -1801,7 +1804,10 @@ class CDEFile(models.Model):
     form_name = models.CharField(max_length=80, blank=True)
     section_code = models.CharField(max_length=100, blank=True)
     cde_code = models.CharField(max_length=30, blank=True)
-    item = models.FileField(upload_to=file_upload_to, max_length=300)
+    # Default storage is FilesystemStorage
+    # item = models.FileField(upload_to=file_upload_to, max_length=300)
+    # Use storage=DatabaseStorage() to store file in database
+    item = models.FileField(upload_to=file_upload_to, storage=DatabaseStorage(), max_length=300)
     filename = models.CharField(max_length=255)
 
     def __str__(self):
@@ -1815,7 +1821,7 @@ def fileuploaditem_delete(sender, instance, **kwargs):
 
 class FileStorage(models.Model):
     """
-    This model is used only when the database file storage backend is
+    This model is used only when the database file storage backend (DatabaseStorage) is
     enabled. These exact columns are required by the backend code.
     """
     name = models.CharField(primary_key=True, max_length=255)

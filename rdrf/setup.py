@@ -16,7 +16,6 @@ requirements = [
     "django-positions==0.5.4",
     "django-registration-redux==1.4",
     "djangorestframework==3.5.3",
-    "django-storages==1.4.1",
     "django-templatetag-handlebars==1.3.1",
     "django-templatetag-sugar==1.0",
     "django-useraudit==1.6.0",
@@ -28,6 +27,8 @@ requirements = [
     "psycopg2==2.7.3",
     "pycountry==1.20",
     "pyinotify==0.9.6",
+    # django-storages(updated version fom 1.4.1) and pyodbc are for DatabaseStorage
+    "django-storages==1.5.2",
     "pyodbc==3.0.7",
     "pyparsing==2.1.10",
     "python-dateutil==2.5.3",

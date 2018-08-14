@@ -17,6 +17,8 @@ import registry.groups.models
 from registry.utils import get_working_groups, get_registries, stripspaces
 from registry.groups.models import CustomUser
 from django.utils.translation import ugettext_lazy as _
+# added for file DatabaseStorage
+from storages.backends.database import DatabaseStorage
 
 
 import logging
@@ -1245,12 +1247,15 @@ class PatientAddress(models.Model):
         return ""
 
 
-class PatientConsentStorage(DefaultStorage):
+# Use 'DefaultStorage when FileSystemStorage is enabled
+# class PatientConsentStorage(DefaultStorage):
+# Use 'DatabaseStorage' when database file storage is enabled
+class PatientConsentStorage(DatabaseStorage):
     """
     This is a normal default file storage, except the URL points to
     authenticated file download view.
     """
-
+    
     def url(self, name):
         consent = PatientConsent.objects.filter(form=name).first()
         if consent is not None:

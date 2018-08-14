@@ -71,6 +71,8 @@ services:
       - WAIT_FOR_REPORTING_DB=1
       - WAIT_FOR_CACHE=1
       - DJANGO_MAILGUN_API_KEY=${DJANGO_MAILGUN_API_KEY}
+      # added for file DatabaseStorage
+      - storage_backend=db      
 
   uwsgi:
     image: muccg/rdrf-dev

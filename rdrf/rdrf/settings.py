@@ -239,7 +239,12 @@ WRITABLE_DIRECTORY = env.get("writable_directory", "/tmp")
 
 # valid values django.core.files.storage.FileSystemStorage and
 # storages.backends.database.DatabaseStorage
-DEFAULT_FILE_STORAGE = env.get("storage_backend", "django.core.files.storage.FileSystemStorage")
+# DEFAULT_FILE_STORAGE = env.get("storage_backend", "django.core.files.storage.FileSystemStorage")
+if env.get("storage_backend", "fs") == "db":
+    DEFAULT_FILE_STORAGE = "storages.backends.database.DatabaseStorage"
+else:
+    DEFAULT_FILE_STORAGE = "django.core.files.storage.FileSystemStorage"
+
 
 # settings used when FileSystemStorage is enabled
 MEDIA_ROOT = env.get('media_root', os.path.join(WEBAPP_ROOT, 'uploads'))
@@ -251,13 +256,15 @@ DB_FILES = {
     "fname_column": "name",
     "blob_column": "data",
     "size_column": "size",
-    "base_url": None,
+    "base_url": "http://localhost:8000/",
 }
-DATABASE_ODBC_DRIVER = "{PostgreSQL}"  # depends on odbcinst.ini
+DATABASE_ODBC_DRIVER = "{PostgreSQL Unicode}"  # depends on odbcinst.ini
+DATABASE_ENGINE = DATABASES["default"]["ENGINE"]
 DATABASE_NAME = DATABASES["default"]["NAME"]
 DATABASE_USER = DATABASES["default"]["USER"]
 DATABASE_PASSWORD = DATABASES["default"]["PASSWORD"]
 DATABASE_HOST = DATABASES["default"]["HOST"]
+DATABASE_PORT = DATABASES["default"]["PORT"]
 
 # session and cookies
 SESSION_COOKIE_AGE = env.get("session_cookie_age", 60 * 60)
