@@ -1,3 +1,9 @@
+from rdrf.models.definition.models import Section
+from rdrf.helpers.utils import get_full_path
+import logging
+
+logger = logging.getLogger(__name__)
+
 class Tokens:
     EQUALS = "="
     LT = "<"
@@ -10,33 +16,31 @@ class Tokens:
     MEMBER = "member"
     BETWEEN = "between"
 
+class Actions:
+    GOTO = "goto"
+    
 
 # should be enough for condition action pairs like:
-# [ ["=", ["get", "stoma"], "yes"] , ["redirect", "form23"] ] etc
-
+# [ ["=", ["get", "stoma"], "yes"] , ["goto", "form23"] ] etc
 # [ [">", ["get", "BloodPressure"], 130] ,  [ do something ... ]
-
 
 class RulesEvaluationError(Exception):
     pass
 
 class RulesEvaluator:
-    def __init__(self, evaluation_context):
+    def __init__(self, rules, evaluation_context):
+        self.rules = rules
         self.evaluation_context = evaluation_context
-        self.rules = []
 
-    def load(self, registry_model):
-        self.rules = registry_model.metadata["rules"]
-
-    def run(self, stage):
-        stage_rules = self.rules[stage]
-
-        for condition_expr, action in stage_rules:
-            condition = self._eval(condition_expr) 
-            if condition:
-                return self._eval_action(action)
+    def get_action(self):
+        logger.debug("rules = %s" % self.rules)
+        for condition_block, action in self.rules:
+           condition = self._eval(condition_block)
+           if condition:
+               return self._eval_action(action)
             
     def _eval(self, expr):
+        # atoms evaluate themselves
         if type(expr) is not type([]):
             return expr
         else:
@@ -81,3 +85,50 @@ class RulesEvaluator:
                 return value >= low and value <= high
             else:
                 raise RulesEvaluationError("Unknown head: %s" % head)
+
+    def _get_cde_value(self, field_spec):
+        patient_model = self.evaluation_context["patient_model"]
+        registry_model = self.evaluation_context["registry_model"]
+        context_id = self.evaluation_context.get("context_id", None)
+        # faster to load this in
+        clinical_data = self.evaluation_context.get("clinical_data", None)
+
+        if "/" in field_spec:
+            form_name, section_code, cde_code = field_spec.split("/")
+        else:
+            form_name, section_code, cde_code = self._get_unique_field(field_spec)
+
+        section_model = Section.objects.get(code=section_code)
+        
+        return patient_model.get_form_value(registry_model.code,
+                                            form_name,
+                                            section_code,
+                                            cde_code,
+                                            multisection=section_model.allow_multiple,
+                                            context_id=context_id,
+                                            clinical_data=clinical_data)
+
+    def _get_unique_field(self, cde_code):
+        registry_model = self.evaluation_context["registry_model"]
+        return get_full_path(registry_model, cde_code)
+
+    def _eval_action(self, action):
+        if type(action) is not type([]):
+            raise RulesEvaluationError("Action should be a list: %s" % action)
+        if len(action) == 0:
+            raise RulesEvaluationError("Action should be a non-empty list: %s" % action)
+            
+        head = action[0]
+        if head == Actions.GOTO:
+            from django.core.urlresolvers import reverse
+            from django.http import HttpResponseRedirect
+            url_name = action[1]
+            logger.debug("redirecting to %s" % url_name)
+            return HttpResponseRedirect(reverse(url_name))
+        else:
+            raise RulesEvaluationError("Unknown action: %s" % head)
+        
+        
+        
+
+        
