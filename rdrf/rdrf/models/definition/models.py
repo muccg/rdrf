@@ -1804,9 +1804,7 @@ class CDEFile(models.Model):
     form_name = models.CharField(max_length=80, blank=True)
     section_code = models.CharField(max_length=100, blank=True)
     cde_code = models.CharField(max_length=30, blank=True)
-    # Default storage is FilesystemStorage
-    # item = models.FileField(upload_to=file_upload_to, max_length=300)
-    # Use storage=DatabaseStorage() to store file in database
+    # Use storage=DefaultStorage() for FilesystemStorage or storage=DatabaseStorage() to store file in database
     item = models.FileField(upload_to=file_upload_to, storage=DatabaseStorage(), max_length=300)
     filename = models.CharField(max_length=255)
 

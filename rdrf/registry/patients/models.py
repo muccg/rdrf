@@ -4,10 +4,10 @@ from operator import attrgetter
 
 from django.core.exceptions import ValidationError
 from django.core import serializers
-from django.core.files.storage import DefaultStorage
+#from django.core.files.storage import DefaultStorage
 from django.core.urlresolvers import reverse
 from django.db import models
-from django.db.models.signals import post_save, m2m_changed, post_delete
+from django.db.models.signals import post_save, m2m_changed, post_delete, pre_delete
 from django.dispatch import receiver
 import pycountry
 
@@ -1247,15 +1247,8 @@ class PatientAddress(models.Model):
         return ""
 
 
-# Use 'DefaultStorage when FileSystemStorage is enabled
-# class PatientConsentStorage(DefaultStorage):
-# Use 'DatabaseStorage' when database file storage is enabled
+# Use 'DefaultStorage for FileSystemStorage or 'DatabaseStorage' for db file storage
 class PatientConsentStorage(DatabaseStorage):
-    """
-    This is a normal default file storage, except the URL points to
-    authenticated file download view.
-    """
-    
     def url(self, name):
         consent = PatientConsent.objects.filter(form=name).first()
         if consent is not None:
@@ -1264,15 +1257,27 @@ class PatientConsentStorage(DatabaseStorage):
         return None
 
 
+def consentfile_upload_to(instance, filename):
+    return "/".join(filter(bool, [
+        "consents",
+        str(instance.patient_id),
+        filename]))
+
+
 class PatientConsent(models.Model):
     patient = models.ForeignKey(Patient)
     form = models.FileField(
-        upload_to='consents',
+        upload_to=consentfile_upload_to,
         storage=PatientConsentStorage(),
         verbose_name="Consent form",
         blank=True,
         null=True)
     filename = models.CharField(max_length=255)
+
+
+@receiver(pre_delete, sender=PatientConsent)
+def dbfileuploaditem_delete(sender, instance, **kwargs):
+    instance.form.delete(False)
 
 
 class PatientDoctor(models.Model):

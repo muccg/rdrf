@@ -239,8 +239,7 @@ WRITABLE_DIRECTORY = env.get("writable_directory", "/tmp")
 
 # valid values django.core.files.storage.FileSystemStorage and
 # storages.backends.database.DatabaseStorage
-# DEFAULT_FILE_STORAGE = env.get("storage_backend", "django.core.files.storage.FileSystemStorage")
-if env.get("storage_backend", "fs") == "db":
+if env.get("storage_backend", "db"):
     DEFAULT_FILE_STORAGE = "storages.backends.database.DatabaseStorage"
 else:
     DEFAULT_FILE_STORAGE = "django.core.files.storage.FileSystemStorage"
@@ -256,7 +255,7 @@ DB_FILES = {
     "fname_column": "name",
     "blob_column": "data",
     "size_column": "size",
-    "base_url": "http://localhost:8000/",
+    "base_url": '{0}/',
 }
 DATABASE_ODBC_DRIVER = "{PostgreSQL Unicode}"  # depends on odbcinst.ini
 DATABASE_ENGINE = DATABASES["default"]["ENGINE"]

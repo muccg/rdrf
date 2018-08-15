@@ -71,7 +71,7 @@ services:
       - WAIT_FOR_REPORTING_DB=1
       - WAIT_FOR_CACHE=1
       - DJANGO_MAILGUN_API_KEY=${DJANGO_MAILGUN_API_KEY}
-      # added for file DatabaseStorage
+      # Set to db for DatabaseStorage usage
       - storage_backend=db      
 
   uwsgi:

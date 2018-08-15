@@ -27,7 +27,7 @@ requirements = [
     "psycopg2==2.7.3",
     "pycountry==1.20",
     "pyinotify==0.9.6",
-    # django-storages(updated version fom 1.4.1) and pyodbc are for DatabaseStorage
+    # django-storages and pyodbc are for DatabaseStorage
     "django-storages==1.5.2",
     "pyodbc==3.0.7",
     "pyparsing==2.1.10",
