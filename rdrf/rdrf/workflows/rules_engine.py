@@ -13,12 +13,12 @@ class Tokens:
     GET = "get"
     AND = "and"
     OR = "or"
-    MEMBER = "member"
+    IN = "in"
     BETWEEN = "between"
 
 class Actions:
     GOTO = "goto"
-    
+    WORKFLOW = "workflow"
 
 # should be enough for condition action pairs like:
 # [ ["=", ["get", "stoma"], "yes"] , ["goto", "form23"] ] etc
@@ -40,6 +40,7 @@ class RulesEvaluator:
                return self._eval_action(action)
             
     def _eval(self, expr):
+        logger.debug("evaluating expr %s" % expr)
         # atoms evaluate themselves
         if type(expr) is not type([]):
             return expr
@@ -51,7 +52,9 @@ class RulesEvaluator:
                 return self._eval(left) == self._eval(right)
             elif head == Tokens.GET:
                 cde = expr[1]
-                return self._get_cde_value(cde)
+                value = self._get_cde_value(cde)
+                logger.debug("get value = %s" % value)
+                return value
             elif head == Tokens.AND:
                 rest = expr[1:]
                 return all(map(self._eval,rest))
@@ -74,10 +77,13 @@ class RulesEvaluator:
                 left = expr[1]
                 right = expr[2]
                 return self._eval(left) <= self._eval(right)
-            elif head == Tokens.MEMBER:
+            elif head == Tokens.IN:
                 element = self._eval(expr[1])
-                a_list = map(self._eval,expr[2])
-                return element in a_list
+                a_list = list(map(self._eval,expr[2]))
+                logger.debug("in: element = %s a_list = %s" % (element, a_list))
+                result = element in a_list
+                logger.debug("in result = %s" % result)
+                return result
             elif head == Tokens.BETWEEN:
                 value = self._eval(expr[1])
                 low = self._eval(expr[2])
@@ -125,6 +131,10 @@ class RulesEvaluator:
             url_name = action[1]
             logger.debug("redirecting to %s" % url_name)
             return HttpResponseRedirect(reverse(url_name))
+        elif head == Actions.WORKFLOW:
+            # set the current workflow somehow ( session ???)
+            workflow = action[1]
+            logger.debug("setting current workflow to %s" % workflow)
         else:
             raise RulesEvaluationError("Unknown action: %s" % head)
         
