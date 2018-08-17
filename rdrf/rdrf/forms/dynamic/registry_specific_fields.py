@@ -66,6 +66,8 @@ class RegistrySpecificFieldsHandler(object):
 
     def _process_file_cde_value(self, file_cde_model, form_value):
         if is_uploaded_file(form_value):
+            print("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@")
+            print(self.patient_model.id)
             return filestorage.store_file(
                 self.registry_model.code,
                 file_cde_model.code, form_value,

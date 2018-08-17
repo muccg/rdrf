@@ -18,7 +18,7 @@ from registry.utils import get_working_groups, get_registries, stripspaces
 from registry.groups.models import CustomUser
 from django.utils.translation import ugettext_lazy as _
 # added for file DatabaseStorage
-from storages.backends.database import DatabaseStorage
+from rdrf.db.dbstorage import DatabaseStorage
 
 
 import logging

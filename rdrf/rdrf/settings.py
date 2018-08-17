@@ -238,9 +238,9 @@ STATIC_SERVER_PATH = STATIC_ROOT
 WRITABLE_DIRECTORY = env.get("writable_directory", "/tmp")
 
 # valid values django.core.files.storage.FileSystemStorage and
-# storages.backends.database.DatabaseStorage
+# rdrf.db.dbstorage(inherited from storages.backends.database.DatabaseStorage)
 if env.get("storage_backend", "db"):
-    DEFAULT_FILE_STORAGE = "storages.backends.database.DatabaseStorage"
+    DEFAULT_FILE_STORAGE = "rdrf.db.dbstorage"
 else:
     DEFAULT_FILE_STORAGE = "django.core.files.storage.FileSystemStorage"
 

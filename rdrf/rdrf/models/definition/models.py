@@ -23,7 +23,7 @@ from rdrf.events.events import EventType
 from rdrf.forms.fields.jsonb import DataField
 
 # added for cdefile DatabaseStorage
-from storages.backends.database import DatabaseStorage
+from rdrf.db.dbstorage import DatabaseStorage
 
 logger = logging.getLogger(__name__)
 
