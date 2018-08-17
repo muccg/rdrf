@@ -27,6 +27,20 @@ services:
     volumes:
       - ./build:/data
 
+  node:
+      build:
+          context: ./
+          dockerfile: Dockerfile-node
+      image: muccg/rdrf-node
+      working_dir: /data/app/rdrf/rdrf/frontend
+      command: build
+      environment:
+          YARN_CACHE_FOLDER: /opt/yarn_cache
+      volumes:
+        - ./build:/data
+        - ./yarn_cache:/opt/yarn_cache
+
+
   dev:
     build:
       context: ./

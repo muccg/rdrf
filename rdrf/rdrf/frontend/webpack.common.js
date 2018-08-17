@@ -27,8 +27,8 @@ module.exports = {
   },
   output: {
     filename: '[name]-bundle.js',
-    path: path.resolve(__dirname, '../static/rdrf/js'),
-    library: 'otu',
+    path: path.resolve(__dirname, '../static/js'),
+    library: 'rdrfts',
     libraryTarget: 'var'
   },
   optimization: {

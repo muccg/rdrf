@@ -1,0 +1,15 @@
+# Container used to build rdrf frontend
+FROM node:9.11.1
+MAINTAINER https://github.com/muccg/rdrf
+
+RUN env | sort
+
+COPY docker-entrypoint-node.sh /app/docker-entrypoint-node.sh
+
+VOLUME ["/data"]
+
+ENV HOME /data
+WORKDIR /data
+
+ENTRYPOINT ["/app/docker-entrypoint-node.sh"]
+CMD ["build"]

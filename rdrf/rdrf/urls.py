@@ -35,6 +35,7 @@ from rdrf.views import patients_listing
 from rdrf.views import clinician_view
 from rdrf.views.verification_views import PatientsRequiringVerificationView
 from rdrf.views.verification_views import PatientVerificationView
+from rdrf.views.proms_views import PromsView
 
 
 import logging
@@ -180,6 +181,8 @@ urlpatterns += [
     url(r'^login_assistance/complete/?$', auth_views.password_reset_complete,
         kwargs={'template_name': 'registration/login_assistance_complete.html'},
         name='login_assistance_complete'),
+
+    url(r'^proms/?$', PromsView.as_view(), name="proms"),
 
 
     url(r'', include('registry.urls', namespace="registry")),
