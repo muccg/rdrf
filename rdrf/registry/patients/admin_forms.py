@@ -137,6 +137,16 @@ class PatientConsentFileForm(forms.ModelForm):
             self.instance.filename = self.cleaned_data["form"].name
         return super(PatientConsentFileForm, self).save(commit)
 
+    def clean(self):
+        cleaned_data = super(PatientConsentFileForm, self).clean()
+        upload = cleaned_data['form']
+        if (upload is False) and self.instance.form:
+            file = self.instance.form
+            if file is not None:
+                # should delete file stored in db when clear check box is ticked.
+                file.delete()
+                self.instance.form.delete(False)            
+
 
 class PatientForm(forms.ModelForm):
 
