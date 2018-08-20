@@ -16,7 +16,7 @@ class App extends React.Component<any> {
     render() {
         return (
             <div>
-		Hello from React and Lee
+		Hello from React
             </div>
         );
     }
