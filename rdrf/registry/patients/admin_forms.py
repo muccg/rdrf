@@ -12,6 +12,8 @@ from registry.patients.models import Patient, PatientRelative
 from registry.patients.patient_widgets import PatientRelativeLinkWidget
 from django.utils.translation import ugettext as _
 
+from django.db.models.fields.files import FieldFile
+
 logger = logging.getLogger(__name__)
 
 
@@ -139,13 +141,12 @@ class PatientConsentFileForm(forms.ModelForm):
 
     def clean(self):
         cleaned_data = super(PatientConsentFileForm, self).clean()
-        upload = cleaned_data['form']
-        if (upload is False) and self.instance.form:
-            file = self.instance.form
-            if file is not None:
-                # should delete file stored in db when clear check box is ticked.
-                file.delete()
-                self.instance.form.delete(False)            
+        uploaded_file = cleaned_data['form']
+        if uploaded_file is False:
+            # delete file from db and 'form' field if clear check box is selected.
+            form_fieldfile = self.instance.form
+            if form_fieldfile is not None and isinstance(form_fieldfile, FieldFile):
+                form_fieldfile.delete()            
 
 
 class PatientForm(forms.ModelForm):

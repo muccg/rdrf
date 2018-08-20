@@ -18,7 +18,7 @@ from registry.utils import get_working_groups, get_registries, stripspaces
 from registry.groups.models import CustomUser
 from django.utils.translation import ugettext_lazy as _
 # added for file DatabaseStorage
-from rdrf.db.dbstorage import DatabaseStorage
+from rdrf.db.dbstorage import RDRFDatabaseStorage
 
 
 import logging
@@ -1247,8 +1247,8 @@ class PatientAddress(models.Model):
         return ""
 
 
-# Use 'DefaultStorage for FileSystemStorage or 'DatabaseStorage' for db file storage
-class PatientConsentStorage(DatabaseStorage):
+# Use 'DefaultStorage for FileSystemStorage or 'RDRFDatabaseStorage' for db file storage
+class PatientConsentStorage(RDRFDatabaseStorage):
     def url(self, name):
         consent = PatientConsent.objects.filter(form=name).first()
         if consent is not None:

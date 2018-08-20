@@ -239,10 +239,11 @@ WRITABLE_DIRECTORY = env.get("writable_directory", "/tmp")
 
 # valid values django.core.files.storage.FileSystemStorage and
 # rdrf.db.dbstorage(inherited from storages.backends.database.DatabaseStorage)
-if env.get("storage_backend", "db"):
+file_storage_backend = env.get("storage_backend")
+if file_storage_backend == "db":
     DEFAULT_FILE_STORAGE = "rdrf.db.dbstorage"
 else:
-    DEFAULT_FILE_STORAGE = "django.core.files.storage.FileSystemStorage"
+    raise Exception("Environment variable 'storage_backend' not found....Please set it to 'db'.")
 
 
 # settings used when FileSystemStorage is enabled
