@@ -8,6 +8,6 @@
     "allowJs": true,
   },
   "files": [
-    "src/index.ts"
+    "src/app/index.tsx"
   ]
 }

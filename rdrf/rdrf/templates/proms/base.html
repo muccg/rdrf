@@ -17,7 +17,7 @@
 
     <link rel="icon" href="{% static 'proms-logos/favicon.ico' %}" type="image/x-icon">
 
-    <link rel="stylesheet" type="text/css" href="{% static 'proms/proms.css' %}"/>
+    <link rel="stylesheet" type="text/css" href="{% static 'proms/css/proms.css' %}"/>
 
     {% block extra_head %}
     {% endblock %}
@@ -31,9 +31,9 @@
             {% endblock %}
         </div>
 
-    {% if production %}
-      <script src="{% static 'proms/js/runtime-bundle.min.js' %}"></script>
-      <script src="{% static 'proms/js/vendors-bundle.min.js' %}"></script>
+    {% if False %}
+      <script src="{% static 'js/runtime-bundle.min.js' %}"></script>
+      <script src="{% static 'js/vendors-bundle.min.js' %}"></script>
       <script src="{% static 'proms/js/main-bundle.min.js' %}"></script>
     {% else %}
       <script src="{% static 'proms/js/runtime-bundle.js' %}"></script>
