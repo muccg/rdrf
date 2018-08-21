@@ -11,13 +11,18 @@ import {
     withRouter,
  } from 'react-router-dom';
 
+import Instruction  from '../pages/proms_page/components/instruction';
+import Question from '../pages/proms_page/components/question';
+
+
 class App extends React.Component<any> {
 
     render() {
         return (
-            <div>
-		Hello from React
-            </div>
+		<div>
+		   <Instruction />
+		   <Question />
+                </div>
         );
     }
 

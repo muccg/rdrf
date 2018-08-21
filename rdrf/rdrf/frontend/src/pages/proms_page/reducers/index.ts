@@ -1,13 +1,19 @@
-import { createActions, handleActions, handleAction, combineActions } from 'redux-actions';
+import { createAction, handleActions, handleAction, combineActions } from 'redux-actions';
 
-const {
-    goPrevious,
-    goNext,
-} = createActions('PROMS_PREVIOUS','PROMS_NEXT');
-
+const PREVIOUS  = createAction("PROMS_PREVIOUS");
+const NEXT = createAction("PROMS_NEXT");
 
 const pageReducer = handleActions({
-
+    PREVIOUS:
+    (state, action: any) => ({
+	...state,
+    }),
+    NEXT:
+    (state, action: any) => ({
+	...state,
+    }),
+    
+	
 }, []);
 
 export default pageReducer;
