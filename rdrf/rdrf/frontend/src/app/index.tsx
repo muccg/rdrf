@@ -13,6 +13,7 @@ import {
 
 import Instruction  from '../pages/proms_page/components/instruction';
 import Question from '../pages/proms_page/components/question';
+import rootReducer from '../reducers';
 
 
 class App extends React.Component<any> {

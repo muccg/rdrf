@@ -1,5 +1,4 @@
 import * as React from 'react';
-// test
 
 export default class Question extends React.Component<any> {
     render() {
