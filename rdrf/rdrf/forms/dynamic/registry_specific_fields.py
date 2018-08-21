@@ -83,7 +83,7 @@ class RegistrySpecificFieldsHandler(object):
         elif clear_key in request.POST:
             clear_value = request.POST[clear_key]
             if clear_value == "on":
-                # delete cdefile and file stored in db if clear checkbox is enabled
+                # delete cdefile and file stored in db if clear box is checked
                 self._delete_existing_file_in_fs(file_cde_model)
                 return FileCommand.DELETE
 

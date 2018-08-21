@@ -72,7 +72,7 @@ services:
       - WAIT_FOR_CACHE=1
       - DJANGO_MAILGUN_API_KEY=${DJANGO_MAILGUN_API_KEY}
       # Set to db for DatabaseStorage usage
-      - storage_backend=db      
+      - STORAGE_BACKEND=db      
 
   uwsgi:
     image: muccg/rdrf-dev
