@@ -31,15 +31,9 @@
             {% endblock %}
         </div>
 
-    {% if False %}
-      <script src="{% static 'js/runtime-bundle.min.js' %}"></script>
-      <script src="{% static 'js/vendors-bundle.min.js' %}"></script>
+      <script src="{% static 'proms/js/runtime-bundle.min.js' %}"></script>
+      <script src="{% static 'proms/js/vendors-bundle.min.js' %}"></script>
       <script src="{% static 'proms/js/main-bundle.min.js' %}"></script>
-    {% else %}
-      <script src="{% static 'proms/js/runtime-bundle.js' %}"></script>
-      <script src="{% static 'proms/js/vendors-bundle.js' %}"></script>
-      <script src="{% static 'proms/js/main-bundle.js' %}"></script>
-    {% endif %}
  
 </body>
 </html>

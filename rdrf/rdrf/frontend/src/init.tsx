@@ -5,21 +5,27 @@ import * as ReactDOM from 'react-dom';
 import { Provider } from 'react-redux';
 import thunk from 'redux-thunk';
 import { createStore, applyMiddleware, compose } from 'redux';
-import { BrowserRouter as Router} from 'react-router-dom';
 
 import App from './app';
-import reducers from './reducers'
+import { promsPageReducer } from './pages/proms_page/reducers';
+
 const composeEnhancers = window['__REDUX_DEVTOOLS_EXTENSION_COMPOSE__'] || compose;
 
 export const store = createStore(
-    reducers,
+    promsPageReducer,
     composeEnhancers(applyMiddleware(thunk))
 );
 
+
+const unsubscribe = store.subscribe(() =>
+  console.log(store.getState())
+)
+
 ReactDOM.render(
     <Provider store={store}>
-        <Router basename={"/proms"}>
             <App />
-        </Router>
     </Provider>,
     document.getElementById('app'));
+
+
+
