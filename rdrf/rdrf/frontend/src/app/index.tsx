@@ -17,4 +17,9 @@ class App extends React.Component<any> {
 
 }
 
-export default connect()(App);
+function mapStateToProps(state) {
+    return {stage: state.stage}
+}
+
+
+export default connect(mapStateToProps)(App);
