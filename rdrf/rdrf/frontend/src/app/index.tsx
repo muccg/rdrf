@@ -7,20 +7,34 @@ import Question from '../pages/proms_page/components/question';
 import { goPrevious, goNext } from '../pages/proms_page/reducers';
 
 import { Button } from 'reactstrap';
+import { Container, Row, Col } from 'reactstrap';
 
 
 class App extends React.Component<any> {
 
     render() {
         return (
-		<div>
+	        <Container>
+        <Row>
+		<Col>
 		<Instruction stage={this.props.stage} />
-		
+		</Col>
+        </Row>
+        <Row>
+		<Col>
 		<Question stage={this.props.stage} />
+		</Col>
+        </Row>
+        <Row>
+		<Col>
+		<Button onClick={this.props.goPrevious} >Prev</Button>
+		</Col>
+		<Col>
+		  <Button onClick={this.props.goNext}>Next</Button>
 
-		<Button onClick={this.props.goPrevious} >Prev</Button>   <Button onClick={this.props.goNext}>Next</Button>
-		
-                </div>
+		</Col>
+        </Row>
+		</Container>
         );
     }
 
