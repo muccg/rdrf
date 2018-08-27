@@ -14,6 +14,9 @@ class App extends React.Component<any> {
 
     render() {
         return (
+
+		<div className="App">
+		
 	        <Container>
         <Row>
 		<Col>
@@ -35,6 +38,7 @@ class App extends React.Component<any> {
 		</Col>
         </Row>
 		</Container>
+		</div>
         );
     }
 
