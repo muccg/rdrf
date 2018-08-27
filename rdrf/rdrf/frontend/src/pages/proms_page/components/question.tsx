@@ -8,6 +8,7 @@ import { QuestionInterface } from './interfaces';
 import { fetchQuestionData } from '../reducers';
 
 
+// todo hook this up
 function mapDispatchToProps(dispatch) {
     return bindActionCreators({
 	      fetchQuestionData},

@@ -25,10 +25,10 @@ class App extends React.Component<any> {
         </Row>
         <Row>
 		<Col>
-		<Question stage={this.props.stage} />
+		<Question stage={this.props.stage} questions={this.props.questions} />
 		</Col>
         </Row>
-        <Row>
+        <Row>s
 		<Col>
 		<Button onClick={this.props.goPrevious} >Prev</Button>
 		</Col>
@@ -45,7 +45,8 @@ class App extends React.Component<any> {
 }
 
 function mapStateToProps(state) {
-    return {stage: state.stage}
+    return {stage: state.stage,
+	    questions: state.questions}
 }
 
 function mapDispatchToProps(dispatch) {
