@@ -34,6 +34,10 @@
       <script src="{% static 'proms/js/runtime-bundle.min.js' %}"></script>
       <script src="{% static 'proms/js/vendors-bundle.min.js' %}"></script>
       <script src="{% static 'proms/js/main-bundle.min.js' %}"></script>
- 
+      <script>
+	window.proms_config = {
+	   question_endpoint = '{% url 'proms_question_endpoint' %}',
+	};
+      </script>
 </body>
 </html>

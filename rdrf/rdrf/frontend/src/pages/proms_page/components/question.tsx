@@ -1,45 +1,47 @@
 import * as React from 'react';
-import { Form, FormGroup, Label, Input } from 'reactstrap';
+import * as _ from 'lodash';
+import { connect } from 'react-redux';
+import { bindActionCreators } from 'redux';
 
+import { Form, FormGroup, Label, Input } from 'reactstrap';
+import { QuestionInterface } from './interfaces';
+import { fetchQuestionData } from '../reducers';
+
+
+function mapDispatchToProps(dispatch) {
+    return bindActionCreators({
+	      fetchQuestionData},
+              dispatch);
+}
 
 export default class Question extends React.Component<any> {
+    componentDidMount() {
+	//this.props.fetchData(this.props.stage);
+    }
+
     render() {
-
 	return ( 
-		  <Form>	 
+		<Form>	 
                    <FormGroup tag="fieldset">
-                <legend>Question {this.props.stage}</legend>
-		 </FormGroup>
+                       <legend>Question {this.props.questions[this.props.stage].text}</legend>
+		   </FormGroup>
 
-		 <FormGroup check>
-		       <Label check>
-	                  <Input type="radio" name="radio1" />Option one
-		       </Label>
-    
-                     </FormGroup>
-		 <FormGroup check>
-		 <Label check>
-	<Input type="radio" name="radio1" />{' '}
-	Option two can be something else and selecting it will deselect option one
-		 </Label>
-    </FormGroup>
-		 
-    <FormGroup check disabled>
-    <Label check>
-	<Input type="radio" name="radio1" disabled />{' '}
-	Option three is disabled
-		 </Label>
-    </FormGroup>
 
-<FormGroup check>
-    <Label check>
-    <Input type="checkbox" />{' '}
-    Check me out
-    </Label>
-</FormGroup>
+		  {
+                      _.map(this.props.questions[this.props.stage].options, (option, index) => (
+		          <FormGroup check>
+		            <Label check>
+	                      <Input type="radio" name="radio1" value="{option.code}" />{option.text}
+		            </Label>
+                          </FormGroup>
+
+                      ))
+                  }
 
 		</Form>);
     }
 }
 
+
+// export default connect(....
 
