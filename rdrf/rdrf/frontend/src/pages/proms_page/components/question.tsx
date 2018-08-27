@@ -24,9 +24,8 @@ export default class Question extends React.Component<any> {
 	return ( 
 		<Form>	 
                    <FormGroup tag="fieldset">
-                       <legend>Question {this.props.questions[this.props.stage].text}</legend>
+                <legend>Question: {this.props.questions[this.props.stage].text}</legend>
 		   </FormGroup>
-
 
 		  {
                       _.map(this.props.questions[this.props.stage].options, (option, index) => (
