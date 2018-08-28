@@ -28,16 +28,19 @@ class App extends React.Component<any> {
 		<Question stage={this.props.stage} questions={this.props.questions} />
 		</Col>
         </Row>
-        <Row>
+		</Container>
+		</div>
+		<div className="footer">
+		<Row>
+		
 		<Col>
 		<Button onClick={this.props.goPrevious} >Prev</Button>
 		</Col>
 		<Col>
 		  <Button onClick={this.props.goNext}>Next</Button>
-
 		</Col>
-        </Row>
-		</Container>
+		</Row>
+		
 		</div>
         );
     }
