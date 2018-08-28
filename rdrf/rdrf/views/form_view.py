@@ -241,6 +241,11 @@ class FormView(View):
 
             raise RDRFContextSwitchError
 
+    def _evaluate_form_rules(self, form_rules, evaluation_context):
+        from rdrf.workflows.rules_engine import RulesEvaluator
+        evaluator = RulesEvaluator(form_rules, evaluation_context)
+        return evaluator.get_action()
+
     def _enable_context_creation_after_save(self,
                                             request,
                                             registry_code,
@@ -590,6 +595,25 @@ class FormView(View):
 
             if dyn_patient.rdrf_context_id == "add":
                 raise Exception("Content not created")
+
+            if registry.has_feature("rulesengine"):
+                rules_block = registry.metadata.get("rules",{})
+                form_rules = rules_block.get(form_obj.name, [])
+                logger.debug("checking rules for %s" % form_obj.name)
+                logger.debug("form_rules = %s" % form_rules)
+                if len(form_rules) > 0:
+                    # this may redirect or produce side effects
+                    rules_evaluation_context = {"patient_model": patient,
+                                                "registry_model": registry,
+                                                "form_name": form_obj.name,
+                                                "context_id": self.rdrf_context.pk,
+                                                "clinical_data": None} 
+                    action_result = self._evaluate_form_rules(form_rules, rules_evaluation_context)
+                    if type(action_result) is HttpResponseRedirect:
+                        return action_result
+                else:
+                    logger.debug("No evaluation rules to apply")
+                        
 
         patient_name = '%s %s' % (patient.given_names, patient.family_name)
         # progress saved to progress collection in mongo
