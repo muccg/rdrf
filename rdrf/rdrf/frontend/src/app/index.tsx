@@ -17,32 +17,32 @@ class App extends React.Component<any> {
 
 		<div className="App">
 		
-	        <Container>
-        <Row>
-		<Col>
-		<Instruction stage={this.props.stage} />
-		</Col>
-        </Row>
-        <Row>
-		<Col>
-		<Question stage={this.props.stage} questions={this.props.questions} />
-		</Col>
-        </Row>
-		</Container>
-		</div>
+	          <Container>
+                    <Row>
+		     <Col>
+		       <Instruction stage={this.props.stage} />
+		     </Col>
+                    </Row>
+                    <Row>
+		      <Col>
+		        <Question stage={this.props.stage} questions={this.props.questions} />
+		      </Col>
+                    </Row>
+		  </Container>
 		<div className="footer">
-		<Row>
-		
-		<Col>
-		<Button onClick={this.props.goPrevious} >Prev</Button>
-		</Col>
-		<Col>
-		  <Button onClick={this.props.goNext}>Next</Button>
-		</Col>
-		</Row>
-		
+		  <Row>
+		    <Col>
+		      <Button onClick={this.props.goPrevious} >Prev</Button>
+		    </Col>
+		    <Col>
+		       <Button onClick={this.props.goNext}>Next</Button>
+		    </Col>
+		  </Row>
 		</div>
-        );
+
+		</div>
+
+		        );
     }
 
 }
