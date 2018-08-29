@@ -9,7 +9,7 @@ export const fetchQuestionStart = createAction("PROMS_FETCH_QUESTION_START")
 export const fetchQuestionData = createAction("PROMS_FETCH_QUESTION");
 export const fetchQuestionFinish = createAction("PROMS_FETCH_QUESTION_FINISH")
 
-const initialState = {
+const dummyInitialState = {
     stage: 0,
     questions: [ 
 	{text: "Pain", options: [{ value: "1", text: "Low"},
@@ -19,6 +19,11 @@ const initialState = {
 	{text: "Weight", options: [{ value: "A", text: "Small"},
                                  { value: "B", text: "Medium"},
                                    { value: "C", text: "Heavy"}]}],
+}
+const initialState = {
+    stage: 0,
+    answers: {},
+    questions: [],
 }
 
 export const promsPageReducer = handleActions({
