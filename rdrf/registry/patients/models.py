@@ -1262,7 +1262,7 @@ class PatientConsentStorage(DefaultStorage):
 class PatientConsent(models.Model):
     patient = models.ForeignKey(Patient)
     form = models.FileField(
-        upload_to='consents',
+        upload_to='rdrf.DBFileStorage/data_bytes/filename/mimetype',
         storage=PatientConsentStorage(),
         verbose_name="Consent form",
         blank=True,

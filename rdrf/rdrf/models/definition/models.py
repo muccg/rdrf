@@ -1801,7 +1801,7 @@ class CDEFile(models.Model):
     form_name = models.CharField(max_length=80, blank=True)
     section_code = models.CharField(max_length=100, blank=True)
     cde_code = models.CharField(max_length=30, blank=True)
-    item = models.FileField(upload_to=file_upload_to, max_length=300)
+    item = models.FileField(upload_to='rdrf.DBFileStorage/data_bytes/filename/mimetype', max_length=300)
     filename = models.CharField(max_length=255)
 
     def __str__(self):
@@ -1813,11 +1813,7 @@ def fileuploaditem_delete(sender, instance, **kwargs):
     instance.item.delete(False)
 
 
-class FileStorage(models.Model):
-    """
-    This model is used only when the database file storage backend is
-    enabled. These exact columns are required by the backend code.
-    """
-    name = models.CharField(primary_key=True, max_length=255)
-    data = models.BinaryField()
-    size = models.IntegerField(default=0)
+class DBFileStorage(models.Model):
+    data_bytes = models.TextField()
+    filename = models.CharField(max_length=255)
+    mimetype = models.CharField(max_length=50)

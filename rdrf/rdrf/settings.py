@@ -182,7 +182,7 @@ INSTALLED_APPS = [
     'registry.common',
     'registry.genetic',
     'registration',
-    'storages',
+    'db_file_storage',
     'django_cron',
     'django_otp',
     'django_otp.plugins.otp_static',
@@ -238,26 +238,12 @@ STATIC_SERVER_PATH = STATIC_ROOT
 WRITABLE_DIRECTORY = env.get("writable_directory", "/tmp")
 
 # valid values django.core.files.storage.FileSystemStorage and
-# storages.backends.database.DatabaseStorage
-DEFAULT_FILE_STORAGE = env.get("storage_backend", "django.core.files.storage.FileSystemStorage")
+# db_file_storage.storage.DatabaseFileStorage
+DEFAULT_FILE_STORAGE = 'db_file_storage.storage.DatabaseFileStorage'
 
 # settings used when FileSystemStorage is enabled
 MEDIA_ROOT = env.get('media_root', os.path.join(WEBAPP_ROOT, 'uploads'))
 MEDIA_URL = '{0}/uploads/'.format(SCRIPT_NAME)
-
-# setting used when DatabaseStorage is enabled
-DB_FILES = {
-    "db_table": "rdrf_filestorage",
-    "fname_column": "name",
-    "blob_column": "data",
-    "size_column": "size",
-    "base_url": None,
-}
-DATABASE_ODBC_DRIVER = "{PostgreSQL}"  # depends on odbcinst.ini
-DATABASE_NAME = DATABASES["default"]["NAME"]
-DATABASE_USER = DATABASES["default"]["USER"]
-DATABASE_PASSWORD = DATABASES["default"]["PASSWORD"]
-DATABASE_HOST = DATABASES["default"]["HOST"]
 
 # session and cookies
 SESSION_COOKIE_AGE = env.get("session_cookie_age", 60 * 60)
