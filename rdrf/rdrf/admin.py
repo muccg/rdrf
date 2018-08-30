@@ -20,6 +20,11 @@ from rdrf.models.definition.models import ContextFormGroup
 from rdrf.models.definition.models import ContextFormGroupItem
 from rdrf.models.definition.models import CDEFile
 from rdrf.models.definition.models import ConsentRule
+from rdrf.models.proms.models import Survey
+from rdrf.models.proms.models import SurveyQuestion
+from rdrf.models.proms.models import Precondition
+
+
 
 import logging
 from django.http import HttpResponse
@@ -360,6 +365,25 @@ class ConsentRuleAdmin(admin.ModelAdmin):
     model = ConsentRule
     list_display = ("registry", "user_group", "capability", "consent_question", "enabled")
 
+class PreconditionAdmin(admin.ModelAdmin):
+    model = Precondition
+    list_display = ('survey','cde','value')
+
+class SurveyQuestionAdmin(admin.StackedInline):
+    model = SurveyQuestion
+    extra = 0
+    list_display = ("registry", "name", "expression")
+    inlines = [PreconditionAdmin]
+
+
+class SurveyAdmin(admin.ModelAdmin):
+    model = Survey
+    list_display = ("registry", "name")
+    inlines = [SurveyQuestionAdmin]
+
+
+    
+
 
 if settings.DESIGN_MODE:
     class ContextFormGroupItemAdmin(admin.StackedInline):
@@ -375,6 +399,9 @@ if settings.DESIGN_MODE:
 
 admin.site.register(Registry, RegistryAdmin)
 admin.site.register(QuestionnaireResponse, QuestionnaireResponseAdmin)
+admin.site.register(Survey, SurveyAdmin)
+admin.site.register(Precondition, PreconditionAdmin)
+
 
 if settings.DESIGN_MODE:
     admin.site.register(

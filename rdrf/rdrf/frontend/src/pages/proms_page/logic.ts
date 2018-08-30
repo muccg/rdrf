@@ -3,14 +3,15 @@ import * as _ from 'lodash';
 interface EqualsCondition {
     op: '=',
     cde: string,
-    value: any
+    value: any,
 }
 
 // maybe this is enough
 type Condition = EqualsCondition;
 
 // Elements of workflow
-interface UnconditionalElement {
+// I tried to make UnconditionalElement just a string but got type errors
+interface UnconditionalElement  {
     tag: 'cde',
     cde: string,
 }
@@ -22,15 +23,11 @@ interface ConditionalElement {
 }
 
 type Element = UnconditionalElement | ConditionalElement;
-
 type ElementList = [Element];
-
 type CDEList = [string]; // list of cde codes
 
 
 // conditions
-
-
 
 function evalCondition(condition: Condition, state: any) : boolean {
     switch(condition.op) {
@@ -38,18 +35,14 @@ function evalCondition(condition: Condition, state: any) : boolean {
 	    const answer = state.answers[condition.cde];
 	    return answer === condition.value;
 	}
-	default: {
-	    return false;
-	}
+	default:
+            return false;
     }
 }
 
 function evalElement(e: Element, state: any) {
     switch(e.tag) {
-	case 'cde': {
-	    return e.cde;
-	}
-	    
+	case 'cde': return e.cde;
 	case 'cond': {
 	    if (evalCondition(e.cond, state)) {
 		return e.cde;
@@ -58,10 +51,11 @@ function evalElement(e: Element, state: any) {
 		return null;
 	    }
 	}
-	    
+	default:
+          const _exhaustiveCheck: never = e;
+          return _exhaustiveCheck;
     }
 }
-
 
 
 export function evalElements(elements: Element[], state: any) : string[] {

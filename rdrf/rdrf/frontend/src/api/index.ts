@@ -1,9 +1,9 @@
 import axios from 'axios';
 
-function fetchQuestionData(stage) {
-  return axios.get(window.proms_config.question_endpoint, {
+function fetchSurvey(surveyId) {
+  return axios.get(window.proms_config.survey_endpoint, {
        params: {
-              stage: JSON.stringify(stage),
+           survey_id: JSON.stringify(surveyId),
        },});
 }
 

@@ -660,6 +660,12 @@ class CDEPermittedValueGroup(models.Model):
                 att) for v in CDEPermittedValue.objects.filter(
                 pv_group=self).order_by('position')]
 
+
+    # interface used by proms
+    @property
+    def options(self):
+        return [{"code": pv.code, "text": pv.value} for pv in CDEPermittedValue.objects.filter(pv_group=self).order_by('position')]
+
     def __str__(self):
         return "PVG %s containing %d items" % (self.code, len(self.members()))
 
