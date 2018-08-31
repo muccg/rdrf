@@ -191,6 +191,7 @@ class Exporter(object):
         data["context_form_groups"] = self._get_context_form_groups()
         data["email_notifications"] = self._get_email_notifications()
         data["consent_rules"] = self._get_consent_rules()
+        data["surveys"] = self._get_surveys()
 
         if self.registry.patient_data_section:
             data["patient_data_section"] = self._create_section_map(
@@ -333,7 +334,24 @@ class Exporter(object):
         generic_cdes = self._get_generic_cdes()
         cdes = cdes.union(generic_cdes)
 
+        survey_cdes = self._get_survey_cdes()
+        cdes = cdes.union(survey_cdes)
+
         return self._sort_codes(cdes)
+
+    def _get_survey_cdes(self):
+        # ensure if a registry has (proms) surveys we're exporting relevant cdes
+        from rdrf.models.proms.models import Survey
+        cdes = set([])
+        for survey_model in Survey.objects.filter(registry=self.registry):
+            for survey_question in survey_model.survey_questions.all():
+                cde_model = CommonDataElement.objects.get(code=survey_question.cde.code)
+                cdes.add(cde_model)
+                if survey_question.precondition:
+                    precondition_cde_model = CommonDataElement.objects.get(code=survey_question.precondition.cde.code)
+                    cdes.add(precondition_cde_model)
+        return cdes
+        
 
     def _get_consent_sections(self):
         section_dicts = []
@@ -499,6 +517,26 @@ class Exporter(object):
             consent_rule_dict["enabled"] = consent_rule.enabled
             data.append(consent_rule_dict)
         return data
+
+    def _get_surveys(self):
+        from rdrf.models.proms.models import Survey
+        data = []
+        for survey_model in Survey.objects.filter(registry=self.registry):
+            survey_dict = {}
+            survey_dict["name"] = survey_model.name
+            survey_dict["questions"] = []
+            for sq in survey_model.survey_questions.all():
+                sq_dict = {}
+                sq_dict["cde"] = sq.cde.code
+                sq_dict["position"] = sq.position
+                sq_dict["precondition"] = None
+                if sq.precondition:
+                    sq_dict["precondition"] = {"cde": sq.precondition.cde.code,
+                                            "value": sq.precondition.value}
+                survey_dict["questions"].append(sq_dict)
+            data.append(survey_dict)
+        return data
+        
 
 
 def str_presenter(dumper, data):

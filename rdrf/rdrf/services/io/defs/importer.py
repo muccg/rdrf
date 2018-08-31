@@ -569,6 +569,11 @@ class Importer(object):
             self._create_consent_rules(r)
             logger.info("imported consent rules OK")
 
+        if "surveys" in self.data:
+            self._create_surveys(r)
+            logger.info("imported surveys OK")
+            
+
         logger.info("end of import registry objects!")
 
     def _create_consent_rules(self, registry_model):
@@ -596,6 +601,41 @@ class Importer(object):
             cr.save()
             logger.info("Imported Consent Rule for %s %s" % (cr.capability,
                                                              cr.user_group))
+
+    def _create_surveys(self, registry_model):
+        from rdrf.models.proms.models import Survey
+        from rdrf.models.proms.models import SurveyQuestion
+        from rdrf.models.proms.models  import Precondition
+        Survey.objects.filter(registry=registry_model).delete()
+        logger.info("Deleted existing surveys ...")
+        for survey_dict in self.data["surveys"]:
+            logger.info("survey dict = %s" % survey_dict)
+            survey_model = Survey(registry=registry_model)
+            survey_model.name = survey_dict["name"]
+            survey_model.save()
+            logger.info("saved survey_model %s" % survey_model.name)
+            
+            for sq in survey_dict["questions"]:
+                sq_model = SurveyQuestion(survey=survey_model)
+                sq_model.position = sq["position"]
+                cde_model = CommonDataElement.objects.get(code=sq["cde"])
+                sq_model.cde = cde_model
+                sq_model.save()
+                logger.info("saved sq %s" % sq_model)
+
+                if sq["precondition"]:
+                    precondition_cde_model = CommonDataElement.objects.get(code=sq["precondition"]["cde"])
+                    precondition_model = Precondition(cde=precondition_cde_model, survey=survey_model)
+                    precondition_model.value = sq["precondition"]["value"]
+                    precondition_model.save()
+                    sq_model.precondition = precondition_model
+                sq_model.save()
+                logger.info("Imported survey question %s" % sq_model.cde.code)
+                if sq_model.precondition:
+                    logger.info("Imported precondition: %s = %s" % (sq_model.precondition.cde.code,
+                                                                    sq_model.precondition.value))
+            logger.info("Imported Survey %s" % survey_model.name)
+        
 
     def _create_email_notifications(self, registry):
         from rdrf.models.definition.models import EmailNotification
