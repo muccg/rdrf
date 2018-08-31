@@ -64,7 +64,29 @@ class SurveyQuestion(models.Model):
             return self.cde.name + " always"
         else:
             return self.cde.name + "  if "  + self.precondition.cde.name + " = " + self.precondition.value
-        
-        
-            
-    
+
+
+
+class SurveyStates:
+    REQUESTED = "requested"
+    COMPLETED = "completed"
+
+class SurveyAssignment(models.Model):
+    SURVEY_STATES = (
+        (SurveyStates.REQUESTED, "Requested"),
+        (SurveyStates.COMPLETED, "Completed"))
+    registry = models.ForeignKey(Registry)
+    survey_name = models.CharField(max_length=80)
+    patient_token = models.CharField(max_length=80)
+    state  = models.CharField(max_length=20, choices=SURVEY_STATES)
+    created = models.DateTimeField(auto_now_add=True)
+    updated = models.DateTimeField(auto_now=True)
+
+
+
+class SurveyResponse(models.Model):
+    registry = models.ForeignKey(Registry)
+    survey_name = models.CharField(max_length=80)
+    created = models.DateTimeField(auto_now_add=True)
+    patient_token = models.CharField(max_length=80)
+    data = models.TextField()
