@@ -17,7 +17,7 @@ function mapDispatchToProps(dispatch) {
 
 export default class Question extends React.Component<any> {
     componentDidMount() {
-	//this.props.fetchData(this.props.stage);
+	//this.props.fetchData(
     }
 
     render() {

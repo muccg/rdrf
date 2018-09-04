@@ -69,6 +69,7 @@ class SurveyQuestion(models.Model):
 
 class SurveyStates:
     REQUESTED = "requested"
+    STARTED = "started"
     COMPLETED = "completed"
 
 class SurveyAssignment(models.Model):

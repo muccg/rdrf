@@ -3,7 +3,6 @@ from rest_framework.response import Response
 from rdrf.models.proms.models import Survey
 from rdrf.models.proms.models import SurveyAssignment
 from rdrf.models.proms.models import SurveyStates
-from rdrf.models.definition.models import Registry
 
 
 class SurveyEndpoint(APIView):
