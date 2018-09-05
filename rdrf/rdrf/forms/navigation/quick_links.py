@@ -91,6 +91,7 @@ class Links:
         reverse("admin:rdrf_demographicfields_changelist"),
         _("Registry Demographics Fields"))
     ConsentRules = QuickLink(reverse("admin:rdrf_consentrule_changelist"), _("Consent Rules"))
+    Surveys = QuickLink(reverse("admin:rdrf_survey_changelist"), _("Surveys"))
 
     if settings.DESIGN_MODE:
         RegistryForms = QuickLink(
@@ -192,6 +193,11 @@ class Links:
     WORKING_GROUPS = {
         WorkingGroups.text: WorkingGroups,
     }
+
+    PROMS = {
+        Surveys.text: Surveys,
+    }
+    
 
     # only appear if related registry specific feature is set
     # Populated at runtime
@@ -346,6 +352,7 @@ class QuickLinks(object):
                 **Links.STATE_MANAGEMENT,
                 **Links.USER_MANAGEMENT,
                 **Links.WORKING_GROUPS,
+                **Links.PROMS,
             }
 
     def _group_links(self, group):
