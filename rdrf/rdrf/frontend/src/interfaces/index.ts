@@ -1,5 +1,5 @@
 export interface PromsConfig {
-     question_endpoint: string,
+     survey_endpoint: string,
  }
 
 
