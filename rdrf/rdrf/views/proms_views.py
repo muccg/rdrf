@@ -7,13 +7,16 @@ from rdrf.models.proms.models import SurveyStates
 from rdrf.models.definition.models import Registry
 from django.http import HttpResponseRedirect
 from django.http import Http404
+from django.core.urlresolvers import reverse
 import logging
 
 logger = logging.getLogger(__name__)
 
 class PromsView(View):
     def get(self, request):
+        logger.debug("proms view")
         patient_token = request.session.get("patient_token", None)
+        logger.debug("patient_token = %s" % patient_token)
         if patient_token is None:
             raise Http404
 
@@ -50,18 +53,27 @@ class PromsView(View):
 
 class PromsLandingPageView(View):
     def get(self, request):
+        logger.debug("proms landing page")
         patient_token = request.GET.get("t",None)
+        logger.debug("patient_token = %s" % patient_token)
         registry_code = request.GET.get("r", None)
+        logger.debug("registry_code = %s" % registry_code)
         survey_name = request.GET.get("s", None)
+        logger.debug("survey_name = %s" % survey_name)
         if not self._is_valid(patient_token,
                               registry_code,
                               survey_name):
             raise Http404
+
+        logger.debug("valid")
         
         registry_model = get_object_or_404(Registry, code=registry_code)
+        logger.debug("registry = %s" % registry_model)
         survey_model = get_object_or_404(Survey,
                                          registry=registry_model,
                                          name=survey_name)
+
+        logger.debug("survey_model = %s" % survey_model)
         
         survey_assignment = get_object_or_404(SurveyAssignment,
                                               registry=registry_model,
@@ -69,11 +81,16 @@ class PromsLandingPageView(View):
                                               patient_token=patient_token,
                                               state=SurveyStates.REQUESTED)
 
+        logger.debug("survey assignment = %s" % survey_assignment)
+
         survey_assignment.response = "{}";
         survey_assignment.state = SurveyStates.STARTED
         survey_assignment.save()
+        logger.debug("reset survey assignment")
 
         request.session["patient_token"] = patient_token
+        logger.debug("patient_token set in session")
+        logger.debug("redirecting to proms page")
                                           
         return HttpResponseRedirect(reverse("proms"))
 

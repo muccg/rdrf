@@ -23,6 +23,7 @@ from rdrf.models.definition.models import ConsentRule
 from rdrf.models.proms.models import Survey
 from rdrf.models.proms.models import SurveyQuestion
 from rdrf.models.proms.models import Precondition
+from rdrf.models.proms.models import SurveyAssignment
 
 
 
@@ -381,6 +382,10 @@ class SurveyAdmin(admin.ModelAdmin):
     list_display = ("registry", "name")
     inlines = [SurveyQuestionAdmin]
 
+class SurveyAssignmentAdmin(admin.ModelAdmin):
+    model = SurveyAssignment
+    list_display = ("registry", "survey_name","patient_token", "state","created","updated", "response") 
+
 
     
 
@@ -400,6 +405,7 @@ if settings.DESIGN_MODE:
 admin.site.register(Registry, RegistryAdmin)
 admin.site.register(QuestionnaireResponse, QuestionnaireResponseAdmin)
 admin.site.register(Survey, SurveyAdmin)
+admin.site.register(SurveyAssignment, SurveyAssignmentAdmin)
 admin.site.register(Precondition, PreconditionAdmin)
 
 

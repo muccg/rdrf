@@ -75,6 +75,7 @@ class SurveyStates:
 class SurveyAssignment(models.Model):
     SURVEY_STATES = (
         (SurveyStates.REQUESTED, "Requested"),
+        (SurveyStates.STARTED, "Started"),
         (SurveyStates.COMPLETED, "Completed"))
     registry = models.ForeignKey(Registry)
     survey_name = models.CharField(max_length=80)
