@@ -11,20 +11,29 @@ type Condition = EqualsCondition;
 
 // Elements of workflow
 // I tried to make UnconditionalElement just a string but got type errors
+interface Option {
+    code: string,
+    text: string,
+}
+
 interface UnconditionalElement  {
     tag: 'cde',
     cde: string,
+    title: string,
+    options: [Option],
 }
 
 interface ConditionalElement {
     tag: 'cond',
     cond: Condition,
     cde: string,
+    title: string,
+    options: [Option],
 }
 
 type Element = UnconditionalElement | ConditionalElement;
-type ElementList = [Element];
-type CDEList = [string]; // list of cde codes
+
+export type ElementList = [Element];
 
 
 // conditions
@@ -60,21 +69,5 @@ function evalElement(e: Element, state: any) {
 
 export function evalElements(elements: Element[], state: any) : string[] {
    const ev = _.partial(evalElement, _, state);
-    return elements.map(ev).filter(element => element !== null);
+   return elements.map(ev).filter(element => element !== null);
 }
-
-
-
-const currentState  = {answers: { hadSurgery: 'no', height: 82.6 }};
-
-
-		 
-const workflow: Element[] = [ {tag: "cde", cde: "height"},
-			      {tag: "cond",
-			       cond: {op: "=", cde: "hadSurgery", value: "yes"},
-			       cde: "fred"}];
-
-
-
-
-console.log(evalElements(workflow, currentState));

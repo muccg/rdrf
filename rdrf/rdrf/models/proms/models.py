@@ -40,11 +40,13 @@ class SurveyQuestion(models.Model):
             return  {"tag": "cde",
                      "cde": self.cde.code,
                      "datatype": self.cde.datatype,
+                     "title": self.cde.name,
                      "options": self._get_options() }
                     
         else:
             return { "tag": "cond",
                      "cde": self.cde.code,
+                     "title": self.cde.name,
                      "cond": { "op": "=",
                                "cde": self.precondition.cde.code,
                                "value": self.precondition.value

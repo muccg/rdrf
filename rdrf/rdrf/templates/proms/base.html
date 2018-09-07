@@ -33,11 +33,18 @@
 
       <script src="{% static 'proms/js/runtime-bundle.min.js' %}"></script>
       <script src="{% static 'proms/js/vendors-bundle.min.js' %}"></script>
-      <script src="{% static 'proms/js/main-bundle.min.js' %}"></script>
+
+
       <script>
+	var questions = JSON.parse('{{ questions | safe }}');
 	window.proms_config = {
+	   patient_token: '{{ patient_token }}',
+	   questions: questions,
 	   survey_endpoint: '{% url 'survey_endpoint' %}',
 	};
       </script>
+
+
+      <script src="{% static 'proms/js/main-bundle.min.js' %}"></script>
 </body>
 </html>

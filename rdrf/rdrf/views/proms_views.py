@@ -8,9 +8,11 @@ from rdrf.models.definition.models import Registry
 from django.http import HttpResponseRedirect
 from django.http import Http404
 from django.core.urlresolvers import reverse
-import logging
+import json
 
+import logging
 logger = logging.getLogger(__name__)
+
 
 class PromsView(View):
     def get(self, request):
@@ -35,7 +37,7 @@ class PromsView(View):
         
         context = {"production": False,
                    "patient_token": patient_token,
-                   "survey_questions": survey_questions
+                   "questions": json.dumps(survey_questions),
         }
         
         return render(request, "proms/proms.html", context)
@@ -84,7 +86,7 @@ class PromsLandingPageView(View):
         logger.debug("survey assignment = %s" % survey_assignment)
 
         survey_assignment.response = "{}";
-        survey_assignment.state = SurveyStates.STARTED
+        #survey_assignment.state = SurveyStates.STARTED
         survey_assignment.save()
         logger.debug("reset survey assignment")
 

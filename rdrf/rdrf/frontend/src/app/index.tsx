@@ -9,8 +9,18 @@ import { goPrevious, goNext } from '../pages/proms_page/reducers';
 import { Button } from 'reactstrap';
 import { Container, Row, Col } from 'reactstrap';
 
+import { ElementList } from '../pages/proms_page/logic';
 
-class App extends React.Component<any> {
+interface AppInterface {
+    title: string,
+    stage: number,
+    questions: ElementList,
+    goNext: any,
+    goPrevious: any,
+}
+
+
+class App extends React.Component<AppInterface, object> {
 
     render() {
         return (
@@ -25,7 +35,7 @@ class App extends React.Component<any> {
                     </Row>
                     <Row>
 		      <Col>
-		        <Question stage={this.props.stage} questions={this.props.questions} />
+		<Question title={this.props.title} stage={this.props.stage} questions={this.props.questions}/>
 		      </Col>
                     </Row>
 		  </Container>
@@ -49,6 +59,7 @@ class App extends React.Component<any> {
 
 function mapStateToProps(state) {
     return {stage: state.stage,
+	    title: state.title,
 	    questions: state.questions}
 }
 

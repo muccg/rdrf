@@ -5,26 +5,17 @@ import { bindActionCreators } from 'redux';
 
 import { Form, FormGroup, Label, Input } from 'reactstrap';
 import { QuestionInterface } from './interfaces';
-import { fetchQuestionData } from '../reducers';
 
 
-// todo hook this up
-function mapDispatchToProps(dispatch) {
-    return bindActionCreators({
-	      fetchQuestionData},
-              dispatch);
-}
-
-export default class Question extends React.Component<any> {
-    componentDidMount() {
-	//this.props.fetchData(
+class Question extends React.Component<QuestionInterface, object> {
+    constructor(props) {
+      super(props);
     }
-
     render() {
 	return ( 
 		<Form>	 
                    <FormGroup tag="fieldset">
-                <legend>Question: {this.props.questions[this.props.stage].text}</legend>
+                <legend>{this.props.questions[this.props.stage].title}</legend>
 		   </FormGroup>
 
 		  {
@@ -42,6 +33,13 @@ export default class Question extends React.Component<any> {
     }
 }
 
+function mapStateToProps(state) {
+    return {questions: state.questions,
+	    stage: state.stage,
+	   };
+}
 
-// export default connect(....
+export default connect<{},{},QuestionInterface>(mapStateToProps)(Question);
+
+	
 
