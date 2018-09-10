@@ -35,39 +35,35 @@ type Element = UnconditionalElement | ConditionalElement;
 
 export type ElementList = [Element];
 
-
-// conditions
-
-function evalCondition(condition: Condition, state: any) : boolean {
-    switch(condition.op) {
-	case '=': {
-	    const answer = state.answers[condition.cde];
-	    return answer === condition.value;
+function evalCondition(cond: Condition, state: any): boolean {
+    if (state.answers.hasOwnProperty(cond.cde) {
+	let answer = state.answers[cond.cde];
+	switch (cond.op) {
+	    case '=':
+		return answer == cond.value;
+            default:
+		return false; // extend this later
 	}
-	default:
-            return false;
+    }
+    else {
+	return false;
     }
 }
+    
 
-function evalElement(e: Element, state: any) {
-    switch(e.tag) {
-	case 'cde': return e.cde;
-	case 'cond': {
-	    if (evalCondition(e.cond, state)) {
-		return e.cde;
-            }
-	    else {
-		return null;
-	    }
-	}
-	default:
-          const _exhaustiveCheck: never = e;
-          return _exhaustiveCheck;
+function evalElement(el:Element, state: any): boolean {
+    switch(el.tag) {
+	case 'cde':
+	    return true;
+	case 'cond':
+	    return evalCondition(el.cond, state);
+	case default:
+	    return false;
     }
 }
 
 
-export function evalElements(elements: Element[], state: any) : string[] {
-   const ev = _.partial(evalElement, _, state);
-   return elements.map(ev).filter(element => element !== null);
+export function evalElements(elements: Element[], state): Element[] {
+    return elements.filter(el => evalElement(el, state));
 }
+ 

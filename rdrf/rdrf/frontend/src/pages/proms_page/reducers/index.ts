@@ -1,5 +1,7 @@
 import { createAction, handleActions } from 'redux-actions';
 
+import { 
+
 export const goPrevious  = createAction("PROMS_PREVIOUS");
 export const goNext = createAction("PROMS_NEXT");
 export const skip = createAction("PROMS_SKIP");
@@ -12,11 +14,21 @@ const initialState = {
     title: '',
 }
 
-function isCond(stage, state) {
-    return stage.questions[stage].tag == 'cond';
+function isCond(state) {
+    const stage = state.stage;
+    return state.questions[stage].tag == 'cond';
 }
 
-
+function goNext(state) {
+    const stage = state.stage;
+    const numQuestions = state.questions.length;
+    const atEnd = stage == numQuestions - 1;
+    if (atEnd) {
+	return state;
+    }
+    else {
+	const nextQuestion = 
+    
 
 export const promsPageReducer = handleActions({
     [goPrevious as any]:
