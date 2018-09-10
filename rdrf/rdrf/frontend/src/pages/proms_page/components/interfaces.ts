@@ -4,5 +4,7 @@ export interface QuestionInterface {
     title: string,
     questions: Logic.ElementList,
     stage: number,
+    enterData?: any;
+   
 }
 

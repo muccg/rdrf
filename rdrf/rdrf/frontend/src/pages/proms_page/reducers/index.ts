@@ -3,7 +3,6 @@ import { createAction, handleActions } from 'redux-actions';
 export const goPrevious  = createAction("PROMS_PREVIOUS");
 export const goNext = createAction("PROMS_NEXT");
 export const submit = createAction("PROMS_SUBMIT");
-
 export const enterData = createAction("PROMS_ENTER_DATA");
 
 
@@ -28,9 +27,8 @@ function updateAnswers(action: any, state: any) : any {
     let cdeCode = action.payload.cde;
     let newValue = action.payload.value;
     let oldAnswers = state.answers;
-    let newAnswers = {...oldAnswers,
-		      cdeCode: newValue,
-		     };
+    var newAnswers = {...oldAnswers};
+    newAnswers[cdeCode] = newValue;
     return newAnswers;
 }
 
@@ -47,12 +45,17 @@ export const promsPageReducer = handleActions({
     }),
     [enterData as any]:
     (state, action) => {
+	console.log("enterData action received");
+	console.log("action = " + action.toString());
+	console.log("answers before update = " + state.answers.toString());
 	let updatedAnswers = updateAnswers(action, state)
+	console.log("updated answers = " + updatedAnswers.toString());
 	let newState = {
 	    ...state,
 	    answers: updateAnswers(action, state),
 	    questions: evalElements(window.proms_config.questions,{answers: updatedAnswers}),
 	};
+	console.log("newState = " + newState.toString());
 	return newState;
     },	
 }, initialState);

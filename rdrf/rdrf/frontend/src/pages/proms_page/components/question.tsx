@@ -6,11 +6,25 @@ import { bindActionCreators } from 'redux';
 import { Form, FormGroup, Label, Input } from 'reactstrap';
 import { QuestionInterface } from './interfaces';
 
+import * as actions from '../reducers';
+
+
 
 class Question extends React.Component<QuestionInterface, object> {
     constructor(props) {
       super(props);
     }
+    handleChange(event) {
+	console.log("radio button clicked");
+	console.log(event);
+	let cdeValue  = event.target.value;
+	let cdeCode = event.target.name;
+	console.log("cde = " + cdeCode.toString());
+	console.log("value = " + cdeValue.toString());
+	this.props.enterData(cdeCode, cdeValue);
+    }
+    
+    
     render() {
 	return ( 
 		<Form>	 
@@ -22,7 +36,8 @@ class Question extends React.Component<QuestionInterface, object> {
                       _.map(this.props.questions[this.props.stage].options, (option, index) => (
 		          <FormGroup check>
 		            <Label check>
-	                      <Input type="radio" name="radio1" value="{option.code}" />{option.text}
+	                      <Input type="radio" name={this.props.questions[this.props.stage].cde} value={option.code}
+                          onChange={this.handleChange.bind(this)}/>{option.text}
 		            </Label>
                           </FormGroup>
 
@@ -36,10 +51,17 @@ class Question extends React.Component<QuestionInterface, object> {
 function mapStateToProps(state) {
     return {questions: state.questions,
 	    stage: state.stage,
+	    
 	   };
 }
 
-export default connect<{},{},QuestionInterface>(mapStateToProps)(Question);
+function mapPropsToDispatch(dispatch) {
+    return ({
+	enterData: (cdeCode:string, cdeValue: any) => dispatch(actions.enterData({cde:cdeCode, value:cdeValue})),
+    });
+}
+
+export default connect<{},{},QuestionInterface>(mapStateToProps, mapPropsToDispatch)(Question);
 
 	
 
