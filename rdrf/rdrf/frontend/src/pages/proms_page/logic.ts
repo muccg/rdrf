@@ -36,7 +36,10 @@ type Element = UnconditionalElement | ConditionalElement;
 export type ElementList = [Element];
 
 function evalCondition(cond: Condition, state: any): boolean {
-    if (state.answers.hasOwnProperty(cond.cde) {
+    // Evaluates a conditional element in the current state
+    // We only show applicable questions - i.e. those
+    // which evaluate to true
+    if (state.answers.hasOwnProperty(cond.cde)) {
 	let answer = state.answers[cond.cde];
 	switch (cond.op) {
 	    case '=':
@@ -54,16 +57,21 @@ function evalCondition(cond: Condition, state: any): boolean {
 function evalElement(el:Element, state: any): boolean {
     switch(el.tag) {
 	case 'cde':
+	    // Unconditional elements are always shown
 	    return true;
 	case 'cond':
+	    // conditional elements depend their associated
+	    // condition being true
 	    return evalCondition(el.cond, state);
-	case default:
+	default:
 	    return false;
     }
 }
 
 
-export function evalElements(elements: Element[], state): Element[] {
+export function evalElements(elements: Element[], state:any): Element[] {
+    // The questions to show at any time are those whose preconditions
+    // are fulfilled
     return elements.filter(el => evalElement(el, state));
 }
  
