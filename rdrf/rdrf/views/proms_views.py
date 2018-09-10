@@ -8,11 +8,17 @@ from rdrf.models.definition.models import Registry
 from django.http import HttpResponseRedirect
 from django.http import Http404
 from django.core.urlresolvers import reverse
+from django.shortcuts import render
 import json
 
 import logging
 logger = logging.getLogger(__name__)
 
+class PromsCompletedPageView(View):
+    def get(self, request):
+        logger.debug("proms completed view")
+        return render(request, "proms/proms_completed.html",{})
+        
 
 class PromsView(View):
     def get(self, request):
@@ -34,9 +40,14 @@ class PromsView(View):
                                          name=survey_name)
         
         survey_questions = survey_model.client_rep
+
+        completed_page = reverse("proms_completed")
         
         context = {"production": False,
                    "patient_token": patient_token,
+                   "registry_code": registry_model.code,
+                   "survey_name": survey_name,
+                   "completed_page": completed_page,
                    "questions": json.dumps(survey_questions),
         }
         

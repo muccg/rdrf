@@ -1,17 +1,28 @@
 from django.db import models
 from rdrf.models.definition.models import Registry
 from rdrf.models.definition.models import CommonDataElement
+from django.core.exceptions import ValidationError
+import logging
+
+logger = logging.getLogger(__name__)
+
 
 class Survey(models.Model):
     registry = models.ForeignKey(Registry)
     name = models.CharField(max_length=80)
-
     @property
     def client_rep(self):
         return [ sq.client_rep for sq in self.survey_questions.all().order_by('position')]
 
     def __str__(self):
         return "%s Survey: %s" % (self.registry.code, self.name) 
+
+    def clean(self):
+        for question  in self.survey_questions.all():
+            logger.debug("checking survey q %s" % question.cde.code)
+            if question.cde.datatype != "range":
+                logger.debug("%s not a range" % question.cde.code)
+                #raise ValidationError("Survey questions must be ranges")
 
     
 class Precondition(models.Model):
@@ -47,6 +58,7 @@ class SurveyQuestion(models.Model):
             return { "tag": "cond",
                      "cde": self.cde.code,
                      "title": self.cde.name,
+                     "options": self._get_options(),
                      "cond": { "op": "=",
                                "cde": self.precondition.cde.code,
                                "value": self.precondition.value

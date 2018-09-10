@@ -2,11 +2,29 @@ import { createAction, handleActions } from 'redux-actions';
 
 export const goPrevious  = createAction("PROMS_PREVIOUS");
 export const goNext = createAction("PROMS_NEXT");
-export const submit = createAction("PROMS_SUBMIT");
+export const submitAnswers = createAction("PROMS_SUBMIT");
 export const enterData = createAction("PROMS_ENTER_DATA");
 
-
 import { evalElements } from '../logic';
+import axios from 'axios';
+
+axios.defaults.xsrfHeaderName = "X-CSRFTOKEN";
+axios.defaults.xsrfCookieName = "csrftoken";
+
+function submitSurvey(answers: {[index:string]: string}) {
+    let patientToken:string = window.proms_config.patient_token;
+    let registryCode: string = window.proms_config.registry_code;
+    let surveyName: string = window.proms_config.survey_name;
+    let surveyEndpoint:string = window.proms_config.survey_endpoint;
+    let data = {patient_token: patientToken,
+		registry_code: registryCode,
+	        survey_name: surveyName,
+	        answers: answers};
+    axios.post(surveyEndpoint, data)
+	.then(res => window.location.replace(window.proms_config.completed_page))
+	.catch(err => alert(err.toString()));
+}
+
 
 
 const initialState = {
@@ -43,6 +61,12 @@ export const promsPageReducer = handleActions({
 	...state,
 	stage: state.stage + 1,
     }),
+    [submitAnswers as any]:
+    (state, action: any) => {
+	console.log("submitting answers");
+	submitSurvey(state.answers);
+	return state;
+    },
     [enterData as any]:
     (state, action) => {
 	console.log("enterData action received");

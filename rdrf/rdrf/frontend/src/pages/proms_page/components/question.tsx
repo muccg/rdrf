@@ -3,7 +3,7 @@ import * as _ from 'lodash';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 
-import { Form, FormGroup, Label, Input } from 'reactstrap';
+import { Button, Form, FormGroup, Label, Input } from 'reactstrap';
 import { QuestionInterface } from './interfaces';
 
 import * as actions from '../reducers';
@@ -14,6 +14,7 @@ class Question extends React.Component<QuestionInterface, object> {
     constructor(props) {
       super(props);
     }
+
     handleChange(event) {
 	console.log("radio button clicked");
 	console.log(event);
@@ -23,9 +24,9 @@ class Question extends React.Component<QuestionInterface, object> {
 	console.log("value = " + cdeValue.toString());
 	this.props.enterData(cdeCode, cdeValue);
     }
-    
-    
+
     render() {
+	let question = this.props.questions[this.props.stage];
 	return ( 
 		<Form>	 
                    <FormGroup tag="fieldset">
@@ -33,14 +34,14 @@ class Question extends React.Component<QuestionInterface, object> {
 		   </FormGroup>
 
 		  {
-                      _.map(this.props.questions[this.props.stage].options, (option, index) => (
+                      _.map(question.options, (option, index) => (
 		          <FormGroup check>
 		            <Label check>
-	                      <Input type="radio" name={this.props.questions[this.props.stage].cde} value={option.code}
-                          onChange={this.handleChange.bind(this)}/>{option.text}
+	                    <Input type="radio" name={this.props.questions[this.props.stage].cde} value={option.code}
+                                   onChange={this.handleChange.bind(this)}
+			           checked={option.code === this.props.answers[question.cde]}/>{option.text}
 		            </Label>
                           </FormGroup>
-
                       ))
                   }
 
@@ -51,7 +52,7 @@ class Question extends React.Component<QuestionInterface, object> {
 function mapStateToProps(state) {
     return {questions: state.questions,
 	    stage: state.stage,
-	    
+	    answers: state.answers,
 	   };
 }
 

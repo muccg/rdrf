@@ -37,6 +37,8 @@ from rdrf.views.verification_views import PatientsRequiringVerificationView
 from rdrf.views.verification_views import PatientVerificationView
 from rdrf.views.proms_views import PromsView
 from rdrf.views.proms_views import PromsLandingPageView
+from rdrf.views.proms_views import PromsCompletedPageView
+
 
 
 import logging
@@ -186,6 +188,7 @@ urlpatterns += [
 
     url(r'^promslanding/?$', PromsLandingPageView.as_view(), name="proms_landing_page"),
     url(r'^proms/?$', PromsView.as_view(), name="proms"),
+    url(r'^promscompleted/?$', PromsCompletedPageView.as_view(), name="proms_completed"),
 
     url(r'', include('registry.urls', namespace="registry")),
 
