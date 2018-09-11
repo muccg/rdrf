@@ -32,13 +32,9 @@ if [ "$1" = 'releasetarball' ]; then
     info "[Run] Preparing a release tarball"
     info "BUILD_VERSION ${BUILD_VERSION}"
     info "PROJECT_SOURCE ${PROJECT_SOURCE}"
-
     set -e
-    info "removing /app/*"
-    rm -rf /app/*
-
-    # clone and install the app
     set -x
+
     cd /app
     cat .version
     pip install --upgrade "setuptools>=36.0.0,<=37.0.0"
