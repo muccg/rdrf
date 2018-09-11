@@ -13,6 +13,7 @@ sudo chown 1000:1000 data/
 
 ./develop.sh build base
 ./develop.sh build builder
+./develop.sh build node
 ./develop.sh build dev
 ./develop.sh check-migrations
 ./develop.sh run-unittests

@@ -34,6 +34,17 @@ services:
     depends_on:
       - uwsgi
 
+  node:
+    image: muccg/rdrf-node
+    command: "watch"
+    working_dir: /app/rdrf/rdrf/frontend
+    environment:
+        YARN_CACHE_FOLDER: /opt/yarn_cache
+    volumes:
+      - ./yarn_cache:/opt/yarn_cache
+    volumes_from:
+      - datadev
+
   runserver:
     extends:
       file: docker-compose-common.yml

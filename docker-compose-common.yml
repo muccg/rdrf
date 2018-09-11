@@ -68,6 +68,7 @@ services:
     environment:
       - WAIT_FOR_DB=1
       - WAIT_FOR_CLINICAL_DB=1
+      - PRODUCTION=0
       - WAIT_FOR_REPORTING_DB=1
       - WAIT_FOR_CACHE=1
       - DJANGO_MAILGUN_API_KEY=${DJANGO_MAILGUN_API_KEY}

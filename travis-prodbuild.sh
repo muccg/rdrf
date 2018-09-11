@@ -11,7 +11,10 @@ if [ x"$BRANCH_NAME" != x"master" -a x"$BRANCH_NAME" != x"next_release" ]; then
     exit 0
 fi
 
-./develop.sh run-builder
+./develop.sh run-builder checkout
+./develop.sh run build node
+./develop.sh run-builder releasetarball
+sudo chown -R 1000 build
 ./develop.sh build prod
 ./develop.sh aloe prod
 ./develop.sh push prod

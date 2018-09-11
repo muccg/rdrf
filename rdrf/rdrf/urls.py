@@ -35,6 +35,10 @@ from rdrf.views import patients_listing
 from rdrf.views import clinician_view
 from rdrf.views.verification_views import PatientsRequiringVerificationView
 from rdrf.views.verification_views import PatientVerificationView
+from rdrf.views.proms_views import PromsView
+from rdrf.views.proms_views import PromsLandingPageView
+from rdrf.views.proms_views import PromsCompletedPageView
+
 
 
 import logging
@@ -133,6 +137,7 @@ urlpatterns += [
     url(r'^useraudit/', include('useraudit.urls')),
 
     url(r'^api/v1/', include('rdrf.services.rest.urls.api_urls', namespace='v1')),
+    url(r'^api/proms/v1/', include('rdrf.services.rest.urls.proms_api_urls')),
     url(r'^constructors/(?P<form_name>\w+)/?$',
         form_view.ConstructorFormView.as_view(), name="constructors"),
     url(r'^rpc', form_view.RPCHandler.as_view(), name='rpc'),
@@ -181,6 +186,9 @@ urlpatterns += [
         kwargs={'template_name': 'registration/login_assistance_complete.html'},
         name='login_assistance_complete'),
 
+    url(r'^promslanding/?$', PromsLandingPageView.as_view(), name="proms_landing_page"),
+    url(r'^proms/?$', PromsView.as_view(), name="proms"),
+    url(r'^promscompleted/?$', PromsCompletedPageView.as_view(), name="proms_completed"),
 
     url(r'', include('registry.urls', namespace="registry")),
 

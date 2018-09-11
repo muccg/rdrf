@@ -17,9 +17,23 @@
 
       <meta name="viewport" content="width=device-width, initial-scale=1">
 
-      <link rel="stylesheet" href="{% static 'bootstrap-3.1.1/css/bootstrap.min.css' %}">
+      <link rel="stylesheet" href="{% static 'bootstrap-3.3.6/css/bootstrap.min.css' %}">
       <link rel="stylesheet" type="text/css" href="{% static 'css/rdrf.css' %}" media="all">
       <link rel="stylesheet" type="text/css" href="{% static 'css/simple-sidebar.css' %}" media="all">
+      
+      <!-- test typescript / webpack -->
+      {% if production %}
+	  <script src="{% static 'js/runtime-bundle.min.js' %}"></script>
+          <script src="{% static 'js/main-bundle.min.js' %}"></script>
+      {% else %}
+	  <script src="{% static 'js/runtime-bundle.js' %}"></script>
+          <script src="{% static 'js/main-bundle.js' %}"></script>
+      {% endif %}
+
+      <script type="text/javascript">
+          alert(rdrfts.foobar("Lee"));
+      </script>  
+
 
       {% project_stylesheet as PSS %}
       {% if PSS %}
@@ -70,6 +84,12 @@
         <div class="row">
           <div class="col-md-10 col-md-offset-1">
             <div class="navbar-header">
+	        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
                 {% project_logo as PL %}
                 {% if PL %}
                     {% static "" as baseUrl %}

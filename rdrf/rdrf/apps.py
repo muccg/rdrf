@@ -13,4 +13,5 @@ class RDRFConfig(AppConfig):
         import rdrf.models.definition.models
         # migration wasn't being found - importing here fixed that
         import rdrf.models.verification.models
+        import rdrf.models.proms.models
 

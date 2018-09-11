@@ -7,20 +7,35 @@ info () {
 trap exit SIGHUP SIGINT SIGTERM
 env | grep -iv PASS | sort
 
-# prepare a tarball of build
-if [ "$1" = 'releasetarball' ]; then
-    info "[Run] Preparing a release tarball"
+if [ "$1" = 'checkout' ]; then
+    info "[Run] checkout"
+    info "[Run] Clone the source code"
     info "BUILD_VERSION ${BUILD_VERSION}"
     info "PROJECT_SOURCE ${PROJECT_SOURCE}"
 
     set -e
-    rm -rf /app/*
+    rm -rf "/app/"
+    mkdir "/app/"
 
     # clone and install the app
     set -x
     cd /app
     git clone --depth=1 --branch="${GIT_BRANCH}" "${PROJECT_SOURCE}" .
     git rev-parse HEAD > .version
+    cat .version
+    exit 0
+fi
+
+# prepare a tarball of build
+if [ "$1" = 'releasetarball' ]; then
+    info "[Run] releasetarball"
+    info "[Run] Preparing a release tarball"
+    info "BUILD_VERSION ${BUILD_VERSION}"
+    info "PROJECT_SOURCE ${PROJECT_SOURCE}"
+    set -e
+    set -x
+
+    cd /app
     cat .version
     pip install --upgrade "setuptools>=36.0.0,<=37.0.0"
     pip install -e "${PROJECT_NAME}"
@@ -35,6 +50,7 @@ if [ "$1" = 'releasetarball' ]; then
     TARBALL="/data/${PROJECT_NAME}-${BUILD_VERSION}.tar"
     # shellcheck disable=SC2037
     TAR_OPTS="--exclude-vcs
+              --exclude=app/rdrf/rdrf/frontend/*
               --verify
               --checkpoint=1000
               --checkpoint-action=dot
@@ -57,7 +73,7 @@ if [ "$1" = 'releasetarball' ]; then
     exit 0
 fi
 
-info "[RUN]: Builtin command not provided [releasetarball]"
+info "[RUN]: Builtin command not provided [checkout|releasetarball]"
 info "[RUN]: $*"
 
 exec "$@"
