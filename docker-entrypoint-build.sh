@@ -8,6 +8,7 @@ trap exit SIGHUP SIGINT SIGTERM
 env | grep -iv PASS | sort
 
 if [ "$1" = 'checkout' ]; then
+    info "[Run] checkout"
     info "[Run] Clone the source code"
     info "BUILD_VERSION ${BUILD_VERSION}"
     info "PROJECT_SOURCE ${PROJECT_SOURCE}"
@@ -27,11 +28,13 @@ fi
 
 # prepare a tarball of build
 if [ "$1" = 'releasetarball' ]; then
+    info "[Run] releasetarball"
     info "[Run] Preparing a release tarball"
     info "BUILD_VERSION ${BUILD_VERSION}"
     info "PROJECT_SOURCE ${PROJECT_SOURCE}"
 
     set -e
+    info "removing /app/*"
     rm -rf /app/*
 
     # clone and install the app
