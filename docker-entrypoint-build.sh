@@ -12,13 +12,14 @@ if [ "$1" = 'checkout' ]; then
     info "[Run] Clone the source code"
     info "BUILD_VERSION ${BUILD_VERSION}"
     info "PROJECT_SOURCE ${PROJECT_SOURCE}"
-   
-	set -e
-    rm -rf /app/*
+
+    set -e
+    rm -rf "/data/app/"
+    mkdir "/data/app/"
 
     # clone and install the app
     set -x
-    cd /app
+    cd /data/app
     git clone --depth=1 --branch="${GIT_BRANCH}" "${PROJECT_SOURCE}" .
     git rev-parse HEAD > .version
     cat .version
@@ -31,19 +32,28 @@ if [ "$1" = 'releasetarball' ]; then
     info "[Run] Preparing a release tarball"
     info "BUILD_VERSION ${BUILD_VERSION}"
     info "PROJECT_SOURCE ${PROJECT_SOURCE}"
+	cd /data/app
+	
     pip install --upgrade "setuptools>=36.0.0,<=37.0.0"
+	
+	cd "${PROJECT_NAME}"
+	 
     pip install -e "${PROJECT_NAME}"
     set +x
-
+	
+	cd /data
+    rm -rf env
+    cp -rp /env .
     # vars for creating release tarball
-    ARTIFACTS="/env
-               /app/docker-entrypoint.sh
-               /app/uwsgi
-               /app/scripts
-               /app/${PROJECT_NAME}"
+    ARTIFACTS="env
+               app/docker-entrypoint.sh
+               app/uwsgi
+               app/scripts
+               app/${PROJECT_NAME}"
     TARBALL="/data/${PROJECT_NAME}-${BUILD_VERSION}.tar"
     # shellcheck disable=SC2037
     TAR_OPTS="--exclude-vcs
+              --exclude=app/rdrf/rdrf/frontend/*
               --verify
               --checkpoint=1000
               --checkpoint-action=dot
@@ -55,7 +65,7 @@ if [ "$1" = 'releasetarball' ]; then
 
     # create tar from / so relative and absolute paths are identical
     # allows archive verification to work
-    cd /
+    
     set -x
     # shellcheck disable=SC2086
     rm -f "${TARBALL}" && tar ${TAR_OPTS} -f "${TARBALL}" ${ARTIFACTS}
