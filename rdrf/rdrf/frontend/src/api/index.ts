@@ -1,4 +1,4 @@
-mport axios from 'axios';
+import axios from 'axios';
 
 function fetchSurvey(registryCode, surveyName) {
   return axios.get(window.proms_config.survey_endpoint, {
