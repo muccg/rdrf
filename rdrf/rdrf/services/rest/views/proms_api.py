@@ -12,7 +12,7 @@ from django.utils.decorators import method_decorator
 from rest_framework.decorators import api_view
 from django.shortcuts import render
 from django.http import HttpResponseRedirect
-
+from rest_framework import status
 
 import json
 
@@ -53,3 +53,14 @@ class SurveyEndpoint(View):
         survey_assignment.state = SurveyStates.COMPLETED
         survey_assignment.save()
         return render(request, "proms/proms_completed.html",{})
+
+
+
+
+@api_view(['GET', 'POST'])
+def survey_assignments():
+    pass
+
+
+
+

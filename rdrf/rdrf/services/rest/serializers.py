@@ -2,6 +2,7 @@ from rest_framework import serializers
 from rest_framework.reverse import reverse
 from registry.patients.models import Patient, Registry, Doctor, NextOfKinRelationship
 from registry.groups.models import CustomUser, WorkingGroup
+from rdrf.models.proms.models import 
 
 
 class DoctorHyperlinkId(serializers.HyperlinkedRelatedField):
@@ -131,3 +132,15 @@ class WorkingGroupSerializer(serializers.HyperlinkedModelSerializer):
             'registry': {'lookup_field': 'code'},
         }
         fields = '__all__'
+
+
+class SurveyAssignmentSerializer(serializers.Serializer):
+    registry_code = serializers.CharField(max_length=10)
+    survey_name = serializers.CharField(max_length=80)
+    patient_token = serializers.CharField(max_length=80)
+    state = serializers.CharField(max_length=20)
+    created = serializers.DateTimeField()
+    updated = serializers.DateTimeField()
+    response = serializers.JSONField()
+    
+    
