@@ -345,24 +345,40 @@ class ReportingTableGenerator(object):
 
     @timed
     def run_explorer_query(self, database_utils):
+        from copy import copy
         self.create_table()
         errors = 0
-        row_num = 0
+        rows = []
+        blank = self._get_blank_row()
+
+        t = datetime.now()
+        logger.debug("started to extract rows %s" % t)
 
         for row in database_utils.generate_results(self.reverse_map,
                                                    self.col_map,
                                                    max_items=self.max_items):
-            new_row = self._get_blank_row()
-            new_row.update(row)
-            self.insert_row(new_row)
-            row_num += 1
 
+            new_row = copy(blank)
+            new_row.update(row)
+            rows.append(new_row)
+
+        t1 = datetime.now()
+        logger.debug("starting to insert rows %s" % t1)
+        self.insert_rows(rows)
+        t2 = datetime.now()
+        delta = t2 - t1
+        logger.debug("insert rows took %s" % delta.seconds)
+        
         if errors > 0:
             logger.info("query errors: %s" % errors)
             self.error_messages.append(
                 "There were %s errors running the report" % errors)
 
         return self._get_result_messages_dict()
+
+    def insert_rows(self, rows):
+        self.engine.execute(self.table.insert(),*rows)
+        
 
     def insert_row(self, value_dict):
         for k in value_dict:

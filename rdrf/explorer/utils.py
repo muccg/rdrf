@@ -7,6 +7,7 @@ from django.db import connection
 
 from rdrf.helpers.utils import get_cached_instance
 from rdrf.helpers.utils import timed
+from rdrf.helpers.utils import cached
 from rdrf.models.definition.models import Registry, RegistryForm, Section
 from rdrf.models.definition.models import CommonDataElement, ClinicalData
 
@@ -137,10 +138,24 @@ class DatabaseUtils(object):
             logger.exception("Error running explorer query: %s")
             raise
 
-    @timed
+
+    def _create_name_map(self, col_map):
+        # create a more friendly mapping to the column name
+        m = {}
+        for key, value in col_map.items():
+            if isinstance(key, tuple) and len(key) == 4:
+                form_model, section_model, cde_model, section_index = key
+                m[(form_model.name,section_model.code,cde_model.code,section_index)] = value
+        return m
+
+
     def generate_results(self, reverse_column_map, col_map, max_items):
         self.reverse_map = reverse_column_map
         self.col_map = col_map
+        self.name_map = self._create_name_map(self.col_map)
+        self.cde_map = {cde_model.code: cde_model for cde_model in CommonDataElement.objects.all() }
+        
+        
 
         collection = ClinicalData.objects.collection(self.registry_model.code, self.collection)
         history = ClinicalData.objects.collection(self.registry_model.code, "history")
@@ -316,7 +331,7 @@ class DatabaseUtils(object):
             yield None
         else:
             for mongo_document in records:
-                yield self._get_result_map(mongo_document, max_items=max_items)
+                yield self._get_result_map2(mongo_document, max_items=max_items)
 
     def _get_result_map(self, mongo_document, is_snapshot=False, max_items=3):
         result = {}
@@ -345,7 +360,6 @@ class DatabaseUtils(object):
                 values = self._get_cde_value(form_model,
                                              section_model,
                                              cde_model,
-
                                              record)
 
                 if len(values) > max_items:
@@ -365,6 +379,38 @@ class DatabaseUtils(object):
                                             record)
                 result[column_name] = value
         return result
+
+    def _get_result_map2(self, mongo_document, is_snapshot=False, max_items=3):
+        result = {}
+        if is_snapshot:
+            # snapshots copy entire patient record into record field
+            record = mongo_document["record"]
+        else:
+            record = mongo_document
+        result["context_id"] = record.get("context_id", None)
+
+        # timestamp from top level in for current and snapshot
+        result['timestamp'] = mongo_document.get("timestamp", None)
+
+        for form_name, section_code, is_multi, item_index, cde_code, value in self._yield_data(mongo_document):
+            key = (form_name, section_code, cde_code, item_index)
+            column_name = self.name_map.get(key, None)
+            if column_name is not None:
+                sensible_value = self._get_sensible_value_from_cde2(cde_code, value)
+                result[column_name] = sensible_value
+        return result
+
+    def _yield_data(self, mongo_document):
+        for form_dict in mongo_document["forms"]:
+            for section_dict in form_dict["sections"]:
+                if section_dict["allow_multiple"]:
+                    for index, item in enumerate(section_dict["cdes"]):
+                        for cde_dict in item:
+                            yield form_dict["name"], section_dict["code"], True, index, cde_dict["code"], cde_dict["value"]
+                else:
+                    for cde_dict in section_dict["cdes"]:
+                        yield form_dict["name"], section_dict["code"], False, 0, cde_dict["code"], cde_dict["value"]
+                        
 
     def run_mongo_one_row_longitudinal(self, sql_column_data, history, max_items):
         mongo_query = {"django_id": sql_column_data["id"],
@@ -413,6 +459,22 @@ class DatabaseUtils(object):
         if datatype == "file":
             return "FILE"
         return cde_model.get_display_value(stored_value)
+
+
+    @cached
+    def _get_sensible_value_from_cde2(self, cde_code, stored_value):
+        cde_model = self.cde_map[cde_code]
+        datatype = cde_model.datatype.strip().lower()
+        if datatype == "calculated" and stored_value == "NaN":
+            return None
+        if datatype != 'string' and stored_value in ['', ' ', None]:
+            # ensure we don't pass empty string back for numeric fields.
+            # range fields will always be non-blank, non-whitespace
+            return None
+        if datatype == "file":
+            return "FILE"
+        return cde_model.get_display_value(stored_value)
+
 
     def run_mongo(self):
         projection = {}
