@@ -352,7 +352,7 @@ class ReportingTableGenerator(object):
         blank = self._get_blank_row()
 
         t = datetime.now()
-        logger.debug("started to extract rows %s" % t)
+        logger.info("started to extract rows %s" % t)
 
         for row in database_utils.generate_results(self.reverse_map,
                                                    self.col_map,
@@ -363,11 +363,11 @@ class ReportingTableGenerator(object):
             rows.append(new_row)
 
         t1 = datetime.now()
-        logger.debug("starting to insert rows %s" % t1)
+        logger.info("starting to insert rows %s" % t1)
         self.insert_rows(rows)
         t2 = datetime.now()
         delta = t2 - t1
-        logger.debug("insert rows took %s" % delta.seconds)
+        logger.info("insert %s rows took %s" % (len(rows), delta.seconds))
         
         if errors > 0:
             logger.info("query errors: %s" % errors)
