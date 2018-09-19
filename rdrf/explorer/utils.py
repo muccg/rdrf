@@ -154,8 +154,6 @@ class DatabaseUtils(object):
         self.col_map = col_map
         self.name_map = self._create_name_map(self.col_map)
         self.cde_map = {cde_model.code: cde_model for cde_model in CommonDataElement.objects.all() }
-        
-        
 
         collection = ClinicalData.objects.collection(self.registry_model.code, self.collection)
         history = ClinicalData.objects.collection(self.registry_model.code, "history")
@@ -401,15 +399,16 @@ class DatabaseUtils(object):
         return result
 
     def _yield_data(self, mongo_document):
+        # index is one based in report
         for form_dict in mongo_document["forms"]:
             for section_dict in form_dict["sections"]:
                 if section_dict["allow_multiple"]:
                     for index, item in enumerate(section_dict["cdes"]):
                         for cde_dict in item:
-                            yield form_dict["name"], section_dict["code"], True, index, cde_dict["code"], cde_dict["value"]
+                            yield form_dict["name"], section_dict["code"], True, index + 1, cde_dict["code"], cde_dict["value"]
                 else:
                     for cde_dict in section_dict["cdes"]:
-                        yield form_dict["name"], section_dict["code"], False, 0, cde_dict["code"], cde_dict["value"]
+                        yield form_dict["name"], section_dict["code"], False, None, cde_dict["code"], cde_dict["value"]
                         
 
     def run_mongo_one_row_longitudinal(self, sql_column_data, history, max_items):
