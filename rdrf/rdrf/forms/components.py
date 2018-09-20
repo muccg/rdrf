@@ -134,9 +134,17 @@ class RDRFContextLauncherComponent(RDRFComponent):
             "family_linkage_link": self._get_family_linkage_link(),
             "consent_locked": self.consent_locked,
             "clinician_form_link": self._get_clinician_form_link(),
+            "proms_link": self._get_proms_link(),
         }
 
         return data
+
+    def _get_proms_link(self):
+        if not self.registry_model.has_feature("proms_clinical"):
+            return None
+        return reverse("proms_clinical_view",
+                       args=[self.registry_model.code,
+                             self.patient_model.pk])
 
 
     def _get_clinician_form_link(self):

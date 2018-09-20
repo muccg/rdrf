@@ -1,0 +1,136 @@
+{% extends "rdrf_cdes/base-2-cols.html" %}
+
+{% load add_attr %}
+{% load static from staticfiles %}
+{% load is_checkbox %}
+{% load is_patient_relative_widget %}
+{% load is_formset_obj %}
+{% load get_information_link %}
+{% load get_info_text_expression %}
+{% load i18n %}
+{% load translate %}
+{% load add_language_modifier %}
+
+
+{% block extrastyle %}
+    {{block.super}}
+    <link rel="stylesheet" href="{% static 'css/jquery-1.11.4/themes/smoothness/jquery-ui.min.css' %}">
+
+    <script type="text/javascript" src={% static 'js/rpc_module.js' %}></script>
+    <script type="text/javascript" src="{% static 'js/vendor/jquery-ui-1.11.4.min.js' %}"></script>
+
+    <script>
+       $(document).ready(function(){
+            $(":input").not(':input[type=checkbox], :input[type=radio], :input[type=button], :input[type=submit], :input[type=reset]').addClass("form-control");
+            $("textarea").addClass("form-control");
+            $("select").addClass("form-control");
+
+            $(window).bind('beforeunload', function(e){
+                if($('#main-form').serialize()!=$('#main-form').data('serialize')) {
+                    return "{% trans 'You have unsaved changes!' %}";
+                } else {
+                    e=null;
+                }
+            });
+
+            $("#main-form").submit(function() {
+                $(window).unbind("beforeunload");
+            });
+
+
+        $('#main-form').data('serialize', $('#main-form').serialize());
+
+        });
+    </script>
+
+{% endblock %}
+
+{% block formlinks %}
+{% endblock %}
+
+{% block sidebar %}
+    {{ context_launcher | safe }}
+{% endblock %}
+
+
+{% block content %}
+
+			<a class="previous-form" href="{{ previous_form_link }}">
+				<span class="glyphicon glyphicon-chevron-left" aria-hidden="true"></span>
+			</a>
+
+			<a class="next-form" href="{{ next_form_link }}">
+				<span class="glyphicon glyphicon-chevron-right" aria-hidden="true"></span>
+			</a>
+    <br>
+    <div class="row">
+        <div class="col-md-12">
+            {% if message %}
+                <div class="alert alert-success" role="alert">
+                    {{ message }}
+                </div>
+            {% endif %}
+
+      </div>
+
+              <div id="clinician_panel" class="panel panel-default">
+		<div class="panel-heading"><strong>{% trans 'PROMS' %}</strong></div>
+                <div class="panel-body">
+		   <div class="alert alert-info">
+                          {% trans 'Send PROMS Survey to Patient using this form' %} 
+                   </div>
+		   {% for sr in survey_requests %}
+		       <div class="panel panel-default">
+                    <div class="panel-heading">
+                          <strong>Survey Request {{sr.survey_name}}</strong></a>
+                    </div>
+                    <div class="panel-body">
+                                <div class="form-group rdrf-cde-field invisibutton-container">
+                                    <label  class="col-sm-3 control-label">
+                                    Created
+                                    </label>
+                                    <div class="col-sm-9">
+                                      {{ sr.created}}
+                                    </div>
+                                </div>
+				<br>
+
+                                <div class="form-group rdrf-cde-field invisibutton-container">
+                                    <label  class="col-sm-3 control-label">
+                                    Updated
+                                    </label>
+                                    <div class="col-sm-9">
+                                      {{ sr.updated}}
+                                    </div>
+                                </div>
+				<br>
+
+                                <div class="form-group rdrf-cde-field invisibutton-container">
+                                    <label  class="col-sm-3 control-label">
+                                    State
+                                    </label>
+                                    <div class="col-sm-9">
+                                      {{ sr.state}}
+                                    </div>
+                                </div>
+				<br>
+
+                                <div class="form-group rdrf-cde-field invisibutton-container">
+                                    <label  class="col-sm-3 control-label">
+                                    Patient Token
+                                    </label>
+                                    <div class="col-sm-9">
+                                      {{ sr.patient_token}}
+                                    </div>
+                                </div>
+                    </div>
+    </div>
+
+	           {% endfor %}
+                 	        </div>  <!-- panel body -->
+                </div>  <!-- panel -->
+	    </div>
+	</div>
+
+{% endblock %}
+

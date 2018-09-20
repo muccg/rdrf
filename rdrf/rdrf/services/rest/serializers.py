@@ -2,7 +2,7 @@ from rest_framework import serializers
 from rest_framework.reverse import reverse
 from registry.patients.models import Patient, Registry, Doctor, NextOfKinRelationship
 from registry.groups.models import CustomUser, WorkingGroup
-from rdrf.models.proms.models import 
+from rdrf.models.proms.models import SurveyAssignment
 
 
 class DoctorHyperlinkId(serializers.HyperlinkedRelatedField):

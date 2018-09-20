@@ -9,6 +9,11 @@ from django.http import HttpResponseRedirect
 from django.http import Http404
 from django.core.urlresolvers import reverse
 from django.shortcuts import render
+from rdrf.forms.components import RDRFContextLauncherComponent
+from registry.patients.models import Patient
+from rdrf.forms.components import RDRFPatientInfoComponent
+from rdrf.forms.navigation.locators import PatientLocator
+from rdrf.models.proms.models import SurveyRequest
 import json
 
 import logging
@@ -109,6 +114,46 @@ class PromsLandingPageView(View):
 
     def _is_valid(self, patient_token, registry_code, survey_name):
         return True
+
+
+class PromsClinicalView(View):
+    """
+    What the clinical system sees
+    """
+    def get(self, request, registry_code, patient_id):
+        registry_model = Registry.objects.get(code=registry_code)
+        patient_model = Patient.objects.get(id=patient_id)
+        
+        context = self._build_context(request.user,
+                                      registry_model,
+                                      patient_model)
+
+        return render(request, "proms/proms_clinical.html",context)
+
+
+    def _build_context(self, user, registry_model, patient_model):
+        survey_requests = self._get_survey_requests(registry_model,
+                                                    patient_model)
+        context_launcher = RDRFContextLauncherComponent(user,
+                                                        registry_model,
+                                                        patient_model,
+                                                        "PROMS")
+        context = {
+                        "context_launcher": context_launcher.html,
+                        "location": "Patient Reported Outcomes",
+                        "patient": patient_model,
+                        "survey_requests": survey_requests,
+                        "patient_link": PatientLocator(registry_model,
+                                                       patient_model).link,
+                        "patient_info": RDRFPatientInfoComponent(registry_model, patient_model).html,
+
+        }
+        return context
+
+    def _get_survey_requests(self, registry_model, patient_model):
+       return SurveyRequest.objects.filter(registry=registry_model,
+                                           patient=patient_model).order_by("-created").all()
+                                              
 
 
         

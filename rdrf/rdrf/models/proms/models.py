@@ -1,7 +1,8 @@
 from django.db import models
 from rdrf.models.definition.models import Registry
 from rdrf.models.definition.models import CommonDataElement
-from django.core.exceptions import ValidationError
+from registry.patients.models import Patient
+import uuid
 import logging
 
 logger = logging.getLogger(__name__)
@@ -86,15 +87,47 @@ class SurveyStates:
     STARTED = "started"
     COMPLETED = "completed"
 
+class SurveyRequestStates:
+    CREATED = "created"
+    REQUESTED = "requested"
+    RECEIVED = "received"
+
 class SurveyAssignment(models.Model):
+    """
+    This gets created on the proms system
+    """
     SURVEY_STATES = (
         (SurveyStates.REQUESTED, "Requested"),
         (SurveyStates.STARTED, "Started"),
         (SurveyStates.COMPLETED, "Completed"))
     registry = models.ForeignKey(Registry)
     survey_name = models.CharField(max_length=80)
-    patient_token = models.CharField(max_length=80)
+    patient_token = models.CharField(max_length=80, unique=True)
     state  = models.CharField(max_length=20, choices=SURVEY_STATES)
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
     response = models.TextField(blank=True, null=True)
+
+
+def generate_token():
+       return str(uuid.uuid4())
+
+class SurveyRequest(models.Model):
+    """
+    This gets created on the clinical system
+    """
+    SURVEY_REQUEST_STATES = (
+        (SurveyRequestStates.CREATED, "Created"),
+        (SurveyRequestStates.REQUESTED, "Requested"),
+        (SurveyRequestStates.RECEIVED, "Received"))
+    registry = models.ForeignKey(Registry)
+    patient = models.ForeignKey(Patient)
+    survey_name = models.CharField(max_length=80, default="bp")
+    patient_token = models.CharField(max_length=80, unique=True, default=generate_token)
+    created = models.DateTimeField(auto_now_add=True)
+    updated = models.DateTimeField(auto_now=True)
+    user = models.CharField(max_length=80) # username
+    state  = models.CharField(max_length=20, choices=SURVEY_REQUEST_STATES, default="created")
+    response = models.TextField(blank=True, null=True)
+
+
