@@ -13,6 +13,7 @@ from rdrf.forms.components import RDRFContextLauncherComponent
 from registry.patients.models import Patient
 from rdrf.forms.components import RDRFPatientInfoComponent
 from rdrf.forms.navigation.locators import PatientLocator
+from rdrf.forms.proms_forms import SurveyRequestForm
 from rdrf.models.proms.models import SurveyRequest
 import json
 
@@ -138,6 +139,16 @@ class PromsClinicalView(View):
                                                         registry_model,
                                                         patient_model,
                                                         "PROMS")
+
+
+        
+        
+
+        survey_request_form = self._build_survey_request_form(registry_model,
+                                                              patient_model,
+                                                              user)
+        
+        
         context = {
                         "context_launcher": context_launcher.html,
                         "location": "Patient Reported Outcomes",
@@ -146,9 +157,20 @@ class PromsClinicalView(View):
                         "patient_link": PatientLocator(registry_model,
                                                        patient_model).link,
                         "patient_info": RDRFPatientInfoComponent(registry_model, patient_model).html,
+                        "survey_request_form": survey_request_form,
 
         }
+
         return context
+
+    def _build_survey_request_form(self, registry_model, patient_model, user):
+        initial_data = {
+            "patient": patient_model,
+            "registry": registry_model,
+            "user": user.username,
+        }
+
+        return SurveyRequestForm(initial=initial_data)
 
     def _get_survey_requests(self, registry_model, patient_model):
        return SurveyRequest.objects.filter(registry=registry_model,

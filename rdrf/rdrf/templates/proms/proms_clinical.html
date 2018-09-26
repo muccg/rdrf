@@ -73,60 +73,55 @@
 
       </div>
 
-              <div id="clinician_panel" class="panel panel-default">
-		<div class="panel-heading"><strong>{% trans 'PROMS' %}</strong></div>
+              <div id="existing_surveys_panel" class="panel panel-default">
+		<div class="panel-heading"><strong>{% trans 'Existing Surveys' %}</strong>
+
+<a class="btn btn-info btn-xs pull-right" onclick="add_form('patient_consent_file')">
+                                        <span class="glyphicon glyphicon-plus" aria-hidden="true"></span> Add
+                                    </a>
+
+		</div>
                 <div class="panel-body">
-		   <div class="alert alert-info">
-                          {% trans 'Send PROMS Survey to Patient using this form' %} 
-                   </div>
-		   {% for sr in survey_requests %}
-		       <div class="panel panel-default">
-                    <div class="panel-heading">
-                          <strong>Survey Request {{sr.survey_name}}</strong></a>
-                    </div>
-                    <div class="panel-body">
-                                <div class="form-group rdrf-cde-field invisibutton-container">
-                                    <label  class="col-sm-3 control-label">
-                                    Created
-                                    </label>
+
+		    <table class="table table-striped">
+    <thead>
+      <tr>
+        <th>Survey</th>
+        <th>Created</th>
+        <th>Updated</th>
+        <th>Token</th>
+        <th>State</th>
+        <th>Action</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for sr in survey_requests %}
+      <tr>
+        <td>{{sr.survey_name}}</td>
+        <td>{{sr.created}}</td>
+        <td>{{sr.updated}}</td>
+        <td>{{sr.patient_token}}</td>
+        <td>{{sr.state}}</td>
+        <td>
+         
+             {% if sr.state == 'created' %}
+			
+
+				 <div class="form-group rdrf-cde-field invisibutton-container">
                                     <div class="col-sm-9">
-                                      {{ sr.created}}
+				      <button type="button" class="btn btn-primary">Send</button>
                                     </div>
                                 </div>
-				<br>
+             {% endif %}
 
-                                <div class="form-group rdrf-cde-field invisibutton-container">
-                                    <label  class="col-sm-3 control-label">
-                                    Updated
-                                    </label>
-                                    <div class="col-sm-9">
-                                      {{ sr.updated}}
-                                    </div>
-                                </div>
-				<br>
 
-                                <div class="form-group rdrf-cde-field invisibutton-container">
-                                    <label  class="col-sm-3 control-label">
-                                    State
-                                    </label>
-                                    <div class="col-sm-9">
-                                      {{ sr.state}}
-                                    </div>
-                                </div>
-				<br>
-
-                                <div class="form-group rdrf-cde-field invisibutton-container">
-                                    <label  class="col-sm-3 control-label">
-                                    Patient Token
-                                    </label>
-                                    <div class="col-sm-9">
-                                      {{ sr.patient_token}}
-                                    </div>
-                                </div>
-                    </div>
-    </div>
-
-	           {% endfor %}
+	</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+		      
+								
                  	        </div>  <!-- panel body -->
                 </div>  <!-- panel -->
 	    </div>

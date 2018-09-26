@@ -504,3 +504,7 @@ AUTH_PASSWORD_VALIDATORS = [{
         'NAME': 'rdrf.auth.password_validation.HasSpecialCharacterValidator',
 },
 ]
+
+
+# setup for PROMS
+PROMS_SYSTEM_URL = env.get("proms_system_url", None)
