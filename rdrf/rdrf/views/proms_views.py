@@ -169,8 +169,11 @@ class PromsClinicalView(View):
             "registry": registry_model,
             "user": user.username,
         }
+        # restrict the available survey choices based on the registry config
 
-        return SurveyRequestForm(initial=initial_data)
+        surveys = [(s["code"],s["description"]) for s in registry_model.metadata.get("surveys",[])]
+        
+        return SurveyRequestForm(initial=initial_data,surveys=surveys)
 
     def _get_survey_requests(self, registry_model, patient_model):
        return SurveyRequest.objects.filter(registry=registry_model,
