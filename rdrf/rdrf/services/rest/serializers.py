@@ -139,8 +139,19 @@ class SurveyAssignmentSerializer(serializers.Serializer):
     survey_name = serializers.CharField(max_length=80)
     patient_token = serializers.CharField(max_length=80)
     state = serializers.CharField(max_length=20)
-    created = serializers.DateTimeField()
-    updated = serializers.DateTimeField()
-    response = serializers.JSONField()
-    
-    
+
+    def create(self, validated_data):
+        registry_code = validated_data["registry_code"]
+        registry_model = Registry.objects.get(code=registry_code)
+        survey_name = validated_data["survey_name"]
+        state = "requested"
+        patient_token = validated_data["patient_token"]
+        sa = SurveyAssignment(registry=registry_model,
+                              survey_name=survey_name,
+                              patient_token=patient_token,
+                              state=state)
+        sa.save()
+        return sa
+        
+        
+        

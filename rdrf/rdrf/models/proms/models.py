@@ -2,10 +2,17 @@ from django.db import models
 from rdrf.models.definition.models import Registry
 from rdrf.models.definition.models import CommonDataElement
 from registry.patients.models import Patient
+import requests
 import uuid
 import logging
 
 logger = logging.getLogger(__name__)
+
+class PromsRequestError(Exception):
+    pass
+
+class PromsEmailError(Exception):
+    pass
 
 
 class Survey(models.Model):
@@ -129,6 +136,66 @@ class SurveyRequest(models.Model):
     user = models.CharField(max_length=80) # username
     state  = models.CharField(max_length=20, choices=SURVEY_REQUEST_STATES, default="created")
     response = models.TextField(blank=True, null=True)
+
+    def send(self):
+        if self.state == SurveyRequestStates.CREATED:
+            try:
+                self._send_proms_request()
+            except PromsRequestError as pre:
+                logger.error("Error sending survey request %s: %s" % (self.pk,
+                                                                      pre))
+                return False
+
+
+            try:
+                self._send_email()
+                return True
+            except PromsEmailError as pe:
+                logger.error("Error emailing survey request %s: %s" % (self.pk,
+                                                                       pe))
+                return False
+
+    def _send_proms_request(self):
+        from django.core.urlresolvers import reverse
+        from django.conf import settings
+
+        logger.debug("sending request to proms system")
+        proms_system_url = self.registry.metadata.get("proms_system_url", None)
+        if proms_system_url is None:
+            raise PromsRequestError("No proms_system_url defined in registry metadata %s" % self.registry.code)
+
+        api = reverse("survey_assignments")
+        
+        logger.debug("api = %s" % api)
+
+        api_url = proms_system_url + api
+
+        survey_assignment_data = self._get_survey_assignment_data()
+        headers = {'PROMS_SECRET_TOKEN': settings.PROMS_SECRET_TOKEN}
+
+        requests.post(api_url,
+                      data=survey_assignment_data,
+                      headers=headers)
+
+    def _get_survey_assignment_data(self):
+        packet = {}
+        packet["registry_code"] = self.registry.code
+        packet["survey_name"] = self.survey_name
+        packet["patient_token"] = self.patient_token
+        packet["state"] = "requested"
+        return packet
+
+    def _send_email(self):
+        logger.debug("sending email to user with link")
+        
+
+        
+        
+                
+                
+
+                
+            
 
 
 

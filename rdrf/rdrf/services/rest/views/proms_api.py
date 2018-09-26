@@ -4,15 +4,15 @@ from rdrf.models.definition.models import Registry
 from rdrf.models.proms.models import Survey
 from rdrf.models.proms.models import SurveyAssignment
 from rdrf.models.proms.models import SurveyStates
-from rest_framework.decorators import permission_classes
-from rest_framework import permissions
 from django.views.generic.base import View
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
-from rest_framework.decorators import api_view
 from django.shortcuts import render
-from django.http import HttpResponseRedirect
 from rest_framework import status
+from rdrf.services.rest.serializers import SurveyAssignmentSerializer
+from rdrf.services.rest.auth import PromsAuthentication
+from rest_framework.permissions import IsAuthenticated
+
 
 import json
 
@@ -55,11 +55,18 @@ class SurveyEndpoint(View):
         return render(request, "proms/proms_completed.html",{})
 
 
-
-
-@api_view(['GET', 'POST'])
-def survey_assignments():
-    pass
+class SurveyAssignments(APIView):
+    queryset = SurveyAssignment.objects.all()
+    authentication_classes = (PromsAuthentication,)
+    permission_classes = (IsAuthenticated,)
+    def post(self, request, format=None):
+        logger.debug("in survey assignments on proms system")
+        ser = SurveyAssignmentSerializer(data=request.data)
+        if ser.is_valid():
+            ser.save()
+            return Response(ser.data, status=status.HTTP_201_CREATED)
+            
+        return Response(ser.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 

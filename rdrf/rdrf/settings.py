@@ -507,4 +507,5 @@ AUTH_PASSWORD_VALIDATORS = [{
 
 
 # setup for PROMS
-PROMS_SYSTEM_URL = env.get("proms_system_url", None)
+PROMS_SECRET_TOKEN = env.get("proms_secret_token", "foobar") #todo set this us in env etc
+PROMS_USERNAME = env.get("proms_username","promsuser")

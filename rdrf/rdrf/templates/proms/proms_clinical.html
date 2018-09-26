@@ -76,7 +76,6 @@
         <th>Updated</th>
         <th>Token</th>
         <th>State</th>
-        <th>Action</th>
       </tr>
     </thead>
     <tbody>
@@ -88,20 +87,6 @@
         <td>{{sr.updated}}</td>
         <td>{{sr.patient_token}}</td>
         <td>{{sr.state}}</td>
-        <td>
-         
-             {% if sr.state == 'created' %}
-			
-
-				 <div class="form-group rdrf-cde-field invisibutton-container">
-                                    <div class="col-sm-9">
-				      <button type="button" class="btn btn-primary">Send</button>
-                                    </div>
-                                </div>
-             {% endif %}
-
-
-	</td>
       </tr>
       {% endfor %}
     </tbody>
@@ -127,7 +112,7 @@
         </button>
       </div>
       <div id="modal-body" class="modal-body">
-	<form id="survey_request_form">
+	<form id="survey_request_form" method="POST">{% csrf_token %}
 {{ survey_request_form }}
       </form>
       </div>
@@ -149,9 +134,11 @@
         url: frm.attr('action'),  <!-- Get the form's action attribute(defined in   login/forms.py -->
         data: $(frm).serialize(),    <!-- package the data -->
         success: function(data){
-             $(closeButton).click();
+             $("#modal-body").html("Patient token is " + data.patient_token);
+             
         },
         error: function(data) {           <!-- else print error -->
+            alert(data.message);
             alert("Something went wrong try again!");
         }//end error
     });
