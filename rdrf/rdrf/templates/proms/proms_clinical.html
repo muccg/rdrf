@@ -76,9 +76,9 @@
               <div id="existing_surveys_panel" class="panel panel-default">
 		<div class="panel-heading"><strong>{% trans 'Existing Surveys' %}</strong>
 
-<a class="btn btn-info btn-xs pull-right" onclick="add_form('patient_consent_file')">
+<a class="btn btn-info btn-xs pull-right" data-toggle="modal" data-target="#new_survey_request_modal">
                                         <span class="glyphicon glyphicon-plus" aria-hidden="true"></span> Add
-                                    </a>
+                                    <a>
 
 		</div>
                 <div class="panel-body">
@@ -126,6 +126,34 @@
                 </div>  <!-- panel -->
 	    </div>
 	</div>
+
+
+
+
+<!-- modal popup -->
+<div class="modal fade" id="new_survey_request_modal" tabindex="-1" role="dialog" aria-labelledby="new_survey_request_label" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="new_survey_request_label">New Survey Request</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+	<form>
+	  
+{{ survey_request_form }}
+      </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-primary">Save</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 
 {% endblock %}
 
