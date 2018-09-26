@@ -64,7 +64,8 @@ class SurveyAssignments(APIView):
         ser = SurveyAssignmentSerializer(data=request.data)
         if ser.is_valid():
             ser.save()
-            return Response(ser.data, status=status.HTTP_201_CREATED)
+            logger.debug("ser saved ok")
+            return Response({"status": "OK"}, status=status.HTTP_201_CREATED)
             
         return Response(ser.errors, status=status.HTTP_400_BAD_REQUEST)
 
