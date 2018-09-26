@@ -126,19 +126,37 @@
           <span aria-hidden="true">&times;</span>
         </button>
       </div>
-      <div class="modal-body">
-	<form>
-	  
+      <div id="modal-body" class="modal-body">
+	<form id="survey_request_form">
 {{ survey_request_form }}
       </form>
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-        <button type="button" class="btn btn-primary">Save</button>
+        <button id="close_button" type="button" class="btn btn-primary" onClick="submitNewSurveyRequest(this);">Save</button>
       </div>
     </div>
   </div>
 </div>
+
+
+<script>
+  function submitNewSurveyRequest() {
+   var frm = $("#survey_request_form");
+   var closeButton = $("#close_button");
+   $.ajax({//begin
+        type: 'POST', <!-- Get the form's method attribute(defined in login/forms.py -->
+        url: frm.attr('action'),  <!-- Get the form's action attribute(defined in   login/forms.py -->
+        data: $(frm).serialize(),    <!-- package the data -->
+        success: function(data){
+             $(closeButton).click();
+        },
+        error: function(data) {           <!-- else print error -->
+            alert("Something went wrong try again!");
+        }//end error
+    });
+  }
+</script>
 
 
 {% endblock %}
