@@ -20,6 +20,8 @@ class PromsEmailError(Exception):
 class Survey(models.Model):
     registry = models.ForeignKey(Registry)
     name = models.CharField(max_length=80)
+    display_name = models.CharField(max_length=80, blank=True, null=True)
+
     @property
     def client_rep(self):
         return [ sq.client_rep for sq in self.survey_questions.all().order_by('position')]

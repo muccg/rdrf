@@ -524,6 +524,7 @@ class Exporter(object):
         for survey_model in Survey.objects.filter(registry=self.registry):
             survey_dict = {}
             survey_dict["name"] = survey_model.name
+            survey_dict["display_name"] = survey_model.display_name
             survey_dict["questions"] = []
             for sq in survey_model.survey_questions.all():
                 sq_dict = {}
