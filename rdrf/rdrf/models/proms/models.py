@@ -142,9 +142,11 @@ class SurveyRequest(models.Model):
     response = models.TextField(blank=True, null=True)
 
     def send(self):
-        if self.state == SurveyRequestStates.CREATED:
+        logger.debug("sending request ...")
+        if self.state == SurveyRequestStates.REQUESTED:
             try:
                 self._send_proms_request()
+                logger.debug("sent request to PROMS system OK")
             except PromsRequestError as pre:
                 logger.error("Error sending survey request %s: %s" % (self.pk,
                                                                       pre))
@@ -152,7 +154,10 @@ class SurveyRequest(models.Model):
 
 
             try:
+                logger.debug("sending email to patient ...")
                 self._send_email()
+                logger.debug("sent email to patient OK")
+                
                 return True
             except PromsEmailError as pe:
                 logger.error("Error emailing survey request %s: %s" % (self.pk,
@@ -187,6 +192,7 @@ class SurveyRequest(models.Model):
         packet["survey_name"] = self.survey_name
         packet["patient_token"] = self.patient_token
         packet["state"] = "requested"
+        packet["response"] = "{}"
         return packet
 
     @property

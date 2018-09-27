@@ -14,7 +14,8 @@ from registry.patients.models import Patient
 from rdrf.forms.components import RDRFPatientInfoComponent
 from rdrf.forms.navigation.locators import PatientLocator
 from rdrf.forms.proms_forms import SurveyRequestForm
-from rdrf.models.proms.models import SurveyRequest
+from rdrf.models.proms.models import SurveyRequest, SurveyRequestStates
+from rdrf.models.proms.models import SurveyRequestStates
 from django.http import HttpResponseRedirect 
 from django.http import JsonResponse
 import json
@@ -192,19 +193,22 @@ class PromsClinicalView(View):
        logger.debug("patient_token = %s" % patient_token)
        user = request.POST.get("user")
        logger.debug("user = %s" % user)
-
-
        registry_model = Registry.objects.get(id=registry_id)
+       logger.debug("got registry")
        patient_model = Patient.objects.get(id=patient_id)
-       
+       logger.debug("got patient")
 
        survey_request = SurveyRequest(registry=registry_model,
                                       patient=patient_model,
                                       user=user,
+                                      state=SurveyRequestStates.REQUESTED,
                                       patient_token=patient_token)
        survey_request.save()
+       logger.debug("saved survey request")
 
+       logger.debug("sending request")
        survey_request.send()
+       logger.debug("sent request to create survey assignment")
        
        return JsonResponse({"patient_token": survey_request.patient_token})
 

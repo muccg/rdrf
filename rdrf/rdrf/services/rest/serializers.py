@@ -134,11 +134,17 @@ class WorkingGroupSerializer(serializers.HyperlinkedModelSerializer):
         fields = '__all__'
 
 
+class RegistryCodeField(serializers.CharField):
+    def get_attribute(self, survey_assignment):
+        return survey_assignment.registry.code
+
+
 class SurveyAssignmentSerializer(serializers.Serializer):
-    registry_code = serializers.CharField(max_length=10)
+    registry_code = RegistryCodeField(max_length=10)
     survey_name = serializers.CharField(max_length=80)
     patient_token = serializers.CharField(max_length=80)
     state = serializers.CharField(max_length=20)
+    response = serializers.CharField()
 
     def create(self, validated_data):
         registry_code = validated_data["registry_code"]
@@ -149,7 +155,9 @@ class SurveyAssignmentSerializer(serializers.Serializer):
         sa = SurveyAssignment(registry=registry_model,
                               survey_name=survey_name,
                               patient_token=patient_token,
+                              response="",
                               state=state)
+        
         sa.save()
         return sa
 

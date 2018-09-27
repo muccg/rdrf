@@ -117,8 +117,8 @@
       </form>
       </div>
       <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-        <button id="close_button" type="button" class="btn btn-primary" onClick="submitNewSurveyRequest(this);">Save</button>
+        <button id="close_button" type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+        <button id="save_button" type="button" class="btn btn-primary" onClick="submitNewSurveyRequest()">Save</button>
       </div>
     </div>
   </div>
@@ -127,20 +127,25 @@
 
 <script>
   function submitNewSurveyRequest() {
+   console.log("new survey request");
    var frm = $("#survey_request_form");
    var closeButton = $("#close_button");
+   var data = $(frm).serialize();
+  
    $.ajax({//begin
-        type: 'POST', <!-- Get the form's method attribute(defined in login/forms.py -->
-        url: frm.attr('action'),  <!-- Get the form's action attribute(defined in   login/forms.py -->
-        data: $(frm).serialize(),    <!-- package the data -->
+        type: 'POST',
+        data: data,
         success: function(data){
              $("#modal-body").html("Patient token is " + data.patient_token);
+             console.log("html updated");
+             //closeButton.click();
+             console.log("close clicked");
+             window.location.reload();
              
         },
-        error: function(data) {           <!-- else print error -->
-            alert(data.message);
-            alert("Something went wrong try again!");
-        }//end error
+        error: function(data) {
+            alert(data);
+        }
     });
   }
 </script>
