@@ -2,6 +2,8 @@ from django.db import models
 from rdrf.models.definition.models import Registry
 from rdrf.models.definition.models import CommonDataElement
 from registry.patients.models import Patient
+from rdrf.services.io.notifications.notifications import Notifier
+from rdrf.services.io.notifications.notifications import NotificationError
 import requests
 import uuid
 import logging
@@ -185,8 +187,47 @@ class SurveyRequest(models.Model):
         packet["state"] = "requested"
         return packet
 
+    @property
+    def email_link(self):
+        #https://rdrf.ccgapps.com.au/cicproms/promslanding?t=foo23&r=ICHOMCRC&s=smap
+        proms_system_url = self.registry.proms_system_url
+
+        landing_page = "/promslanding?t=%s&r=%s&s=%s" % (self.patient_token,
+                                                         self.registry.code,
+                                                         self.survey_name)
+
+        return proms_system_url + landing_page
+
+
+    @property
+    def name(self):
+        return "%s %s Survey" % (self.registry.name,
+                                 self.survey_name)
+                                 
+        
+    
+
     def _send_email(self):
         logger.debug("sending email to user with link")
+        try:
+            emailer = Notifier()
+            subject_line = "%s %s Survey Request" % (self.registry.name,
+                                                     self.survey_name)
+            email_body = "Please use the following link to take the %s survey: %s" % (self.name,
+                                                                                      self.email_link)
+            
+            emailer.send_email(self.patient.email,
+                               subject_line,
+                               email_body)
+
+        except NotificationError as nerr:
+            raise PromsEmailError(nerr)
+        except Exception as ex:
+            raise PromsEmailError(ex)
+            
+            
+        
+        
         
 
         
