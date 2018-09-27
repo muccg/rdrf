@@ -62,6 +62,7 @@ class SurveyAssignments(APIView):
     def post(self, request, format=None):
         logger.debug("in survey assignments on proms system")
         ser = SurveyAssignmentSerializer(data=request.data)
+        # call is valid befoe save
         if ser.is_valid():
             ser.save()
             logger.debug("ser saved ok")

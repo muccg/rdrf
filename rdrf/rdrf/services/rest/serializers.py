@@ -153,8 +153,5 @@ class SurveyAssignmentSerializer(serializers.Serializer):
         sa.save()
         return sa
 
-    def is_valid(self):
-        return True
-        
-        
-        
+    def validate(self, data):
+        return data
