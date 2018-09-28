@@ -56,6 +56,9 @@ class SurveyQuestion(models.Model):
     def name(self):
         return self.cde.name
 
+    def _clean_instructions(self, instructions):
+        return instructions.replace("\n"," ").replace("\r"," ")
+
     @property
     def client_rep(self):
         # client side representation
@@ -63,12 +66,14 @@ class SurveyQuestion(models.Model):
             return  {"tag": "cde",
                      "cde": self.cde.code,
                      "datatype": self.cde.datatype,
+                     "instructions": self._clean_instructions(self.cde.instructions),
                      "title": self.cde.name,
                      "options": self._get_options() }
                     
         else:
             return { "tag": "cond",
                      "cde": self.cde.code,
+                     "instructions": self._clean_instructions(self.cde.instructions),
                      "title": self.cde.name,
                      "options": self._get_options(),
                      "cond": { "op": "=",
