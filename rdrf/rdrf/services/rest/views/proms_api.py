@@ -15,6 +15,7 @@ from rest_framework import status
 from rdrf.services.rest.serializers import SurveyAssignmentSerializer
 from rdrf.services.rest.auth import PromsAuthentication
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import AllowAny
 import requests
 import json
 
@@ -59,11 +60,11 @@ class SurveyEndpoint(View):
 class SurveyAssignments(APIView):
     queryset = SurveyAssignment.objects.all()
     authentication_classes = (PromsAuthentication,)
-    permission_classes = (IsAuthenticated,)
+    permission_classes = (AllowAny,)
 
     @method_decorator(csrf_exempt)
     def post(self, request, format=None):
-        logger.debug("in survey assignments on proms system")
+        logger.info("in survey assignments on proms system")
         ser = SurveyAssignmentSerializer(data=request.data)
         # call is valid befoe save
         if ser.is_valid():
@@ -79,7 +80,8 @@ class SurveyAssignments(APIView):
 
 class PromsDownload(APIView):
     authentication_classes = (PromsAuthentication,)
-    permission_classes = (IsAuthenticated,)
+    permission_classes = (AllowAny,)
+
 
     @method_decorator(csrf_exempt)
     def post(self, request, format=None):
