@@ -56,11 +56,12 @@ class SurveyEndpoint(View):
         survey_assignment.save()
         return render(request, "proms/proms_completed.html",{})
 
-
 class SurveyAssignments(APIView):
     queryset = SurveyAssignment.objects.all()
     authentication_classes = (PromsAuthentication,)
     permission_classes = (IsAuthenticated,)
+
+    @csrf_exempt
     def post(self, request, format=None):
         logger.debug("in survey assignments on proms system")
         ser = SurveyAssignmentSerializer(data=request.data)
@@ -74,10 +75,13 @@ class SurveyAssignments(APIView):
             
         return Response(ser.errors, status=status.HTTP_400_BAD_REQUEST)
 
+
+
 class PromsDownload(APIView):
     authentication_classes = (PromsAuthentication,)
     permission_classes = (IsAuthenticated,)
 
+    @csrf_exempt
     def post(self, request, format=None):
         logger.debug("received download request ...")
         completed_surveys = SurveyAssignmentSerializer(self.get_queryset(), many=True)
