@@ -170,7 +170,6 @@ class SurveyRequest(models.Model):
                 return False
 
     def _send_proms_request(self):
-        from django.core.urlresolvers import reverse
         from django.conf import settings
 
         logger.debug("sending request to proms system")
@@ -178,7 +177,7 @@ class SurveyRequest(models.Model):
         if proms_system_url is None:
             raise PromsRequestError("No proms_system_url defined in registry metadata %s" % self.registry.code)
 
-        api = reverse("survey_assignments")
+        api = "/api/proms/v1/surveyassignments"
         
         logger.debug("api = %s" % api)
 
