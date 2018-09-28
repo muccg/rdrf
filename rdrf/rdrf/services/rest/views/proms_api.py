@@ -61,7 +61,7 @@ class SurveyAssignments(APIView):
     authentication_classes = (PromsAuthentication,)
     permission_classes = (IsAuthenticated,)
 
-    @csrf_exempt
+    @method_decorator(csrf_exempt)
     def post(self, request, format=None):
         logger.debug("in survey assignments on proms system")
         ser = SurveyAssignmentSerializer(data=request.data)
@@ -81,7 +81,7 @@ class PromsDownload(APIView):
     authentication_classes = (PromsAuthentication,)
     permission_classes = (IsAuthenticated,)
 
-    @csrf_exempt
+    @method_decorator(csrf_exempt)
     def post(self, request, format=None):
         logger.debug("received download request ...")
         completed_surveys = SurveyAssignmentSerializer(self.get_queryset(), many=True)
