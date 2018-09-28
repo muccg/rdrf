@@ -536,6 +536,8 @@ class PatientEditView(View):
                                  "see_patient"):
                 raise PermissionDenied
 
+
+
         context_launcher = RDRFContextLauncherComponent(request.user, registry_model, patient)
         patient_info = RDRFPatientInfoComponent(registry_model, patient)
 
@@ -550,6 +552,7 @@ class PatientEditView(View):
             "forms": form_sections,
             "family_linkage_panel": family_linkage_panel.html,
             "patient": patient,
+            "proms_link": self._get_proms_link(registry_model, patient),
             "patient_id": patient.id,
             "registry_code": registry_code,
             "form_links": [],
@@ -578,6 +581,12 @@ class PatientEditView(View):
             context['parent'] = ParentGuardian.objects.get(user=request.user)
 
         return render(request, 'rdrf_cdes/patient_edit.html', context)
+
+
+    def _get_proms_link(self, registry_model, patient_model):
+        if not registry_model.has_feature("proms_clinical"):
+            return None
+        return "todo"
 
     def post(self, request, registry_code, patient_id):
         user = request.user

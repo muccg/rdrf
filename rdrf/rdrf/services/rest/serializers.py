@@ -2,6 +2,7 @@ from rest_framework import serializers
 from rest_framework.reverse import reverse
 from registry.patients.models import Patient, Registry, Doctor, NextOfKinRelationship
 from registry.groups.models import CustomUser, WorkingGroup
+from rdrf.models.proms.models import SurveyAssignment
 
 
 class DoctorHyperlinkId(serializers.HyperlinkedRelatedField):
@@ -131,3 +132,34 @@ class WorkingGroupSerializer(serializers.HyperlinkedModelSerializer):
             'registry': {'lookup_field': 'code'},
         }
         fields = '__all__'
+
+
+class RegistryCodeField(serializers.CharField):
+    def get_attribute(self, survey_assignment):
+        return survey_assignment.registry.code
+
+
+class SurveyAssignmentSerializer(serializers.Serializer):
+    registry_code = RegistryCodeField(max_length=10)
+    survey_name = serializers.CharField(max_length=80)
+    patient_token = serializers.CharField(max_length=80)
+    state = serializers.CharField(max_length=20)
+    response = serializers.CharField()
+
+    def create(self, validated_data):
+        registry_code = validated_data["registry_code"]
+        registry_model = Registry.objects.get(code=registry_code)
+        survey_name = validated_data["survey_name"]
+        state = "requested"
+        patient_token = validated_data["patient_token"]
+        sa = SurveyAssignment(registry=registry_model,
+                              survey_name=survey_name,
+                              patient_token=patient_token,
+                              response="",
+                              state=state)
+        
+        sa.save()
+        return sa
+
+    def validate(self, data):
+        return data

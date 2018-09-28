@@ -9,6 +9,15 @@ from django.http import HttpResponseRedirect
 from django.http import Http404
 from django.core.urlresolvers import reverse
 from django.shortcuts import render
+from rdrf.forms.components import RDRFContextLauncherComponent
+from registry.patients.models import Patient
+from rdrf.forms.components import RDRFPatientInfoComponent
+from rdrf.forms.navigation.locators import PatientLocator
+from rdrf.forms.proms_forms import SurveyRequestForm
+from rdrf.models.proms.models import SurveyRequest, SurveyRequestStates
+from rdrf.models.proms.models import SurveyRequestStates
+from django.http import HttpResponseRedirect 
+from django.http import JsonResponse
 import json
 
 import logging
@@ -109,6 +118,104 @@ class PromsLandingPageView(View):
 
     def _is_valid(self, patient_token, registry_code, survey_name):
         return True
+
+
+class PromsClinicalView(View):
+    """
+    What the clinical system sees
+    """
+    def get(self, request, registry_code, patient_id):
+        registry_model = Registry.objects.get(code=registry_code)
+        patient_model = Patient.objects.get(id=patient_id)
+        
+        context = self._build_context(request.user,
+                                      registry_model,
+                                      patient_model)
+
+        return render(request, "proms/proms_clinical.html",context)
+
+
+    def _build_context(self, user, registry_model, patient_model):
+        survey_requests = self._get_survey_requests(registry_model,
+                                                    patient_model)
+        context_launcher = RDRFContextLauncherComponent(user,
+                                                        registry_model,
+                                                        patient_model,
+                                                        "PROMS")
+
+
+        
+        
+
+        survey_request_form = self._build_survey_request_form(registry_model,
+                                                              patient_model,
+                                                              user)
+        
+        
+        context = {
+                        "context_launcher": context_launcher.html,
+                        "location": "Patient Reported Outcomes",
+                        "patient": patient_model,
+                        "survey_requests": survey_requests,
+                        "patient_link": PatientLocator(registry_model,
+                                                       patient_model).link,
+                        "patient_info": RDRFPatientInfoComponent(registry_model, patient_model).html,
+                        "survey_request_form": survey_request_form,
+
+        }
+
+        return context
+
+    def _build_survey_request_form(self, registry_model, patient_model, user):
+        initial_data = {
+            "patient": patient_model,
+            "registry": registry_model,
+            "user": user.username,
+        }
+        # restrict the available survey choices based on the registry config
+
+        surveys = [(s["code"],s["description"]) for s in registry_model.metadata.get("surveys",[])]
+        
+        return SurveyRequestForm(initial=initial_data,surveys=surveys)
+
+    def _get_survey_requests(self, registry_model, patient_model):
+       return SurveyRequest.objects.filter(registry=registry_model,
+                                           patient=patient_model).order_by("-created").all()
+
+    def post(self, request, registry_code, patient_id):
+       survey_name = request.POST.get("survey_name")
+       logger.debug("survey_name = %s" % survey_name)
+       patient_id = request.POST.get("patient")
+       logger.debug("patient_id = %s" % patient_id)
+       registry_id = request.POST.get("registry")
+       logger.debug("registry_id = %s" % registry_id)
+       patient_token = request.POST.get("patient_token")
+       logger.debug("patient_token = %s" % patient_token)
+       user = request.POST.get("user")
+       logger.debug("user = %s" % user)
+       registry_model = Registry.objects.get(id=registry_id)
+       logger.debug("got registry")
+       patient_model = Patient.objects.get(id=patient_id)
+       logger.debug("got patient")
+
+       survey_request = SurveyRequest(registry=registry_model,
+                                      patient=patient_model,
+                                      user=user,
+                                      state=SurveyRequestStates.REQUESTED,
+                                      patient_token=patient_token)
+       survey_request.save()
+       logger.debug("saved survey request")
+
+       logger.debug("sending request")
+       survey_request.send()
+       logger.debug("sent request to create survey assignment")
+       
+       return JsonResponse({"patient_token": survey_request.patient_token})
+
+       
+       
+
+                                              
 
 
         

@@ -1,0 +1,155 @@
+{% extends "rdrf_cdes/base-2-cols.html" %}
+
+{% load add_attr %}
+{% load static from staticfiles %}
+{% load is_checkbox %}
+{% load is_patient_relative_widget %}
+{% load is_formset_obj %}
+{% load get_information_link %}
+{% load get_info_text_expression %}
+{% load i18n %}
+{% load translate %}
+{% load add_language_modifier %}
+
+
+{% block extrastyle %}
+    {{block.super}}
+    <link rel="stylesheet" href="{% static 'css/jquery-1.11.4/themes/smoothness/jquery-ui.min.css' %}">
+
+    <script type="text/javascript" src={% static 'js/rpc_module.js' %}></script>
+    <script type="text/javascript" src="{% static 'js/vendor/jquery-ui-1.11.4.min.js' %}"></script>
+
+    <script>
+       $(document).ready(function(){
+            $(":input").not(':input[type=checkbox], :input[type=radio], :input[type=button], :input[type=submit], :input[type=reset]').addClass("form-control");
+            $("textarea").addClass("form-control");
+            $("select").addClass("form-control");
+        });
+    </script>
+
+{% endblock %}
+
+{% block formlinks %}
+{% endblock %}
+
+{% block sidebar %}
+    {{ context_launcher | safe }}
+{% endblock %}
+
+
+{% block content %}
+
+			<a class="previous-form" href="{{ previous_form_link }}">
+				<span class="glyphicon glyphicon-chevron-left" aria-hidden="true"></span>
+			</a>
+
+			<a class="next-form" href="{{ next_form_link }}">
+				<span class="glyphicon glyphicon-chevron-right" aria-hidden="true"></span>
+			</a>
+    <br>
+    <div class="row">
+        <div class="col-md-12">
+            {% if message %}
+                <div class="alert alert-success" role="alert">
+                    {{ message }}
+                </div>
+            {% endif %}
+
+      </div>
+
+              <div id="existing_surveys_panel" class="panel panel-default">
+		<div class="panel-heading"><strong>{% trans 'Existing Surveys' %}</strong>
+
+<a class="btn btn-info btn-xs pull-right" data-toggle="modal" data-target="#new_survey_request_modal">
+                                        <span class="glyphicon glyphicon-plus" aria-hidden="true"></span> Add
+                                    <a>
+
+		</div>
+                <div class="panel-body">
+
+		    <table class="table table-striped">
+    <thead>
+      <tr>
+        <th>Survey</th>
+        <th>Created</th>
+        <th>Created by</th>
+        <th>Updated</th>
+        <th>Token</th>
+        <th>State</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for sr in survey_requests %}
+      <tr>
+        <td>{{sr.survey_name}}</td>
+        <td>{{sr.created}}</td>
+        <td>{{sr.user}}</td>
+        <td>{{sr.updated}}</td>
+        <td>{{sr.patient_token}}</td>
+        <td>{{sr.state}}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+		      
+								
+                 	        </div>  <!-- panel body -->
+                </div>  <!-- panel -->
+	    </div>
+	</div>
+
+
+
+
+<!-- modal popup -->
+<div class="modal fade" id="new_survey_request_modal" tabindex="-1" role="dialog" aria-labelledby="new_survey_request_label" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="new_survey_request_label">New Survey Request</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div id="modal-body" class="modal-body">
+	<form id="survey_request_form" method="POST">{% csrf_token %}
+{{ survey_request_form }}
+      </form>
+      </div>
+      <div class="modal-footer">
+        <button id="close_button" type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+        <button id="save_button" type="button" class="btn btn-primary" onClick="submitNewSurveyRequest()">Save</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<script>
+  function submitNewSurveyRequest() {
+   console.log("new survey request");
+   var frm = $("#survey_request_form");
+   var closeButton = $("#close_button");
+   var data = $(frm).serialize();
+  
+   $.ajax({//begin
+        type: 'POST',
+        data: data,
+        success: function(data){
+             $("#modal-body").html("Patient token is " + data.patient_token);
+             console.log("html updated");
+             //closeButton.click();
+             console.log("close clicked");
+             window.location.reload();
+             
+        },
+        error: function(data) {
+            alert(data);
+        }
+    });
+  }
+</script>
+
+
+{% endblock %}
+
