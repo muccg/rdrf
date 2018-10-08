@@ -345,14 +345,17 @@ class ReportingTableGenerator(object):
 
     @timed
     def run_explorer_query(self, database_utils):
+        from copy import copy
         self.create_table()
         errors = 0
         row_num = 0
+        blank_row = self._get_blank_row()
+        logger.debug("column names = %s" % self.column_names)
 
-        for row in database_utils.generate_results(self.reverse_map,
+        for row in database_utils.generate_results2(self.reverse_map,
                                                    self.col_map,
                                                    max_items=self.max_items):
-            new_row = self._get_blank_row()
+            new_row = copy(blank_row)
             new_row.update(row)
             self.insert_row(new_row)
             row_num += 1

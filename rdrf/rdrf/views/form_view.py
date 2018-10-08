@@ -31,6 +31,8 @@ from rdrf.helpers.utils import consent_status_for_patient
 
 from rdrf.db.contexts_api import RDRFContextManager
 from rdrf.db.contexts_api import RDRFContextError
+from explorer.models import FieldValue
+from explorer.utils import create_field_values
 
 
 from django.shortcuts import redirect
@@ -576,6 +578,19 @@ class FormView(View):
                 "cdes",
                 form_name=form_obj.name,
                 form_user=self.request.user.username)
+
+            # save report friendly field values
+            try:
+                logger.debug("trying to create field values for %s" % patient)
+                create_field_values(registry,
+                                    patient,
+                                    self.rdrf_context,
+                                    remove_existing=True)
+                logger.debug("created field values for patient %s" % patient)
+            except Exception as ex:
+                logger.debug("error creating field values: %s" % ex)
+
+                                    
 
             if self.CREATE_MODE and dyn_patient.rdrf_context_id != "add":
                 # we've created the context on the fly so no redirect to the edit view on
