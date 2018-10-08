@@ -76,7 +76,6 @@ class FieldValue(models.Model):
             model.display_value = str(value)
 
         model.save()
-        logger.debug("field value put %s value = %s" % (model, value))
 
     def __str__(self):
         return "registry %s patient %s context %s form %s section %s cde %s index %s" % (self.registry.code,
