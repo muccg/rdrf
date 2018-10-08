@@ -7,6 +7,7 @@ from rdrf.services.io.notifications.notifications import NotificationError
 import requests
 import uuid
 import logging
+from django.core.urlresolvers import reverse
 
 logger = logging.getLogger(__name__)
 
@@ -178,10 +179,8 @@ class SurveyRequest(models.Model):
             raise PromsRequestError("No proms_system_url defined in registry metadata %s" % self.registry.code)
 
         api = "/api/proms/v1/surveyassignments"
-        
-        logger.debug("api = %s" % api)
-
         api_url = proms_system_url + api
+        logger.debug("api_url = %s" % api_url)
 
         survey_assignment_data = self._get_survey_assignment_data()
         headers = {'PROMS_SECRET_TOKEN': settings.PROMS_SECRET_TOKEN}
@@ -189,6 +188,7 @@ class SurveyRequest(models.Model):
         requests.post(api_url,
                       data=survey_assignment_data,
                       headers=headers)
+        logger.debug("posted data")
 
     def _get_survey_assignment_data(self):
         packet = {}
