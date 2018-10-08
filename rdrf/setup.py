@@ -47,6 +47,7 @@ requirements = [
     "django-two-factor-auth==1.6.2",
     "phonenumberslite==8.8.1",
     "qrcode==4.0.4",
+    "django-reversion",
 ]
 
 

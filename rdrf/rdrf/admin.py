@@ -20,12 +20,13 @@ from rdrf.models.definition.models import ContextFormGroup
 from rdrf.models.definition.models import ContextFormGroupItem
 from rdrf.models.definition.models import CDEFile
 from rdrf.models.definition.models import ConsentRule
+from rdrf.models.definition.models import ClinicalData
 from rdrf.models.proms.models import Survey
 from rdrf.models.proms.models import SurveyQuestion
 from rdrf.models.proms.models import Precondition
 from rdrf.models.proms.models import SurveyAssignment
 
-
+from reversion.admin import VersionAdmin
 
 import logging
 from django.http import HttpResponse
@@ -44,6 +45,9 @@ from functools import reduce
 
 logger = logging.getLogger(__name__)
 
+@admin.register(ClinicalData)
+class BaseReversionAdmin(VersionAdmin):
+    pass
 
 class SectionAdmin(admin.ModelAdmin):
     list_display = ('code', 'display_name')
