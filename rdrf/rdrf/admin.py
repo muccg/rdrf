@@ -372,7 +372,7 @@ class ConsentRuleAdmin(admin.ModelAdmin):
 
 class PreconditionAdmin(admin.ModelAdmin):
     model = Precondition
-    list_display = ('survey','cde','value')
+    list_display = ('survey', 'cde', 'value')
 
 class SurveyQuestionAdmin(admin.StackedInline):
     model = SurveyQuestion
@@ -388,10 +388,7 @@ class SurveyAdmin(admin.ModelAdmin):
 
 class SurveyAssignmentAdmin(admin.ModelAdmin):
     model = SurveyAssignment
-    list_display = ("registry", "survey_name","patient_token", "state","created","updated", "response") 
-
-
-    
+    list_display = ("registry", "survey_name", "patient_token", "state", "created", "updated", "response")
 
 
 if settings.DESIGN_MODE:
