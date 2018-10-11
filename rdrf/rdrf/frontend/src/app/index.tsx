@@ -7,6 +7,7 @@ import Question from '../pages/proms_page/components/question';
 import { goPrevious, goNext, submitAnswers } from '../pages/proms_page/reducers';
 
 import { Button } from 'reactstrap';
+import { Progress } from 'reactstrap';
 import { Container, Row, Col } from 'reactstrap';
 
 import { ElementList } from '../pages/proms_page/logic';
@@ -14,6 +15,7 @@ import { ElementList } from '../pages/proms_page/logic';
 interface AppInterface {
     title: string,
     stage: number,
+    answers: any,
     questions: ElementList,
     goNext: any,
     goPrevious: any,
@@ -29,6 +31,17 @@ class App extends React.Component<AppInterface, object> {
 	return this.props.stage == lastIndex;
     }
 
+    getProgress(): number {
+	let numQuestions: number = this.props.questions.length;
+	let numAnswers : number = Object.keys(this.props.answers).length;
+	return Math.floor(100.00 * ( numAnswers / numQuestions)) ; 
+    }
+
+    isNextButtonDisabled(): boolean {
+	let questionCode = this.props.questions[this.props.stage].cde;
+	return !(this.props.answers.hasOwnProperty(questionCode));
+    }
+
     render() {
 	var nextButton;
 	if(this.atEnd()) {
@@ -37,7 +50,7 @@ class App extends React.Component<AppInterface, object> {
 	}
 	else {
 	    console.log("not at end"); 
-	    nextButton = (<Button onClick={this.props.goNext}>Next</Button>);
+	    nextButton = (<Button disabled={this.isNextButtonDisabled()} onClick={this.props.goNext}>Next</Button>);
 	};
 	
         return (
@@ -64,6 +77,11 @@ class App extends React.Component<AppInterface, object> {
 		      {nextButton}
 		    </Col>
 		  </Row>
+		<Row>
+		<Col sm={{ size: 4, order: 2, offset: 1 }}>
+		<Progress color="info" value={this.getProgress()}>{this.getProgress()}%</Progress>
+		</Col>
+		</Row>
 		</Container>
 		</div>
 
@@ -75,6 +93,7 @@ class App extends React.Component<AppInterface, object> {
 function mapStateToProps(state) {
     return {stage: state.stage,
 	    title: state.title,
+	    answers: state.answers,
 	    questions: state.questions}
 }
 

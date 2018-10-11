@@ -20,6 +20,7 @@ interface UnconditionalElement  {
     tag: 'cde',
     cde: string,
     title: string,
+    instructions: string,
     options: [Option],
 }
 
@@ -28,6 +29,7 @@ interface ConditionalElement {
     cond: Condition,
     cde: string,
     title: string,
+    instructions: string,
     options: [Option],
 }
 

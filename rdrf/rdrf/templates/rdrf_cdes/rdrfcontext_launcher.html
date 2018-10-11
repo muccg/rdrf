@@ -57,6 +57,18 @@
 </div>
 {% endif %}
 
+{% if proms_link %}
+<div width="100%" class="panel panel-default collapsible">
+  <div class="panel-body">
+    {% if current_form_name == "Proms" %}
+     <i>{% trans 'Proms' %}</i>
+  {% else %}
+     <a href="{{proms_link}}">{% trans 'Proms' %}</a>
+  {% endif %}
+  </div>
+</div>
+{% endif %}
+
 
 {% if family_linkage_link %}
 <div width="100%" class="panel panel-default collapsible">
@@ -65,6 +77,8 @@
   </div>
 </div>
 {% endif %}
+
+
 
 
 
