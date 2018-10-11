@@ -10,6 +10,7 @@ from rdrf.models.definition.models import Section
 from rdrf.models.definition.models import CommonDataElement
 from rdrf.helpers.utils import parse_iso_date
 from registry.patients.models import Patient
+import json
 
 import logging
 
@@ -31,6 +32,14 @@ class FieldValue(models.Model):
     username = models.TextField(blank=True,null=True)
     timestamp = models.DateTimeField(auto_now_add=True)
     column_name = models.CharField(max_length=80, blank=True, null=True)
+    datatype = models.CharField(max_length=80, default='string')
+    is_range = models.BooleanField(default=False)
+    raw_integer = models.IntegerField(null=True, blank=True)
+    raw_float = models.FloatField(null=True, blank=True)
+    file_name = models.TextField(null=True, blank=True)
+    raw_date = models.DateField(null=True, blank=True)
+    raw_boolean = models.NullBooleanField(null=True, blank=True)
+    
 
     class Meta:
         # the "path" to a value for a giveb
@@ -60,6 +69,7 @@ class FieldValue(models.Model):
 
     @classmethod
     def put(klass, registry_model, patient_model, context_model, form_model, section_model, cde_model, index, value):
+        datatype = cde_model.datatype.strip().lower()
         model, _ = klass.objects.get_or_create(registry=registry_model,
                                                patient=patient_model,
                                                context=context_model,
@@ -68,14 +78,86 @@ class FieldValue(models.Model):
                                                cde=cde_model,
                                                index=index)
 
-        model.raw_value = str(value)
-        if cde_model.pv_group:
-            # range
-            model.display_value = cde_model.get_display_value(value)
-        else:
-            model.display_value = str(value)
+        model.datatype = model.set_datatype(datatype)
+        model.is_range = True if cde_model.pv_group else False
+        model.column_name = model.get_column_name(form_model,
+                                                  section_model,
+                                                  cde_model,
+                                                  index)
+        if value is None:
+            model.save()
+            return
 
+        if datatype == 'string':
+            try:
+                model.raw_value = str(value)
+            except:
+                pass
+        elif cde_model.pv_group:
+            model.display_value = cde_model.get_display_value(value)
+        elif datatype in ['integer','int','ineger']:
+            try:
+                model.raw_integer = int(value)
+            except TypeError:
+                pass
+            except ValueError:
+                pass
+        elif datatype in [ 'boolean','bool']:
+            try:
+                model.raw_boolean = bool(value)
+            except:
+                pass
+        elif datatype in ['float', 'numeric', 'decimal']:
+            try:
+                model.raw_float = float(value)
+            except TypeError:
+                pass 
+            except ValueError:
+                pass
+        elif datatype == 'date':
+            try:
+                model.raw_date = parse_iso_date(value)
+            except:
+                pass
+        elif datatype == 'file':
+            try:
+                model.file_name = value.get("file_name", None)
+            except:
+                pass
+        else:
+            try:
+                model.raw_value = str(value)
+            except:
+                pass
+            
         model.save()
+
+    def set_datatype(self, datatype):
+        if datatype in ['string','striing']:
+            return 'string'
+        if datatype in ['integer','ineger']:
+            return 'integer'
+        if datatype in [ 'float','decimal','number']:
+            return 'float'
+        if datatype in ['date', 'datetime']:
+            return 'date'
+        if datatype in ['boolean', 'bool']:
+            return 'boolean'
+        if datatype in ['file']:
+            return 'file' 
+        if datatype in ['range']:
+            return 'range'
+        if datatype in ['calculated']:
+            return 'calculated'
+        return 'string'
+
+    def get_calculated_value(self):
+        try:
+            return float(self.raw_value)
+        except:
+            pass
+        return self.raw_value
+        
 
     def __str__(self):
         return "registry %s patient %s context %s form %s section %s cde %s index %s" % (self.registry.code,
@@ -88,24 +170,31 @@ class FieldValue(models.Model):
     
 
 
-    def get_column_name(self):
+    def get_column_name(self, form_model, section_model, cde_model, index):
         # column name for report
-        if self.cde.pv_group:
+        if section_model.allow_multiple:
             # multisection so include index + 1
-            name = "column_%s_%s_%s_%s" % (self.form.pk,
-                                           self.section.pk,
-                                           self.cde.code,
-                                           self.index + 1)
+            name = "column_%s_%s_%s_%s" % (form_model.pk,
+                                           section_model.pk,
+                                           cde_model.code,
+                                           index + 1)
         else:
-            name = "column_%s_%s_%s" % (self.form.pk,
-                                        self.section.pk,
-                                        self.cde.code)
+            name = "column_%s_%s_%s" % (form_model.pk,
+                                        section_model.pk,
+                                        cde_model.code)
 
         return name
 
     def get_typed_value(self):
+        #'text', 'email', 'range', 'integer',
+        #'file', 'string', 'float', 'String', 'date', 'striing',
+        # 'calculated', 'Integer', 'Ineger', 'textarea', 'boolean'}
+
         datatype = self.cde.datatype.strip().lower()
-        if datatype == 'integer':
+        if datatype in ['text','email','string','textarea']:
+            return self.raw_value
+        
+        if datatype in ['integer','ineger']:
             try:
                 return int(self.raw_value)
             except:
@@ -121,26 +210,41 @@ class FieldValue(models.Model):
             except:
                 return None
         elif datatype == 'file':
-            return 'file'
+            try:
+                if not self.raw_value:
+                    return None
+                file_name = json.loads(self.raw_value)["file_name"]
+                logger.debug("got a file name = %s" % file_name)
+                return file_name
+            except Exception as ex:
+                logger.debug("error getting filename: %s" % ex)
+                return None
         elif datatype in ['date', 'datetime']:
             try:
                 return parse_iso_date(self.raw_value)
             except:
                 return None
+        elif datatype == 'calculated':
+            try:
+                return float(self.raw_value)
+            except ValueError:
+                return self.raw_value
+            
         else:
             return self.raw_value
 
     def get_report_value(self):
         if self.cde.pv_group:
-            return self.cde.get_display_value(self.raw_value)
+            return self.display_value
         else:
             try:
-                return self.get_typed_value()
-            except ValueError:
+                typed_value = self.get_typed_value()
+                return typed_value
+            
+            except ValueError as ex:
                 return None
-        
-        
-
+            except Exception as ex:
+                return None
 
 
 class Query(models.Model):

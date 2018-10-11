@@ -143,8 +143,7 @@ class DatabaseUtils(object):
         from registry.patients.models import Patient
         self.reverse_map = reverse_column_map
         self.col_map = col_map
-        report_columns = [ column_name for column_name in
-                           self.reverse_map.values() if column_name.startswith("column_")]
+        report_columns = col_map.values()
         
         blank_dict = {column_name: None for column_name in report_columns}
         
@@ -177,19 +176,26 @@ class DatabaseUtils(object):
                 row_dict.update(d)
                 patient_id = int(d['id'])
                 patient_model = Patient.objects.get(id=patient_id)
+                q = (FieldValue.objects.filter(registry_id=registry_id)
+                                      .prefetch_related("patient")
+                                      .prefetch_related("context")
+                                      .prefetch_related("form")
+                                      .prefetch_related("section")
+                                      .prefetch_related("cde"))
+
                 for context_model in patient_model.context_models:
                     context_id = context_model.pk
                     row = copy(row_dict)
                     row["context_id"] = context_id
-                    
-                            
-                    for fv in FieldValue.objects.filter(registry_id=registry_id,
-                                                        patient_id=patient_id,
-                                                        context_id=context_id,
-                                                        column_name__in=report_columns,
-                                                        index__lt=max_items):
-                            report_value = fv.get_report_value()
-                            row[fv.column_name] = report_value
+
+                    qry = q.filter(registry_id=registry_id,
+                                   patient_id=patient_id,
+                                   context_id=context_id,
+                                   column_name__in=report_columns,
+                                   index__lt=max_items) 
+
+                    self._get_fvs_by_datatype(qry, row)
+            
                     yield row
 
         if self.mongo_search_type == "C":
@@ -205,11 +211,25 @@ class DatabaseUtils(object):
                                            col_map,
                                            max_items):
                 yield d
-                                           
-                    
 
-
-
+    def _get_fvs_by_datatype(self, query, row):
+        for fv in query.filter(datatype='string'):
+           row[fv.column_name] =  fv.raw_value
+        for fv in query.filter(datatype='range'):
+           row[fv.column_name] =  fv.display_value
+        for fv in query.filter(datatype='integer'):
+           row[fv.column_name] =  fv.raw_integer
+        for fv in query.filter(datatype='float'):
+           row[fv.column_name] =  fv.raw_float
+        for fv in query.filter(datatype='file'):
+           row[fv.column_name] =  fv.file_name
+        for fv in query.filter(datatype='boolean'):
+           row[fv.column_name] =  fv.raw_boolean
+        for fv in query.filter(datatype='date'):
+           row[fv.column_name] =  fv.raw_date
+        for fv in query.filter(datatype='calculated'):
+           row[fv.column_name] =  fv.get_calculated_value()
+            
     @timed
     def generate_results(self, reverse_column_map, col_map, max_items):
         self.reverse_map = reverse_column_map
@@ -624,14 +644,19 @@ class ParseQuery(object):
         pass
 
 
-def create_field_values(registry_model, patient_model, context_model, remove_existing=False):
+def create_field_values(registry_model, patient_model, context_model, remove_existing=False,form_model=None):
     """
     Create faster representations of the clinical data for reporting
     """
     if remove_existing:
-        FieldValue.objects.filter(registry=registry_model,
-                                  patient=patient_model,
-                                  context=context_model).delete()
+        qry = FieldValue.objects.filter(registry=registry_model,
+                                        patient=patient_model,
+                                        context=context_model)
+        
+        if form_model:
+            qry = qry.filter(form=form_model)
+
+        qry.delete()
 
     dynamic_data = patient_model.get_dynamic_data(registry_model,
                                                   context_id=context_model.id)
