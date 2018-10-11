@@ -344,37 +344,23 @@ class ReportingTableGenerator(object):
         from copy import copy
         self.create_table()
         errors = 0
-        rows = []
+        row_num = 0
         blank_row = self._get_blank_row()
-
-        t = datetime.now()
-        logger.info("started to extract rows %s" % t)
 
         for row in database_utils.generate_results2(self.reverse_map,
                                                    self.col_map,
                                                    max_items=self.max_items):
             new_row = copy(blank_row)
-            new_row = copy(blank)
             new_row.update(row)
-            rows.append(new_row)
+            self.insert_row(new_row)
+            row_num += 1
 
-        t1 = datetime.now()
-        logger.info("starting to insert rows %s" % t1)
-        self.insert_rows(rows)
-        t2 = datetime.now()
-        delta = t2 - t1
-        logger.info("insert %s rows took %s" % (len(rows), delta.seconds))
-        
         if errors > 0:
             logger.info("query errors: %s" % errors)
             self.error_messages.append(
                 "There were %s errors running the report" % errors)
 
         return self._get_result_messages_dict()
-
-    def insert_rows(self, rows):
-        self.engine.execute(self.table.insert(),*rows)
-        
 
     def insert_row(self, value_dict):
         for k in value_dict:
