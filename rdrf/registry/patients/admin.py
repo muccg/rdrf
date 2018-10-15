@@ -8,6 +8,7 @@ import os
 import json
 import datetime
 from rdrf.models.definition.models import Registry
+from rdrf.models.definition.models import ClinicalData
 from registry.utils import get_static_url
 from registry.utils import get_working_groups
 from .admin_forms import *
@@ -481,6 +482,8 @@ def unarchive_patient_action(modeladmin, request, archive_patients_selected):
         for archived_patient in archive_patients_selected:
             archived_patient.active = True
             archived_patient.save()
+            patient_id = archived_patient.id
+            unarchive_clinicaldata_model(patient_id)
 
 
 unarchive_patient_action.short_description = "Unarchive archived patient"
@@ -494,6 +497,12 @@ def hard_delete_patient_action(modeladmin, request, archive_patients_selected):
 
 hard_delete_patient_action.short_description = "Hard delete archived patient"
 
+def unarchive_clinicaldata_model(patient_id):
+    clinicaldata_models = ClinicalData.objects.filter(
+        django_id=patient_id, django_model='Patient', collection='cdes')
+    for cd in clinicaldata_models:
+        cd.active = True
+        cd.save()
 
 class ArchivedPatientAdmin(admin.ModelAdmin):
     list_display = ('id', 'display_name', 'date_of_birth', 'membership')
