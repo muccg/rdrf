@@ -31,6 +31,7 @@ class Question extends React.Component<QuestionInterface, object> {
 		<Form>	 
                    <FormGroup tag="fieldset">
                 <legend>{this.props.questions[this.props.stage].title}</legend>
+		<i>{this.props.questions[this.props.stage].instructions}</i>
 		   </FormGroup>
 
 		  {

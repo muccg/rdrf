@@ -612,6 +612,7 @@ class Importer(object):
             logger.info("survey dict = %s" % survey_dict)
             survey_model = Survey(registry=registry_model)
             survey_model.name = survey_dict["name"]
+            survey_model.display_name = survey_dict.get("display_name", "")
             survey_model.save()
             logger.info("saved survey_model %s" % survey_model.name)
             

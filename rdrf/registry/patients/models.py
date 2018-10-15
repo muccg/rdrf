@@ -533,7 +533,7 @@ class Patient(models.Model):
             wrapper.update_dynamic_data(registry_model, mongo_data)
         except Exception as ex:
             logger.error("Error update_dynamic_data: %s" % ex)
-            error_messages.append("Failed to update: %s" % ex)
+            error_messages.append("Failed to u/pdate: %s" % ex)
         try:
             self.save()
         except Exception as ex:

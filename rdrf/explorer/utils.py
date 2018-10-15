@@ -11,6 +11,7 @@ from rdrf.models.definition.models import Registry, RegistryForm, Section
 from rdrf.models.definition.models import CommonDataElement, ClinicalData
 
 from .models import Query
+from .models import FieldValue
 from .forms import QueryForm
 
 import logging
@@ -138,6 +139,98 @@ class DatabaseUtils(object):
             raise
 
     @timed
+    def generate_results2(self, reverse_column_map, col_map, max_items):
+        from registry.patients.models import Patient
+        self.reverse_map = reverse_column_map
+        self.col_map = col_map
+        report_columns = col_map.values()
+        
+        blank_dict = {column_name: None for column_name in report_columns}
+        
+        if self.projection:
+            self.mongo_models = [model_triple for model_triple in self._get_mongo_fields()]
+        else:
+            self.mongo_models = []
+        
+        sql_only = len(self.mongo_models) == 0
+
+        def get_sql_dict(row):
+            sql_columns_dict = {}
+            for i, item in enumerate(row):
+                sql_column_name = self.reverse_map[i]
+                sql_columns_dict[sql_column_name] = item
+                sql_columns_dict["snapshot"] = False
+            return sql_columns_dict
+
+        def sql_only_c():
+            for row in self.cursor:
+                d = get_sql_dict(row)
+                yield d
+
+        def full_new():
+            registry_id = self.registry_model.id
+            from copy import copy
+            for row in self.cursor:
+                row_dict = copy(blank_dict)
+                d = get_sql_dict(row)
+                row_dict.update(d)
+                patient_id = int(d['id'])
+                patient_model = Patient.objects.get(id=patient_id)
+                q = (FieldValue.objects.filter(registry_id=registry_id)
+                                      .prefetch_related("patient")
+                                      .prefetch_related("context")
+                                      .prefetch_related("form")
+                                      .prefetch_related("section")
+                                      .prefetch_related("cde"))
+
+                for context_model in patient_model.context_models:
+                    context_id = context_model.pk
+                    row = copy(row_dict)
+                    row["context_id"] = context_id
+
+                    qry = q.filter(registry_id=registry_id,
+                                   patient_id=patient_id,
+                                   context_id=context_id,
+                                   column_name__in=report_columns,
+                                   index__lt=max_items) 
+
+                    self._get_fvs_by_datatype(qry, row)
+            
+                    yield row
+
+        if self.mongo_search_type == "C":
+            # current data - no longitudinal snapshots
+            if sql_only:
+                for d in sql_only_c():
+                    yield d
+            else:
+                for d in full_new():
+                    yield d
+        else:
+            for d in self.generate_results(reverse_column_map,
+                                           col_map,
+                                           max_items):
+                yield d
+
+    def _get_fvs_by_datatype(self, query, row):
+        for fv in query.filter(datatype='string'):
+           row[fv.column_name] =  fv.raw_value
+        for fv in query.filter(datatype='range'):
+           row[fv.column_name] =  fv.display_value
+        for fv in query.filter(datatype='integer'):
+           row[fv.column_name] =  fv.raw_integer
+        for fv in query.filter(datatype='float'):
+           row[fv.column_name] =  fv.raw_float
+        for fv in query.filter(datatype='file'):
+           row[fv.column_name] =  fv.file_name
+        for fv in query.filter(datatype='boolean'):
+           row[fv.column_name] =  fv.raw_boolean
+        for fv in query.filter(datatype='date'):
+           row[fv.column_name] =  fv.raw_date
+        for fv in query.filter(datatype='calculated'):
+           row[fv.column_name] =  fv.get_calculated_value()
+            
+    @timed
     def generate_results(self, reverse_column_map, col_map, max_items):
         self.reverse_map = reverse_column_map
         self.col_map = col_map
@@ -150,54 +243,85 @@ class DatabaseUtils(object):
         else:
             self.mongo_models = []
 
+        sql_only = len(self.mongo_models) == 0
+
+        def full_c2():
+            for row in self.cursor:
+                sql_columns_dict = {}
+                for i, item in enumerate(row):
+                    sql_column_name = self.reverse_map[i]
+                    sql_columns_dict[sql_column_name] = item
+                
+                
+
+
+        def sql_only_c():
+            for row in self.cursor:
+                sql_columns_dict = {}
+                for i, item in enumerate(row):
+                    sql_column_name = self.reverse_map[i]
+                    sql_columns_dict[sql_column_name] = item
+                yield sql_columns_dict
+
+        def full_c():
+            for row in self.cursor:
+                sql_columns_dict = {}
+                for i, item in enumerate(row):
+                    sql_column_name = self.reverse_map[i]
+                    sql_columns_dict[sql_column_name] = item
+
+                    for mongo_columns_dict in self.run_mongo_one_row(sql_columns_dict, collection, max_items):
+                        if mongo_columns_dict is None:
+                            sql_columns_dict["snapshot"] = False
+                            yield sql_columns_dict
+                        else:
+                            mongo_columns_dict["snapshot"] = False
+                            for combined_dict in self._combine_sql_and_mongo(sql_columns_dict, mongo_columns_dict):
+                                yield combined_dict
+
+        def longitudinal():
+            for row in self.cursor:
+                sql_columns_dict = {}
+                for i, item in enumerate(row):
+                    sql_column_name = self.reverse_map[i]
+                    sql_columns_dict[sql_column_name] = item
+
+                    for mongo_columns_dict in self.run_mongo_one_row(sql_columns_dict, collection, max_items):
+                        if mongo_columns_dict is None:
+                            sql_columns_dict["snapshot"] = False
+                            yield sql_columns_dict
+                        else:
+                            mongo_columns_dict["snapshot"] = False
+                            for combined_dict in self._combine_sql_and_mongo(sql_columns_dict, mongo_columns_dict):
+                                yield combined_dict
+
+                    for mongo_columns_dict in self.run_mongo_one_row_longitudinal(
+                            sql_columns_dict, history, max_items):
+                        if mongo_columns_dict is None:
+                            yield None
+                        else:
+                            mongo_columns_dict["snapshot"] = True
+                            for combined_dict in self._combine_sql_and_mongo(sql_columns_dict, mongo_columns_dict):
+                                yield combined_dict
+
         if self.mongo_search_type == "C":
             # current data - no longitudinal snapshots
-            for row in self.cursor:
-                sql_columns_dict = {}
-                for i, item in enumerate(row):
-                    sql_column_name = self.reverse_map[i]
-                    sql_columns_dict[sql_column_name] = item
+            if sql_only:
+                for d in sql_only_c():
+                    yield d
+            else:
+                for d in full_c():
+                    yield d
 
-                # A mongo record may not exist ( represented as None )
-                for mongo_columns_dict in self.run_mongo_one_row(
-                        sql_columns_dict, collection, max_items):
-                    if mongo_columns_dict is None:
-                        sql_columns_dict["snapshot"] = False
-                        yield sql_columns_dict
-                    else:
-                        mongo_columns_dict["snapshot"] = False
-                        for combined_dict in self._combine_sql_and_mongo(
-                                sql_columns_dict, mongo_columns_dict):
-                            yield combined_dict
         else:
             # include longitudinal ( snapshot) data
-            for row in self.cursor:
-                sql_columns_dict = {}
-                for i, item in enumerate(row):
-                    sql_column_name = self.reverse_map[i]
-                    sql_columns_dict[sql_column_name] = item
-
-                for mongo_columns_dict in self.run_mongo_one_row(
-                        sql_columns_dict, collection, max_items):
-                    if mongo_columns_dict is None:
-                        sql_columns_dict["snapshot"] = False
-                        yield sql_columns_dict
-                    else:
-                        mongo_columns_dict["snapshot"] = False
-                        for combined_dict in self._combine_sql_and_mongo(
-                                sql_columns_dict, mongo_columns_dict):
-                            yield combined_dict
-
-                for mongo_columns_dict in self.run_mongo_one_row_longitudinal(
-                        sql_columns_dict, history, max_items):
-                    if mongo_columns_dict is None:
-                        yield None
-
-                    mongo_columns_dict["snapshot"] = True
-                    for combined_dict in self._combine_sql_and_mongo(
-                            sql_columns_dict, mongo_columns_dict):
-                        yield combined_dict
-
+            if sql_only:
+                for d in sql_only_c():
+                    yield d
+            else:
+                for d in longitudinal():
+                    yield d
+                
     def _combine_sql_and_mongo(self, sql_result_dict, mongo_result_dict):
         combined_dict = {}
         combined_dict.update(sql_result_dict)
@@ -317,6 +441,19 @@ class DatabaseUtils(object):
         else:
             for mongo_document in records:
                 yield self._get_result_map(mongo_document, max_items=max_items)
+
+
+    def _process_all_rows(self, collection, max_items=3):
+        
+        
+        qry = collection.filter(django_model="Patient")
+        # list of clinical data
+        data = qry.values('django_id','context_id','data')
+        for item in data:
+            result_map = self._get_result_map(item['data'], max_items=max_items)
+            result_map['id'] = item['django_id']
+            
+        
 
     def _get_result_map(self, mongo_document, is_snapshot=False, max_items=3):
         result = {}
@@ -505,3 +642,64 @@ class ParseQuery(object):
 
     def set_parameters(query):
         pass
+
+
+def create_field_values(registry_model, patient_model, context_model, remove_existing=False,form_model=None):
+    """
+    Create faster representations of the clinical data for reporting
+    """
+    if remove_existing:
+        qry = FieldValue.objects.filter(registry=registry_model,
+                                        patient=patient_model,
+                                        context=context_model)
+        
+        if form_model:
+            qry = qry.filter(form=form_model)
+
+        qry.delete()
+
+    dynamic_data = patient_model.get_dynamic_data(registry_model,
+                                                  context_id=context_model.id)
+    if dynamic_data:
+        for form_dict in dynamic_data["forms"]:
+            try:
+                form_model = RegistryForm.objects.get(name=form_dict["name"],
+                                                  registry=registry_model)
+            except RegistryForm.DoesNotExist:
+                continue
+            for section_dict in form_dict["sections"]:
+                try:
+                    section_model = Section.objects.get(code=section_dict["code"])
+                except Section.DoesNotExist:
+                    continue
+                if not section_dict["allow_multiple"]:
+                    for cde_dict in section_dict["cdes"]:
+                        try:
+                            cde_model = CommonDataElement.objects.get(code=cde_dict["code"])
+                        except CommonDataElement.DoesNotExist:
+                            continue
+
+                        FieldValue.put(registry_model,
+                                       patient_model,
+                                       context_model,
+                                       form_model,
+                                       section_model,
+                                       cde_model,
+                                       0,
+                                       cde_dict["value"])
+                else:
+                    for index, item in enumerate(section_dict["cdes"]):
+                        for cde_dict in item:
+                            try:
+                                cde_model = CommonDataElement.objects.get(code=cde_dict["code"])
+                            except CommonDataElement.DoesNotExist:
+                                continue
+
+                            FieldValue.put(registry_model,
+                                           patient_model,
+                                           context_model,
+                                           form_model,
+                                           section_model,
+                                           cde_model,
+                                           index,
+                                           cde_dict["value"])

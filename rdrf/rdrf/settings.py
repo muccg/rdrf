@@ -504,3 +504,8 @@ AUTH_PASSWORD_VALIDATORS = [{
         'NAME': 'rdrf.auth.password_validation.HasSpecialCharacterValidator',
 },
 ]
+
+
+# setup for PROMS
+PROMS_SECRET_TOKEN = env.get("proms_secret_token", "foobar") #todo set this us in env etc
+PROMS_USERNAME = env.get("proms_username","promsuser")

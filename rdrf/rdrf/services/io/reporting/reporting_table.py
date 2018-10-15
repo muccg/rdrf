@@ -241,12 +241,8 @@ class ReportingTableGenerator(object):
                 self.mongo_column_map = {}  # used to retrieve data later : maps
 
             def report(self):
-                logger.info("*******************************")
-                logger.info("There are %s mongo derived columns" %
-                            len(self.column_names))
                 for i, column_name in enumerate(self.column_names):
                     logger.info("CLINICAL COLUMN %s %s" % (i, column_name))
-                logger.info("*******************************")
 
             def add(self, column_op):
                 # rigmarole to preserve column order for the multisection items
@@ -345,14 +341,16 @@ class ReportingTableGenerator(object):
 
     @timed
     def run_explorer_query(self, database_utils):
+        from copy import copy
         self.create_table()
         errors = 0
         row_num = 0
+        blank_row = self._get_blank_row()
 
-        for row in database_utils.generate_results(self.reverse_map,
+        for row in database_utils.generate_results2(self.reverse_map,
                                                    self.col_map,
                                                    max_items=self.max_items):
-            new_row = self._get_blank_row()
+            new_row = copy(blank_row)
             new_row.update(row)
             self.insert_row(new_row)
             row_num += 1

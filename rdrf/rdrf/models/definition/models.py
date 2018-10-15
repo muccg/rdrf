@@ -616,6 +616,13 @@ class Registry(models.Model):
                             "Form %s Section %s refers to data element %s which does not exist" %
                             (form_name, section_code, element_code))
 
+    @property
+    def proms_system_url(self):
+        try:
+            return self.metadata["proms_system_url"]
+        except KeyError:
+            return None
+
 
 def get_owner_choices():
     """

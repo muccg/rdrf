@@ -31,6 +31,8 @@ from rdrf.helpers.utils import consent_status_for_patient
 
 from rdrf.db.contexts_api import RDRFContextManager
 from rdrf.db.contexts_api import RDRFContextError
+from explorer.models import FieldValue
+from explorer.utils import create_field_values
 
 
 from django.shortcuts import redirect
@@ -577,12 +579,37 @@ class FormView(View):
                 form_name=form_obj.name,
                 form_user=self.request.user.username)
 
+            # save report friendly field values
+            try:
+                logger.debug("trying to create field values for %s" % patient)
+                if self.rdrf_context:
+                    create_field_values(registry,
+                                        patient,
+                                        self.rdrf_context,
+                                        remove_existing=True,
+                                        form_model=form_obj)
+                logger.debug("created field values for patient %s" % patient)
+            except Exception as ex:
+                logger.debug("error creating field values: %s" % ex)
+                raise
+
+                                    
+
             if self.CREATE_MODE and dyn_patient.rdrf_context_id != "add":
                 # we've created the context on the fly so no redirect to the edit view on
                 # the new context
                 newly_created_context = RDRFContext.objects.get(id=dyn_patient.rdrf_context_id)
                 dyn_patient.save_form_progress(
                     registry_code, context_model=newly_created_context)
+
+                try:
+                    create_field_values(registry,
+                                        patient,
+                                        newly_created_context,
+                                        remove_existing=True,
+                                        form_model=form_obj)
+                except Exception as ex:
+                    logger.debug("Error creating field values for new context: %s" % ex)
 
                 return HttpResponseRedirect(
                     reverse(

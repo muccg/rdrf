@@ -2,12 +2,15 @@
 {% load i18n %}
 {% block content %}
 <script>
+
+
     $(document).ready(function () {
         var FIELDS_TABLE = "#mongo-fields";
         var PROJECTION_FIELD = "projection";
         var container = $("#mongo_field_selection");
 		
-		var NEW_QUERY = Boolean({{new_query}});
+	var NEW_QUERY = Boolean({{new_query}});
+
 
         function recalculateProjection() {
             // get ids of  all checked checkboxes
@@ -49,7 +52,13 @@
 			// projection is stored.
 			$(FIELDS_TABLE + " input[type=checkbox").click(function () {
 				recalculateProjection();
-			})
+			});
+
+		        $("#clear-btn").click(function () {
+	                    $(FIELDS_TABLE + " input[type=checkbox]").removeAttr('checked');
+	                    recalculateProjection();
+                        });
+
 		}
 		
 		function hideLongitudinalCheckboxes() {
@@ -167,6 +176,7 @@
 				}
 			});
 		});
+
 	
 		$("#id_registry").trigger("change"); // ensure checkboxes displayed on initial page load
 	});
@@ -285,7 +295,9 @@
                     <th>{% trans "Form" %}</th>
                     <th>{% trans "Section" %}</th>
                     <th>{% trans "Field" %}</th>
-                    <th>{% trans "Include in Report" %}</th>
+                    <th>{% trans "Include in Report" %}
+                        <button id="clear-btn" type="button"  class="btn btn-primary btn-sm">{% trans "Clear All" %}</button>
+                    </th>
 		    <th>{% trans "Longitudinal" %}</th>
                     </thead>
                     <tbody>

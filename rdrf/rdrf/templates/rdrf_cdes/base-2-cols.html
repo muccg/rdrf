@@ -23,17 +23,12 @@
       
       <!-- test typescript / webpack -->
       {% if production %}
-	  <script src="{% static 'js/runtime-bundle.min.js' %}"></script>
-          <script src="{% static 'js/main-bundle.min.js' %}"></script>
+	  <script src="{% static 'proms/js/runtime-bundle.min.js' %}"></script>
+          <script src="{% static 'proms/js/main-bundle.min.js' %}"></script>
       {% else %}
-	  <script src="{% static 'js/runtime-bundle.js' %}"></script>
-          <script src="{% static 'js/main-bundle.js' %}"></script>
+	  <script src="{% static 'proms/js/runtime-bundle.min.js' %}"></script>
+          <script src="{% static 'proms/js/main-bundle.min.js' %}"></script>
       {% endif %}
-
-      <script type="text/javascript">
-          alert(rdrfts.foobar("Lee"));
-      </script>  
-
 
       {% project_stylesheet as PSS %}
       {% if PSS %}
