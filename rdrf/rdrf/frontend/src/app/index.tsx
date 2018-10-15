@@ -71,8 +71,9 @@ class App extends React.Component<AppInterface, object> {
 		<div className="App">
 
 	          <Container>
-		<ReactSwipe ref={reactSwipe => this.reactSwipe = reactSwipe} className="mySwipe" swipeOptions={swipeOptions}>
+		    <ReactSwipe ref={reactSwipe => this.reactSwipe = reactSwipe} className="mySwipe" swipeOptions={swipeOptions}>
                     <Row>
+
 		     <Col>
 		       <Instruction stage={this.props.stage} />
 		     </Col>
