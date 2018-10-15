@@ -11,6 +11,18 @@ import { Progress } from 'reactstrap';
 import { Container, Row, Col } from 'reactstrap';
 
 import { ElementList } from '../pages/proms_page/logic';
+import * as ReactSwipe from 'react-swipe';
+
+const swipeOptions = {
+  callback() {
+    console.log('question changed');
+  },
+  transitionEnd() {
+    console.log('ended transition');
+  }
+};
+
+
 
 interface AppInterface {
     title: string,
@@ -24,6 +36,7 @@ interface AppInterface {
 
 
 class App extends React.Component<AppInterface, object> {
+    private reactSwipe : ReactSwipe;
     atEnd() {
 	let lastIndex = this.props.questions.length - 1;
 	console.log("lastIndex = " + lastIndex.toString());
@@ -56,7 +69,9 @@ class App extends React.Component<AppInterface, object> {
         return (
 
 		<div className="App">
+
 	          <Container>
+		<ReactSwipe ref={reactSwipe => this.reactSwipe = reactSwipe} className="mySwipe" swipeOptions={swipeOptions}>
                     <Row>
 		     <Col>
 		       <Instruction stage={this.props.stage} />
@@ -82,6 +97,7 @@ class App extends React.Component<AppInterface, object> {
 		<Progress color="info" value={this.getProgress()}>{this.getProgress()}%</Progress>
 		</Col>
 		</Row>
+                </ReactSwipe>
 		</Container>
 		</div>
 
