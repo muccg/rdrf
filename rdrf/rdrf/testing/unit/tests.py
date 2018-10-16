@@ -1366,13 +1366,13 @@ class RemindersTestCase(TestCase):
         print(lines)
         assert "not sent" in lines, "Expected reminder NOT to be sent if two or more already sent"
 
-class ClinicalDataTestCase(TestCase):
+class ClinicalDataTestCase(RDRFTestCase):
     def create_clinicaldata(self, patient_id, registry_code):
         try:
             registry = Registry.objects.all().get(code=registry_code)
         except Registry.DoesNotExist:
             registry = None
-        if registry == None:
+        if registry is None:
             registry = Registry.objects.create(code=registry_code)
         data = {"timestamp": "2018-10-12T04:03:21",
                 "forms": []}
@@ -1400,10 +1400,10 @@ class ClinicalDataTestCase(TestCase):
         patient_id = patient_model.id
 
         clinicaldata_model = self.create_clinicaldata(patient_id, 'dummy')
-        
+
         patient_model.delete()
         self.assertEqual(patient_model.active, False)
-        
+
         clinicaldata_model.refresh_from_db()
         self.assertEqual(clinicaldata_model.active, False)
 
@@ -1427,7 +1427,7 @@ class ClinicalDataTestCase(TestCase):
     def test_hard_delete_clinicaldata(self):
         patient_model = self.create_new_patient()
         patient_id = patient_model.id
-        clinicaldata_model = self.create_clinicaldata(patient_id, 'dummy')
+        self.create_clinicaldata(patient_id, 'dummy')
         patient_model._hard_delete()
 
         with self.assertRaises(Patient.DoesNotExist):
@@ -1437,33 +1437,27 @@ class ClinicalDataTestCase(TestCase):
             Patient.objects.really_all().get(id=patient_id)
 
         with self.assertRaises(ClinicalData.DoesNotExist):
-            ClinicalData.objects.get(
-                                    django_id=patient_id, 
-                                    django_model='Patient', 
-                                    collection='cdes')
+            ClinicalData.objects.get(django_id=patient_id, django_model='Patient')
 
     def test_hard_delete_patient_and_clinicaldata_sanity_check(self):
         patient_model1 = self.create_new_patient()
         patient_id1 = patient_model1.id
         patient_model2 = self.create_new_patient()
         patient_id2 = patient_model2.id
-        clinicaldata_model1 = self.create_clinicaldata(patient_id1, 'dummy')
+        self.create_clinicaldata(patient_id1, 'dummy')
         clinicaldata_model2 = self.create_clinicaldata(patient_id2, 'dummy')
 
         patient_model1._hard_delete()
 
         with self.assertRaises(Patient.DoesNotExist):
             Patient.objects.get(id=patient_id1)
-        
+
         with self.assertRaises(Patient.DoesNotExist):
             Patient.objects.really_all().get(id=patient_id1)
 
         with self.assertRaises(ClinicalData.DoesNotExist):
-            ClinicalData.objects.get(
-                                    django_id=patient_id1, 
-                                    django_model='Patient', 
-                                    collection='cdes')
-        
+            ClinicalData.objects.get(django_id=patient_id1, django_model='Patient')
+
         self.assertEqual(patient_model2.active, True)
         self.assertEqual(clinicaldata_model2.active, True)
         self.assertEqual(patient_model2.id, clinicaldata_model2.django_id)

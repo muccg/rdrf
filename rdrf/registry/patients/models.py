@@ -703,7 +703,7 @@ class Patient(models.Model):
     def update_clinicaldata_model(self):
         patient_id = self.id
         clinicaldata_models = ClinicalData.objects.filter(
-            django_id=patient_id, django_model='Patient', collection='cdes')
+            django_id=patient_id, django_model='Patient')
 
         for cd in clinicaldata_models:
             if cd.active:
@@ -712,7 +712,7 @@ class Patient(models.Model):
 
     def hard_delete_clinicaldata(self, patient_id):
         clinicaldata_models = ClinicalData.objects.filter(
-            django_id=patient_id, django_model='Patient', collection='cdes')
+            django_id=patient_id, django_model='Patient')
         for cd in clinicaldata_models:
             cd.delete()
 
