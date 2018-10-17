@@ -1724,6 +1724,8 @@ class ClinicalData(models.Model):
     django_id = models.IntegerField(db_index=True, default=0)
     django_model = models.CharField(max_length=80, db_index=True, default="Patient")
     context_id = models.IntegerField(db_index=True, blank=True, null=True)
+    active = models.BooleanField(
+        default=True, help_text="Indicate whether an entity is active or not")
 
     objects = ClinicalDataQuerySet.as_manager()
 

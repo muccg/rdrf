@@ -13,6 +13,7 @@ import pycountry
 
 from rdrf.db.dynamic_data import DynamicDataWrapper
 from rdrf.models.definition.models import Registry, Section, ConsentQuestion
+from rdrf.models.definition.models import ClinicalData
 import registry.groups.models
 from registry.utils import get_working_groups, get_registries, stripspaces
 from registry.groups.models import CustomUser
@@ -699,6 +700,22 @@ class Patient(models.Model):
 
         pr.save()
 
+    def update_clinicaldata_model(self):
+        patient_id = self.id
+        clinicaldata_models = ClinicalData.objects.filter(
+            django_id=patient_id, django_model='Patient')
+
+        for cd in clinicaldata_models:
+            if cd.active:
+                cd.active = False
+                cd.save()
+
+    def hard_delete_clinicaldata(self, patient_id):
+        clinicaldata_models = ClinicalData.objects.filter(
+            django_id=patient_id, django_model='Patient')
+        for cd in clinicaldata_models:
+            cd.delete()
+
     def set_consent(self, consent_model, answer=True, commit=True):
         patient_registries = [r for r in self.rdrf_registry.all()]
         if consent_model.section.registry not in patient_registries:
@@ -807,10 +824,13 @@ class Patient(models.Model):
             self.active = False
             self.save()
             self.sync_patient_relative()
+            self.update_clinicaldata_model()
 
     def _hard_delete(self, *args, **kwargs):
         # real delete!
+        patient_id = self.id
         super(Patient, self).delete(*args, **kwargs)
+        self.hard_delete_clinicaldata(patient_id)
 
     def get_reg_list(self):
         return ', '.join([r.name for r in self.rdrf_registry.all()])
