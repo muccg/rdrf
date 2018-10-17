@@ -72,7 +72,8 @@ class App extends React.Component<AppInterface, object> {
 	}
 	else {
 	    console.log("not at end"); 
-	    nextButton = (<Button disabled={this.isNextButtonDisabled()} onClick={this.props.goNext}>Next</Button>);
+	    //nextButton = (<Button disabled={this.isNextButtonDisabled()} onClick={this.props.goNext}>Next</Button>);
+	    nextButton = " ";//(<Button disabled={this.isNextButtonDisabled()} onClick={this.props.goNext}>Next</Button>);
 	};
 	
         return (
@@ -95,9 +96,6 @@ class App extends React.Component<AppInterface, object> {
                     </Row>
 
 		  <Row>
-		    <Col>
-		      <Button onClick={this.props.goPrevious} >Prev</Button>
-		    </Col>
 		    <Col>
 		      {nextButton}
 		    </Col>
