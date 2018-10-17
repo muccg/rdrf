@@ -20,12 +20,13 @@ from rdrf.models.definition.models import ContextFormGroup
 from rdrf.models.definition.models import ContextFormGroupItem
 from rdrf.models.definition.models import CDEFile
 from rdrf.models.definition.models import ConsentRule
+from rdrf.models.definition.models import ClinicalData
 from rdrf.models.proms.models import Survey
 from rdrf.models.proms.models import SurveyQuestion
 from rdrf.models.proms.models import Precondition
 from rdrf.models.proms.models import SurveyAssignment
 
-
+from reversion.admin import VersionAdmin
 
 import logging
 from django.http import HttpResponse
@@ -44,6 +45,9 @@ from functools import reduce
 
 logger = logging.getLogger(__name__)
 
+@admin.register(ClinicalData)
+class BaseReversionAdmin(VersionAdmin):
+    pass
 
 class SectionAdmin(admin.ModelAdmin):
     list_display = ('code', 'display_name')
@@ -368,7 +372,7 @@ class ConsentRuleAdmin(admin.ModelAdmin):
 
 class PreconditionAdmin(admin.ModelAdmin):
     model = Precondition
-    list_display = ('survey','cde','value')
+    list_display = ('survey', 'cde', 'value')
 
 class SurveyQuestionAdmin(admin.StackedInline):
     model = SurveyQuestion
@@ -384,10 +388,7 @@ class SurveyAdmin(admin.ModelAdmin):
 
 class SurveyAssignmentAdmin(admin.ModelAdmin):
     model = SurveyAssignment
-    list_display = ("registry", "survey_name","patient_token", "state","created","updated", "response") 
-
-
-    
+    list_display = ("registry", "survey_name", "patient_token", "state", "created", "updated", "response")
 
 
 if settings.DESIGN_MODE:

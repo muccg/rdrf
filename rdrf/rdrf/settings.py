@@ -183,6 +183,7 @@ INSTALLED_APPS = [
     'registry.common',
     'registry.genetic',
     'registration',
+    'reversion',
     'storages',
     'django_cron',
     'django_otp',
