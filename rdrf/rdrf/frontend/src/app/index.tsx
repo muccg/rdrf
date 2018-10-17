@@ -1,4 +1,5 @@
 import * as React from 'react';
+import * as ReactDOM from 'react-dom';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 
@@ -11,17 +12,11 @@ import { Progress } from 'reactstrap';
 import { Container, Row, Col } from 'reactstrap';
 
 import { ElementList } from '../pages/proms_page/logic';
-import * as ReactSwipe from 'react-swipe';
 
-const swipeOptions = {
-  callback() {
-    console.log('question changed');
-  },
-  transitionEnd() {
-    console.log('ended transition');
-  }
-};
+//import * as Swipe from 'react-easy-swipe';
 
+import Swipe from 'react-easy-swipe';
+ 
 
 
 interface AppInterface {
@@ -36,7 +31,6 @@ interface AppInterface {
 
 
 class App extends React.Component<AppInterface, object> {
-    private reactSwipe : ReactSwipe;
     atEnd() {
 	let lastIndex = this.props.questions.length - 1;
 	console.log("lastIndex = " + lastIndex.toString());
@@ -51,12 +45,27 @@ class App extends React.Component<AppInterface, object> {
     }
 
     isNextButtonDisabled(): boolean {
-	let questionCode = this.props.questions[this.props.stage].cde;
-	return !(this.props.answers.hasOwnProperty(questionCode));
+	try {
+	    let questionCode = this.props.questions[this.props.stage].cde;
+	    return !(this.props.answers.hasOwnProperty(questionCode));
+	}
+	catch(err) {
+	    return false;
+	}
+    }
+
+    onSwipeMove(position, event) {
+	console.log("swipemove " + position.y.toString());
+	if (!this.atEnd() && !this.isNextButtonDisabled()) {
+	    if (position.y < -5) {
+	        this.props.goNext();
+	    }
+	}
     }
 
     render() {
 	var nextButton;
+
 	if(this.atEnd()) {
 	    console.log("at end");
 	    nextButton = (<Button onClick={this.props.submitAnswers}>Submit Answers</Button>);
@@ -69,9 +78,9 @@ class App extends React.Component<AppInterface, object> {
         return (
 
 		<div className="App">
-
 	          <Container>
-		    <ReactSwipe ref={reactSwipe => this.reactSwipe = reactSwipe} className="mySwipe" swipeOptions={swipeOptions}>
+		<Swipe onSwipeMove={this.onSwipeMove.bind(this)}> 
+
                     <Row>
 
 		     <Col>
@@ -98,7 +107,7 @@ class App extends React.Component<AppInterface, object> {
 		<Progress color="info" value={this.getProgress()}>{this.getProgress()}%</Progress>
 		</Col>
 		</Row>
-                </ReactSwipe>
+		</Swipe>
 		</Container>
 		</div>
 
