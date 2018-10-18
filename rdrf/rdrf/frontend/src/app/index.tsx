@@ -1,4 +1,5 @@
 import * as React from 'react';
+import * as ReactDOM from 'react-dom';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 
@@ -11,6 +12,12 @@ import { Progress } from 'reactstrap';
 import { Container, Row, Col } from 'reactstrap';
 
 import { ElementList } from '../pages/proms_page/logic';
+
+//import * as Swipe from 'react-easy-swipe';
+
+import Swipe from 'react-easy-swipe';
+ 
+
 
 interface AppInterface {
     title: string,
@@ -38,26 +45,45 @@ class App extends React.Component<AppInterface, object> {
     }
 
     isNextButtonDisabled(): boolean {
-	let questionCode = this.props.questions[this.props.stage].cde;
-	return !(this.props.answers.hasOwnProperty(questionCode));
+	try {
+	    let questionCode = this.props.questions[this.props.stage].cde;
+	    return !(this.props.answers.hasOwnProperty(questionCode));
+	}
+	catch(err) {
+	    return false;
+	}
+    }
+
+    onSwipeMove(position, event) {
+	console.log("swipemove " + position.y.toString());
+	if (!this.atEnd() && !this.isNextButtonDisabled()) {
+	    if (position.y < -5) {
+	        this.props.goNext();
+	    }
+	}
     }
 
     render() {
 	var nextButton;
+
 	if(this.atEnd()) {
 	    console.log("at end");
 	    nextButton = (<Button onClick={this.props.submitAnswers}>Submit Answers</Button>);
 	}
 	else {
 	    console.log("not at end"); 
-	    nextButton = (<Button disabled={this.isNextButtonDisabled()} onClick={this.props.goNext}>Next</Button>);
+	    //nextButton = (<Button disabled={this.isNextButtonDisabled()} onClick={this.props.goNext}>Next</Button>);
+	    nextButton = " ";//(<Button disabled={this.isNextButtonDisabled()} onClick={this.props.goNext}>Next</Button>);
 	};
 	
         return (
 
 		<div className="App">
 	          <Container>
+		<Swipe onSwipeMove={this.onSwipeMove.bind(this)}> 
+
                     <Row>
+
 		     <Col>
 		       <Instruction stage={this.props.stage} />
 		     </Col>
@@ -71,9 +97,6 @@ class App extends React.Component<AppInterface, object> {
 
 		  <Row>
 		    <Col>
-		      <Button onClick={this.props.goPrevious} >Prev</Button>
-		    </Col>
-		    <Col>
 		      {nextButton}
 		    </Col>
 		  </Row>
@@ -82,6 +105,7 @@ class App extends React.Component<AppInterface, object> {
 		<Progress color="info" value={this.getProgress()}>{this.getProgress()}%</Progress>
 		</Col>
 		</Row>
+		</Swipe>
 		</Container>
 		</div>
 
