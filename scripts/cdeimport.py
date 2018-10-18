@@ -1,13 +1,11 @@
+from registry.patients.models import Patient
+from rdrf.models.definition.models import RegistryForm
+from rdrf.models.definition.models import Registry
+from django.db import transaction
+import csv
+import sys
 import django
 django.setup()
-
-import sys
-import csv
-from django.db import transaction
-
-from rdrf.models.definition.models import Registry
-from rdrf.models.definition.models import RegistryForm
-from registry.patients.models import Patient
 
 
 def error(msg):

@@ -19,26 +19,26 @@ class Command(BaseCommand):
     help = 'Creates longitudinal report'
 
     option_list = BaseCommand.option_list[1:] + (make_option(
-            '-r',
-            '--registry',
-            action='store',
-            dest='registry_code',
-            help='Registry code'),
-         make_option(
-            '-s',
+        '-r',
+        '--registry',
+        action='store',
+        dest='registry_code',
+        help='Registry code'),
+        make_option(
+        '-s',
             '--start',
             action='store',
             dest='start_date',
             default='1-1-2000',
             help='Start date in DD-MM-YYYY format - defaults to 01-01-2000'),
-         make_option(
-            '-f',
+        make_option(
+        '-f',
             '--finish',
             action='store',
             dest='finish_date',
             default='today',
-             help="Finish date in DD-MM-YYYY format - defaults to today's date"),
-         )
+        help="Finish date in DD-MM-YYYY format - defaults to today's date"),
+    )
 
     def handle(self, *args, **options):
         try:

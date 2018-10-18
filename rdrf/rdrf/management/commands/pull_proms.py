@@ -14,7 +14,4 @@ class Command(BaseCommand):
         for registry_model in Registry.objects.all():
             if registry_model.proms_system_url:
                 proms_processor = PromsProcessor(registry_model)
-                proms_processor.download_proms()                        
-                            
-                            
-                        
+                proms_processor.download_proms()

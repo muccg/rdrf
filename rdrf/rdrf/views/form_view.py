@@ -407,7 +407,7 @@ class FormView(View):
             raise Http404
         all_errors = []
         progress_dict = {}
-        
+
         self.CREATE_MODE = False  # Normal edit view; False means Create View and context saved AFTER validity check
         sections_to_save = []  # when a section is validated it is added to this list
         all_sections_valid = True
@@ -593,8 +593,6 @@ class FormView(View):
                 logger.debug("error creating field values: %s" % ex)
                 raise
 
-                                    
-
             if self.CREATE_MODE and dyn_patient.rdrf_context_id != "add":
                 # we've created the context on the fly so no redirect to the edit view on
                 # the new context
@@ -624,7 +622,7 @@ class FormView(View):
                 raise Exception("Content not created")
 
             if registry.has_feature("rulesengine"):
-                rules_block = registry.metadata.get("rules",{})
+                rules_block = registry.metadata.get("rules", {})
                 form_rules = rules_block.get(form_obj.name, [])
                 logger.debug("checking rules for %s" % form_obj.name)
                 logger.debug("form_rules = %s" % form_rules)
@@ -634,13 +632,12 @@ class FormView(View):
                                                 "registry_model": registry,
                                                 "form_name": form_obj.name,
                                                 "context_id": self.rdrf_context.pk,
-                                                "clinical_data": None} 
+                                                "clinical_data": None}
                     action_result = self._evaluate_form_rules(form_rules, rules_evaluation_context)
-                    if type(action_result) is HttpResponseRedirect:
+                    if isinstance(action_result, HttpResponseRedirect):
                         return action_result
                 else:
                     logger.debug("No evaluation rules to apply")
-                        
 
         patient_name = '%s %s' % (patient.given_names, patient.family_name)
         # progress saved to progress collection in mongo
@@ -979,7 +976,6 @@ class FormFieldHistoryView(TemplateView):
                                       section_code, cde_code)
         history = dyn_patient.get_cde_history(registry_code, reg_form.name,
                                               section_code, cde_code)
-
 
         context.update({
             "cde": cde,

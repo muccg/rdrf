@@ -10,7 +10,7 @@ def make_verification_form(verifications):
     data = {}
     # create fields for the clinician to override the patient's responses if necessary
     for verification in verifications:
-        
+
         cde_field = FieldFactory(verification.registry_model,
                                  verification.form_model,
                                  verification.section_model,
@@ -21,7 +21,7 @@ def make_verification_form(verifications):
 
         if verification.status == "corrected":
             data[field_name] = verification.clinician_data
-        
+
         base_fields[field_name] = cde_field
 
     form_class_dict = {"base_fields": base_fields}

@@ -1,9 +1,9 @@
+from rdrf.db.contexts_api import RDRFContextManager
+from rdrf.models.definition.models import Registry
+from registry.patients.models import Patient
+import sys
 import django
 django.setup()
-import sys
-from registry.patients.models import Patient
-from rdrf.models.definition.models import Registry
-from rdrf.db.contexts_api import RDRFContextManager
 
 
 def display(p):

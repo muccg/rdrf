@@ -1,15 +1,15 @@
+from rdrf.helpers.transform_cd_dict import structure_valid, transform_cd_dict
+from rdrf.models.definition.models import ClinicalData
+from django.db import transaction
 """
 Custom Script
-GitHub Repo: rdrf 
-Issue#1007(in rdrf-ccg repo) 
+GitHub Repo: rdrf
+Issue#1007(in rdrf-ccg repo)
 Move CDEs from one section to another and migrate data on ClinicalData form
 """
 import sys
 import django
 django.setup()
-from django.db import transaction
-from rdrf.models.definition.models import ClinicalData
-from rdrf.helpers.transform_cd_dict import structure_valid, transform_cd_dict
 
 
 def migrate_cdes_clinicaldata():
@@ -35,7 +35,7 @@ def migrate_cdes_clinicaldata():
                     cd.data = transform_cd_dict(cde_codes, source_section_code, target_section_code, cd.data)
                     print("Saving ClinicalData....")
                     cd.save()
-                print("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@") 
+                print("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@")
     except Exception as ex:
         print("******* Rolling back......CDE migration FAILED with an exception: %s *******" % ex)
 

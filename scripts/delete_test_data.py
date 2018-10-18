@@ -1,9 +1,9 @@
 #!/usr/bin/env python
+from registry.patients.models import Patient
+from rdrf.models.definition.models import Registry
 import django
 import sys
 django.setup()
-from rdrf.models.definition.models import Registry
-from registry.patients.models import Patient
 
 # VERY DANGEROUS SCRIPT ALERT!
 # This script is intended to be used to delete ( really delete not archive) 'testing" patients in ALL registries on a site prior to launch.

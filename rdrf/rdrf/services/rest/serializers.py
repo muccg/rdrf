@@ -157,7 +157,7 @@ class SurveyAssignmentSerializer(serializers.Serializer):
                               patient_token=patient_token,
                               response="",
                               state=state)
-        
+
         sa.save()
         return sa
 

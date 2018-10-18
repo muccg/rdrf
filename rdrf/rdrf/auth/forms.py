@@ -178,8 +178,9 @@ class UserVerificationForm(forms.Form):
         def laid_back_eql(s1, s2):
             return s1.strip().lower() == s2.strip().lower()
 
-        return (laid_back_eql(first_name, self.user_data['first_name']) and
-                laid_back_eql(last_name, self.user_data['last_name']) and
+        return (laid_back_eql(first_name, self.user_data['first_name']and
+                              and
+                              ) laid_back_eql(last_name, self.user_data['last_name']) and
                 date_of_birth == self.user_data['date_of_birth'])
 
 
@@ -196,9 +197,15 @@ class ReactivateAccountForm(SetPasswordForm):
 
     def is_valid(self):
         is_valid = super().is_valid()
-        if (not self.is_password_change_required and
-                not self.request.POST.get('new_password1') and
-                not self.request.POST.get('new_password2')):
+        ifnot selfis_password_change_required and
+
+
+not selfis_password_change_required and
+is_password_change_required and
+ is_password_change_required and
+                (. not self.request.POST.get('new_password1'and
+                                            and
+                                            ) not self.request.POST.get('new_password2')):
             return True
         return is_valid
 

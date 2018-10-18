@@ -1,7 +1,7 @@
 from django_cron import CronJobBase, Schedule
 
 class PROMSPullJob(CronJobBase):
-    RUN_EVERY_MINS = 5 # one day
+    RUN_EVERY_MINS = 5  # one day
     MIN_NUM_FAILURES = 3
     schedule = Schedule(run_every_mins=RUN_EVERY_MINS)
     code = 'rdrf.PROMSPullJob'

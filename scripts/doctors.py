@@ -1,10 +1,9 @@
+from registry.patients.models import Doctor, State
 import sys
 import json
 import django
 
 django.setup()
-
-from registry.patients.models import Doctor, State
 
 
 class DoctorExporter(object):

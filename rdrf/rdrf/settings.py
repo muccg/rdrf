@@ -508,5 +508,5 @@ AUTH_PASSWORD_VALIDATORS = [{
 
 
 # setup for PROMS
-PROMS_SECRET_TOKEN = env.get("proms_secret_token", "foobar") #todo set this us in env etc
-PROMS_USERNAME = env.get("proms_username","promsuser")
+PROMS_SECRET_TOKEN = env.get("proms_secret_token", "foobar")  # todo set this us in env etc
+PROMS_USERNAME = env.get("proms_username", "promsuser")

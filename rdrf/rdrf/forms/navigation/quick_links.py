@@ -92,7 +92,7 @@ class Links:
         _("Registry Demographics Fields"))
     ConsentRules = QuickLink(reverse("admin:rdrf_consentrule_changelist"), _("Consent Rules"))
     Surveys = QuickLink(reverse("admin:rdrf_survey_changelist"), _("Surveys"))
-    SurveyAssignments  = QuickLink(reverse("admin:rdrf_surveyassignment_changelist"), _("Survey Assignments"))
+    SurveyAssignments = QuickLink(reverse("admin:rdrf_surveyassignment_changelist"), _("Survey Assignments"))
 
     if settings.DESIGN_MODE:
         RegistryForms = QuickLink(
@@ -199,7 +199,6 @@ class Links:
         Surveys.text: Surveys,
         SurveyAssignments.text: SurveyAssignments,
     }
-    
 
     # only appear if related registry specific feature is set
     # Populated at runtime
@@ -438,7 +437,6 @@ class QuickLinks(object):
         Links.VERIFICATION = self._per_registry_links('Verifications',
                                                       'verifications_list',
                                                       'verification')
-
 
     def _permission_matrix_links(self):
         # enable permission links

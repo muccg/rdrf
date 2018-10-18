@@ -245,7 +245,7 @@ def enter_cde_on_form(step, cde_value, form, section, cde):
     raise Exception("could not find cde %s" % cde)
 
 
-@step('I enter value "(.*)" for form "(.*)" multisection "(.*)" cde "(.*)" in item (\d+)')
+@step(r'I enter value "(.*)" for form "(.*)" multisection "(.*)" cde "(.*)" in item (\d+)')
 def enter_cde_on_form_multisection(step, cde_value, form, section, cde, item):
     formset_number = int(item) - 1
     formset_string = "-%s-" % formset_number
@@ -573,7 +573,7 @@ def click_radio_button(step, value, section, cde):
     input_element.click()
 
 
-@step('upload file "(.*)" for multisection "(.*)" cde "(.*)" in item (\d+)')
+@step(r'upload file "(.*)" for multisection "(.*)" cde "(.*)" in item (\d+)')
 def upload_file(step, upload_filename, section, cde, item):
     input_element = utils.scroll_to_multisection_cde(section, cde, item)
     input_element.send_keys(upload_filename)
@@ -597,7 +597,7 @@ def scroll_to_element(step, section, cde):
 @step('should be able to download "(.*)"')
 def should_be_able_to_download(step, download_name):
     import re
-    link_pattern = re.compile(".*\/uploads\/\d+$")
+    link_pattern = re.compile(r".*\/uploads\/\d+$")
     download_link_element = world.browser.find_element_by_link_text(download_name)
     if not download_link_element:
         raise Exception("Could not locate download link %s" % download_name)
@@ -725,14 +725,14 @@ def add_multisection_item(step, section):
     wait_n_seconds(step, 5)
 
 
-@step('I wait (\d+) seconds')
+@step(r'I wait (\d+) seconds')
 def wait_n_seconds(step, seconds):
     import time
     n = int(seconds)
     time.sleep(n)
 
 
-@step('I mark multisection "(.*)" item (\d+) for deletion')
+@step(r'I mark multisection "(.*)" item (\d+) for deletion')
 def mark_item_for_deletion(step, multisection, item):
     formset_string = "-%s-" % (int(item) - 1)
     xpath = "//div[@class='panel-heading' and contains(., '%s')]" % multisection
@@ -752,7 +752,7 @@ def mark_item_for_deletion(step, multisection, item):
     utils.click(delete_checkbox)
 
 
-@step('the value of multisection "(.*)" cde "(.*)" item (\d+) is "(.*)"')
+@step(r'the value of multisection "(.*)" cde "(.*)" item (\d+) is "(.*)"')
 def check_multisection_value(step, multisection, cde, item, expected_value):
     """
     Check the value of an entered field in a multisection

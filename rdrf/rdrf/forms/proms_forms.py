@@ -4,12 +4,11 @@ from rdrf.models.proms.models import SurveyRequest
 
 class SurveyRequestForm(forms.ModelForm):
 
-    def __init__(self,*args, **kwargs):
+    def __init__(self, *args, **kwargs):
         surveys = kwargs.get("surveys", [])
         del kwargs['surveys']
         super().__init__(*args, **kwargs)
-        self.fields['survey_name'] = forms.ChoiceField(choices=surveys) 
-
+        self.fields['survey_name'] = forms.ChoiceField(choices=surveys)
 
     class Meta:
         model = SurveyRequest

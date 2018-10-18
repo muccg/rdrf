@@ -61,7 +61,7 @@ class Command(BaseCommand):
         file_name = options.get("yaml_file", None)
         system_po_file = options.get("system_po_file", None)
         self.msgids = set([])
-        self.number = re.compile("^\d+$")
+        self.number = re.compile(r"^\d+$")
         self.translation_no = 1
 
         if not file_name:

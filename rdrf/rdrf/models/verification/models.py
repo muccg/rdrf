@@ -4,7 +4,7 @@ from django.utils.translation import ugettext as _
 class Annotation(models.Model):
     class Meta:
         app_label = "rdrf"
-        
+
     ANNOTATION_TYPES = (("verified", _("Verified")),
                         ("corrected", _("Corrected")))
 
@@ -32,14 +32,3 @@ class Annotation(models.Model):
             return 100.00 * (float(num_verified) / float(num))
         except ZeroDivisionError:
             return None
-
-
-
-
-
-
-
-
-
-    
-    

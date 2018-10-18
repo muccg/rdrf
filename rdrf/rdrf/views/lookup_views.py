@@ -62,11 +62,10 @@ class VerificationLookup(View):
         patient_model = Patient.objects.get(id=patient_id,
                                             rdrf_registry__in=[registry_model])
         if self._user_allowed(request.user, registry_model, patient_model):
-           results = get_verifiable_cdes(registry_model, patient_model)
-           return HttpResponse(json.dumps(results))
+            results = get_verifiable_cdes(registry_model, patient_model)
+            return HttpResponse(json.dumps(results))
 
         raise PermissionDenied()
-        
 
 
 class FamilyLookup(View):

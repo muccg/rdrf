@@ -25,19 +25,19 @@ class Survey(models.Model):
 
     @property
     def client_rep(self):
-        return [ sq.client_rep for sq in self.survey_questions.all().order_by('position')]
+        return [sq.client_rep for sq in self.survey_questions.all().order_by('position')]
 
     def __str__(self):
-        return "%s Survey: %s" % (self.registry.code, self.name) 
+        return "%s Survey: %s" % (self.registry.code, self.name)
 
     def clean(self):
-        for question  in self.survey_questions.all():
+        for question in self.survey_questions.all():
             logger.debug("checking survey q %s" % question.cde.code)
             if question.cde.datatype != "range":
                 logger.debug("%s not a range" % question.cde.code)
                 #raise ValidationError("Survey questions must be ranges")
 
-    
+
 class Precondition(models.Model):
     survey = models.ForeignKey(Survey)
     cde = models.ForeignKey(CommonDataElement)
@@ -46,42 +46,42 @@ class Precondition(models.Model):
     def __str__(self):
         return "if <<%s>> = %s" % (self.cde,
                                    self.value)
-    
+
 class SurveyQuestion(models.Model):
     position = models.IntegerField(null=True, blank=True)
     survey = models.ForeignKey(Survey, related_name='survey_questions')
     cde = models.ForeignKey(CommonDataElement)
-    precondition  = models.ForeignKey(Precondition, blank=True, null=True)
+    precondition = models.ForeignKey(Precondition, blank=True, null=True)
 
     @property
     def name(self):
         return self.cde.name
 
     def _clean_instructions(self, instructions):
-        return instructions.replace("\n"," ").replace("\r"," ")
+        return instructions.replace("\n", " ").replace("\r", " ")
 
     @property
     def client_rep(self):
         # client side representation
         if not self.precondition:
-            return  {"tag": "cde",
-                     "cde": self.cde.code,
-                     "datatype": self.cde.datatype,
-                     "instructions": self._clean_instructions(self.cde.instructions),
-                     "title": self.cde.name,
-                     "options": self._get_options() }
-                    
+            return {"tag": "cde",
+                    "cde": self.cde.code,
+                    "datatype": self.cde.datatype,
+                    "instructions": self._clean_instructions(self.cde.instructions),
+                    "title": self.cde.name,
+                    "options": self._get_options()}
+
         else:
-            return { "tag": "cond",
-                     "cde": self.cde.code,
-                     "instructions": self._clean_instructions(self.cde.instructions),
-                     "title": self.cde.name,
-                     "options": self._get_options(),
-                     "cond": { "op": "=",
-                               "cde": self.precondition.cde.code,
-                               "value": self.precondition.value
+            return {"tag": "cond",
+                    "cde": self.cde.code,
+                    "instructions": self._clean_instructions(self.cde.instructions),
+                    "title": self.cde.name,
+                    "options": self._get_options(),
+                    "cond": {"op": "=",
+                             "cde": self.precondition.cde.code,
+                             "value": self.precondition.value
                              }
-                     }
+                    }
 
     def _get_options(self):
         if self.cde.datatype == 'range':
@@ -89,14 +89,12 @@ class SurveyQuestion(models.Model):
         else:
             return []
 
-
     @property
     def expression(self):
         if not self.precondition:
             return self.cde.name + " always"
         else:
-            return self.cde.name + "  if "  + self.precondition.cde.name + " = " + self.precondition.value
-
+            return self.cde.name + "  if " + self.precondition.cde.name + " = " + self.precondition.value
 
 
 class SurveyStates:
@@ -120,14 +118,14 @@ class SurveyAssignment(models.Model):
     registry = models.ForeignKey(Registry)
     survey_name = models.CharField(max_length=80)
     patient_token = models.CharField(max_length=80, unique=True)
-    state  = models.CharField(max_length=20, choices=SURVEY_STATES)
+    state = models.CharField(max_length=20, choices=SURVEY_STATES)
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
     response = models.TextField(blank=True, null=True)
 
 
 def generate_token():
-       return str(uuid.uuid4())
+    return str(uuid.uuid4())
 
 class SurveyRequest(models.Model):
     """
@@ -143,8 +141,8 @@ class SurveyRequest(models.Model):
     patient_token = models.CharField(max_length=80, unique=True, default=generate_token)
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
-    user = models.CharField(max_length=80) # username
-    state  = models.CharField(max_length=20, choices=SURVEY_REQUEST_STATES, default="created")
+    user = models.CharField(max_length=80)  # username
+    state = models.CharField(max_length=20, choices=SURVEY_REQUEST_STATES, default="created")
     response = models.TextField(blank=True, null=True)
 
     def send(self):
@@ -158,12 +156,11 @@ class SurveyRequest(models.Model):
                                                                       pre))
                 return False
 
-
             try:
                 logger.debug("sending email to patient ...")
                 self._send_email()
                 logger.debug("sent email to patient OK")
-                
+
                 return True
             except PromsEmailError as pe:
                 logger.error("Error emailing survey request %s: %s" % (self.pk,
@@ -201,7 +198,7 @@ class SurveyRequest(models.Model):
 
     @property
     def email_link(self):
-        #https://rdrf.ccgapps.com.au/cicproms/promslanding?t=foo23&r=ICHOMCRC&s=smap
+        # https://rdrf.ccgapps.com.au/cicproms/promslanding?t=foo23&r=ICHOMCRC&s=smap
         proms_system_url = self.registry.proms_system_url
 
         landing_page = "/promslanding?t=%s&r=%s&s=%s" % (self.patient_token,
@@ -210,14 +207,10 @@ class SurveyRequest(models.Model):
 
         return proms_system_url + landing_page
 
-
     @property
     def name(self):
         return "%s %s Survey" % (self.registry.name,
                                  self.survey_name)
-                                 
-        
-    
 
     def _send_email(self):
         logger.debug("sending email to user with link")
@@ -227,7 +220,7 @@ class SurveyRequest(models.Model):
                                                      self.survey_name)
             email_body = "Please use the following link to take the %s survey: %s" % (self.name,
                                                                                       self.email_link)
-            
+
             emailer.send_email(self.patient.email,
                                subject_line,
                                email_body)
@@ -236,20 +229,3 @@ class SurveyRequest(models.Model):
             raise PromsEmailError(nerr)
         except Exception as ex:
             raise PromsEmailError(ex)
-            
-            
-        
-        
-        
-
-        
-        
-                
-                
-
-                
-            
-
-
-
-

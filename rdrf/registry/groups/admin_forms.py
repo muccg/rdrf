@@ -66,13 +66,11 @@ class RDRFUserCreationForm(UserValidationMixin, forms.ModelForm):
         model = get_user_model()
         fields = ('email',)
 
-
     def clean_password2(self):
         password2 = self.cleaned_data.get("password2")
 
         validate_password(password2)
         return password2
-
 
     def clean_username(self):
         if "username" in self.cleaned_data:

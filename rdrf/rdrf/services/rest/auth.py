@@ -18,7 +18,7 @@ class PromsAuthentication(authentication.BaseAuthentication):
         logger.info("settings proms token: %s" % PROMS_SECRET_TOKEN)
         PROMS_USERNAME = settings.PROMS_USERNAME
         logger.info("settings proms user: %s" % PROMS_USERNAME)
-        
+
         if secret_token != PROMS_SECRET_TOKEN:
             logger.info("tokens don't match - failed to auth")
             return None

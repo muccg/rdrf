@@ -71,4 +71,3 @@ class RdrfRegistrationView(RegistrationView):
             return redirect(success_url)
         else:
             return redirect(to, *args, **kwargs)
-

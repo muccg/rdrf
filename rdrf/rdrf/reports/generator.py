@@ -279,13 +279,12 @@ class Column:
             if code_count > 0:
                 # cde model resused on form
                 logger.info("cde %s in form %s section %s is being reused" % (self.cde_model.code,
-                                                                        self.form_model.name,
-                                                                        self.section_model.code))
+                                                                              self.form_model.name,
+                                                                              self.section_model.code))
                 self.column_name_prefix = self.section_model.code
                 code_map[self.cde_model.code] += 1
             else:
                 code_map[self.cde_model.code] = 1
-                
 
     @property
     def datatype(self):
@@ -293,7 +292,7 @@ class Column:
 
     @property
     def name(self):
-        #return no_space_lower(self.section_model.code + "_" + self.cde_model.code)
+        # return no_space_lower(self.section_model.code + "_" + self.cde_model.code)
         return unambigious_name(self.section_model.code, self.cde_model.code)
 
     @property
@@ -683,10 +682,9 @@ class Generator:
     def _create_form_columns(self, form_model):
 
         code_map = {}
-        
+
         columns = [self.mkcol(col, form_model=form_model, field=col[0])
                    for col in FORM_COLUMNS]
-        
 
         columns.extend([Column(self.registry_model,
                                form_model,

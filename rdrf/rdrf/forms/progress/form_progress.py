@@ -60,7 +60,6 @@ class FormProgress(object):
             self.patient_type_form_map = self.registry_model.metadata["patient_types"]
         else:
             self.patient_type_form_map = None
-            
 
     def _get_forms(self):
         if self.context_model is None:
@@ -204,7 +203,7 @@ class FormProgress(object):
 
     def _get_progress_metadata(self):
         pm = {}
-        
+
         try:
             metadata = self.registry_model.metadata
             if "progress" in metadata:
@@ -224,7 +223,7 @@ class FormProgress(object):
                 return self._get_applicable_form_progress_dict(pm)
             else:
                 return pm
-        
+
         except Exception as ex:
             logger.error(
                 "Error getting progress metadata for registry %s: %s" %
@@ -239,13 +238,13 @@ class FormProgress(object):
             patient_type = self.current_patient.patient_type
             if not patient_type:
                 patient_type = "default"
-                
+
             applicable_forms = self.registry_model.metadata["patient_types"][patient_type]["forms"]
             for group_name in unfiltered_dict:
                 filtered_dict[group_name] = [form_name for form_name in unfiltered_dict[group_name]
                                              if form_name in applicable_forms]
             return filtered_dict
-            
+
     def _calculate_form_has_data(self, form_model, dynamic_data):
         if dynamic_data is None:
             return False
@@ -297,14 +296,12 @@ class FormProgress(object):
                     applicable_forms = self.patient_type_form_map[self.current_patient.patient_type]["forms"]
                 return form_model.name in applicable_forms
         return True
-                    
-
 
     def _calculate(self, dynamic_data, patient_model=None):
         logger.info("calculating progress")
         if patient_model is not None:
             self.current_patient = patient_model
-            
+
         progress_metadata = self._get_progress_metadata()
         if not progress_metadata:
             return
@@ -406,8 +403,17 @@ class FormProgress(object):
     def _get_viewable_forms(self, user):
         form_container_model = self._get_form_container_model()
 
-        return [f for f in form_container_model.forms if not f.is_questionnaire and
-                user.can_view(f)]
+        returnf for f in form_container_modelforms if not fis_questionnaire and
+
+
+f for f in form_container_modelforms if not fis_questionnaire and
+forms if not fis_questionnaire and
+ forms if not fis_questionnaire and
+is_questionnaire and
+ is_questionnaire and
+is_questionnaire and
+ is_questionnaire and
+                [. . user.can_view(f)]
 
         # return [f for f in RegistryForm.objects.filter(registry=self.registry_model).order_by(
         #    'position') if not f.is_questionnaire and user.can_view(f)]
