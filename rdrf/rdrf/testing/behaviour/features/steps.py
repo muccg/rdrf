@@ -374,7 +374,7 @@ def fill_in_textfield(step, textfield_label, text):
 
 
 @step('fill "(.*)" with "(.*)" in MultiSection "(.*)" index "(.*)"')
-def fill_in_textfield(step, label, keys, multi, index):
+def fill_in_textfield2(step, label, keys, multi, index):
     multisection = multi + '-' + index
     label = world.browser.find_element_by_xpath(
         '//label[contains(@for, "{0}") and contains(., "{1}")]'.format(multisection, label))
@@ -392,7 +392,7 @@ def value_is(step, textfield_label, expected_value):
 
 
 @step('form value of section "(.*)" cde "(.*)" should be "(.*)"')
-def value_is(step, section, cde, expected_value):
+def value_is2(step, section, cde, expected_value):
     form_block = world.browser.find_element_by_id("main-form")
     section_div_heading = form_block.find_element_by_xpath(
         ".//div[@class='panel-heading'][contains(., '%s')]" % section)
@@ -580,7 +580,7 @@ def upload_file(step, upload_filename, section, cde, item):
 
 
 @step('upload file "(.*)" for section "(.*)" cde "(.*)"')
-def upload_file(step, upload_filename, section, cde):
+def upload_file2(step, upload_filename, section, cde):
     input_element = utils.scroll_to_element(step, section, cde)
     input_element.send_keys(upload_filename)
 

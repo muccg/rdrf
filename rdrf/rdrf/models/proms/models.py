@@ -7,7 +7,6 @@ from rdrf.services.io.notifications.notifications import NotificationError
 import requests
 import uuid
 import logging
-from django.core.urlresolvers import reverse
 
 logger = logging.getLogger(__name__)
 

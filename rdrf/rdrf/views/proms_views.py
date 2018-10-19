@@ -8,15 +8,13 @@ from rdrf.models.definition.models import Registry
 from django.http import HttpResponseRedirect
 from django.http import Http404
 from django.core.urlresolvers import reverse
-from django.shortcuts import render
 from rdrf.forms.components import RDRFContextLauncherComponent
 from registry.patients.models import Patient
 from rdrf.forms.components import RDRFPatientInfoComponent
 from rdrf.forms.navigation.locators import PatientLocator
 from rdrf.forms.proms_forms import SurveyRequestForm
-from rdrf.models.proms.models import SurveyRequest, SurveyRequestStates
+from rdrf.models.proms.models import SurveyRequest
 from rdrf.models.proms.models import SurveyRequestStates
-from django.http import HttpResponseRedirect
 from django.http import JsonResponse
 import json
 

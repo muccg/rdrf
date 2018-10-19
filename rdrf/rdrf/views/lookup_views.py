@@ -57,7 +57,6 @@ class VerificationLookup(View):
     def get(self, request, registry_code, patient_id):
         from rdrf.models.definition.models import Registry
         from rdrf.workflows.verification import get_verifiable_cdes
-        from rdrf.workflows.verification import user_allowed
         registry_model = Registry.objects.get(code=registry_code)
         patient_model = Patient.objects.get(id=patient_id,
                                             rdrf_registry__in=[registry_model])

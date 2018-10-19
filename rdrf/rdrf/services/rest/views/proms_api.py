@@ -14,7 +14,6 @@ from django.shortcuts import render
 from rest_framework import status
 from rdrf.services.rest.serializers import SurveyAssignmentSerializer
 from rdrf.services.rest.auth import PromsAuthentication
-from rest_framework.permissions import IsAuthenticated
 from rest_framework.permissions import AllowAny
 import requests
 import json
@@ -98,7 +97,6 @@ class PromsProcessor:
         self.proms_url = registry_model.proms_system_url
 
     def download_proms(self):
-        from django.core.urlresolvers import reverse
         from django.conf import settings
 
         if not self.proms_url:

@@ -2,7 +2,6 @@ from django.shortcuts import redirect
 from django.core.urlresolvers import reverse
 from registration.backends.default.views import RegistrationView
 from django.db import transaction
-import time
 import logging
 
 

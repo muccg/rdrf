@@ -7,7 +7,6 @@ GitHub Repo: rdrf
 Issue#1007(in rdrf-ccg repo)
 Move CDEs from one section to another and migrate data on ClinicalData form
 """
-import sys
 import django
 django.setup()
 

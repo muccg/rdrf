@@ -31,7 +31,6 @@ from rdrf.helpers.utils import consent_status_for_patient
 
 from rdrf.db.contexts_api import RDRFContextManager
 from rdrf.db.contexts_api import RDRFContextError
-from explorer.models import FieldValue
 from explorer.utils import create_field_values
 
 

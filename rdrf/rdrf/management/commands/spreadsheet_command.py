@@ -1,4 +1,3 @@
-import os
 from optparse import make_option
 from django.core.management.base import BaseCommand
 from rdrf.services.io.reporting.spreadsheet_report import SpreadSheetReport

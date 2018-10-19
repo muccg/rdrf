@@ -3,16 +3,12 @@ from django.utils.decorators import method_decorator
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
 from django.shortcuts import render
-from django.utils.translation import ugettext_lazy as _
 from django.core.urlresolvers import reverse
-from django.contrib.auth.decorators import login_required
 from django.template.context_processors import csrf
-from django.http import HttpResponseRedirect
 from django.contrib import messages
 
 from rdrf.models.definition.models import Registry
 from rdrf.models.definition.models import RDRFContext
-from rdrf.workflows.verification import get_verifiable_cdes
 from rdrf.workflows.verification import get_verifications
 from rdrf.workflows.verification import VerificationStatus
 from rdrf.workflows.verification import VerifiableCDE

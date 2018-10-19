@@ -1,7 +1,5 @@
-from django.db import transaction
 from explorer.views import Humaniser
 from rdrf.models.verification.models import Annotation
-from rdrf.helpers.utils import parse_iso_datetime
 
 import logging
 logger = logging.getLogger(__name__)

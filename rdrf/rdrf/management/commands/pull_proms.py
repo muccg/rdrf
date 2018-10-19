@@ -1,8 +1,5 @@
 from django.core.management.base import BaseCommand
-from django.db import transaction
 from rdrf.models.definition.models import Registry
-from rdrf.models.proms.models import SurveyRequest
-from registry.patients.models import Patient
 
 from rdrf.services.rest.views.proms_api import PromsProcessor
 

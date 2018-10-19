@@ -8,9 +8,7 @@ not by this file. Hence we are checking to see if the django app is ready before
 from django_uwsgi.decorators import timer
 from django.apps import apps
 import io
-import os
 import logging
-import django
 
 logger = logging.getLogger(__name__)
 
