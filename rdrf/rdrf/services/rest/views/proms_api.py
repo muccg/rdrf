@@ -104,7 +104,6 @@ class PromsProcessor:
 
         logger.debug("downloading proms from proms system")
 
-        #api = reverse("proms_download")
         api = "/api/proms/v1/promsdownload"
 
         api_url = self.proms_url + api

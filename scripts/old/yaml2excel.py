@@ -158,11 +158,11 @@ class SpreadSheetCreator(object):
         start_cell = get_cell(2, column)
         end_cell = get_cell(self.nrows + 2, column)
         applicable_cells = "%s:%s" % (start_cell, end_cell)
-        print "applying validation %s to column %s" % (validation, column)
+        print("applying validation %s to column %s" % (validation, column))
         self.sheet.data_validation(applicable_cells, validation)
 
     def _get_type(self, cde_dict):
-        print "getting type for cde %s" % cde_dict
+        print("getting type for cde %s" % cde_dict)
         datatype = cde_dict['datatype'].lower().strip()
         if datatype in ['string', 'text']:
             return TEXT
@@ -217,7 +217,7 @@ class SpreadSheetCreator(object):
         for form_dict in self.registry_dict["forms"]:
             if form_dict['name'] in self.excludes:
                 continue
-            print "Adding fields for form %s" % form_dict['name']
+            print("Adding fields for form %s" % form_dict['name'])
             for section_dict in form_dict["sections"]:
                 if section_dict['code'] in self.excludes:
                     continue
@@ -254,7 +254,7 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
     excludes = args.exclude.split(",")
-    print "excludes = %s" % excludes
+    print("excludes = %s" % excludes)
     with open(args.yaml_file) as f:
         data = yaml.load(f)
     spreadsheet = SpreadSheetCreator(data, args.output_file, args.nrows, excludes=excludes)

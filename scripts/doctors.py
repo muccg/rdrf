@@ -33,7 +33,7 @@ class DoctorExporter(object):
             self.doctors.append(d)
             with open(self.json_filename, "w") as f:
                 json.dump(self.doctors, f)
-            print "exported %s OK" % d
+            print("exported %s OK" % d)
 
     def do_import(self):
         with open(self.json_filename) as f:
@@ -63,7 +63,7 @@ class DoctorExporter(object):
 
                     doctor.state = state
                 except State.DoesNotExist:
-                    print "no state for doctor %s %s: state = %s" % (d["given_names"], d["family_name"], d["state"])
+                    print("no state for doctor %s %s: state = %s" % (d["given_names"], d["family_name"], d["state"]))
             doctor.save()
 
 
@@ -77,5 +77,5 @@ if __name__ == "__main__":
     elif cmd == "import":
         exporter.do_import()
     else:
-        print "Usage: python doctors [import|export] json_filename"
+        print("Usage: python doctors [import|export] json_filename")
         sys.exit(1)
