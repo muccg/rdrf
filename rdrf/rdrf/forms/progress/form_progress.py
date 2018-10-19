@@ -403,17 +403,8 @@ class FormProgress(object):
     def _get_viewable_forms(self, user):
         form_container_model = self._get_form_container_model()
 
-        returnf for f in form_container_modelforms if not fis_questionnaire and
-
-
-f for f in form_container_modelforms if not fis_questionnaire and
-forms if not fis_questionnaire and
- forms if not fis_questionnaire and
-is_questionnaire and
- is_questionnaire and
-is_questionnaire and
- is_questionnaire and
-                [. . user.can_view(f)]
+        return [f for f in form_container_model.forms if not f.is_questionnaire and
+                user.can_view(f)]
 
         # return [f for f in RegistryForm.objects.filter(registry=self.registry_model).order_by(
         #    'position') if not f.is_questionnaire and user.can_view(f)]
