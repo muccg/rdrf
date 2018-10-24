@@ -19,7 +19,7 @@ if __name__ == "__main__":
     try:
         registry_model = Registry.objects.get(code=registry_code)
     except Registry.DoesNotExist:
-        print "Registry %s does not exist on site - aborting" % registry_code
+        print("Registry %s does not exist on site - aborting" % registry_code)
         sys.exit(1)
 
     rdrf_context_manager = RDRFContextManager(registry_model)
@@ -27,13 +27,13 @@ if __name__ == "__main__":
 
     for p in Patient.objects.filter(rdrf_registry__in=[registry_model]):
         if num_contexts(p, registry_model) == 0:
-            print "%s has no default context - creating one" % display(p)
+            print("%s has no default context - creating one" % display(p))
             try:
                 default_context = rdrf_context_manager.create_initial_context_for_new_patient(p)
-                print "created context OK for %s" % display(p)
+                print("created context OK for %s" % display(p))
                 processed += 1
             except Exception as ex:
-                print "Error creating default context for %s: %s " % (display(p), ex)
+                print("Error creating default context for %s: %s " % (display(p), ex))
                 errors += 1
 
-    print "All done : processed %s patients. There were %s errors." % (processed, errors)
+    print("All done : processed %s patients. There were %s errors." % (processed, errors))

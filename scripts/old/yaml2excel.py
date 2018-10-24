@@ -5,10 +5,11 @@ import xlsxwriter as xl
 from xlsxwriter.utility import xl_rowcol_to_cell as get_cell
 
 
-def _l(s): return sorted(s.split("/"))        # to list
+def _l(s):
+    return sorted(s.split("/"))
 
-
-def _s(l): return "\n".join(l)               # multiline string
+def _s(l):
+    return "\n".join(l)
 
 
 TEXT = "TEXT"
