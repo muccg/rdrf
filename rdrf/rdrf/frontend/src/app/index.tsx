@@ -36,7 +36,14 @@ class App extends React.Component<AppInterface, object> {
 	console.log("lastIndex = " + lastIndex.toString());
 	console.log("stage = " + this.props.stage.toString());
 	return this.props.stage == lastIndex;
-    }
+	}
+	
+	atBegin() {
+	let firstIndex = this.props.questions.length + 1;
+	console.log("firstIndex = " + firstIndex.toString());
+	console.log("stage = " + this.props.stage.toString());
+	return this.props.stage == firstIndex;
+	}
 
     getProgress(): number {
 	let numQuestions: number = this.props.questions.length;
@@ -60,6 +67,11 @@ class App extends React.Component<AppInterface, object> {
 	    if (position.y < -5) {
 	        this.props.goNext();
 	    }
+	}
+	if (!this.atBegin()) {
+		if (position.y > 5) {
+			this.props.goPrevious();
+		}
 	}
     }
 
