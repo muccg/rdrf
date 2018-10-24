@@ -14,7 +14,6 @@ from django.shortcuts import render
 from rest_framework import status
 from rdrf.services.rest.serializers import SurveyAssignmentSerializer
 from rdrf.services.rest.auth import PromsAuthentication
-from rest_framework.permissions import IsAuthenticated
 from rest_framework.permissions import AllowAny
 import requests
 import json
@@ -35,27 +34,23 @@ class SurveyEndpoint(View):
         registry_code = data.get("registry_code")
         logger.debug("registry code = %s" % registry_code)
         survey_name = data.get("survey_name")
-        
+
         registry_model = Registry.objects.get(code=registry_code)
-        
 
         survey_model = Survey.objects.get(registry=registry_model,
                                           name=survey_name)
 
         logger.debug("survey = %s" % survey_model)
-        
-
 
         survey_assignment = SurveyAssignment.objects.get(registry=survey_model.registry,
                                                          survey_name=survey_model.name,
                                                          patient_token=patient_token,
                                                          state=SurveyStates.REQUESTED)
-        
-        
+
         survey_assignment.response = json.dumps(survey_answers)
         survey_assignment.state = SurveyStates.COMPLETED
         survey_assignment.save()
-        return render(request, "proms/proms_completed.html",{})
+        return render(request, "proms/proms_completed.html", {})
 
 class SurveyAssignments(APIView):
     queryset = SurveyAssignment.objects.all()
@@ -73,15 +68,13 @@ class SurveyAssignments(APIView):
             return Response({"status": "OK"}, status=status.HTTP_201_CREATED)
         else:
             logger.debug("serialiser is not valid: %s" % ser.errors)
-            
-        return Response(ser.errors, status=status.HTTP_400_BAD_REQUEST)
 
+        return Response(ser.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class PromsDownload(APIView):
     authentication_classes = (PromsAuthentication,)
     permission_classes = (AllowAny,)
-
 
     @method_decorator(csrf_exempt)
     def post(self, request, format=None):
@@ -93,10 +86,8 @@ class PromsDownload(APIView):
         logger.debug("deleted completed surveys that were downloaded")
         return response
 
-
     def get_queryset(self):
         return SurveyAssignment.objects.filter(state="completed")
-
 
 
 class PromsProcessor:
@@ -104,32 +95,29 @@ class PromsProcessor:
     def __init__(self, registry_model):
         self.registry_model = registry_model
         self.proms_url = registry_model.proms_system_url
-        
 
     def download_proms(self):
-        from django.core.urlresolvers import reverse
         from django.conf import settings
 
         if not self.proms_url:
             raise Exception("Registry %s does not have an associated proms system" % self.registry_model)
 
         logger.debug("downloading proms from proms system")
-        
-        #api = reverse("proms_download")
+
         api = "/api/proms/v1/promsdownload"
 
         api_url = self.proms_url + api
         headers = {'PROMS_SECRET_TOKEN': settings.PROMS_SECRET_TOKEN}
         logger.debug("making request to %s" % api_url)
-        
+
         response = requests.post(api_url,
-                                headers=headers)
+                                 headers=headers)
 
         if response.status_code != 200:
             raise Exception("Error retrieving proms")
         else:
             logger.debug("got proms data from proms system OK")
-            data =  response.json()
+            data = response.json()
             logger.debug("There are %s surveys" % len(data))
             for survey_response in data:
                 patient_token = survey_response["patient_token"]
@@ -156,7 +144,6 @@ class PromsProcessor:
 
                 self._update_proms_fields(survey_request, survey_data)
 
-
     def _update_proms_fields(self, survey_request, survey_data):
         # pokes downloaded proms into correct fields inside
         # clinical system
@@ -169,12 +156,10 @@ class PromsProcessor:
                 logger.error("could not find cde %s" % cde_code)
                 continue
 
-
-            
             # NB. this assumes cde  is unique across reg ...
             try:
                 form_model, section_model = self._locate_cde(cde_model)
-            except:
+            except BaseException:
                 logger.error("could not locate cde %s" % cde_code)
                 # should fail for now skip
                 continue
@@ -202,7 +187,6 @@ class PromsProcessor:
         survey_request.save()
         logger.debug("updated survey_request state to received")
 
-
     def _locate_cde(self, target_cde_model):
         # retrieve first available..
         for form_model in self.registry_model.forms:
@@ -211,17 +195,3 @@ class PromsProcessor:
                     for cde_model in section_model.cde_models:
                         if cde_model.code == target_cde_model.code:
                             return form_model, section_model
-                        
-        
-                    
-                
-            
-        
-
-
-        
-        
-
-
-
-

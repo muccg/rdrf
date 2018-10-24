@@ -41,7 +41,6 @@ from rdrf.views.proms_views import PromsCompletedPageView
 from rdrf.views.proms_views import PromsClinicalView
 
 
-
 import logging
 
 
@@ -192,7 +191,7 @@ urlpatterns += [
     url(r'^promscompleted/?$', PromsCompletedPageView.as_view(), name="proms_completed"),
 
     # proms on the clinical side
-    url(r"^(?P<registry_code>\w+)/(?P<patient_id>\d+)/clinicalproms/?$",PromsClinicalView.as_view(), name="proms_clinical_view"),
+    url(r"^(?P<registry_code>\w+)/(?P<patient_id>\d+)/clinicalproms/?$", PromsClinicalView.as_view(), name="proms_clinical_view"),
     # -------------------------------------------
 
     url(r'', include('registry.urls', namespace="registry")),
@@ -256,7 +255,7 @@ urlpatterns += [
         consent_view.ConsentDetailsPrint.as_view(), name="print_consent_details"),
 
 
-    
+
 
     # -------------------------------------------
     # ---- Clinician related URLs -----------------

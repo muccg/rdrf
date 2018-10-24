@@ -113,7 +113,7 @@ class RDRFContextLauncherComponent(RDRFComponent):
 
     @property
     def form_name_for_template(self):
-        # registry form may not be set 
+        # registry form may not be set
         if self.registry_form and self.registry_form.display_name:
             return self.registry_form.display_name
         else:
@@ -145,7 +145,6 @@ class RDRFContextLauncherComponent(RDRFComponent):
         return reverse("proms_clinical_view",
                        args=[self.registry_model.code,
                              self.patient_model.pk])
-
 
     def _get_clinician_form_link(self):
         if not self.registry_model.has_feature("clinician_form"):

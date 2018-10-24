@@ -20,7 +20,7 @@ def structure_valid(cde_codes, source_section_code, target_section_code, cd_data
     # Check if source section exist
     source_section_dict = get_section(source_section_code, cd_form)
     if not source_section_dict:
-        print("******* Skipping cdes movement......Couldn't find source section with code=%s in 'ClinicalData' form: %s" % (source_section_code, cd_form)) 
+        print("******* Skipping cdes movement......Couldn't find source section with code=%s in 'ClinicalData' form: %s" % (source_section_code, cd_form))
         return False
     # Check if source section is multi-value
     if not source_section_dict['allow_multiple']:
@@ -33,7 +33,7 @@ def structure_valid(cde_codes, source_section_code, target_section_code, cd_data
     # Check if target section exist
     target_section_dict = get_section(target_section_code, cd_form)
     if not target_section_dict:
-        print("******* Skipping cdes movement......Couldn't find target section with code=%s in 'ClinicalData' form: %s" % (target_section_code, cd_form)) 
+        print("******* Skipping cdes movement......Couldn't find target section with code=%s in 'ClinicalData' form: %s" % (target_section_code, cd_form))
         return False
     # Check if target section is single-value
     if target_section_dict['allow_multiple']:
@@ -94,4 +94,3 @@ def move_cdes(cde_codes, source_section, target_section):
 
 def clean_cdes(cdes_list, cde_codes):
     return [cde for cde in cdes_list if cde['code'] not in cde_codes]
-

@@ -1,36 +1,29 @@
+from registry.groups import GROUPS as RDRF_GROUPS
+from registry.genetic.models import Laboratory
+from registry.groups.models import CustomUser
+from registry.groups.models import WorkingGroup
+from registry.patients.models import PatientDoctor
+from registry.patients.models import Doctor
+from registry.patients.models import PatientAddress
+from registry.patients.models import Patient
+from rdrf.db.contexts_api import RDRFContextManager
+from rdrf.db.generalised_field_expressions import MultiSectionItemsExpression
+from rdrf.helpers.utils import parse_iso_datetime
+from rdrf.models.definition.models import ClinicalData
+from rdrf.models.definition.models import EmailNotification
+from rdrf.models.definition.models import EmailTemplate
+from rdrf.models.definition.models import ConsentQuestion
+from rdrf.models.definition.models import ConsentSection
+from rdrf.models.definition.models import Registry
+from django.contrib.auth.models import Permission
+from django.contrib.auth.models import Group
+from django.db import transaction
+from datetime import datetime, timedelta
+import json
+import sys
 import django
 django.setup()
-import sys
-import json
-from datetime import datetime, timedelta
 
-
-from django.db import transaction
-from django.contrib.auth.models import Group
-from django.contrib.auth.models import Permission
-
-from rdrf.models.definition.models import Registry
-from rdrf.models.definition.models import ConsentSection
-from rdrf.models.definition.models import ConsentQuestion
-from rdrf.models.definition.models import EmailTemplate
-from rdrf.models.definition.models import EmailNotification
-from rdrf.models.definition.models import ClinicalData
-
-from rdrf.helpers.utils import parse_iso_datetime
-
-from rdrf.db.generalised_field_expressions import MultiSectionItemsExpression
-from rdrf.db.contexts_api import RDRFContextManager
-
-from registry.patients.models import Patient
-from registry.patients.models import PatientAddress
-from registry.patients.models import Doctor
-from registry.patients.models import PatientDoctor
-
-from registry.groups.models import WorkingGroup
-from registry.groups.models import CustomUser
-
-from registry.genetic.models import Laboratory
-from registry.groups import GROUPS as RDRF_GROUPS
 
 FAMILY_MEMBERS_CODE = "xxx"
 

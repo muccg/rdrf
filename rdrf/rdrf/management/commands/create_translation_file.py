@@ -3,7 +3,6 @@ import sys
 import os.path
 import re
 from rdrf.helpers.utils import de_camelcase
-from rdrf.models.definition.models import Registry
 from tempfile import TemporaryDirectory
 from django.core.management import BaseCommand
 from django.core.management.base import CommandError
@@ -61,7 +60,7 @@ class Command(BaseCommand):
         file_name = options.get("yaml_file", None)
         system_po_file = options.get("system_po_file", None)
         self.msgids = set([])
-        self.number = re.compile("^\d+$")
+        self.number = re.compile(r"^\d+$")
         self.translation_no = 1
 
         if not file_name:
@@ -244,8 +243,6 @@ class Command(BaseCommand):
     def _yield_consent_strings(self):
         for consent_section_dict in self.data["consent_sections"]:
             yield None, consent_section_dict["section_label"]
-            information_text = consent_section_dict["information_text"]
-            # todo extract strings from information_text
             for question_dict in consent_section_dict["questions"]:
                 yield None, question_dict["question_label"]
                 yield None, question_dict["instructions"]

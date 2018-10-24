@@ -1,7 +1,5 @@
-from django.db import transaction
 from explorer.views import Humaniser
 from rdrf.models.verification.models import Annotation
-from rdrf.helpers.utils import parse_iso_datetime
 
 import logging
 logger = logging.getLogger(__name__)
@@ -16,7 +14,7 @@ class NoData:
 
 class VerificationStatus:
     UNVERIFIED = "unverified"    # clinician has not checked or does not know
-    VERIFIED = "verified"        # clinician agrees with patient supplied value     
+    VERIFIED = "verified"        # clinician agrees with patient supplied value
     CORRECTED = "corrected"      # clinican provides a new value
 
 
@@ -32,7 +30,7 @@ class VerifiableCDE:
         self.cde_dict = cde_dict
         self.valid = False
         self.position = position
-        
+
         self.humaniser = Humaniser(self.registry_model)
         if cde_dict is not None:
             self._load(cde_dict)
@@ -44,24 +42,22 @@ class VerifiableCDE:
             self.section_model = section_model
         if cde_model is not None:
             self.cde_model = cde_model
-            
+
         self.patient_data = NoData
         self.clinician_data = NoData
         self.patient_display_value = NoData
         self.status = VerificationStatus.UNVERIFIED
         self.comments = ""
 
-
     def set_clinician_value(self, raw_value):
         # field has already been validated so type casts are safe
         if self.cde_model.datatype == "integer":
             self.clinician_data = int(raw_value)
-        elif self.cde_model.datatype in ["float","decimal","numeric"]:
+        elif self.cde_model.datatype in ["float", "decimal", "numeric"]:
             self.clinician_data = float(raw_value)
         else:
             # everything else is string
             self.clinician_data = raw_value
-            
 
     def _load(self, cde_dict):
         self.valid = False
@@ -81,14 +77,13 @@ class VerifiableCDE:
                                     self.allow_multiple = False
                                     self.valid = True
 
-
     def get_data(self, patient_model, context_model, display=True):
         # gets the data the Patient has entered ( if at all)
 
         if not all([self.registry_model,
                     self.section_model,
                     self.cde_model]):
-            
+
             self._load(self.cde_dict)
         else:
             self.valid = True
@@ -104,15 +99,15 @@ class VerifiableCDE:
                                                      context_id=context_model.pk)
 
             self.patient_data = cde_value
-            
+
         except KeyError:
             # form not filled in
             return "NOT ENTERED"
 
         self.patient_display_value = self.humaniser.display_value2(self.form_model,
-                                                 self.section_model,
-                                                 self.cde_model,
-                                                 cde_value)
+                                                                   self.section_model,
+                                                                   self.cde_model,
+                                                                   cde_value)
 
         if display:
             return self.patient_display_value
@@ -126,8 +121,7 @@ class VerifiableCDE:
                                      self.section_model,
                                      self.cde_model)
 
-
-    def has_annotation(self, user,registry_model, patient_model, context_model):
+    def has_annotation(self, user, registry_model, patient_model, context_model):
         """
         Is there no annotation or is the existing one out of date because the value of
         the cde has changed?
@@ -138,7 +132,6 @@ class VerifiableCDE:
                                                                            self.cde_model.code,
                                                                            msg))
 
-            
         annotations_query = Annotation.objects.filter(patient_id=patient_model.pk,
                                                       context_id=context_model.pk,
                                                       form_name=self.form_model.name,
@@ -156,7 +149,7 @@ class VerifiableCDE:
             if not self._value_changed(last_annotation.cde_value, form_cde_value):
                 carp("value changed : patient value = [%s] annotation value = [%s]" % (last_annotation.cde_value,
                                                                                        form_cde_value))
-                
+
                 logger.debug("returning last annotation as values have not changed: %s" % last_annotation)
                 return last_annotation
             else:
@@ -164,9 +157,8 @@ class VerifiableCDE:
                 return None
 
         # cde will show up as unverified
-        
-        return None
 
+        return None
 
     def _value_changed(self, annotation_cde_value, form_cde_value):
             # complication here because the stored type is a string
@@ -181,22 +173,20 @@ class VerifiableCDE:
         else:
             logger.debug("values are the same..")
             return False
-            
 
 
-        
 def get_verifiable_cdes(registry_model):
     if registry_model.has_feature("verification"):
-        return filter(lambda v : v.valid == True,
-                      [VerifiableCDE(registry_model, cde_dict,position=index)
+        return filter(lambda v: v.valid,
+                      [VerifiableCDE(registry_model, cde_dict, position=index)
                        for index, cde_dict in enumerate(registry_model.metadata.get("verification_cdes", []))])
-    
+
     return []
 
 
 def user_allowed(user, registry_model, patient_model):
     """
-    Can user see a cde value to verify - 
+    Can user see a cde value to verify -
     """
     from rdrf.helpers.utils import consent_check
     return all([user.is_clinician(),
@@ -212,7 +202,7 @@ def get_verifications(user, registry_model, patient_model, context_model):
     verifications = []
     for v in verifiable_cdes:
         logger.debug("getting verification for cde %s" % v.cde_model.code)
-        
+
         last_annotation = v.has_annotation(user,
                                            registry_model,
                                            patient_model,
@@ -225,14 +215,13 @@ def get_verifications(user, registry_model, patient_model, context_model):
             v.comments = last_annotation.comment
             logger.debug("comments = %s" % v.comments)
             v.clinician_data = last_annotation.cde_value
-            
+
         else:
             logger.debug("no annotation")
             v.status = VerificationStatus.UNVERIFIED
-            
 
         verifications.append(v)
-        
+
     return verifications
 
 
@@ -248,7 +237,7 @@ def verifications_apply(user):
     return registry_model.has_feature("verification")
 
 
-def create_annotations(user, registry_model, patient_model,context_model, verified=[], corrected=[]):
+def create_annotations(user, registry_model, patient_model, context_model, verified=[], corrected=[]):
     for v in corrected:
         correct_value = v.clinician_data
         annotation = Annotation()
@@ -273,7 +262,6 @@ def create_annotations(user, registry_model, patient_model,context_model, verifi
                                      save_snapshot=True,
                                      user=user)
 
-
     for v in verified:
         annotation = Annotation()
         annotation.patient_id = patient_model.pk
@@ -288,14 +276,3 @@ def create_annotations(user, registry_model, patient_model,context_model, verifi
         annotation.cde_value = str(v.patient_data)
         annotation.orig_value = str(v.patient_data)
         annotation.save()
-        
-
-        
-        
-        
-    
-
-                                                            
-                                                            
-    
-    

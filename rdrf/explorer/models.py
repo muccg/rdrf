@@ -27,9 +27,9 @@ class FieldValue(models.Model):
     section = models.ForeignKey(Section)
     index = models.IntegerField(default=0)
     cde = models.ForeignKey(CommonDataElement)
-    raw_value = models.TextField(blank=True,null=True)
-    display_value = models.TextField(blank=True,null=True,default="")
-    username = models.TextField(blank=True,null=True)
+    raw_value = models.TextField(blank=True, null=True)
+    display_value = models.TextField(blank=True, null=True, default="")
+    username = models.TextField(blank=True, null=True)
     timestamp = models.DateTimeField(auto_now_add=True)
     column_name = models.CharField(max_length=80, blank=True, null=True)
     datatype = models.CharField(max_length=80, default='string')
@@ -39,14 +39,13 @@ class FieldValue(models.Model):
     file_name = models.TextField(null=True, blank=True)
     raw_date = models.DateField(null=True, blank=True)
     raw_boolean = models.NullBooleanField(null=True, blank=True)
-    
 
     class Meta:
         # the "path" to a value for a giveb
-        unique_together = ("registry", "patient","context", "form","section","index","cde")
+        unique_together = ("registry", "patient", "context", "form", "section", "index", "cde")
 
     @classmethod
-    def get(klass, registry_model, patient_model, context_model,form_model, section_model, cde_model, index=0):
+    def get(klass, registry_model, patient_model, context_model, form_model, section_model, cde_model, index=0):
         try:
             return klass.objects.get(registry=registry_model,
                                      patient=patient_model,
@@ -60,7 +59,7 @@ class FieldValue(models.Model):
 
     @classmethod
     def get_value(klass, registry_model, patient_model, context_model, form_model, section_model, cde_model, index=0, display=False):
-        model = klass.get(registry_model, patient_model, context_model, form_model, section_model, cde_model,index)
+        model = klass.get(registry_model, patient_model, context_model, form_model, section_model, cde_model, index)
         if model is not None:
             if display:
                 return model.display_value
@@ -91,60 +90,60 @@ class FieldValue(models.Model):
         if datatype == 'string':
             try:
                 model.raw_value = str(value)
-            except:
+            except BaseException:
                 pass
         elif cde_model.pv_group:
             model.display_value = cde_model.get_display_value(value)
-        elif datatype in ['integer','int','ineger']:
+        elif datatype in ['integer', 'int', 'ineger']:
             try:
                 model.raw_integer = int(value)
             except TypeError:
                 pass
             except ValueError:
                 pass
-        elif datatype in [ 'boolean','bool']:
+        elif datatype in ['boolean', 'bool']:
             try:
                 model.raw_boolean = bool(value)
-            except:
+            except BaseException:
                 pass
         elif datatype in ['float', 'numeric', 'decimal']:
             try:
                 model.raw_float = float(value)
             except TypeError:
-                pass 
+                pass
             except ValueError:
                 pass
         elif datatype == 'date':
             try:
                 model.raw_date = parse_iso_date(value)
-            except:
+            except BaseException:
                 pass
         elif datatype == 'file':
             try:
                 model.file_name = value.get("file_name", None)
-            except:
+            except BaseException:
                 pass
         else:
             try:
                 model.raw_value = str(value)
-            except:
+            except BaseException:
                 pass
-            
+
         model.save()
 
     def set_datatype(self, datatype):
-        if datatype in ['string','striing']:
+        if datatype in ['string', 'striing']:
             return 'string'
-        if datatype in ['integer','ineger']:
+        if datatype in ['integer', 'ineger']:
             return 'integer'
-        if datatype in [ 'float','decimal','number']:
+        if datatype in ['float', 'decimal', 'number']:
             return 'float'
         if datatype in ['date', 'datetime']:
             return 'date'
         if datatype in ['boolean', 'bool']:
             return 'boolean'
         if datatype in ['file']:
-            return 'file' 
+            return 'file'
         if datatype in ['range']:
             return 'range'
         if datatype in ['calculated']:
@@ -154,21 +153,18 @@ class FieldValue(models.Model):
     def get_calculated_value(self):
         try:
             return float(self.raw_value)
-        except:
+        except BaseException:
             pass
         return self.raw_value
-        
 
     def __str__(self):
         return "registry %s patient %s context %s form %s section %s cde %s index %s" % (self.registry.code,
-                                                                                                  self.patient,
-                                                                                                  self.context.id,
-                                                                                                  self.form.name,
-                                                                                                  self.section.code,
-                                                                                                  self.cde.code,
-                                                                                                  self.index)
-    
-
+                                                                                         self.patient,
+                                                                                         self.context.id,
+                                                                                         self.form.name,
+                                                                                         self.section.code,
+                                                                                         self.cde.code,
+                                                                                         self.index)
 
     def get_column_name(self, form_model, section_model, cde_model, index):
         # column name for report
@@ -191,23 +187,23 @@ class FieldValue(models.Model):
         # 'calculated', 'Integer', 'Ineger', 'textarea', 'boolean'}
 
         datatype = self.cde.datatype.strip().lower()
-        if datatype in ['text','email','string','textarea']:
+        if datatype in ['text', 'email', 'string', 'textarea']:
             return self.raw_value
-        
-        if datatype in ['integer','ineger']:
+
+        if datatype in ['integer', 'ineger']:
             try:
                 return int(self.raw_value)
-            except:
+            except BaseException:
                 return None
-        elif datatype in ['float','decimal','number','numeric']:
+        elif datatype in ['float', 'decimal', 'number', 'numeric']:
             try:
                 return float(self.raw_value)
-            except:
+            except BaseException:
                 return None
-        elif datatype in ['boolean','bool']:
+        elif datatype in ['boolean', 'bool']:
             try:
                 return bool(self.raw_value)
-            except:
+            except BaseException:
                 return None
         elif datatype == 'file':
             try:
@@ -222,14 +218,14 @@ class FieldValue(models.Model):
         elif datatype in ['date', 'datetime']:
             try:
                 return parse_iso_date(self.raw_value)
-            except:
+            except BaseException:
                 return None
         elif datatype == 'calculated':
             try:
                 return float(self.raw_value)
             except ValueError:
                 return self.raw_value
-            
+
         else:
             return self.raw_value
 
@@ -240,7 +236,7 @@ class FieldValue(models.Model):
             try:
                 typed_value = self.get_typed_value()
                 return typed_value
-            
+
             except ValueError as ex:
                 return None
             except Exception as ex:

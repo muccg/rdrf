@@ -348,8 +348,8 @@ class ReportingTableGenerator(object):
         blank_row = self._get_blank_row()
 
         for row in database_utils.generate_results2(self.reverse_map,
-                                                   self.col_map,
-                                                   max_items=self.max_items):
+                                                    self.col_map,
+                                                    max_items=self.max_items):
             new_row = copy(blank_row)
             new_row.update(row)
             self.insert_row(new_row)

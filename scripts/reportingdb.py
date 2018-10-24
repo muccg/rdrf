@@ -1,11 +1,11 @@
+import sys
+import logging
+from django.db import transaction
+from rdrf.reports import generator
+from rdrf.models.definition.models import Registry
 import django
 django.setup()
 
-from rdrf.models.definition.models import Registry
-from rdrf.reports import generator
-from django.db import transaction
-import logging
-import sys
 
 logger = logging.getLogger(__name__)
 

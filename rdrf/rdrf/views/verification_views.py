@@ -3,16 +3,12 @@ from django.utils.decorators import method_decorator
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
 from django.shortcuts import render
-from django.utils.translation import ugettext_lazy as _
 from django.core.urlresolvers import reverse
-from django.contrib.auth.decorators import login_required
 from django.template.context_processors import csrf
-from django.http import HttpResponseRedirect
 from django.contrib import messages
 
 from rdrf.models.definition.models import Registry
 from rdrf.models.definition.models import RDRFContext
-from rdrf.workflows.verification import get_verifiable_cdes
 from rdrf.workflows.verification import get_verifications
 from rdrf.workflows.verification import VerificationStatus
 from rdrf.workflows.verification import VerifiableCDE
@@ -30,7 +26,7 @@ class VerificationSecurityMixin:
     def security_check(self, user, registry_model, patient_model=None):
         if not registry_model.has_feature("verification"):
             raise PermissionDenied()
-        
+
         if not user.in_registry(registry_model):
             raise PermissionDenied()
 
@@ -41,11 +37,11 @@ class VerificationSecurityMixin:
             raise PermissionDenied()
 
         if patient_model is not None:
-            if not patient_model.pk in [p.pk for p in Patient.objects.filter(clinician=user)]:
+            if patient_model.pk not in [p.pk for p in Patient.objects.filter(clinician=user)]:
                 raise PermissionDenied()
-        
+
 class PatientVerification:
-    def __init__(self, user, registry_model, patient_model,context_model,verifications):
+    def __init__(self, user, registry_model, patient_model, context_model, verifications):
         self.user = user
         self.registry_model = registry_model
         self.patient_model = patient_model
@@ -73,11 +69,11 @@ class PatientVerification:
 
         if status == "unverified":
             return [v for v in self.verifications if annotation_check(v, exists=False)]
-        
+
         verifications_with_annotations = [v for v in self.verifications if annotation_check(v)]
-        
+
         return [v for v in verifications_with_annotations if v.status == status]
-       
+
     @property
     def number_unverified(self):
         return len(self._get_annotations("unverified"))
@@ -102,8 +98,8 @@ class PatientsRequiringVerificationView(View, VerificationSecurityMixin):
         user = request.user
         registry_model = Registry.objects.get(code=registry_code)
         self.security_check(user, registry_model)
-      
-        patient_verifications =  []
+
+        patient_verifications = []
 
         for patient_model in Patient.objects.filter(clinician=user):
             for context_model in patient_model.context_models:
@@ -114,15 +110,15 @@ class PatientsRequiringVerificationView(View, VerificationSecurityMixin):
                                                                      patient_model,
                                                                      context_model,
                                                                      verifications))
-                 
+
         context = {
             "location": "Clinician Verification",
             "patient_verifications": patient_verifications,
         }
-        
+
         return render(request, 'rdrf_cdes/patients_requiring_verifications.html', context)
 
-        
+
 class PatientVerificationView(View, VerificationSecurityMixin):
     @method_decorator(login_required)
     def get(self, request, registry_code, patient_id, context_id):
@@ -130,7 +126,7 @@ class PatientVerificationView(View, VerificationSecurityMixin):
         registry_model = Registry.objects.get(code=registry_code)
         patient_model = Patient.objects.get(id=patient_id)
         context_model = RDRFContext.objects.get(id=context_id)
-        
+
         self.security_check(user, registry_model, patient_model)
 
         verifications = self._sort_verifications(get_verifications(user,
@@ -139,14 +135,14 @@ class PatientVerificationView(View, VerificationSecurityMixin):
                                                                    context_model))
         form = make_verification_form(verifications)
         form = self._wrap_form(patient_model, context_model, form, verifications)
-        context = self._build_context(request, registry_model,patient_model, form)
-        
+        context = self._build_context(request, registry_model, patient_model, form)
+
         return render(request, 'rdrf_cdes/patient_verification.html', context)
 
     def _sort_verifications(self, verifications):
-        return sorted(verifications,key=lambda v: v.position)
+        return sorted(verifications, key=lambda v: v.position)
 
-    def _wrap_form(self, patient_model, context_model,form, verifications):
+    def _wrap_form(self, patient_model, context_model, form, verifications):
         # We have to annotate extra properties on the fields so
         # So we show the patient answer also
         for field in form:
@@ -170,7 +166,6 @@ class PatientVerificationView(View, VerificationSecurityMixin):
                     logger.debug("field comments = %s" % field.comments)
         return form
 
-
     def _build_context(self, request, registry_model, patient_model, form, form_state="initial", errors=[]):
         options = [(VerificationStatus.UNVERIFIED, "Unverified"),
                    (VerificationStatus.VERIFIED, "Verified"),
@@ -178,17 +173,17 @@ class PatientVerificationView(View, VerificationSecurityMixin):
 
         patient_locator = PatientLocator(registry_model,
                                          patient_model)
-        
+
         demographics_link = patient_locator.get_link()
-        
+
         context = {
-                   "location": "Patient Verification Form",
-                   "form": form,
-                   "demographics_link": demographics_link,
-                   "form_state": form_state,
-                   "errors": errors,
-                   "patient": patient_model,
-                   "options": options}
+            "location": "Patient Verification Form",
+            "form": form,
+            "demographics_link": demographics_link,
+            "form_state": form_state,
+            "errors": errors,
+            "patient": patient_model,
+            "options": options}
 
         context.update(csrf(request))
         return context
@@ -211,9 +206,9 @@ class PatientVerificationView(View, VerificationSecurityMixin):
         verified = [v for v in verification_map.values() if v.status == VerificationStatus.VERIFIED]
         # fields which are unknown
         unverified = [v for v in verification_map.values() if v.status == VerificationStatus.UNVERIFIED]
-        # this are used to 
-        verifications = self._sort_verifications(corrected + verified + unverified) 
-        
+        # this are used to
+        verifications = self._sort_verifications(corrected + verified + unverified)
+
         form = make_verification_form(corrected)
 
         if len(corrected) == 0 or form.is_valid():
@@ -242,29 +237,27 @@ class PatientVerificationView(View, VerificationSecurityMixin):
 
     def _get_verification_map(self, request, registry_code):
          # fields in the POST look like:
-         #runserver_1    | [DEBUG:2018-03-13 16:45:40,339:verification_views.py:123:post] key status_AngelmanRegistryBehaviourAndDevelopment____ANGMuscleTone____ANGBEHDEVMuscleTrunk value =unverified
-         #runserver_1    | [DEBUG:2018-03-13 16:45:40,339:verification_views.py:123:post] key comments_AngelmanRegistryBehaviourAndDevelopment____ANGMuscleTone____ANGBEHDEVMuscleTrunk value =
-         #runserver_1    | [DEBUG:2018-03-13 16:45:40,339:verification_views.py:123:post] key status_AngelmanRegistryBehaviourAndDevelopment____ANGMuscleTone____ANGBEHDEVMuscleLimbs value =unverified
-         #runserver_1    | [DEBUG:2018-03-13 16:45:40,339:verification_views.py:123:post] key comments_AngelmanRegistryBehaviourAndDevelopment____ANGMuscleTone____ANGBEHDEVMuscleLimbs value =
-         #runserver_1    | [DEBUG:2018-03-13 16:45:40,340:verification_views.py:123:post] key status_AngelmanRegistryEpilepsy____ANGFebrileEpilepsy____ANGEpilepsyCease value =corrected
-         #runserver_1    | [DEBUG:2018-03-13 16:45:40,340:verification_views.py:123:post] key AngelmanRegistryEpilepsy____ANGFebrileEpilepsy____ANGEpilepsyCease value =7
-         #runserver_1    | [DEBUG:2018-03-13 16:45:40,340:verification_views.py:123:post] key comments_AngelmanRegistryEpilepsy____ANGFebrileEpilepsy____ANGEpilepsyCease value =
-         #runserver_1    | [DEBUG:2018-03-13 16:45:40,340:verification_views.py:123:post] key status_AngelmanRegistryEpilepsy____ANGFebrileEpilepsy____ANGSeizureFrequencyAFebrile value =verified
-         #runserver_1    | [DEBUG:2018-03-13 16:45:40,340:verification_views.py:123:post] key comments_AngelmanRegistryEpilepsy____ANGFebrileEpilepsy____ANGSeizureFrequencyAFebrile value =low
+         # runserver_1    | [DEBUG:2018-03-13 16:45:40,339:verification_views.py:123:post] key status_AngelmanRegistryBehaviourAndDevelopment____ANGMuscleTone____ANGBEHDEVMuscleTrunk value =unverified
+         # runserver_1    | [DEBUG:2018-03-13 16:45:40,339:verification_views.py:123:post] key comments_AngelmanRegistryBehaviourAndDevelopment____ANGMuscleTone____ANGBEHDEVMuscleTrunk value =
+         # runserver_1    | [DEBUG:2018-03-13 16:45:40,339:verification_views.py:123:post] key status_AngelmanRegistryBehaviourAndDevelopment____ANGMuscleTone____ANGBEHDEVMuscleLimbs value =unverified
+         # runserver_1    | [DEBUG:2018-03-13 16:45:40,339:verification_views.py:123:post] key comments_AngelmanRegistryBehaviourAndDevelopment____ANGMuscleTone____ANGBEHDEVMuscleLimbs value =
+         # runserver_1    | [DEBUG:2018-03-13 16:45:40,340:verification_views.py:123:post] key status_AngelmanRegistryEpilepsy____ANGFebrileEpilepsy____ANGEpilepsyCease value =corrected
+         # runserver_1    | [DEBUG:2018-03-13 16:45:40,340:verification_views.py:123:post] key AngelmanRegistryEpilepsy____ANGFebrileEpilepsy____ANGEpilepsyCease value =7
+         # runserver_1    | [DEBUG:2018-03-13 16:45:40,340:verification_views.py:123:post] key comments_AngelmanRegistryEpilepsy____ANGFebrileEpilepsy____ANGEpilepsyCease value =
+         # runserver_1    | [DEBUG:2018-03-13 16:45:40,340:verification_views.py:123:post] key status_AngelmanRegistryEpilepsy____ANGFebrileEpilepsy____ANGSeizureFrequencyAFebrile value =verified
+         # runserver_1    | [DEBUG:2018-03-13 16:45:40,340:verification_views.py:123:post] key comments_AngelmanRegistryEpilepsy____ANGFebrileEpilepsy____ANGSeizureFrequencyAFebrile value =low
         from rdrf.helpers.utils import models_from_mongo_key
         registry_model = Registry.objects.get(code=registry_code)
         verifications = []
         verification_map = {}
 
         def mk_ver(delimited_key):
-            form_model, section_model,cde_model = models_from_mongo_key(registry_model,delimited_key)
+            form_model, section_model, cde_model = models_from_mongo_key(registry_model, delimited_key)
             v = VerifiableCDE(registry_model,
                               form_model=form_model,
                               section_model=section_model,
                               cde_model=cde_model)
             return v
-            
-        
 
         for key in request.POST:
             if key.startswith("status_"):
@@ -315,16 +308,4 @@ class PatientVerificationView(View, VerificationSecurityMixin):
                     v.set_clinician_value(field_value)
                     verification_map[key] = v
 
-
         return verification_map
-                    
-                    
-                
-                
-         
-                    
-
-                    
-                    
-
-                

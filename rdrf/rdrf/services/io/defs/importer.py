@@ -572,7 +572,6 @@ class Importer(object):
         if "surveys" in self.data:
             self._create_surveys(r)
             logger.info("imported surveys OK")
-            
 
         logger.info("end of import registry objects!")
 
@@ -605,7 +604,7 @@ class Importer(object):
     def _create_surveys(self, registry_model):
         from rdrf.models.proms.models import Survey
         from rdrf.models.proms.models import SurveyQuestion
-        from rdrf.models.proms.models  import Precondition
+        from rdrf.models.proms.models import Precondition
         Survey.objects.filter(registry=registry_model).delete()
         logger.info("Deleted existing surveys ...")
         for survey_dict in self.data["surveys"]:
@@ -615,7 +614,7 @@ class Importer(object):
             survey_model.display_name = survey_dict.get("display_name", "")
             survey_model.save()
             logger.info("saved survey_model %s" % survey_model.name)
-            
+
             for sq in survey_dict["questions"]:
                 sq_model = SurveyQuestion(survey=survey_model)
                 sq_model.position = sq["position"]
@@ -636,7 +635,6 @@ class Importer(object):
                     logger.info("Imported precondition: %s = %s" % (sq_model.precondition.cde.code,
                                                                     sq_model.precondition.value))
             logger.info("Imported Survey %s" % survey_model.name)
-        
 
     def _create_email_notifications(self, registry):
         from rdrf.models.definition.models import EmailNotification

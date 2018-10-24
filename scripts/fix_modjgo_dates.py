@@ -1,10 +1,9 @@
 # -*- coding: utf-8 -*-
+from rdrf.models.definition.models import ClinicalData
+from rdrf.helpers.utils import TimeStripper, HistoryTimeStripper
+from django.db import transaction
 import django
 django.setup()
-from django.db import transaction
-
-from rdrf.helpers.utils import TimeStripper, HistoryTimeStripper
-from rdrf.models.definition.models import ClinicalData
 
 
 def fix_cdes_modjgos():

@@ -6,7 +6,7 @@ class EventType:
     ACCOUNT_VERIFIED = "account-verified"
     PASSWORD_EXPIRY_WARNING = "password-expiry-warning"
     REMINDER = "reminder"
-    CLINICIAN_SELECTED = "clinician-selected" # existing clinician selected by patient as their clinician
+    CLINICIAN_SELECTED = "clinician-selected"  # existing clinician selected by patient as their clinician
 
     @classmethod
     def is_registration(cls, evt):

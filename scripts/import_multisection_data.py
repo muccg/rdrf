@@ -1,14 +1,12 @@
+from registry.patients.models import Patient
+from rdrf.models.definition.models import CDEPermittedValue
+from rdrf.models.definition.models import CommonDataElement
+from rdrf.models.definition.models import Registry
+from django.db import transaction
+from operator import itemgetter
+import sys
 import django
 django.setup()
-
-import sys
-from operator import itemgetter
-from django.db import transaction
-from rdrf.models.definition.models import Registry
-from rdrf.models.definition.models import CommonDataElement
-from rdrf.models.definition.models import CDEPermittedValue
-
-from registry.patients.models import Patient
 
 
 class MissingCodeError(Exception):

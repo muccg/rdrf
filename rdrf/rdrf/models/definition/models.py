@@ -552,8 +552,7 @@ class Registry(models.Model):
         owned_form_ids = [form_model.pk for cfg in cfgs.all() for form_model in cfg.forms]
 
         forms = sorted([form_model for form_model in RegistryForm.objects.filter(registry=self) if
-                        form_model.pk not in owned_form_ids and
-                        not form_model.is_questionnaire],
+                        form_model.pk not in owned_form_ids and not form_model.is_questionnaire],
                        key=lambda form: form.position)
 
         return forms
@@ -667,8 +666,8 @@ class CDEPermittedValueGroup(models.Model):
                 att) for v in CDEPermittedValue.objects.filter(
                 pv_group=self).order_by('position')]
 
-
     # interface used by proms
+
     @property
     def options(self):
         return [{"code": pv.code, "text": pv.value} for pv in CDEPermittedValue.objects.filter(pv_group=self).order_by('position')]
@@ -861,7 +860,6 @@ class CdePolicy(models.Model):
                     return self.evaluate_condition(patient_model)
                 else:
                     return True
-
 
     class Meta:
         verbose_name = "CDE Policy"
@@ -1766,13 +1764,13 @@ class ClinicalData(models.Model):
                 {"registry_code": "Registry %s does not exist" % self.registry_code})
 
     modjgo_schema = None
-    #  need tp fix this path rdrf/db/schemas/modjgo.yaml 
+    #  need tp fix this path rdrf/db/schemas/modjgo.yaml
     modjgo_schema_file = os.path.join(os.path.dirname(__file__), "schemas/modjgo.yaml")
 
     def validate(self, collection, data):
         return
 
-        #to do fithis
+        # to do fithis
         if not self.modjgo_schema:
             try:
                 with open(self.modjgo_schema_file) as f:

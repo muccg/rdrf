@@ -144,14 +144,14 @@ class DatabaseUtils(object):
         self.reverse_map = reverse_column_map
         self.col_map = col_map
         report_columns = col_map.values()
-        
+
         blank_dict = {column_name: None for column_name in report_columns}
-        
+
         if self.projection:
             self.mongo_models = [model_triple for model_triple in self._get_mongo_fields()]
         else:
             self.mongo_models = []
-        
+
         sql_only = len(self.mongo_models) == 0
 
         def get_sql_dict(row):
@@ -177,11 +177,11 @@ class DatabaseUtils(object):
                 patient_id = int(d['id'])
                 patient_model = Patient.objects.get(id=patient_id)
                 q = (FieldValue.objects.filter(registry_id=registry_id)
-                                      .prefetch_related("patient")
-                                      .prefetch_related("context")
-                                      .prefetch_related("form")
-                                      .prefetch_related("section")
-                                      .prefetch_related("cde"))
+                     .prefetch_related("patient")
+                     .prefetch_related("context")
+                     .prefetch_related("form")
+                     .prefetch_related("section")
+                     .prefetch_related("cde"))
 
                 for context_model in patient_model.context_models:
                     context_id = context_model.pk
@@ -192,10 +192,10 @@ class DatabaseUtils(object):
                                    patient_id=patient_id,
                                    context_id=context_id,
                                    column_name__in=report_columns,
-                                   index__lt=max_items) 
+                                   index__lt=max_items)
 
                     self._get_fvs_by_datatype(qry, row)
-            
+
                     yield row
 
         if self.mongo_search_type == "C":
@@ -214,22 +214,22 @@ class DatabaseUtils(object):
 
     def _get_fvs_by_datatype(self, query, row):
         for fv in query.filter(datatype='string'):
-           row[fv.column_name] =  fv.raw_value
+            row[fv.column_name] = fv.raw_value
         for fv in query.filter(datatype='range'):
-           row[fv.column_name] =  fv.display_value
+            row[fv.column_name] = fv.display_value
         for fv in query.filter(datatype='integer'):
-           row[fv.column_name] =  fv.raw_integer
+            row[fv.column_name] = fv.raw_integer
         for fv in query.filter(datatype='float'):
-           row[fv.column_name] =  fv.raw_float
+            row[fv.column_name] = fv.raw_float
         for fv in query.filter(datatype='file'):
-           row[fv.column_name] =  fv.file_name
+            row[fv.column_name] = fv.file_name
         for fv in query.filter(datatype='boolean'):
-           row[fv.column_name] =  fv.raw_boolean
+            row[fv.column_name] = fv.raw_boolean
         for fv in query.filter(datatype='date'):
-           row[fv.column_name] =  fv.raw_date
+            row[fv.column_name] = fv.raw_date
         for fv in query.filter(datatype='calculated'):
-           row[fv.column_name] =  fv.get_calculated_value()
-            
+            row[fv.column_name] = fv.get_calculated_value()
+
     @timed
     def generate_results(self, reverse_column_map, col_map, max_items):
         self.reverse_map = reverse_column_map
@@ -251,9 +251,6 @@ class DatabaseUtils(object):
                 for i, item in enumerate(row):
                     sql_column_name = self.reverse_map[i]
                     sql_columns_dict[sql_column_name] = item
-                
-                
-
 
         def sql_only_c():
             for row in self.cursor:
@@ -321,7 +318,7 @@ class DatabaseUtils(object):
             else:
                 for d in longitudinal():
                     yield d
-                
+
     def _combine_sql_and_mongo(self, sql_result_dict, mongo_result_dict):
         combined_dict = {}
         combined_dict.update(sql_result_dict)
@@ -364,7 +361,7 @@ class DatabaseUtils(object):
     def _get_sql_metadata(self, cursor):
         # type_code is looked up in the oid map
         # cursor description gives list:
-        #[Column(name='id', type_code=23, display_size=None, internal_size=4, precision=None, scale=None, null_ok=None),
+        # [Column(name='id', type_code=23, display_size=None, internal_size=4, precision=None, scale=None, null_ok=None),
         # Column(name='family_name', type_code=1043, display_size=None, internal_size=100, precision=None, scale=None, null_ok=None),
         # Column(name='given_names', type_code=1043, display_size=None,
         # internal_size=100, precision=None, scale=None, null_ok=None),
@@ -442,18 +439,14 @@ class DatabaseUtils(object):
             for mongo_document in records:
                 yield self._get_result_map(mongo_document, max_items=max_items)
 
-
     def _process_all_rows(self, collection, max_items=3):
-        
-        
+
         qry = collection.filter(django_model="Patient")
         # list of clinical data
-        data = qry.values('django_id','context_id','data')
+        data = qry.values('django_id', 'context_id', 'data')
         for item in data:
             result_map = self._get_result_map(item['data'], max_items=max_items)
             result_map['id'] = item['django_id']
-            
-        
 
     def _get_result_map(self, mongo_document, is_snapshot=False, max_items=3):
         result = {}
@@ -644,7 +637,7 @@ class ParseQuery(object):
         pass
 
 
-def create_field_values(registry_model, patient_model, context_model, remove_existing=False,form_model=None):
+def create_field_values(registry_model, patient_model, context_model, remove_existing=False, form_model=None):
     """
     Create faster representations of the clinical data for reporting
     """
@@ -652,7 +645,7 @@ def create_field_values(registry_model, patient_model, context_model, remove_exi
         qry = FieldValue.objects.filter(registry=registry_model,
                                         patient=patient_model,
                                         context=context_model)
-        
+
         if form_model:
             qry = qry.filter(form=form_model)
 
@@ -664,7 +657,7 @@ def create_field_values(registry_model, patient_model, context_model, remove_exi
         for form_dict in dynamic_data["forms"]:
             try:
                 form_model = RegistryForm.objects.get(name=form_dict["name"],
-                                                  registry=registry_model)
+                                                      registry=registry_model)
             except RegistryForm.DoesNotExist:
                 continue
             for section_dict in form_dict["sections"]:

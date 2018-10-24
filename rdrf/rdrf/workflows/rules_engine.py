@@ -35,14 +35,14 @@ class RulesEvaluator:
     def get_action(self):
         logger.debug("rules = %s" % self.rules)
         for condition_block, action in self.rules:
-           condition = self._eval(condition_block)
-           if condition:
-               return self._eval_action(action)
-            
+            condition = self._eval(condition_block)
+            if condition:
+                return self._eval_action(action)
+
     def _eval(self, expr):
         logger.debug("evaluating expr %s" % expr)
         # atoms evaluate themselves
-        if type(expr) is not type([]):
+        if not isinstance(expr, type([])):
             return expr
         else:
             head = expr[0]
@@ -57,10 +57,10 @@ class RulesEvaluator:
                 return value
             elif head == Tokens.AND:
                 rest = expr[1:]
-                return all(map(self._eval,rest))
+                return all(map(self._eval, rest))
             elif head == Tokens.OR:
                 rest = expr[1:]
-                return any(map(self._eval,rest))
+                return any(map(self._eval, rest))
             elif head == Tokens.LT:
                 left = expr[1]
                 right = expr[2]
@@ -79,7 +79,7 @@ class RulesEvaluator:
                 return self._eval(left) <= self._eval(right)
             elif head == Tokens.IN:
                 element = self._eval(expr[1])
-                a_list = list(map(self._eval,expr[2]))
+                a_list = list(map(self._eval, expr[2]))
                 logger.debug("in: element = %s a_list = %s" % (element, a_list))
                 result = element in a_list
                 logger.debug("in result = %s" % result)
@@ -105,7 +105,7 @@ class RulesEvaluator:
             form_name, section_code, cde_code = self._get_unique_field(field_spec)
 
         section_model = Section.objects.get(code=section_code)
-        
+
         return patient_model.get_form_value(registry_model.code,
                                             form_name,
                                             section_code,
@@ -119,11 +119,11 @@ class RulesEvaluator:
         return get_full_path(registry_model, cde_code)
 
     def _eval_action(self, action):
-        if type(action) is not type([]):
+        if not isinstance(action, type([])):
             raise RulesEvaluationError("Action should be a list: %s" % action)
         if len(action) == 0:
             raise RulesEvaluationError("Action should be a non-empty list: %s" % action)
-            
+
         head = action[0]
         if head == Actions.GOTO:
             from django.core.urlresolvers import reverse
@@ -137,8 +137,3 @@ class RulesEvaluator:
             logger.debug("setting current workflow to %s" % workflow)
         else:
             raise RulesEvaluationError("Unknown action: %s" % head)
-        
-        
-        
-
-        

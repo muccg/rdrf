@@ -642,7 +642,6 @@ class Patient(models.Model):
                 form_name=form_model.name,
                 form_user=user.username)
 
-
     def in_registry(self, reg_code):
         """
         returns True if patient belongs to the registry with reg code provided
@@ -1121,7 +1120,7 @@ class ClinicianOther(models.Model):
                 # fkrp use case
                 # if the patient is a user update the user working groups to match
                 if self.patient.user:
-                    self.patient.user.working_groups = [wg for wg in self.patient.working_groups.all() ]
+                    self.patient.user.working_groups = [wg for wg in self.patient.working_groups.all()]
                     self.patient.user.save()
                 # if there user/parent of this patient then need to update their working
                 # groups also

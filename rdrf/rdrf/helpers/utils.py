@@ -714,7 +714,7 @@ def get_full_path(registry_model, cde_code):
     Return triple of form name, section code and cde code for a unique code
     """
     triples = []
-    
+
     for form_model in registry_model.forms:
         for section_model in form_model.section_models:
             for cde_model in section_model.cde_models:
@@ -724,5 +724,3 @@ def get_full_path(registry_model, cde_code):
         raise ValueError("cde code %s is not unique or not used by registry %s" % (cde_code, registry_model.code))
 
     return triples[0]
-                    
-    

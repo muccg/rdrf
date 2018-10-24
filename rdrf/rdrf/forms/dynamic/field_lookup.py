@@ -454,7 +454,7 @@ class ComplexFieldParseError(Exception):
 
 
 class ComplexFieldFactory(object):
-    DATATYPE_PATTERN = "^ComplexField\((.*)\)$"
+    DATATYPE_PATTERN = r"^ComplexField\((.*)\)$"
 
     def __init__(self, cde):
         self.cde = cde

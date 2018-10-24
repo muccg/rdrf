@@ -5,7 +5,6 @@ from django.contrib.auth.models import AbstractBaseUser, UserManager, Permission
 from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
 from django.db import models
-from django.db import transaction
 from django.dispatch import receiver
 
 from registration.signals import user_activated

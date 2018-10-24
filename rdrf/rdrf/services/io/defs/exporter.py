@@ -351,7 +351,6 @@ class Exporter(object):
                     precondition_cde_model = CommonDataElement.objects.get(code=survey_question.precondition.cde.code)
                     cdes.add(precondition_cde_model)
         return cdes
-        
 
     def _get_consent_sections(self):
         section_dicts = []
@@ -533,11 +532,10 @@ class Exporter(object):
                 sq_dict["precondition"] = None
                 if sq.precondition:
                     sq_dict["precondition"] = {"cde": sq.precondition.cde.code,
-                                            "value": sq.precondition.value}
+                                               "value": sq.precondition.value}
                 survey_dict["questions"].append(sq_dict)
             data.append(survey_dict)
         return data
-        
 
 
 def str_presenter(dumper, data):
