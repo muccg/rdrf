@@ -3366,9 +3366,9 @@
       "pv_group": "FSHDSiteOfGeneticTesting",
       "code": "FSHDSiteOfGeneticTestingMML",
       "questionnaire_value": null,
-      "value": "Molecular Medicine Laboratory, Concord Repatriation General Hospital; Contact: Danqing Zhu: molmed@med.usyd.edu.au, 02 97677009",
+      "value": "test",
       "position": null,
-      "desc": "Molecular Medicine Laboratory, Concord Repatriation General Hospital; Contact: Danqing Zhu: molmed@med.usyd.edu.au, 02 97677009\r\n"
+      "desc": "test\r\n"
     }
   },
   {
@@ -3378,9 +3378,9 @@
       "pv_group": "FSHDSiteOfGeneticTesting",
       "code": "FSHDSiteOfGeneticTestingRPH",
       "questionnaire_value": null,
-      "value": "Neurogenetics Laboratory, Royal Perth Hospital; Contact: Mark Davis: mark.davis@health.wa.gov.au, 08 9224 3136",
+      "value": "Test Contact: Fred Bloggs ",
       "position": null,
-      "desc": "Neurogenetics Laboratory, Royal Perth Hospital; Contact: Mark Davis: mark.davis@health.wa.gov.au, 08 9224 3136\r\n"
+      "desc": "test data\r\n"
     }
   },
   {
