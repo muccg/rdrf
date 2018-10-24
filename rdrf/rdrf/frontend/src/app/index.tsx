@@ -39,10 +39,10 @@ class App extends React.Component<AppInterface, object> {
 	}
 	
 	atBegin() {
-	let firstIndex = this.props.questions.length + 1;
-	console.log("firstIndex = " + firstIndex.toString());
-	console.log("stage = " + this.props.stage.toString());
-	return this.props.stage == firstIndex;
+	    let firstIndex = 0;
+	    console.log("firstIndex = " + firstIndex.toString());
+	    console.log("stage = " + this.props.stage.toString());
+	    return this.props.stage == firstIndex;
 	}
 
     getProgress(): number {
