@@ -74,8 +74,9 @@
         <th>Created</th>
         <th>Created by</th>
         <th>Updated</th>
-        <th>Token</th>
+        <th>Link</th>
         <th>State</th>
+        <th>QRCode</th>
       </tr>
     </thead>
     <tbody>
@@ -85,8 +86,14 @@
         <td>{{sr.created}}</td>
         <td>{{sr.user}}</td>
         <td>{{sr.updated}}</td>
-        <td>{{sr.patient_token}}</td>
+        <td>{{sr.email_link}}</td>
         <td>{{sr.state}}</td>
+	{% if sr.state == 'requested' %}
+	    <td><image src="{{ sr.qrcode_link }}"/></td>
+	{% else %}
+	    <td>NA</td>
+	{% endif %}
+	    
       </tr>
       {% endfor %}
     </tbody>

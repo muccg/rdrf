@@ -39,6 +39,7 @@ from rdrf.views.proms_views import PromsView
 from rdrf.views.proms_views import PromsLandingPageView
 from rdrf.views.proms_views import PromsCompletedPageView
 from rdrf.views.proms_views import PromsClinicalView
+from rdrf.views.proms_views import PromsQRCodeImageView
 
 
 import logging
@@ -188,6 +189,7 @@ urlpatterns += [
 
     url(r'^promslanding/?$', PromsLandingPageView.as_view(), name="proms_landing_page"),
     url(r'^proms/?$', PromsView.as_view(), name="proms"),
+    url(r'^promsqrcode/(?P<patient_token>[0-9A-Za-z_\-]+)/?$', PromsQRCodeImageView.as_view(), name="promsqrcode"),
     url(r'^promscompleted/?$', PromsCompletedPageView.as_view(), name="proms_completed"),
 
     # proms on the clinical side

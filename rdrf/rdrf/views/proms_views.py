@@ -17,6 +17,8 @@ from rdrf.models.proms.models import SurveyRequest
 from rdrf.models.proms.models import SurveyRequestStates
 from django.http import JsonResponse
 import json
+import qrcode
+    
 
 import logging
 logger = logging.getLogger(__name__)
@@ -204,3 +206,25 @@ class PromsClinicalView(View):
         logger.debug("sent request to create survey assignment")
 
         return JsonResponse({"patient_token": survey_request.patient_token})
+
+
+class PromsQRCodeImageView(View):
+    def get(self, request, patient_token):
+        from django.http import HttpResponse
+        try:
+            survey_request = SurveyRequest.objects.get(patient_token=patient_token)
+        except SurveyRequest.DoesNotExist:
+            raise Http404
+        except SurveyRequest.MultipleObjectsReturned:
+            raise Http404
+
+        link = survey_request.email_link
+        image = self._make_image(link)
+        response = HttpResponse(content_type='image/png')
+        image.save(response)
+        return response
+
+
+    def _make_image(self, data):
+        return qrcode.make(data)
+ 
