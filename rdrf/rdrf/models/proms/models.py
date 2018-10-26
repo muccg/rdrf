@@ -1,12 +1,15 @@
+import logging
+import uuid
+import requests
+
 from django.db import models
+from django.core.urlresolvers import reverse
+
 from rdrf.models.definition.models import Registry
 from rdrf.models.definition.models import CommonDataElement
-from registry.patients.models import Patient
 from rdrf.services.io.notifications.notifications import Notifier
 from rdrf.services.io.notifications.notifications import NotificationError
-import requests
-import uuid
-import logging
+from registry.patients.models import Patient
 
 logger = logging.getLogger(__name__)
 
@@ -228,3 +231,8 @@ class SurveyRequest(models.Model):
             raise PromsEmailError(nerr)
         except Exception as ex:
             raise PromsEmailError(ex)
+
+
+    @property
+    def qrcode_link(self):
+        return reverse('promsqrcode',args=[self.patient_token])

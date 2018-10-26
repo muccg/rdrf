@@ -46,7 +46,8 @@ requirements = [
     "django-phonenumber-field==1.3.0",
     "django-two-factor-auth==1.6.2",
     "phonenumberslite==8.8.1",
-    "qrcode==4.0.4",
+    "Pillow==4.0.0",
+    "qrcode==5.3",
     "django-reversion==3.0.0",
 ]
 
