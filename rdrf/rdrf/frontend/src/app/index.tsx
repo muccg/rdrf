@@ -16,6 +16,7 @@ import { ElementList } from '../pages/proms_page/logic';
 //import * as Swipe from 'react-easy-swipe';
 
 import Swipe from 'react-easy-swipe';
+import { isMobile } from 'react-device-detect';
 
 
 
@@ -72,6 +73,12 @@ class App extends React.Component<AppInterface, object> {
 
     render() {
         var nextButton;
+
+        if (isMobile) {
+            console.log("Mobile device");
+        } else {
+            console.log("Someother device");
+        }
 
         if (this.atEnd()) {
             console.log("at end");
