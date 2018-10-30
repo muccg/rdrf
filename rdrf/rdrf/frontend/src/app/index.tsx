@@ -59,14 +59,14 @@ class App extends React.Component<AppInterface, object> {
     }
 
     onSwipeRight(position, event) {
-        if (!this.atEnd() && this.isQuestionAnswered()) {
-            this.props.goNext();
+        if (!this.atBeginning() && this.isQuestionAnswered()) {
+            this.props.goPrevious();
         }
     }
 
     onSwipeLeft(position, event) {
-        if (!this.atBeginning() && this.isQuestionAnswered()) {
-            this.props.goPrevious();
+        if (!this.atEnd() && this.isQuestionAnswered()) {
+            this.props.goNext();
         }
     }
 
