@@ -18,7 +18,7 @@ from rdrf.models.proms.models import SurveyRequestStates
 from django.http import JsonResponse
 import json
 import qrcode
-    
+
 
 import logging
 logger = logging.getLogger(__name__)
@@ -75,7 +75,32 @@ class PromsView(View):
 
 class PromsLandingPageView(View):
     def get(self, request):
-        logger.debug("proms landing page")
+        logger.debug("proms page GET")
+        patient_token = request.GET.get("t", None)
+        logger.debug("patient_token = %s" % patient_token)
+        registry_code = request.GET.get("r", None)
+        logger.debug("registry_code = %s" % registry_code)
+        survey_name = request.GET.get("s", None)
+        logger.debug("survey_name = %s" % survey_name)
+        if not self._is_valid(patient_token,
+                              registry_code,
+                              survey_name):
+            raise Http404
+
+        registry_model = get_object_or_404(Registry, code=registry_code)
+        logger.debug("registry = %s" % registry_model)
+        preamble_text = registry_model.metadata.get("preamble_text")
+        context = {
+            "preamble_text": preamble_text,
+            "survey_name": survey_name
+        }
+        return render(request, "proms/preamble.html", context)
+
+    def _is_valid(self, patient_token, registry_code, survey_name):
+        return True
+
+    def post(self, request):
+        logger.debug("proms landing page POST")
         patient_token = request.GET.get("t", None)
         logger.debug("patient_token = %s" % patient_token)
         registry_code = request.GET.get("r", None)
@@ -88,15 +113,14 @@ class PromsLandingPageView(View):
             raise Http404
 
         logger.debug("valid")
-
         registry_model = get_object_or_404(Registry, code=registry_code)
         logger.debug("registry = %s" % registry_model)
+        logger.debug("registry metadata (preamble text)= %s" % registry_model.metadata.get("preamble_text"))
+
         survey_model = get_object_or_404(Survey,
                                          registry=registry_model,
                                          name=survey_name)
-
         logger.debug("survey_model = %s" % survey_model)
-
         survey_assignment = get_object_or_404(SurveyAssignment,
                                               registry=registry_model,
                                               survey_name=survey_name,
@@ -104,21 +128,13 @@ class PromsLandingPageView(View):
                                               state=SurveyStates.REQUESTED)
 
         logger.debug("survey assignment = %s" % survey_assignment)
-
         survey_assignment.response = "{}"
-        #survey_assignment.state = SurveyStates.STARTED
         survey_assignment.save()
         logger.debug("reset survey assignment")
-
         request.session["patient_token"] = patient_token
         logger.debug("patient_token set in session")
         logger.debug("redirecting to proms page")
-
         return HttpResponseRedirect(reverse("proms"))
-
-    def _is_valid(self, patient_token, registry_code, survey_name):
-        return True
-
 
 class PromsClinicalView(View):
     """
@@ -224,7 +240,5 @@ class PromsQRCodeImageView(View):
         image.save(response)
         return response
 
-
     def _make_image(self, data):
         return qrcode.make(data)
- 

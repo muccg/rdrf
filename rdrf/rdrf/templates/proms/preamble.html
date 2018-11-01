@@ -1,0 +1,34 @@
+{% load static from staticfiles %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>PROMS Survey</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="{% static 'bootstrap-3.3.6/css/bootstrap.min.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'css/rdrf.css' %}" media="all">
+</head>
+
+<body>
+
+    <div style="text-align:center;">
+        <h1>{{ survey_name }} Survey </h1>
+    </div>
+
+    {% block content %}
+    <form method="post" action="" class="form" id="start-survey-form">
+        {% csrf_token %}
+        <div class="container">
+            <span>{{ preamble_text }}</span>
+        </div>
+        <div style="text-align:center;">
+            <input type="submit" value="Begin Survey" class="btn btn-success" />
+        </div>
+    </form>
+    {% endblock %}
+
+    {% include 'rdrf_cdes/footer.html' %}
+
+</body>
+
+</html>
