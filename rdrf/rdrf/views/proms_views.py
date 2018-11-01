@@ -89,10 +89,14 @@ class PromsLandingPageView(View):
 
         registry_model = get_object_or_404(Registry, code=registry_code)
         logger.debug("registry = %s" % registry_model)
+        survey_assignment = get_object_or_404(SurveyAssignment,
+                                              patient_token=patient_token,
+                                              state=SurveyStates.REQUESTED)
+        survey_display_name = survey_assignment.survey.display_name
         preamble_text = registry_model.metadata.get("preamble_text")
         context = {
             "preamble_text": preamble_text,
-            "survey_name": survey_name
+            "survey_name": survey_display_name
         }
         return render(request, "proms/preamble.html", context)
 

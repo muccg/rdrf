@@ -13,6 +13,9 @@ from registry.patients.models import Patient
 
 logger = logging.getLogger(__name__)
 
+def generate_token():
+    return str(uuid.uuid4())
+
 class PromsRequestError(Exception):
     pass
 
@@ -125,9 +128,13 @@ class SurveyAssignment(models.Model):
     updated = models.DateTimeField(auto_now=True)
     response = models.TextField(blank=True, null=True)
 
-
-def generate_token():
-    return str(uuid.uuid4())
+    @property
+    def survey(self):
+        try:
+            return Survey.objects.get(registry=self.registry,
+                                      name=self.survey_name)
+        except Survey.DoesNotExist:
+            logger.error("No survey with name %s " % self.survey_name)
 
 class SurveyRequest(models.Model):
     """
@@ -232,7 +239,6 @@ class SurveyRequest(models.Model):
         except Exception as ex:
             raise PromsEmailError(ex)
 
-
     @property
     def qrcode_link(self):
-        return reverse('promsqrcode',args=[self.patient_token])
+        return reverse('promsqrcode', args=[self.patient_token])
