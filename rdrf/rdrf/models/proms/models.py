@@ -146,7 +146,7 @@ class SurveyRequest(models.Model):
         (SurveyRequestStates.RECEIVED, "Received"))
     registry = models.ForeignKey(Registry)
     patient = models.ForeignKey(Patient)
-    survey_name = models.CharField(max_length=80, default="bp")
+    survey_name = models.CharField(max_length=80)
     patient_token = models.CharField(max_length=80, unique=True, default=generate_token)
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
