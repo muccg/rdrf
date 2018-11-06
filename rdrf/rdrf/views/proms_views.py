@@ -213,7 +213,8 @@ class PromsClinicalView(View):
         patient_model = Patient.objects.get(id=patient_id)
         logger.debug("got patient")
 
-        survey_request = SurveyRequest(registry=registry_model,
+        survey_request = SurveyRequest(survey_name=survey_name,
+                                       registry=registry_model,
                                        patient=patient_model,
                                        user=user,
                                        state=SurveyRequestStates.REQUESTED,
