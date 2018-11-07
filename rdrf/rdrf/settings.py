@@ -157,6 +157,7 @@ MIDDLEWARE_CLASSES = (
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'django.middleware.security.SecurityMiddleware',
+    'django_user_agents.middleware.UserAgentMiddleware',
 )
 
 
@@ -190,6 +191,7 @@ INSTALLED_APPS = [
     'django_otp.plugins.otp_static',
     'django_otp.plugins.otp_totp',
     'two_factor',
+    'django_user_agents',
 ]
 
 
@@ -330,6 +332,9 @@ else:
 # # LOGGING
 # #
 LOG_DIRECTORY = env.get('log_directory', os.path.join(WEBAPP_ROOT, "log"))
+
+# UserAgent lookup cache location - used by django_user_agents
+USER_AGENTS_CACHE = 'default'
 
 LOGGING = {
     'version': 1,
