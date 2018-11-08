@@ -480,8 +480,11 @@ REST_FRAMEWORK = {
 }
 
 
-PROJECT_TITLE = "Rare Disease Registry Framework"
+PROJECT_TITLE = env.get("project_title", "") or None
 PROJECT_TITLE_LINK = "patientslisting"
+# project logo and link
+PROJECT_LOGO = env.get("project_logo", "") or None
+PROJECT_LOGO_LINK = env.get("project_logo_link", "") or None
 
 
 LOCALE_PATHS = env.getlist("locale_paths", [os.path.join(WEBAPP_ROOT, "translations/locale")])
