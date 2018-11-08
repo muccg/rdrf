@@ -141,14 +141,15 @@ form .aligned ul.errorlist {
 /**************************************************************************
  * Project Title and Logo                                                 */
 
-.project_title_with_logo {
-    padding-left: 100px;
+.project_title {
+    padding-left: 31px;
 }
 
 .project_logo {
-    padding-right: 50px;
-    height: 70px;
-    position: absolute;
+    height: 60px;
+    width: Auto;
+    position: relative;
+    float: left;
 }
 
 .section_blacklist_hidden {
