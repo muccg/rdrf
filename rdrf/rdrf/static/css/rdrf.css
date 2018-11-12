@@ -141,16 +141,56 @@ form .aligned ul.errorlist {
 /**************************************************************************
  * Project Title and Logo                                                 */
 
-.project_title_with_logo {
-    padding-left: 100px;
+.project_title {
+    padding-left: 31px;
 }
 
 .project_logo {
-    padding-right: 50px;
-    height: 70px;
-    position: absolute;
+    height: 60px;
+    width: Auto;
+    position: relative;
+    float: left;
 }
 
 .section_blacklist_hidden {
     display: none;
+}
+
+/***************************************************************************
+* proms logo, survey name & preamble text                              */
+
+.promsheader {
+    position: relative;
+    width: auto;
+    max-width: 1150px;
+    height: 60px;
+    margin: 0 auto 20px auto;
+    overflow: hidden;
+}
+.promslogo {
+    position: absolute;
+    left: 0;
+    width: Auto;
+    height: 60px;
+}
+
+.promstitle {
+    right:0; 
+    font-family: 'Century Gothic', Helvetica, sans-serif; 
+    font-size: 20px; 
+    font-weight: bold;
+    margin: 0;
+    color: green;
+    line-height: 60px;
+}
+
+.preambletext {
+    text-align: justify;
+    text-justify: inter-word;
+    font-size: 15px;
+}
+
+.submit {
+    text-align:center;
+    margin-top:20px;
 }

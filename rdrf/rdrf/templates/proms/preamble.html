@@ -1,4 +1,5 @@
 {% load static from staticfiles %}
+{% load proms_logo %}
 <!DOCTYPE html>
 <html lang="en">
 
@@ -10,28 +11,38 @@
 </head>
 
 <body>
+    <div class="container">
+        <div class="row">
+            <div class="col-md-12">
+                <div class="col-md-8">
+                    <div class="promsheader">
+                        {% proms_logo as PL %}
+                        {% if PL %}
+                        {% static "" as baseUrl %}
+                        <img src="{{ baseUrl }}/{{ PL }}" class="promslogo" />
+                        {% endif %}
+                    </div>
+                </div>
 
-    <div style="text-align:center;">
-        <h1>{{ survey_name }}</h1>
+                <div class="col-md-12 promstitle">
+                    <h1>{{ survey_name }}</h1>
+                </div>
+
+                <div class="col-md-12">
+                    <form method="post" action="" class="form" id="start-survey-form">
+                        {% csrf_token %}
+                        <div class="preambletext">
+                            {{ preamble_text }}
+                        </div>
+                        <div class="submit">
+                            <input type="submit" value="Begin Survey" class="btn btn-success" />
+                        </div>
+                    </form>
+                </div>
+
+            </div>
+        </div>
     </div>
-
-    {% block content %}
-    <form method="post" action="" class="form" id="start-survey-form">
-        {% csrf_token %}
-        <div class="container" style="text-align: justify;
-                                      text-justify: inter-word;
-                                      font-size: 15px;">
-            {{ preamble_text }}
-        </div>
-
-        <div style="text-align:center;margin-top:20px;">
-            <input type="submit" value="Begin Survey" class="btn btn-success" />
-        </div>
-    </form>
-    {% endblock %}
-
-    {% include 'rdrf_cdes/footer.html' %}
-
 </body>
 
 </html>
