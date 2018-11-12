@@ -487,6 +487,7 @@ PROJECT_LOGO = env.get("project_logo", "")
 PROJECT_LOGO_LINK = env.get("project_logo_link", "")
 
 
+
 LOCALE_PATHS = env.getlist("locale_paths", [os.path.join(WEBAPP_ROOT, "translations/locale")])
 
 CRON_CLASSES = []
