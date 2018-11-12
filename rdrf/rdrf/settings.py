@@ -480,7 +480,7 @@ REST_FRAMEWORK = {
 }
 
 
-PROJECT_TITLE = env.get("project_title", "")
+PROJECT_TITLE = env.get("project_title", "Rare Disease Registry Framework")
 PROJECT_TITLE_LINK = "patientslisting"
 # project logo and link
 PROJECT_LOGO = env.get("project_logo", "")
