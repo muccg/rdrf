@@ -480,8 +480,11 @@ REST_FRAMEWORK = {
 }
 
 
-PROJECT_TITLE = "Rare Disease Registry Framework"
+PROJECT_TITLE = env.get("project_title", "Rare Disease Registry Framework")
 PROJECT_TITLE_LINK = "patientslisting"
+# project logo and link
+PROJECT_LOGO = env.get("project_logo", "")
+PROJECT_LOGO_LINK = env.get("project_logo_link", "")
 
 
 LOCALE_PATHS = env.getlist("locale_paths", [os.path.join(WEBAPP_ROOT, "translations/locale")])
@@ -515,3 +518,4 @@ AUTH_PASSWORD_VALIDATORS = [{
 # setup for PROMS
 PROMS_SECRET_TOKEN = env.get("proms_secret_token", "foobar")  # todo set this us in env etc
 PROMS_USERNAME = env.get("proms_username", "promsuser")
+PROMS_LOGO = env.get("proms_logo", "")

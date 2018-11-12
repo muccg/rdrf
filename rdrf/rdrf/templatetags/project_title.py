@@ -6,4 +6,5 @@ register = template.Library()
 
 @register.simple_tag
 def project_title():
-    return _("%s" % (settings.PROJECT_TITLE))
+    if settings.PROJECT_TITLE is not None:
+        return _("%s" % (settings.PROJECT_TITLE))
