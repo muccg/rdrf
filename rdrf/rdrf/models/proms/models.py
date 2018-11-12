@@ -10,6 +10,7 @@ from rdrf.models.definition.models import CommonDataElement
 from rdrf.services.io.notifications.notifications import Notifier
 from rdrf.services.io.notifications.notifications import NotificationError
 from registry.patients.models import Patient
+# from simple_history.models import HistoricalRecords
 
 logger = logging.getLogger(__name__)
 
@@ -153,6 +154,7 @@ class SurveyRequest(models.Model):
     user = models.CharField(max_length=80)  # username
     state = models.CharField(max_length=20, choices=SURVEY_REQUEST_STATES, default="created")
     response = models.TextField(blank=True, null=True)
+    # history = HistoricalRecords()
 
     def send(self):
         logger.debug("sending request ...")
@@ -242,3 +244,7 @@ class SurveyRequest(models.Model):
     @property
     def qrcode_link(self):
         return reverse('promsqrcode', args=[self.patient_token])
+
+    @property
+    def patient_name(self):
+        return "%s" % self.patient.family_name
