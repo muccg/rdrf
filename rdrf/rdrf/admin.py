@@ -27,8 +27,6 @@ from rdrf.models.proms.models import Precondition
 from rdrf.models.proms.models import SurveyAssignment
 from rdrf.models.proms.models import SurveyRequest
 
-# from simple_history.admin import SimpleHistoryAdmin
-
 from reversion.admin import VersionAdmin
 
 import logging
@@ -389,11 +387,11 @@ class SurveyAdmin(admin.ModelAdmin):
     list_display = ("registry", "name")
     inlines = [SurveyQuestionAdmin]
 
-class SurveyRequestAdmin(VersionAdmin):
+class SurveyRequestAdmin(admin.ModelAdmin):
     model = SurveyRequest
-    list_display = ["patient_name", "state", "survey_name", "created", "updated"]
-    # history_list_display = ["state"]
-    # search_fields = ['patient_name']
+    list_display = ("patient_name", "survey_name", "patient_token", "created", "updated", "state", "error_detail", "user")
+    search_fields = ("survey_name", "patient__family_name", "patient__given_names")
+    list_display_links = None
 
 class SurveyAssignmentAdmin(admin.ModelAdmin):
     model = SurveyAssignment
@@ -417,7 +415,6 @@ admin.site.register(QuestionnaireResponse, QuestionnaireResponseAdmin)
 admin.site.register(Survey, SurveyAdmin)
 admin.site.register(SurveyAssignment, SurveyAssignmentAdmin)
 admin.site.register(Precondition, PreconditionAdmin)
-# admin.site.register(SurveyRequest, SimpleHistoryAdmin)
 admin.site.register(SurveyRequest, SurveyRequestAdmin)
 
 

@@ -10,7 +10,6 @@ from rdrf.models.definition.models import CommonDataElement
 from rdrf.services.io.notifications.notifications import Notifier
 from rdrf.services.io.notifications.notifications import NotificationError
 from registry.patients.models import Patient
-# from simple_history.models import HistoricalRecords
 
 logger = logging.getLogger(__name__)
 
@@ -112,6 +111,7 @@ class SurveyRequestStates:
     CREATED = "created"
     REQUESTED = "requested"
     RECEIVED = "received"
+    ERROR = "error"
 
 class SurveyAssignment(models.Model):
     """
@@ -144,7 +144,8 @@ class SurveyRequest(models.Model):
     SURVEY_REQUEST_STATES = (
         (SurveyRequestStates.CREATED, "Created"),
         (SurveyRequestStates.REQUESTED, "Requested"),
-        (SurveyRequestStates.RECEIVED, "Received"))
+        (SurveyRequestStates.RECEIVED, "Received"),
+        (SurveyRequestStates.ERROR, "Error"))
     registry = models.ForeignKey(Registry)
     patient = models.ForeignKey(Patient)
     survey_name = models.CharField(max_length=80)
@@ -153,8 +154,8 @@ class SurveyRequest(models.Model):
     updated = models.DateTimeField(auto_now=True)
     user = models.CharField(max_length=80)  # username
     state = models.CharField(max_length=20, choices=SURVEY_REQUEST_STATES, default="created")
+    error_detail = models.TextField(blank=True, null=True)
     response = models.TextField(blank=True, null=True)
-    # history = HistoricalRecords()
 
     def send(self):
         logger.debug("sending request ...")
@@ -162,9 +163,11 @@ class SurveyRequest(models.Model):
             try:
                 self._send_proms_request()
                 logger.debug("sent request to PROMS system OK")
+
             except PromsRequestError as pre:
                 logger.error("Error sending survey request %s: %s" % (self.pk,
                                                                       pre))
+                self.logerror(pre)
                 return False
 
             try:
@@ -176,6 +179,7 @@ class SurveyRequest(models.Model):
             except PromsEmailError as pe:
                 logger.error("Error emailing survey request %s: %s" % (self.pk,
                                                                        pe))
+                self.logerror(pe)
                 return False
 
     def _send_proms_request(self):
@@ -206,6 +210,13 @@ class SurveyRequest(models.Model):
         packet["state"] = "requested"
         packet["response"] = "{}"
         return packet
+
+    def logerror(self, msg):
+        logger.debug("Error message %s" % msg)
+        self.state = SurveyRequestStates.ERROR
+        self.error_detail = msg
+        self.save()
+        #self.error_condition = msg.toString()
 
     @property
     def email_link(self):
@@ -247,4 +258,5 @@ class SurveyRequest(models.Model):
 
     @property
     def patient_name(self):
-        return "%s" % self.patient.family_name
+        return "%s %s" % (self.patient.given_names,
+                          self.patient.family_name)
