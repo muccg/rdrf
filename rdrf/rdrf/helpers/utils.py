@@ -15,6 +15,7 @@ import logging
 import re
 import os.path
 import subprocess
+import uuid
 
 logger = logging.getLogger(__name__)
 
@@ -724,3 +725,7 @@ def get_full_path(registry_model, cde_code):
         raise ValueError("cde code %s is not unique or not used by registry %s" % (cde_code, registry_model.code))
 
     return triples[0]
+
+
+def generate_token():
+    return str(uuid.uuid4())

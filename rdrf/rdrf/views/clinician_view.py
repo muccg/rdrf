@@ -20,6 +20,7 @@ from registry.patients.models import ClinicianOther
 from registry.groups.models import CustomUser
 
 from rdrf.models.definition.models import Registry
+from rdrf.models.workflow_models import ClinicianSignupRequest
 from rdrf.security.security_checks import security_check_user_patient
 from rdrf.forms.components import RDRFContextLauncherComponent
 from rdrf.forms.navigation.locators import PatientLocator
@@ -260,3 +261,42 @@ class ClinicianFormView(View):
 
         context = self._build_context()
         return self._render_context(request, context)
+
+
+class ClinicianActivationView(View):
+    """
+    Clinician who receives an activation link lands here to confirm and 
+    create a user for themselves
+    """
+    
+    def get(self, request):
+        token = request.GET.get("t", None)
+        if not token:
+            raise Http404()
+
+        csr = get_object_or_404(ClinicianSignUpRequest,
+                                token=token)
+
+        # populate the view data from the ClinicianOther model which stores
+        # what the parent thinks is the correct data ...
+        if csr.state != 'requested':
+            raise Http404()
+
+        template_data = self._build_context(csr)
+
+        return self._render_context(request, template_data)
+
+    def _build_context(self, clinician_signup_request):
+        context = {}
+        clin = clinician_signup_request.clinician_other
+        context["first_name"] = clin.first_name
+        context["last_name"] = clin.last_name
+
+        return context
+
+    def _render_context(self, request, context):
+        context.update(csrf(request))
+        return render(request, self._get_template(), context)
+
+    def _get_template(self):
+        return "rdrf_cdes/clinician_activation.html"

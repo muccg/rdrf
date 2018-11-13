@@ -14,6 +14,7 @@ import pycountry
 from rdrf.db.dynamic_data import DynamicDataWrapper
 from rdrf.models.definition.models import Registry, Section, ConsentQuestion
 from rdrf.models.definition.models import ClinicalData
+from rdrf.models.workflow_models import ClinicianSignupRequest
 import registry.groups.models
 from registry.utils import get_working_groups, get_registries, stripspaces
 from registry.groups.models import CustomUser
@@ -1142,8 +1143,8 @@ def other_clinician_post_save(sender, instance, created, raw, using, update_fiel
         from rdrf.events.events import EventType
         from rdrf.services.io.notifications.email_notification import process_notification
 
-        other_clinican = instance
-        patient = other_clinican.patient
+        other_clinician = instance
+        patient = other_clinician.patient
         registry_model = patient.rdrf_registry.first()
         # model allows for patient to have more than one parent ...
         try:
@@ -1157,10 +1158,22 @@ def other_clinician_post_save(sender, instance, created, raw, using, update_fiel
             "parent": parent,
             "other_clinician": instance,
         }
-
+        # this sends an email notification to (a) curator
         process_notification(registry_model.code,
                              EventType.OTHER_CLINICIAN,
                              template_data)
+
+        # new <?> workflow - we notify the clinician asking them to sign up and verify
+        # this stores email from the model at the time of the request
+    
+        csr = ClinicianSignupRequest.create(registry_model=registry_model,
+                                            patient_model=patient,
+                                            clinician_email=other_clinician.clinician_email,
+                                            clinician_other=other_clinician)
+
+        csr.send_request()
+                                            
+        
 
 
 @receiver(post_save, sender=Patient)
