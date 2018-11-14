@@ -69,14 +69,6 @@ class App extends React.Component<AppInterface, object> {
         }
     }
 
-    clickNext(position, event) {
-        this.onSwipeLeft.bind(this);
-    }
-
-    clickBack(position, event) {
-        this.onSwipeRight.bind(this);
-    }
-
     render() {
         var nextButton;
         var backButton;
