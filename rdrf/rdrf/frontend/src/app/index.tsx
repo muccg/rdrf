@@ -13,8 +13,6 @@ import { Container, Row, Col } from 'reactstrap';
 
 import { ElementList } from '../pages/proms_page/logic';
 
-//import * as Swipe from 'react-easy-swipe';
-
 import Swipe from 'react-easy-swipe';
 import { isMobile } from 'react-device-detect';
 
@@ -71,53 +69,66 @@ class App extends React.Component<AppInterface, object> {
         }
     }
 
+    clickNext(position, event) {
+        this.onSwipeLeft.bind(this);
+    }
+
+    clickBack(position, event) {
+        this.onSwipeRight.bind(this);
+    }
+
     render() {
         var nextButton;
-
-        if (isMobile) {
-            console.log("Mobile device");
-        } else {
-            console.log("Someother device");
-        }
+        var backButton;
 
         if (this.atEnd()) {
             console.log("at end");
-            nextButton = (<Button onClick={this.props.submitAnswers}>Submit Answers</Button>);
+            nextButton = (<Button onClick={this.props.submitAnswers} color="success" size="sm">Submit Answers</Button>);
         }
         else {
             console.log("not at end");
-            //nextButton = (<Button disabled={this.isNextButtonDisabled()} onClick={this.props.goNext}>Next</Button>);
-            nextButton = " ";//(<Button disabled={this.isNextButtonDisabled()} onClick={this.props.goNext}>Next</Button>);
-        };
+            nextButton = !isMobile ? 
+              (<Col sm={{ size: 1, order: 3, offset: 1 }}>
+                <Button onClick={this.onSwipeLeft.bind(this)} size="sm" color="info">Next</Button>
+            </Col>) : "";
+        }
+
+        if (this.atBeginning()) {
+            backButton = !isMobile ? 
+              (<Col sm={{ size: 1 }}>
+                <Button onClick={this.onSwipeRight.bind(this)} color="info" size="sm" disabled>Previous</Button>
+               </Col>) : "";
+        } else {
+            backButton = !isMobile ? 
+              (<Col sm={{ size: 1 }}>
+                <Button onClick={this.onSwipeRight.bind(this)} color="info" size="sm">Previous</Button>
+               </Col>) : "";
+        }
 
         return (
-
             <div className="App">
                 <Container>
                     <Swipe onSwipeLeft={this.onSwipeLeft.bind(this)}
                         onSwipeRight={this.onSwipeRight.bind(this)}>
+                        <div className="mb-4">
+                            <Row>
+                                <Col>
+                                    <Instruction stage={this.props.stage} />
+                                </Col>
+                            </Row>
 
+                            <Row>
+                                <Col>
+                                    <Question title={this.props.title} stage={this.props.stage} questions={this.props.questions} />
+                                </Col>
+                            </Row>
+                        </div>
                         <Row>
-                            <Col>
-                                <Instruction stage={this.props.stage} />
-                            </Col>
-                        </Row>
-
-                        <Row>
-                            <Col>
-                                <Question title={this.props.title} stage={this.props.stage} questions={this.props.questions} />
-                            </Col>
-                        </Row>
-
-                        <Row>
-                            <Col>
-                                {nextButton}
-                            </Col>
-                        </Row>
-                        <Row>
+                            {backButton}
                             <Col sm={{ size: 4, order: 2, offset: 1 }}>
                                 <Progress color="info" value={this.getProgress()}>{this.getProgress()}%</Progress>
                             </Col>
+                            {nextButton}
                         </Row>
                     </Swipe>
                 </Container>
