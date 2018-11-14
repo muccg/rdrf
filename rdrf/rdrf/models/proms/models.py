@@ -11,6 +11,8 @@ from rdrf.services.io.notifications.notifications import Notifier
 from rdrf.services.io.notifications.notifications import NotificationError
 from registry.patients.models import Patient
 
+from rest_framework import status
+
 logger = logging.getLogger(__name__)
 
 def generate_token():
@@ -167,7 +169,7 @@ class SurveyRequest(models.Model):
             except PromsRequestError as pre:
                 logger.error("Error sending survey request %s: %s" % (self.pk,
                                                                       pre))
-                self.logerror(pre)
+                self.log_error(pre)
                 return False
 
             try:
@@ -179,7 +181,7 @@ class SurveyRequest(models.Model):
             except PromsEmailError as pe:
                 logger.error("Error emailing survey request %s: %s" % (self.pk,
                                                                        pe))
-                self.logerror(pe)
+                self.log_error(pe)
                 return False
 
     def _send_proms_request(self):
@@ -197,9 +199,11 @@ class SurveyRequest(models.Model):
         survey_assignment_data = self._get_survey_assignment_data()
         headers = {'PROMS_SECRET_TOKEN': settings.PROMS_SECRET_TOKEN}
 
-        requests.post(api_url,
-                      data=survey_assignment_data,
-                      headers=headers)
+        response = requests.post(api_url,
+                                 data=survey_assignment_data,
+                                 headers=headers)
+        logger.debug("response code %s" % response.status_code)
+        self.check_response_for_error(response)
         logger.debug("posted data")
 
     def _get_survey_assignment_data(self):
@@ -211,12 +215,31 @@ class SurveyRequest(models.Model):
         packet["response"] = "{}"
         return packet
 
-    def logerror(self, msg):
+    def log_error(self, msg):
         logger.debug("Error message %s" % msg)
         self.state = SurveyRequestStates.ERROR
         self.error_detail = msg
         self.save()
-        #self.error_condition = msg.toString()
+
+    def check_response_for_error(self, response):
+        if (status.is_success(response.status_code)
+                and response.status_code == status.HTTP_201_CREATED):
+            logger.debug("Survey request Created")
+            return True
+
+        if (status.is_success(response.status_code)):
+            logger.debug("Error with other status %s" % response.status_code)
+            self.log_error("Error with other status %s" % response)
+            raise PromsRequestError("Error with code %s" % response.status_code)
+
+        if (status.is_client_error(response.status_code)):
+            logger.debug("Client Error %s" % response.status_code)
+            self.log_error("Client Error %s" % response)
+            raise PromsRequestError("Client Error with code %s" % response.status_code)
+        elif (status.is_server_error(response.status_code)):
+            logger.debug("Server error %s" % response.status_code)
+            self.log_error("Server error %s" % response)
+            raise PromsRequestError("Server error with code %s" % response.status_code)
 
     @property
     def email_link(self):
