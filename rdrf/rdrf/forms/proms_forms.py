@@ -13,7 +13,6 @@ class SurveyRequestForm(forms.ModelForm):
     class Meta:
         model = SurveyRequest
         fields = '__all__'
-        exclude = ['error_detail']
         widgets = {
             "registry": forms.HiddenInput(),
             "patient": forms.HiddenInput(),
