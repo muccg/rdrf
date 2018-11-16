@@ -249,18 +249,29 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
 
 @receiver(user_registered)
 def user_registered_callback(sender, user, request, **kwargs):
+    logger.debug("user registered callback")
     reg_code = request.POST['registry_code']
-    patient_reg = None
+    reg = None
     if reg_code == "fkrp":
         from fkrp.patient_registration import FkrpRegistration
-        patient_reg = FkrpRegistration(user, request)
+        reg = FkrpRegistration(user, request)
     elif reg_code == "ang":
-        from angelman.patient_registration import AngelmanRegistration
-        patient_reg = AngelmanRegistration(user, request)
+        logger.debug("angelman registry ...")
+        token = request.GET.get("t", None)
+        if token:
+            logger.debug("clinician token = %s" % token)
+            # Clinician Registration
+            from angelman.clinician_registration import ClinicianRegistration
+            reg = ClinicianRegistration(user, token)
+        else:
+            # Patient Registration
+            from angelman.patient_registration import AngelmanRegistration
+            reg = AngelmanRegistration(user, request)
     elif reg_code == "mtm":
         from mtm.patient_registration import MtmRegistration
-        patient_reg = MtmRegistration(user, request)
-    patient_reg.process()
+        reg = MtmRegistration(user, request)
+    if reg:
+        reg.process()
 
 
 @receiver(user_activated)

@@ -42,6 +42,7 @@ class RdrfEmail(object):
             if len(recipients) == 0:
                 # If the recipient template does not evaluate to a valid email address this will be
                 # true
+                logger.debug("no recipients")
                 return
             for recipient in recipients:
                 language = self._get_preferred_language(recipient)
@@ -67,20 +68,22 @@ class RdrfEmail(object):
             logger.warning(
                 "No notification available for %s (%s)" %
                 (self.reg_code, self.description))
-        except Exception as e:
-            logger.exception("Email has failed to send")
+        #except Exception as e:
+        #    logger.exception("Email has failed to send")
 
     def _get_preferred_language(self, email_address):
-        user_model = self._get_user_from_email(email_address)
-        return user_model.preferred_language
+        def pref_lang():
+            return self.template_data.get("preferred_language", "en")
+        try:
+            user_model = self._get_user_from_email(email_address)
+            return user_model.preferred_language
+        except CustomUser.DoesNotExist:
+            return pref_lang()
+        except CustomUser.MultipleObjectsReturned:
+            return pref_lang()
 
     def _get_user_from_email(self, email_address):
-        try:
-            return CustomUser.objects.get(email=email_address)
-        except CustomUser.DoesNotExist:
-            raise RdrfEmailException("No user with email address %s" % email_address)
-        except CustomUser.MultipleObjectsReturned:
-            raise RdrfEmailException("More than one user with email address %s" % email_address)
+        return CustomUser.objects.get(email=email_address)
 
     def _get_recipients(self):
         recipients = []
@@ -179,4 +182,5 @@ def process_notification(reg_code=None, description=None, template_data={}):
         logger.info("Sending email %s" % note)
         email = RdrfEmail(email_notification=note)
         email.template_data = template_data
+        logger.debug("template_data = %s" % template_data)
         email.send()

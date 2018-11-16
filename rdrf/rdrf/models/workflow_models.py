@@ -36,18 +36,31 @@ class ClinicianSignupRequest(models.Model):
     def _send_email(self):
         from rdrf.services.io.notifications.email_notification import process_notification
         from rdrf.events.events import EventType
+        from registry.patients.models import Patient
+        from registry.patients.models import ParentGuardian
+        self.speciality = "Brain Surgeon"
+        patient = Patient.objects.get(id=self.patient_id)
+        parent = ParentGuardian.objects.get(patient=patient)
+        participant_name = "%s %s" % (parent.first_name, parent.last_name)
+        patient_name = "%s" % patient
+
         template_data = {"speciality": self.speciality,
-                         "link": self._construct_activation_link()}
+                         "clinician_last_name": self.clinician_other.clinician_name,
+                         "participant_name": participant_name,
+                         "clinician_email": self.clinician_other.clinician_email,
+                         "patient_name": patient_name,
+                         "registration_link": self._construct_registration_link()}
 
         process_notification(self.registry.code,
                              EventType.CLINICIAN_SIGNUP_REQUEST,
                              template_data)
 
-    def _construct_activation_link(self):
+    def _construct_registration_link(self):
         """
         Return a link which will be sent to a clinician to activate ( become a user)
         """
-        return reverse("clinician_activation") + "?t=%s" % self.token
+        site_url = "http://localhost:8000"
+        return site_url + reverse("registration_register", args=(self.registry.code,)) + "?t=%s" % self.token
 
     @staticmethod
     def create(registry_model, patient_model, clinician_other, clinician_email):
