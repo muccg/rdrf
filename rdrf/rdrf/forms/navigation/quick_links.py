@@ -93,6 +93,7 @@ class Links:
     ConsentRules = QuickLink(reverse("admin:rdrf_consentrule_changelist"), _("Consent Rules"))
     Surveys = QuickLink(reverse("admin:rdrf_survey_changelist"), _("Surveys"))
     SurveyAssignments = QuickLink(reverse("admin:rdrf_surveyassignment_changelist"), _("Survey Assignments"))
+    SurveyRequest = QuickLink(reverse("admin:rdrf_surveyrequest_changelist"), _("Survey Request"))
 
     if settings.DESIGN_MODE:
         RegistryForms = QuickLink(
@@ -198,6 +199,7 @@ class Links:
     PROMS = {
         Surveys.text: Surveys,
         SurveyAssignments.text: SurveyAssignments,
+        SurveyRequest.text : SurveyRequest,
     }
 
     # only appear if related registry specific feature is set
