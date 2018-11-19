@@ -11,12 +11,12 @@
 {% load translate %}
 {% load add_language_modifier %}
 
-
 {% block extrastyle %}
     {{block.super}}
     <link rel="stylesheet" href="{% static 'css/jquery-1.11.4/themes/smoothness/jquery-ui.min.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'css/rdrf.css' %}" media="all">
 
-    <script type="text/javascript" src={% static 'js/rpc_module.js' %}></script>
+    <script type="text/javascript" src="{% static 'js/rpc_module.js' %}"></script>
     <script type="text/javascript" src="{% static 'js/vendor/jquery-ui-1.11.4.min.js' %}"></script>
 
     <script>
@@ -89,7 +89,9 @@
         <td>{{sr.email_link}}</td>
         <td>{{sr.state}}</td>
 	{% if sr.state == 'requested' %}
-	    <td><image src="{{ sr.qrcode_link }}"/></td>
+        <td>
+            <img src="{{ sr.qrcode_link }}" width="80" height="80" >
+        </td>
 	{% else %}
 	    <td>NA</td>
 	{% endif %}
@@ -101,7 +103,7 @@
 		      
 								
                  	        </div>  <!-- panel body -->
-                </div>  <!-- panel -->
+            </div>  <!-- panel -->
 	    </div>
 	</div>
 
