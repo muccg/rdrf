@@ -10,7 +10,6 @@ from rdrf.models.definition.models import CommonDataElement
 from rdrf.services.io.notifications.notifications import Notifier
 from rdrf.services.io.notifications.notifications import NotificationError
 from registry.patients.models import Patient
-# from simple_history.models import HistoricalRecords
 
 from rest_framework import status
 
@@ -179,7 +178,7 @@ class SurveyRequest(models.Model):
                 except PromsRequestError as pre:
                     logger.error("Error sending survey request %s: %s" % (self.pk,
                                                                         pre))
-                    self.log_error(pre)
+                    self._set_error(pre)
                     return False
 
             if (self.communication_type == 'email'):
@@ -192,7 +191,7 @@ class SurveyRequest(models.Model):
                 except PromsEmailError as pe:
                     logger.error("Error emailing survey request %s: %s" % (self.pk,
                                                                         pe))
-                    self.log_error(pe)
+                    self._set_error(pe)
                     return False
 
     def _send_proms_request(self):
@@ -226,7 +225,7 @@ class SurveyRequest(models.Model):
         packet["response"] = "{}"
         return packet
 
-    def log_error(self, msg):
+    def _set_error(self, msg):
         logger.debug("Error message %s" % msg)
         self.state = SurveyRequestStates.ERROR
         self.error_detail = msg
@@ -240,16 +239,16 @@ class SurveyRequest(models.Model):
 
         if (status.is_success(response.status_code)):
             logger.debug("Error with other status %s" % response.status_code)
-            self.log_error("Error with other status %s" % response)
+            self._set_error("Error with other status %s" % response)
             raise PromsRequestError("Error with code %s" % response.status_code)
 
         if (status.is_client_error(response.status_code)):
             logger.debug("Client Error %s" % response.status_code)
-            self.log_error("Client Error %s" % response)
+            self._set_error("Client Error %s" % response)
             raise PromsRequestError("Client Error with code %s" % response.status_code)
         elif (status.is_server_error(response.status_code)):
             logger.debug("Server error %s" % response.status_code)
-            self.log_error("Server error %s" % response)
+            self._set_error("Server error %s" % response)
             raise PromsRequestError("Server error with code %s" % response.status_code)
 
     @property
