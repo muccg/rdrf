@@ -88,7 +88,7 @@
         <td>{{sr.updated}}</td>
         <td>{{sr.email_link}}</td>
         <td>{{sr.state}}</td>
-	{% if sr.state == 'requested' %}
+	{% if sr.state == 'requested' and sr.communication_type == 'qrcode' %}
         <td>
             <img src="{{ sr.qrcode_link }}" width="80" height="80" >
         </td>

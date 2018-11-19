@@ -116,6 +116,10 @@ class SurveyRequestStates:
     RECEIVED = "received"
     ERROR = "error"
 
+class CommunicationTypes:
+    QRCODE = "qrcode"
+    EMAIL = "email"
+
 class SurveyAssignment(models.Model):
     """
     This gets created on the proms system
@@ -149,6 +153,9 @@ class SurveyRequest(models.Model):
         (SurveyRequestStates.REQUESTED, "Requested"),
         (SurveyRequestStates.RECEIVED, "Received"),
         (SurveyRequestStates.ERROR, "Error"))
+    COMMUNICATION_TYPES = (
+        (CommunicationTypes.QRCODE, "QRCode"),
+        (CommunicationTypes.EMAIL, "Email"))
     registry = models.ForeignKey(Registry)
     patient = models.ForeignKey(Patient)
     survey_name = models.CharField(max_length=80)
@@ -159,31 +166,34 @@ class SurveyRequest(models.Model):
     state = models.CharField(max_length=20, choices=SURVEY_REQUEST_STATES, default="created")
     error_detail = models.TextField(blank=True, null=True)
     response = models.TextField(blank=True, null=True)
+    communication_type = models.CharField(max_length=10, choices=COMMUNICATION_TYPES, default="qrcode")
 
     def send(self):
         logger.debug("sending request ...")
         if self.state == SurveyRequestStates.REQUESTED:
-            try:
-                self._send_proms_request()
-                logger.debug("sent request to PROMS system OK")
+            if (self.communication_type == 'qrcode'):
+                try:
+                    self._send_proms_request()
+                    logger.debug("sent request to PROMS system OK")
 
-            except PromsRequestError as pre:
-                logger.error("Error sending survey request %s: %s" % (self.pk,
-                                                                      pre))
-                self.log_error(pre)
-                return False
+                except PromsRequestError as pre:
+                    logger.error("Error sending survey request %s: %s" % (self.pk,
+                                                                        pre))
+                    self.log_error(pre)
+                    return False
 
-            try:
-                logger.debug("sending email to patient ...")
-                self._send_email()
-                logger.debug("sent email to patient OK")
+            if (self.communication_type == 'email'):
+                try:
+                    logger.debug("sending email to patient ...")
+                    self._send_email()
+                    logger.debug("sent email to patient OK")
 
-                return True
-            except PromsEmailError as pe:
-                logger.error("Error emailing survey request %s: %s" % (self.pk,
-                                                                       pe))
-                self.log_error(pe)
-                return False
+                    return True
+                except PromsEmailError as pe:
+                    logger.error("Error emailing survey request %s: %s" % (self.pk,
+                                                                        pe))
+                    self.log_error(pe)
+                    return False
 
     def _send_proms_request(self):
         from django.conf import settings

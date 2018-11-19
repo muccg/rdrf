@@ -417,7 +417,6 @@ admin.site.register(QuestionnaireResponse, QuestionnaireResponseAdmin)
 admin.site.register(Survey, SurveyAdmin)
 admin.site.register(SurveyAssignment, SurveyAssignmentAdmin)
 admin.site.register(Precondition, PreconditionAdmin)
-# admin.site.register(SurveyRequest, SimpleHistoryAdmin)
 admin.site.register(SurveyRequest, SurveyRequestAdmin)
 
 
