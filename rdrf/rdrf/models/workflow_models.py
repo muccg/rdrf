@@ -40,9 +40,13 @@ class ClinicianSignupRequest(models.Model):
         from registry.patients.models import ParentGuardian
         self.speciality = "Brain Surgeon"
         patient = Patient.objects.get(id=self.patient_id)
-        parent = ParentGuardian.objects.get(patient=patient)
-        participant_name = "%s %s" % (parent.first_name, parent.last_name)
-        patient_name = "%s" % patient
+        try:
+            parent = ParentGuardian.objects.get(patient=patient)
+            participant_name = "%s %s" % (parent.first_name, parent.last_name)
+        except ParentGuardian.DoesNotExist:
+            participant_name = "No parent"
+            
+        patient_name = "%s %s" % (patient.given_names, patient.family_name)
 
         template_data = {"speciality": self.speciality,
                          "clinician_last_name": self.clinician_other.clinician_name,

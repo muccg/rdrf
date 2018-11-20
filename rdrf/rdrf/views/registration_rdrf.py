@@ -22,6 +22,7 @@ class RdrfRegistrationView(RegistrationView):
             workflow = get_registration_workflow(token)
             if workflow:
                 logger.debug("workflow found")
+                request.session["token"] = token
                 self.template_name = workflow.get_template()
             else:
                 logger.debug("no workflow")
@@ -33,12 +34,13 @@ class RdrfRegistrationView(RegistrationView):
         return self.render_to_response(context)
 
     def post(self, request, *args, **kwargs):
+        token = request.session.get("token", None)
+        logger.debug("token = %s" % token)
+        workflow = get_registration_workflow(token)
+        logger.debug("workflow = %s" % workflow)
         form_class = self.get_form_class()
         logger.debug("form class = %s" % form_class)
         form = self.get_form(form_class)
-        user_class = request.session.get("registration_user_class", None)
-        logger.debug("POST user_class = %s" % user_class)
-        logger.debug("RdrfRegistrationView post")
 
         if form.is_valid():
             logger.debug("RdrfRegistrationView post form valid")

@@ -192,6 +192,14 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
         else:
             return any([r.has_feature(feature) for r in Registry.objects.all()])
 
+    def add_group(self, group_name):
+        from django.contrib.auth.models import Group
+        existing_groups = [g.name for g in self.groups.all()]
+        if group_name not in existing_groups:
+            group = Group.objects.get(name=group_name)
+            self.groups.add(group)
+        
+
     def can_view(self, registry_form_model):
         if self.is_superuser:
             return True
@@ -256,17 +264,8 @@ def user_registered_callback(sender, user, request, **kwargs):
         from fkrp.patient_registration import FkrpRegistration
         reg = FkrpRegistration(user, request)
     elif reg_code == "ang":
-        logger.debug("angelman registry ...")
-        token = request.GET.get("t", None)
-        if token:
-            logger.debug("clinician token = %s" % token)
-            # Clinician Registration
-            from angelman.clinician_registration import ClinicianRegistration
-            reg = ClinicianRegistration(user, token)
-        else:
-            # Patient Registration
-            from angelman.patient_registration import AngelmanRegistration
-            reg = AngelmanRegistration(user, request)
+        from angelman.patient_registration import AngelmanRegistration
+        reg = AngelmanRegistration(user, request)
     elif reg_code == "mtm":
         from mtm.patient_registration import MtmRegistration
         reg = MtmRegistration(user, request)
@@ -294,6 +293,20 @@ def user_activated_callback(sender, user, request, **kwargs):
         patients = [p for p in parent.patient.all()]
         if len(patients) >= 1:
             patient = patients[0]
+
+    elif user.is_clinician:
+        # is there a ClinicianSignupRequest
+        from rdrf.models.workflow_models import ClinicianSignUpRequest
+        try:
+            csr = ClinicianSignupRequest.objects.get(clinician_email=user.username)
+        except ClinicianSignUpRequest.DoesNotExist:
+            pass
+        except ClinicianSignUpRequest.MultipleObjectsReturned:
+            pass
+
+        csr.clinican_other.user = user
+        csr.clinician_other.save()
+        
 
     if patient:
         template_data["patient"] = patient
