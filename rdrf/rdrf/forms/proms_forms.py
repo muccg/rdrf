@@ -20,4 +20,5 @@ class SurveyRequestForm(forms.ModelForm):
             "user": forms.HiddenInput(),
             "state": forms.HiddenInput(),
             "patient_token": forms.HiddenInput(),
+            "error_detail": forms.HiddenInput,
         }
