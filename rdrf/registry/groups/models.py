@@ -296,16 +296,7 @@ def user_activated_callback(sender, user, request, **kwargs):
 
     elif user.is_clinician:
         # is there a ClinicianSignupRequest
-        from rdrf.models.workflow_models import ClinicianSignUpRequest
-        try:
-            csr = ClinicianSignupRequest.objects.get(clinician_email=user.username)
-        except ClinicianSignUpRequest.DoesNotExist:
-            pass
-        except ClinicianSignUpRequest.MultipleObjectsReturned:
-            pass
-
-        csr.clinican_other.user = user
-        csr.clinician_other.save()
+        logger.debug("clinician user %s now active" % user)
         
 
     if patient:

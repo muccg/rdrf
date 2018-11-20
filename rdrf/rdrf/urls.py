@@ -270,7 +270,9 @@ urlpatterns += [
     url(r"^(?P<registry_code>\w+)/verifications/(?P<patient_id>\d+)/(?P<context_id>\d+)/?$",
         PatientVerificationView.as_view(), name='patient_verification'),
 
-    url(r"^activation?$", clinician_view.ClinicianActivationView.as_view(), name="clinician_activation"),
+    url(r'^clinicianactivate/(?P<activation_key>\w+)/?$',
+        clinician_view.ClinicianActivationView.as_view(),
+        name='clinician_activate'),
 
     # ---- Email Notifications URLs -------------
     url(r"^resend_email/(?P<notification_history_id>\w+)/?$",

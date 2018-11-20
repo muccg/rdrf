@@ -1407,6 +1407,7 @@ class EmailNotification(models.Model):
         (EventType.PASSWORD_EXPIRY_WARNING, "Password Expiry Warning"),
         (EventType.REMINDER, "Reminder"),
         (EventType.CLINICIAN_SIGNUP_REQUEST, "Clinician Signup Request"),
+        (EventType.CLINICIAN_ACTIVATION, "Clinician Activation"),
         (EventType.CLINICIAN_SELECTED, "Clinician Selected")
     )
 
