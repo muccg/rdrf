@@ -60,21 +60,11 @@ function clearAnswerOnSwipeBack(state: any): any {
     return newAnswers;
 }
 
-function countAnswers(obj) {
-    var count = 0;
-    for (var property in obj) {
-        if (Object.prototype.hasOwnProperty.call(obj, property)) {
-            count++;
-        }
-    }
-    return count;
-}
-
 function updateConsent(state: any): any {
     let questionCount = state.questions.length;
     console.log("No of Questions " + questionCount);
     let oldAnswers = state.answers;
-    var answerCount = countAnswers(oldAnswers);
+    var answerCount = Object.keys(oldAnswers).length;
     console.log("No of Answers " + answerCount);
     if (questionCount > answerCount) {
         let questionCode = state.questions[questionCount - 1].cde;

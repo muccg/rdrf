@@ -44,6 +44,10 @@ class App extends React.Component<AppInterface, object> {
     getProgress(): number {
         let numQuestions: number = this.props.questions.length;
         let numAnswers: number = Object.keys(this.props.answers).length;
+        if (this.atEnd() && numQuestions==numAnswers) {
+            numAnswers = numAnswers - 1;
+        }
+        numQuestions = numQuestions - 1; // consent not considered
         return Math.floor(100.00 * (numAnswers / numQuestions));
     }
 
@@ -58,7 +62,7 @@ class App extends React.Component<AppInterface, object> {
     }
 
     onSwipeRight(position, event) {
-        if (!this.atBeginning() && this.isQuestionAnswered()) {
+        if (!this.atBeginning() && (this.isQuestionAnswered() || this.atEnd())) {
             this.props.goPrevious();
         }
     }
@@ -73,6 +77,7 @@ class App extends React.Component<AppInterface, object> {
         var nextButton;
         var backButton;
         var submitButton;
+        var progressBar;
 
         if (this.atEnd()) {
             console.log("at end");
@@ -109,6 +114,14 @@ class App extends React.Component<AppInterface, object> {
                </Col>) : "";
         }
 
+        if (!this.atEnd()) {
+            progressBar = (
+                <Col sm={{ size: 4, order: 2, offset: 1 }}>
+                    <Progress color="info" value={this.getProgress()}>{this.getProgress()}%</Progress>
+                </Col>
+            )
+        }
+
         return (
             <div className="App">
                 <Container>
@@ -130,9 +143,7 @@ class App extends React.Component<AppInterface, object> {
                         <div className="mb-4">
                         <Row>
                             {backButton}
-                            <Col sm={{ size: 4, order: 2, offset: 1 }}>
-                                <Progress color="info" value={this.getProgress()}>{this.getProgress()}%</Progress>
-                            </Col>
+                            {progressBar}
                             {nextButton}
                         </Row>
                         </div>
