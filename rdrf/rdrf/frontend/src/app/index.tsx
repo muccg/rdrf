@@ -72,10 +72,22 @@ class App extends React.Component<AppInterface, object> {
     render() {
         var nextButton;
         var backButton;
+        var submitButton;
 
         if (this.atEnd()) {
             console.log("at end");
-            nextButton = (<Button onClick={this.props.submitAnswers} color="success" size="sm">Submit Answers</Button>);
+            !isMobile ? 
+            nextButton = (<Col sm={{ size: 4, order: 2, offset: 1 }}>
+                <Button onClick={this.props.submitAnswers} color="success" size="sm">Submit Answers</Button>
+            </Col>)
+            :
+            submitButton = (
+                <Row>
+                    <Col sm={{ size: 4, order: 2, offset: 1 }}>
+                        <Button onClick={this.props.submitAnswers} color="success" size="sm">Submit Answers</Button>
+                    </Col>
+                </Row>           
+            )
         }
         else {
             console.log("not at end");
@@ -115,6 +127,7 @@ class App extends React.Component<AppInterface, object> {
                                 </Col>
                             </Row>
                         </div>
+                        <div className="mb-4">
                         <Row>
                             {backButton}
                             <Col sm={{ size: 4, order: 2, offset: 1 }}>
@@ -122,6 +135,8 @@ class App extends React.Component<AppInterface, object> {
                             </Col>
                             {nextButton}
                         </Row>
+                        </div>
+                        {submitButton}
                     </Swipe>
                 </Container>
             </div>

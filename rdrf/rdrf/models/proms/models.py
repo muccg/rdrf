@@ -42,7 +42,7 @@ class Survey(models.Model):
             logger.debug("checking survey q %s" % question.cde.code)
             if question.cde.datatype != "range":
                 logger.debug("%s not a range" % question.cde.code)
-                #raise ValidationError("Survey questions must be ranges")
+                # raise ValidationError("Survey questions must be ranges")
 
 
 class Precondition(models.Model):
@@ -170,16 +170,15 @@ class SurveyRequest(models.Model):
     def send(self):
         logger.debug("sending request ...")
         if self.state == SurveyRequestStates.REQUESTED:
-            if (self.communication_type == 'qrcode'):
-                try:
-                    self._send_proms_request()
-                    logger.debug("sent request to PROMS system OK")
+            try:
+                self._send_proms_request()
+                logger.debug("sent request to PROMS system OK")
 
-                except PromsRequestError as pre:
-                    logger.error("Error sending survey request %s: %s" % (self.pk,
-                                                                        pre))
-                    self._set_error(pre)
-                    return False
+            except PromsRequestError as pre:
+                logger.error("Error sending survey request %s: %s" % (self.pk,
+                                                                      pre))
+                self._set_error(pre)
+                return False
 
             if (self.communication_type == 'email'):
                 try:

@@ -490,7 +490,9 @@ PROJECT_LOGO_LINK = env.get("project_logo_link", "")
 
 LOCALE_PATHS = env.getlist("locale_paths", [os.path.join(WEBAPP_ROOT, "translations/locale")])
 
-CRON_CLASSES = []
+CRON_CLASSES = [
+    "rdrf.cron_jobs.PROMSPullJob",
+]
 
 AUTH_PASSWORD_VALIDATORS = [{
     'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
