@@ -60,6 +60,33 @@ function clearAnswerOnSwipeBack(state: any): any {
     return newAnswers;
 }
 
+function countAnswers(obj) {
+    var count = 0;
+    for (var property in obj) {
+        if (Object.prototype.hasOwnProperty.call(obj, property)) {
+            count++;
+        }
+    }
+    return count;
+}
+
+function updateConsent(state: any): any {
+    let questionCount = state.questions.length;
+    console.log("No of Questions " + questionCount);
+    let oldAnswers = state.answers;
+    var answerCount = countAnswers(oldAnswers);
+    console.log("No of Answers " + answerCount);
+    if (questionCount > answerCount) {
+        let questionCode = state.questions[questionCount - 1].cde;
+        let oldAnswers = state.answers;
+        let newAnswers = { ...oldAnswers };
+        newAnswers[questionCode] = false;
+        return newAnswers;
+    }
+
+    return oldAnswers;
+}
+
 export const promsPageReducer = handleActions({
     [goPrevious as any]:
         (state, action: any) => ({
@@ -75,14 +102,19 @@ export const promsPageReducer = handleActions({
     [submitAnswers as any]:
         (state, action: any) => {
             console.log("submitting answers");
-            submitSurvey(state.answers);
-            return state;
+            let newState = {
+                ...state,
+                answers: updateConsent(state),
+            };
+            submitSurvey(newState.answers);
+            return newState;
         },
     [enterData as any]:
         (state, action) => {
             console.log("enterData action received");
             console.log("action = " + action.toString());
             console.log("answers before update = " + state.answers.toString());
+            
             let updatedAnswers = updateAnswers(action, state)
             console.log("updated answers = " + updatedAnswers.toString());
             let newState = {
