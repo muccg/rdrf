@@ -285,7 +285,8 @@ class Patient(models.Model):
         CustomUser,
         blank=True,
         null=True,
-        verbose_name=_("Clinician"))
+        verbose_name=_("Clinician"),
+        on_delete=models.SET_NULL)
     user = models.ForeignKey(
         CustomUser,
         blank=True,
