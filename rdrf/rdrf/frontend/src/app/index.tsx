@@ -41,12 +41,14 @@ class App extends React.Component<AppInterface, object> {
         return this.props.stage == 0;
     }
 
+
     getProgress(): number {
         let numQuestions: number = this.props.questions.length;
-        let numAnswers: number = Object.keys(this.props.answers).length;
-        if (this.atEnd() && this.isQuestionAnswered()) {
-            numAnswers = numAnswers - 1;
-        }
+        let consentQuestionCode = this.props.questions[numQuestions - 1].cde;
+        let allAnswers = Object.keys(this.props.answers).filter(val => {
+            return val != consentQuestionCode;
+        });
+        let numAnswers: number = allAnswers.length;
         numQuestions = numQuestions - 1; // consent not considered
         return Math.floor(100.00 * (numAnswers / numQuestions));
     }
