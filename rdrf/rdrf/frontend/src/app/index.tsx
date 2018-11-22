@@ -51,24 +51,24 @@ class App extends React.Component<AppInterface, object> {
         return Math.floor(100.00 * (numAnswers / numQuestions));
     }
 
-    isQuestionAnswered(): boolean {
-        try {
-            let questionCode = this.props.questions[this.props.stage].cde;
-            return this.props.answers.hasOwnProperty(questionCode);
-        }
-        catch (err) {
-            return false;
-        }
-    }
+    // isQuestionAnswered(): boolean {
+    //     try {
+    //         let questionCode = this.props.questions[this.props.stage].cde;
+    //         return this.props.answers.hasOwnProperty(questionCode);
+    //     }
+    //     catch (err) {
+    //         return false;
+    //     }
+    // }
 
     onSwipeRight(position, event) {
-        if (!this.atBeginning() && (this.isQuestionAnswered() || this.atEnd())) {
+        if (!this.atBeginning()) {
             this.props.goPrevious();
         }
     }
 
     onSwipeLeft(position, event) {
-        if (!this.atEnd() && this.isQuestionAnswered()) {
+        if (!this.atEnd()) {
             this.props.goNext();
         }
     }
