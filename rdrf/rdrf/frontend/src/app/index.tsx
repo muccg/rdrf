@@ -44,7 +44,7 @@ class App extends React.Component<AppInterface, object> {
     getProgress(): number {
         let numQuestions: number = this.props.questions.length;
         let numAnswers: number = Object.keys(this.props.answers).length;
-        if (this.atEnd() && numQuestions==numAnswers) {
+        if (this.atEnd() && this.isQuestionAnswered()) {
             numAnswers = numAnswers - 1;
         }
         numQuestions = numQuestions - 1; // consent not considered

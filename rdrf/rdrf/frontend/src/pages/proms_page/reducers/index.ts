@@ -63,18 +63,16 @@ function clearAnswerOnSwipeBack(state: any): any {
 function updateConsent(state: any): any {
     let questionCount = state.questions.length;
     console.log("No of Questions " + questionCount);
-    let oldAnswers = state.answers;
-    var answerCount = Object.keys(oldAnswers).length;
-    console.log("No of Answers " + answerCount);
-    if (questionCount > answerCount) {
-        let questionCode = state.questions[questionCount - 1].cde;
+    let allAnswers = state.answers;
+    let questionCode = state.questions[questionCount - 1].cde;
+    if (!allAnswers.hasOwnProperty(questionCode)) {
         let oldAnswers = state.answers;
         let newAnswers = { ...oldAnswers };
         newAnswers[questionCode] = false;
         return newAnswers;
     }
 
-    return oldAnswers;
+    return allAnswers;
 }
 
 export const promsPageReducer = handleActions({
