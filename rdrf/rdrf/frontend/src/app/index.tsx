@@ -45,6 +45,7 @@ class App extends React.Component<AppInterface, object> {
     getProgress(): number {
         let numQuestions: number = this.props.questions.length;
         let consentQuestionCode = this.props.questions[numQuestions - 1].cde;
+        // last question is considered as consent
         let allAnswers = Object.keys(this.props.answers).filter(val => {
             return val != consentQuestionCode;
         });
@@ -53,24 +54,14 @@ class App extends React.Component<AppInterface, object> {
         return Math.floor(100.00 * (numAnswers / numQuestions));
     }
 
-    isQuestionAnswered(): boolean {
-        try {
-            let questionCode = this.props.questions[this.props.stage].cde;
-            return this.props.answers.hasOwnProperty(questionCode);
-        }
-        catch (err) {
-            return false;
-        }
-    }
-
     onSwipeRight(position, event) {
-        if (!this.atBeginning() && (this.isQuestionAnswered() || this.atEnd())) {
+        if (!this.atBeginning()) {
             this.props.goPrevious();
         }
     }
 
     onSwipeLeft(position, event) {
-        if (!this.atEnd() && this.isQuestionAnswered()) {
+        if (!this.atEnd()) {
             this.props.goNext();
         }
     }

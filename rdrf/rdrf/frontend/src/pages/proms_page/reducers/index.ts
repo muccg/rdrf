@@ -62,9 +62,8 @@ function clearAnswerOnSwipeBack(state: any): any {
 
 function updateConsent(state: any): any {
     let questionCount = state.questions.length;
-    console.log("No of Questions " + questionCount);
     let allAnswers = state.answers;
-    let questionCode = state.questions[questionCount - 1].cde;
+    var questionCode = state.questions[questionCount - 1].cde;
     if (!allAnswers.hasOwnProperty(questionCode)) {
         let oldAnswers = state.answers;
         let newAnswers = { ...oldAnswers };
