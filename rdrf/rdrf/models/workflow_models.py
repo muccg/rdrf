@@ -25,7 +25,6 @@ class ClinicianSignupRequest(models.Model):
     clinician = models.ForeignKey(CustomUser, blank=True, null=True)
     emailed_date = models.DateTimeField(null=True)
     signup_date = models.DateTimeField(null=True)
-    speciality = models.CharField(max_length=80, blank=True, null=True)
 
     def send_request(self):
         self._send_email()
@@ -38,7 +37,7 @@ class ClinicianSignupRequest(models.Model):
         from rdrf.events.events import EventType
         from registry.patients.models import Patient
         from registry.patients.models import ParentGuardian
-        self.speciality = "Brain Surgeon"
+        
         patient = Patient.objects.get(id=self.patient_id)
         try:
             parent = ParentGuardian.objects.get(patient=patient)
@@ -47,8 +46,12 @@ class ClinicianSignupRequest(models.Model):
             participant_name = "No parent"
             
         patient_name = "%s %s" % (patient.given_names, patient.family_name)
+        if self.clinician_other.speciality:
+            speciality = self.clinician_other.speciality.name
+        else:
+            speciality = "Unspecified"
 
-        template_data = {"speciality": self.speciality,
+        template_data = {"speciality": speciality,
                          "clinician_last_name": self.clinician_other.clinician_name,
                          "participant_name": participant_name,
                          "clinician_email": self.clinician_other.clinician_email,
@@ -63,7 +66,9 @@ class ClinicianSignupRequest(models.Model):
         """
         Return a link which will be sent to a clinician to activate ( become a user)
         """
-        site_url = "http://localhost:8000"
+        from rdrf.helpers.utils import get_site_url
+        
+        site_url = get_site_url()
         return site_url + reverse("registration_register", args=(self.registry.code,)) + "?t=%s" % self.token
 
     @staticmethod

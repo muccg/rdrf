@@ -46,6 +46,7 @@ class ClinicianForm(forms.ModelForm):
                   'clinician_email',
                   'clinician_phone_number',
                   'patient',
+                  'speciality',
                   'use_other',
                   ]
 

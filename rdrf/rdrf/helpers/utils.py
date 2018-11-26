@@ -729,3 +729,14 @@ def get_full_path(registry_model, cde_code):
 
 def generate_token():
     return str(uuid.uuid4())
+
+def get_site(request=None):
+    if request:
+        from django.contrib.sites.shortcuts import get_current_site
+        return get_current_site(request)
+    else:
+        from django.contrib.sites.models import Site
+        try:
+            return "https://" + Site.objects.first().domain
+        except Site.DoesNotExist:
+            return "http://localhost:8000"

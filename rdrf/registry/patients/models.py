@@ -1100,6 +1100,14 @@ class Patient(models.Model):
         return Family(self)
 
 
+class Speciality(models.Model):
+    registry = models.ForeignKey(Registry)
+    name = models.CharField(max_length=80)
+
+    def __str__(self):
+        return self.name
+
+
 class ClinicianOther(models.Model):
     use_other = models.BooleanField(default=False)
     patient = models.ForeignKey(Patient, null=True)
@@ -1108,6 +1116,7 @@ class ClinicianOther(models.Model):
     clinician_address = models.CharField(max_length=200, blank=True, null=True)
     clinician_email = models.EmailField(max_length=254, null=True, blank=True)
     clinician_phone_number = models.CharField(max_length=254, null=True, blank=True)
+    speciality = models.ForeignKey(Speciality, null=True, on_delete=models.deletion.SET_NULL)
     user = models.ForeignKey(CustomUser, blank=True, null=True)
 
     def synchronise_working_group(self):
