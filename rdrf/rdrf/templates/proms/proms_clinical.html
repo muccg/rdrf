@@ -11,12 +11,12 @@
 {% load translate %}
 {% load add_language_modifier %}
 
-
 {% block extrastyle %}
     {{block.super}}
     <link rel="stylesheet" href="{% static 'css/jquery-1.11.4/themes/smoothness/jquery-ui.min.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'css/rdrf.css' %}" media="all">
 
-    <script type="text/javascript" src={% static 'js/rpc_module.js' %}></script>
+    <script type="text/javascript" src="{% static 'js/rpc_module.js' %}"></script>
     <script type="text/javascript" src="{% static 'js/vendor/jquery-ui-1.11.4.min.js' %}"></script>
 
     <script>
@@ -55,57 +55,52 @@
                 </div>
             {% endif %}
 
-      </div>
+    </div>
 
-              <div id="existing_surveys_panel" class="panel panel-default">
-		<div class="panel-heading"><strong>{% trans 'Existing Surveys' %}</strong>
-
-<a class="btn btn-info btn-xs pull-right" data-toggle="modal" data-target="#new_survey_request_modal">
-                                        <span class="glyphicon glyphicon-plus" aria-hidden="true"></span> Add
-                                    <a>
-
+    <div id="existing_surveys_panel" class="panel panel-default" style="color:#337ab7">
+	    <div class="panel-heading"><strong>{% trans 'Existing Surveys' %}</strong>
+            <a class="btn btn-info btn-xs pull-right" data-toggle="modal" data-target="#new_survey_request_modal">
+                <span class="glyphicon glyphicon-plus" aria-hidden="true"></span> Add 
+            </a>
 		</div>
-                <div class="panel-body">
-
-		    <table class="table table-striped">
-    <thead>
-      <tr>
-        <th>Survey</th>
-        <th>Created</th>
-        <th>Created by</th>
-        <th>Updated</th>
-        <th>Link</th>
-        <th>State</th>
-        <th>QRCode</th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for sr in survey_requests %}
-      <tr>
-        <td>{{sr.survey_name}}</td>
-        <td>{{sr.created}}</td>
-        <td>{{sr.user}}</td>
-        <td>{{sr.updated}}</td>
-        <td>{{sr.email_link}}</td>
-        <td>{{sr.state}}</td>
-	{% if sr.state == 'requested' %}
-	    <td><image src="{{ sr.qrcode_link }}"/></td>
-	{% else %}
-	    <td>NA</td>
-	{% endif %}
+        <div class="panel-body">
+    	    <table class="table table-striped table-list">
+                <thead>
+                    <tr>
+                        <th>Survey</th>
+                        <th>Created</th>
+                        <th>Created by</th>
+                        <th>Updated</th>
+                        <th width="40%">Link</th>
+                        <th>State</th>
+                        <th>QRCode</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for sr in survey_requests %}
+                    <tr>
+                        <td>{{sr.survey_name}}</td>
+                        <td>{{sr.created}}</td>
+                        <td>{{sr.user}}</td>
+                        <td>{{sr.updated}}</td>
+                        <td width="40%">{{sr.email_link}}</td>
+                        <td>{{sr.state}}</td>
+	                    {% if sr.state == 'requested' and sr.communication_type == 'qrcode' %}
+                        <td>
+                            <img src="{{ sr.qrcode_link }}" width="80" height="80" >
+                        </td>
+	                    {% else %}
+	                    <td>NA</td>
+	                    {% endif %}
 	    
-      </tr>
-      {% endfor %}
-    </tbody>
-  </table>
-		      
-								
-                 	        </div>  <!-- panel body -->
-                </div>  <!-- panel -->
-	    </div>
-	</div>
-
-
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>			
+        </div>  <!-- panel body -->
+    </div>  <!-- panel -->
+</div>
+</div>
 
 
 <!-- modal popup -->

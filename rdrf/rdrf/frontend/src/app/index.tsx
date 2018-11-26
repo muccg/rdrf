@@ -13,8 +13,6 @@ import { Container, Row, Col } from 'reactstrap';
 
 import { ElementList } from '../pages/proms_page/logic';
 
-//import * as Swipe from 'react-easy-swipe';
-
 import Swipe from 'react-easy-swipe';
 import { isMobile } from 'react-device-detect';
 
@@ -43,82 +41,106 @@ class App extends React.Component<AppInterface, object> {
         return this.props.stage == 0;
     }
 
+
     getProgress(): number {
         let numQuestions: number = this.props.questions.length;
-        let numAnswers: number = Object.keys(this.props.answers).length;
+        let consentQuestionCode = this.props.questions[numQuestions - 1].cde;
+        // last question is considered as consent
+        let allAnswers = Object.keys(this.props.answers).filter(val => {
+            return val != consentQuestionCode;
+        });
+        let numAnswers: number = allAnswers.length;
+        numQuestions = numQuestions - 1; // consent not considered
         return Math.floor(100.00 * (numAnswers / numQuestions));
     }
 
-    isQuestionAnswered(): boolean {
-        try {
-            let questionCode = this.props.questions[this.props.stage].cde;
-            return this.props.answers.hasOwnProperty(questionCode);
-        }
-        catch (err) {
-            return false;
-        }
-    }
-
     onSwipeRight(position, event) {
-        if (!this.atBeginning() && this.isQuestionAnswered()) {
+        if (!this.atBeginning()) {
             this.props.goPrevious();
         }
     }
 
     onSwipeLeft(position, event) {
-        if (!this.atEnd() && this.isQuestionAnswered()) {
+        if (!this.atEnd()) {
             this.props.goNext();
         }
     }
 
     render() {
         var nextButton;
-
-        if (isMobile) {
-            console.log("Mobile device");
-        } else {
-            console.log("Someother device");
-        }
+        var backButton;
+        var submitButton;
+        var progressBar;
 
         if (this.atEnd()) {
             console.log("at end");
-            nextButton = (<Button onClick={this.props.submitAnswers}>Submit Answers</Button>);
+            !isMobile ? 
+            nextButton = (<Col sm={{ size: 4, order: 2, offset: 1 }}>
+                <Button onClick={this.props.submitAnswers} color="success" size="sm">Submit Answers</Button>
+            </Col>)
+            :
+            submitButton = (
+                <Row>
+                    <Col sm={{ size: 4, order: 2, offset: 1 }}>
+                        <Button onClick={this.props.submitAnswers} color="success" size="sm">Submit Answers</Button>
+                    </Col>
+                </Row>           
+            )
         }
         else {
             console.log("not at end");
-            //nextButton = (<Button disabled={this.isNextButtonDisabled()} onClick={this.props.goNext}>Next</Button>);
-            nextButton = " ";//(<Button disabled={this.isNextButtonDisabled()} onClick={this.props.goNext}>Next</Button>);
-        };
+            nextButton = !isMobile ? 
+              (<Col sm={{ size: 1, order: 3, offset: 1 }}>
+                <Button onClick={this.onSwipeLeft.bind(this)} size="sm" color="info">Next</Button>
+            </Col>) : "";
+        }
+
+        if (this.atBeginning()) {
+            backButton = !isMobile ? 
+              (<Col sm={{ size: 1 }}>
+                <Button onClick={this.onSwipeRight.bind(this)} color="info" size="sm" disabled>Previous</Button>
+               </Col>) : "";
+        } else {
+            backButton = !isMobile ? 
+              (<Col sm={{ size: 1 }}>
+                <Button onClick={this.onSwipeRight.bind(this)} color="info" size="sm">Previous</Button>
+               </Col>) : "";
+        }
+
+        if (!this.atEnd()) {
+            progressBar = (
+                <Col sm={{ size: 4, order: 2, offset: 1 }}>
+                    <Progress color="info" value={this.getProgress()}>{this.getProgress()}%</Progress>
+                </Col>
+            )
+        }
 
         return (
-
             <div className="App">
                 <Container>
                     <Swipe onSwipeLeft={this.onSwipeLeft.bind(this)}
                         onSwipeRight={this.onSwipeRight.bind(this)}>
+                        <div className="mb-4">
+                            <Row>
+                                <Col>
+                                    <Instruction stage={this.props.stage} />
+                                </Col>
+                            </Row>
 
+                            <Row>
+                                <Col>
+                                    <Question title={this.props.title} stage={this.props.stage} questions={this.props.questions} />
+                                </Col>
+                            </Row>
+                        </div>
+                        <div className="mb-4">
                         <Row>
-                            <Col>
-                                <Instruction stage={this.props.stage} />
-                            </Col>
+                            {backButton}
+                            {progressBar}
+                            {nextButton}
                         </Row>
-
-                        <Row>
-                            <Col>
-                                <Question title={this.props.title} stage={this.props.stage} questions={this.props.questions} />
-                            </Col>
-                        </Row>
-
-                        <Row>
-                            <Col>
-                                {nextButton}
-                            </Col>
-                        </Row>
-                        <Row>
-                            <Col sm={{ size: 4, order: 2, offset: 1 }}>
-                                <Progress color="info" value={this.getProgress()}>{this.getProgress()}%</Progress>
-                            </Col>
-                        </Row>
+                        </div>
+                        {submitButton}
                     </Swipe>
                 </Container>
             </div>

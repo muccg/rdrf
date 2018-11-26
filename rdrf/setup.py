@@ -50,6 +50,7 @@ requirements = [
     "ua-parser==0.8.0",
     "user-agents==1.1.0",
     "django-user-agents==0.3.2",
+    "django-simple-history==1.9.0",
 ]
 
 
@@ -130,7 +131,7 @@ for package in ['rdrf', 'registry.common', 'registry.genetic',
 
 
 setup(name='django-rdrf',
-      version="4.1.21",
+      version="4.1.22",
       packages=find_packages(),
       description='RDRF',
       long_description='Rare Disease Registry Framework',

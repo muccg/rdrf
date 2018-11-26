@@ -11,6 +11,8 @@ from rdrf.services.io.notifications.notifications import NotificationError
 from registry.patients.models import Patient
 from rdrf.helpers.utils import generate_token
 
+from rest_framework import status
+
 logger = logging.getLogger(__name__)
 
 class PromsRequestError(Exception):
@@ -37,7 +39,7 @@ class Survey(models.Model):
             logger.debug("checking survey q %s" % question.cde.code)
             if question.cde.datatype != "range":
                 logger.debug("%s not a range" % question.cde.code)
-                #raise ValidationError("Survey questions must be ranges")
+                # raise ValidationError("Survey questions must be ranges")
 
 
 class Precondition(models.Model):
@@ -108,6 +110,11 @@ class SurveyRequestStates:
     CREATED = "created"
     REQUESTED = "requested"
     RECEIVED = "received"
+    ERROR = "error"
+
+class CommunicationTypes:
+    QRCODE = "qrcode"
+    EMAIL = "email"
 
 class SurveyAssignment(models.Model):
     """
@@ -140,7 +147,11 @@ class SurveyRequest(models.Model):
     SURVEY_REQUEST_STATES = (
         (SurveyRequestStates.CREATED, "Created"),
         (SurveyRequestStates.REQUESTED, "Requested"),
-        (SurveyRequestStates.RECEIVED, "Received"))
+        (SurveyRequestStates.RECEIVED, "Received"),
+        (SurveyRequestStates.ERROR, "Error"))
+    COMMUNICATION_TYPES = (
+        (CommunicationTypes.QRCODE, "QRCode"),
+        (CommunicationTypes.EMAIL, "Email"))
     registry = models.ForeignKey(Registry)
     patient = models.ForeignKey(Patient)
     survey_name = models.CharField(max_length=80)
@@ -149,7 +160,9 @@ class SurveyRequest(models.Model):
     updated = models.DateTimeField(auto_now=True)
     user = models.CharField(max_length=80)  # username
     state = models.CharField(max_length=20, choices=SURVEY_REQUEST_STATES, default="created")
+    error_detail = models.TextField(blank=True, null=True)
     response = models.TextField(blank=True, null=True)
+    communication_type = models.CharField(max_length=10, choices=COMMUNICATION_TYPES, default="qrcode")
 
     def send(self):
         logger.debug("sending request ...")
@@ -157,21 +170,25 @@ class SurveyRequest(models.Model):
             try:
                 self._send_proms_request()
                 logger.debug("sent request to PROMS system OK")
+
             except PromsRequestError as pre:
                 logger.error("Error sending survey request %s: %s" % (self.pk,
                                                                       pre))
+                self._set_error(pre)
                 return False
 
-            try:
-                logger.debug("sending email to patient ...")
-                self._send_email()
-                logger.debug("sent email to patient OK")
+            if (self.communication_type == 'email'):
+                try:
+                    logger.debug("sending email to patient ...")
+                    self._send_email()
+                    logger.debug("sent email to patient OK")
 
-                return True
-            except PromsEmailError as pe:
-                logger.error("Error emailing survey request %s: %s" % (self.pk,
-                                                                       pe))
-                return False
+                    return True
+                except PromsEmailError as pe:
+                    logger.error("Error emailing survey request %s: %s" % (self.pk,
+                                                                        pe))
+                    self._set_error(pe)
+                    return False
 
     def _send_proms_request(self):
         from django.conf import settings
@@ -188,9 +205,11 @@ class SurveyRequest(models.Model):
         survey_assignment_data = self._get_survey_assignment_data()
         headers = {'PROMS_SECRET_TOKEN': settings.PROMS_SECRET_TOKEN}
 
-        requests.post(api_url,
-                      data=survey_assignment_data,
-                      headers=headers)
+        response = requests.post(api_url,
+                                 data=survey_assignment_data,
+                                 headers=headers)
+        logger.debug("response code %s" % response.status_code)
+        self.check_response_for_error(response)
         logger.debug("posted data")
 
     def _get_survey_assignment_data(self):
@@ -201,6 +220,32 @@ class SurveyRequest(models.Model):
         packet["state"] = "requested"
         packet["response"] = "{}"
         return packet
+
+    def _set_error(self, msg):
+        logger.debug("Error message %s" % msg)
+        self.state = SurveyRequestStates.ERROR
+        self.error_detail = msg
+        self.save()
+
+    def check_response_for_error(self, response):
+        if (status.is_success(response.status_code)
+                and response.status_code == status.HTTP_201_CREATED):
+            logger.debug("Survey request Created")
+            return True
+
+        if (status.is_success(response.status_code)):
+            logger.debug("Error with other status %s" % response.status_code)
+            self._set_error("Error with other status %s" % response)
+            raise PromsRequestError("Error with code %s" % response.status_code)
+
+        if (status.is_client_error(response.status_code)):
+            logger.debug("Client Error %s" % response.status_code)
+            self._set_error("Client Error %s" % response)
+            raise PromsRequestError("Client Error with code %s" % response.status_code)
+        elif (status.is_server_error(response.status_code)):
+            logger.debug("Server error %s" % response.status_code)
+            self._set_error("Server error %s" % response)
+            raise PromsRequestError("Server error with code %s" % response.status_code)
 
     @property
     def email_link(self):
@@ -239,3 +284,8 @@ class SurveyRequest(models.Model):
     @property
     def qrcode_link(self):
         return reverse('promsqrcode', args=[self.patient_token])
+
+    @property
+    def patient_name(self):
+        return "%s %s" % (self.patient.given_names,
+                          self.patient.family_name)

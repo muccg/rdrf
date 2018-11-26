@@ -212,17 +212,22 @@ class PromsClinicalView(View):
         logger.debug("got registry")
         patient_model = Patient.objects.get(id=patient_id)
         logger.debug("got patient")
+        communication_type = request.POST.get("communication_type")
+        logger.debug("communication_type = %s" % communication_type)
 
         survey_request = SurveyRequest(survey_name=survey_name,
                                        registry=registry_model,
                                        patient=patient_model,
                                        user=user,
                                        state=SurveyRequestStates.REQUESTED,
-                                       patient_token=patient_token)
+                                       patient_token=patient_token,
+                                       communication_type=communication_type,
+                                       )
         survey_request.save()
         logger.debug("saved survey request")
 
         logger.debug("sending request")
+
         survey_request.send()
         logger.debug("sent request to create survey assignment")
 

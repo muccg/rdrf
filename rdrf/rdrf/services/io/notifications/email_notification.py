@@ -178,9 +178,9 @@ def process_notification(reg_code=None, description=None, template_data={}):
     for note in notes:
         if note.disabled:
             logger.warning("Email %s disabled" % note)
-
-        logger.info("Sending email %s" % note)
-        email = RdrfEmail(email_notification=note)
-        email.template_data = template_data
+        else:
+            logger.info("Sending email %s" % note)
+            email = RdrfEmail(email_notification=note)
+            email.template_data = template_data
         logger.debug("template_data = %s" % template_data)
-        email.send()
+            email.send()

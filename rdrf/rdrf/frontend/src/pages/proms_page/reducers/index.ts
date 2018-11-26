@@ -60,6 +60,20 @@ function clearAnswerOnSwipeBack(state: any): any {
     return newAnswers;
 }
 
+function updateConsent(state: any): any {
+    let questionCount = state.questions.length;
+    let allAnswers = state.answers;
+    var questionCode = state.questions[questionCount - 1].cde;
+    if (!allAnswers.hasOwnProperty(questionCode)) {
+        let oldAnswers = state.answers;
+        let newAnswers = { ...oldAnswers };
+        newAnswers[questionCode] = false;
+        return newAnswers;
+    }
+
+    return allAnswers;
+}
+
 export const promsPageReducer = handleActions({
     [goPrevious as any]:
         (state, action: any) => ({
@@ -75,14 +89,19 @@ export const promsPageReducer = handleActions({
     [submitAnswers as any]:
         (state, action: any) => {
             console.log("submitting answers");
-            submitSurvey(state.answers);
-            return state;
+            let newState = {
+                ...state,
+                answers: updateConsent(state),
+            };
+            submitSurvey(newState.answers);
+            return newState;
         },
     [enterData as any]:
         (state, action) => {
             console.log("enterData action received");
             console.log("action = " + action.toString());
             console.log("answers before update = " + state.answers.toString());
+            
             let updatedAnswers = updateAnswers(action, state)
             console.log("updated answers = " + updatedAnswers.toString());
             let newState = {
