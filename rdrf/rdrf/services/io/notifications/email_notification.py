@@ -182,5 +182,5 @@ def process_notification(reg_code=None, description=None, template_data={}):
             logger.info("Sending email %s" % note)
             email = RdrfEmail(email_notification=note)
             email.template_data = template_data
-        logger.debug("template_data = %s" % template_data)
+            logger.debug("template_data = %s" % template_data)
             email.send()
