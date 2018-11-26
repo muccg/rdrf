@@ -66,9 +66,9 @@ class ClinicianSignupRequest(models.Model):
         """
         Return a link which will be sent to a clinician to activate ( become a user)
         """
-        from rdrf.helpers.utils import get_site_url
+        from rdrf.helpers.utils import get_site
         
-        site_url = get_site_url()
+        site_url = get_site()
         return site_url + reverse("registration_register", args=(self.registry.code,)) + "?t=%s" % self.token
 
     @staticmethod
