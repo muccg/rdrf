@@ -736,7 +736,13 @@ def get_site(request=None):
         return get_current_site(request)
     else:
         from django.contrib.sites.models import Site
+
         try:
-            return "https://" + Site.objects.first().domain
+            domain = Site.objects.first().domain
+            if domain.startswith("localhost"):
+                return "http://localhost:8000"
+            else:
+                return "https://" + domain
+                
         except Site.DoesNotExist:
             return "http://localhost:8000"
