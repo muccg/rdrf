@@ -10,7 +10,7 @@ class Migration(migrations.Migration):
 
     dependencies = [
         ('patients', '0029_patient_date_of_death'),
-        ('rdrf', '0086_cliniciansignuprequest_speciality.py'),
+        ('rdrf', '0086_cliniciansignuprequest_speciality'),
     ]
 
     operations = [

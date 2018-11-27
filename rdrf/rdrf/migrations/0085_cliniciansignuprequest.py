@@ -12,7 +12,7 @@ class Migration(migrations.Migration):
 
     dependencies = [
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
-        ('rdrf', '0084_surveyrequest_communication_type.py'),
+        ('rdrf', '0084_surveyrequest_communication_type'),
     ]
 
     operations = [

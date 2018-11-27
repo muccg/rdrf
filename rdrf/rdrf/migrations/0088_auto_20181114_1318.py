@@ -8,7 +8,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('rdrf', '0087_cliniciansignuprequest_clinician_other.py'),
+        ('rdrf', '0087_cliniciansignuprequest_clinician_other'),
     ]
 
     operations = [
