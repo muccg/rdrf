@@ -12,6 +12,7 @@ logger = logging.getLogger(__name__)
 class ClinicianSignupRequest(models.Model):
     STATES = (("emailed", "Emailed"),      # clinician emailed
               ("signed-up", "Signed Up"),  # the clinician accepted the request and a user object was created
+              ("activated", "Activated"),  # the clinician activated
               ("created", "Created"),      # request created but nothing sent yet
               ("error", "Error"),          # error
               ("rejected", "Rejected"))    # the clinician received the request but rejected it
