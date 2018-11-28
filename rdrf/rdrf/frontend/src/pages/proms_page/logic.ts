@@ -16,12 +16,25 @@ interface Option {
     text: string,
 }
 
+interface RangeDatatype {
+    tag: 'range',
+    options: [Option],
+}
+
+interface IntegerDatatype {
+    tag: 'integer',
+    max: number,
+    min: number,
+}
+
+type Datatype = RangeDatatype | IntegerDatatype;
+
 interface UnconditionalElement  {
     tag: 'cde',
     cde: string,
     title: string,
     instructions: string,
-    options: [Option],
+    spec: Datatype,
 }
 
 interface ConditionalElement {
@@ -30,7 +43,7 @@ interface ConditionalElement {
     cde: string,
     title: string,
     instructions: string,
-    options: [Option],
+    spec: Datatype,
 }
 
 type Element = UnconditionalElement | ConditionalElement;

@@ -76,14 +76,14 @@ class SurveyQuestion(models.Model):
                     "datatype": self.cde.datatype,
                     "instructions": self._clean_instructions(self.cde.instructions),
                     "title": self.cde.name,
-                    "options": self._get_options()}
+                    "spec": self._get_cde_specification()}
 
         else:
             return {"tag": "cond",
                     "cde": self.cde.code,
                     "instructions": self._clean_instructions(self.cde.instructions),
                     "title": self.cde.name,
-                    "options": self._get_options(),
+                    "spec": self._get_cde_specification(),
                     "cond": {"op": "=",
                              "cde": self.precondition.cde.code,
                              "value": self.precondition.value
@@ -95,6 +95,19 @@ class SurveyQuestion(models.Model):
             return self.cde.pv_group.options
         else:
             return []
+
+    def _get_cde_specification(self):
+        if self.cde.datatype == 'range':
+            return {
+                    "tag": "range",
+                    "options": self._get_options()
+                    }
+        elif self.cde.datatype == 'integer':
+            return {
+                    "tag": "integer",
+                    "max": int(self.cde.max_value),
+                    "min": int(self.cde.min_value)
+                    }
 
     @property
     def expression(self):
