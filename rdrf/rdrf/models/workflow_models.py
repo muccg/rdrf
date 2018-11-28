@@ -3,6 +3,8 @@ from rdrf.models.definition.models import Registry
 from registry.groups.models import CustomUser
 from datetime import datetime
 from rdrf.helpers.utils import generate_token
+from rdrf.services.io.notifications.email_notification import process_notification
+from rdrf.events.events import EventType
 from django.core.urlresolvers import reverse
 
 import logging
@@ -34,8 +36,6 @@ class ClinicianSignupRequest(models.Model):
         self.save()
 
     def _send_email(self):
-        from rdrf.services.io.notifications.email_notification import process_notification
-        from rdrf.events.events import EventType
         from registry.patients.models import Patient
         from registry.patients.models import ParentGuardian
         
@@ -71,6 +71,25 @@ class ClinicianSignupRequest(models.Model):
         
         site_url = get_site()
         return site_url + reverse("registration_register", args=(self.registry.code,)) + "?t=%s" % self.token
+
+    def _get_participant(self):
+        try:
+            # to do
+            pass
+        except:
+            pass
+
+    def notify_participant(self):
+        if self.state != "activated":
+            raise Exception("Participant can be notified only after activation of clinician")
+        participant = self._get_participant()
+        
+        template_data = {}
+        
+        process_notification(self.registry.code,
+                             EventType.PARTICIPANT_CONFIRMATION,
+                             template_data)
+
 
     @staticmethod
     def create(registry_model, patient_model, clinician_other, clinician_email):
