@@ -90,7 +90,7 @@ class App extends React.Component<AppInterface, object> {
         else {
             console.log("not at end");
             nextButton = !isMobile ? 
-              (<Col sm={{ size: 1, order: 3, offset: 1 }}>
+              (<Col sm={{ size: 1 }}>
                 <Button onClick={this.onSwipeLeft.bind(this)} size="sm" color="info">Next</Button>
             </Col>) : "";
         }
