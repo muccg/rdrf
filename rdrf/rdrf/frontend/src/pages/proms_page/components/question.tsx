@@ -39,15 +39,9 @@ class Question extends React.Component<QuestionInterface, object> {
         this.props.enterData(code, value);
     }
 
-    render() {
-        let question = this.props.questions[this.props.stage];
-        const style = { width: "10%", height:"70vh", margin:"0 auto", padding: "100px" };
-        const isConsent = (this.props.questions.length - 1) == this.props.stage;
-        const consentText = "I consent to ongoing involvement in the CIC Cancer project" +
-            "and receiving a reminder for the next survey.";
-
-        var minValue = question.spec.tag=='integer'?question.spec.min:0;
-        var maxValue = question.spec.tag=='integer'?question.spec.max:100;
+    getMarks = (question) => {
+        var minValue = question.spec.min;
+        var maxValue = question.spec.max;
         const marks = {
             [minValue]: <strong>{minValue}</strong>,
             [maxValue]: {
@@ -57,6 +51,12 @@ class Question extends React.Component<QuestionInterface, object> {
                   label:<strong>{maxValue}</strong>,
                 },
         };
+
+        return marks;
+
+    }
+
+    getSliderHandle = () => {
         const Handle = Slider.Handle;
         const handle = props => {
             const { value, dragging, index, ...restProps } = props;
@@ -72,6 +72,17 @@ class Question extends React.Component<QuestionInterface, object> {
                 </Tooltip>
                 );
             };
+        return handle;
+    }
+
+
+
+    render() {
+        let question = this.props.questions[this.props.stage];
+        const style = { width: "10%", height:"70vh", margin:"0 auto", padding: "100px" };
+        const isConsent = (this.props.questions.length - 1) == this.props.stage;
+        const consentText = "I consent to ongoing involvement in the CIC Cancer project" +
+            "and receiving a reminder for the next survey.";
 
         return (
             <Form>
@@ -82,10 +93,11 @@ class Question extends React.Component<QuestionInterface, object> {
                 {
                     (question.spec.tag=='integer' ?
                         <div style={style}>
-                            <Slider vertical min={minValue} max={maxValue}
+                            <Slider vertical min={question.spec.min}
+                                    max={question.spec.max}
                                     step={5}
-                                    marks={marks}
-                                    handle={handle}
+                                    marks={this.getMarks(question)}
+                                    handle={this.getSliderHandle()}
                                     onChange={this.onSliderChange}
                                     />
                         </div>
