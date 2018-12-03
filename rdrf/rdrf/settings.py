@@ -186,7 +186,6 @@ INSTALLED_APPS = [
     'registration',
     'reversion',
     'storages',
-    'django_cron',
     'django_otp',
     'django_otp.plugins.otp_static',
     'django_otp.plugins.otp_totp',
@@ -489,10 +488,6 @@ PROJECT_LOGO_LINK = env.get("project_logo_link", "")
 
 
 LOCALE_PATHS = env.getlist("locale_paths", [os.path.join(WEBAPP_ROOT, "translations/locale")])
-
-CRON_CLASSES = [
-    "rdrf.cron_jobs.PROMSPullJob",
-]
 
 AUTH_PASSWORD_VALIDATORS = [{
     'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
