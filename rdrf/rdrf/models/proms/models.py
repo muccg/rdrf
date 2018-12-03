@@ -26,6 +26,7 @@ class Survey(models.Model):
     registry = models.ForeignKey(Registry)
     name = models.CharField(max_length=80)
     display_name = models.CharField(max_length=80, blank=True, null=True)
+    is_followup = models.BooleanField(default=False)
 
     @property
     def client_rep(self):
