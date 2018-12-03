@@ -4,6 +4,7 @@ from registry.groups.models import CustomUser
 from datetime import datetime
 from rdrf.helpers.utils import generate_token
 from django.core.urlresolvers import reverse
+from rdrf.events.events import EventType
 
 import logging
 
@@ -31,6 +32,26 @@ class ClinicianSignupRequest(models.Model):
         self.state = "emailed"
         self.emailed_date = datetime.now()
         self.save()
+
+    def notify_participant_on_verification(self, diagnosis=""):
+        patient = Patient.objects.get(id=self.patient_id)
+        participants = self._get_participants(patient)
+        event_type = EventType.PARTICIPANT_CLINICIAN_NOTIFICATION
+        template_data = {
+            "diagnosis": diagnosis,
+            "clinician_name": self.clinican_other.clinician_name,
+            "participants": participants,
+            "patient_name": "%s" % patient,
+        }
+        
+        process_notification(self.registry.code,
+                             event_type,
+                             template_data)
+
+    def _get_participants(self, patient):
+        from registry.patients.models import ParentGuardian
+        participants = ParentGuardian.objects.filter(patient=patient)
+        return ",".join(["%s %s" % (pg.first_name, pg.last_name) for pg  in participants])
 
     def _send_email(self):
         from rdrf.services.io.notifications.email_notification import process_notification
