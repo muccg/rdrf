@@ -15,6 +15,7 @@ import logging
 import re
 import os.path
 import subprocess
+import uuid
 
 logger = logging.getLogger(__name__)
 
@@ -724,3 +725,24 @@ def get_full_path(registry_model, cde_code):
         raise ValueError("cde code %s is not unique or not used by registry %s" % (cde_code, registry_model.code))
 
     return triples[0]
+
+
+def generate_token():
+    return str(uuid.uuid4())
+
+def get_site(request=None):
+    if request:
+        from django.contrib.sites.shortcuts import get_current_site
+        return get_current_site(request)
+    else:
+        from django.contrib.sites.models import Site
+
+        try:
+            domain = Site.objects.first().domain
+            if domain.startswith("localhost"):
+                return "http://localhost:8000"
+            else:
+                return "https://" + domain
+                
+        except Site.DoesNotExist:
+            return "http://localhost:8000"

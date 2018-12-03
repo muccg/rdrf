@@ -1,5 +1,4 @@
 import logging
-import uuid
 import requests
 
 from django.db import models
@@ -10,13 +9,11 @@ from rdrf.models.definition.models import CommonDataElement
 from rdrf.services.io.notifications.notifications import Notifier
 from rdrf.services.io.notifications.notifications import NotificationError
 from registry.patients.models import Patient
+from rdrf.helpers.utils import generate_token
 
 from rest_framework import status
 
 logger = logging.getLogger(__name__)
-
-def generate_token():
-    return str(uuid.uuid4())
 
 class PromsRequestError(Exception):
     pass

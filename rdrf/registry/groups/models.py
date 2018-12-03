@@ -192,6 +192,14 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
         else:
             return any([r.has_feature(feature) for r in Registry.objects.all()])
 
+    def add_group(self, group_name):
+        from django.contrib.auth.models import Group
+        existing_groups = [g.name for g in self.groups.all()]
+        if group_name not in existing_groups:
+            group = Group.objects.get(name=group_name)
+            self.groups.add(group)
+        
+
     def can_view(self, registry_form_model):
         if self.is_superuser:
             return True
@@ -249,18 +257,16 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
 
 @receiver(user_registered)
 def user_registered_callback(sender, user, request, **kwargs):
-    reg_code = request.POST['registry_code']
-    patient_reg = None
-    if reg_code == "fkrp":
-        from fkrp.patient_registration import FkrpRegistration
-        patient_reg = FkrpRegistration(user, request)
-    elif reg_code == "ang":
-        from angelman.patient_registration import AngelmanRegistration
-        patient_reg = AngelmanRegistration(user, request)
-    elif reg_code == "mtm":
-        from mtm.patient_registration import MtmRegistration
-        patient_reg = MtmRegistration(user, request)
-    patient_reg.process()
+    from django.conf import settings
+    logger.debug("user registered callback")
+
+    if hasattr(settings, "REGISTRATION_CLASS"):
+        logger.debug("user registered callback")
+
+        from django.utils.module_loading import import_string
+        registration_class = import_string(settings.REGISTRATION_CLASS)
+        reg = registration_class(user, request)
+        reg.process()
 
 
 @receiver(user_activated)
@@ -283,6 +289,11 @@ def user_activated_callback(sender, user, request, **kwargs):
         patients = [p for p in parent.patient.all()]
         if len(patients) >= 1:
             patient = patients[0]
+
+    elif user.is_clinician:
+        # is there a ClinicianSignupRequest
+        logger.debug("clinician user %s now active" % user)
+        
 
     if patient:
         template_data["patient"] = patient

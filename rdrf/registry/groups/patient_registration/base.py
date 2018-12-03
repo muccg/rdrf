@@ -6,6 +6,9 @@ from registry.patients.models import ParentGuardian
 from django.contrib.auth.models import Group
 from django.utils.translation import get_language
 
+import logging
+
+logger = logging.getLogger(__name__)
 
 class BaseRegistration(object):
 
@@ -35,11 +38,13 @@ class BaseRegistration(object):
     def process(self, ):
         return
 
-    def _create_django_user(self, request, django_user, registry, is_parent, groups=[]):
+    def _create_django_user(self, request, django_user, registry, is_parent, groups=[], is_clinician=False):
         user_groups = [self._get_group(g) for g in groups]
         if not user_groups:
             if is_parent:
                 user_group = self._get_group("Parents")
+            elif is_clinician:
+                user_group = self._get_group("Clinical Staff")
             else:
                 user_group = self._get_group("Patients")
             django_user.groups = [user_group.id, ] if user_group else []
@@ -49,6 +54,11 @@ class BaseRegistration(object):
         if is_parent:
             django_user.first_name = request.POST['parent_guardian_first_name']
             django_user.last_name = request.POST['parent_guardian_last_name']
+        elif is_clinician:
+            logger.debug("setting up clinician")
+            # clinician signup only exists on subclass ..
+            django_user.first_name = self.clinician_signup.clinician_other.clinician_name
+            django_user.last_name = self.clinician_signup.clinician_other.clinician_name
         else:
             django_user.first_name = request.POST['first_name']
             django_user.last_name = request.POST['surname']
