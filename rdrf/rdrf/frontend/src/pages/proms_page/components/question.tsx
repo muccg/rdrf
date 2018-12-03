@@ -83,7 +83,7 @@ class Question extends React.Component<QuestionInterface, object> {
                     (question.spec.tag=='integer' ?
                         <div style={style}>
                             <Slider vertical min={minValue} max={maxValue}
-                                    step={10}
+                                    step={5}
                                     marks={marks}
                                     handle={handle}
                                     onChange={this.onSliderChange}
