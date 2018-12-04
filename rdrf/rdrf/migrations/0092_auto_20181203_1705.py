@@ -8,7 +8,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('rdrf', '0091_survey_is_followup.py'),
+        ('rdrf', '0091_survey_is_followup'),
     ]
 
     operations = [
