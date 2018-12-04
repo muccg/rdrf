@@ -38,7 +38,6 @@ requirements = [
     "six==1.10.0",
     "SQLAlchemy==1.0.16",
     "uwsgi==2.0.17.1",
-    "django_cron==0.5.0",
     "django-formtools==2.0",
     "django-otp==0.4.1.1",
     "django-phonenumber-field==1.3.0",
