@@ -3,10 +3,13 @@ import * as _ from 'lodash';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 
-import { Button, Form, FormGroup, Label, Input, Col } from 'reactstrap';
+import { Form, FormGroup, Label, Input, Col, Row } from 'reactstrap';
 import { QuestionInterface } from './interfaces';
 
 import * as actions from '../reducers';
+import Slider from 'rc-slider';
+import Tooltip from "rc-tooltip";
+import 'rc-slider/assets/index.css';
 
 
 class Question extends React.Component<QuestionInterface, object> {
@@ -30,11 +33,57 @@ class Question extends React.Component<QuestionInterface, object> {
         this.props.enterData(cdeCode, isConsentChecked);
     }
 
+    onSliderChange = (value) => {
+        console.log(value);
+        let code = this.props.questions[this.props.stage].cde;
+        this.props.enterData(code, value);
+    }
+
+    getMarks = (question) => {
+        var minValue = question.spec.min;
+        var maxValue = question.spec.max;
+        const marks = {
+            [minValue]: <strong>{minValue}</strong>,
+            [maxValue]: {
+                  style: {
+                    color: 'red',
+                  },
+                  label:<strong>{maxValue}</strong>,
+                },
+        };
+
+        return marks;
+
+    }
+
+    getSliderHandle = () => {
+        const Handle = Slider.Handle;
+        const handle = props => {
+            const { value, dragging, index, ...restProps } = props;
+            return (
+                <Tooltip
+                    prefixCls="rc-slider-tooltip"
+                    overlay={value}
+                    visible={dragging}
+                    placement="top"
+                    key={index}
+                    >
+                    <Handle value={value} {...restProps} />
+                </Tooltip>
+                );
+            };
+        return handle;
+    }
+
+
+
     render() {
         let question = this.props.questions[this.props.stage];
+        const style = { width: "10%", height:"70vh", margin:"0 auto", padding: "100px" };
         const isConsent = (this.props.questions.length - 1) == this.props.stage;
         const consentText = "I consent to ongoing involvement in the CIC Cancer project" +
             "and receiving a reminder for the next survey.";
+
         return (
             <Form>
                 <FormGroup tag="fieldset">
@@ -42,7 +91,20 @@ class Question extends React.Component<QuestionInterface, object> {
                     <i>{this.props.questions[this.props.stage].instructions}</i>
                 </FormGroup>
                 {
-                    (isConsent ?
+                    (question.spec.tag=='integer' ?
+                        <div style={style}>
+                            <Slider vertical min={question.spec.min}
+                                    max={question.spec.max}
+                                    step={5}
+                                    marks={this.getMarks(question)}
+                                    handle={this.getSliderHandle()}
+                                    onChange={this.onSliderChange}
+                                    />
+                        </div>
+
+                        :
+
+                        isConsent ?
                         <FormGroup check>
                             <Label check>
                                 <Input type="checkbox" name={this.props.questions[this.props.stage].cde}
@@ -52,7 +114,7 @@ class Question extends React.Component<QuestionInterface, object> {
                             </Label>
                         </FormGroup>
                         :
-                        _.map(question.options, (option, index) => (
+                        _.map(question.spec.tag=='range' ? question.spec.options : [], (option, index) => (
                             <FormGroup check>
                                 <Col sm="12" md={{ size: 6, offset: 3 }}>
                                     <Label check>

@@ -17,7 +17,6 @@ import Swipe from 'react-easy-swipe';
 import { isMobile } from 'react-device-detect';
 
 
-
 interface AppInterface {
     title: string,
     stage: number,
@@ -30,6 +29,7 @@ interface AppInterface {
 
 
 class App extends React.Component<AppInterface, object> {
+
     atEnd() {
         let lastIndex = this.props.questions.length - 1;
         console.log("lastIndex = " + lastIndex.toString());
@@ -90,7 +90,7 @@ class App extends React.Component<AppInterface, object> {
         else {
             console.log("not at end");
             nextButton = !isMobile ? 
-              (<Col sm={{ size: 1, order: 3, offset: 1 }}>
+              (<Col sm={{ size: 1 }}>
                 <Button onClick={this.onSwipeLeft.bind(this)} size="sm" color="info">Next</Button>
             </Col>) : "";
         }
@@ -109,7 +109,7 @@ class App extends React.Component<AppInterface, object> {
 
         if (!this.atEnd()) {
             progressBar = (
-                <Col sm={{ size: 4, order: 2, offset: 1 }}>
+                <Col>
                     <Progress color="info" value={this.getProgress()}>{this.getProgress()}%</Progress>
                 </Col>
             )
@@ -133,6 +133,7 @@ class App extends React.Component<AppInterface, object> {
                                 </Col>
                             </Row>
                         </div>
+
                         <div className="mb-4">
                         <Row>
                             {backButton}

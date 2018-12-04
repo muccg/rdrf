@@ -72,6 +72,7 @@
     "webpack-merge": "^4.1.2"
   },
   "dependencies": {
+    "rc-slider": "^8.6.3",
     "react-device-detect": "^1.6.1",
     "react-easy-swipe": "^0.0.16"
   }
