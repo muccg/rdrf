@@ -18,6 +18,10 @@ class VerificationStatus:
     CORRECTED = "corrected"      # clinican provides a new value
 
 
+INSPECTED = [VerificationStatus.VERIFIED,
+             VerificationStatus.CORRECTED]
+
+
 class VerifiableCDE:
     def __init__(self,
                  registry_model,
@@ -48,6 +52,21 @@ class VerifiableCDE:
         self.patient_display_value = NoData
         self.status = VerificationStatus.UNVERIFIED
         self.comments = ""
+
+
+    @property
+    def display_value(self):
+        def disp(value):
+            return self.humaniser.display_value2(self.form_model,
+                                                 self.section_model,
+                                                 self.cde_model,
+                                                 value)
+
+        if self.status == "corrected":
+            return disp(self.clinician_data)
+        elif self.status == "verified":
+            return disp(self.patient_data)
+            
 
     def set_clinician_value(self, raw_value):
         # field has already been validated so type casts are safe
@@ -276,3 +295,39 @@ def create_annotations(user, registry_model, patient_model, context_model, verif
         annotation.cde_value = str(v.patient_data)
         annotation.orig_value = str(v.patient_data)
         annotation.save()
+
+def send_participant_notification(registry_model, clinician_user, patient_model, diagnosis):
+    from rdrf.services.io.notifications.email_notification import process_notification
+    from rdrf.events.events import EventType
+    from registry.patients.models import ParentGuardian
+    if diagnosis is None:
+        return
+    participants = [pg for pg in ParentGuardian.objects.filter(patient=patient_model)]
+    if len(participants) > 0:
+        participant = participants[0]
+    else:
+        raise Exception("No participant associated with patient")
+
+    patient_name = "%s %s" % (patient_model.given_names, patient_model.family_name)
+
+    template_data = {"participant_email": participant.user.email,
+                     "diagnosis": diagnosis,
+                     "patient_name": patient_name,
+                     "clinician_name": clinician_user.last_name,
+                     }
+
+    process_notification(registry_model.code,
+                         EventType.PARTICIPANT_CLINICIAN_NOTIFICATION,
+                         template_data)
+
+def get_diagnosis(registry_model, verifications):
+    diagnosis_code = registry_model.diagnosis_code
+    logger.debug("diagnosis code = %s" % diagnosis_code)
+    if not diagnosis_code:
+        return None
+    for v in verifications:
+        if v.cde_model.code == diagnosis_code:
+            if v.status in INSPECTED:
+                return v.display_value
+
+    return None

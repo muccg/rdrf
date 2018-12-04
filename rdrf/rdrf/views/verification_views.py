@@ -13,6 +13,8 @@ from rdrf.workflows.verification import get_verifications
 from rdrf.workflows.verification import VerificationStatus
 from rdrf.workflows.verification import VerifiableCDE
 from rdrf.workflows.verification import create_annotations
+from rdrf.workflows.verification import send_participant_notification
+from rdrf.workflows.verification import get_diagnosis
 
 from rdrf.forms.dynamic.verification_form import make_verification_form
 from rdrf.forms.navigation.locators import PatientLocator
@@ -221,6 +223,9 @@ class PatientVerificationView(View, VerificationSecurityMixin):
                                verified=verified,
                                corrected=corrected)
             # we need to re-present the full form to the user
+            # we need diagnosis
+            diagnosis = get_diagnosis(registry_model, verifications)
+            send_participant_notification(registry_model, user, patient_model, diagnosis)
             form = make_verification_form(verifications)
             form = self._wrap_form(patient_model, context_model, form, verifications)
             messages.add_message(request, messages.SUCCESS, "Form saved successfully")

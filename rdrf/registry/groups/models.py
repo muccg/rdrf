@@ -290,11 +290,6 @@ def user_activated_callback(sender, user, request, **kwargs):
         if len(patients) >= 1:
             patient = patients[0]
 
-    elif user.is_clinician:
-        # is there a ClinicianSignupRequest
-        logger.debug("clinician user %s now active" % user)
-        
-
     if patient:
         template_data["patient"] = patient
 

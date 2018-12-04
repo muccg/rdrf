@@ -61,13 +61,14 @@ class FieldFactory(object):
     UNSET_CHOICE = ""
 
     def __init__(self, registry, registry_form, section, cde, questionnaire_context=None,
-                 injected_model=None, injected_model_id=None, is_superuser=False):
+                 injected_model=None, injected_model_id=None, is_superuser=False, is_verification=False):
         """
         :param cde: Common Data Element model instance
         """
         self.registry = registry
         self.registry_form = registry_form
         self.section = section
+        self.is_verification = is_verification
         self.cde = cde
         self.questionnaire_context = questionnaire_context
         if questionnaire_context:
@@ -111,13 +112,21 @@ class FieldFactory(object):
     def _get_field_name(self):
         if self.context == FieldContext.CLINICAL_FORM:
             return self._get_cde_link(
-                _(self.cde.name)) if self.is_superuser else _(self.cde.name)
+                _(self._get_label())) if self.is_superuser else _(self._get_label())
         else:
             q_field_text = self.cde.questionnaire_text
             if not q_field_text:
                 q_field_text = self._get_cde_link(
                     _(self.cde.name)) if self.is_superuser else _(self.cde.name)
             return self._get_cde_link(q_field_text) if self.is_superuser else q_field_text
+
+    def _get_label(self):
+        if not self.is_verification:
+            return self.cde.name
+        else:
+            return "%s/%s/%s" % (self.registry_form.name,
+                                 self.section.display_name,
+                                 self.cde.name)
 
     def _get_cde_link(self, name):
         if not settings.DESIGN_MODE:

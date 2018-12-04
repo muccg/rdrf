@@ -170,6 +170,11 @@ class Registry(models.Model):
             return RegistryType.HAS_CONTEXT_GROUPS
 
     @property
+    def diagnosis_code(self):
+        # used by verification workflow
+        return self.metadata.get("diagnosis_code", None)
+
+    @property
     def has_groups(self):
         return self.registry_type == RegistryType.HAS_CONTEXT_GROUPS
 
@@ -1408,7 +1413,9 @@ class EmailNotification(models.Model):
         (EventType.REMINDER, "Reminder"),
         (EventType.CLINICIAN_SIGNUP_REQUEST, "Clinician Signup Request"),
         (EventType.CLINICIAN_ACTIVATION, "Clinician Activation"),
-        (EventType.CLINICIAN_SELECTED, "Clinician Selected")
+        (EventType.CLINICIAN_SELECTED, "Clinician Selected"),
+        (EventType.PARTICIPANT_CLINICIAN_NOTIFICATION, "Participant Clinician Notification"),
+
     )
 
     description = models.CharField(max_length=100, choices=EMAIL_NOTIFICATIONS)
