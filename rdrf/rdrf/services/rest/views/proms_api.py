@@ -149,6 +149,9 @@ class PromsProcessor:
         # clinical system
         logger.debug("updating downloaded proms for survey request %s" % survey_request.pk)
         patient_model = survey_request.patient
+        consents = [(c["cde_code"], c["consent_code"]) for c in self.registry_model.metadata.get("consents", [])]
+        logger.debug("Consents Code %s" % consents)
+
         for cde_code, value in survey_data.items():
             try:
                 cde_model = CommonDataElement.objects.get(code=cde_code)
@@ -158,10 +161,19 @@ class PromsProcessor:
 
             # NB. this assumes cde  is unique across reg ...
             try:
-                form_model, section_model = self._locate_cde(cde_model)
+                is_consent = False
+                for cde_proms_code, consent_code in consents :
+                    if cde_code == cde_proms_code:
+                        self._update_consentvalue(patient_model, consent_code, value)
+                        is_consent = True
+                        break
+
+                if not is_consent:
+                    form_model, section_model = self._locate_cde(cde_model)
             except BaseException:
                 logger.error("could not locate cde %s" % cde_code)
                 # should fail for now skip
+
                 continue
 
             try:
@@ -186,6 +198,12 @@ class PromsProcessor:
         survey_request.response = json.dumps(survey_data)
         survey_request.save()
         logger.debug("updated survey_request state to received")
+
+    def _update_consentvalue(self, patient_model, consent_code, answer):
+        from rdrf.models.definition.models import ConsentQuestion
+        logger.debug("Answer to save %s" % answer)
+        consent_question_model = ConsentQuestion.objects.get(code=consent_code)
+        patient_model.set_consent(consent_question_model, answer)
 
     def _locate_cde(self, target_cde_model):
         # retrieve first available..
