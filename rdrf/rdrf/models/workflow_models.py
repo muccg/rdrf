@@ -73,7 +73,7 @@ class ClinicianSignupRequest(models.Model):
             speciality = "Unspecified"
 
         template_data = {"speciality": speciality,
-                         "clinician_last_name": self.clinician_other.clinician_name,
+                         "clinician_last_name": self.clinician_other.clinician_last_name,
                          "participant_name": participant_name,
                          "clinician_email": self.clinician_other.clinician_email,
                          "patient_name": patient_name,

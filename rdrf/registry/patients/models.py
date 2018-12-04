@@ -1118,6 +1118,8 @@ class ClinicianOther(models.Model):
     clinician_phone_number = models.CharField(max_length=254, null=True, blank=True)
     speciality = models.ForeignKey(Speciality, null=True, blank=True, on_delete=models.deletion.SET_NULL)
     user = models.ForeignKey(CustomUser, blank=True, null=True)
+    clinician_first_name = models.CharField(max_length=200, blank=True, null=True)
+    clinician_last_name = models.CharField(max_length=200, blank=True, null=True)
 
     def synchronise_working_group(self):
         if not self.user:

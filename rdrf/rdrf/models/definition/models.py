@@ -170,6 +170,11 @@ class Registry(models.Model):
             return RegistryType.HAS_CONTEXT_GROUPS
 
     @property
+    def diagnosis_code(self):
+        # used by verification workflow
+        return self.metadata.get("diagnosis_code", None)
+
+    @property
     def has_groups(self):
         return self.registry_type == RegistryType.HAS_CONTEXT_GROUPS
 
