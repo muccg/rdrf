@@ -14,9 +14,11 @@ from django.shortcuts import render
 from rest_framework import status
 from rdrf.services.rest.serializers import SurveyAssignmentSerializer
 from rdrf.services.rest.auth import PromsAuthentication
+from rdrf.db.contexts_api import RDRFContextManager
 from rest_framework.permissions import AllowAny
 import requests
 import json
+
 
 import logging
 logger = logging.getLogger(__name__)
@@ -95,6 +97,7 @@ class PromsProcessor:
     def __init__(self, registry_model):
         self.registry_model = registry_model
         self.proms_url = registry_model.proms_system_url
+        self.rdrf_context_manager = RDRFContextManager(registry_model)
 
     def download_proms(self):
         from django.conf import settings
@@ -149,6 +152,8 @@ class PromsProcessor:
         # clinical system
         logger.debug("updating downloaded proms for survey request %s" % survey_request.pk)
         patient_model = survey_request.patient
+        followup_context_model = self._create_followup_context(survey_request)
+
         for cde_code, value in survey_data.items():
             try:
                 cde_model = CommonDataElement.objects.get(code=cde_code)
@@ -165,7 +170,15 @@ class PromsProcessor:
                 continue
 
             try:
-                patient_model.set_form_value(self.registry_model.code,
+                if survey_request.survey.is_followup:
+                    patient_model.set_form_value(self.registry_model.code,
+                                             form_model.name,
+                                             section_model.code,
+                                             cde_model.code,
+                                             value,
+                                             followup_context_model)
+                else:
+                    patient_model.set_form_value(self.registry_model.code,
                                              form_model.name,
                                              section_model.code,
                                              cde_model.code,
@@ -195,3 +208,8 @@ class PromsProcessor:
                     for cde_model in section_model.cde_models:
                         if cde_model.code == target_cde_model.code:
                             return form_model, section_model
+
+    def _create_followup_context(self, survey_request):
+        patient_model = survey_request.patient
+        if survey_request.survey.is_followup:
+            return self.rdrf_context_manager.create_context(patient_model, "Followup")

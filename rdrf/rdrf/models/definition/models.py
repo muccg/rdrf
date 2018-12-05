@@ -1472,6 +1472,8 @@ class RDRFContext(models.Model):
                 return "Context"
 
     def _get_name_from_cde(self):
+        if not self.context_form_group.naming_cde_to_use:
+            return "Follow Up"
         cde_path = self.context_form_group.naming_cde_to_use
         form_name, section_code, cde_code = cde_path.split("/")
         cde_value = self.content_object.get_form_value(self.registry.code,
@@ -1570,6 +1572,8 @@ class ContextFormGroup(models.Model):
             return None
 
     def get_name_from_cde(self, patient_model, context_model):
+        if not self.naming_cde_to_use:
+            return "Follow Up"
         form_name, section_code, cde_code = self.naming_cde_to_use.split("/")
         try:
             cde_value = patient_model.get_form_value(self.registry.code,

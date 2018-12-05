@@ -303,3 +303,11 @@ class SurveyRequest(models.Model):
     def patient_name(self):
         return "%s %s" % (self.patient.given_names,
                           self.patient.family_name)
+
+    @property
+    def survey(self):
+        try:
+            return Survey.objects.get(registry=self.registry,
+                                      name=self.survey_name)
+        except Survey.DoesNotExist:
+            logger.error("No survey with name %s " % self.survey_name)
