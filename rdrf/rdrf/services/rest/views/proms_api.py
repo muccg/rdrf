@@ -97,7 +97,6 @@ class PromsProcessor:
     def __init__(self, registry_model):
         self.registry_model = registry_model
         self.proms_url = registry_model.proms_system_url
-        self.rdrf_context_manager = RDRFContextManager(registry_model)
 
     def download_proms(self):
         from django.conf import settings
@@ -148,11 +147,15 @@ class PromsProcessor:
                 self._update_proms_fields(survey_request, survey_data)
 
     def _update_proms_fields(self, survey_request, survey_data):
+        from rdrf.models.definition.models import RDRFContext
+        from rdrf.models.definition.models import ContextFormGroup
         # pokes downloaded proms into correct fields inside
         # clinical system
         logger.debug("updating downloaded proms for survey request %s" % survey_request.pk)
         patient_model = survey_request.patient
-        followup_context_model = self._create_followup_context(survey_request)
+        context_form_group = ContextFormGroup.objects.get(registry=self.registry_model, name="Followup")
+        context_model = RDRFContext(registry=self.registry_model, context_form_group=context_form_group,
+                                  content_object=patient_model, display_name="Follow Up")
 
         for cde_code, value in survey_data.items():
             try:
@@ -176,7 +179,7 @@ class PromsProcessor:
                                              section_model.code,
                                              cde_model.code,
                                              value,
-                                             followup_context_model)
+                                             context_model)
                 else:
                     patient_model.set_form_value(self.registry_model.code,
                                              form_model.name,
