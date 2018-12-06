@@ -14,7 +14,6 @@ from django.shortcuts import render
 from rest_framework import status
 from rdrf.services.rest.serializers import SurveyAssignmentSerializer
 from rdrf.services.rest.auth import PromsAuthentication
-from rdrf.db.contexts_api import RDRFContextManager
 from rest_framework.permissions import AllowAny
 import requests
 import json
@@ -215,7 +214,3 @@ class PromsProcessor:
                         if cde_model.code == target_cde_model.code:
                             return form_model, section_model
 
-    def _create_followup_context(self, survey_request):
-        patient_model = survey_request.patient
-        if survey_request.survey.is_followup:
-            return self.rdrf_context_manager.create_context(patient_model, "Followup")
