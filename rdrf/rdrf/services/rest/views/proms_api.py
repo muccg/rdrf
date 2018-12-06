@@ -153,9 +153,12 @@ class PromsProcessor:
         # clinical system
         logger.debug("updating downloaded proms for survey request %s" % survey_request.pk)
         patient_model = survey_request.patient
-        context_form_group = ContextFormGroup.objects.get(registry=self.registry_model, name="Followup")
-        context_model = RDRFContext(registry=self.registry_model, context_form_group=context_form_group,
+        is_followup = survey_request.survey.is_followup
+        if is_followup:
+            context_form_group = ContextFormGroup.objects.get(registry=self.registry_model, name="Followup")
+            context_model = RDRFContext(registry=self.registry_model, context_form_group=context_form_group,
                                   content_object=patient_model, display_name="Follow Up")
+            context_model.save()
 
         for cde_code, value in survey_data.items():
             try:
@@ -173,7 +176,7 @@ class PromsProcessor:
                 continue
 
             try:
-                if survey_request.survey.is_followup:
+                if is_followup:
                     patient_model.set_form_value(self.registry_model.code,
                                              form_model.name,
                                              section_model.code,
