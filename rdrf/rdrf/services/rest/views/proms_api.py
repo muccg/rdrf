@@ -18,6 +18,7 @@ from rest_framework.permissions import AllowAny
 import requests
 import json
 
+
 import logging
 logger = logging.getLogger(__name__)
 
@@ -145,10 +146,19 @@ class PromsProcessor:
                 self._update_proms_fields(survey_request, survey_data)
 
     def _update_proms_fields(self, survey_request, survey_data):
+        from rdrf.models.definition.models import RDRFContext
+        from rdrf.models.definition.models import ContextFormGroup
         # pokes downloaded proms into correct fields inside
         # clinical system
         logger.debug("updating downloaded proms for survey request %s" % survey_request.pk)
         patient_model = survey_request.patient
+        is_followup = survey_request.survey.is_followup
+        if is_followup:
+            context_form_group = ContextFormGroup.objects.get(registry=self.registry_model, name="Followup")
+            context_model = RDRFContext(registry=self.registry_model, context_form_group=context_form_group,
+                                  content_object=patient_model, display_name="Follow Up")
+            context_model.save()
+
         for cde_code, value in survey_data.items():
             try:
                 cde_model = CommonDataElement.objects.get(code=cde_code)
@@ -165,7 +175,15 @@ class PromsProcessor:
                 continue
 
             try:
-                patient_model.set_form_value(self.registry_model.code,
+                if is_followup:
+                    patient_model.set_form_value(self.registry_model.code,
+                                             form_model.name,
+                                             section_model.code,
+                                             cde_model.code,
+                                             value,
+                                             context_model)
+                else:
+                    patient_model.set_form_value(self.registry_model.code,
                                              form_model.name,
                                              section_model.code,
                                              cde_model.code,
@@ -195,3 +213,4 @@ class PromsProcessor:
                     for cde_model in section_model.cde_models:
                         if cde_model.code == target_cde_model.code:
                             return form_model, section_model
+

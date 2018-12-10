@@ -977,24 +977,27 @@ class Patient(models.Model):
 
         def keyfunc(context_model):
             name_path = multiple_form_group.naming_cde_to_use
-            form_name, section_code, cde_code = name_path.split("/")
-            section_model = Section.objects.get(code=section_code)
-            is_multisection = section_model.allow_multiple
+            if name_path:
+                form_name, section_code, cde_code = name_path.split("/")
+                section_model = Section.objects.get(code=section_code)
+                is_multisection = section_model.allow_multiple
 
-            try:
-                value = self.get_form_value(registry_model.code,
+                try:
+                    value = self.get_form_value(registry_model.code,
                                             form_name,
                                             section_code,
                                             cde_code,
                                             multisection=is_multisection,
                                             context_id=context_model.id)
 
-                if value is None:
+                    if value is None:
+                        return bottom
+                    else:
+                        return value
+                except KeyError:
                     return bottom
-                else:
-                    return value
-            except KeyError:
-                return bottom
+            else:
+                return multiple_form_group.get_default_name
 
         if multiple_form_group.ordering == "N":
             key_func = keyfunc
