@@ -170,6 +170,11 @@ class Registry(models.Model):
             return RegistryType.HAS_CONTEXT_GROUPS
 
     @property
+    def diagnosis_code(self):
+        # used by verification workflow
+        return self.metadata.get("diagnosis_code", None)
+
+    @property
     def has_groups(self):
         return self.registry_type == RegistryType.HAS_CONTEXT_GROUPS
 
@@ -1408,7 +1413,9 @@ class EmailNotification(models.Model):
         (EventType.REMINDER, "Reminder"),
         (EventType.CLINICIAN_SIGNUP_REQUEST, "Clinician Signup Request"),
         (EventType.CLINICIAN_ACTIVATION, "Clinician Activation"),
-        (EventType.CLINICIAN_SELECTED, "Clinician Selected")
+        (EventType.CLINICIAN_SELECTED, "Clinician Selected"),
+        (EventType.PARTICIPANT_CLINICIAN_NOTIFICATION, "Participant Clinician Notification"),
+
     )
 
     description = models.CharField(max_length=100, choices=EMAIL_NOTIFICATIONS)
@@ -1465,6 +1472,8 @@ class RDRFContext(models.Model):
                 return "Context"
 
     def _get_name_from_cde(self):
+        if not self.context_form_group.naming_cde_to_use:
+            return "Follow Up"
         cde_path = self.context_form_group.naming_cde_to_use
         form_name, section_code, cde_code = cde_path.split("/")
         cde_value = self.content_object.get_form_value(self.registry.code,
@@ -1524,13 +1533,14 @@ class ContextFormGroup(models.Model):
     def is_ordered_by_creation(self):
         return self.ordering == "C"
 
-    def get_default_name(self, patient_model):
+    def get_default_name(self, patient_model, context_model=None):
         if self.naming_scheme == "M":
             return "Modules"
-        elif self.naming_scheme == "D":
-            d = datetime.datetime.now()
+        elif self.naming_scheme == "D" and context_model is not None:
+            d = context_model.created_at
             s = d.strftime("%d-%b-%Y")
-            return "%s/%s" % (self.name, s)
+            t = d.strftime("%I:%M:%S %p")
+            return "%s/%s %s" % (self.name, s, t)
         elif self.naming_scheme == "N":
             registry_model = self.registry
             patient_content_type = ContentType.objects.get(model='patient')
@@ -1563,6 +1573,8 @@ class ContextFormGroup(models.Model):
             return None
 
     def get_name_from_cde(self, patient_model, context_model):
+        if not self.naming_cde_to_use:
+            return self.get_default_name(patient_model, context_model)
         form_name, section_code, cde_code = self.naming_cde_to_use.split("/")
         try:
             cde_value = patient_model.get_form_value(self.registry.code,

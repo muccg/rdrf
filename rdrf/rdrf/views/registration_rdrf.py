@@ -16,6 +16,7 @@ class RdrfRegistrationView(RegistrationView):
     def get(self, request, *args, **kwargs):
         logger.debug("RdrfRegistrationView get")
         self.registry_code = kwargs['registry_code']
+        workflow = None
         token = request.GET.get("t", None)
         if token:
             logger.debug("token = %s" % token)
@@ -31,6 +32,11 @@ class RdrfRegistrationView(RegistrationView):
         form = self.get_form(form_class)
         context = self.get_context_data(form=form)
         context["is_mobile"] = request.user_agent.is_mobile
+        if workflow:
+            context["username"] = workflow.username
+            context["first_name"] = workflow.first_name
+            context["last_name"] = workflow.last_name
+
         return self.render_to_response(context)
 
     def post(self, request, *args, **kwargs):

@@ -474,7 +474,7 @@ class ParentGuardianAdmin(admin.ModelAdmin):
 
 class ClinicianOtherAdmin(admin.ModelAdmin):
     model = ClinicianOther
-    list_display = ('clinician_name', 'clinician_hospital', 'clinician_address')
+    list_display = ('clinician_last_name','clinician_first_name', 'clinician_hospital', 'clinician_address')
 
 
 def unarchive_patient_action(modeladmin, request, archive_patients_selected):

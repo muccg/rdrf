@@ -40,7 +40,8 @@ class ClinicianForm(forms.ModelForm):
     class Meta:
         model = ClinicianOther
         fields = ['user',
-                  'clinician_name',
+                  'clinician_first_name',
+                  'clinician_last_name',
                   'clinician_hospital',
                   'clinician_address',
                   'clinician_email',
@@ -90,11 +91,12 @@ class ClinicianForm(forms.ModelForm):
 
         clinician_choice = int(cleaned_data["user"])
         del cleaned_data["user"]
-        clinician_name = cleaned_data.get("clinician_name", None)
+        clinician_first_name = cleaned_data.get("clinician_first_name", None)
+        clinician_last_name = cleaned_data.get("clinician_last_name", None)
 
         if clinician_choice == self.OTHER_CHOICE:
-            if not clinician_name:
-                raise ValidationError(_("Please enter name"))
+            if not all([clinician_first_name, clinician_last_name]):
+                raise ValidationError(_("Please enter first and last name"))
             else:
                 cleaned_data["user"] = None
                 cleaned_data["use_other"] = True
