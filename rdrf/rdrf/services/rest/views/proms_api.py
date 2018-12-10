@@ -153,9 +153,13 @@ class PromsProcessor:
         logger.debug("updating downloaded proms for survey request %s" % survey_request.pk)
         patient_model = survey_request.patient
         metadata = self.registry_model.metadata
+        consent_exists = False
         if "consents" in metadata:
             consent_dict = metadata["consents"]    
             logger.debug("Consent Codes %s" % consent_dict)
+            consent_exists = True
+        else:
+            logger.warning("No Consent metadata exists")
 
         is_followup = survey_request.survey.is_followup
 
@@ -175,11 +179,11 @@ class PromsProcessor:
             # NB. this assumes cde  is unique across reg ...
             try:
                 is_consent = False
-                consent_question_code = consent_dict.get(cde_code, None)
-                if consent_question_code is not None:
-                     consent_code = consent_dict[cde_code]
-                     self._update_consentvalue(patient_model, consent_code, value)
-                     is_consent = True
+                if consent_exists:
+                    consent_question_code = consent_dict.get(cde_code, None)
+                    if consent_question_code is not None:
+                        self._update_consentvalue(patient_model, consent_question_code, value)
+                        is_consent = True
 
                 if not is_consent:
                     form_model, section_model = self._locate_cde(cde_model)
