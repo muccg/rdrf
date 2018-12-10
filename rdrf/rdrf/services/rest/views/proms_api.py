@@ -18,6 +18,7 @@ from rest_framework.permissions import AllowAny
 import requests
 import json
 
+
 import logging
 logger = logging.getLogger(__name__)
 
@@ -145,10 +146,29 @@ class PromsProcessor:
                 self._update_proms_fields(survey_request, survey_data)
 
     def _update_proms_fields(self, survey_request, survey_data):
+        from rdrf.models.definition.models import RDRFContext
+        from rdrf.models.definition.models import ContextFormGroup
         # pokes downloaded proms into correct fields inside
         # clinical system
         logger.debug("updating downloaded proms for survey request %s" % survey_request.pk)
         patient_model = survey_request.patient
+        metadata = self.registry_model.metadata
+        consent_exists = False
+        if "consents" in metadata:
+            consent_dict = metadata["consents"]    
+            logger.debug("Consent Codes %s" % consent_dict)
+            consent_exists = True
+        else:
+            logger.warning("No Consent metadata exists")
+
+        is_followup = survey_request.survey.is_followup
+
+        if is_followup:
+            context_form_group = ContextFormGroup.objects.get(registry=self.registry_model, name="Followup")
+            context_model = RDRFContext(registry=self.registry_model, context_form_group=context_form_group,
+                                  content_object=patient_model, display_name="Follow Up")
+            context_model.save()
+
         for cde_code, value in survey_data.items():
             try:
                 cde_model = CommonDataElement.objects.get(code=cde_code)
@@ -158,14 +178,31 @@ class PromsProcessor:
 
             # NB. this assumes cde  is unique across reg ...
             try:
-                form_model, section_model = self._locate_cde(cde_model)
+                is_consent = False
+                if consent_exists:
+                    consent_question_code = consent_dict.get(cde_code, None)
+                    if consent_question_code is not None:
+                        self._update_consentvalue(patient_model, consent_question_code, value)
+                        is_consent = True
+
+                if not is_consent:
+                    form_model, section_model = self._locate_cde(cde_model)
             except BaseException:
                 logger.error("could not locate cde %s" % cde_code)
                 # should fail for now skip
+
                 continue
 
             try:
-                patient_model.set_form_value(self.registry_model.code,
+                if is_followup:
+                    patient_model.set_form_value(self.registry_model.code,
+                                             form_model.name,
+                                             section_model.code,
+                                             cde_model.code,
+                                             value,
+                                             context_model)
+                else:
+                    patient_model.set_form_value(self.registry_model.code,
                                              form_model.name,
                                              section_model.code,
                                              cde_model.code,
@@ -187,6 +224,12 @@ class PromsProcessor:
         survey_request.save()
         logger.debug("updated survey_request state to received")
 
+    def _update_consentvalue(self, patient_model, consent_code, answer):
+        from rdrf.models.definition.models import ConsentQuestion
+        logger.debug("Answer to save %s" % answer)
+        consent_question_model = ConsentQuestion.objects.get(code=consent_code)
+        patient_model.set_consent(consent_question_model, answer)
+
     def _locate_cde(self, target_cde_model):
         # retrieve first available..
         for form_model in self.registry_model.forms:
@@ -195,3 +238,4 @@ class PromsProcessor:
                     for cde_model in section_model.cde_models:
                         if cde_model.code == target_cde_model.code:
                             return form_model, section_model
+
