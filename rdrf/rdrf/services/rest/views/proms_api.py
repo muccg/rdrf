@@ -149,8 +149,10 @@ class PromsProcessor:
         # clinical system
         logger.debug("updating downloaded proms for survey request %s" % survey_request.pk)
         patient_model = survey_request.patient
-        consents = [(c["cde_code"], c["consent_code"]) for c in self.registry_model.metadata.get("consents", [])]
-        logger.debug("Consents Code %s" % consents)
+        metadata = self.registry_model.metadata
+        if "consents" in metadata:
+            consent_dict = metadata["consents"]    
+            logger.debug("Consents Codes %s" % consent_dict)
 
         for cde_code, value in survey_data.items():
             try:
@@ -162,11 +164,14 @@ class PromsProcessor:
             # NB. this assumes cde  is unique across reg ...
             try:
                 is_consent = False
-                for cde_proms_code, consent_code in consents :
-                    if cde_code == cde_proms_code:
-                        self._update_consentvalue(patient_model, consent_code, value)
-                        is_consent = True
-                        break
+                logger.debug("cde code  = %s" % cde_code)
+                consent_question_code = consent_dict.get(cde_code, None)
+                logger.debug("Consent Question Code X %s" % consent_question_code)
+                if consent_question_code is not None:
+                     consent_code = consent_dict[cde_code]
+                     logger.debug("Consent Question Code X %s" % consent_code)
+                     self._update_consentvalue(patient_model, consent_code, value)
+                     is_consent = True
 
                 if not is_consent:
                     form_model, section_model = self._locate_cde(cde_model)
