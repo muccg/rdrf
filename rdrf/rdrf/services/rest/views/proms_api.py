@@ -152,7 +152,17 @@ class PromsProcessor:
         # clinical system
         logger.debug("updating downloaded proms for survey request %s" % survey_request.pk)
         patient_model = survey_request.patient
+        metadata = self.registry_model.metadata
+        consent_exists = False
+        if "consents" in metadata:
+            consent_dict = metadata["consents"]    
+            logger.debug("Consent Codes %s" % consent_dict)
+            consent_exists = True
+        else:
+            logger.warning("No Consent metadata exists")
+
         is_followup = survey_request.survey.is_followup
+
         if is_followup:
             context_form_group = ContextFormGroup.objects.get(registry=self.registry_model, name="Followup")
             context_model = RDRFContext(registry=self.registry_model, context_form_group=context_form_group,
@@ -168,10 +178,19 @@ class PromsProcessor:
 
             # NB. this assumes cde  is unique across reg ...
             try:
-                form_model, section_model = self._locate_cde(cde_model)
+                is_consent = False
+                if consent_exists:
+                    consent_question_code = consent_dict.get(cde_code, None)
+                    if consent_question_code is not None:
+                        self._update_consentvalue(patient_model, consent_question_code, value)
+                        is_consent = True
+
+                if not is_consent:
+                    form_model, section_model = self._locate_cde(cde_model)
             except BaseException:
                 logger.error("could not locate cde %s" % cde_code)
                 # should fail for now skip
+
                 continue
 
             try:
@@ -204,6 +223,12 @@ class PromsProcessor:
         survey_request.response = json.dumps(survey_data)
         survey_request.save()
         logger.debug("updated survey_request state to received")
+
+    def _update_consentvalue(self, patient_model, consent_code, answer):
+        from rdrf.models.definition.models import ConsentQuestion
+        logger.debug("Answer to save %s" % answer)
+        consent_question_model = ConsentQuestion.objects.get(code=consent_code)
+        patient_model.set_consent(consent_question_model, answer)
 
     def _locate_cde(self, target_cde_model):
         # retrieve first available..
