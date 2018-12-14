@@ -156,6 +156,10 @@ form .aligned ul.errorlist {
     display: none;
 }
 
+.section_hidden {
+    display: none;
+}
+
 /***************************************************************************
 * proms logo, survey name & preamble text                              */
 
