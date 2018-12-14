@@ -208,7 +208,7 @@ class RDRFContextLauncherComponent(RDRFComponent):
         links = []
         for context_form_group in ContextFormGroup.objects.filter(
                 registry=self.registry_model, context_type="M").order_by("name"):
-            name = _("All " + context_form_group.direct_name + "s")
+            name = _("All " + context_form_group.direct_name)
             filter_url = patients_listing_url + "?registry_code=%s&patient_id=%s&context_form_group_id=%s" % (
                 self.registry_model.code, self.patient_model.pk, context_form_group.pk)
 
@@ -220,7 +220,8 @@ class RDRFContextLauncherComponent(RDRFComponent):
                              add_link_url=add_link_url,
                              add_link_text=add_link_text)
 
-                form.heading = _(context_form_group.direct_name + "s")
+                form.heading = _(context_form_group.direct_name)
+
                 form.id = context_form_group.pk
                 form.existing_links = self._get_existing_links(context_form_group)
                 links.append(form)
@@ -403,7 +404,7 @@ class FormsButton(RDRFComponent):
         if self.context_form_group:
             heading = self.context_form_group.direct_name
             if self.context_form_group.context_type == "M":
-                heading = heading + "s"
+                heading = heading
         else:
             heading = "Modules"
 
@@ -478,7 +479,7 @@ class FormsButton(RDRFComponent):
         else:
             if self.context_form_group.supports_direct_linking:
                 # we know there is one form
-                return self.context_form_group.forms[0].nice_name + "s"
+                return self.context_form_group.forms[0].nice_name
             else:
                 return self.context_form_group.name
 
@@ -517,7 +518,7 @@ class FormGroupButton(RDRFComponent):
         else:
             if self.context_form_group.supports_direct_linking:
                 # we know there is one form
-                return self.context_form_group.forms[0].nice_name + "s"
+                return self.context_form_group.forms[0].nice_name
             else:
                 return self.context_form_group.name
 
