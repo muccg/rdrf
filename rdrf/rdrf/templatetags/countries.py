@@ -4,6 +4,6 @@ import pycountry
 register = template.Library()
 
 
-@register.assignment_tag
+@register.simple_tag
 def countries():
     return pycountry.countries

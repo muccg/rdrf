@@ -27,7 +27,7 @@ class Migration(migrations.Migration):
             name='user',
             field=models.ForeignKey(
                 related_name='user_object',
-                on_delete=django.db.models.deletion.SET_NULL,
+                on_delete=models.SET_NULL,
                 blank=True,
                 to=settings.AUTH_USER_MODEL,
                 null=True),
@@ -53,14 +53,15 @@ class Migration(migrations.Migration):
                 related_name='self_patient',
                 blank=True,
                 to='patients.Patient',
-                null=True),
+                null=True,
+                on_delete=models.SET_NULL),
         ),
         migrations.AddField(
             model_name='parentguardian',
             name='user',
             field=models.ForeignKey(
                 related_name='parent_user_object',
-                on_delete=django.db.models.deletion.SET_NULL,
+                on_delete=models.SET_NULL,
                 blank=True,
                 to=settings.AUTH_USER_MODEL,
                 null=True),
@@ -70,19 +71,22 @@ class Migration(migrations.Migration):
             name='state',
             field=models.ForeignKey(
                 verbose_name='State/Province/Territory',
-                to='patients.State'),
+                to='patients.State',
+                on_delete=models.DO_NOTHING),
         ),
         migrations.AddField(
             model_name='consentvalue',
             name='consent_question',
             field=models.ForeignKey(
-                to='rdrf.ConsentQuestion'),
+                to='rdrf.ConsentQuestion',
+                on_delete=models.CASCADE),
         ),
         migrations.AddField(
             model_name='consentvalue',
             name='patient',
             field=models.ForeignKey(
                 related_name='consents',
-                to='patients.Patient'),
+                to='patients.Patient',
+                on_delete=models.CASCADE),
         ),
     ]

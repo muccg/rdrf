@@ -1,6 +1,6 @@
 from django.utils.translation import ugettext as _
 from django.contrib import admin
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from rdrf.models.definition.models import Registry
 from rdrf.models.definition.models import RegistryForm
 from rdrf.models.definition.models import QuestionnaireResponse
@@ -27,7 +27,6 @@ from rdrf.models.proms.models import Precondition
 from rdrf.models.proms.models import SurveyAssignment
 from rdrf.models.proms.models import SurveyRequest
 
-# from simple_history.admin import SimpleHistoryAdmin
 
 from reversion.admin import VersionAdmin
 

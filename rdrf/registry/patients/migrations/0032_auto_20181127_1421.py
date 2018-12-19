@@ -16,6 +16,9 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='clinicianother',
             name='speciality',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, to='patients.Speciality'),
+            field=models.ForeignKey(blank=True,
+                                    null=True,
+                                    on_delete=models.SET_NULL,
+                                    to='patients.Speciality'),
         ),
     ]

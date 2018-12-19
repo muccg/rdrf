@@ -1,5 +1,5 @@
 from django.shortcuts import redirect
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.db import transaction
 from registration.backends.default.views import RegistrationView
 from rdrf.workflows.registration import get_registration_workflow

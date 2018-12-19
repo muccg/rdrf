@@ -8,7 +8,7 @@ import yaml
 from django.conf import settings
 from django.contrib.auth.models import Group
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.db import models
@@ -125,7 +125,7 @@ class Registry(models.Model):
     patient_splash_screen = models.TextField(blank=True, null=True)
     version = models.CharField(max_length=20, blank=True)
     # a section which holds registry specific patient information
-    patient_data_section = models.ForeignKey(Section, null=True, blank=True)
+    patient_data_section = models.ForeignKey(Section, on_delete=models.CASCADE, null=True, blank=True)
     # metadata is a dictionary
     # keys ( so far):
     # "visibility" : [ element, element , *] allows GUI elements to be shown in demographics form for a given registry but not others
@@ -687,7 +687,7 @@ class CDEPermittedValue(models.Model):
     value = models.CharField(max_length=256)
     questionnaire_value = models.CharField(max_length=256, null=True, blank=True)
     desc = models.TextField(null=True)
-    pv_group = models.ForeignKey(CDEPermittedValueGroup, related_name='permitted_value_set')
+    pv_group = models.ForeignKey(CDEPermittedValueGroup, related_name='permitted_value_set', on_delete=models.CASCADE)
     position = models.IntegerField(null=True, blank=True)
 
     class Meta:
@@ -731,7 +731,8 @@ class CommonDataElement(models.Model):
         CDEPermittedValueGroup,
         null=True,
         blank=True,
-        help_text="If a range, indicate the Permissible Value Group")
+        help_text="If a range, indicate the Permissible Value Group",
+        on_delete=models.CASCADE)
     allow_multiple = models.BooleanField(
         default=False, help_text="If a range, indicate whether multiple selections allowed")
     max_length = models.IntegerField(
@@ -851,8 +852,8 @@ class CommonDataElement(models.Model):
 
 
 class CdePolicy(models.Model):
-    registry = models.ForeignKey(Registry)
-    cde = models.ForeignKey(CommonDataElement)
+    registry = models.ForeignKey(Registry, on_delete=models.CASCADE)
+    cde = models.ForeignKey(CommonDataElement, on_delete=models.CASCADE)
     groups_allowed = models.ManyToManyField(Group, blank=True)
     condition = models.TextField(blank=True)
 
@@ -895,7 +896,7 @@ class RegistryForm(models.Model):
     """
     objects = RegistryFormManager()
 
-    registry = models.ForeignKey(Registry)
+    registry = models.ForeignKey(Registry, on_delete=models.CASCADE)
     name = models.CharField(max_length=80,
                             help_text="Internal name used by system: Alphanumeric, no spaces")
     display_name = models.CharField(max_length=200,
@@ -1116,7 +1117,7 @@ class Wizard(models.Model):
 
 
 class QuestionnaireResponse(models.Model):
-    registry = models.ForeignKey(Registry)
+    registry = models.ForeignKey(Registry, on_delete=models.CASCADE)
     date_submitted = models.DateTimeField(auto_now_add=True)
     processed = models.BooleanField(default=False)
     patient_id = models.IntegerField(
@@ -1212,7 +1213,7 @@ class ConsentSection(models.Model):
 
     code = models.CharField(max_length=20)
     section_label = models.CharField(max_length=100)
-    registry = models.ForeignKey(Registry, related_name="consent_sections")
+    registry = models.ForeignKey(Registry, related_name="consent_sections", on_delete=models.CASCADE)
     information_link = models.CharField(max_length=100, blank=True, null=True)
     information_text = models.TextField(blank=True, null=True)
     # eg "patient.age > 6 and patient.age" < 10
@@ -1332,7 +1333,7 @@ class ConsentQuestion(models.Model):
 
     code = models.CharField(max_length=20)
     position = models.IntegerField(blank=True, null=True)
-    section = models.ForeignKey(ConsentSection, related_name="questions")
+    section = models.ForeignKey(ConsentSection, related_name="questions", on_delete=models.CASCADE)
     question_label = models.TextField()
     instructions = models.TextField(blank=True)
     questionnaire_label = models.TextField(blank=True)
@@ -1372,18 +1373,18 @@ class ConsentRule(models.Model):
     # e.g. restrict clinical users from seeing patients' data
     # if the patient has not given explicit consent
     CAPABILITIES = (('see_patient', 'See Patient'),)
-    registry = models.ForeignKey(Registry)
-    user_group = models.ForeignKey(Group)
+    registry = models.ForeignKey(Registry, on_delete=models.CASCADE)
+    user_group = models.ForeignKey(Group, on_delete=models.CASCADE)
     capability = models.CharField(max_length=50, choices=CAPABILITIES)
-    consent_question = models.ForeignKey(ConsentQuestion)
+    consent_question = models.ForeignKey(ConsentQuestion, on_delete=models.CASCADE)
     enabled = models.BooleanField(default=True)
 
 
 class DemographicFields(models.Model):
     FIELD_CHOICES = []
 
-    registry = models.ForeignKey(Registry)
-    group = models.ForeignKey(Group)
+    registry = models.ForeignKey(Registry, on_delete=models.CASCADE)
+    group = models.ForeignKey(Group, on_delete=models.CASCADE)
     field = models.CharField(max_length=50, choices=FIELD_CHOICES)
     readonly = models.NullBooleanField(null=True, blank=True)
     hidden = models.NullBooleanField(null=True, blank=True)
@@ -1419,10 +1420,10 @@ class EmailNotification(models.Model):
     )
 
     description = models.CharField(max_length=100, choices=EMAIL_NOTIFICATIONS)
-    registry = models.ForeignKey(Registry)
+    registry = models.ForeignKey(Registry, on_delete=models.CASCADE)
     email_from = models.EmailField(default='No Reply <no-reply@mg.ccgapps.com.au>')
     recipient = models.CharField(max_length=100, null=True, blank=True)
-    group_recipient = models.ForeignKey(Group, null=True, blank=True)
+    group_recipient = models.ForeignKey(Group, null=True, blank=True, on_delete=models.SET_NULL)
     email_templates = models.ManyToManyField(EmailTemplate)
     disabled = models.BooleanField(null=False, blank=False, default=False)
 
@@ -1433,7 +1434,7 @@ class EmailNotification(models.Model):
 class EmailNotificationHistory(models.Model):
     date_stamp = models.DateTimeField(auto_now_add=True)
     language = models.CharField(max_length=10)
-    email_notification = models.ForeignKey(EmailNotification)
+    email_notification = models.ForeignKey(EmailNotification, on_delete=models.CASCADE)
     template_data = models.TextField(null=True, blank=True)
 
 
@@ -1442,9 +1443,12 @@ class RDRFContextError(Exception):
 
 
 class RDRFContext(models.Model):
-    registry = models.ForeignKey(Registry)
-    content_type = models.ForeignKey(ContentType)
-    context_form_group = models.ForeignKey("ContextFormGroup", null=True, blank=True)
+    registry = models.ForeignKey(Registry, on_delete=models.CASCADE)
+    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
+    context_form_group = models.ForeignKey("ContextFormGroup",
+                                            null=True,
+                                            blank=True,
+                                            on_delete=models.SET_NULL)
     object_id = models.PositiveIntegerField()
     content_object = GenericForeignKey('content_type', 'object_id')
     created_at = models.DateTimeField(auto_now_add=True)
@@ -1492,7 +1496,9 @@ class ContextFormGroup(models.Model):
     ORDERING_TYPES = [("C", "Creation Time"),
                       ("N", "Name")]
 
-    registry = models.ForeignKey(Registry, related_name="context_form_groups")
+    registry = models.ForeignKey(Registry,
+                                related_name="context_form_groups",
+                                on_delete=models.CASCADE)
     context_type = models.CharField(max_length=1, default="F", choices=CONTEXT_TYPES)
     name = models.CharField(max_length=80)
     naming_scheme = models.CharField(max_length=1, default="D", choices=NAMING_SCHEMES)
@@ -1695,8 +1701,10 @@ class ContextFormGroup(models.Model):
 
 
 class ContextFormGroupItem(models.Model):
-    context_form_group = models.ForeignKey(ContextFormGroup, related_name="items")
-    registry_form = models.ForeignKey(RegistryForm)
+    context_form_group = models.ForeignKey(ContextFormGroup,
+                                            related_name="items",
+                                            on_delete=models.CASCADE)
+    registry_form = models.ForeignKey(RegistryForm, on_delete=models.CASCADE)
 
 
 class ClinicalDataQuerySet(models.QuerySet):

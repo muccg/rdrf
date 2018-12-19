@@ -20,12 +20,16 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='contextformgroup',
             name='registry',
-            field=models.ForeignKey(related_name='context_form_groups', to='rdrf.Registry'),
+            field=models.ForeignKey(related_name='context_form_groups', 
+                                    to='rdrf.Registry',
+                                    on_delete=models.CASCADE),
         ),
         migrations.AlterField(
             model_name='contextformgroupitem',
             name='context_form_group',
-            field=models.ForeignKey(related_name='items', to='rdrf.ContextFormGroup'),
+            field=models.ForeignKey(related_name='items',
+                                    to='rdrf.ContextFormGroup',
+                                    on_delete=models.CASCADE),
         ),
         migrations.AlterUniqueTogether(
             name='cdepermittedvalue',

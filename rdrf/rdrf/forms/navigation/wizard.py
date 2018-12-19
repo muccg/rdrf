@@ -1,4 +1,4 @@
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from rdrf.models.definition.models import RDRFContext
 from rdrf.models.definition.models import RegistryForm
 

@@ -7,7 +7,7 @@ from django.contrib import messages
 from django.http import HttpResponse, FileResponse
 from django.http import HttpResponseRedirect, HttpResponseNotFound
 from django.forms.formsets import formset_factory
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.utils.decorators import method_decorator
 from django.contrib.auth.decorators import login_required
 
@@ -1585,7 +1585,7 @@ class ConstructorFormView(View):
 class CustomConsentFormView(View):
 
     def get(self, request, registry_code, patient_id, context_id=None):
-        if not request.user.is_authenticated():
+        if not request.user.is_authenticated:
             consent_form_url = reverse('consent_form_view', args=[registry_code, patient_id])
             login_url = reverse('two_factor:login')
             return redirect("%s?next=%s" % (login_url, consent_form_url))
@@ -1699,7 +1699,7 @@ class CustomConsentFormView(View):
                                                   patient_model.pk])
 
     def post(self, request, registry_code, patient_id, context_id=None):
-        if not request.user.is_authenticated():
+        if not request.user.is_authenticated:
             consent_form_url = reverse(
                 'consent_form_view', args=[
                     registry_code, patient_id, context_id])

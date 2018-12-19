@@ -5,7 +5,7 @@ from operator import attrgetter
 from django.core.exceptions import ValidationError
 from django.core import serializers
 from django.core.files.storage import DefaultStorage
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.db import models
 from django.db.models.signals import post_save, m2m_changed, post_delete
 from django.dispatch import receiver
@@ -1104,7 +1104,7 @@ class Patient(models.Model):
 
 
 class Speciality(models.Model):
-    registry = models.ForeignKey(Registry)
+    registry = models.ForeignKey(Registry, on_delete=models.CASCADE)
     name = models.CharField(max_length=80)
 
     def __str__(self):
@@ -1113,14 +1113,14 @@ class Speciality(models.Model):
 
 class ClinicianOther(models.Model):
     use_other = models.BooleanField(default=False)
-    patient = models.ForeignKey(Patient, null=True)
+    patient = models.ForeignKey(Patient, null=True, on_delete=models.SET_NULL)
     clinician_name = models.CharField(max_length=200, blank=True, null=True)
     clinician_hospital = models.CharField(max_length=200, blank=True, null=True)
     clinician_address = models.CharField(max_length=200, blank=True, null=True)
     clinician_email = models.EmailField(max_length=254, null=True, blank=True)
     clinician_phone_number = models.CharField(max_length=254, null=True, blank=True)
     speciality = models.ForeignKey(Speciality, null=True, blank=True, on_delete=models.deletion.SET_NULL)
-    user = models.ForeignKey(CustomUser, blank=True, null=True)
+    user = models.ForeignKey(CustomUser, blank=True, null=True, on_delete=models.SET_NULL)
     clinician_first_name = models.CharField(max_length=200, blank=True, null=True)
     clinician_last_name = models.CharField(max_length=200, blank=True, null=True)
 
@@ -1224,7 +1224,11 @@ class ParentGuardian(models.Model):
     phone = models.CharField(max_length=20, blank=True)
     patient = models.ManyToManyField(Patient)
     self_patient = models.ForeignKey(
-        Patient, blank=True, null=True, related_name="self_patient")
+        Patient, 
+        blank=True,
+        null=True,
+        related_name="self_patient",
+        on_delete=models.SET_NULL)
     user = models.ForeignKey(
         CustomUser,
         blank=True,
@@ -1277,8 +1281,11 @@ class AddressType(models.Model):
 
 
 class PatientAddress(models.Model):
-    patient = models.ForeignKey(Patient)
-    address_type = models.ForeignKey(AddressType, default=1, verbose_name=_("Address type"))
+    patient = models.ForeignKey(Patient, on_delete=models.CASCADE)
+    address_type = models.ForeignKey(AddressType,
+                                    default=1,
+                                    verbose_name=_("Address type"),
+                                    on_delete=models.CASCADE)
     address = models.TextField()
     suburb = models.CharField(max_length=100, verbose_name=_("Suburb/Town"))
     country = models.CharField(max_length=100, verbose_name=_("Country"))
@@ -1307,7 +1314,7 @@ class PatientConsentStorage(DefaultStorage):
 
 
 class PatientConsent(models.Model):
-    patient = models.ForeignKey(Patient)
+    patient = models.ForeignKey(Patient, on_delete=models.CASCADE)
     form = models.FileField(
         upload_to='consents',
         storage=PatientConsentStorage(),
@@ -1318,8 +1325,8 @@ class PatientConsent(models.Model):
 
 
 class PatientDoctor(models.Model):
-    patient = models.ForeignKey(Patient)
-    doctor = models.ForeignKey(Doctor)
+    patient = models.ForeignKey(Patient, on_delete=models.CASCADE)
+    doctor = models.ForeignKey(Doctor, on_delete=models.CASCADE)
     relationship = models.CharField(max_length=50)
 
     class Meta:
@@ -1328,7 +1335,7 @@ class PatientDoctor(models.Model):
 
 
 def get_countries():
-    return [(c.alpha2, c.name)
+    return [(c.alpha_2, c.name)
             for c in sorted(pycountry.countries, key=attrgetter("name"))]
 
 
@@ -1370,7 +1377,9 @@ class PatientRelative(models.Model):
     LIVING_STATES = (('Alive', 'Living'), ('Deceased', 'Deceased'))
 
     SEX_CHOICES = (("1", "Male"), ("2", "Female"), ("3", "Indeterminate"))
-    patient = models.ForeignKey(Patient, related_name="relatives")
+    patient = models.ForeignKey(Patient,
+                                related_name="relatives",
+                                on_delete=models.CASCADE)
     family_name = models.CharField(max_length=100)
     given_names = models.CharField(max_length=100)
     date_of_birth = models.DateField()
@@ -1383,7 +1392,8 @@ class PatientRelative(models.Model):
         null=True,
         blank=True,
         related_name="as_a_relative",
-        verbose_name="Create Patient?")
+        verbose_name="Create Patient?",
+        on_delete=models.CASCADE)
 
     def create_patient_from_myself(self, registry_model, working_groups):
         # Create the patient corresponding to this relative
@@ -1494,8 +1504,8 @@ def registry_changed_on_patient(sender, **kwargs):
 
 
 class ConsentValue(models.Model):
-    patient = models.ForeignKey(Patient, related_name="consents")
-    consent_question = models.ForeignKey(ConsentQuestion)
+    patient = models.ForeignKey(Patient, related_name="consents", on_delete=models.CASCADE)
+    consent_question = models.ForeignKey(ConsentQuestion, on_delete=models.CASCADE)
     answer = models.BooleanField(default=False)
     first_save = models.DateField(null=True, blank=True)
     last_update = models.DateField(null=True, blank=True)

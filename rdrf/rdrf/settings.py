@@ -144,7 +144,7 @@ MESSAGE_TAGS = {
 # shows up messages addressed to other users.
 MESSAGE_STORAGE = 'django.contrib.messages.storage.session.SessionStorage'
 
-MIDDLEWARE_CLASSES = (
+MIDDLEWARE = (
     'useraudit.middleware.RequestToThreadLocalMiddleware',
     'django.middleware.common.CommonMiddleware',
     'iprestrict.middleware.IPRestrictMiddleware',

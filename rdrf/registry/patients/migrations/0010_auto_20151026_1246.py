@@ -35,7 +35,8 @@ class Migration(migrations.Migration):
                 ('patient',
                  models.ForeignKey(
                      to='patients.Patient',
-                     null=True)),
+                     null=True,
+                     on_delete=models.SET_NULL)),
             ],
         ),
         migrations.AlterField(

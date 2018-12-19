@@ -1,5 +1,5 @@
 from django.db import models
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.contrib.auth.models import Group
 from django.core.exceptions import ValidationError
 
@@ -20,13 +20,13 @@ class FieldValue(models.Model):
     """
     Used for reporting
     """
-    registry = models.ForeignKey(Registry)
-    patient = models.ForeignKey(Patient)
-    context = models.ForeignKey(RDRFContext)
-    form = models.ForeignKey(RegistryForm)
-    section = models.ForeignKey(Section)
+    registry = models.ForeignKey(Registry, on_delete=models.CASCADE)
+    patient = models.ForeignKey(Patient, on_delete=models.CASCADE)
+    context = models.ForeignKey(RDRFContext, on_delete=models.CASCADE)
+    form = models.ForeignKey(RegistryForm, on_delete=models.CASCADE)
+    section = models.ForeignKey(Section, on_delete=models.CASCADE)
     index = models.IntegerField(default=0)
-    cde = models.ForeignKey(CommonDataElement)
+    cde = models.ForeignKey(CommonDataElement, on_delete=models.CASCADE)
     raw_value = models.TextField(blank=True, null=True)
     display_value = models.TextField(blank=True, null=True, default="")
     username = models.TextField(blank=True, null=True)
@@ -253,7 +253,7 @@ class Query(models.Model):
     title = models.CharField(max_length=255)
     description = models.TextField(null=True, blank=True)
 
-    registry = models.ForeignKey(Registry)
+    registry = models.ForeignKey(Registry, on_delete=models.CASCADE)
     access_group = models.ManyToManyField(Group)
 
     mongo_search_type = models.CharField(max_length=1, choices=MONGO_SEARCH_TYPES, default='C')

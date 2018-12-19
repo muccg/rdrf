@@ -1,6 +1,6 @@
 from rdrf.models.definition.models import RegistryForm, Section, CommonDataElement
 from explorer.views import Humaniser
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from collections import OrderedDict
 from rdrf.db.generalised_field_expressions import GeneralisedFieldExpressionParser
 from django.core.exceptions import ValidationError

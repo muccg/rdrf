@@ -20,8 +20,10 @@ class Migration(migrations.Migration):
                 ('created_at', models.DateTimeField(auto_now_add=True)),
                 ('last_updated', models.DateTimeField(auto_now=True)),
                 ('display_name', models.CharField(max_length=80, null=True, blank=True)),
-                ('content_type', models.ForeignKey(to='contenttypes.ContentType')),
-                ('registry', models.ForeignKey(to='rdrf.Registry')),
+                ('content_type', models.ForeignKey(to='contenttypes.ContentType',
+                                                    on_delete=models.CASCADE)),
+                ('registry', models.ForeignKey(to='rdrf.Registry',
+                                                on_delete=models.CASCADE)),
             ],
         ),
     ]

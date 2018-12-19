@@ -3,7 +3,7 @@ from collections import OrderedDict
 from django.shortcuts import render, redirect
 from django.views.generic.base import View
 from django.views.generic import CreateView
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.http import HttpResponseRedirect
 
 from rdrf.models.definition.models import Registry
@@ -470,7 +470,7 @@ class AddPatientView(PatientFormMixin, CreateView):
     template_name = 'rdrf_cdes/generic_patient.html'
 
     def get(self, request, registry_code):
-        if not request.user.is_authenticated():
+        if not request.user.is_authenticated:
             patient_add_url = reverse('patient_add', args=[registry_code])
             login_url = reverse('two_factor:login')
             return redirect("%s?next=%s" % (login_url, patient_add_url))
@@ -491,6 +491,8 @@ class AddPatientView(PatientFormMixin, CreateView):
         self.address_formset = self._get_address_formset(request)
         forms.append(self.address_formset)
 
+        logger.debug(forms)
+
         if self._has_doctors_form():
             self.doctor_formset = self._get_doctor_formset(request)
             forms.append(self.doctor_formset)
@@ -503,6 +505,7 @@ class AddPatientView(PatientFormMixin, CreateView):
             return self.form_valid(patient_form)
         else:
             errors = get_error_messages(forms)
+            logger.debug("Error %s" % errors)
 
             return self.form_invalid(patient_form=patient_form,
                                      patient_address_formset=self.address_formset,
@@ -550,7 +553,7 @@ class PatientEditView(View):
         return section_blacklist
 
     def get(self, request, registry_code, patient_id):
-        if not request.user.is_authenticated():
+        if not request.user.is_authenticated:
             patient_edit_url = reverse('patient_edit', args=[registry_code, patient_id, ])
             login_url = reverse('two_factor:login')
             return redirect("%s?next=%s" % (login_url, patient_edit_url))

@@ -3,7 +3,7 @@ from django import template
 register = template.Library()
 
 
-@register.assignment_tag
+@register.simple_tag
 def get_form_element(dictionary, key):
     try:
         return dictionary[key]

@@ -1,7 +1,7 @@
 from functools import wraps
 import logging
 from django.http import HttpResponseRedirect, HttpResponseNotFound
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.contrib.auth.models import Group
 from django.shortcuts import get_object_or_404
 
@@ -30,7 +30,7 @@ def patient_questionnaire_access(function):
 
         # fixme: check logic
         if (registry.questionnaire.login_required and
-                (not user.is_authenticated() or not is_patient(user))):
+                (not user.is_authenticated or not is_patient(user))):
             return HttpResponseRedirect(reverse("patient_page", args={registry_code}))
 
         return function(*args, **kwargs)
