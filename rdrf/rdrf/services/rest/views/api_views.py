@@ -171,7 +171,7 @@ class ListStates(APIView):
     def get(self, request, country_code, format=None):
         try:
             states = sorted(pycountry.subdivisions.get(
-                country_code=country_code.upper()), key=lambda x: x.name)
+                country_code=country_code), key=lambda x: x.name)
         except KeyError:
             # For now returning empty list because the old api view was doing the same
             # raise BadRequestError("Invalid country code '%s'" % country_code)

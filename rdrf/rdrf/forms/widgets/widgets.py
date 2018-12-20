@@ -216,9 +216,6 @@ class DateWidget(widgets.TextInput):
 class CountryWidget(widgets.Select):
 
     def render(self, name, value, attrs, renderer=None):
-        
-        # final_attrs = dict(self.attrs, name=name)
-
         final_attrs = self.build_attrs(attrs, {
             "name": name,
             "class": "form-control",
@@ -256,7 +253,7 @@ class StateWidget(widgets.Select):
         })
         logger.debug(final_attrs)
         output = [format_html("<select{}>", flatatt(final_attrs))]
-        empty_option = "<option value='---'>---------</option>"
+        empty_option = "<option value=''>---------</option>"
         output.append(empty_option)
         for state in country_states:
             if value == state.code:

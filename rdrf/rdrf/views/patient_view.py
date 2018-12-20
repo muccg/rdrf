@@ -486,6 +486,10 @@ class AddPatientView(PatientFormMixin, CreateView):
         forms = []
         patient_form_class = self.get_form_class()
         patient_form = self.get_form(patient_form_class)
+
+        country_code = request.POST.get('country_of_birth')
+        patient_form.fields['country_of_birth'].choices = [(country_code, country_code)]
+        logger.debug("Country Code %s " % country_code)
         forms.append(patient_form)
 
         self.address_formset = self._get_address_formset(request)
