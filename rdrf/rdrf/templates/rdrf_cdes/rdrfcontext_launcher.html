@@ -108,9 +108,11 @@
 <div width="100%" class="panel panel-default collapsible">
     <div class="panel-heading" data-toggle="collapse" data-target="#existing_{{multiple_context.id}}">
       {{multiple_context.heading}}
+      {% if allow_proms_add %}
       <a class="btn btn-info btn-xs pull-right"
          onclick="location.href='{{multiple_context.add_link_url}}';">
          <span class="glyphicon glyphicon-plus" aria-hidden="true"></span> Add</a>
+       {% endif %} 
     </div>
     <div id="existing_{{multiple_context.id}}" class="panel-body">
       {% for link in multiple_context.existing_links %}
