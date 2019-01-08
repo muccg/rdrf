@@ -489,13 +489,26 @@ class AddPatientView(PatientFormMixin, CreateView):
 
         country_code = request.POST.get('country_of_birth')
         patient_form.fields['country_of_birth'].choices = [(country_code, country_code)]
-        logger.debug("Country Code %s " % country_code)
+
+        kin_country_code = request.POST.get('next_of_kin_country')
+        kin_state_code = request.POST.get('next_of_kin_state')
+        patient_form.fields['next_of_kin_country'].choices = [(kin_country_code, kin_country_code)]
+        patient_form.fields['next_of_kin_state'].choices = [(kin_state_code, kin_state_code)]
+
         forms.append(patient_form)
 
         self.address_formset = self._get_address_formset(request)
-        forms.append(self.address_formset)
+        index = 0
+        for f in self.address_formset.forms:
+            country_field_name = 'patient_address-' + str(index) + '-country'
+            patient_country_code = request.POST.get(country_field_name)
+            state_field_name = 'patient_address-' + str(index) + '-state'
+            patient_state_code = request.POST.get(state_field_name)
+            index += 1
+            f.fields['country'].choices = [(patient_country_code, patient_country_code)]
+            f.fields['state'].choices = [(patient_state_code, patient_state_code)]
 
-        logger.debug(forms)
+        forms.append(self.address_formset)
 
         if self._has_doctors_form():
             self.doctor_formset = self._get_doctor_formset(request)
@@ -665,10 +678,28 @@ class PatientEditView(View):
             user=request.user,
             registry_model=registry_model)
 
+        country_code = request.POST.get('country_of_birth')
+        patient_form.fields['country_of_birth'].choices = [(country_code, country_code)]
+
+        kin_country_code = request.POST.get('next_of_kin_country')
+        kin_state_code = request.POST.get('next_of_kin_state')
+        patient_form.fields['next_of_kin_country'].choices = [(kin_country_code, kin_country_code)]
+        patient_form.fields['next_of_kin_state'].choices = [(kin_state_code, kin_state_code)]
+
         patient_address_form_set = inlineformset_factory(
             Patient, PatientAddress, form=PatientAddressForm, fields="__all__")
         address_to_save = patient_address_form_set(
             request.POST, instance=patient, prefix="patient_address")
+
+        index = 0
+        for f in address_to_save.forms:
+            country_field_name = 'patient_address-' + str(index) + '-country'
+            patient_country_code = request.POST.get(country_field_name)
+            state_field_name = 'patient_address-' + str(index) + '-state'
+            patient_state_code = request.POST.get(state_field_name)
+            index += 1
+            f.fields['country'].choices = [(patient_country_code, patient_country_code)]
+            f.fields['state'].choices = [(patient_state_code, patient_state_code)]
 
         patient_relatives_forms = None
 

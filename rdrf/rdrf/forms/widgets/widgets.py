@@ -262,7 +262,6 @@ class StateWidget(widgets.Select):
             else:
                 output.append("<option value='%s'>%s</option>" % (state.code, state.name))
         output.append("</select>")
-        logger.debug(output)
         return mark_safe('\n'.join(output))
 
 
