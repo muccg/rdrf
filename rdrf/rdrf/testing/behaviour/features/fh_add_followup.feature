@@ -9,13 +9,13 @@ Feature: Follow Up forms.
   Scenario: Navigate to Follow Up Form
     When I am logged in as curator
     When I click "SMITH John" on patientlisting
-    And I press "Add" button in "Follow Ups" group in sidebar 
+    And I press "Add" button in "Follow Up" group in sidebar
     Then location is "Follow Up"
 
   Scenario: Save Follow Up
     When I am logged in as curator
     When I click "SMITH John" on  patientlisting
-    And I press "Add" button in "Follow Ups" group in sidebar 
+    And I press "Add" button in "Follow Up" group in sidebar
     And I enter value "02-08-2016" for form "Follow Up" section " " cde "Date of assessment"
     And I click the "Save" button
     Then location is "Follow Up/2-8-2016"
@@ -23,7 +23,7 @@ Feature: Follow Up forms.
   Scenario: Cancel Follow Up
     When I am logged in as curator
     When I click "SMITH John" on  patientlisting
-    And I press "Add" button in "Follow Ups" group in sidebar 
+    And I press "Add" button in "Follow Up" group in sidebar
     And I enter value "02-8-2016" for form "Follow Up" section " " cde "Date of assessment"
     And I click Cancel
     And I accept the alert
@@ -32,11 +32,11 @@ Feature: Follow Up forms.
   Scenario: Add Two Follow Ups
     When I am logged in as curator
     When I click "SMITH John" on  patientlisting
-    And I press "Add" button in "Follow Ups" group in sidebar 
+    And I press "Add" button in "Follow Up" group in sidebar
     And I enter value "01-08-2016" for form "Follow Up" section " " cde "Date of assessment"
     And I click the "Save" button
     Then location is "Follow Up/1-8-2016"
-    And I press "Add" button in "Follow Ups" group in sidebar 
+    And I press "Add" button in "Follow Up" group in sidebar
     And I enter value "02-08-2016" for form "Follow Up" section " " cde "Date of assessment"
     And I click the "Save" button
     Then location is "Follow Up/2-8-2016"
