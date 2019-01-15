@@ -383,7 +383,7 @@ class PatientCreator(object):
         try:
             patient.full_clean()
             patient.save()
-            patient.rdrf_registry = [self.registry]
+            patient.rdrf_registry.set([self.registry])
             patient.save()
             mapper.save_address_data()
             mapper.set_context()  # ensure context setup properly before we save any data to Mongfo

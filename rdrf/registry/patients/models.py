@@ -1411,8 +1411,8 @@ class PatientRelative(models.Model):
         except Exception as ex:
             raise ValidationError("Could not create patient from relative: %s" % ex)
 
-        p.rdrf_registry = [registry_model]
-        p.working_groups = working_groups
+        p.rdrf_registry.set([registry_model])
+        p.working_groups.set(working_groups)
         p.save()
         self.relative_patient = p
         self.save()
