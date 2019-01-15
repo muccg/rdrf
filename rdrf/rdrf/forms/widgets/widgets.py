@@ -23,12 +23,6 @@ class BadCustomFieldWidget(Textarea):
     """
 
 
-class CustomWidgetC18583(Widget):
-
-    def render(self, name, value, attrs=None, renderer=None):
-        return "<h1>%s</h1>" % value
-
-
 class DatatypeWidgetAlphanumericxxx(Textarea):
 
     def render(self, name, value, attrs=None, renderer=None):
@@ -358,20 +352,19 @@ class PositiveIntegerInput(widgets.TextInput):
         return min_value, max_value
 
 
-class HorizontalRadioRenderer(widgets.RadioSelect):
-
-    def render(self):
-        logger.debug("logging horizontal")
-        return mark_safe(' '.join(['%s ' % w for w in self]))
-
-
 class RadioSelect(widgets.RadioSelect):
-    renderer = HorizontalRadioRenderer
     # def __init__(self, name, value, attrs, renderer):
     #     super(RadioSelect, self).__init__(renderer=renderer)
 
-    def render(self, name, value, attrs=None, renderer=HorizontalRadioRenderer):
-        return super().render(name, value, attrs, renderer)
+    def render(self, name, value, attrs=None, renderer=None):
+        html = super().render(name, value, attrs, renderer)
+        return self._transform(html)
+
+    def _transform(self, html):
+        #  make horizontal
+        html = re.sub(r'\<ul.+\>', '', html)
+        new_html = html.replace("<li>", "").replace("</li>", "").replace("</ul>", "")
+        return new_html
 
 class ReadOnlySelect(widgets.Select):
 
