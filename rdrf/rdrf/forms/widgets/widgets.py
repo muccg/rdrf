@@ -361,14 +361,17 @@ class PositiveIntegerInput(widgets.TextInput):
 class HorizontalRadioRenderer(widgets.RadioSelect):
 
     def render(self):
-        return mark_safe(' '.join(['abc %s ' % w for w in self]))
+        logger.debug("logging horizontal")
+        return mark_safe(' '.join(['%s ' % w for w in self]))
 
 
 class RadioSelect(widgets.RadioSelect):
     renderer = HorizontalRadioRenderer
+    # def __init__(self, name, value, attrs, renderer):
+    #     super(RadioSelect, self).__init__(renderer=renderer)
 
     def render(self, name, value, attrs=None, renderer=HorizontalRadioRenderer):
-        super().__init__(name, value, attrs, renderer)
+        return super().render(name, value, attrs, renderer)
 
 class ReadOnlySelect(widgets.Select):
 
