@@ -522,7 +522,6 @@ class AddPatientView(PatientFormMixin, CreateView):
             return self.form_valid(patient_form)
         else:
             errors = get_error_messages(forms)
-            logger.debug("Error %s" % errors)
 
             return self.form_invalid(patient_form=patient_form,
                                      patient_address_formset=self.address_formset,

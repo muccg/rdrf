@@ -251,7 +251,6 @@ class StateWidget(widgets.Select):
             "name": name,
             "class": "form-control",
         })
-        logger.debug(final_attrs)
         output = [format_html("<select{}>", flatatt(final_attrs))]
         empty_option = "<option value=''>---------</option>"
         output.append(empty_option)
