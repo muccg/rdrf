@@ -135,6 +135,7 @@ class PatientConsentFileForm(forms.ModelForm):
 
     def save(self, commit=True):
         # remember the filename of the uploaded file
+        logger.debug("File Saved")
         if self.cleaned_data.get("form"):
             self.instance.filename = self.cleaned_data["form"].name
         return super(PatientConsentFileForm, self).save(commit)

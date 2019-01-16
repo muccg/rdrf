@@ -1309,7 +1309,9 @@ class PatientConsentStorage(DefaultStorage):
         consent = PatientConsent.objects.filter(form=name).first()
         if consent is not None:
             rev = dict(consent_id=consent.id, filename=consent.filename)
-            return reverse("registry:consent-form-download", kwargs=rev)
+            logger.debug(rev)
+            return reverse("registry:consent-form-download", kwargs=rev, current_app=self.request.resolver_match.namespace)
+        logger.debug("Consent is None")
         return None
 
 

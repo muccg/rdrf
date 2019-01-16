@@ -552,8 +552,25 @@ class MultipleFileInput(Widget):
 
 
 class ConsentFileInput(ClearableFileInput):
+    def get_context(self, name, value, attrs):
+       context = super().get_context(name, value, attrs)
+       checkbox_name = self.clear_checkbox_name(name)
+       checkbox_id = self.clear_checkbox_id(checkbox_name)
+       context['widget'].update({
+           'checkbox_name': checkbox_name,
+           'checkbox_id': checkbox_id,
+           'is_initial': self.is_initial(value),
+           'input_text': self.input_text,
+           'initial_text': self.initial_text,
+           'clear_checkbox_label': self.clear_checkbox_label,
+       })
+       if hasattr(value, 'name'):
+           context['widget'].update(self.get_template_substitution_values(value))
+       return context
+    
     def get_template_substitution_values(self, value):
         patient_consent = PatientConsent.objects.get(form=value.name)
+        logger.debug(patient_consent)
         return {
             'initial': conditional_escape(patient_consent.filename),
             'initial_url': conditional_escape(value.url),
