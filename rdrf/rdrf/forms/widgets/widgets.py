@@ -564,8 +564,8 @@ class ConsentFileInput(ClearableFileInput):
            'initial_text': self.initial_text,
            'clear_checkbox_label': self.clear_checkbox_label,
        })
-       if hasattr(value, 'name'):
-           context['widget'].update(self.get_template_substitution_values(value))
+    #    if hasattr(value, 'name'):
+    #        context['widget'].update(self.get_template_substitution_values(value))
        return context
     
     def get_template_substitution_values(self, value):
