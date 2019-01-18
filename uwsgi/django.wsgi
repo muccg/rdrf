@@ -3,6 +3,7 @@ import os
 from django.core.wsgi import get_wsgi_application
 
 def application(environ, start):
+    print('Hello from WSGI')
 
     # copy any vars into os.environ
     for key in environ:
