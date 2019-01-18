@@ -15,16 +15,16 @@
             {% for object in object_list %}
             <tr>
                 {% if request.user.is_superuser %}
-                    <td><a href="{% url 'explorer_query' object.id %}">{{ object }}</a></td>
+                    <td><a href="{% url 'rdrf:explorer_query' object.id %}">{{ object }}</a></td>
                 {% else %}
                     <td>{{object}}</td>
                 {% endif %}
                 <td>
-                    <a href="{% url 'explorer_query_download' object.id "download" %}"><i class="glyphicon glyphicon-download" style="font-size: 20px;"></i></a>
+                    <a href="{% url 'rdrf:explorer_query_download' object.id "download" %}"><i class="glyphicon glyphicon-download" style="font-size: 20px;"></i></a>
                 </td>
                  <td>
 		   {% if object.has_view %}
-                   <a href="{% url 'explorer_query_download' object.id "view" %}"><i class="glyphicon glyphicon-eye-open" style="font-size: 20px;"></i></a>
+                   <a href="{% url 'rdrf:explorer_query_download' object.id "view" %}"><i class="glyphicon glyphicon-eye-open" style="font-size: 20px;"></i></a>
 		   {% else %}
 		   <span class="glyphicon glyphicon-large glyphicon-remove" style="color: red;font-size:1.5em;" aria-hidden="true"></span>
 		   {% endif %}
@@ -34,7 +34,7 @@
                         <i class="glyphicon glyphicon-trash" style="font-size: 18px;" onclick="$('#confirm_' + {{object.id}}).toggle()"></i>
                         <div style="display: none;" id="confirm_{{object.id}}">
                             Are you sure?
-                            <a href="{% url 'explorer_query_delete' object.id %}">Yes</a> | 
+                            <a href="{% url 'rdrf:explorer_query_delete' object.id %}">Yes</a> |
                             <a onclick="$('#confirm_' + {{object.id}}).toggle()">No</a>
                         </div>
                     {% else %}

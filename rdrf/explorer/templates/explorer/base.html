@@ -34,9 +34,9 @@
             <div class="container">
                 <p class="navbar-brand" href="explorer">{% trans "RDRF Reporting Tool" %} <sup>{{version}}</sup></p>
                 <ul class="nav navbar-nav">
-                    <li><a href="{% url 'explorer_main' %}">{% trans "List" %}</a></li>
+                    <li><a href="{% url 'rdrf:explorer_main' %}">{% trans "List" %}</a></li>
                     {% if request.user.is_superuser %}
-                        <li><a href="{% url 'explorer_new' %}">{% trans "New" %}</a></li>
+                        <li><a href="{% url 'rdrf:explorer_new' %}">{% trans "New" %}</a></li>
                     {% endif %}
                 </ul>
 
@@ -153,7 +153,7 @@
                 $('#sql-submit-query').click(function(){
                     $("#query-error").hide("blind");
                     $.ajax({
-                        url: "{% url 'explorer_sql_query' %}",
+                        url: "{% url 'rdrf:explorer_sql_query' %}",
                         type: "POST",
                         data: {
                             'sql_query': $('#sql_query').val(),
