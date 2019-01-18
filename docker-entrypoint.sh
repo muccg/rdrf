@@ -57,6 +57,9 @@ function wait_for_services {
     if [[ "$WAIT_FOR_RUNSERVER" ]] ; then
         dockerwait "$RUNSERVER" "$RUNSERVERPORT"
     fi
+    if [[ "$WAIT_FOR_HOST_PORT" ]]; then
+        dockerwait "$DOCKER_ROUTE" "$WAIT_FOR_HOST_PORT"
+    fi
     if [[ "$WAIT_FOR_UWSGI" ]] ; then
         dockerwait "$UWSGISERVER" "$UWSGIPORT"
     fi
@@ -82,6 +85,8 @@ function defaults {
     : "${REPORTING_DBNAME:=${REPORTING_DBUSER}}"
     : "${REPORTING_DBPASS:=${REPORTING_DBUSER}}"
 
+    : "${DOCKER_ROUTE:=$(/sbin/ip route|awk '/default/ { print $3 }')}"
+
     : "${UWSGISERVER:=uwsgi}"
     : "${UWSGIPORT:=9000}"
     : "${UWSGI_OPTS:=/app/uwsgi/docker.ini}"
@@ -105,7 +110,7 @@ function defaults {
 
     : "${DJANGO_FIXTURES:=none}"
 
-    export DBSERVER DBPORT DBUSER DBNAME DBPASS MEMCACHE
+    export DBSERVER DBPORT DBUSER DBNAME DBPASS MEMCACHE DOCKER_ROUTE
     export CLINICAL_DBSERVER CLINICAL_DBPORT CLINICAL_DBUSER CLINICAL_DBNAME CLINICAL_DBPASS
     export REPORTING_DBSERVER REPORTING_DBPORT REPORTING_DBUSER REPORTING_DBNAME REPORTING_DBPASS
     export TEST_APP_URL TEST_APP_SCHEME TEST_APP_HOST TEST_APP_PORT TEST_APP_PATH TEST_BROWSER TEST_WAIT TEST_SELENIUM_HUB
@@ -225,8 +230,7 @@ if [ "$1" = 'uwsgi_local' ]; then
     _django_check_deploy
 
     set -x
-    # exec uwsgi --die-on-term --ini "${UWSGI_OPTS}"
-    exec uwsgi --http :9000 --static-map /static=/data/static --wsgi-file /app/uwsgi/django.wsgi
+    exec uwsgi --die-on-term --ini "${UWSGI_OPTS}"
 fi
 
 # runserver entrypoint

@@ -115,7 +115,6 @@ for package in ['rdrf', 'registry.common', 'registry.genetic',
         os.chdir(os.path.join(start_dir, base_dir))
 
     for data_dir in (
-            'initial_data',
             'templates',
             'static',
             'migrations',
