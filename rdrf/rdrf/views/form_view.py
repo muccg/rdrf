@@ -503,10 +503,12 @@ class FormView(View):
                         all_errors.append(e)
 
                     from rdrf.helpers.utils import wrap_uploaded_files
-                    request.POST.update(request.FILES)
+                    post_copy = request.POST.copy()
+                    #request.POST.update(request.FILES)
+                    post_copy.update(request.FILES)
 
                     form_section[s] = form_class(wrap_uploaded_files(
-                        registry_code, request.POST), request.FILES)
+                        registry_code, post_copy), request.FILES)
 
             else:
                 if section_model.extra:

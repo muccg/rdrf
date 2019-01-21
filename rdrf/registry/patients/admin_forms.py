@@ -404,9 +404,9 @@ class PatientForm(forms.ModelForm):
 
         if commit:
             patient_model.save()
-
-            for wg in self.cleaned_data["working_groups"]:
-                patient_model.working_groups.add(wg)
+            patient_model.working_groups.set(self.cleaned_data["working_groups"])
+            #for wg in self.cleaned_data["working_groups"]:
+            #    patient_model.working_groups.add(wg)
             
             for reg in self.cleaned_data["rdrf_registry"]:
                 patient_model.rdrf_registry.add(reg)
