@@ -15,6 +15,6 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='query',
             name='registry',
-            field=models.ForeignKey(to='rdrf.Registry'),
+            field=models.ForeignKey(to='rdrf.Registry', on_delete=models.CASCADE),
         ),
     ]

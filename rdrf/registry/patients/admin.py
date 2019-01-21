@@ -2,8 +2,7 @@ from django.conf.urls import url
 from django.contrib import admin
 from django.db.models import Q
 from django.http import HttpResponse
-from django.core import urlresolvers
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 import os
 import json
 import datetime
@@ -361,7 +360,7 @@ class PatientAdmin(admin.ModelAdmin):
     def progress_graph(self, obj):
         if not hasattr(obj, 'patient_diagnosis'):
             return ''
-        graph_html = '<a href="%s">' % urlresolvers.reverse(
+        graph_html = '<a href="%s">' % reverse(
             'admin:{0}_diagnosis_change'.format(
                 obj.patient_diagnosis._meta.app_label),
             args=(
@@ -384,7 +383,7 @@ class PatientAdmin(admin.ModelAdmin):
 
         imagefile = 'tick.png'
 
-        genetic_url = '<a href="%s">' % urlresolvers.reverse(
+        genetic_url = '<a href="%s">' % reverse(
             'admin:genetic_moleculardatasma_change', args=(obj.id,))
         genetic_url += '<img src="%s"/>' % get_static_url("images/" + imagefile)
         genetic_url += '</a>'

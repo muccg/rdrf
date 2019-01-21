@@ -14,6 +14,9 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='rdrfcontext',
             name='context_form_group',
-            field=models.ForeignKey(blank=True, to='rdrf.ContextFormGroup', null=True),
+            field=models.ForeignKey(blank=True,
+                                    to='rdrf.ContextFormGroup',
+                                    null=True,
+                                    on_delete=models.SET_NULL),
         ),
     ]

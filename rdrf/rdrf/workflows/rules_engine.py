@@ -126,7 +126,7 @@ class RulesEvaluator:
 
         head = action[0]
         if head == Actions.GOTO:
-            from django.core.urlresolvers import reverse
+            from django.urls import reverse
             from django.http import HttpResponseRedirect
             url_name = action[1]
             logger.debug("redirecting to %s" % url_name)

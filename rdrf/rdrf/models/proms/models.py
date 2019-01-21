@@ -2,7 +2,7 @@ import logging
 import requests
 
 from django.db import models
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 
 from rdrf.models.definition.models import Registry
 from rdrf.models.definition.models import CommonDataElement
@@ -23,7 +23,7 @@ class PromsEmailError(Exception):
 
 
 class Survey(models.Model):
-    registry = models.ForeignKey(Registry)
+    registry = models.ForeignKey(Registry, on_delete=models.CASCADE)
     name = models.CharField(max_length=80)
     display_name = models.CharField(max_length=80, blank=True, null=True)
     is_followup = models.BooleanField(default=False)
@@ -44,8 +44,8 @@ class Survey(models.Model):
 
 
 class Precondition(models.Model):
-    survey = models.ForeignKey(Survey)
-    cde = models.ForeignKey(CommonDataElement)
+    survey = models.ForeignKey(Survey, on_delete=models.CASCADE)
+    cde = models.ForeignKey(CommonDataElement, on_delete=models.CASCADE)
     value = models.CharField(max_length=80)
 
     def __str__(self):
@@ -54,9 +54,12 @@ class Precondition(models.Model):
 
 class SurveyQuestion(models.Model):
     position = models.IntegerField(null=True, blank=True)
-    survey = models.ForeignKey(Survey, related_name='survey_questions')
-    cde = models.ForeignKey(CommonDataElement)
-    precondition = models.ForeignKey(Precondition, blank=True, null=True)
+    survey = models.ForeignKey(Survey, related_name='survey_questions', on_delete=models.CASCADE)
+    cde = models.ForeignKey(CommonDataElement, on_delete=models.CASCADE)
+    precondition = models.ForeignKey(Precondition,
+                                    blank=True,
+                                    null=True,
+                                    on_delete=models.SET_NULL)
 
     @property
     def name(self):
@@ -138,7 +141,7 @@ class SurveyAssignment(models.Model):
         (SurveyStates.REQUESTED, "Requested"),
         (SurveyStates.STARTED, "Started"),
         (SurveyStates.COMPLETED, "Completed"))
-    registry = models.ForeignKey(Registry)
+    registry = models.ForeignKey(Registry, on_delete=models.CASCADE)
     survey_name = models.CharField(max_length=80)
     patient_token = models.CharField(max_length=80, unique=True)
     state = models.CharField(max_length=20, choices=SURVEY_STATES)
@@ -166,8 +169,8 @@ class SurveyRequest(models.Model):
     COMMUNICATION_TYPES = (
         (CommunicationTypes.QRCODE, "QRCode"),
         (CommunicationTypes.EMAIL, "Email"))
-    registry = models.ForeignKey(Registry)
-    patient = models.ForeignKey(Patient)
+    registry = models.ForeignKey(Registry, on_delete=models.CASCADE)
+    patient = models.ForeignKey(Patient, on_delete=models.CASCADE)
     survey_name = models.CharField(max_length=80)
     patient_token = models.CharField(max_length=80, unique=True, default=generate_token)
     created = models.DateTimeField(auto_now_add=True)

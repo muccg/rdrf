@@ -1,7 +1,7 @@
 import logging
 import re
 from django.conf import settings
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 
 logger = logging.getLogger(__name__)
 

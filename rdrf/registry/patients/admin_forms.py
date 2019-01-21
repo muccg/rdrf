@@ -118,8 +118,10 @@ class PatientAddressForm(forms.ModelForm):
         model = PatientAddress
         fields = ('address_type', 'address', 'country', 'state', 'suburb', 'postcode')
 
-    country = forms.ComboField(required=True, widget=CountryWidget(attrs={'onChange': 'select_country(this);'}))
-    state = forms.ComboField(required=True, widget=StateWidget())
+    country = forms.ChoiceField(required=True, 
+                               widget=CountryWidget(attrs={'onChange': 'select_country(this);'}))
+    state = forms.ChoiceField(required=True,
+                             widget=StateWidget())
     address = forms.CharField(widget=forms.Textarea(attrs={'rows': 5}))
 
 
@@ -133,6 +135,7 @@ class PatientConsentFileForm(forms.ModelForm):
 
     def save(self, commit=True):
         # remember the filename of the uploaded file
+        logger.debug("File Saved")
         if self.cleaned_data.get("form"):
             self.instance.filename = self.cleaned_data["form"].name
         return super(PatientConsentFileForm, self).save(commit)
@@ -145,10 +148,10 @@ class PatientForm(forms.ModelForm):
         "cols": 30,
     }
 
-    next_of_kin_country = forms.ComboField(
-        required=False, widget=CountryWidget(attrs={'onChange': 'select_country(this);'}))
-    next_of_kin_state = forms.ComboField(required=False, widget=StateWidget())
-    country_of_birth = forms.ComboField(required=False, widget=CountryWidget())
+    next_of_kin_country = forms.ChoiceField(required=False, 
+        widget=CountryWidget(attrs={'onChange': 'select_country(this);'}))
+    next_of_kin_state = forms.ChoiceField(required=False, widget=StateWidget())
+    country_of_birth = forms.ChoiceField(required=False, widget=CountryWidget())
 
     def __init__(self, *args, **kwargs):
         clinicians = CustomUser.objects.all()
@@ -401,8 +404,13 @@ class PatientForm(forms.ModelForm):
 
         if commit:
             patient_model.save()
-            patient_model.working_groups = [wg for wg in self.cleaned_data["working_groups"]]
-            patient_model.rdrf_registry = [reg for reg in self.cleaned_data["rdrf_registry"]]
+            patient_model.working_groups.set(self.cleaned_data["working_groups"])
+            #for wg in self.cleaned_data["working_groups"]:
+            #    patient_model.working_groups.add(wg)
+            
+            for reg in self.cleaned_data["rdrf_registry"]:
+                patient_model.rdrf_registry.add(reg)
+
             patient_model.save()
 
         patient_model.clinician = self.cleaned_data["clinician"]

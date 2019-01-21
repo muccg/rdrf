@@ -86,7 +86,7 @@
     "fields": {
         "codename": "add_session", 
         "name": "Can add session", 
-        "content_type": 4
+        "content_type": 10
     }
 },
 {
@@ -95,7 +95,7 @@
     "fields": {
         "codename": "change_session", 
         "name": "Can change session", 
-        "content_type": 4
+        "content_type": 11
     }
 },
 {
@@ -104,7 +104,7 @@
     "fields": {
         "codename": "delete_session", 
         "name": "Can delete session", 
-        "content_type": 4
+        "content_type": 12
     }
 },
 {
@@ -113,7 +113,7 @@
     "fields": {
         "codename": "add_site", 
         "name": "Can add site", 
-        "content_type": 5
+        "content_type": 13
     }
 },
 {
@@ -122,7 +122,7 @@
     "fields": {
         "codename": "change_site", 
         "name": "Can change site", 
-        "content_type": 5
+        "content_type": 14
     }
 },
 {
@@ -131,7 +131,7 @@
     "fields": {
         "codename": "delete_site", 
         "name": "Can delete site", 
-        "content_type": 5
+        "content_type": 15
     }
 },
 {
@@ -140,7 +140,7 @@
     "fields": {
         "codename": "add_migrationhistory", 
         "name": "Can add migration history", 
-        "content_type": 6
+        "content_type": 16
     }
 },
 {
@@ -149,7 +149,7 @@
     "fields": {
         "codename": "change_migrationhistory", 
         "name": "Can change migration history", 
-        "content_type": 6
+        "content_type": 17
     }
 },
 {
@@ -158,7 +158,7 @@
     "fields": {
         "codename": "delete_migrationhistory", 
         "name": "Can delete migration history", 
-        "content_type": 6
+        "content_type": 18
     }
 },
 {
@@ -167,7 +167,7 @@
     "fields": {
         "codename": "add_workinggroup", 
         "name": "Can add working group", 
-        "content_type": 7
+        "content_type": 19
     }
 },
 {
@@ -176,7 +176,7 @@
     "fields": {
         "codename": "change_workinggroup", 
         "name": "Can change working group", 
-        "content_type": 7
+        "content_type": 20
     }
 },
 {
@@ -185,7 +185,7 @@
     "fields": {
         "codename": "delete_workinggroup", 
         "name": "Can delete working group", 
-        "content_type": 7
+        "content_type": 21
     }
 },
 {
@@ -194,7 +194,7 @@
     "fields": {
         "codename": "add_customuser", 
         "name": "Can add user", 
-        "content_type": 8
+        "content_type": 22
     }
 },
 {
@@ -203,7 +203,7 @@
     "fields": {
         "codename": "change_customuser", 
         "name": "Can change user", 
-        "content_type": 8
+        "content_type": 23
     }
 },
 {
@@ -212,7 +212,7 @@
     "fields": {
         "codename": "delete_customuser", 
         "name": "Can delete user", 
-        "content_type": 8
+        "content_type": 24
     }
 },
 {
@@ -221,7 +221,7 @@
     "fields": {
         "codename": "add_registry", 
         "name": "Can add registry", 
-        "content_type": 9
+        "content_type": 25
     }
 },
 {
@@ -230,7 +230,7 @@
     "fields": {
         "codename": "change_registry", 
         "name": "Can change registry", 
-        "content_type": 9
+        "content_type": 26
     }
 },
 {
@@ -239,7 +239,7 @@
     "fields": {
         "codename": "delete_registry", 
         "name": "Can delete registry", 
-        "content_type": 9
+        "content_type": 27
     }
 },
 {

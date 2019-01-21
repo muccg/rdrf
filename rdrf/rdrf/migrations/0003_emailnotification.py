@@ -20,8 +20,10 @@ class Migration(migrations.Migration):
                 ('recipient', models.EmailField(max_length=254, null=True, blank=True)),
                 ('subject', models.CharField(max_length=50)),
                 ('body', models.TextField()),
-                ('group_recipient', models.ForeignKey(blank=True, to='auth.Group', null=True)),
-                ('registry', models.ForeignKey(to='rdrf.Registry')),
+                ('group_recipient', models.ForeignKey(blank=True, to='auth.Group', null=True,
+                                                      on_delete=models.SET_NULL)),
+                ('registry', models.ForeignKey(to='rdrf.Registry',
+                                                on_delete=models.CASCADE)),
             ],
         ),
     ]

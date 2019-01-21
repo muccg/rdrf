@@ -17,6 +17,10 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='patient',
             name='clinician',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, to=settings.AUTH_USER_MODEL, verbose_name='Clinician'),
+            field=models.ForeignKey(blank=True,
+                                    null=True,
+                                    on_delete=models.SET_NULL,
+                                    to=settings.AUTH_USER_MODEL,
+                                    verbose_name='Clinician'),
         ),
     ]

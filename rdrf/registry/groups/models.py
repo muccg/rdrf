@@ -19,7 +19,7 @@ logger = logging.getLogger(__name__)
 
 class WorkingGroup(models.Model):
     name = models.CharField(max_length=100)
-    registry = models.ForeignKey(Registry, null=True)
+    registry = models.ForeignKey(Registry, null=True, on_delete=models.SET_NULL)
 
     class Meta:
         ordering = ["registry__code"]

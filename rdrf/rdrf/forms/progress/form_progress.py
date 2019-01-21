@@ -1,4 +1,4 @@
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.templatetags.static import static
 from rdrf.helpers.utils import de_camelcase, parse_iso_datetime
 from rdrf.models.definition.models import ClinicalData

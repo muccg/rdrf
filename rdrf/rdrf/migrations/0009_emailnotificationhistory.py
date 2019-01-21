@@ -17,7 +17,8 @@ class Migration(migrations.Migration):
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
                 ('date_stamp', models.DateTimeField(auto_now_add=True)),
                 ('language', models.CharField(max_length=10)),
-                ('email_notification', models.ForeignKey(to='rdrf.EmailNotification')),
+                ('email_notification', models.ForeignKey(to='rdrf.EmailNotification',
+                                                        on_delete=models.CASCADE)),
             ],
         ),
     ]

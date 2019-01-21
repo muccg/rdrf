@@ -22,7 +22,7 @@ class Migration(migrations.Migration):
                 ('state', models.CharField(choices=[('requested', 'Requested'), ('completed', 'Completed')], max_length=20)),
                 ('created', models.DateTimeField(auto_now_add=True)),
                 ('updated', models.DateTimeField(auto_now=True)),
-                ('registry', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='rdrf.Registry')),
+                ('registry', models.ForeignKey(on_delete=models.CASCADE, to='rdrf.Registry')),
             ],
         ),
         migrations.CreateModel(
@@ -33,12 +33,13 @@ class Migration(migrations.Migration):
                 ('created', models.DateTimeField(auto_now_add=True)),
                 ('patient_token', models.CharField(max_length=80)),
                 ('data', models.TextField()),
-                ('registry', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='rdrf.Registry')),
+                ('registry', models.ForeignKey(on_delete=models.CASCADE, to='rdrf.Registry')),
             ],
         ),
         migrations.AlterField(
             model_name='surveyquestion',
             name='precondition',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, to='rdrf.Precondition'),
+            field=models.ForeignKey(blank=True, null=True, 
+                                    on_delete=models.CASCADE, to='rdrf.Precondition'),
         ),
     ]

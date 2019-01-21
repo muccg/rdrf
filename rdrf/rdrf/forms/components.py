@@ -4,7 +4,7 @@ from django.contrib.contenttypes.models import ContentType
 from rdrf.helpers.utils import get_form_links
 from rdrf.helpers.utils import consent_status_for_patient
 from rdrf.helpers.utils import is_generated_form
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.utils.translation import ugettext_lazy as _
 from rdrf.forms.progress.form_progress import FormProgress
 
@@ -62,7 +62,7 @@ class RDRFComponent(object):
             template = loader.get_template(self.TEMPLATE)
             data = self._get_template_data()
             context = Context(data)
-            return template.render(context)
+            return template.render(context.flatten())
 
     def _get_template_data(self):
         # subclass should build dictionary for template

@@ -19,9 +19,9 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('capability', models.CharField(choices=[('see_patient', 'See Patient')], max_length=50)),
-                ('consent_question', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='rdrf.ConsentQuestion')),
-                ('registry', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='rdrf.Registry')),
-                ('user_group', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='auth.Group')),
+                ('consent_question', models.ForeignKey(on_delete=models.CASCADE, to='rdrf.ConsentQuestion')),
+                ('registry', models.ForeignKey(on_delete=models.CASCADE, to='rdrf.Registry')),
+                ('user_group', models.ForeignKey(on_delete=models.CASCADE, to='auth.Group')),
             ],
         ),
     ]

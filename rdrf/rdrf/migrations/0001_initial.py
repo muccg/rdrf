@@ -49,7 +49,7 @@ class Migration(migrations.Migration):
                 ('requesting_username', models.CharField(max_length=80)),
                 ('patient', models.IntegerField()),
                 ('state', models.CharField(default='C', max_length=1)),
-                ('definition', models.ForeignKey(to='rdrf.AdjudicationDefinition')),
+                ('definition', models.ForeignKey(to='rdrf.AdjudicationDefinition', on_delete=models.CASCADE)),
             ],
         ),
         migrations.CreateModel(
@@ -57,7 +57,7 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
                 ('response_data', models.TextField()),
-                ('request', models.ForeignKey(to='rdrf.AdjudicationRequest')),
+                ('request', models.ForeignKey(to='rdrf.AdjudicationRequest', on_delete=models.CASCADE)),
             ],
         ),
         migrations.CreateModel(
@@ -111,7 +111,8 @@ class Migration(migrations.Migration):
                 ('questionnaire_text', models.TextField(
                     help_text='The text to use in any public facing questionnaires/registration forms', blank=True)),
                 ('pv_group', models.ForeignKey(blank=True, to='rdrf.CDEPermittedValueGroup',
-                                               help_text='If a range, indicate the Permissible Value Group', null=True)),
+                                               help_text='If a range, indicate the Permissible Value Group', null=True,
+                                               on_delete=models.SET_NULL)),
             ],
             options={
                 'verbose_name': 'Data Element',
@@ -147,7 +148,7 @@ class Migration(migrations.Migration):
                 ('field', models.CharField(max_length=50)),
                 ('readonly', models.NullBooleanField()),
                 ('hidden', models.NullBooleanField()),
-                ('group', models.ForeignKey(to='auth.Group')),
+                ('group', models.ForeignKey(to='auth.Group', on_delete=models.CASCADE)),
             ],
             options={
                 'verbose_name_plural': 'Demographic Fields',
@@ -207,7 +208,7 @@ class Migration(migrations.Migration):
                     help_text='Comma-separated list of sectioncode.cdecodes for questionnnaire', blank=True)),
                 ('complete_form_cdes', models.ManyToManyField(to='rdrf.CommonDataElement', blank=True)),
                 ('groups_allowed', models.ManyToManyField(to='auth.Group', blank=True)),
-                ('registry', models.ForeignKey(to='rdrf.Registry')),
+                ('registry', models.ForeignKey(to='rdrf.Registry', on_delete=models.CASCADE)),
             ],
         ),
         migrations.CreateModel(
@@ -235,32 +236,42 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='registry',
             name='patient_data_section',
-            field=models.ForeignKey(blank=True, to='rdrf.Section', null=True),
+            field=models.ForeignKey(blank=True,
+                                    to='rdrf.Section',
+                                    null=True,
+                                    on_delete=models.SET_NULL),
         ),
         migrations.AddField(
             model_name='questionnaireresponse',
             name='registry',
-            field=models.ForeignKey(to='rdrf.Registry'),
+            field=models.ForeignKey(to='rdrf.Registry',
+                                    on_delete=models.CASCADE),
         ),
         migrations.AddField(
             model_name='demographicfields',
             name='registry',
-            field=models.ForeignKey(to='rdrf.Registry'),
+            field=models.ForeignKey(to='rdrf.Registry',
+                                    on_delete=models.CASCADE),
         ),
         migrations.AddField(
             model_name='consentsection',
             name='registry',
-            field=models.ForeignKey(related_name='consent_sections', to='rdrf.Registry'),
+            field=models.ForeignKey(related_name='consent_sections',
+                                    to='rdrf.Registry', 
+                                    on_delete=models.CASCADE),
         ),
         migrations.AddField(
             model_name='consentquestion',
             name='section',
-            field=models.ForeignKey(related_name='questions', to='rdrf.ConsentSection'),
+            field=models.ForeignKey(related_name='questions',
+                                    to='rdrf.ConsentSection',
+                                    on_delete=models.CASCADE),
         ),
         migrations.AddField(
             model_name='cdepolicy',
             name='cde',
-            field=models.ForeignKey(to='rdrf.CommonDataElement'),
+            field=models.ForeignKey(to='rdrf.CommonDataElement',
+                                    on_delete=models.CASCADE),
         ),
         migrations.AddField(
             model_name='cdepolicy',
@@ -270,31 +281,39 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='cdepolicy',
             name='registry',
-            field=models.ForeignKey(to='rdrf.Registry'),
+            field=models.ForeignKey(to='rdrf.Registry',
+                                    on_delete=models.CASCADE),
         ),
         migrations.AddField(
             model_name='cdepermittedvalue',
             name='pv_group',
-            field=models.ForeignKey(related_name='permitted_value_set', to='rdrf.CDEPermittedValueGroup'),
+            field=models.ForeignKey(related_name='permitted_value_set',
+                                    to='rdrf.CDEPermittedValueGroup',
+                                    on_delete=models.CASCADE),
         ),
         migrations.AddField(
             model_name='adjudicationdefinition',
             name='registry',
-            field=models.ForeignKey(to='rdrf.Registry'),
+            field=models.ForeignKey(to='rdrf.Registry',
+                                    on_delete=models.CASCADE),
         ),
         migrations.AddField(
             model_name='adjudicationdecision',
             name='definition',
-            field=models.ForeignKey(to='rdrf.AdjudicationDefinition'),
+            field=models.ForeignKey(to='rdrf.AdjudicationDefinition',
+                                    on_delete=models.CASCADE),
         ),
         migrations.AddField(
             model_name='adjudication',
             name='decision',
-            field=models.ForeignKey(to='rdrf.AdjudicationDecision', null=True),
+            field=models.ForeignKey(to='rdrf.AdjudicationDecision', 
+                                    null=True,
+                                    on_delete=models.CASCADE),
         ),
         migrations.AddField(
             model_name='adjudication',
             name='definition',
-            field=models.ForeignKey(to='rdrf.AdjudicationDefinition'),
+            field=models.ForeignKey(to='rdrf.AdjudicationDefinition',
+                                    on_delete=models.CASCADE),
         ),
     ]

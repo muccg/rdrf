@@ -18,7 +18,8 @@ class Migration(migrations.Migration):
             name='registry',
             field=models.ForeignKey(
                 to='rdrf.Registry',
-                null=True),
+                null=True,
+                on_delete=models.CASCADE),
         ),
         migrations.AddField(
             model_name='customuser',

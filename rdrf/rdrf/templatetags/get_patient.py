@@ -5,7 +5,7 @@ from registry.patients.models import Patient
 register = template.Library()
 
 
-@register.assignment_tag
+@register.simple_tag
 def get_patient(patient_id):
     try:
         if not patient_id:

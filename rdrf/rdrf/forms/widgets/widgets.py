@@ -4,7 +4,7 @@ from django.forms import widgets
 from django.forms.utils import flatatt
 from django.utils.html import format_html, conditional_escape
 from django.utils.safestring import mark_safe
-from django.core.urlresolvers import reverse_lazy
+from django.urls import reverse_lazy
 from django.forms.widgets import ClearableFileInput
 
 import re
@@ -25,13 +25,13 @@ class BadCustomFieldWidget(Textarea):
 
 class CustomWidgetC18583(Widget):
 
-    def render(self, name, value, attrs=None):
+    def render(self, name, value, attrs=None, renderer=None):
         return "<h1>%s</h1>" % value
 
 
 class DatatypeWidgetAlphanumericxxx(Textarea):
 
-    def render(self, name, value, attrs=None):
+    def render(self, name, value, attrs=None, renderer=None):
         html = super(DatatypeWidgetAlphanumericxxx, self).render(name, value, attrs)
         return "<table border=3>%s</table>" % html
 
@@ -84,7 +84,7 @@ class OtherPleaseSpecifyWidget(MultiWidget):
             else:
                 return option_selected
 
-    def render(self, name, value, attrs=None):
+    def render(self, name, value, attrs=None, renderer=None):
         select_id = "id_" + name + "_0"
         specified_value_textbox_id = "id_" + name + "_1"
         script = """
@@ -114,7 +114,7 @@ class CalculatedFieldWidget(widgets.TextInput):
         self.script = script
         super(CalculatedFieldWidget, self).__init__(attrs=attrs)
 
-    def render(self, name, value, attrs):
+    def render(self, name, value, attrs, renderer=None):
         # attrs['readonly'] = 'readonly'
         return super(CalculatedFieldWidget, self).render(name, value, attrs) + self.script
 
@@ -147,7 +147,7 @@ class ExtensibleListWidget(MultiWidget):
             self.widgets = [copy(self.prototype_widget) for i in range(num_widgets)]
             return data
 
-    def render(self, name, value):
+    def render(self, name, value, renderer=None):
         html = super(ExtensibleListWidget, self).render(name, value)
         return html + self._buttons_html()
 
@@ -155,7 +155,7 @@ class ExtensibleListWidget(MultiWidget):
 class LookupWidget(widgets.TextInput):
     SOURCE_URL = ""
 
-    def render(self, name, value, attrs):
+    def render(self, name, value, attrs, renderer=None):
         return """
             <input type="text" name="%s" id="id_%s" value="%s">
             <script type="text/javascript">
@@ -168,7 +168,7 @@ class LookupWidget(widgets.TextInput):
 
 class LookupWidget2(LookupWidget):
 
-    def render(self, name, value, attrs):
+    def render(self, name, value, attrs, renderer=None):
         return """
             <input type="text" name="%s" id="id_%s" value="%s">
             <script type="text/javascript">
@@ -186,7 +186,7 @@ class GeneLookupWidget(LookupWidget):
 class LaboratoryLookupWidget(LookupWidget2):
     SOURCE_URL = reverse_lazy('v1:laboratory-list')
 
-    def render(self, name, value, attrs):
+    def render(self, name, value, attrs, renderer=None):
         widget_html = super(LaboratoryLookupWidget, self).render(name, value, attrs)
         link_to_labs = reverse_lazy("admin:genetic_laboratory_changelist")
 
@@ -198,7 +198,7 @@ class LaboratoryLookupWidget(LookupWidget2):
 
 class DateWidget(widgets.TextInput):
 
-    def render(self, name, value, attrs):
+    def render(self, name, value, attrs, renderer=None):
         def just_date(value):
             import datetime
             if value:
@@ -215,8 +215,8 @@ class DateWidget(widgets.TextInput):
 
 class CountryWidget(widgets.Select):
 
-    def render(self, name, value, attrs):
-        final_attrs = self.build_attrs(attrs, **{
+    def render(self, name, value, attrs, renderer=None):
+        final_attrs = self.build_attrs(attrs, {
             "name": name,
             "class": "form-control",
             "onchange": "select_country(this)",
@@ -225,34 +225,34 @@ class CountryWidget(widgets.Select):
         empty_option = "<option value=''>---------</option>"
         output.append(empty_option)
         for country in pycountry.countries:
-            if value == country.alpha2:
+            if value == country.alpha_2:
                 output.append("<option value='%s' selected>%s</option>" %
-                              (country.alpha2, country.name))
+                              (country.alpha_2, country.name))
             else:
-                output.append("<option value='%s'>%s</option>" % (country.alpha2, country.name))
+                output.append("<option value='%s'>%s</option>" % (country.alpha_2, country.name))
         output.append("</select>")
         return mark_safe('\n'.join(output))
 
 
-class StateWidget(widgets.Select):
+class StateWidget(widgets.Select):  
 
-    def render(self, name, value, attrs):
+    def render(self, name, value, attrs, renderer=None):
         try:
             state = pycountry.subdivisions.get(code=value)
         except KeyError:
             state = None
 
         if state is not None:
-            country_states = pycountry.subdivisions.get(country_code=state.country.alpha2)
+            country_states = pycountry.subdivisions.get(country_code=state.country.alpha_2)
         else:
             country_states = []
 
-        final_attrs = self.build_attrs(attrs, **{
+        final_attrs = self.build_attrs(attrs, {
             "name": name,
             "class": "form-control",
         })
         output = [format_html("<select{}>", flatatt(final_attrs))]
-        empty_option = "<option value='---'>---------</option>"
+        empty_option = "<option value=''>---------</option>"
         output.append(empty_option)
         for state in country_states:
             if value == state.code:
@@ -280,11 +280,13 @@ class ParametrisedSelectWidget(widgets.Select):
         del kwargs['widget_context']
         super(ParametrisedSelectWidget, self).__init__(*args, **kwargs)
 
-    def render(self, name, value, attrs):
+    def render(self, name, value, attrs, renderer=None):
         if not value:
             value = self.attrs.get('default', '')
 
-        final_attrs = self.build_attrs(attrs, **{
+        # final_attrs = dict(self.attrs, name=name)
+
+        final_attrs = self.build_attrs(attrs, {
             "name": name,
             "class": "form-control",
         })
@@ -305,7 +307,7 @@ class ParametrisedSelectWidget(widgets.Select):
 
 class StateListWidget(ParametrisedSelectWidget):
 
-    def render(self, name, value, attrs):
+    def render(self, name, value, attrs, renderer=None):
         country_states = pycountry.subdivisions.get(
             country_code=self._widget_context['questionnaire_context'].upper())
         output = ["<select class='form-control' id='%s' name='%s'>" % (name, name)]
@@ -340,7 +342,7 @@ class DataSourceSelect(ParametrisedSelectWidget):
 
 class PositiveIntegerInput(widgets.TextInput):
 
-    def render(self, name, value, attrs):
+    def render(self, name, value, attrs, renderer=None):
         min_value, max_value = self._get_value_range(name)
 
         return """
@@ -355,7 +357,7 @@ class PositiveIntegerInput(widgets.TextInput):
         return min_value, max_value
 
 
-class HorizontalRadioRenderer(widgets.RadioSelect.renderer):
+class HorizontalRadioRenderer(widgets.RadioSelect):
 
     def render(self):
         return mark_safe('\n'.join(['%s\n' % w for w in self]))
@@ -367,7 +369,7 @@ class RadioSelect(widgets.RadioSelect):
 
 class ReadOnlySelect(widgets.Select):
 
-    def render(self, name, value, attrs=None):
+    def render(self, name, value, attrs=None, renderer=None):
         html = super(ReadOnlySelect, self).render(name, value, attrs)
         return self._make_label(html) + self._make_hidden_field(name, value, attrs)
 
@@ -408,7 +410,7 @@ class GenericValidatorWithConstructorPopupWidget(widgets.TextInput):
         # included the js on form template
         js = ("js/generic_validator.js",)
 
-    def render(self, name, value, attrs):
+    def render(self, name, value, attrs, renderer=None):
         rpc_endpoint_url = reverse_lazy('rpc')
         if self.RPC_COMMAND_NAME:
             attrs["onkeyup"] = "generic_validate(this,'%s','%s');" % (
@@ -504,7 +506,7 @@ class MultipleFileInput(Widget):
                 return int(m.group(1))
         return None
 
-    def render(self, name, value, attrs=None):
+    def render(self, name, value, attrs=None, renderer=None):
         attrs = attrs or {}
         items = self._render_each(name, value, attrs)
 
@@ -549,17 +551,56 @@ class MultipleFileInput(Widget):
                 for i in nums]
 
 
+class ValueWrapper:
+    def __init__(self, value):
+        self.value = value
+        self.url = value.url
+        # capture the original uploaded filename here
+        self.filename = None
+
+    def __str__(self):
+        return self.filename
+
 class ConsentFileInput(ClearableFileInput):
-    def get_template_substitution_values(self, value):
-        patient_consent = PatientConsent.objects.get(form=value.name)
-        return {
-            'initial': conditional_escape(patient_consent.filename),
-            'initial_url': conditional_escape(value.url),
-        }
+    def get_context(self, name, value, attrs):
+        context = super().get_context(name, value, attrs)
+        checkbox_name = self.clear_checkbox_name(name)
+        checkbox_id = self.clear_checkbox_id(checkbox_name)
+
+        def wrap(value):
+            """
+            Wrap the incoming value so we can display
+            the original filename properly
+            """
+            try:
+                if hasattr(value, 'url'):
+                    patient_consent = PatientConsent.objects.get(form=value)
+                    filename = patient_consent.filename
+                    vw = ValueWrapper(value)
+                    vw.filename = filename
+                    return vw
+                else:
+                    return ''
+            except ValueError:
+                # was getting this on the Clear operation
+                # if we catch here, the clearing still works ...
+                return ''
+
+        context['widget'].update({
+            'checkbox_name': checkbox_name,
+            'checkbox_id': checkbox_id,
+            'is_initial': self.is_initial(value),
+            'input_text': self.input_text,
+            'value': wrap(value),
+            'initial_text': self.initial_text,
+            'clear_checkbox_label': self.clear_checkbox_label,
+        })
+
+        return context
 
 
 class SliderWidget(widgets.TextInput):
-    def render(self, name, value, attrs=None):
+    def render(self, name, value, attrs=None, renderer=None):
         if not value or not isinstance(value, int):
             value = 0
 

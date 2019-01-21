@@ -3,7 +3,7 @@ from collections import OrderedDict
 from django.shortcuts import render, redirect
 from django.views.generic.base import View
 from django.views.generic import CreateView
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.http import HttpResponseRedirect
 
 from rdrf.models.definition.models import Registry
@@ -470,7 +470,7 @@ class AddPatientView(PatientFormMixin, CreateView):
     template_name = 'rdrf_cdes/generic_patient.html'
 
     def get(self, request, registry_code):
-        if not request.user.is_authenticated():
+        if not request.user.is_authenticated:
             patient_add_url = reverse('patient_add', args=[registry_code])
             login_url = reverse('two_factor:login')
             return redirect("%s?next=%s" % (login_url, patient_add_url))
@@ -486,9 +486,28 @@ class AddPatientView(PatientFormMixin, CreateView):
         forms = []
         patient_form_class = self.get_form_class()
         patient_form = self.get_form(patient_form_class)
+
+        country_code = request.POST.get('country_of_birth')
+        patient_form.fields['country_of_birth'].choices = [(country_code, country_code)]
+
+        kin_country_code = request.POST.get('next_of_kin_country')
+        kin_state_code = request.POST.get('next_of_kin_state')
+        patient_form.fields['next_of_kin_country'].choices = [(kin_country_code, kin_country_code)]
+        patient_form.fields['next_of_kin_state'].choices = [(kin_state_code, kin_state_code)]
+
         forms.append(patient_form)
 
         self.address_formset = self._get_address_formset(request)
+        index = 0
+        for f in self.address_formset.forms:
+            country_field_name = 'patient_address-' + str(index) + '-country'
+            patient_country_code = request.POST.get(country_field_name)
+            state_field_name = 'patient_address-' + str(index) + '-state'
+            patient_state_code = request.POST.get(state_field_name)
+            index += 1
+            f.fields['country'].choices = [(patient_country_code, patient_country_code)]
+            f.fields['state'].choices = [(patient_state_code, patient_state_code)]
+
         forms.append(self.address_formset)
 
         if self._has_doctors_form():
@@ -550,7 +569,7 @@ class PatientEditView(View):
         return section_blacklist
 
     def get(self, request, registry_code, patient_id):
-        if not request.user.is_authenticated():
+        if not request.user.is_authenticated:
             patient_edit_url = reverse('patient_edit', args=[registry_code, patient_id, ])
             login_url = reverse('two_factor:login')
             return redirect("%s?next=%s" % (login_url, patient_edit_url))
@@ -658,10 +677,28 @@ class PatientEditView(View):
             user=request.user,
             registry_model=registry_model)
 
+        country_code = request.POST.get('country_of_birth')
+        patient_form.fields['country_of_birth'].choices = [(country_code, country_code)]
+
+        kin_country_code = request.POST.get('next_of_kin_country')
+        kin_state_code = request.POST.get('next_of_kin_state')
+        patient_form.fields['next_of_kin_country'].choices = [(kin_country_code, kin_country_code)]
+        patient_form.fields['next_of_kin_state'].choices = [(kin_state_code, kin_state_code)]
+
         patient_address_form_set = inlineformset_factory(
             Patient, PatientAddress, form=PatientAddressForm, fields="__all__")
         address_to_save = patient_address_form_set(
             request.POST, instance=patient, prefix="patient_address")
+
+        index = 0
+        for f in address_to_save.forms:
+            country_field_name = 'patient_address-' + str(index) + '-country'
+            patient_country_code = request.POST.get(country_field_name)
+            state_field_name = 'patient_address-' + str(index) + '-state'
+            patient_state_code = request.POST.get(state_field_name)
+            index += 1
+            f.fields['country'].choices = [(patient_country_code, patient_country_code)]
+            f.fields['state'].choices = [(patient_state_code, patient_state_code)]
 
         patient_relatives_forms = None
 

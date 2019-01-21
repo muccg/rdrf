@@ -5,7 +5,7 @@ from django.utils.decorators import method_decorator
 from django.http import HttpResponseRedirect
 from django.http import Http404
 from django.http import HttpResponse
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 
 from explorer.models import Query
 

@@ -1,6 +1,6 @@
 from rdrf.models.definition.models import RegistryForm, Section, CommonDataElement
 from explorer.views import Humaniser
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from collections import OrderedDict
 from rdrf.db.generalised_field_expressions import GeneralisedFieldExpressionParser
 from django.core.exceptions import ValidationError
@@ -383,7 +383,7 @@ class PatientCreator(object):
         try:
             patient.full_clean()
             patient.save()
-            patient.rdrf_registry = [self.registry]
+            patient.rdrf_registry.set([self.registry])
             patient.save()
             mapper.save_address_data()
             mapper.set_context()  # ensure context setup properly before we save any data to Mongfo

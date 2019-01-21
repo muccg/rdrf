@@ -172,7 +172,7 @@ def rpc_create_patient_from_questionnaire(request, questionnaire_response_id):
     from rdrf.workflows.questionnaires.questionnaires import PatientCreator, PatientCreatorError
     from rdrf.db.dynamic_data import DynamicDataWrapper
     from django.db import transaction
-    from django.core.urlresolvers import reverse
+    from django.urls import reverse
 
     qr = QuestionnaireResponse.objects.get(pk=questionnaire_response_id)
     patient_creator = PatientCreator(qr.registry, request.user)

@@ -7,7 +7,7 @@ from rdrf.models.proms.models import SurveyStates
 from rdrf.models.definition.models import Registry
 from django.http import HttpResponseRedirect
 from django.http import Http404
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from rdrf.forms.components import RDRFContextLauncherComponent
 from registry.patients.models import Patient
 from rdrf.forms.components import RDRFPatientInfoComponent

@@ -25,8 +25,8 @@ class Migration(migrations.Migration):
                 ('user', models.CharField(max_length=80)),
                 ('state', models.CharField(choices=[('requested', 'Requested'), ('received', 'Received')], max_length=20)),
                 ('response', models.TextField(blank=True, null=True)),
-                ('patient', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='patients.Patient')),
-                ('registry', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='rdrf.Registry')),
+                ('patient', models.ForeignKey(on_delete=models.CASCADE, to='patients.Patient')),
+                ('registry', models.ForeignKey(on_delete=models.CASCADE, to='rdrf.Registry')),
             ],
         ),
         migrations.AlterField(

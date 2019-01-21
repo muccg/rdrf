@@ -20,7 +20,7 @@ class Migration(migrations.Migration):
             field=models.ForeignKey(
                 blank=True,
                 null=True,
-                on_delete=django.db.models.deletion.CASCADE,
+                on_delete=models.CASCADE,
                 to=settings.AUTH_USER_MODEL,
                 verbose_name='Clinician'),
         ),
@@ -240,7 +240,7 @@ class Migration(migrations.Migration):
             name='address_type',
             field=models.ForeignKey(
                 default=1,
-                on_delete=django.db.models.deletion.CASCADE,
+                on_delete=models.CASCADE,
                 to='patients.AddressType',
                 verbose_name='Address type'),
         ),
