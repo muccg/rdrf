@@ -292,7 +292,7 @@ class PatientsListingView(View):
         self.registry_queryset = Registry.objects.filter(
             code=self.registry_model.code)
         self.patients = Patient.objects.all().prefetch_related(
-            "working_groups").prefetch_related("rdrf_registry")
+            "working_groups").prefetch_related("rdrf_registry").filter(rdrf_registry__code=self.registry_model.code)
 
     def apply_search_filter(self):
         if self.search_term:
