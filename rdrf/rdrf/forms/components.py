@@ -135,10 +135,16 @@ class RDRFContextLauncherComponent(RDRFComponent):
             "consent_locked": self.consent_locked,
             "clinician_form_link": self._get_clinician_form_link(),
             "proms_link": self._get_proms_link(),
-            "can_add_proms": self.registry_model.has_feature("can_add_proms"),
+            "can_add_proms": not self._proms_adding_disabled(),
         }
 
         return data
+
+    def _proms_adding_disabled(self):
+        if not self.registry_model.has_feature("proms_adding_disabled"):
+            return False
+        else:
+            return True
 
     def _get_proms_link(self):
         if not self.registry_model.has_feature("proms_clinical"):
