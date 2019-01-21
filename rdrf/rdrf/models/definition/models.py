@@ -15,6 +15,7 @@ from django.db import models
 from django.db.models.signals import pre_delete
 from django.dispatch.dispatcher import receiver
 from django.forms.models import model_to_dict
+from django.utils.safestring import mark_safe
 
 from rdrf.helpers.utils import check_calculation
 from rdrf.helpers.utils import format_date, parse_iso_datetime
@@ -695,25 +696,22 @@ class CDEPermittedValue(models.Model):
 
     def pvg_link(self):
         url = reverse('admin:rdrf_cdepermittedvaluegroup_change', args=(self.pv_group.code,))
-        return "<a href='%s'>%s</a>" % (url, self.pv_group.code)
+        return mark_safe("<a href='%s'>%s</a>" % (url, self.pv_group.code))
 
-    pvg_link.allow_tags = True
     pvg_link.short_description = 'Permitted Value Group'
 
     def questionnaire_value_formatted(self):
         if not self.questionnaire_value:
-            return "<i><font color='red'>Not set</font></i>"
-        return "<font color='green'>%s</font>" % self.questionnaire_value
+            return mark_safe("<i><font color='red'>Not set</font></i>")
+        return mark_safe("<font color='green'>%s</font>" % self.questionnaire_value)
 
-    questionnaire_value_formatted.allow_tags = True
     questionnaire_value_formatted.short_description = 'Questionnaire Value'
 
     def position_formatted(self):
         if not self.position:
-            return "<i><font color='red'>Not set</font></i>"
-        return "<font color='green'>%s</font>" % self.position
+            return mark_safe("<i><font color='red'>Not set</font></i>")
+        return mark_safe("<font color='green'>%s</font>" % self.position)
 
-    position_formatted.allow_tags = True
     position_formatted.short_description = 'Order position'
 
     def __str__(self):
