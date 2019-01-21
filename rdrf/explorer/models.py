@@ -271,7 +271,7 @@ class Query(models.Model):
     max_items = models.IntegerField(default=3)
 
     def get_absolute_url(self):
-        return reverse('explorer_query', kwargs={'query_id': self.pk})
+        return reverse('rdrf:explorer_query', kwargs={'query_id': self.pk})
 
     class Meta:
         ordering = ['title']
