@@ -5,7 +5,7 @@ package_data = {}
 start_dir = os.getcwd()
 requirements = [
     "ccg-django-utils==0.4.2",
-    "Django==2.1.4",
+    "Django==2.1.5",
     "django-ajax-selects==1.7.1",
     "django-anymail==5.0",
     "django-countries==5.3.2",
