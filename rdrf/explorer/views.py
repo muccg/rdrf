@@ -7,7 +7,7 @@ from tempfile import NamedTemporaryFile
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.http import HttpResponse, FileResponse, HttpResponseRedirect, JsonResponse
 from django.shortcuts import render, redirect
 from django.utils.decorators import method_decorator
@@ -90,7 +90,7 @@ class DeleteQueryView(LoginRequiredMixin, View):
 
         query_model = Query.objects.get(id=query_id)
         query_model.delete()
-        return redirect('explorer_main')
+        return redirect('rdrf:explorer_main')
 
 
 class QueryView(LoginRequiredMixin, View):

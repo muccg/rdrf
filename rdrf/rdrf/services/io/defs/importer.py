@@ -878,5 +878,5 @@ class Importer(object):
                                        cde=cde_model,
                                        condition=cde_pol_dict['condition'])
                 cde_policy.save()
-                cde_policy.groups_allowed = groups
+                cde_policy.groups_allowed.set(groups)
                 cde_policy.save()

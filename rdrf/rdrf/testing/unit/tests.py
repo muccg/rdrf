@@ -145,7 +145,7 @@ class TestFormPermissions(RDRFTestCase):
         if created:
             clinical_group.save()
         f = fh.forms[0]
-        f.groups_allowed = [clinical_group]
+        f.groups_allowed.set([clinical_group])
         f.save()
         assert not genetic_user.can_view(f), "A form set to be viewed "
 
@@ -279,7 +279,7 @@ class FormTestCase(RDRFTestCase):
             self.wg.save()
 
         self.user = CustomUser.objects.get(username="curator")
-        self.user.registry = [self.registry]
+        self.user.registry.set([self.registry])
         self.user.working_groups.add(self.wg)
 
         self.user.save()
@@ -314,7 +314,7 @@ class FormTestCase(RDRFTestCase):
         p.date_of_birth = datetime(1978, 6, 15)
         p.working_group = self.working_group
         p.save()
-        p.rdrf_registry = [self.registry]
+        p.rdrf_registry.set([self.registry])
 
         context_manager = RDRFContextManager(self.registry)
         self.default_context = context_manager.get_or_create_default_context(
@@ -1217,15 +1217,15 @@ class RemindersTestCase(TestCase):
         self.user.last_login = last_login
         self.user.is_active = True
         self.user.save()
-        self.user.registry = [self.registry]
+        self.user.registry.set([self.registry])
         self.user.save()
 
         if group == "patients":
-            self.user.groups = [patients_group]
+            self.user.groups.set([patients_group])
         elif group == "parents":
-            self.user.groups = [parents_group]
+            self.user.groups.set([parents_group])
         elif group == "curators":
-            self.user.groups = [curators_group]
+            self.user.groups.set([curators_group])
 
         self.user.save()
 

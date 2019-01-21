@@ -1,21 +1,23 @@
-from django.conf.urls import url
+from django.urls import re_path
 from explorer.views import MainView
 from explorer.views import QueryView, NewQueryView
 from explorer.views import DeleteQueryView, DownloadQueryView
 from explorer.views import SqlQueryView
 
+app_name = 'rdrf'
+
 urlpatterns = [
-    url(r'^query/(?P<query_id>\w+)/?$',
+    re_path(r'^query/(?P<query_id>\w+)/?$',
         QueryView.as_view(), name='explorer_query'),
-    url(r'^query/download/(?P<query_id>\w+)?/(?P<action>\w+)?/?$',
+    re_path(r'^query/download/(?P<query_id>\w+)?/(?P<action>\w+)?/?$',
         DownloadQueryView.as_view(), name='explorer_query_download'),
-    url(r'^query/delete/(?P<query_id>\w+)/?$',
+    re_path(r'^query/delete/(?P<query_id>\w+)/?$',
         DeleteQueryView.as_view(), name='explorer_query_delete'),
 
-    url(r'^sql$',
+    re_path(r'^sql$',
         SqlQueryView.as_view(), name='explorer_sql_query'),
 
-    url(r'^new$', NewQueryView.as_view(), name='explorer_new'),
+    re_path(r'^new$', NewQueryView.as_view(), name='explorer_new'),
 
-    url(r'$', MainView.as_view(), name='explorer_main'),
+    re_path(r'$', MainView.as_view(), name='explorer_main'),
 ]

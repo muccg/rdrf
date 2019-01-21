@@ -1,5 +1,5 @@
 from django.contrib import messages
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.shortcuts import redirect
 from django.views.generic.base import View
 from django.utils.safestring import mark_safe
@@ -31,7 +31,7 @@ class RouterView(View):
 
         redirect_url = None
 
-        if user.is_authenticated():
+        if user.is_authenticated:
             if user.is_superuser:
                 redirect_url = reverse(_PATIENTS_LISTING)
             elif user.is_clinician and user.my_registry and verifications_apply(user):

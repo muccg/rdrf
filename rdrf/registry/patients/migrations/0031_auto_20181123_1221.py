@@ -19,12 +19,15 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('name', models.CharField(max_length=80)),
-                ('registry', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='rdrf.Registry')),
+                ('registry', models.ForeignKey(on_delete=models.CASCADE,
+                                                to='rdrf.Registry')),
             ],
         ),
         migrations.AddField(
             model_name='clinicianother',
             name='speciality',
-            field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.SET_NULL, to='patients.Speciality'),
+            field=models.ForeignKey(null=True,
+                                    on_delete=models.SET_NULL,
+                                    to='patients.Speciality'),
         ),
     ]

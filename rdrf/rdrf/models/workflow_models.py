@@ -3,7 +3,7 @@ from rdrf.models.definition.models import Registry
 from registry.groups.models import CustomUser
 from datetime import datetime
 from rdrf.helpers.utils import generate_token
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from rdrf.events.events import EventType
 
 import logging
@@ -17,13 +17,17 @@ class ClinicianSignupRequest(models.Model):
               ("error", "Error"),          # error
               ("rejected", "Rejected"))    # the clinician received the request but rejected it
     
-    registry = models.ForeignKey(Registry)
+    registry = models.ForeignKey(Registry, on_delete=models.CASCADE)
     patient_id = models.IntegerField()   # the patient id whose clinician it is ( had import issues with Patient)
     clinician_email = models.CharField(max_length=80)
     state = models.CharField(max_length=80, choices=STATES, default="created")
     token = models.CharField(max_length=80, default=generate_token, unique=True)
-    clinician_other = models.ForeignKey("patients.ClinicianOther")  # this is the model the parent creates with data about the clinician`1
-    clinician = models.ForeignKey(CustomUser, blank=True, null=True)
+    clinician_other = models.ForeignKey("patients.ClinicianOther",
+                                        on_delete=models.CASCADE)  # this is the model the parent creates with data about the clinician`1
+    clinician = models.ForeignKey(CustomUser,
+                                  blank=True,
+                                  null=True,
+                                  on_delete=models.SET_NULL)
     emailed_date = models.DateTimeField(null=True)
     signup_date = models.DateTimeField(null=True)
 

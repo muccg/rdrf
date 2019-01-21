@@ -1,4 +1,4 @@
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.template import loader, Context
 from django.utils.html import escape
 from rdrf.models.definition.models import RegistryForm

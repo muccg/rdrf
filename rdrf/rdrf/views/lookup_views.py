@@ -1,7 +1,7 @@
 from django.http import HttpResponse
 from django.views.generic import View
 from django.conf import settings
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.utils.decorators import method_decorator
 from django.contrib.auth.decorators import login_required
 

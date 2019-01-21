@@ -3,7 +3,7 @@ import json
 
 from django.views.generic.base import View
 from django.shortcuts import redirect
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.apps import apps
 from django.contrib import messages
 from django.utils import timezone

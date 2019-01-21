@@ -1,6 +1,8 @@
-from django.conf.urls import url
+from django.urls import re_path
 from rdrf.services.rest.views import api_views
 from rdrf.routing.custom_rest_router import DefaultRouterWithSimpleViews
+
+# app_name = 'rdrf'
 
 router = DefaultRouterWithSimpleViews()
 router.register(r'registries', api_views.RegistryList, base_name='registry')
@@ -17,11 +19,11 @@ router.register(r'registries/(?P<registry_code>\w+)/clinicians',
                 api_views.ListClinicians, base_name='clinician')
 
 urlpatterns = [
-    url(r'registries/(?P<code>\w+)/$', api_views.RegistryDetail.as_view(), name='registry-detail'),
-    url(r'registries/(?P<registry_code>\w+)/patients/$',
+    re_path(r'registries/(?P<code>\w+)/$', api_views.RegistryDetail.as_view(), name='registry-detail'),
+    re_path(r'registries/(?P<registry_code>\w+)/patients/$',
         api_views.PatientList.as_view(), name='patient-list'),
-    url(r'registries/(?P<registry_code>\w+)/patients/(?P<pk>\d+)/$',
+    re_path(r'registries/(?P<registry_code>\w+)/patients/(?P<pk>\d+)/$',
         api_views.PatientDetail.as_view(), name='patient-detail'),
-    url(r'^countries/(?P<country_code>[A-Z]{2})/states/$',
+    re_path(r'^countries/(?P<country_code>[A-Z]{2})/states/$',
         api_views.ListStates.as_view(), name="state_lookup"),
 ] + router.urls

@@ -1,6 +1,6 @@
 from django.forms import widgets
 import logging
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 
 logger = logging.getLogger(__name__)
 
@@ -15,7 +15,7 @@ class PatientRelativeLinkWidget(widgets.Widget):
     There is also javascript to hide the green plus symbol to avoid the popup
     """
 
-    def render(self, name, value, attrs=None):
+    def render(self, name, value, attrs=None, renderer=None):
         if value is None:
             return """<input type="checkbox" id="%s" name="%s">""" % (attrs['id'], name)
         elif value == 'on':

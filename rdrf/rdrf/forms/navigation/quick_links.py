@@ -1,5 +1,5 @@
 from collections import OrderedDict
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.utils.translation import ugettext_lazy as _
 from django.urls.exceptions import NoReverseMatch
 from django.conf import settings
@@ -38,7 +38,7 @@ class Links:
         _("Archived Patients"))
     Genes = QuickLink(reverse("admin:genetic_gene_changelist"), _("Genes"))
     Laboratories = QuickLink(reverse("admin:genetic_laboratory_changelist"), _("Laboratories"))
-    Explorer = QuickLink(reverse("explorer_main"), _("Explorer"))
+    Explorer = QuickLink(reverse("rdrf:explorer_main"), _("Explorer"))
     Users = QuickLink(reverse("admin:groups_customuser_changelist"), _('Users'))
     WorkingGroups = QuickLink(
         reverse("admin:groups_workinggroup_changelist"),

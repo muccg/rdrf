@@ -26,8 +26,8 @@ class Migration(migrations.Migration):
                 ('token', models.CharField(default=rdrf.helpers.utils.generate_token, max_length=80, unique=True)),
                 ('emailed_date', models.DateTimeField(null=True)),
                 ('signup_date', models.DateTimeField(null=True)),
-                ('clinician', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL)),
-                ('registry', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='rdrf.Registry')),
+                ('clinician', models.ForeignKey(blank=True, null=True, on_delete=models.CASCADE, to=settings.AUTH_USER_MODEL)),
+                ('registry', models.ForeignKey(on_delete=models.CASCADE, to='rdrf.Registry')),
             ],
         ),
     ]

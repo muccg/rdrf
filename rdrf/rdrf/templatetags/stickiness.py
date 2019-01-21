@@ -1,6 +1,6 @@
 from django import template
 from rdrf.models.definition.models import Registry
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.contrib.auth.models import AnonymousUser
 
 DEFAULT_NAME = "Rare Disease Registry Framework"

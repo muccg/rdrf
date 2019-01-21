@@ -18,7 +18,7 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('value', models.CharField(max_length=80)),
-                ('cde', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='rdrf.CommonDataElement')),
+                ('cde', models.ForeignKey(on_delete=models.CASCADE, to='rdrf.CommonDataElement')),
             ],
         ),
         migrations.CreateModel(
@@ -26,7 +26,7 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('name', models.CharField(max_length=80)),
-                ('registry', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='rdrf.Registry')),
+                ('registry', models.ForeignKey(on_delete=models.CASCADE, to='rdrf.Registry')),
             ],
         ),
         migrations.CreateModel(
@@ -34,14 +34,14 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('position', models.IntegerField(blank=True, null=True)),
-                ('cde', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='rdrf.CommonDataElement')),
-                ('precondition', models.ForeignKey(null=True, on_delete=django.db.models.deletion.CASCADE, to='rdrf.Precondition')),
-                ('survey', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='survey_questions', to='rdrf.Survey')),
+                ('cde', models.ForeignKey(on_delete=models.CASCADE, to='rdrf.CommonDataElement')),
+                ('precondition', models.ForeignKey(null=True, on_delete=models.CASCADE, to='rdrf.Precondition')),
+                ('survey', models.ForeignKey(on_delete=models.CASCADE, related_name='survey_questions', to='rdrf.Survey')),
             ],
         ),
         migrations.AddField(
             model_name='precondition',
             name='survey',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='rdrf.Survey'),
+            field=models.ForeignKey(on_delete=models.CASCADE, to='rdrf.Survey'),
         ),
     ]

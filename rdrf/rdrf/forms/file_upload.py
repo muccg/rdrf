@@ -1,5 +1,5 @@
 import logging
-from django.core.urlresolvers import reverse, NoReverseMatch
+from django.urls import reverse, NoReverseMatch
 from django.core.files.uploadedfile import UploadedFile
 from rdrf.db import filestorage
 

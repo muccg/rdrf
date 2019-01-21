@@ -400,7 +400,8 @@ class Migration(migrations.Migration):
                  models.ForeignKey(
                      blank=True,
                      to=settings.AUTH_USER_MODEL,
-                     null=True)),
+                     null=True,
+                     on_delete=models.SET_NULL)),
             ],
             options={
                 'ordering': [
@@ -453,10 +454,11 @@ class Migration(migrations.Migration):
                 ('address_type',
                  models.ForeignKey(
                      default=1,
-                     to='patients.AddressType')),
+                     to='patients.AddressType',
+                     on_delete=models.CASCADE)),
                 ('patient',
                  models.ForeignKey(
-                     to='patients.Patient')),
+                     to='patients.Patient', on_delete=models.CASCADE)),
             ],
             options={
                 'verbose_name_plural': 'Patient Addresses',
@@ -482,7 +484,8 @@ class Migration(migrations.Migration):
                      blank=True)),
                 ('patient',
                  models.ForeignKey(
-                     to='patients.Patient')),
+                     to='patients.Patient',
+                     on_delete=models.CASCADE)),
             ],
         ),
         migrations.CreateModel(
@@ -499,10 +502,12 @@ class Migration(migrations.Migration):
                      max_length=50)),
                 ('doctor',
                  models.ForeignKey(
-                     to='patients.Doctor')),
+                     to='patients.Doctor',
+                     on_delete=models.CASCADE)),
                 ('patient',
                  models.ForeignKey(
-                     to='patients.Patient')),
+                     to='patients.Patient',
+                     on_delete=models.CASCADE)),
             ],
             options={
                 'verbose_name': 'medical professionals for patient',
@@ -1107,14 +1112,16 @@ class Migration(migrations.Migration):
                 ('patient',
                  models.ForeignKey(
                      related_name='relatives',
-                     to='patients.Patient')),
+                     to='patients.Patient',
+                     on_delete=models.CASCADE)),
                 ('relative_patient',
                  models.OneToOneField(
                      related_name='as_a_relative',
                      null=True,
                      blank=True,
                      to='patients.Patient',
-                     verbose_name='Create Patient?')),
+                     verbose_name='Create Patient?',
+                     on_delete=models.SET_NULL)),
             ],
         ),
         migrations.CreateModel(
@@ -1149,7 +1156,7 @@ class Migration(migrations.Migration):
             model_name='patient',
             name='next_of_kin_relationship',
             field=models.ForeignKey(
-                on_delete=django.db.models.deletion.SET_NULL,
+                on_delete=models.SET_NULL,
                 verbose_name='Relationship',
                 blank=True,
                 to='patients.NextOfKinRelationship',

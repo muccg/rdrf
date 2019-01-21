@@ -3,7 +3,7 @@ import json
 from django.views.generic.base import View
 from django.template.context_processors import csrf
 from django.core.exceptions import PermissionDenied
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.shortcuts import redirect, get_object_or_404
 from django.http import HttpResponse
 from django.http import HttpResponseRedirect
@@ -51,7 +51,7 @@ class PatientsListingView(View):
         # the protocol is the jquery DataTable
         # see http://datatables.net/manual/server-side
         self.user = request.user
-        if self.user and self.user.is_anonymous():
+        if self.user and self.user.is_anonymous:
             login_url = "%s?next=%s" % (reverse("two_factor:login"), reverse("login_router"))
             return redirect(login_url)
 
@@ -131,7 +131,7 @@ class PatientsListingView(View):
     def post(self, request):
         # see http://datatables.net/manual/server-side
         self.user = request.user
-        if self.user and self.user.is_anonymous():
+        if self.user and self.user.is_anonymous:
             login_url = "%s?next=%s" % (reverse("two_factor:login"), reverse("login_router"))
             return redirect(login_url)
         self.set_parameters(request)
@@ -292,7 +292,7 @@ class PatientsListingView(View):
         self.registry_queryset = Registry.objects.filter(
             code=self.registry_model.code)
         self.patients = Patient.objects.all().prefetch_related(
-            "working_groups").prefetch_related("rdrf_registry")
+            "working_groups").prefetch_related("rdrf_registry").filter(rdrf_registry__code=self.registry_model.code)
 
     def apply_search_filter(self):
         if self.search_term:

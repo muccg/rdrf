@@ -1,8 +1,10 @@
-from django.conf.urls import url
+from django.urls import re_path
 from rdrf.services.rest.views import proms_api
 
+app_name='proms'
+
 urlpatterns = [
-    url(r'surveys/?$', proms_api.SurveyEndpoint.as_view(), name='survey_endpoint'),
-    url(r'surveyassignments/?$', proms_api.SurveyAssignments.as_view(), name='survey_assignments'),
-    url(r'promsdownload/?$', proms_api.PromsDownload.as_view(), name='proms_download'),
+    re_path(r'surveys/?$', proms_api.SurveyEndpoint.as_view(), name='survey_endpoint'),
+    re_path(r'surveyassignments/?$', proms_api.SurveyAssignments.as_view(), name='survey_assignments'),
+    re_path(r'promsdownload/?$', proms_api.PromsDownload.as_view(), name='proms_download'),
 ]
