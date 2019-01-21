@@ -135,6 +135,7 @@ class RDRFContextLauncherComponent(RDRFComponent):
             "consent_locked": self.consent_locked,
             "clinician_form_link": self._get_clinician_form_link(),
             "proms_link": self._get_proms_link(),
+            "can_add_proms": self.registry_model.has_feature("can_add_proms"),
         }
 
         return data
