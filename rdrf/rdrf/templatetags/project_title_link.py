@@ -8,4 +8,4 @@ register = template.Library()
 @register.simple_tag
 def project_title_link():
     url_name = settings.PROJECT_TITLE_LINK
-    return reverse(url_name)
+    return reverse('rdrf:' + url_name)
