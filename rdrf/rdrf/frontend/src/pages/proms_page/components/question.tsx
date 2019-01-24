@@ -44,6 +44,15 @@ class Question extends React.Component<QuestionInterface, object> {
         var maxValue = question.spec.max;
         const marks = {
             [minValue]: <strong>{minValue}</strong>,
+            10:'10',
+            20:'20',
+            30:'30',
+            40:'40',
+            50:'50',
+            60:'60',
+            70:'70',
+            80:'80',
+            90:'90',
             [maxValue]: {
                   style: {
                     color: 'red',
@@ -95,7 +104,6 @@ class Question extends React.Component<QuestionInterface, object> {
                         <div style={style}>
                             <Slider vertical min={question.spec.min}
                                     max={question.spec.max}
-                                    step={5}
                                     marks={this.getMarks(question)}
                                     handle={this.getSliderHandle()}
                                     onChange={this.onSliderChange}
