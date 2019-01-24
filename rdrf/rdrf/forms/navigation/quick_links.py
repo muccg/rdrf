@@ -91,9 +91,11 @@ class Links:
         reverse("admin:rdrf_demographicfields_changelist"),
         _("Registry Demographics Fields"))
     ConsentRules = QuickLink(reverse("admin:rdrf_consentrule_changelist"), _("Consent Rules"))
-    Surveys = QuickLink(reverse("admin:rdrf_survey_changelist"), _("Surveys"))
-    SurveyAssignments = QuickLink(reverse("admin:rdrf_surveyassignment_changelist"), _("Survey Assignments"))
-    SurveyRequest = QuickLink(reverse("admin:rdrf_surveyrequest_changelist"), _("Survey Request"))
+
+    if settings.PROMS_SITE:
+        Surveys = QuickLink(reverse("admin:rdrf_survey_changelist"), _("Surveys"))
+        SurveyAssignments = QuickLink(reverse("admin:rdrf_surveyassignment_changelist"), _("Survey Assignments"))
+        SurveyRequest = QuickLink(reverse("admin:rdrf_surveyrequest_changelist"), _("Survey Request"))
 
     if settings.DESIGN_MODE:
         RegistryForms = QuickLink(
@@ -196,11 +198,12 @@ class Links:
         WorkingGroups.text: WorkingGroups,
     }
 
-    PROMS = {
-        Surveys.text: Surveys,
-        SurveyAssignments.text: SurveyAssignments,
-        SurveyRequest.text : SurveyRequest,
-    }
+    if settings.PROMS_SITE:
+        PROMS = {
+            Surveys.text: Surveys,
+            SurveyAssignments.text: SurveyAssignments,
+            SurveyRequest.text : SurveyRequest,
+        }
 
     # only appear if related registry specific feature is set
     # Populated at runtime
@@ -355,6 +358,11 @@ class QuickLinks(object):
                 **Links.STATE_MANAGEMENT,
                 **Links.USER_MANAGEMENT,
                 **Links.WORKING_GROUPS,
+                # **Links.PROMS,
+            }
+
+        if settings.PROMS_SITE:
+            MenuConfig().all = {
                 **Links.PROMS,
             }
 

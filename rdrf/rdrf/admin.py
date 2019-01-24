@@ -413,10 +413,10 @@ if settings.DESIGN_MODE:
 
 admin.site.register(Registry, RegistryAdmin)
 admin.site.register(QuestionnaireResponse, QuestionnaireResponseAdmin)
-admin.site.register(Survey, SurveyAdmin)
-admin.site.register(SurveyAssignment, SurveyAssignmentAdmin)
+# admin.site.register(Survey, SurveyAdmin)
+# admin.site.register(SurveyAssignment, SurveyAssignmentAdmin)
 admin.site.register(Precondition, PreconditionAdmin)
-admin.site.register(SurveyRequest, SurveyRequestAdmin)
+# admin.site.register(SurveyRequest, SurveyRequestAdmin)
 
 
 if settings.DESIGN_MODE:
@@ -470,3 +470,18 @@ admin.site.register(EmailNotificationHistory, EmailNotificationHistoryAdmin)
 admin.site.register(Notification, NotificationAdmin)
 admin.site.register(DemographicFields, DemographicFieldsAdmin)
 admin.site.register(ConsentRule, ConsentRuleAdmin)
+
+if settings.PROMS_SITE:
+    logger.debug("It is a PROMS SITE")
+    admin.site.register(Survey, SurveyAdmin)
+    admin.site.register(SurveyAssignment, SurveyAssignmentAdmin)
+    admin.site.register(SurveyRequest, SurveyRequestAdmin)
+    # admin.site.register(EmailNotification, EmailNotificationAdmin)
+    # admin.site.register(EmailTemplate, EmailTemplateAdmin)
+    # admin.site.register(EmailNotificationHistory, EmailNotificationHistoryAdmin)
+    # admin.site.register(Notification, NotificationAdmin)
+    # admin.site.register(DemographicFields, DemographicFieldsAdmin)
+    # admin.site.register(ConsentRule, ConsentRuleAdmin)
+
+    
+    # admin.site.unregister(Users)
