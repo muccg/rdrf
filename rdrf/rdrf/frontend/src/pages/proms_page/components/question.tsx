@@ -3,7 +3,7 @@ import * as _ from 'lodash';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 
-import { Form, FormGroup, Label, Input, Col, Row } from 'reactstrap';
+import { Form, FormGroup, Label, Input, Col, Row, Card, CardBody, CardTitle, CardText, Container } from 'reactstrap';
 import { QuestionInterface } from './interfaces';
 
 import * as actions from '../reducers';
@@ -69,6 +69,7 @@ class Question extends React.Component<QuestionInterface, object> {
         const Handle = Slider.Handle;
         const handle = props => {
             const { value, dragging, index, ...restProps } = props;
+
             return (
                 <Tooltip
                     prefixCls="rc-slider-tooltip"
@@ -85,10 +86,11 @@ class Question extends React.Component<QuestionInterface, object> {
     }
 
 
-
     render() {
         let question = this.props.questions[this.props.stage];
-        const style = { width: "10%", height:"70vh", margin:"0 auto", padding: "100px" };
+        const box_style = {width: "100px", height:"100px", backgroundColor: "black"}
+        const p_style = {color: "white", align: "center"}
+        const style = { width: "50%", height:"50vh", margin:"0 auto", leftPadding: "100px" };
         const isConsent = (this.props.questions.length - 1) == this.props.stage;
         const consentText = "I consent to ongoing involvement in the CIC Cancer project" +
             "and receiving a reminder for the next survey.";
@@ -101,13 +103,21 @@ class Question extends React.Component<QuestionInterface, object> {
                 </FormGroup>
                 {
                     (question.spec.tag=='integer' ?
-                        <div style={style}>
-                            <Slider vertical min={question.spec.min}
+
+                        <div className='row'>
+                            <div className="col">
+                                <div className="float-right" style={box_style}>
+                                    <p className="text-center" style={p_style}>YOUR HEALTH RATE TODAY <b>{this.props.answers[question.cde]}</b></p>
+                                </div>
+                            </div>
+                            <div className="col" style={style}>
+                                <Slider vertical min={question.spec.min}
                                     max={question.spec.max}
                                     marks={this.getMarks(question)}
                                     handle={this.getSliderHandle()}
                                     onChange={this.onSliderChange}
-                                    />
+                                />
+                            </div>
                         </div>
 
                         :
@@ -146,6 +156,7 @@ function mapStateToProps(state) {
         answers: state.answers,
     };
 }
+
 
 function mapPropsToDispatch(dispatch) {
     return ({
