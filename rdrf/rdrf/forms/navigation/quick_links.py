@@ -91,11 +91,9 @@ class Links:
         reverse("admin:rdrf_demographicfields_changelist"),
         _("Registry Demographics Fields"))
     ConsentRules = QuickLink(reverse("admin:rdrf_consentrule_changelist"), _("Consent Rules"))
-
-    if settings.PROMS_SITE:
-        Surveys = QuickLink(reverse("admin:rdrf_survey_changelist"), _("Surveys"))
-        SurveyAssignments = QuickLink(reverse("admin:rdrf_surveyassignment_changelist"), _("Survey Assignments"))
-        SurveyRequest = QuickLink(reverse("admin:rdrf_surveyrequest_changelist"), _("Survey Request"))
+    Surveys = QuickLink(reverse("admin:rdrf_survey_changelist"), _("Surveys"))
+    SurveyAssignments = QuickLink(reverse("admin:rdrf_surveyassignment_changelist"), _("Survey Assignments"))
+    SurveyRequest = QuickLink(reverse("admin:rdrf_surveyrequest_changelist"), _("Survey Request"))
 
     if settings.DESIGN_MODE:
         RegistryForms = QuickLink(
@@ -168,6 +166,11 @@ class Links:
             ConsentRules.text: ConsentRules,
         }
 
+    if settings.PROMS_SITE:
+        OTHER = {
+            Importer.text: Importer,
+        }
+
     EXPLORER = {
         Explorer.text: Explorer,
     }
@@ -197,13 +200,11 @@ class Links:
     WORKING_GROUPS = {
         WorkingGroups.text: WorkingGroups,
     }
-
-    if settings.PROMS_SITE:
-        PROMS = {
-            Surveys.text: Surveys,
-            SurveyAssignments.text: SurveyAssignments,
-            SurveyRequest.text : SurveyRequest,
-        }
+    PROMS = {
+        Surveys.text: Surveys,
+        SurveyAssignments.text: SurveyAssignments,
+        SurveyRequest.text : SurveyRequest,
+    }
 
     # only appear if related registry specific feature is set
     # Populated at runtime
@@ -310,14 +311,15 @@ class QuickLinks(object):
         }
 
         # settings menu
-        MenuConfig().settings = {
-            **Links.AUDITING,
-            **Links.DOCTORS,
-            **Links.EXPLORER,
-            **Links.FAMILY_LINKAGE,
-            **Links.PERMISSIONS,
-            **Links.REGISTRATION,
-        }
+        if not settings.PROMS_SITE:
+            MenuConfig().settings = {
+                **Links.AUDITING,
+                **Links.DOCTORS,
+                **Links.EXPLORER,
+                **Links.FAMILY_LINKAGE,
+                **Links.PERMISSIONS,
+                **Links.REGISTRATION,
+            }
 
         # menu with everything, used for the admin page
         if not settings.DESIGN_MODE:
@@ -358,12 +360,14 @@ class QuickLinks(object):
                 **Links.STATE_MANAGEMENT,
                 **Links.USER_MANAGEMENT,
                 **Links.WORKING_GROUPS,
-                # **Links.PROMS,
+                **Links.PROMS,
             }
 
         if settings.PROMS_SITE:
             MenuConfig().all = {
+                **Links.OTHER,
                 **Links.PROMS,
+                **Links.USER_MANAGEMENT,
             }
 
     def _group_links(self, group):
@@ -459,12 +463,16 @@ class QuickLinks(object):
     def menu_links(self, groups):
         # get links for the 'menu' menu
         links = {}
+        if settings.PROMS_SITE:
+            return {}
         for group in groups:
             links = {**links, **self._group_links(group.lower())}
         return OrderedDict(sorted(links.items())).values()
 
     def settings_links(self):
         # get links for the 'settings' menu
+        if settings.PROMS_SITE:
+            return {}
         links = MenuConfig().settings
         return OrderedDict(sorted(links.items())).values()
 
