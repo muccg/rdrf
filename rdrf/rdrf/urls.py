@@ -44,7 +44,7 @@ from rdrf.views.proms_views import PromsQRCodeImageView
 
 import logging
 
-app_name = 'rdrf'
+#app_name = 'rdrf'
 
 
 logger = logging.getLogger(__name__)
