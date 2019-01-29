@@ -1,9 +1,8 @@
 import * as React from 'react';
 import * as _ from 'lodash';
 import { connect } from 'react-redux';
-import { bindActionCreators } from 'redux';
 
-import { Form, FormGroup, Label, Input, Col, Row, Card, CardBody, CardTitle, CardText, Container } from 'reactstrap';
+import { Form, FormGroup, Label, Input, Col } from 'reactstrap';
 import { QuestionInterface } from './interfaces';
 
 import * as actions from '../reducers';
