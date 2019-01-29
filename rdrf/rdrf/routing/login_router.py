@@ -11,6 +11,7 @@ from rdrf.services.io.notifications.email_notification import process_notificati
 from rdrf.events.events import EventType
 from rdrf.workflows.verification import verifications_apply
 from django.conf import settings
+from django.http import Http404
 
 
 # todo update ophg registries to use new demographics and patients listing
@@ -33,8 +34,11 @@ class RouterView(View):
         redirect_url = None
 
         if user.is_authenticated:
-            if user.is_superuser and settings.PROMS_SITE:
-                redirect_url = reverse(_HOME_PAGE)
+            if settings.PROMS_SITE:
+                if user.is_superuser:
+                    redirect_url = reverse(_HOME_PAGE)
+                else:
+                    raise Http404()
             elif user.is_superuser:
                 redirect_url = reverse(_PATIENTS_LISTING)
             elif user.is_clinician and user.my_registry and verifications_apply(user):

@@ -26,6 +26,7 @@ from rdrf.models.proms.models import SurveyQuestion
 from rdrf.models.proms.models import Precondition
 from rdrf.models.proms.models import SurveyAssignment
 from rdrf.models.proms.models import SurveyRequest
+from django.db.models.base import ModelBase
 
 
 from reversion.admin import VersionAdmin
@@ -470,3 +471,28 @@ admin.site.register(EmailNotificationHistory, EmailNotificationHistoryAdmin)
 admin.site.register(Notification, NotificationAdmin)
 admin.site.register(DemographicFields, DemographicFieldsAdmin)
 admin.site.register(ConsentRule, ConsentRuleAdmin)
+
+
+if settings.PROMS_SITE:
+    admin.site.unregister(Registry)
+    admin.site.unregister(QuestionnaireResponse)
+    admin.site.unregister(Precondition)
+    admin.site.unregister(EmailNotification)
+    admin.site.unregister(EmailTemplate)
+    admin.site.unregister(EmailNotificationHistory)
+    admin.site.unregister(Notification)
+    admin.site.unregister(DemographicFields)
+    admin.site.unregister(ConsentRule)
+
+    registered_models = [CDEPermittedValue,
+                         CDEPermittedValueGroup,
+                         CommonDataElement,
+                         RegistryForm,
+                         Section,
+                         ConsentSection,
+                         CdePolicy,
+                         ContextFormGroup,
+                         CDEFile]
+    for model in registered_models:
+        if admin.site.is_registered(model):
+            admin.site.unregister(model)
