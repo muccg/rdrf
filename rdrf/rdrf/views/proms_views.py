@@ -94,8 +94,10 @@ class PromsLandingPageView(View):
                                               state=SurveyStates.REQUESTED)
         survey_display_name = survey_assignment.survey.display_name
         preamble_text = registry_model.metadata.get("preamble_text")
+        copyright_text = registry_model.metadata.get("copyright_text")
         context = {
             "preamble_text": preamble_text,
+            "copyright_text": copyright_text,
             "survey_name": survey_display_name
         }
         return render(request, "proms/preamble.html", context)
