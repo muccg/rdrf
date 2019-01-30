@@ -435,6 +435,7 @@ LOGGING = {
 # False ( the default) means registry definition cannot be edited on site
 DESIGN_MODE = env.get('design_mode', False)
 
+
 ################################################################################
 # Customize settings for each registry below
 ################################################################################
@@ -517,3 +518,4 @@ AUTH_PASSWORD_VALIDATORS = [{
 PROMS_SECRET_TOKEN = env.get("proms_secret_token", "foobar")  # todo set this us in env etc
 PROMS_USERNAME = env.get("proms_username", "promsuser")
 PROMS_LOGO = env.get("proms_logo", "")
+PROMS_SITE = env.get('proms_site', False)

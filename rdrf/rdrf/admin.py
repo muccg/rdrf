@@ -26,6 +26,7 @@ from rdrf.models.proms.models import SurveyQuestion
 from rdrf.models.proms.models import Precondition
 from rdrf.models.proms.models import SurveyAssignment
 from rdrf.models.proms.models import SurveyRequest
+from django.db.models.base import ModelBase
 
 
 from reversion.admin import VersionAdmin
@@ -46,6 +47,8 @@ from rdrf.admin_forms import DemographicFieldsAdminForm
 from functools import reduce
 
 logger = logging.getLogger(__name__)
+
+
 
 @admin.register(ClinicalData)
 class BaseReversionAdmin(VersionAdmin):
@@ -398,75 +401,87 @@ class SurveyAssignmentAdmin(admin.ModelAdmin):
     model = SurveyAssignment
     list_display = ("registry", "survey_name", "patient_token", "state", "created", "updated", "response")
 
+class ContextFormGroupItemAdmin(admin.StackedInline):
+    model = ContextFormGroupItem
 
-if settings.DESIGN_MODE:
-    class ContextFormGroupItemAdmin(admin.StackedInline):
-        model = ContextFormGroupItem
+class ContextFormGroupAdmin(admin.ModelAdmin):
+    model = ContextFormGroup
+    list_display = ('name', 'registry')
+    inlines = [ContextFormGroupItemAdmin]
 
-    class ContextFormGroupAdmin(admin.ModelAdmin):
-        model = ContextFormGroup
-        list_display = ('name', 'registry')
-        inlines = [ContextFormGroupItemAdmin]
+    def registry(self, obj):
+        return obj.registry.name
 
-        def registry(self, obj):
-            return obj.registry.name
+class CDEFileAdmin(admin.ModelAdmin):
+    model = CDEFile
+    list_display = ("form_name", "section_code", "cde_code", "item")
 
-admin.site.register(Registry, RegistryAdmin)
-admin.site.register(QuestionnaireResponse, QuestionnaireResponseAdmin)
-admin.site.register(Survey, SurveyAdmin)
-admin.site.register(SurveyAssignment, SurveyAssignmentAdmin)
-admin.site.register(Precondition, PreconditionAdmin)
-admin.site.register(SurveyRequest, SurveyRequestAdmin)
+CDEPermittedValueAdmin = create_restricted_model_admin_class(
+                            CDEPermittedValue,
+                            ordering=['code'],
+                            search_fields=[
+                                'code',
+                                'value',
+                                'pv_group__code'],
+                            list_display=[
+                                'code',
+                                'value',
+                                'questionnaire_value_formatted',
+                                'pvg_link',
+                                'position_formatted'])
+
+CommonDataElementAdmin = create_restricted_model_admin_class(
+                            CommonDataElement,
+                            ordering=['code'],
+                            search_fields=[
+                                'code',
+                                'name',
+                                'datatype'],
+                            list_display=[
+                                'code',
+                                'name',
+                                'datatype',
+                                'widget_name'])
+
+DESIGN_MODE_ADMIN_COMPONENTS = [
+                        (CDEPermittedValue, CDEPermittedValueAdmin),
+                        (CommonDataElement, CommonDataElementAdmin),
+                        (CDEPermittedValueGroup, CDEPermittedValueGroupAdmin),
+                        (RegistryForm, RegistryFormAdmin),
+                        (Section, SectionAdmin),
+                        (ConsentSection, ConsentSectionAdmin),
+                        (CdePolicy, CdePolicyAdmin),
+                        (ContextFormGroup, ContextFormGroupAdmin),
+                        (CDEFile, CDEFileAdmin),
+                        ]
 
 
-if settings.DESIGN_MODE:
-    admin.site.register(
-        CDEPermittedValue,
-        create_restricted_model_admin_class(
-            CDEPermittedValue,
-            ordering=['code'],
-            search_fields=[
-                'code',
-                'value',
-                'pv_group__code'],
-            list_display=[
-                'code',
-                'value',
-                'questionnaire_value_formatted',
-                'pvg_link',
-                'position_formatted']))
+PROMS_ADMIN_COMPONENTS = [(Survey, SurveyAdmin),
+                        (SurveyAssignment, SurveyAssignmentAdmin),
+                        (SurveyRequest, SurveyRequestAdmin),
+                        ]
 
-    admin.site.register(CDEPermittedValueGroup, CDEPermittedValueGroupAdmin)
-    admin.site.register(
-        CommonDataElement,
-        create_restricted_model_admin_class(
-            CommonDataElement,
-            ordering=['code'],
-            search_fields=[
-                'code',
-                'name',
-                'datatype'],
-            list_display=[
-                'code',
-                'name',
-                'datatype',
-                'widget_name']))
+NORMAL_MODE_ADMIN_COMPONENTS = [
+                               (Registry, RegistryAdmin),
+                               (QuestionnaireResponse, QuestionnaireResponseAdmin),
+                               (Precondition, PreconditionAdmin),
+                               (EmailNotification, EmailNotificationAdmin),
+                               (EmailTemplate, EmailTemplateAdmin),
+                               (EmailNotificationHistory, EmailNotificationHistoryAdmin),
+                               (Notification, NotificationAdmin),
+                               (DemographicFields, DemographicFieldsAdmin),
+                               (ConsentRule, ConsentRuleAdmin),
+                               ]
 
-    admin.site.register(RegistryForm, RegistryFormAdmin)
-    admin.site.register(Section, SectionAdmin)
-    admin.site.register(ConsentSection, ConsentSectionAdmin)
-    admin.site.register(CdePolicy, CdePolicyAdmin)
-    admin.site.register(ContextFormGroup, ContextFormGroupAdmin)
 
-    class CDEFileAdmin(admin.ModelAdmin):
-        model = CDEFile
-        list_display = ("form_name", "section_code", "cde_code", "item")
+if settings.PROMS_SITE:
+    ADMIN_COMPONENTS = PROMS_ADMIN_COMPONENTS
+elif settings.DESIGN_MODE:
+    ADMIN_COMPONENTS = NORMAL_MODE_ADMIN_COMPONENTS + DESIGN_MODE_ADMIN_COMPONENTS + PROMS_ADMIN_COMPONENTS
+else:
+    ADMIN_COMPONENTS = NORMAL_MODE_ADMIN_COMPONENTS + PROMS_ADMIN_COMPONENTS
 
-    admin.site.register(CDEFile, CDEFileAdmin)
 
-admin.site.register(EmailNotification, EmailNotificationAdmin)
-admin.site.register(EmailTemplate, EmailTemplateAdmin)
-admin.site.register(EmailNotificationHistory, EmailNotificationHistoryAdmin)
-admin.site.register(Notification, NotificationAdmin)
-admin.site.register(DemographicFields, DemographicFieldsAdmin)
-admin.site.register(ConsentRule, ConsentRuleAdmin)
+for model_class, model_admin in ADMIN_COMPONENTS:
+    if not admin.site.is_registered(model_class):
+        admin.site.register(model_class, model_admin)

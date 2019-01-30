@@ -52,6 +52,7 @@ services:
     environment:
       - DJANGO_FIXTURES=dev
       - DESIGN_MODE=1
+      - PROMS_SITE=1
       - PROMS_SYSTEM_URL=http://test.com
     volumes_from:
       - datadev
