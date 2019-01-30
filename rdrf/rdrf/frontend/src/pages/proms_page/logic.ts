@@ -35,6 +35,7 @@ interface UnconditionalElement  {
     title: string,
     instructions: string,
     spec: Datatype,
+    survey_question_instruction: string,
 }
 
 interface ConditionalElement {
@@ -44,6 +45,7 @@ interface ConditionalElement {
     title: string,
     instructions: string,
     spec: Datatype,
+    survey_question_instruction: string,
 }
 
 type Element = UnconditionalElement | ConditionalElement;

@@ -86,6 +86,7 @@ class Question extends React.Component<QuestionInterface, object> {
 
 
     render() {
+        console.log("Props = " + this.props)
         let question = this.props.questions[this.props.stage];
         const box_style = {width: "100px", height:"100px", backgroundColor: "black"}
         const p_style = {color: "white", align: "center"}
@@ -97,7 +98,8 @@ class Question extends React.Component<QuestionInterface, object> {
         return (
             <Form>
                 <FormGroup tag="fieldset">
-                    <legend>{this.props.questions[this.props.stage].title}</legend>
+                    <h6><i>{this.props.questions[this.props.stage].survey_question_instruction}</i></h6>
+                    <h4>{this.props.questions[this.props.stage].title}</h4>
                     <i>{this.props.questions[this.props.stage].instructions}</i>
                 </FormGroup>
                 {
