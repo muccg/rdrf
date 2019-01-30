@@ -402,6 +402,7 @@ class SurveyAssignmentAdmin(admin.ModelAdmin):
     list_display = ("registry", "survey_name", "patient_token", "state", "created", "updated", "response")
 
 
+
 if settings.DESIGN_MODE:
     class ContextFormGroupItemAdmin(admin.StackedInline):
         model = ContextFormGroupItem
@@ -418,7 +419,6 @@ if settings.DESIGN_MODE:
         model = CDEFile
         list_display = ("form_name", "section_code", "cde_code", "item")
 
-if settings.DESIGN_MODE:
     CDEPermittedValueAdmin = create_restricted_model_admin_class(
                                 CDEPermittedValue,
                                 ordering=['code'],
@@ -446,25 +446,23 @@ if settings.DESIGN_MODE:
                                     'datatype',
                                     'widget_name'])
 
-DESIGN_MODE_ADMIN_COMPONENTS = []
+    DESIGN_MODE_ADMIN_COMPONENTS = [
+                            (CDEPermittedValue, CDEPermittedValueAdmin),
+                            (CommonDataElement, CommonDataElementAdmin),
+                            (CDEPermittedValueGroup, CDEPermittedValueGroupAdmin),
+                            (RegistryForm, RegistryFormAdmin),
+                            (Section, SectionAdmin),
+                            (ConsentSection, ConsentSectionAdmin),
+                            (CdePolicy, CdePolicyAdmin),
+                            (ContextFormGroup, ContextFormGroupAdmin),
+                            (CDEFile, CDEFileAdmin),
+                            ]
+
 
 PROMS_ADMIN_COMPONENTS = [(Survey, SurveyAdmin),
                         (SurveyAssignment, SurveyAssignmentAdmin),
                         (SurveyRequest, SurveyRequestAdmin),
                         ]
-
-if settings.DESIGN_MODE:
-    DESIGN_MODE_ADMIN_COMPONENTS = [
-                                (CDEPermittedValue, CDEPermittedValueAdmin),
-                                (CommonDataElement, CommonDataElementAdmin),
-                                (CDEPermittedValueGroup, CDEPermittedValueGroupAdmin),
-                                (RegistryForm, RegistryFormAdmin),
-                                (Section, SectionAdmin),
-                                (ConsentSection, ConsentSectionAdmin),
-                                (CdePolicy, CdePolicyAdmin),
-                                (ContextFormGroup, ContextFormGroupAdmin),
-                                (CDEFile, CDEFileAdmin),
-                                ]
 
 NORMAL_MODE_ADMIN_COMPONENTS = [
                                (Registry, RegistryAdmin),
