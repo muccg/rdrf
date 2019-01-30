@@ -60,6 +60,7 @@ class SurveyQuestion(models.Model):
                                     blank=True,
                                     null=True,
                                     on_delete=models.SET_NULL)
+    instruction = models.TextField(blank=True, null=True)
 
     @property
     def name(self):
@@ -77,6 +78,7 @@ class SurveyQuestion(models.Model):
                     "datatype": self.cde.datatype,
                     "instructions": self._clean_instructions(self.cde.instructions),
                     "title": self.cde.name,
+                    "survey_question_instruction" : self.instruction,
                     "spec": self._get_cde_specification()}
 
         else:
@@ -85,6 +87,7 @@ class SurveyQuestion(models.Model):
                     "instructions": self._clean_instructions(self.cde.instructions),
                     "title": self.cde.name,
                     "spec": self._get_cde_specification(),
+                    "survey_question_instruction" : self.instruction,
                     "cond": {"op": "=",
                              "cde": self.precondition.cde.code,
                              "value": self.precondition.value
