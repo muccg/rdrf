@@ -156,7 +156,6 @@ class Links:
             IPRestrictGeoGroup.text: IPRestrictGeoGroup,
             IPRestrictRule.text: IPRestrictRule
         }
-   
         if settings.DESIGN_MODE:
             OTHER = {
                 Sites.text: Sites,
@@ -177,11 +176,9 @@ class Links:
                 ArchivedPatients.text: ArchivedPatients,
                 ConsentRules.text: ConsentRules,
             }
-
         EXPLORER = {
             Explorer.text: Explorer,
         }
-
         if settings.DESIGN_MODE:
             REGISTRY_DESIGN = {
                 Registries.text: Registries,
@@ -204,7 +201,6 @@ class Links:
         WORKING_GROUPS = {
             WorkingGroups.text: WorkingGroups,
         }
-
         # When enabled, doctors links
         ENABLED_DOCTORS = {
             Doctors.text: Doctors,
@@ -214,7 +210,6 @@ class Links:
         ENABLED_QUESTIONNAIRE = {
             QuestionnaireResponses.text: QuestionnaireResponses,
         }
-
         # When enabled, registration links
         ENABLED_REGISTRATION = {
             ParentGuardian.text: ParentGuardian,
