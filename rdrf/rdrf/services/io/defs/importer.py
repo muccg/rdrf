@@ -619,6 +619,7 @@ class Importer(object):
             for sq in survey_dict["questions"]:
                 sq_model = SurveyQuestion(survey=survey_model)
                 sq_model.position = sq["position"]
+                sq_model.instruction = sq.get("instruction", None)
                 cde_model = CommonDataElement.objects.get(code=sq["cde"])
                 sq_model.cde = cde_model
                 sq_model.save()

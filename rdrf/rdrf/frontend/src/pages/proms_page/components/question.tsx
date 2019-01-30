@@ -86,7 +86,6 @@ class Question extends React.Component<QuestionInterface, object> {
 
 
     render() {
-        console.log("Props = " + this.props)
         let question = this.props.questions[this.props.stage];
         const box_style = {width: "100px", height:"100px", backgroundColor: "black"}
         const p_style = {color: "white", align: "center"}
