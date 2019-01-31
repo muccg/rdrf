@@ -513,9 +513,9 @@ AUTH_PASSWORD_VALIDATORS = [{
 },
 ]
 
+SYSTEM_ROLE = env.get("SYSTEM_ROLE", "")
 
 # setup for PROMS
 PROMS_SECRET_TOKEN = env.get("proms_secret_token", "foobar")  # todo set this us in env etc
 PROMS_USERNAME = env.get("proms_username", "promsuser")
 PROMS_LOGO = env.get("proms_logo", "")
-PROMS_SITE = env.get('proms_site', False)

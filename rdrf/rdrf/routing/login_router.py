@@ -34,7 +34,7 @@ class RouterView(View):
         redirect_url = None
 
         if user.is_authenticated:
-            if settings.PROMS_SITE:
+            if settings.SYSTEM_ROLE == 'CIC_PROMS':
                 if user.is_superuser:
                     redirect_url = reverse(_HOME_PAGE)
                 else:

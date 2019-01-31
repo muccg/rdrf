@@ -28,7 +28,7 @@ class Links:
     Links are also grouped into related functional areas to make for easier assignment to menus
     """
 
-    if not settings.PROMS_SITE:
+    if not settings.SYSTEM_ROLE == 'CIC_PROMS':
         PatientsListing = QuickLink(reverse("patientslisting"), _("Patient List"))
         Reports = QuickLink(reverse("reports"), _("Reports"))
         QuestionnaireResponses = QuickLink(reverse("admin:rdrf_questionnaireresponse_changelist"),
@@ -96,7 +96,7 @@ class Links:
         SurveyAssignments = QuickLink(reverse("admin:rdrf_surveyassignment_changelist"), _("Survey Assignments"))
         SurveyRequest = QuickLink(reverse("admin:rdrf_surveyrequest_changelist"), _("Survey Request"))
 
-    if not settings.PROMS_SITE:
+    if not settings.SYSTEM_ROLE == 'CIC_PROMS':
         if settings.DESIGN_MODE:
             RegistryForms = QuickLink(
                 reverse("admin:rdrf_registryform_changelist"),
@@ -124,7 +124,7 @@ class Links:
                 reverse("admin:rdrf_contextformgroup_changelist"),
                 _("Registry Context Form Groups"))
 
-    if settings.PROMS_SITE:
+    if settings.SYSTEM_ROLE == 'CIC_PROMS':
         Surveys = QuickLink(reverse("admin:rdrf_survey_changelist"), _("Surveys"))
         SurveyAssignments = QuickLink(reverse("admin:rdrf_surveyassignment_changelist"), _("Survey Assignments"))
         SurveyRequest = QuickLink(reverse("admin:rdrf_surveyrequest_changelist"), _("Survey Request"))
@@ -132,7 +132,7 @@ class Links:
         Users = QuickLink(reverse("admin:groups_customuser_changelist"), _('Users'))
 
 
-    if not settings.PROMS_SITE:
+    if not settings.SYSTEM_ROLE == 'CIC_PROMS':
         # related links are grouped or convenience
         AUDITING = {
             LoginLog.text: LoginLog,
@@ -227,7 +227,7 @@ class Links:
         REGISTRATION = {}
         VERIFICATION = {}
 
-    if settings.PROMS_SITE:
+    if settings.SYSTEM_ROLE == 'CIC_PROMS':
         OTHER = {
             Importer.text: Importer,
         }
@@ -278,7 +278,7 @@ class QuickLinks(object):
 
     def _build_menu(self):
         # Main menu per user type
-        if not settings.PROMS_SITE:
+        if not settings.SYSTEM_ROLE == 'CIC_PROMS':
             MenuConfig().patient = {}
 
             MenuConfig().parent = {}
@@ -321,7 +321,7 @@ class QuickLinks(object):
             }
 
         # settings menu
-        if not settings.PROMS_SITE:
+        if not settings.SYSTEM_ROLE == 'CIC_PROMS':
             MenuConfig().settings = {
                 **Links.AUDITING,
                 **Links.DOCTORS,
@@ -373,7 +373,7 @@ class QuickLinks(object):
                     **Links.PROMS,
                 }
 
-        if settings.PROMS_SITE:
+        if settings.SYSTEM_ROLE == 'CIC_PROMS':
             MenuConfig().all = {
                 **Links.OTHER,
                 **Links.PROMS,
@@ -473,7 +473,7 @@ class QuickLinks(object):
     def menu_links(self, groups):
         # get links for the 'menu' menu
         links = {}
-        if settings.PROMS_SITE:
+        if settings.SYSTEM_ROLE == 'CIC_PROMS':
             return {}
         for group in groups:
             links = {**links, **self._group_links(group.lower())}
@@ -481,7 +481,7 @@ class QuickLinks(object):
 
     def settings_links(self):
         # get links for the 'settings' menu
-        if settings.PROMS_SITE:
+        if settings.SYSTEM_ROLE == 'CIC_PROMS':
             return {}
         links = MenuConfig().settings
         return OrderedDict(sorted(links.items())).values()
