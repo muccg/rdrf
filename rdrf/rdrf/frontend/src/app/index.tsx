@@ -71,6 +71,7 @@ class App extends React.Component<AppInterface, object> {
         var backButton;
         var submitButton;
         var progressBar;
+        const style = { height:"100%" };
 
         if (this.atEnd()) {
             console.log("at end");
@@ -116,10 +117,10 @@ class App extends React.Component<AppInterface, object> {
         }
 
         return (
-            <div className="App">
-                <Container>
+            <div className="App" style={style}>
+                <Container style={style}>
                     <Swipe onSwipeLeft={this.onSwipeLeft.bind(this)}
-                        onSwipeRight={this.onSwipeRight.bind(this)}>
+                        onSwipeRight={this.onSwipeRight.bind(this)} style={style}>
                         <div className="mb-4">
                             <Row>
                                 <Col>
@@ -133,7 +134,6 @@ class App extends React.Component<AppInterface, object> {
                                 </Col>
                             </Row>
                         </div>
-
                         <div className="mb-4">
                         <Row>
                             {backButton}
@@ -142,6 +142,7 @@ class App extends React.Component<AppInterface, object> {
                         </Row>
                         </div>
                         {submitButton}
+
                     </Swipe>
                 </Container>
             </div>

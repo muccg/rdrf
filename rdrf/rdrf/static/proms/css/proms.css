@@ -7,3 +7,15 @@
     text-align: center;
     color: blue;
 }
+
+html {
+    height: 100%;
+}
+
+body {
+    height: 100%;
+}
+
+.content-div {
+    height: 100%;
+}
