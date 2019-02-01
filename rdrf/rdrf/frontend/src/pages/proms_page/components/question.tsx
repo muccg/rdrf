@@ -87,8 +87,9 @@ class Question extends React.Component<QuestionInterface, object> {
 
     render() {
         let question = this.props.questions[this.props.stage];
-        const box_style = {width: "100px", height:"100px", backgroundColor: "black"}
-        const p_style = {color: "white", align: "center"}
+        let defaultValue = this.props.answers[question.cde] !== undefined ? this.props.answers[question.cde] : 0 ;
+        const box_style = {width: "100px", height:"100px", backgroundColor: "black"};
+        const p_style = {color: "white", align: "center"};
         const style = { width: "50%", height:"50vh", margin:"0 auto", leftPadding: "100px" };
         const isConsent = (this.props.questions.length - 1) == this.props.stage;
         const consentText = "I consent to ongoing involvement in the CIC Cancer project" +
@@ -107,12 +108,13 @@ class Question extends React.Component<QuestionInterface, object> {
                         <div className='row'>
                             <div className="col">
                                 <div className="float-right" style={box_style}>
-                                    <p className="text-center" style={p_style}>YOUR HEALTH RATE TODAY <b>{this.props.answers[question.cde]}</b></p>
+                                    <p className="text-center" style={p_style}>YOUR HEALTH RATE TODAY <b>{defaultValue}</b></p>
                                 </div>
                             </div>
                             <div className="col" style={style}>
                                 <Slider vertical min={question.spec.min}
                                     max={question.spec.max}
+                                    defaultValue={defaultValue}
                                     marks={this.getMarks(question)}
                                     handle={this.getSliderHandle()}
                                     onChange={this.onSliderChange}
