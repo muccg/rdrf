@@ -74,6 +74,6 @@
   "dependencies": {
     "rc-slider": "^8.6.3",
     "react-device-detect": "^1.6.1",
-    "react-easy-swipe": "^0.0.16"
+    "react-icons": "^3.3.0"
   }
 }
