@@ -1,5 +1,4 @@
 import * as React from 'react';
-import * as ReactDOM from 'react-dom';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 
@@ -7,14 +6,14 @@ import Instruction from '../pages/proms_page/components/instruction';
 import Question from '../pages/proms_page/components/question';
 import { goPrevious, goNext, submitAnswers } from '../pages/proms_page/reducers';
 
-import { Button } from 'reactstrap';
 import { Progress } from 'reactstrap';
-import { Container, Row, Col } from 'reactstrap';
+import { Container, Row, Col, Button } from 'reactstrap';
 
 import { ElementList } from '../pages/proms_page/logic';
-
-import Swipe from 'react-easy-swipe';
 import { isMobile } from 'react-device-detect';
+
+import { GoChevronLeft, GoChevronRight } from 'react-icons/go';
+
 
 
 interface AppInterface {
@@ -54,13 +53,13 @@ class App extends React.Component<AppInterface, object> {
         return Math.floor(100.00 * (numAnswers / numQuestions));
     }
 
-    onSwipeRight(position, event) {
+    movePrevious(position, event) {
         if (!this.atBeginning()) {
             this.props.goPrevious();
         }
     }
 
-    onSwipeLeft(position, event) {
+    moveNext(position, event) {
         if (!this.atEnd()) {
             this.props.goNext();
         }
@@ -80,31 +79,30 @@ class App extends React.Component<AppInterface, object> {
             </Col>)
             :
             submitButton = (
-                <Row>
-                    <Col sm={{ size: 4, order: 2, offset: 1 }}>
-                        <Button onClick={this.props.submitAnswers} color="success" size="sm">Submit Answers</Button>
-                    </Col>
-                </Row>           
+                <div className="text-center">
+                    <Button onClick={this.props.submitAnswers} color="success" size="sm">Submit Answers</Button>
+                </div>
             )
         }
         else {
             console.log("not at end");
             nextButton = !isMobile ? 
               (<Col sm={{ size: 1 }}>
-                <Button onClick={this.onSwipeLeft.bind(this)} size="sm" color="info">Next</Button>
-            </Col>) : "";
+                <Button onClick={this.moveNext.bind(this)} size="sm" color="info">Next</Button>
+            </Col>) :
+              (<i onClick={this.moveNext.bind(this)}> <GoChevronRight style={{fontSize: '56px'}} /> </i>)
         }
 
         if (this.atBeginning()) {
             backButton = !isMobile ? 
               (<Col sm={{ size: 1 }}>
-                <Button onClick={this.onSwipeRight.bind(this)} color="info" size="sm" disabled>Previous</Button>
-               </Col>) : "";
+                <Button onClick={this.movePrevious.bind(this)} color="info" size="sm" disabled>Previous</Button>
+               </Col>) : (<i onClick={this.movePrevious.bind(this)}> <GoChevronLeft style={{fontSize: '56px'}} /> </i>)
         } else {
             backButton = !isMobile ? 
               (<Col sm={{ size: 1 }}>
-                <Button onClick={this.onSwipeRight.bind(this)} color="info" size="sm">Previous</Button>
-               </Col>) : "";
+                <Button onClick={this.movePrevious.bind(this)} color="info" size="sm">Previous</Button>
+               </Col>) : (<i onClick={this.movePrevious.bind(this)}> <GoChevronLeft style={{fontSize: '56px'}} /> </i>)
         }
 
         if (!this.atEnd()) {
@@ -118,9 +116,7 @@ class App extends React.Component<AppInterface, object> {
         return (
             <div className="App">
                 <Container>
-                    <Swipe onSwipeLeft={this.onSwipeLeft.bind(this)}
-                        onSwipeRight={this.onSwipeRight.bind(this)}>
-                        <div className="mb-4">
+                    <div className="mb-4">
                             <Row>
                                 <Col>
                                     <Instruction stage={this.props.stage} />
@@ -142,7 +138,6 @@ class App extends React.Component<AppInterface, object> {
                         </Row>
                         </div>
                         {submitButton}
-                    </Swipe>
                 </Container>
             </div>
         );

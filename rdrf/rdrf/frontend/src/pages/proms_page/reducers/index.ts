@@ -51,7 +51,7 @@ function updateAnswers(action: any, state: any): any {
 }
 
 function clearAnswerOnSwipeBack(state: any): any {
-    // clear the answer when swipe to previous question
+    // clear the answer when move to previous question
     const stage = state.stage;
     let questionCode = state.questions[stage].cde;
     let oldAnswers = state.answers;

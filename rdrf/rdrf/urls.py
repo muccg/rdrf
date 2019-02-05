@@ -164,7 +164,7 @@ normalpatterns += [
     # Login is done by two_factor:login included above
 
     re_path(r'^logout/?$', auth_views.LogoutView.as_view(), name='logout'),
-    re_path(r'^password_change/?$', auth_views.PasswordChangeView.as_view, name='password_change'),
+    re_path(r'^password_change/?$', auth_views.PasswordChangeView.as_view(), name='password_change'),
     re_path(r'^password_change/done/?$', auth_views.PasswordChangeDoneView.as_view(), name='password_change_done'),
     # url(r'^password_reset/$', views.password_reset, name='password_reset'),
     re_path(r'^password_reset/?$', auth_views.PasswordResetView.as_view(),
