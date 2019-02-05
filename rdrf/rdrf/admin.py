@@ -444,6 +444,7 @@ CommonDataElementAdmin = create_restricted_model_admin_class(
                                 'widget_name'])
 
 DESIGN_MODE_ADMIN_COMPONENTS = [
+                        (Registry, RegistryAdmin),
                         (CDEPermittedValue, CDEPermittedValueAdmin),
                         (CommonDataElement, CommonDataElementAdmin),
                         (CDEPermittedValueGroup, CDEPermittedValueGroupAdmin),
@@ -473,13 +474,19 @@ NORMAL_MODE_ADMIN_COMPONENTS = [
                                (ConsentRule, ConsentRuleAdmin),
                                ]
 
+ADMIN_COMPONENTS = []
 
 if settings.SYSTEM_ROLE == 'CIC_PROMS':
     ADMIN_COMPONENTS = PROMS_ADMIN_COMPONENTS
-elif settings.DESIGN_MODE:
-    ADMIN_COMPONENTS = NORMAL_MODE_ADMIN_COMPONENTS + DESIGN_MODE_ADMIN_COMPONENTS + PROMS_ADMIN_COMPONENTS
-else:
-    ADMIN_COMPONENTS = NORMAL_MODE_ADMIN_COMPONENTS + PROMS_ADMIN_COMPONENTS
+
+if settings.DESIGN_MODE:
+    ADMIN_COMPONENTS = ADMIN_COMPONENTS + DESIGN_MODE_ADMIN_COMPONENTS
+
+if settings.SYSTEM_ROLE == 'NORMAL':
+    ADMIN_COMPONENTS = ADMIN_COMPONENTS + NORMAL_MODE_ADMIN_COMPONENTS
+
+if settings.SYSTEM_ROLE == 'CIC_DEV':
+    ADMIN_COMPONENTS = ADMIN_COMPONENTS + NORMAL_MODE_ADMIN_COMPONENTS + PROMS_ADMIN_COMPONENTS
 
 
 for model_class, model_admin in ADMIN_COMPONENTS:

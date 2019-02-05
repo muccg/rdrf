@@ -28,7 +28,7 @@ class Links:
     Links are also grouped into related functional areas to make for easier assignment to menus
     """
 
-    if not settings.SYSTEM_ROLE == 'CIC_PROMS':
+    if settings.SYSTEM_ROLE != 'CIC_PROMS':
         PatientsListing = QuickLink(reverse("patientslisting"), _("Patient List"))
         Reports = QuickLink(reverse("reports"), _("Reports"))
         QuestionnaireResponses = QuickLink(reverse("admin:rdrf_questionnaireresponse_changelist"),
@@ -92,47 +92,47 @@ class Links:
             reverse("admin:rdrf_demographicfields_changelist"),
             _("Registry Demographics Fields"))
         ConsentRules = QuickLink(reverse("admin:rdrf_consentrule_changelist"), _("Consent Rules"))
+
+    if settings.SYSTEM_ROLE == 'CIC_DEV' or settings.SYSTEM_ROLE == 'CIC_PROMS':    
         Surveys = QuickLink(reverse("admin:rdrf_survey_changelist"), _("Surveys"))
         SurveyAssignments = QuickLink(reverse("admin:rdrf_surveyassignment_changelist"), _("Survey Assignments"))
         SurveyRequest = QuickLink(reverse("admin:rdrf_surveyrequest_changelist"), _("Survey Request"))
 
-    if not settings.SYSTEM_ROLE == 'CIC_PROMS':
-        if settings.DESIGN_MODE:
-            RegistryForms = QuickLink(
-                reverse("admin:rdrf_registryform_changelist"),
-                _("Registry Forms"))
-            Sections = QuickLink(reverse("admin:rdrf_section_changelist"), _("Registry Sections"))
-            DataElements = QuickLink(
-                reverse("admin:rdrf_commondataelement_changelist"),
-                _("Registry Common Data Elements"))
-            PermissibleValueGroups = QuickLink(
-                reverse("admin:rdrf_cdepermittedvaluegroup_changelist"),
-                _("Registry Permissible Value Groups"))
-            PermissibleValues = QuickLink(
-                reverse("admin:rdrf_cdepermittedvalue_changelist"),
-                _("Registry Permissible Values"))
-            ConsentSections = QuickLink(
-                reverse("admin:rdrf_consentsection_changelist"),
-                _("Registry Consent Sections"))
-            ConsentValues = QuickLink(
-                reverse("admin:patients_consentvalue_changelist"),
-                _("Registry Consent Values"))
-            CdePolicy = QuickLink(
-                reverse("admin:rdrf_cdepolicy_changelist"),
-                _("Registry Common Data Elements Policy"))
-            ContextFormGroups = QuickLink(
-                reverse("admin:rdrf_contextformgroup_changelist"),
-                _("Registry Context Form Groups"))
+    # if settings.SYSTEM_ROLE != 'CIC_PROMS':
+    if settings.DESIGN_MODE:
+        Registries = QuickLink(reverse("admin:rdrf_registry_changelist"), _("Registries"))
+        RegistryForms = QuickLink(
+            reverse("admin:rdrf_registryform_changelist"),
+            _("Registry Forms"))
+        Sections = QuickLink(reverse("admin:rdrf_section_changelist"), _("Registry Sections"))
+        DataElements = QuickLink(
+            reverse("admin:rdrf_commondataelement_changelist"),
+            _("Registry Common Data Elements"))
+        PermissibleValueGroups = QuickLink(
+            reverse("admin:rdrf_cdepermittedvaluegroup_changelist"),
+            _("Registry Permissible Value Groups"))
+        PermissibleValues = QuickLink(
+            reverse("admin:rdrf_cdepermittedvalue_changelist"),
+            _("Registry Permissible Values"))
+        ConsentSections = QuickLink(
+            reverse("admin:rdrf_consentsection_changelist"),
+            _("Registry Consent Sections"))
+        ConsentValues = QuickLink(
+            reverse("admin:patients_consentvalue_changelist"),
+            _("Registry Consent Values"))
+        CdePolicy = QuickLink(
+            reverse("admin:rdrf_cdepolicy_changelist"),
+            _("Registry Common Data Elements Policy"))
+        ContextFormGroups = QuickLink(
+            reverse("admin:rdrf_contextformgroup_changelist"),
+            _("Registry Context Form Groups"))
 
     if settings.SYSTEM_ROLE == 'CIC_PROMS':
-        Surveys = QuickLink(reverse("admin:rdrf_survey_changelist"), _("Surveys"))
-        SurveyAssignments = QuickLink(reverse("admin:rdrf_surveyassignment_changelist"), _("Survey Assignments"))
-        SurveyRequest = QuickLink(reverse("admin:rdrf_surveyrequest_changelist"), _("Survey Request"))
         Importer = QuickLink(reverse("import_registry"), _("Importer"))
         Users = QuickLink(reverse("admin:groups_customuser_changelist"), _('Users'))
 
 
-    if not settings.SYSTEM_ROLE == 'CIC_PROMS':
+    if settings.SYSTEM_ROLE != 'CIC_PROMS':
         # related links are grouped or convenience
         AUDITING = {
             LoginLog.text: LoginLog,
@@ -231,16 +231,41 @@ class Links:
         OTHER = {
             Importer.text: Importer,
         }
+        REGISTRATION = {}
+        PERMISSIONS = {}
 
     USER_MANAGEMENT = {
         Users.text: Users,
     }
 
-    PROMS = {
-        Surveys.text: Surveys,
-        SurveyAssignments.text: SurveyAssignments,
-        SurveyRequest.text : SurveyRequest,
-    }
+    if settings.SYSTEM_ROLE == 'CIC_PROMS' or settings.SYSTEM_ROLE == 'CIC_DEV':
+        PROMS = {
+            Surveys.text: Surveys,
+            SurveyAssignments.text: SurveyAssignments,
+            SurveyRequest.text : SurveyRequest,
+        }
+        if settings.DESIGN_MODE:
+            REGISTRY_DESIGN = {
+                Registries.text: Registries,
+                RegistryForms.text: RegistryForms,
+                Sections.text: Sections,
+                DataElements.text: DataElements,
+                CdePolicy.text: CdePolicy,
+                PermissibleValueGroups.text: PermissibleValueGroups,
+                PermissibleValues.text: PermissibleValues,
+                ConsentSections.text: ConsentSections,
+                ConsentValues.text: ConsentValues,
+                ContextFormGroups.text: ContextFormGroups,
+            }
+            # OTHER = {
+            #     Sites.text: Sites,
+            #     Groups.text: Groups,
+            #     Importer.text: Importer,
+            #     DemographicsFields.text: DemographicsFields,
+            #     NextOfKinRelationship.text: NextOfKinRelationship,
+            #     ArchivedPatients.text: ArchivedPatients,
+            #     ConsentRules.text: ConsentRules,
+            # }
 
 
 class MenuConfig(object):
@@ -278,10 +303,36 @@ class QuickLinks(object):
 
     def _build_menu(self):
         # Main menu per user type
-        if not settings.SYSTEM_ROLE == 'CIC_PROMS':
+
+        design_menus = {
+                    **Links.REGISTRY_DESIGN,
+                }
+
+        if settings.SYSTEM_ROLE != 'CIC_PROMS':
+            normal_menus = {
+                    **Links.AUDITING,
+                    **Links.CONSENT,
+                    **Links.DATA_ENTRY,
+                    **Links.DOCTORS,
+                    **Links.EMAIL,
+                    **Links.FAMILY_LINKAGE,
+                    **Links.GENETIC,
+                    **Links.IP_RESTRICT,
+                    **Links.OTHER,
+                    **Links.PERMISSIONS,
+                    **Links.QUESTIONNAIRE,
+                    **Links.REGISTRATION,
+                    **Links.REPORTING,
+                    **Links.STATE_MANAGEMENT,
+                    **Links.USER_MANAGEMENT,
+                    **Links.WORKING_GROUPS,
+                }
             MenuConfig().patient = {}
 
             MenuConfig().parent = {}
+
+            if settings.SYSTEM_ROLE == 'CIC_DEV':
+                design_menus.update({**Links.PROMS,})
 
             MenuConfig().working_group_staff = {
                 **Links.DATA_ENTRY
@@ -321,7 +372,6 @@ class QuickLinks(object):
             }
 
         # settings menu
-        if not settings.SYSTEM_ROLE == 'CIC_PROMS':
             MenuConfig().settings = {
                 **Links.AUDITING,
                 **Links.DOCTORS,
@@ -333,52 +383,24 @@ class QuickLinks(object):
 
             # menu with everything, used for the admin page
             if not settings.DESIGN_MODE:
-                MenuConfig().all = {
-                    **Links.AUDITING,
-                    **Links.CONSENT,
-                    **Links.DATA_ENTRY,
-                    **Links.DOCTORS,
-                    **Links.EMAIL,
-                    **Links.FAMILY_LINKAGE,
-                    **Links.GENETIC,
-                    **Links.IP_RESTRICT,
-                    **Links.OTHER,
-                    **Links.PERMISSIONS,
-                    **Links.QUESTIONNAIRE,
-                    **Links.REGISTRATION,
-                    **Links.REPORTING,
-                    **Links.STATE_MANAGEMENT,
-                    **Links.USER_MANAGEMENT,
-                    **Links.WORKING_GROUPS,
-                }
+                MenuConfig().all = normal_menus
             else:
-                MenuConfig().all = {
-                    **Links.AUDITING,
-                    **Links.CONSENT,
-                    **Links.DATA_ENTRY,
-                    **Links.DOCTORS,
-                    **Links.EMAIL,
-                    **Links.FAMILY_LINKAGE,
-                    **Links.GENETIC,
-                    **Links.IP_RESTRICT,
-                    **Links.OTHER,
-                    **Links.PERMISSIONS,
-                    **Links.QUESTIONNAIRE,
-                    **Links.REGISTRATION,
-                    **Links.REGISTRY_DESIGN,
-                    **Links.REPORTING,
-                    **Links.STATE_MANAGEMENT,
-                    **Links.USER_MANAGEMENT,
-                    **Links.WORKING_GROUPS,
-                    **Links.PROMS,
-                }
+                MenuConfig().all = design_menus
+        
 
         if settings.SYSTEM_ROLE == 'CIC_PROMS':
-            MenuConfig().all = {
-                **Links.OTHER,
+            MenuConfig().settings = {
+                **Links.PERMISSIONS,
+                **Links.REGISTRATION,
+            }
+            proms_menus = {
                 **Links.PROMS,
                 **Links.USER_MANAGEMENT,
             }
+            # menu with everything, used for the admin page
+            if settings.DESIGN_MODE:
+                MenuConfig().all = design_menus.update(proms_menus)
+                logging.debug(design_menus)
 
     def _group_links(self, group):
         # map RDRF user groups to quick links menu sets
@@ -467,6 +489,8 @@ class QuickLinks(object):
         Links.PERMISSIONS = self._per_registry_links('Permissions', 'permission_matrix')
 
     def _consent_links(self):
+        if settings.SYSTEM_ROLE == 'CIC_PROMS':
+            return {}
         # enable consent links
         Links.CONSENT = self._per_registry_links('Consents', 'consent_list')
 
