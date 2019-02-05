@@ -14,6 +14,7 @@ import 'rc-slider/assets/index.css';
 class Question extends React.Component<QuestionInterface, object> {
     constructor(props) {
         super(props);
+        this.onSliderChange = this.onSliderChange.bind(this);
     }
 
     handleChange(event) {
@@ -87,7 +88,14 @@ class Question extends React.Component<QuestionInterface, object> {
 
     render() {
         let question = this.props.questions[this.props.stage];
-        let defaultValue = this.props.answers[question.cde] !== undefined ? this.props.answers[question.cde] : 0 ;
+        let defaultValue = 0;
+        if (question.spec.tag=='integer') {
+            if(this.props.answers[question.cde] !== undefined) {
+                defaultValue = this.props.answers[question.cde];
+            } else {
+                this.onSliderChange(defaultValue);
+            }
+        }
         const box_style = {width: "100px", height:"100px", backgroundColor: "black"};
         const p_style = {color: "white", align: "center"};
         const style = { width: "50%", height:"50vh", margin:"0 auto", leftPadding: "100px" };
@@ -104,7 +112,6 @@ class Question extends React.Component<QuestionInterface, object> {
                 </FormGroup>
                 {
                     (question.spec.tag=='integer' ?
-
                         <div className='row'>
                             <div className="col">
                                 <div className="float-right" style={box_style}>
