@@ -533,6 +533,8 @@ class Exporter(object):
                 sq_dict["position"] = sq.position
                 sq_dict["precondition"] = None
                 sq_dict["instruction"] = sq.instruction
+                sq_dict["copyright_text"] = sq.copyright_text
+                sq_dict["source"] = sq.source
                 if sq.precondition:
                     sq_dict["precondition"] = {"cde": sq.precondition.cde.code,
                                                "value": sq.precondition.value}
