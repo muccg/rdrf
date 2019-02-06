@@ -1639,13 +1639,17 @@ class ContextFormGroup(models.Model):
 
     def clean(self):
         defaults = ContextFormGroup.objects.filter(registry=self.registry,
-                                                   is_default=True)
-        defaults.exclude(pk=self.pk)
+                                                   is_default=True).exclude(pk=self.pk)
         num_defaults = defaults.count()
+
         if num_defaults > 0 and self.is_default:
             raise ValidationError("Only one Context Form Group can be the default")
         if num_defaults == 0 and not self.is_default:
             raise ValidationError("One Context Form Group must be chosen as the default")
+
+        if self.naming_scheme == "C" and self.naming_cde_to_use is None:
+            raise ValidationError("Naming cde to use cannot be empty")
+
 
     def patient_can_add(self, patient_model):
         """
