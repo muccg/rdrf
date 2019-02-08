@@ -70,6 +70,7 @@ class App extends React.Component<AppInterface, object> {
         var backButton;
         var submitButton;
         var progressBar;
+        const style = { height:"100%" };
 
         if (this.atEnd()) {
             console.log("at end");
@@ -114,8 +115,8 @@ class App extends React.Component<AppInterface, object> {
         }
 
         return (
-            <div className="App">
-                <Container>
+            <div className="App" style={style}>
+                <Container style={style}>
                     <div className="mb-4">
                             <Row>
                                 <Col>
@@ -139,6 +140,7 @@ class App extends React.Component<AppInterface, object> {
                         </div>
                         {submitButton}
                 </Container>
+                <footer id="footer"><p className="text-center">{this.props.questions[this.props.stage].copyright_text}</p></footer>
             </div>
         );
     }
