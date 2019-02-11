@@ -178,7 +178,6 @@ urlpatterns += [
     re_path(r'^promsqrcode/(?P<patient_token>[0-9A-Za-z_\-]+)/?$', PromsQRCodeImageView.as_view(), name="promsqrcode"),
     re_path(r'^promscompleted/?$', PromsCompletedPageView.as_view(), name="proms_completed"),
 
-    # --------------------------------
     # ------ Copyright URL -----------
     re_path(r"^copyright/?$", CopyrightView.as_view(), name="copyright"),
 

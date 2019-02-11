@@ -15,10 +15,13 @@
           <a href="https://muccg.github.io/rdrf/" target="_blank">{% trans "RDRF Project" %}</a> |
           <a href="mailto:rdrf@ccg.murdoch.edu.au">{% trans "Email RDRF" %}</a>
       </div>
+      {% if request.user.is_authenticated %}
+        <div>
+            <a href="{% url 'copyright' %}">Data set Copyright</a>
+        </div>
+      {% endif %}
     </div>
-    <div class="col-md-4">
-        <a href="{% url 'copyright' %}">Data set Copyright</a>
-    </div>
+    
     <div class="col-md-4 authorised">  
       <div>
           {% trans "Authorised by" %}: <a href="mailto:mbellgard@ccg.murdoch.edu.au"> Prof. Matthew Bellgard</a>;<br> {% trans 'Director' %}, <a href="http://ccg.murdoch.edu.au/">CCG</a><br>
