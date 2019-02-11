@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>Copyright</title>
+</head>
+
+<body>
+    {% for ctext in copyright_texts %}
+        <div style="width: 300px;
+            border: 2px solid grey;
+            padding: 25px;
+            margin: 25px;">
+            {{ctext}}
+        </div>    
+    
+    {% endfor %}
+</body>
+
+</html>
