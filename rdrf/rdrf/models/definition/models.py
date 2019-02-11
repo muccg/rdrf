@@ -1656,10 +1656,8 @@ class ContextFormGroup(models.Model):
         if naming_cde_to_use:
             try:
                 naming_cde_expression = naming_cde_to_use.split("/")
-                if len(naming_cde_expression) != 3:
-                    raise ValidationError(validation_message)
                 form_name, section_code, cde_code = naming_cde_expression
-            except :
+            except ValueError:
                 raise ValidationError(validation_message)
 
             try:
