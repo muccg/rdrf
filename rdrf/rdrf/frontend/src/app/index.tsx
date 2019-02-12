@@ -70,6 +70,7 @@ class App extends React.Component<AppInterface, object> {
         var backButton;
         var submitButton;
         var progressBar;
+        var source;
         const style = { height:"100%" };
 
         if (this.atEnd()) {
@@ -114,6 +115,15 @@ class App extends React.Component<AppInterface, object> {
             )
         }
 
+        if (this.props.questions[this.props.stage].source){
+            source = (
+                <div className="text-center" style={{fontSize: '12px'}}> Source:
+                    {this.props.questions[this.props.stage].source}
+                </div>
+            )
+        }
+
+
         return (
             <div className="App" style={style}>
                 <Container style={style}>
@@ -140,7 +150,12 @@ class App extends React.Component<AppInterface, object> {
                         </div>
                         {submitButton}
                 </Container>
-                <footer id="footer"><p className="text-center">{this.props.questions[this.props.stage].copyright_text}</p></footer>
+                <footer className="footer" style={{height: 'auto'}}>
+                    {source}
+                    <div className="text-center" style={{fontSize: '12px'}}>
+                        {this.props.questions[this.props.stage].copyright_text}
+                    </div>
+                </footer>
             </div>
         );
     }

@@ -106,9 +106,6 @@ class Question extends React.Component<QuestionInterface, object> {
         return (
             <Form>
                 <FormGroup tag="fieldset">
-                    <h6><i>{this.props.questions[this.props.stage].source}</i></h6>
-                </FormGroup>
-                <FormGroup tag="fieldset">
                     <h6><i>{this.props.questions[this.props.stage].survey_question_instruction}</i></h6>
                     <h4>{this.props.questions[this.props.stage].title}</h4>
                     <i>{this.props.questions[this.props.stage].instructions}</i>
