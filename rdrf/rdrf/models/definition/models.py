@@ -1639,13 +1639,53 @@ class ContextFormGroup(models.Model):
 
     def clean(self):
         defaults = ContextFormGroup.objects.filter(registry=self.registry,
-                                                   is_default=True)
-        defaults.exclude(pk=self.pk)
+                                                   is_default=True).exclude(pk=self.pk)
         num_defaults = defaults.count()
+
         if num_defaults > 0 and self.is_default:
             raise ValidationError("Only one Context Form Group can be the default")
         if num_defaults == 0 and not self.is_default:
             raise ValidationError("One Context Form Group must be chosen as the default")
+
+        if self.naming_scheme == "C" and self._valid_naming_cde_to_use(self.naming_cde_to_use) is None:
+            raise ValidationError("Invalid naming cde: Should be form name/section code/cde code where all codes must exist")
+
+
+    def _valid_naming_cde_to_use(self, naming_cde_to_use):
+        validation_message = "Invalid naming cde: Should be form name/section code/cde code where all codes must exist"
+        if naming_cde_to_use:
+            try:
+                naming_cde_expression = naming_cde_to_use.split("/")
+                form_name, section_code, cde_code = naming_cde_expression
+            except ValueError:
+                raise ValidationError(validation_message)
+
+            try:
+                form_model = RegistryForm.objects.get(registry=self.registry,
+                                                   name=form_name)
+            except RegistryForm.DoesNotExist:
+                raise ValidationError(validation_message)
+
+            section_model = self._get_section_model(section_code, form_model)
+            if section_model is None:
+                raise ValidationError(validation_message)
+
+            cde_model = self._get_cde_model(cde_code, section_model)
+            if cde_model is None:
+                raise ValidationError(validation_message)
+
+            return form_name, section_code, cde_code
+        return None
+
+    def _get_section_model(self, section_code, form_model):
+        for section_model in form_model.section_models:
+            if section_model.code == section_code:
+                return section_model
+
+    def _get_cde_model(self, cde_code, section_model):
+        for cde_model in section_model.cde_models:
+            if cde_model.code == cde_code:
+                return cde_model
 
     def patient_can_add(self, patient_model):
         """
