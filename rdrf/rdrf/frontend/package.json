@@ -5,7 +5,8 @@
   "main": "main.js",
   "scripts": {
     "build": "webpack --config webpack.prod.js --mode production",
-    "watch": "webpack --config webpack.dev.js --mode development --watch"
+    "watch": "webpack --config webpack.dev.js --mode development --watch",
+    "lint": "tslint 'src/**/*.ts{,x}'"
   },
   "sideEffects": false,
   "repository": "https://github.com/muccg/rdrf",
@@ -63,6 +64,9 @@
     "style-loader": "^0.21.0",
     "swipe-js-iso": "^2.0.4",
     "ts-loader": "^4.3.0",
+    "tslint": "^5.12.1",
+    "tslint-config-prettier": "^1.18.0",
+    "tslint-react": "^3.6.0",
     "typescript": "^2.8.3",
     "uglifyjs-webpack-plugin": "^1.2.5",
     "url-loader": "^1.0.1",
