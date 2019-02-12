@@ -117,7 +117,7 @@ class App extends React.Component<AppInterface, object> {
 
         if (this.props.questions[this.props.stage].source){
             source = (
-                <div className="text-center" style={{fontSize: '12px'}}> Source:
+                <div className="text-center text-muted" style={{fontSize: '12px'}}> Source:
                     {this.props.questions[this.props.stage].source}
                 </div>
             )
@@ -152,7 +152,7 @@ class App extends React.Component<AppInterface, object> {
                 </Container>
                 <footer className="footer" style={{height: 'auto'}}>
                     {source}
-                    <div className="text-center" style={{fontSize: '12px'}}>
+                    <div className="text-center text-muted" style={{fontSize: '12px'}}>
                         {this.props.questions[this.props.stage].copyright_text}
                     </div>
                 </footer>

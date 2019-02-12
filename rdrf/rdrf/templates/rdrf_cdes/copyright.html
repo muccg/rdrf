@@ -1,31 +1,19 @@
-{% load static from staticfiles %}
 
-<!DOCTYPE html>
-<html lang="en">
+{% extends "rdrf_cdes/base-1-col.html" %}
 
-<head>
-    <title>Copyright</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="stylesheet" href="{% static 'bootstrap-3.3.6/css/bootstrap.min.css' %}">
-    <link rel="stylesheet" type="text/css" href="{% static 'css/rdrf.css' %}" media="all">
-</head>
-<body>
-    <div class="container">
-        {% for context in contexts %}
-        <div>
-            <h3>{{context.registry_name}}</h3>
-            <div class="registry_copyright">
-                <h5>{{context.registry_copyright}}</h5>
-                {% for source, ctext in context.copyright_dict.items %}
-                    <div class="copyright">
-                        <p style="background-color: lightblue;">{{source}}</p>
-                        {{ctext}}
-                    </div>
-                {% endfor %}
-            </div>
+{% block content %}
+    {% for context in contexts %}
+    <div>
+        <h3>{{context.registry_name}}</h3>
+        <div class="registry_copyright">
+            <h5>{{context.registry_copyright}}</h5>
+            {% for source, ctext in context.copyright_dict.items %}
+                <div class="copyright">
+                    <p style="background-color: lightblue;">{{source}}</p>
+                    {{ctext}}
+                </div>
+            {% endfor %}
         </div>
-        {% endfor %}
     </div>
- 
-</body>
-</html>
+    {% endfor %}
+{% endblock %}
