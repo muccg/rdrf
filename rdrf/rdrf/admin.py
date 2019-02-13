@@ -27,6 +27,7 @@ from rdrf.models.proms.models import Precondition
 from rdrf.models.proms.models import SurveyAssignment
 from rdrf.models.proms.models import SurveyRequest
 from django.db.models.base import ModelBase
+from rdrf.system_role import SystemRoles
 
 
 from reversion.admin import VersionAdmin
@@ -476,18 +477,22 @@ NORMAL_MODE_ADMIN_COMPONENTS = [
 
 ADMIN_COMPONENTS = []
 
-if settings.SYSTEM_ROLE == 'CIC_PROMS':
+system_role = SystemRoles.from_value(settings.SYSTEM_ROLE)
+
+if system_role is SystemRoles.proms_role():
     ADMIN_COMPONENTS = PROMS_ADMIN_COMPONENTS
 
 if settings.DESIGN_MODE:
     ADMIN_COMPONENTS = ADMIN_COMPONENTS + DESIGN_MODE_ADMIN_COMPONENTS
 
-if settings.SYSTEM_ROLE == 'NORMAL':
+if system_role is SystemRoles.normal_role():
     ADMIN_COMPONENTS = ADMIN_COMPONENTS + NORMAL_MODE_ADMIN_COMPONENTS
 
-if settings.SYSTEM_ROLE == 'CIC_DEV':
+if system_role is SystemRoles.dev_role():
     ADMIN_COMPONENTS = ADMIN_COMPONENTS + NORMAL_MODE_ADMIN_COMPONENTS + PROMS_ADMIN_COMPONENTS
 
+if system_role is SystemRoles.cic_clinical_role():
+    ADMIN_COMPONENTS = ADMIN_COMPONENTS + NORMAL_MODE_ADMIN_COMPONENTS + PROMS_ADMIN_COMPONENTS
 
 for model_class, model_admin in ADMIN_COMPONENTS:
     if not admin.site.is_registered(model_class):

@@ -40,6 +40,7 @@ from rdrf.views.proms_views import PromsLandingPageView
 from rdrf.views.proms_views import PromsCompletedPageView
 from rdrf.views.proms_views import PromsClinicalView
 from rdrf.views.proms_views import PromsQRCodeImageView
+from rdrf.system_role import SystemRoles
 
 
 import logging
@@ -346,7 +347,9 @@ normalpatterns += [
     re_path(r'^i18n/', include(('django.conf.urls.i18n', 'django_conf_urls'), namespace=None))
 ]
 
-if settings.SYSTEM_ROLE == 'CIC_PROMS':
+system_role = SystemRoles.from_value(settings.SYSTEM_ROLE)
+
+if system_role is SystemRoles.proms_role():
     urlpatterns = proms_pattern
 else:
     urlpatterns = normalpatterns

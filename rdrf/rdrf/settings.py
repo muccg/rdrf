@@ -5,6 +5,7 @@ import os
 from ccg_django_utils.conf import EnvConfig
 # import message constants so we can use bootstrap style classes
 from django.contrib.messages import constants as message_constants
+from rdrf.system_role import SystemRoles
 
 env = EnvConfig()
 
@@ -513,7 +514,12 @@ AUTH_PASSWORD_VALIDATORS = [{
 },
 ]
 
+# setup for SYSTEM_ROLE
 SYSTEM_ROLE = env.get("SYSTEM_ROLE", "")
+if SYSTEM_ROLE == "":
+    SYSTEM_ROLE = SystemRoles.NORMAL.name
+elif not SystemRoles.has_value(SYSTEM_ROLE):
+    raise Exception("Invalid SYSTEM_ROLE in settings, allowed values are CIC_CLINICAL, CIC_DEV, CIC_PROMS and NORMAL")
 
 # setup for PROMS
 PROMS_SECRET_TOKEN = env.get("proms_secret_token", "foobar")  # todo set this us in env etc
