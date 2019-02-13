@@ -115,7 +115,7 @@ two_factor_auth_urls = [
     re_path(r'^account/two_factor/disable/?$', DisableView.as_view(), name='disable'),
 ]
 
-proms_pattern = [
+proms_patterns = [
     re_path(r'^translations/jsi18n/$', JavaScriptCatalog.as_view(), name='javascript-catalog'),
     re_path(r'^rpc', form_view.RPCHandler.as_view(), name='rpc'),
     path('admin/', admin.site.urls),
@@ -350,6 +350,6 @@ normalpatterns += [
 system_role = SystemRoles.from_value(settings.SYSTEM_ROLE)
 
 if system_role is SystemRoles.proms_role():
-    urlpatterns = proms_pattern
+    urlpatterns = proms_patterns
 else:
     urlpatterns = normalpatterns
