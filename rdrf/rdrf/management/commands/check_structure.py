@@ -40,7 +40,7 @@ class Command(BaseCommand):
             self._print("Error: registry code required")
             sys.exit(1)
         try:
-            registry_model = Registry.objects.get(code=registry_code)
+            Registry.objects.get(code=registry_code)
         except Registry.DoesNotExist:
             self._print("Error: registry does not exist")
             sys.exit(1)

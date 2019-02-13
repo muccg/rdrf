@@ -39,7 +39,7 @@ class GeneticValidator(object):
             parse_func(value)
             return True
 
-        except GeneticValidationError as gv_err:
+        except GeneticValidationError:
             return False
 
         except Exception as ex:

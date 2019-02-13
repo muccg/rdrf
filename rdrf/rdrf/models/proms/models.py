@@ -15,8 +15,10 @@ from rest_framework import status
 
 logger = logging.getLogger(__name__)
 
+
 class PromsRequestError(Exception):
     pass
+
 
 class PromsEmailError(Exception):
     pass
@@ -52,14 +54,15 @@ class Precondition(models.Model):
         return "if <<%s>> = %s" % (self.cde,
                                    self.value)
 
+
 class SurveyQuestion(models.Model):
     position = models.IntegerField(null=True, blank=True)
     survey = models.ForeignKey(Survey, related_name='survey_questions', on_delete=models.CASCADE)
     cde = models.ForeignKey(CommonDataElement, on_delete=models.CASCADE)
     precondition = models.ForeignKey(Precondition,
-                                    blank=True,
-                                    null=True,
-                                    on_delete=models.SET_NULL)
+                                     blank=True,
+                                     null=True,
+                                     on_delete=models.SET_NULL)
     instruction = models.TextField(blank=True, null=True)
     copyright_text = models.TextField(blank=True, null=True)
     source = models.TextField(blank=True, null=True)
@@ -80,9 +83,9 @@ class SurveyQuestion(models.Model):
                     "datatype": self.cde.datatype,
                     "instructions": self._clean_instructions(self.cde.instructions),
                     "title": self.cde.name,
-                    "survey_question_instruction" : self.instruction,
-                    "copyright_text" : self.copyright_text,
-                    "source" : self.source,
+                    "survey_question_instruction": self.instruction,
+                    "copyright_text": self.copyright_text,
+                    "source": self.source,
                     "spec": self._get_cde_specification()}
 
         else:
@@ -91,9 +94,9 @@ class SurveyQuestion(models.Model):
                     "instructions": self._clean_instructions(self.cde.instructions),
                     "title": self.cde.name,
                     "spec": self._get_cde_specification(),
-                    "survey_question_instruction" : self.instruction,
-                    "copyright_text" : self.copyright_text,
-                    "source" : self.source,
+                    "survey_question_instruction": self.instruction,
+                    "copyright_text": self.copyright_text,
+                    "source": self.source,
                     "cond": {"op": "=",
                              "cde": self.precondition.cde.code,
                              "value": self.precondition.value
@@ -109,15 +112,15 @@ class SurveyQuestion(models.Model):
     def _get_cde_specification(self):
         if self.cde.datatype == 'range':
             return {
-                    "tag": "range",
-                    "options": self._get_options()
-                    }
+                "tag": "range",
+                "options": self._get_options()
+            }
         elif self.cde.datatype == 'integer':
             return {
-                    "tag": "integer",
-                    "max": int(self.cde.max_value),
-                    "min": int(self.cde.min_value)
-                    }
+                "tag": "integer",
+                "max": int(self.cde.max_value),
+                "min": int(self.cde.min_value)
+            }
 
     @property
     def expression(self):
@@ -132,15 +135,18 @@ class SurveyStates:
     STARTED = "started"
     COMPLETED = "completed"
 
+
 class SurveyRequestStates:
     CREATED = "created"
     REQUESTED = "requested"
     RECEIVED = "received"
     ERROR = "error"
 
+
 class CommunicationTypes:
     QRCODE = "qrcode"
     EMAIL = "email"
+
 
 class SurveyAssignment(models.Model):
     """
@@ -165,6 +171,7 @@ class SurveyAssignment(models.Model):
                                       name=self.survey_name)
         except Survey.DoesNotExist:
             logger.error("No survey with name %s " % self.survey_name)
+
 
 class SurveyRequest(models.Model):
     """
@@ -212,7 +219,7 @@ class SurveyRequest(models.Model):
                     return True
                 except PromsEmailError as pe:
                     logger.error("Error emailing survey request %s: %s" % (self.pk,
-                                                                        pe))
+                                                                           pe))
                     self._set_error(pe)
                     return False
 
@@ -254,8 +261,7 @@ class SurveyRequest(models.Model):
         self.save()
 
     def check_response_for_error(self, response):
-        if (status.is_success(response.status_code)
-                and response.status_code == status.HTTP_201_CREATED):
+        if (status.is_success(response.status_code) and response.status_code == status.HTTP_201_CREATED):
             logger.debug("Survey request Created")
             return True
 

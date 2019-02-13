@@ -5,7 +5,9 @@ from django.contrib import admin
 from django.db.models import Q
 from django.http import HttpResponse
 
-from .models import *
+from .models import (
+    Gene,
+    Laboratory)
 
 
 class GeneAdmin(admin.ModelAdmin):
@@ -44,9 +46,8 @@ class LaboratoryAdmin(admin.ModelAdmin):
     def search(self, request, term):
         queryset = self.queryset(request)
 
-        queryset = queryset.filter(Q(name__icontains=term) |
-                                   Q(address__icontains=term) |
-                                   Q(contact_name__icontains=term))
+        queryset = queryset.filter(
+            Q(name__icontains=term) | Q(address__icontains=term) | Q(contact_name__icontains=term))
         queryset = queryset.order_by("name")
         response = [[str(lab)] for lab in queryset]
 

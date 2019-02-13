@@ -140,8 +140,8 @@ for patient_data in reader:
     else:
         try:
             patient_model = Patient.objects.get(pk=rdrf_id)
-            moniker = "%s\%s" % (patient_data.old_id,
-                                 rdrf_id)
+            moniker = "%s\\%s" % (
+                patient_data.old_id, rdrf_id)
 
             info("Found patient %s" % patient_model)
 
@@ -155,8 +155,7 @@ for patient_data in reader:
 
                     info("Updated patient %s OK" % moniker)
             except Exception as ex:
-                error("Updated failed for %s ( no change to this patient): %s" % (moniker,
-                                                                                  ex))
+                error("Updated failed for %s ( no change to this patient): %s" % (moniker, ex))
 
         except Patient.DoesNotExist:
             error("No patient with id %s - skipping" % rdrf_id)

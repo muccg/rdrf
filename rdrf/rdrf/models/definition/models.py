@@ -530,8 +530,7 @@ class Registry(models.Model):
         self._check_dupes()
 
     def _check_dupes(self):
-        dupes = [r for r in Registry.objects.all() if r.code.lower() ==
-                 self.code.lower() and r.pk != self.pk]
+        dupes = [r for r in Registry.objects.all() if r.code.lower() == self.code.lower() and r.pk != self.pk]
         names = " ".join(["%s %s" % (r.code, r.name) for r in dupes])
         if len(dupes) > 0:
             raise ValidationError(
@@ -1444,9 +1443,9 @@ class RDRFContext(models.Model):
     registry = models.ForeignKey(Registry, on_delete=models.CASCADE)
     content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
     context_form_group = models.ForeignKey("ContextFormGroup",
-                                            null=True,
-                                            blank=True,
-                                            on_delete=models.SET_NULL)
+                                           null=True,
+                                           blank=True,
+                                           on_delete=models.SET_NULL)
     object_id = models.PositiveIntegerField()
     content_object = GenericForeignKey('content_type', 'object_id')
     created_at = models.DateTimeField(auto_now_add=True)
@@ -1495,8 +1494,8 @@ class ContextFormGroup(models.Model):
                       ("N", "Name")]
 
     registry = models.ForeignKey(Registry,
-                                related_name="context_form_groups",
-                                on_delete=models.CASCADE)
+                                 related_name="context_form_groups",
+                                 on_delete=models.CASCADE)
     context_type = models.CharField(max_length=1, default="F", choices=CONTEXT_TYPES)
     name = models.CharField(max_length=80)
     naming_scheme = models.CharField(max_length=1, default="D", choices=NAMING_SCHEMES)
@@ -1650,7 +1649,6 @@ class ContextFormGroup(models.Model):
         if self.naming_scheme == "C" and self._valid_naming_cde_to_use(self.naming_cde_to_use) is None:
             raise ValidationError("Invalid naming cde: Should be form name/section code/cde code where all codes must exist")
 
-
     def _valid_naming_cde_to_use(self, naming_cde_to_use):
         validation_message = "Invalid naming cde: Should be form name/section code/cde code where all codes must exist"
         if naming_cde_to_use:
@@ -1662,7 +1660,7 @@ class ContextFormGroup(models.Model):
 
             try:
                 form_model = RegistryForm.objects.get(registry=self.registry,
-                                                   name=form_name)
+                                                      name=form_name)
             except RegistryForm.DoesNotExist:
                 raise ValidationError(validation_message)
 
@@ -1740,8 +1738,8 @@ class ContextFormGroup(models.Model):
 
 class ContextFormGroupItem(models.Model):
     context_form_group = models.ForeignKey(ContextFormGroup,
-                                            related_name="items",
-                                            on_delete=models.CASCADE)
+                                           related_name="items",
+                                           on_delete=models.CASCADE)
     registry_form = models.ForeignKey(RegistryForm, on_delete=models.CASCADE)
 
 

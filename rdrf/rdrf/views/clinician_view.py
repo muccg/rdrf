@@ -268,17 +268,16 @@ class ClinicianFormView(View):
 
 class ClinicianActivationView(View):
     """
-    Clinician who receives an activation link lands here to confirm and 
+    Clinician who receives an activation link lands here to confirm and
     create a user for themselves
     """
-    
+
     def get(self, request):
         token = request.GET.get("t", None)
         if not token:
             raise Http404()
 
-        csr = get_object_or_404(ClinicianSignUpRequest,
-                                token=token)
+        csr = get_object_or_404(ClinicianSignupRequest, token=token)
 
         # populate the view data from the ClinicianOther model which stores
         # what the parent thinks is the correct data ...

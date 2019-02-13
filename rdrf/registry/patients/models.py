@@ -513,7 +513,7 @@ class Patient(models.Model):
             total += 1
             try:
                 expression_object = parser.parse(field_expression)
-            except Exception as ex:
+            except Exception:
                 errors += 1
                 error_messages.append("Parse error: %s" % field_expression)
                 continue
@@ -984,11 +984,11 @@ class Patient(models.Model):
 
                 try:
                     value = self.get_form_value(registry_model.code,
-                                            form_name,
-                                            section_code,
-                                            cde_code,
-                                            multisection=is_multisection,
-                                            context_id=context_model.id)
+                                                form_name,
+                                                section_code,
+                                                cde_code,
+                                                multisection=is_multisection,
+                                                context_id=context_model.id)
 
                     if value is None:
                         return bottom
@@ -1180,15 +1180,13 @@ def other_clinician_post_save(sender, instance, created, raw, using, update_fiel
 
         # new <?> workflow - we notify the clinician asking them to sign up and verify
         # this stores email from the model at the time of the request
-    
+
         csr = ClinicianSignupRequest.create(registry_model=registry_model,
                                             patient_model=patient,
                                             clinician_email=other_clinician.clinician_email,
                                             clinician_other=other_clinician)
 
         csr.send_request()
-                                            
-        
 
 
 @receiver(post_save, sender=Patient)
@@ -1205,6 +1203,7 @@ def selected_clinician_notification(sender, instance, **kwargs):
         # this is to prevent the working groups synching triggering the same notification
         # we only allow one per clinician selection event
         delattr(instance, "clinician_flag")
+
 
 class ParentGuardian(models.Model):
     GENDER_CHOICES = (("1", "Male"), ("2", "Female"), ("3", "Indeterminate"))
@@ -1224,7 +1223,7 @@ class ParentGuardian(models.Model):
     phone = models.CharField(max_length=20, blank=True)
     patient = models.ManyToManyField(Patient)
     self_patient = models.ForeignKey(
-        Patient, 
+        Patient,
         blank=True,
         null=True,
         related_name="self_patient",
@@ -1283,9 +1282,9 @@ class AddressType(models.Model):
 class PatientAddress(models.Model):
     patient = models.ForeignKey(Patient, on_delete=models.CASCADE)
     address_type = models.ForeignKey(AddressType,
-                                    default=1,
-                                    verbose_name=_("Address type"),
-                                    on_delete=models.CASCADE)
+                                     default=1,
+                                     verbose_name=_("Address type"),
+                                     on_delete=models.CASCADE)
     address = models.TextField()
     suburb = models.CharField(max_length=100, verbose_name=_("Suburb/Town"))
     country = models.CharField(max_length=100, verbose_name=_("Country"))

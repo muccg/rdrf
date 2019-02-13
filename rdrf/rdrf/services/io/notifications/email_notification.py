@@ -68,7 +68,7 @@ class RdrfEmail(object):
             logger.warning(
                 "No notification available for %s (%s)" %
                 (self.reg_code, self.description))
-        #except Exception as e:
+        # except Exception as e:
         #    logger.exception("Email has failed to send")
 
     def _get_preferred_language(self, email_address):

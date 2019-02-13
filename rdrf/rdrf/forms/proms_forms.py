@@ -2,6 +2,7 @@ from django import forms
 
 from rdrf.models.proms.models import SurveyRequest
 
+
 class SurveyRequestForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):

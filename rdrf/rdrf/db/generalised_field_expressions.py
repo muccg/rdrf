@@ -485,25 +485,6 @@ class ClinicalFormExpression(GeneralisedFieldExpression):
         return get_cde_value(self.form_model, self.section_model, self.cde_model, mongo_record)
 
     def set_value(self, patient_model, mongo_record, new_value, **kwargs):
-        # _id" : ObjectId("5732ae5c332cf40056cd0462"),
-        # ClinicalData_timestamp" : ISODate("2016-05-11T12:00:59.472Z"),
-        # django_id" : 1,
-        # context_id" : 1,
-        # django_model" : "Patient",
-        # forms" : [
-        # 		{
-        #		"sections" : [
-        #			{
-        #				"cdes" : [
-        #					{
-        #						"code" : "DM1EthnicOrigins",
-        #						"value" : "Australian"
-        #					}
-        #				],
-        #				"code" : "DM1EthnicOrigins",
-        #				"allow_multiple" : false
-        #			},
-
         from datetime import datetime
         from rdrf.db.contexts_api import RDRFContextManager
         context_id = kwargs.get("context_id", None)

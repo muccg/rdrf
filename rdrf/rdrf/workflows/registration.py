@@ -1,5 +1,6 @@
 from rdrf.models.workflow_models import ClinicianSignupRequest
 
+
 class RegistrationWorkflow:
     def __init__(self, token, request_object):
         self.token = token
@@ -30,7 +31,6 @@ class RegistrationWorkflow:
         return None
 
 
-
 class ClinicianSignupWorkflow(RegistrationWorkflow):
     def get_template(self):
         return "registration/clinician_registration.html"
@@ -43,6 +43,7 @@ class ClinicianSignupWorkflow(RegistrationWorkflow):
 
     def get_last_name(self):
         return self.request_object.clinician_other.clinician_last_name
+
 
 def get_registration_workflow(token):
     try:

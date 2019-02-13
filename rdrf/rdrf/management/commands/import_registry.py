@@ -31,7 +31,7 @@ class Command(BaseCommand):
             if import_format == 'yaml':
                 importer.load_yaml_from_string(registry_import_data)
             else:
-                raise NotImplemented("%s not supported yet" % import_format)
+                raise NotImplementedError("%s not supported yet" % import_format)
 
             with transaction.atomic():
                 importer.create_registry()

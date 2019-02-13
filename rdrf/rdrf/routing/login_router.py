@@ -82,8 +82,8 @@ class RouterView(View):
         sentence1 = ungettext(
             'Your password will expire in %(days)d days.',
             'Your password will expire in %(days)d days.', days_left) % {'days': days_left}
-        link = ('<a href="%(url)s" class="alert-link">' + _('Change Password') +
-                '</a>') % {'url': reverse('password_change')}
+        link = '<a href="%(url)s" class="alert-link">' + _('Change Password') + \
+            '</a>' % {'url': reverse('password_change')}
         sentence2 = _('Please use %(link)s to change it.') % {'link': link}
         msg = sentence1 + ' ' + sentence2
 

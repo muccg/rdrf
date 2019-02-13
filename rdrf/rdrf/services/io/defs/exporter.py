@@ -223,7 +223,7 @@ class Exporter(object):
         if format == ExportFormat.YAML:
             try:
                 export_data = dump_yaml(data)
-            except Exception as ex:
+            except Exception:
                 logger.exception("Error yaml dumping")
                 export_data = None
         elif format == ExportFormat.JSON:
@@ -526,7 +526,7 @@ class Exporter(object):
             survey_dict["display_name"] = survey_model.display_name
             survey_dict["questions"] = []
             survey_dict["is_followup"] = survey_model.is_followup
-            
+
             for sq in survey_model.survey_questions.all():
                 sq_dict = {}
                 sq_dict["cde"] = sq.cde.code

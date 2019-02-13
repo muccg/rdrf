@@ -131,7 +131,7 @@ class CDEWrapper(object):
                     display_values = []
                     for pv in pvg["values"]:
                         display_value = pv["value"]
-                        #stored_value = pv["code"]
+                        # stored_value = pv["code"]
                         display_values.append(display_value)
                     return display_values
             return []
@@ -152,8 +152,8 @@ class DataDefinitionReport(object):
         self.current_line.append(value)
 
     def new_line(self):
-        print "writing line: %s" % self.current_line
-        #encoded = map(lambda s : s.decode('utf-8'), self.current_line)
+        print("writing line: %s" % self.current_line)
+        # encoded = map(lambda s : s.decode('utf-8'), self.current_line)
         line = self.delimiter.join(self.current_line)
         line = line + "\n"
         self.stream.write(line)
@@ -188,7 +188,7 @@ class DataDefinitionReport(object):
         fields = []
         fields.append(DemographicField(
             DemographicForm.SECTION_REGISTRY, "Centre", required=True))
-        #fields.append(DemographicField(DemographicForm.SECTION_REGISTRY, "Clinician"))
+        # fields.append(DemographicField(DemographicForm.SECTION_REGISTRY, "Clinician"))
         fields.append(DemographicField(
             DemographicForm.SECTION_PATIENT_DETAILS, "Family name", required=True))
         fields.append(DemographicField(

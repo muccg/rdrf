@@ -1690,7 +1690,7 @@ class OldRegistryImporter(object):
                 symb = thing["fields"]["symbol"]
                 return symb
 
-    def convert_NMDTechnique(self, technique):
+    def convert_NMDTechnique(self, technique):  # noqa
         d = {
             "MLPA": "MLPA",
             "Genomic DNA sequencing": "Genomic DNA sequencing",
@@ -1773,9 +1773,8 @@ class OldRegistryImporter(object):
                     if thing["fields"][related_model_field] == model_id:
                         old_items.append(thing)
 
-        l = len(old_items)
         self.log("Number of old %s = %s" % (old_model,
-                                            l))
+                                            len(old_items)))
 
         for item in old_items:
             item = self._create_new_multisection_item(

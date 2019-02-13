@@ -274,7 +274,6 @@ class FamilyLinkageView(View):
             for undo in flm.mongo_undos:
                 try:
                     undo()
-                except Exception as ex:
+                except Exception:
                     logger.error("could not undo %s" % undo)
-
             raise ex

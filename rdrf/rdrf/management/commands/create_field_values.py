@@ -4,6 +4,7 @@ from registry.patients.models import Patient
 from explorer.models import FieldValue
 from explorer.utils import create_field_values
 
+
 class Command(BaseCommand):
     """
     (re)-create field values for reporting
