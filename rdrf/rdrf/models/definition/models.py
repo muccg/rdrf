@@ -530,8 +530,7 @@ class Registry(models.Model):
         self._check_dupes()
 
     def _check_dupes(self):
-        dupes = [r for r in Registry.objects.all() if r.code.lower() ==
-                 self.code.lower() and r.pk != self.pk]
+        dupes = [r for r in Registry.objects.all() if r.code.lower() == self.code.lower() and r.pk != self.pk]
         names = " ".join(["%s %s" % (r.code, r.name) for r in dupes])
         if len(dupes) > 0:
             raise ValidationError(
@@ -1444,9 +1443,9 @@ class RDRFContext(models.Model):
     registry = models.ForeignKey(Registry, on_delete=models.CASCADE)
     content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
     context_form_group = models.ForeignKey("ContextFormGroup",
-                                            null=True,
-                                            blank=True,
-                                            on_delete=models.SET_NULL)
+                                           null=True,
+                                           blank=True,
+                                           on_delete=models.SET_NULL)
     object_id = models.PositiveIntegerField()
     content_object = GenericForeignKey('content_type', 'object_id')
     created_at = models.DateTimeField(auto_now_add=True)
@@ -1495,8 +1494,8 @@ class ContextFormGroup(models.Model):
                       ("N", "Name")]
 
     registry = models.ForeignKey(Registry,
-                                related_name="context_form_groups",
-                                on_delete=models.CASCADE)
+                                 related_name="context_form_groups",
+                                 on_delete=models.CASCADE)
     context_type = models.CharField(max_length=1, default="F", choices=CONTEXT_TYPES)
     name = models.CharField(max_length=80)
     naming_scheme = models.CharField(max_length=1, default="D", choices=NAMING_SCHEMES)
@@ -1639,13 +1638,52 @@ class ContextFormGroup(models.Model):
 
     def clean(self):
         defaults = ContextFormGroup.objects.filter(registry=self.registry,
-                                                   is_default=True)
-        defaults.exclude(pk=self.pk)
+                                                   is_default=True).exclude(pk=self.pk)
         num_defaults = defaults.count()
+
         if num_defaults > 0 and self.is_default:
             raise ValidationError("Only one Context Form Group can be the default")
         if num_defaults == 0 and not self.is_default:
             raise ValidationError("One Context Form Group must be chosen as the default")
+
+        if self.naming_scheme == "C" and self._valid_naming_cde_to_use(self.naming_cde_to_use) is None:
+            raise ValidationError("Invalid naming cde: Should be form name/section code/cde code where all codes must exist")
+
+    def _valid_naming_cde_to_use(self, naming_cde_to_use):
+        validation_message = "Invalid naming cde: Should be form name/section code/cde code where all codes must exist"
+        if naming_cde_to_use:
+            try:
+                naming_cde_expression = naming_cde_to_use.split("/")
+                form_name, section_code, cde_code = naming_cde_expression
+            except ValueError:
+                raise ValidationError(validation_message)
+
+            try:
+                form_model = RegistryForm.objects.get(registry=self.registry,
+                                                      name=form_name)
+            except RegistryForm.DoesNotExist:
+                raise ValidationError(validation_message)
+
+            section_model = self._get_section_model(section_code, form_model)
+            if section_model is None:
+                raise ValidationError(validation_message)
+
+            cde_model = self._get_cde_model(cde_code, section_model)
+            if cde_model is None:
+                raise ValidationError(validation_message)
+
+            return form_name, section_code, cde_code
+        return None
+
+    def _get_section_model(self, section_code, form_model):
+        for section_model in form_model.section_models:
+            if section_model.code == section_code:
+                return section_model
+
+    def _get_cde_model(self, cde_code, section_model):
+        for cde_model in section_model.cde_models:
+            if cde_model.code == cde_code:
+                return cde_model
 
     def patient_can_add(self, patient_model):
         """
@@ -1700,8 +1738,8 @@ class ContextFormGroup(models.Model):
 
 class ContextFormGroupItem(models.Model):
     context_form_group = models.ForeignKey(ContextFormGroup,
-                                            related_name="items",
-                                            on_delete=models.CASCADE)
+                                           related_name="items",
+                                           on_delete=models.CASCADE)
     registry_form = models.ForeignKey(RegistryForm, on_delete=models.CASCADE)
 
 

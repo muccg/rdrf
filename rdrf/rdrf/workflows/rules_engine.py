@@ -4,6 +4,7 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+
 class Tokens:
     EQUALS = "="
     LT = "<"
@@ -16,6 +17,7 @@ class Tokens:
     IN = "in"
     BETWEEN = "between"
 
+
 class Actions:
     GOTO = "goto"
     WORKFLOW = "workflow"
@@ -24,8 +26,10 @@ class Actions:
 # [ ["=", ["get", "stoma"], "yes"] , ["goto", "form23"] ] etc
 # [ [">", ["get", "BloodPressure"], 130] ,  [ do something ... ]
 
+
 class RulesEvaluationError(Exception):
     pass
+
 
 class RulesEvaluator:
     def __init__(self, rules, evaluation_context):

@@ -710,6 +710,7 @@ def consent_check(registry_model, user_model, patient_model, capability):
 
     return True
 
+
 def get_full_path(registry_model, cde_code):
     """
     Return triple of form name, section code and cde code for a unique code
@@ -730,6 +731,7 @@ def get_full_path(registry_model, cde_code):
 def generate_token():
     return str(uuid.uuid4())
 
+
 def get_site(request=None):
     if request:
         from django.contrib.sites.shortcuts import get_current_site
@@ -743,6 +745,6 @@ def get_site(request=None):
                 return "http://localhost:8000"
             else:
                 return "https://" + domain
-                
+
         except Site.DoesNotExist:
             return "http://localhost:8000"

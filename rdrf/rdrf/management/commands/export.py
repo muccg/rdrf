@@ -8,15 +8,15 @@ from rdrf.models.definition.models import Registry
 class Command(BaseCommand):
     help = 'Export a registry, reference data or CDEs.'
 
-    export_types = [
+    ExportTypes = [
         getattr(
-            definitions.EXPORT_TYPES,
+            definitions.ExportTypes,
             t).code for t in vars(
-            definitions.EXPORT_TYPES) if t.upper() == t]
+            definitions.ExportTypes) if t.upper() == t]
     registry_codes = Registry.objects.values_list('code', flat=True)
 
     def add_arguments(self, parser):
-        parser.add_argument('export_type', choices=self.export_types, help='export type')
+        parser.add_argument('export_type', choices=self.ExportTypes, help='export type')
         parser.add_argument(
             '--registry-code',
             choices=self.registry_codes,
@@ -28,7 +28,7 @@ class Command(BaseCommand):
         export_type = options['export_type']
         registry_code = options.get('registry_code')
 
-        if export_type in definitions.EXPORT_TYPES.registry_types_codes and registry_code is None:
+        if export_type in definitions.ExportTypes.registry_types_codes and registry_code is None:
             if len(self.registry_codes) == 1:
                 registry_code = self.registry_codes[0]
             else:
@@ -40,11 +40,11 @@ class Command(BaseCommand):
             'filename': options.get('filename'),
         }
 
-        if export_type == definitions.EXPORT_TYPES.REGISTRY_DEF.code:
+        if export_type == definitions.ExportTypes.REGISTRY_DEF.code:
             export_import.export_registry_definition(registry_code, **options)
-        elif export_type == definitions.EXPORT_TYPES.REGISTRY_WITH_DATA.code:
+        elif export_type == definitions.ExportTypes.REGISTRY_WITH_DATA.code:
             export_import.export_registry(registry_code, **options)
-        elif export_type == definitions.EXPORT_TYPES.CDES.code:
+        elif export_type == definitions.ExportTypes.CDES.code:
             export_import.export_cdes(**options)
-        elif export_type == definitions.EXPORT_TYPES.REFDATA.code:
+        elif export_type == definitions.ExportTypes.REFDATA.code:
             export_import.export_refdata(**options)

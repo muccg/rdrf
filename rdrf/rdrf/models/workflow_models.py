@@ -10,13 +10,14 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+
 class ClinicianSignupRequest(models.Model):
     STATES = (("emailed", "Emailed"),      # clinician emailed
               ("signed-up", "Signed Up"),  # the clinician accepted the request and a user object was created
               ("created", "Created"),      # request created but nothing sent yet
               ("error", "Error"),          # error
               ("rejected", "Rejected"))    # the clinician received the request but rejected it
-    
+
     registry = models.ForeignKey(Registry, on_delete=models.CASCADE)
     patient_id = models.IntegerField()   # the patient id whose clinician it is ( had import issues with Patient)
     clinician_email = models.CharField(max_length=80)
@@ -38,6 +39,7 @@ class ClinicianSignupRequest(models.Model):
         self.save()
 
     def notify_participant_on_verification(self, diagnosis=""):
+        from registry.patients.models import Patient
         patient = Patient.objects.get(id=self.patient_id)
         participants = self._get_participants(patient)
         event_type = EventType.PARTICIPANT_CLINICIAN_NOTIFICATION
@@ -47,7 +49,8 @@ class ClinicianSignupRequest(models.Model):
             "participants": participants,
             "patient_name": "%s" % patient,
         }
-        
+
+        from rdrf.services.io.notifications.email_notification import process_notification
         process_notification(self.registry.code,
                              event_type,
                              template_data)
@@ -55,21 +58,21 @@ class ClinicianSignupRequest(models.Model):
     def _get_participants(self, patient):
         from registry.patients.models import ParentGuardian
         participants = ParentGuardian.objects.filter(patient=patient)
-        return ",".join(["%s %s" % (pg.first_name, pg.last_name) for pg  in participants])
+        return ",".join(["%s %s" % (pg.first_name, pg.last_name) for pg in participants])
 
     def _send_email(self):
         from rdrf.services.io.notifications.email_notification import process_notification
         from rdrf.events.events import EventType
         from registry.patients.models import Patient
         from registry.patients.models import ParentGuardian
-        
+
         patient = Patient.objects.get(id=self.patient_id)
         try:
             parent = ParentGuardian.objects.get(patient=patient)
             participant_name = "%s %s" % (parent.first_name, parent.last_name)
         except ParentGuardian.DoesNotExist:
             participant_name = "No parent"
-            
+
         patient_name = "%s %s" % (patient.given_names, patient.family_name)
         if self.clinician_other.speciality:
             speciality = self.clinician_other.speciality.name
@@ -92,7 +95,7 @@ class ClinicianSignupRequest(models.Model):
         Return a link which will be sent to a clinician to activate ( become a user)
         """
         from rdrf.helpers.utils import get_site
-        
+
         site_url = get_site()
         return site_url + reverse("registration_register", args=(self.registry.code,)) + "?t=%s" % self.token
 

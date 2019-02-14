@@ -7,7 +7,7 @@ class HGNC:
         from urllib.parse import urlparse
 
         if urlparse(url_or_file)[0] == "":
-            self.fp = file(url_or_file, "r")
+            self.fp = open(url_or_file, "r")
         else:
             from urllib.request import urlopen
             self.fp = urlopen(url_or_file)

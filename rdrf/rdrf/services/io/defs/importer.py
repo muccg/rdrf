@@ -620,6 +620,8 @@ class Importer(object):
                 sq_model = SurveyQuestion(survey=survey_model)
                 sq_model.position = sq["position"]
                 sq_model.instruction = sq.get("instruction", None)
+                sq_model.copyright_text = sq.get("copyright_text", None)
+                sq_model.source = sq.get("source", None)
                 cde_model = CommonDataElement.objects.get(code=sq["cde"])
                 sq_model.cde = cde_model
                 sq_model.save()
@@ -695,14 +697,14 @@ class Importer(object):
 
         def default_first(data):
             default = None
-            l = []
+            lst = []
             for d in data["context_form_groups"]:
                 if d["is_default"]:
                     default = d
                 else:
-                    l.append(d)
-            l.insert(0, default)
-            for d in l:
+                    lst.append(d)
+            lst.insert(0, default)
+            for d in lst:
                 yield d
 
         def get_form(name):

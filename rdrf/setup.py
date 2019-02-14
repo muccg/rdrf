@@ -52,6 +52,7 @@ requirements = [
     "django-simple-history==2.6.0",
 ]
 
+
 def add_file_for_package(package, subdir, f):
     full_path = os.path.join(subdir, f)
     # print "%s: %s" % (package, full_path)

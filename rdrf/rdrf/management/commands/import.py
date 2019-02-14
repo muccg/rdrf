@@ -8,9 +8,9 @@ class Command(BaseCommand):
 
     import_types = [
         getattr(
-            definitions.EXPORT_TYPES,
+            definitions.ExportTypes,
             t).code for t in vars(
-            definitions.EXPORT_TYPES) if t.upper() == t]
+            definitions.ExportTypes) if t.upper() == t]
 
     def add_arguments(self, parser):
         parser.add_argument('zipfile')

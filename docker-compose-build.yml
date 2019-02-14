@@ -62,7 +62,9 @@ services:
     image: muccg/rdrf:${BUILD_VERSION}
 
   lint:
-    image: muccg/linter
+    image: muccg/linter:python3
     working_dir: /data
     volumes:
         - ./:/data
+    command:
+      - flake8

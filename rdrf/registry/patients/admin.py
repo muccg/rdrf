@@ -10,8 +10,23 @@ from rdrf.models.definition.models import Registry
 from rdrf.models.definition.models import ClinicalData
 from registry.utils import get_static_url
 from registry.utils import get_working_groups
-from .admin_forms import *
-from .models import *
+from .admin_forms import (
+    PatientForm,
+    PatientAddressForm,
+    PatientDoctorForm,
+    PatientRelativeForm)
+from .models import (
+    AddressType,
+    ClinicianOther,
+    ParentGuardian,
+    Doctor,
+    State,
+    Patient,
+    PatientAddress,
+    PatientDoctor,
+    PatientRelative,
+    PatientConsent,
+    NextOfKinRelationship)
 from rdrf.db.dynamic_data import DynamicDataWrapper
 from django.contrib.auth import get_user_model
 import logging
@@ -117,8 +132,8 @@ class PatientAdmin(admin.ModelAdmin):
         """
         # NB. This method returns a form class
         user = get_user_model().objects.get(username=request.user)
-        #registry_specific_fields = self._get_registry_specific_patient_fields(user)
-        #self.form = self._add_registry_specific_fields(self.form, registry_specific_fields)
+        # registry_specific_fields = self._get_registry_specific_patient_fields(user)
+        # self.form = self._add_registry_specific_fields(self.form, registry_specific_fields)
         form = super(PatientAdmin, self).get_form(request, obj, **kwargs)
         form.user = user
         form.is_superuser = request.user.is_superuser
@@ -255,7 +270,6 @@ class PatientAdmin(admin.ModelAdmin):
         """
         mongo_patient_data = {}
         instance = form.save(commit=False)
-        registry_specific_fields_dict = self._get_registry_specific_patient_fields(request.user)
         if mongo_patient_data:
             instance.mongo_patient_data = mongo_patient_data
 
@@ -473,7 +487,7 @@ class ParentGuardianAdmin(admin.ModelAdmin):
 
 class ClinicianOtherAdmin(admin.ModelAdmin):
     model = ClinicianOther
-    list_display = ('clinician_last_name','clinician_first_name', 'clinician_hospital', 'clinician_address')
+    list_display = ('clinician_last_name', 'clinician_first_name', 'clinician_hospital', 'clinician_address')
 
 
 def unarchive_patient_action(modeladmin, request, archive_patients_selected):
@@ -496,12 +510,14 @@ def hard_delete_patient_action(modeladmin, request, archive_patients_selected):
 
 hard_delete_patient_action.short_description = "Hard delete archived patient"
 
+
 def unarchive_clinicaldata_model(patient_id):
     clinicaldata_models = ClinicalData.objects.filter(
         django_id=patient_id, django_model='Patient', collection='cdes')
     for cd in clinicaldata_models:
         cd.active = True
         cd.save()
+
 
 class ArchivedPatientAdmin(admin.ModelAdmin):
     list_display = ('id', 'display_name', 'date_of_birth', 'membership')

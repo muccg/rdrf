@@ -32,7 +32,7 @@ class Links:
         PatientsListing = QuickLink(reverse("patientslisting"), _("Patient List"))
         Reports = QuickLink(reverse("reports"), _("Reports"))
         QuestionnaireResponses = QuickLink(reverse("admin:rdrf_questionnaireresponse_changelist"),
-                                       _("Questionnaire Responses"))
+                                           _("Questionnaire Responses"))
         Doctors = QuickLink(reverse("admin:patients_doctor_changelist"), _("Doctors"))
         ArchivedPatients = QuickLink(
             reverse("admin:patients_archivedpatient_changelist"),
@@ -78,7 +78,7 @@ class Links:
             reverse("admin:iprestrict_rangebasedipgroup_changelist"),
             _("IP Restrict Ranges"))
         IPRestrictGeoGroup = QuickLink(reverse("admin:iprestrict_locationbasedipgroup_changelist"),
-                                   _("IP Restrict Geolocations"))
+                                       _("IP Restrict Geolocations"))
         IPRestrictRule = QuickLink(
             reverse("admin:iprestrict_rule_changelist"),
             _("IP Restrict Rules"))
@@ -130,7 +130,6 @@ class Links:
         SurveyRequest = QuickLink(reverse("admin:rdrf_surveyrequest_changelist"), _("Survey Request"))
         Importer = QuickLink(reverse("import_registry"), _("Importer"))
         Users = QuickLink(reverse("admin:groups_customuser_changelist"), _('Users'))
-
 
     if not settings.PROMS_SITE:
         # related links are grouped or convenience
@@ -239,7 +238,7 @@ class Links:
     PROMS = {
         Surveys.text: Surveys,
         SurveyAssignments.text: SurveyAssignments,
-        SurveyRequest.text : SurveyRequest,
+        SurveyRequest.text: SurveyRequest,
     }
 
 

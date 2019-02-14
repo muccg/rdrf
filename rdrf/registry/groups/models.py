@@ -46,7 +46,7 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
         help_text=_('Required. 254 characters or fewer. Letters, numbers and @/./+/-/_ characters'),
         validators=[
             validators.RegexValidator(
-                re.compile('^[\w.@+-]+$'),
+                re.compile(r'^[\w.@+-]+$'),
                 _('Enter a valid username.'),
                 _('invalid'))])
     first_name = models.CharField(_('first name'), max_length=30)
@@ -198,7 +198,6 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
         if group_name not in existing_groups:
             group = Group.objects.get(name=group_name)
             self.groups.add(group)
-        
 
     def can_view(self, registry_form_model):
         if self.is_superuser:

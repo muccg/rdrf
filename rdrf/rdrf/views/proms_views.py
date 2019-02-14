@@ -23,6 +23,7 @@ import qrcode
 import logging
 logger = logging.getLogger(__name__)
 
+
 class PromsCompletedPageView(View):
     def get(self, request):
         logger.debug("proms completed view")
@@ -73,6 +74,7 @@ class PromsView(View):
             logger.error("Multiple survey assignments for patient token %s" % patient_token)
             return None
 
+
 class PromsLandingPageView(View):
     def get(self, request):
         logger.debug("proms page GET")
@@ -94,10 +96,8 @@ class PromsLandingPageView(View):
                                               state=SurveyStates.REQUESTED)
         survey_display_name = survey_assignment.survey.display_name
         preamble_text = registry_model.metadata.get("preamble_text")
-        copyright_text = registry_model.metadata.get("copyright_text")
         context = {
             "preamble_text": preamble_text,
-            "copyright_text": copyright_text,
             "survey_name": survey_display_name
         }
         return render(request, "proms/preamble.html", context)
@@ -141,6 +141,7 @@ class PromsLandingPageView(View):
         logger.debug("patient_token set in session")
         logger.debug("redirecting to proms page")
         return HttpResponseRedirect(reverse("proms"))
+
 
 class PromsClinicalView(View):
     """

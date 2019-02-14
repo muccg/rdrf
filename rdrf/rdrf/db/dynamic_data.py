@@ -36,8 +36,7 @@ def find_sections(doc, form_name=None, section_code=None, formp=None, sectionp=N
     for f, form in enumerate(doc.get("forms") or []):
         if (form_name is None or (form.get("name") == form_name and formp(form, f))):
             for s, section in enumerate(form.get("sections") or []):
-                if ((section_code is None or section.get("code") == section_code)
-                        and bool(multisection) == bool(section.get("allow_multiple"))):
+                if (section_code is None or section.get("code") == section_code) and bool(multisection) == bool(section.get("allow_multiple")):
                     if multisection:
                         for s2, section2 in enumerate(section.get("cdes") or []):
                             product = dict(section)

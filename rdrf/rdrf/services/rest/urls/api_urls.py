@@ -21,9 +21,9 @@ router.register(r'registries/(?P<registry_code>\w+)/clinicians',
 urlpatterns = [
     re_path(r'registries/(?P<code>\w+)/$', api_views.RegistryDetail.as_view(), name='registry-detail'),
     re_path(r'registries/(?P<registry_code>\w+)/patients/$',
-        api_views.PatientList.as_view(), name='patient-list'),
+            api_views.PatientList.as_view(), name='patient-list'),
     re_path(r'registries/(?P<registry_code>\w+)/patients/(?P<pk>\d+)/$',
-        api_views.PatientDetail.as_view(), name='patient-detail'),
+            api_views.PatientDetail.as_view(), name='patient-detail'),
     re_path(r'^countries/(?P<country_code>[A-Z]{2})/states/$',
-        api_views.ListStates.as_view(), name="state_lookup"),
+            api_views.ListStates.as_view(), name="state_lookup"),
 ] + router.urls

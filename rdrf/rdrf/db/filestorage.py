@@ -22,7 +22,7 @@ def delete_file_wrapper(file_ref):
             CDEFile.objects.get(id=django_file_id).delete()
         except CDEFile.DoesNotExist:
             logger.warning("Tried to delete CDEFile id=%s which doesn't exist" % django_file_id)
-        except Exception as e:
+        except Exception:
             logger.exception("Couldn't delete CDEFile id=%s" % django_file_id)
         return django_file_id
 

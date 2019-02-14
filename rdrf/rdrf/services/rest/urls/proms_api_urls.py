@@ -1,7 +1,7 @@
 from django.urls import re_path
 from rdrf.services.rest.views import proms_api
 
-app_name='proms'
+app_name = 'proms'
 
 urlpatterns = [
     re_path(r'surveys/?$', proms_api.SurveyEndpoint.as_view(), name='survey_endpoint'),

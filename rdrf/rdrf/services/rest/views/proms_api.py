@@ -22,6 +22,7 @@ import json
 import logging
 logger = logging.getLogger(__name__)
 
+
 @method_decorator(csrf_exempt, name='dispatch')
 class SurveyEndpoint(View):
 
@@ -30,7 +31,7 @@ class SurveyEndpoint(View):
         data = json.loads(request.body)
         patient_token = data.get("patient_token")
         logger.debug("patient_token = %s" % patient_token)
-        survey_answers= data.get("answers")
+        survey_answers = data.get("answers")
         logger.debug("answers ditionary = %s" % survey_answers)
         registry_code = data.get("registry_code")
         logger.debug("registry code = %s" % registry_code)
@@ -52,6 +53,7 @@ class SurveyEndpoint(View):
         survey_assignment.state = SurveyStates.COMPLETED
         survey_assignment.save()
         return render(request, "proms/proms_completed.html", {})
+
 
 class SurveyAssignments(APIView):
     queryset = SurveyAssignment.objects.all()
@@ -155,7 +157,7 @@ class PromsProcessor:
         metadata = self.registry_model.metadata
         consent_exists = False
         if "consents" in metadata:
-            consent_dict = metadata["consents"]    
+            consent_dict = metadata["consents"]
             logger.debug("Consent Codes %s" % consent_dict)
             consent_exists = True
         else:
@@ -166,7 +168,7 @@ class PromsProcessor:
         if is_followup:
             context_form_group = ContextFormGroup.objects.get(registry=self.registry_model, name="Followup")
             context_model = RDRFContext(registry=self.registry_model, context_form_group=context_form_group,
-                                  content_object=patient_model, display_name="Follow Up")
+                                        content_object=patient_model, display_name="Follow Up")
             context_model.save()
 
         for cde_code, value in survey_data.items():
@@ -196,17 +198,17 @@ class PromsProcessor:
             try:
                 if is_followup:
                     patient_model.set_form_value(self.registry_model.code,
-                                             form_model.name,
-                                             section_model.code,
-                                             cde_model.code,
-                                             value,
-                                             context_model)
+                                                 form_model.name,
+                                                 section_model.code,
+                                                 cde_model.code,
+                                                 value,
+                                                 context_model)
                 else:
                     patient_model.set_form_value(self.registry_model.code,
-                                             form_model.name,
-                                             section_model.code,
-                                             cde_model.code,
-                                             value)
+                                                 form_model.name,
+                                                 section_model.code,
+                                                 cde_model.code,
+                                                 value)
             except Exception as ex:
                 logger.error("Error updating proms field %s->%s: %s" % (cde_code,
                                                                         value,
@@ -238,4 +240,3 @@ class PromsProcessor:
                     for cde_model in section_model.cde_models:
                         if cde_model.code == target_cde_model.code:
                             return form_model, section_model
-

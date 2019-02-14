@@ -133,7 +133,7 @@ class SequenceVariation:
 
     def __str__(self):
         if not self.type:
-            raise NoType
+            raise ValueError("no such type")
 
         sections = []
 
@@ -179,7 +179,7 @@ class Variation:
         pass
 
     def __str__(self):
-        raise NotImplemented
+        raise NotImplementedError
 
     @staticmethod
     def create(input):
@@ -543,7 +543,7 @@ class Inversion(Variation):
 class Conversion(Variation):
     def __init__(self, input=None):
         # This isn't in Mutalyzer yet, so we'll skip it for now.
-        raise NotImplemented
+        raise NotImplementedError
 
 
 class NoChange(Variation):

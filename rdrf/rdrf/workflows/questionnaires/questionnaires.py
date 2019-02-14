@@ -182,7 +182,7 @@ class QuestionnaireReverseMapper(object):
                 if state.code.lower() == state_code.lower():
                     return state.code
 
-        except Exception as ex:
+        except Exception:
             logger.error("could not find state code for for %s %s" %
                          (country_code, cde_value))
 
@@ -488,7 +488,7 @@ class _ExistingDataWrapper(object):
         grab and return as list of wrappers for view
         There are two special sections PatientData and PatientAddressData
         """
-        l = []
+        lst = []
         for question in self.questionnaire.questions:
             if isinstance(question, _ConsentQuestion):
                 existing_answer = {"name": question.name,
@@ -496,7 +496,7 @@ class _ExistingDataWrapper(object):
                                    "is_multi": False,
                                    "answer": self._get_consent_answer(question)
                                    }
-                l.append(existing_answer)
+                lst.append(existing_answer)
                 continue
 
             if question.section_code == "PatientData":
@@ -548,9 +548,9 @@ class _ExistingDataWrapper(object):
                             question.pos), "is_multi": True, "answers": self._get_address_labels(
                             question.field_expression)}
 
-            l.append(existing_answer)
+            lst.append(existing_answer)
 
-        return l
+        return lst
 
     def _get_consent_answer(self, consent_question):
         from registry.patients.models import ConsentValue
@@ -617,17 +617,17 @@ class _ExistingDataWrapper(object):
 
 
 class _ConsentQuestion(object):
-        # Mongo record looks like this on questionnaire:
-        # question
-        # "customconsent_%s_%s_%s" %
-        # (registry_model.pk, consent_section_model.pk, self.pk)
-        # "custom_consent_data" : {
-        # "customconsent_2_2_3" : "on",
-        # "customconsent_2_2_6" : "on",
-        # "customconsent_2_2_5" : "on",
-        # "customconsent_2_2_4" : "on",
-        # "customconsent_2_1_1" : "on",
-        # "customconsent_2_1_2" : "on"
+    # Mongo record looks like this on questionnaire:
+    # question
+    # "customconsent_%s_%s_%s" %
+    # (registry_model.pk, consent_section_model.pk, self.pk)
+    # "custom_consent_data" : {
+    # "customconsent_2_2_3" : "on",
+    # "customconsent_2_2_6" : "on",
+    # "customconsent_2_2_5" : "on",
+    # "customconsent_2_2_4" : "on",
+    # "customconsent_2_1_1" : "on",
+    # "customconsent_2_1_2" : "on"
 
     def __init__(self, registry_model, key, raw_value):
         self.is_multi = False
@@ -965,12 +965,12 @@ class Questionnaire(object):
 
     @property
     def questions(self):
-        l = []
+        lst = []
         n = 0
 
         for consent_question in self._get_consents():
             consent_question.pos = n
-            l.append(consent_question)
+            lst.append(consent_question)
             n += 1
 
         for form_dict in self.data["forms"]:
@@ -986,7 +986,7 @@ class Questionnaire(object):
 
                         n += 1
                         question.pos = n
-                        l.append(question)
+                        lst.append(question)
 
                 else:
                     # unit of selection is the entire section ..
@@ -1010,9 +1010,9 @@ class Questionnaire(object):
                         multisection.items.append(multisection_item)
 
                     multisection.pos = n
-                    l.append(multisection)
+                    lst.append(multisection)
 
-        return self._correct_ordering(l)
+        return self._correct_ordering(lst)
 
     def _correct_ordering(self, questions):
         correct_ordering = ["Centre",
