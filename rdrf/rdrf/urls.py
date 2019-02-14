@@ -40,6 +40,7 @@ from rdrf.views.proms_views import PromsLandingPageView
 from rdrf.views.proms_views import PromsCompletedPageView
 from rdrf.views.proms_views import PromsClinicalView
 from rdrf.views.proms_views import PromsQRCodeImageView
+from rdrf.views.copyright_view import CopyrightView
 
 
 import logging
@@ -126,6 +127,8 @@ urlpatterns += [
 
     path('admin/', admin.site.urls),
 
+ 
+
     re_path(r'', include((two_factor_auth_urls, 'two_factor'), namespace=None)),
 
     # django.contrib.auth URLs listed expicitly so we can override some of them for custom behaviour
@@ -172,6 +175,9 @@ urlpatterns += [
     re_path(r'^proms/?$', PromsView.as_view(), name="proms"),
     re_path(r'^promsqrcode/(?P<patient_token>[0-9A-Za-z_\-]+)/?$', PromsQRCodeImageView.as_view(), name="promsqrcode"),
     re_path(r'^promscompleted/?$', PromsCompletedPageView.as_view(), name="proms_completed"),
+
+    # ------ Copyright URL -----------
+    re_path(r"^copyright/?$", CopyrightView.as_view(), name="copyright"),
 
     # proms on the clinical side
     re_path(r"^(?P<registry_code>\w+)/(?P<patient_id>\d+)/clinicalproms/?$", PromsClinicalView.as_view(), name="proms_clinical_view"),
@@ -236,7 +242,6 @@ urlpatterns += [
 
     re_path(r"^(?P<registry_code>\w+)/(?P<patient_id>\d+)/consents/print/?$",
             consent_view.ConsentDetailsPrint.as_view(), name="print_consent_details"),
-
 
 
 

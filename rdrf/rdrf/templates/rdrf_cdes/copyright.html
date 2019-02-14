@@ -1,0 +1,19 @@
+
+{% extends "rdrf_cdes/base-1-col.html" %}
+
+{% block content %}
+    {% for context in contexts %}
+    <div>
+        <h3>{{context.registry_name}}</h3>
+        <div class="registry_copyright">
+            <h5>{{context.registry_copyright}}</h5>
+            {% for source, ctext in context.copyright_dict.items %}
+                <div class="copyright">
+                    <p style="background-color: lightblue;">{{source}}</p>
+                    {{ctext}}
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endfor %}
+{% endblock %}
