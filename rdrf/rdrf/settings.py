@@ -515,11 +515,7 @@ AUTH_PASSWORD_VALIDATORS = [{
 ]
 
 # setup for SYSTEM_ROLE
-SYSTEM_ROLE = env.get("SYSTEM_ROLE", "")
-if SYSTEM_ROLE == "":
-    SYSTEM_ROLE = SystemRoles.NORMAL.name
-elif not SystemRoles.has_value(SYSTEM_ROLE):
-    raise Exception("Invalid SYSTEM_ROLE in settings, allowed values are CIC_CLINICAL, CIC_DEV, CIC_PROMS and NORMAL")
+SYSTEM_ROLE = SystemRoles.from_value(env.get("SYSTEM_ROLE", "NORMAL"))
 
 # setup for PROMS
 PROMS_SECRET_TOKEN = env.get("proms_secret_token", "foobar")  # todo set this us in env etc

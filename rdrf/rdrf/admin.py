@@ -477,21 +477,19 @@ NORMAL_MODE_ADMIN_COMPONENTS = [
 
 ADMIN_COMPONENTS = []
 
-system_role = SystemRoles.from_value(settings.SYSTEM_ROLE)
-
-if system_role is SystemRoles.proms_role():
+if settings.SYSTEM_ROLE is SystemRoles.CIC_PROMS:
     ADMIN_COMPONENTS = PROMS_ADMIN_COMPONENTS
 
 if settings.DESIGN_MODE:
     ADMIN_COMPONENTS = ADMIN_COMPONENTS + DESIGN_MODE_ADMIN_COMPONENTS
 
-if system_role is SystemRoles.normal_role():
+if settings.SYSTEM_ROLE is SystemRoles.NORMAL:
     ADMIN_COMPONENTS = ADMIN_COMPONENTS + NORMAL_MODE_ADMIN_COMPONENTS
 
-if system_role is SystemRoles.dev_role():
+if settings.SYSTEM_ROLE is SystemRoles.CIC_DEV:
     ADMIN_COMPONENTS = ADMIN_COMPONENTS + NORMAL_MODE_ADMIN_COMPONENTS + PROMS_ADMIN_COMPONENTS
 
-if system_role is SystemRoles.cic_clinical_role():
+if settings.SYSTEM_ROLE is SystemRoles.CIC_CLINICAL:
     ADMIN_COMPONENTS = ADMIN_COMPONENTS + NORMAL_MODE_ADMIN_COMPONENTS + PROMS_ADMIN_COMPONENTS
 
 for model_class, model_admin in ADMIN_COMPONENTS:

@@ -28,9 +28,8 @@ class Links:
     All links that can appear in menus are defined.
     Links are also grouped into related functional areas to make for easier assignment to menus
     """
-    system_role = SystemRoles.from_value(settings.SYSTEM_ROLE)
 
-    if system_role in (SystemRoles.normal_role(), SystemRoles.dev_role(), SystemRoles.cic_clinical_role()):
+    if settings.SYSTEM_ROLE in (SystemRoles.NORMAL, SystemRoles.CIC_DEV, SystemRoles.CIC_CLINICAL):
         PatientsListing = QuickLink(reverse("patientslisting"), _("Patient List"))
         Reports = QuickLink(reverse("reports"), _("Reports"))
         QuestionnaireResponses = QuickLink(reverse("admin:rdrf_questionnaireresponse_changelist"),
@@ -95,7 +94,7 @@ class Links:
             _("Registry Demographics Fields"))
         ConsentRules = QuickLink(reverse("admin:rdrf_consentrule_changelist"), _("Consent Rules"))
 
-    if system_role in (SystemRoles.dev_role(), SystemRoles.proms_role(), SystemRoles.cic_clinical_role()):
+    if settings.SYSTEM_ROLE in (SystemRoles.CIC_DEV, SystemRoles.CIC_PROMS, SystemRoles.CIC_CLINICAL):
         Surveys = QuickLink(reverse("admin:rdrf_survey_changelist"), _("Surveys"))
         SurveyAssignments = QuickLink(reverse("admin:rdrf_surveyassignment_changelist"), _("Survey Assignments"))
         SurveyRequest = QuickLink(reverse("admin:rdrf_surveyrequest_changelist"), _("Survey Request"))
@@ -128,12 +127,12 @@ class Links:
             reverse("admin:rdrf_contextformgroup_changelist"),
             _("Registry Context Form Groups"))
 
-    if system_role is SystemRoles.proms_role():
+    if settings.SYSTEM_ROLE is SystemRoles.CIC_PROMS:
         Importer = QuickLink(reverse("import_registry"), _("Importer"))
         Users = QuickLink(reverse("admin:groups_customuser_changelist"), _('Users'))
 
 
-    if system_role in (SystemRoles.normal_role(), SystemRoles.dev_role(), SystemRoles.cic_clinical_role()):
+    if settings.SYSTEM_ROLE in (SystemRoles.NORMAL, SystemRoles.CIC_DEV, SystemRoles.CIC_CLINICAL):
         # related links are grouped or convenience
         AUDITING = {
             LoginLog.text: LoginLog,
@@ -228,7 +227,7 @@ class Links:
         REGISTRATION = {}
         VERIFICATION = {}
 
-    if system_role is SystemRoles.proms_role():
+    if settings.SYSTEM_ROLE is SystemRoles.CIC_PROMS:
         OTHER = {
             Importer.text: Importer,
         }
@@ -239,14 +238,14 @@ class Links:
         Users.text: Users,
     }
 
-    if system_role in (SystemRoles.proms_role(), SystemRoles.dev_role(), SystemRoles.cic_clinical_role()):
+    if settings.SYSTEM_ROLE in (SystemRoles.CIC_PROMS, SystemRoles.CIC_DEV, SystemRoles.CIC_CLINICAL):
         PROMS = {
             Surveys.text: Surveys,
             SurveyAssignments.text: SurveyAssignments,
             SurveyRequest.text : SurveyRequest,
         }
 
-    if system_role is SystemRoles.proms_role():
+    if settings.SYSTEM_ROLE is SystemRoles.CIC_PROMS:
         if settings.DESIGN_MODE:
             REGISTRY_DESIGN = {
                 Registries.text: Registries,
@@ -297,7 +296,6 @@ class QuickLinks(object):
 
     def _build_menu(self):
         # Main menu per user type
-        system_role = SystemRoles.from_value(settings.SYSTEM_ROLE)
         design_menus = {}
 
         if settings.DESIGN_MODE:
@@ -305,7 +303,7 @@ class QuickLinks(object):
                     **Links.REGISTRY_DESIGN,
                 }
 
-        if system_role in (SystemRoles.dev_role(), SystemRoles.normal_role(), SystemRoles.cic_clinical_role()):
+        if settings.SYSTEM_ROLE in (SystemRoles.CIC_DEV, SystemRoles.NORMAL, SystemRoles.CIC_CLINICAL):
             normal_menus = {
                     **Links.AUDITING,
                     **Links.CONSENT,
@@ -328,7 +326,7 @@ class QuickLinks(object):
 
             MenuConfig().parent = {}
 
-            if system_role in (SystemRoles.dev_role(), SystemRoles.cic_clinical_role()):
+            if settings.SYSTEM_ROLE in (SystemRoles.CIC_DEV, SystemRoles.CIC_CLINICAL):
                 if settings.DESIGN_MODE:
                     design_menus.update({**Links.PROMS,})
                 else:
@@ -389,7 +387,7 @@ class QuickLinks(object):
                 MenuConfig().all = design_menus
         
 
-        if system_role is SystemRoles.proms_role():
+        if settings.SYSTEM_ROLE is SystemRoles.CIC_PROMS:
             MenuConfig().settings = {
                 **Links.PERMISSIONS,
                 **Links.REGISTRATION,
@@ -489,15 +487,13 @@ class QuickLinks(object):
                                                       'verification')
 
     def _permission_matrix_links(self):
-        system_role = SystemRoles.from_value(settings.SYSTEM_ROLE)
-        if system_role is SystemRoles.proms_role():
+        if settings.SYSTEM_ROLE is SystemRoles.CIC_PROMS:
             return {}
         # enable permission links
         Links.PERMISSIONS = self._per_registry_links('Permissions', 'permission_matrix')
 
     def _consent_links(self):
-        system_role = SystemRoles.from_value(settings.SYSTEM_ROLE)
-        if system_role is SystemRoles.proms_role():
+        if settings.SYSTEM_ROLE is SystemRoles.CIC_PROMS:
             return {}
         # enable consent links
         Links.CONSENT = self._per_registry_links('Consents', 'consent_list')
@@ -505,8 +501,7 @@ class QuickLinks(object):
     def menu_links(self, groups):
         # get links for the 'menu' menu
         links = {}
-        system_role = SystemRoles.from_value(settings.SYSTEM_ROLE)
-        if system_role is SystemRoles.proms_role():
+        if settings.SYSTEM_ROLE is SystemRoles.CIC_PROMS:
             return {}
         for group in groups:
             links = {**links, **self._group_links(group.lower())}
@@ -514,8 +509,7 @@ class QuickLinks(object):
 
     def settings_links(self):
         # get links for the 'settings' menu
-        system_role = SystemRoles.from_value(settings.SYSTEM_ROLE)
-        if system_role is SystemRoles.proms_role():
+        if settings.SYSTEM_ROLE is SystemRoles.CIC_PROMS:
             return {}
         links = MenuConfig().settings
         return OrderedDict(sorted(links.items())).values()

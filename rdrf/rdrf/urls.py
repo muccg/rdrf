@@ -41,6 +41,7 @@ from rdrf.views.proms_views import PromsCompletedPageView
 from rdrf.views.proms_views import PromsClinicalView
 from rdrf.views.proms_views import PromsQRCodeImageView
 from rdrf.system_role import SystemRoles
+from rdrf.views.copyright_view import CopyrightView
 
 
 import logging
@@ -135,6 +136,7 @@ proms_patterns = [
         },
         name='login_assistance'),
 
+    re_path(r"^copyright/?$", CopyrightView.as_view(), name="copyright"), 
     re_path(r'^$', landing_view.LandingView.as_view(), name='landing'),
     re_path(r'^reglist/?', RegistryListView.as_view(), name="reglist"),
     re_path(r'^import/?', import_registry_view.ImportRegistryView.as_view(),
@@ -157,6 +159,8 @@ normalpatterns += [
     re_path(r'^rpc', form_view.RPCHandler.as_view(), name='rpc'),
 
     path('admin/', admin.site.urls),
+
+ 
 
     re_path(r'', include((two_factor_auth_urls, 'two_factor'), namespace=None)),
 
@@ -204,6 +208,9 @@ normalpatterns += [
     re_path(r'^proms/?$', PromsView.as_view(), name="proms"),
     re_path(r'^promsqrcode/(?P<patient_token>[0-9A-Za-z_\-]+)/?$', PromsQRCodeImageView.as_view(), name="promsqrcode"),
     re_path(r'^promscompleted/?$', PromsCompletedPageView.as_view(), name="proms_completed"),
+
+    # ------ Copyright URL -----------
+    re_path(r"^copyright/?$", CopyrightView.as_view(), name="copyright"),
 
     # proms on the clinical side
     re_path(r"^(?P<registry_code>\w+)/(?P<patient_id>\d+)/clinicalproms/?$", PromsClinicalView.as_view(), name="proms_clinical_view"),
@@ -268,7 +275,6 @@ normalpatterns += [
 
     re_path(r"^(?P<registry_code>\w+)/(?P<patient_id>\d+)/consents/print/?$",
         consent_view.ConsentDetailsPrint.as_view(), name="print_consent_details"),
-
 
 
 
@@ -347,9 +353,7 @@ normalpatterns += [
     re_path(r'^i18n/', include(('django.conf.urls.i18n', 'django_conf_urls'), namespace=None))
 ]
 
-system_role = SystemRoles.from_value(settings.SYSTEM_ROLE)
-
-if system_role is SystemRoles.proms_role():
+if settings.SYSTEM_ROLE is SystemRoles.CIC_PROMS:
     urlpatterns = proms_patterns
 else:
     urlpatterns = normalpatterns

@@ -198,3 +198,19 @@ form .aligned ul.errorlist {
     text-align:center;
     margin-top:20px;
 }
+
+.copyright {
+    border-radius: 10px;
+    width: 80%;
+    border: 2px solid grey;
+    padding: 25px;
+    margin: 25px;
+}
+
+.registry_copyright {
+    border-radius: 10px;
+    width: 80%;
+    border: 2px solid burlywood;
+    padding: 25px;
+    margin: 25px;
+}
