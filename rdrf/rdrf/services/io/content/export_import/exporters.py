@@ -66,7 +66,9 @@ class DataGroupExporter(DelegateMixin):
         if top_level:
             models = self.collect_all_models(self)
 
-            def app_label(m): return m.split('.', 1)[0]
+            def app_label(m):
+                return m.split('.', 1)[0]
+
             apps = set(map(app_label, models))
             app_versions = {app: app_schema_version(app) for app in apps}
 

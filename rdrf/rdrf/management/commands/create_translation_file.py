@@ -157,7 +157,7 @@ class Command(BaseCommand):
         if "\n" in message_string:
             # probably wrong but compiler fails
             # if there are multilined messages
-            #message_string = message_string.replace('\n',' ')
+            # message_string = message_string.replace('\n',' ')
             lines = message_string.split("\n")
             first_line = lines[0]
             lines = lines[1:]
@@ -190,7 +190,7 @@ class Command(BaseCommand):
         # registry name
         yield None, self.data["name"]
         # todo process splashscreen
-        splash_screen_html = self.data["splash_screen"]
+        # splash_screen_html = self.data["splash_screen"]
         yield None, None
 
     def _yield_form_strings(self):
@@ -205,7 +205,7 @@ class Command(BaseCommand):
             yield comment, name_with_spaces
 
             # the header is html ...
-            header_html = form_dict["header"]
+            # header_html = form_dict["header"]
             # todo extract strings from header
             yield None, None
             yield from self._yield_section_strings(form_dict)

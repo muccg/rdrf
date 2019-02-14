@@ -1,5 +1,6 @@
 from explorer.views import Humaniser
 from rdrf.models.verification.models import Annotation
+from registry.patients.models import Patient
 
 import logging
 logger = logging.getLogger(__name__)
@@ -11,6 +12,7 @@ class VerificationError(Exception):
 
 class NoData:
     pass
+
 
 class VerificationStatus:
     UNVERIFIED = "unverified"    # clinician has not checked or does not know
@@ -53,7 +55,6 @@ class VerifiableCDE:
         self.status = VerificationStatus.UNVERIFIED
         self.comments = ""
 
-
     @property
     def display_value(self):
         def disp(value):
@@ -66,7 +67,6 @@ class VerifiableCDE:
             return disp(self.clinician_data)
         elif self.status == "verified":
             return disp(self.patient_data)
-            
 
     def set_clinician_value(self, raw_value):
         # field has already been validated so type casts are safe
@@ -180,8 +180,8 @@ class VerifiableCDE:
         return None
 
     def _value_changed(self, annotation_cde_value, form_cde_value):
-            # complication here because the stored type is a string
-            # let's just string compare
+        # complication here because the stored type is a string
+        # let's just string compare
         logger.debug("checking value changed for cde %s" % self.cde_model.code)
         logger.debug("ann cde value = %s" % annotation_cde_value)
         logger.debug("form cde value = %s" % form_cde_value)
@@ -215,6 +215,7 @@ def user_allowed(user, registry_model, patient_model):
                               user,
                               patient_model,
                               "see_patient")])
+
 
 def get_verifications(user, registry_model, patient_model, context_model):
     verifiable_cdes = get_verifiable_cdes(registry_model)
@@ -296,6 +297,7 @@ def create_annotations(user, registry_model, patient_model, context_model, verif
         annotation.orig_value = str(v.patient_data)
         annotation.save()
 
+
 def send_participant_notification(registry_model, clinician_user, patient_model, diagnosis):
     from rdrf.services.io.notifications.email_notification import process_notification
     from rdrf.events.events import EventType
@@ -319,6 +321,7 @@ def send_participant_notification(registry_model, clinician_user, patient_model,
     process_notification(registry_model.code,
                          EventType.PARTICIPANT_CLINICIAN_NOTIFICATION,
                          template_data)
+
 
 def get_diagnosis(registry_model, verifications):
     diagnosis_code = registry_model.diagnosis_code

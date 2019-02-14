@@ -1,6 +1,5 @@
 from collections import OrderedDict
 import json
-import ast
 
 from django.db import ProgrammingError
 from django.db import connection
@@ -135,7 +134,7 @@ class DatabaseUtils(object):
         try:
             return reporting_table_generator.run_explorer_query(self)
         except Exception as ex:
-            logger.exception("Error running explorer query: %s")
+            logger.exception("Error running explorer query: {}".format(ex))
             raise
 
     @timed
@@ -545,52 +544,7 @@ class DatabaseUtils(object):
         return cde_model.get_display_value(stored_value)
 
     def run_mongo(self):
-        projection = {}
-        criteria = {}
-        raise NotImplementedError("fixme")
-        database = client[mongo_db_name_reg_id(self.registry_id)]
-        collection = database[self.collection]
-
-        mongo_search_type = self.mongo_search_type
-
-        criteria = self.criteria
-        projection = self.projection
-
-        django_ids = []
-        if self.result:
-            for r in self.result:
-                django_ids.append(r["id"])
-
-        records = []
-        if mongo_search_type == 'F':
-            criteria["django_id"] = {"$in": django_ids}
-            results = collection.find(criteria, projection)
-        elif mongo_search_type == 'A':
-            aggregation = []
-
-            pipline = self.aggregation.split("|")
-            for pipe in pipline:
-                aggregation.append(ast.literal_eval(pipe))
-
-            if "$match" in aggregation:
-                aggregation["$match"].update({"django_id": {"$in": django_ids}})
-            else:
-                aggregation.append({"$match": {"django_id": {"$in": django_ids}}})
-            results = collection.aggregate(aggregation)
-            results = results['result']
-
-        for cur in results:
-            row = {}
-            for k in cur:
-                if isinstance(cur[k], (dict)):
-                    for key, value in cur[k].items():
-                        row[key] = value
-                else:
-                    row[k] = cur[k]
-            records.append(row)
-
-        self.result = records
-        return self
+        raise NotImplementedError("MongoDB is no longer supported in the RDRF")
 
     def run_full_query(self):
         sql_result = self.run_sql().result
@@ -629,11 +583,10 @@ class DatabaseUtils(object):
 
 
 class ParseQuery(object):
-
-    def get_parameters(query):
+    def get_parameters(self):
         pass
 
-    def set_parameters(query):
+    def set_parameters(self):
         pass
 
 

@@ -7,6 +7,7 @@ from rdrf.services.io.notifications.email_notification import process_notificati
 
 from registry.groups.models import CustomUser
 
+
 def send_reminder(user, registry_model, process_func=None):
     if process_func:
         rp = ReminderProcessor(user, registry_model, process_func)
@@ -91,16 +92,21 @@ class Command(BaseCommand):
         test_mode = options.get("test_mode", False)
 
         if action == "print":
-            def action_func(user): return self._print(user.username)
+            def action_func(user):
+                return self._print(user.username)
         elif action == "send-reminders":
             if test_mode:
-                def action_func(user): return send_reminder(user,
-                                                            registry_model,
-                                                            self._dummy_send)
+                def action_func(user):
+                    return send_reminder(
+                        user,
+                        registry_model,
+                        self._dummy_send)
             else:
-                def action_func(user): return send_reminder(user,
-                                                            registry_model,
-                                                            process_notification)
+                def action_func(user):
+                    return send_reminder(
+                        user,
+                        registry_model,
+                        process_notification)
         else:
             self._error("Unknown action: %s" % action)
             sys.exit(1)

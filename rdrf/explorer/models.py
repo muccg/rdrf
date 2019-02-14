@@ -2,6 +2,7 @@ from django.db import models
 from django.urls import reverse
 from django.contrib.auth.models import Group
 from django.core.exceptions import ValidationError
+from contextlib import suppress
 
 from rdrf.models.definition.models import Registry
 from rdrf.models.definition.models import RegistryForm
@@ -15,6 +16,7 @@ import json
 import logging
 
 logger = logging.getLogger(__name__)
+
 
 class FieldValue(models.Model):
     """
@@ -45,21 +47,22 @@ class FieldValue(models.Model):
         unique_together = ("registry", "patient", "context", "form", "section", "index", "cde")
 
     @classmethod
-    def get(klass, registry_model, patient_model, context_model, form_model, section_model, cde_model, index=0):
+    def get(cls, registry_model, patient_model, context_model, form_model, section_model, cde_model, index=0):
         try:
-            return klass.objects.get(registry=registry_model,
-                                     patient=patient_model,
-                                     context=context_model,
-                                     form=form_model,
-                                     section=section_model,
-                                     cde=cde_model,
-                                     index=index)
-        except klass.DoesNotExist:
+            return cls.objects.get(
+                registry=registry_model,
+                patient=patient_model,
+                context=context_model,
+                form=form_model,
+                section=section_model,
+                cde=cde_model,
+                index=index)
+        except cls.DoesNotExist:
             return None
 
     @classmethod
-    def get_value(klass, registry_model, patient_model, context_model, form_model, section_model, cde_model, index=0, display=False):
-        model = klass.get(registry_model, patient_model, context_model, form_model, section_model, cde_model, index)
+    def get_value(cls, registry_model, patient_model, context_model, form_model, section_model, cde_model, index=0, display=False):
+        model = cls.get(registry_model, patient_model, context_model, form_model, section_model, cde_model, index)
         if model is not None:
             if display:
                 return model.display_value
@@ -67,15 +70,16 @@ class FieldValue(models.Model):
                 return model.raw_value
 
     @classmethod
-    def put(klass, registry_model, patient_model, context_model, form_model, section_model, cde_model, index, value):
+    def put(cls, registry_model, patient_model, context_model, form_model, section_model, cde_model, index, value):
         datatype = cde_model.datatype.strip().lower()
-        model, _ = klass.objects.get_or_create(registry=registry_model,
-                                               patient=patient_model,
-                                               context=context_model,
-                                               form=form_model,
-                                               section=section_model,
-                                               cde=cde_model,
-                                               index=index)
+        model, _ = cls.objects.get_or_create(
+            registry=registry_model,
+            patient=patient_model,
+            context=context_model,
+            form=form_model,
+            section=section_model,
+            cde=cde_model,
+            index=index)
 
         model.datatype = model.set_datatype(datatype)
         model.is_range = True if cde_model.pv_group else False
@@ -182,8 +186,8 @@ class FieldValue(models.Model):
         return name
 
     def get_typed_value(self):
-        #'text', 'email', 'range', 'integer',
-        #'file', 'string', 'float', 'String', 'date', 'striing',
+        # 'text', 'email', 'range', 'integer',
+        # 'file', 'string', 'float', 'String', 'date', 'striing',
         # 'calculated', 'Integer', 'Ineger', 'textarea', 'boolean'}
 
         datatype = self.cde.datatype.strip().lower()
@@ -233,14 +237,9 @@ class FieldValue(models.Model):
         if self.cde.pv_group:
             return self.display_value
         else:
-            try:
+            with suppress(ValueError, Exception):
                 typed_value = self.get_typed_value()
                 return typed_value
-
-            except ValueError as ex:
-                return None
-            except Exception as ex:
-                return None
 
 
 class Query(models.Model):

@@ -50,10 +50,10 @@ from functools import reduce
 logger = logging.getLogger(__name__)
 
 
-
 @admin.register(ClinicalData)
 class BaseReversionAdmin(VersionAdmin):
     pass
+
 
 class SectionAdmin(admin.ModelAdmin):
     list_display = ('code', 'display_name')
@@ -376,9 +376,11 @@ class ConsentRuleAdmin(admin.ModelAdmin):
     model = ConsentRule
     list_display = ("registry", "user_group", "capability", "consent_question", "enabled")
 
+
 class PreconditionAdmin(admin.ModelAdmin):
     model = Precondition
     list_display = ('survey', 'cde', 'value')
+
 
 class SurveyQuestionAdmin(admin.StackedInline):
     model = SurveyQuestion
@@ -392,18 +394,22 @@ class SurveyAdmin(admin.ModelAdmin):
     list_display = ("registry", "name")
     inlines = [SurveyQuestionAdmin]
 
+
 class SurveyRequestAdmin(admin.ModelAdmin):
     model = SurveyRequest
     list_display = ("patient_name", "survey_name", "patient_token", "created", "updated", "state", "error_detail", "user")
     search_fields = ("survey_name", "patient__family_name", "patient__given_names")
     list_display_links = None
 
+
 class SurveyAssignmentAdmin(admin.ModelAdmin):
     model = SurveyAssignment
     list_display = ("registry", "survey_name", "patient_token", "state", "created", "updated", "response")
 
+
 class ContextFormGroupItemAdmin(admin.StackedInline):
     model = ContextFormGroupItem
+
 
 class ContextFormGroupAdmin(admin.ModelAdmin):
     model = ContextFormGroup
@@ -413,67 +419,68 @@ class ContextFormGroupAdmin(admin.ModelAdmin):
     def registry(self, obj):
         return obj.registry.name
 
+
 class CDEFileAdmin(admin.ModelAdmin):
     model = CDEFile
     list_display = ("form_name", "section_code", "cde_code", "item")
 
+
 CDEPermittedValueAdmin = create_restricted_model_admin_class(
-                            CDEPermittedValue,
-                            ordering=['code'],
-                            search_fields=[
-                                'code',
-                                'value',
-                                'pv_group__code'],
-                            list_display=[
-                                'code',
-                                'value',
-                                'questionnaire_value_formatted',
-                                'pvg_link',
-                                'position_formatted'])
+    CDEPermittedValue,
+    ordering=['code'],
+    search_fields=[
+        'code',
+        'value',
+        'pv_group__code'],
+    list_display=[
+        'code',
+        'value',
+        'questionnaire_value_formatted',
+        'pvg_link',
+        'position_formatted'])
 
 CommonDataElementAdmin = create_restricted_model_admin_class(
-                            CommonDataElement,
-                            ordering=['code'],
-                            search_fields=[
-                                'code',
-                                'name',
-                                'datatype'],
-                            list_display=[
-                                'code',
-                                'name',
-                                'datatype',
-                                'widget_name'])
+    CommonDataElement,
+    ordering=['code'],
+    search_fields=[
+        'code',
+        'name',
+        'datatype'],
+    list_display=[
+        'code',
+        'name',
+        'datatype',
+        'widget_name'])
 
 DESIGN_MODE_ADMIN_COMPONENTS = [
-                        (Registry, RegistryAdmin),
-                        (CDEPermittedValue, CDEPermittedValueAdmin),
-                        (CommonDataElement, CommonDataElementAdmin),
-                        (CDEPermittedValueGroup, CDEPermittedValueGroupAdmin),
-                        (RegistryForm, RegistryFormAdmin),
-                        (Section, SectionAdmin),
-                        (ConsentSection, ConsentSectionAdmin),
-                        (CdePolicy, CdePolicyAdmin),
-                        (ContextFormGroup, ContextFormGroupAdmin),
-                        (CDEFile, CDEFileAdmin),
-                        ]
-
+    (Registry, RegistryAdmin),
+    (CDEPermittedValue, CDEPermittedValueAdmin),
+    (CommonDataElement, CommonDataElementAdmin),
+    (CDEPermittedValueGroup, CDEPermittedValueGroupAdmin),
+    (RegistryForm, RegistryFormAdmin),
+    (Section, SectionAdmin),
+    (ConsentSection, ConsentSectionAdmin),
+    (CdePolicy, CdePolicyAdmin),
+    (ContextFormGroup, ContextFormGroupAdmin),
+    (CDEFile, CDEFileAdmin),
+]
 
 PROMS_ADMIN_COMPONENTS = [(Survey, SurveyAdmin),
-                        (SurveyAssignment, SurveyAssignmentAdmin),
-                        (SurveyRequest, SurveyRequestAdmin),
-                        ]
+                          (SurveyAssignment, SurveyAssignmentAdmin),
+                          (SurveyRequest, SurveyRequestAdmin),
+                          ]
 
 NORMAL_MODE_ADMIN_COMPONENTS = [
-                               (Registry, RegistryAdmin),
-                               (QuestionnaireResponse, QuestionnaireResponseAdmin),
-                               (Precondition, PreconditionAdmin),
-                               (EmailNotification, EmailNotificationAdmin),
-                               (EmailTemplate, EmailTemplateAdmin),
-                               (EmailNotificationHistory, EmailNotificationHistoryAdmin),
-                               (Notification, NotificationAdmin),
-                               (DemographicFields, DemographicFieldsAdmin),
-                               (ConsentRule, ConsentRuleAdmin),
-                               ]
+    (Registry, RegistryAdmin),
+    (QuestionnaireResponse, QuestionnaireResponseAdmin),
+    (Precondition, PreconditionAdmin),
+    (EmailNotification, EmailNotificationAdmin),
+    (EmailTemplate, EmailTemplateAdmin),
+    (EmailNotificationHistory, EmailNotificationHistoryAdmin),
+    (Notification, NotificationAdmin),
+    (DemographicFields, DemographicFieldsAdmin),
+    (ConsentRule, ConsentRuleAdmin),
+]
 
 ADMIN_COMPONENTS = []
 

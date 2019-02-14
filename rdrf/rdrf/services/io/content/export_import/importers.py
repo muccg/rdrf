@@ -126,7 +126,7 @@ class ModelImporter(object):
                 # references to models we only simulated to save will fail.
                 # We could model.save() all models in a transaction that we
                 # we roll back, but that feels too dangerous
-                _ = f.read()
+                f.read()
                 self.child_logger.debug('Would import %d models', object_count)
                 return
 

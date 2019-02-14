@@ -1,4 +1,5 @@
 from collections import namedtuple
+import django.apps as apps
 
 from . import model_exporters, datagroup_exporters
 
@@ -76,7 +77,7 @@ _REGISTRY_DEF_GROUP = GroupDefinition(
     ))
 
 
-class EXPORT_TYPES(object):
+class ExportTypes(object):
     CDES = ExportType('cdes', 'Common Data Elements', ())
     REFDATA = ExportType('refdata', 'Reference Data', ())
     REGISTRY_DEF = ExportType('registry_def', 'Registry Definition', (CDES, REFDATA))
@@ -111,9 +112,9 @@ class EXPORT_TYPES(object):
 # These dependencies between data groups should be declared in this file and
 # the importer should deduce them from the definitions.
 META_FILTERS = {
-    EXPORT_TYPES.CDES: lambda m: m['name'] == 'CDEs',
-    EXPORT_TYPES.REFDATA: lambda m: m['name'] == 'Reference Data',
-    EXPORT_TYPES.REGISTRY_DEF: lambda m: m['name'] != 'Registry Data',
+    ExportTypes.CDES: lambda m: m['name'] == 'CDEs',
+    ExportTypes.REFDATA: lambda m: m['name'] == 'Reference Data',
+    ExportTypes.REGISTRY_DEF: lambda m: m['name'] != 'Registry Data',
 }
 
 
@@ -121,19 +122,19 @@ META_FILTERS = {
 
 
 CDE_EXPORT_DEFINITION = ExportDefinition(
-    type=EXPORT_TYPES.CDES,
+    type=ExportTypes.CDES,
     exporters_catalogue=_MAIN_CATALOGUE,
     datagroups=(_CDE_GROUP,)
 )
 
 REFDATA_EXPORT_DEFINITION = ExportDefinition(
-    type=EXPORT_TYPES.REFDATA,
+    type=ExportTypes.REFDATA,
     exporters_catalogue=_MAIN_CATALOGUE,
     datagroups=(_REFDATA_GROUP,)
 )
 
 REGISTRY_DEF_EXPORT_DEFINITION = ExportDefinition(
-    type=EXPORT_TYPES.REGISTRY_DEF,
+    type=ExportTypes.REGISTRY_DEF,
     exporters_catalogue=Catalogue(
         datagroup_exporters.catalogue,
         model_exporters.registry_catalogue,
@@ -146,7 +147,7 @@ REGISTRY_DEF_EXPORT_DEFINITION = ExportDefinition(
 )
 
 REGISTRY_WITH_DATA_EXPORT_DEFINITION = ExportDefinition(
-    type=EXPORT_TYPES.REGISTRY_WITH_DATA,
+    type=ExportTypes.REGISTRY_WITH_DATA,
     exporters_catalogue=Catalogue(
         datagroup_exporters.catalogue,
         model_exporters.registry_catalogue,

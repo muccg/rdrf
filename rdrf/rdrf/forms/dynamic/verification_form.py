@@ -2,6 +2,7 @@ from django.forms import BaseForm
 from collections import OrderedDict
 from rdrf.forms.dynamic.field_lookup import FieldFactory
 
+
 def make_verification_form(verifications):
     # This allows us to present the clinician's form identically to any clinical form
     # as far as cde widgets etc go.

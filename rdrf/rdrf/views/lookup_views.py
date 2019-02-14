@@ -4,6 +4,7 @@ from django.conf import settings
 from django.urls import reverse
 from django.utils.decorators import method_decorator
 from django.contrib.auth.decorators import login_required
+from django.core.exceptions import PermissionDenied
 
 import json
 import requests
@@ -51,6 +52,7 @@ class PatientLookup(View):
             results = []
 
         return HttpResponse(json.dumps(results))
+
 
 class VerificationLookup(View):
     @method_decorator(login_required)

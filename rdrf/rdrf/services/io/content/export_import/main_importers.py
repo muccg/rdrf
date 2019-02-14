@@ -65,22 +65,22 @@ class ZipFileImporter(object):
             self.meta = json.load(f)
 
     def create_importer(self, export_type, requested_import_type=None):
-        self.file_export_type = definitions.EXPORT_TYPES.from_name(export_type)
+        self.file_export_type = definitions.ExportTypes.from_name(export_type)
         if requested_import_type is None:
             requested_import_type = self.file_export_type.code
 
-        self.requested_type = definitions.EXPORT_TYPES.from_code(requested_import_type)
+        self.requested_type = definitions.ExportTypes.from_code(requested_import_type)
         if not (
                 self.requested_type is self.file_export_type or self.requested_type in self.file_export_type.includes):
             raise ImportError(
                 "Invalid import type '%s' requested for file '%s' with type '%s'." %
                 (requested_import_type, self.zipfile, self.file_export_type.code))
 
-        if self.requested_type in definitions.EXPORT_TYPES.registry_types:
+        if self.requested_type in definitions.ExportTypes.registry_types:
             return RegistryImporter(self)
-        if self.requested_type is definitions.EXPORT_TYPES.CDES:
+        if self.requested_type is definitions.ExportTypes.CDES:
             return GenericImporter(self)
-        if self.requested_type is definitions.EXPORT_TYPES.REFDATA:
+        if self.requested_type is definitions.ExportTypes.REFDATA:
             return GenericImporter(self)
         raise ImportError("Unrecognized export type '%s'." % (self.requested_type.code))
 
@@ -131,9 +131,9 @@ class RegistryLevelChecks(DelegateMixin):
 
     def check_registry_export_type_in_meta(self):
         export_type = get_meta_value(self.meta, 'type')
-        if export_type not in definitions.EXPORT_TYPES.registry_types_names:
+        if export_type not in definitions.ExportTypes.registry_types_names:
             raise ImportError("Invalid export type '%s' for registry import. Should be one of '%s'." % (
-                export_type, ', '.join(definitions.EXPORT_TYPES.registry_types_names)))
+                export_type, ', '.join(definitions.ExportTypes.registry_types_names)))
 
     @allow_if_forced
     def check_registry_does_not_exist(self):
@@ -195,7 +195,7 @@ class BaseImporter(DelegateMixin):
 
     def output_import_info(self):
         logger = IndentedLogger(self.logger, indent_level=2)
-        zipfile_type = definitions.EXPORT_TYPES.from_name(get_meta_value(self.meta, 'type'))
+        zipfile_type = definitions.ExportTypes.from_name(get_meta_value(self.meta, 'type'))
         logger.debug('Zipfile type: %s (%s)', zipfile_type.name, zipfile_type.code)
         also_includes = zipfile_type.includes
         if also_includes:
@@ -215,8 +215,7 @@ class BaseImporter(DelegateMixin):
         app_versions = dict(
             reduce(
                 lambda d,
-                x: d +
-                list(
+                x: d + list(
                     x.get(
                         'app_versions',
                         {}).items()),
@@ -258,9 +257,9 @@ class RegistryImporter(BaseImporter):
 
 
 META_FILTERS = {
-    definitions.EXPORT_TYPES.CDES: lambda m: m['name'] == 'CDEs',
-    definitions.EXPORT_TYPES.REFDATA: lambda m: m['name'] == 'Reference Data',
-    definitions.EXPORT_TYPES.REGISTRY_DEF: lambda m: m['name'] != 'Registry Data',
+    definitions.ExportTypes.CDES: lambda m: m['name'] == 'CDEs',
+    definitions.ExportTypes.REFDATA: lambda m: m['name'] == 'Reference Data',
+    definitions.ExportTypes.REGISTRY_DEF: lambda m: m['name'] != 'Registry Data',
 }
 
 

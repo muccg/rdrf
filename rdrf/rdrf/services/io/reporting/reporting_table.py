@@ -63,7 +63,7 @@ class ColumnLabeller(object):
 
             return s
 
-        except Exception as ex:
+        except Exception:
             return column_name
 
     def _get_sql_field_label(self, field_name):

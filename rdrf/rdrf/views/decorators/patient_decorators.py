@@ -29,8 +29,7 @@ def patient_questionnaire_access(function):
             return HttpResponseNotFound("Registry does not have a questionnaire")
 
         # fixme: check logic
-        if (registry.questionnaire.login_required and
-                (not user.is_authenticated or not is_patient(user))):
+        if registry.questionnaire.login_required and (not user.is_authenticated or not is_patient(user)):
             return HttpResponseRedirect(reverse("patient_page", args={registry_code}))
 
         return function(*args, **kwargs)

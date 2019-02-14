@@ -1,4 +1,5 @@
-from .settings import *
+from .settings import INSTALLED_APPS
+from .settings import *  # noqa
 
 INSTALLED_APPS += [
     'aloe_django',

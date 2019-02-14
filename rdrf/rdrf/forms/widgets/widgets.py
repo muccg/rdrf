@@ -2,7 +2,7 @@
 from django.forms import Textarea, Widget, MultiWidget, HiddenInput
 from django.forms import widgets
 from django.forms.utils import flatatt
-from django.utils.html import format_html, conditional_escape
+from django.utils.html import format_html
 from django.utils.safestring import mark_safe
 from django.urls import reverse_lazy
 from django.forms.widgets import ClearableFileInput
@@ -228,7 +228,7 @@ class CountryWidget(widgets.Select):
         return mark_safe('\n'.join(output))
 
 
-class StateWidget(widgets.Select):  
+class StateWidget(widgets.Select):
 
     def render(self, name, value, attrs, renderer=None):
         try:
@@ -364,6 +364,7 @@ class RadioSelect(widgets.RadioSelect):
         html = re.sub(r'\<ul.+\>', '', html)
         new_html = html.replace("<li>", "").replace("</li>", "").replace("</ul>", "")
         return new_html
+
 
 class ReadOnlySelect(widgets.Select):
 
@@ -558,6 +559,7 @@ class ValueWrapper:
 
     def __str__(self):
         return self.filename
+
 
 class ConsentFileInput(ClearableFileInput):
     def get_context(self, name, value, attrs):
