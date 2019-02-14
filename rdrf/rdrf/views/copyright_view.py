@@ -1,6 +1,5 @@
 from django.shortcuts import render
 from django.views.generic.base import View
-from django.http import HttpResponseRedirect
 
 from rdrf.models.definition.models import Registry
 from rdrf.models.proms.models import Survey
@@ -10,8 +9,9 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+
 class CopyrightView(View):
-    
+
     def get(self, request):
         if request.user.is_authenticated:
             registry_models = Registry.objects.all()

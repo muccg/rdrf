@@ -13,6 +13,8 @@ from rdrf.workflows.verification import verifications_apply
 from django.conf import settings
 from django.http import Http404
 
+from rdrf.system_role import SystemRoles
+
 
 # todo update ophg registries to use new demographics and patients listing
 # forms: we need to fix this properly
@@ -34,7 +36,7 @@ class RouterView(View):
         redirect_url = None
 
         if user.is_authenticated:
-            if settings.PROMS_SITE:
+            if settings.SYSTEM_ROLE is SystemRoles.CIC_PROMS:
                 if user.is_superuser:
                     redirect_url = reverse(_HOME_PAGE)
                 else:

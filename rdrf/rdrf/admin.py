@@ -26,6 +26,7 @@ from rdrf.models.proms.models import SurveyQuestion
 from rdrf.models.proms.models import Precondition
 from rdrf.models.proms.models import SurveyAssignment
 from rdrf.models.proms.models import SurveyRequest
+from rdrf.system_role import SystemRoles
 
 
 from reversion.admin import VersionAdmin
@@ -451,6 +452,7 @@ CommonDataElementAdmin = create_restricted_model_admin_class(
         'widget_name'])
 
 DESIGN_MODE_ADMIN_COMPONENTS = [
+    (Registry, RegistryAdmin),
     (CDEPermittedValue, CDEPermittedValueAdmin),
     (CommonDataElement, CommonDataElementAdmin),
     (CDEPermittedValueGroup, CDEPermittedValueGroupAdmin),
@@ -461,7 +463,6 @@ DESIGN_MODE_ADMIN_COMPONENTS = [
     (ContextFormGroup, ContextFormGroupAdmin),
     (CDEFile, CDEFileAdmin),
 ]
-
 
 PROMS_ADMIN_COMPONENTS = [(Survey, SurveyAdmin),
                           (SurveyAssignment, SurveyAssignmentAdmin),
@@ -480,14 +481,22 @@ NORMAL_MODE_ADMIN_COMPONENTS = [
     (ConsentRule, ConsentRuleAdmin),
 ]
 
+ADMIN_COMPONENTS = []
 
-if settings.PROMS_SITE:
+if settings.SYSTEM_ROLE is SystemRoles.CIC_PROMS:
     ADMIN_COMPONENTS = PROMS_ADMIN_COMPONENTS
-elif settings.DESIGN_MODE:
-    ADMIN_COMPONENTS = NORMAL_MODE_ADMIN_COMPONENTS + DESIGN_MODE_ADMIN_COMPONENTS + PROMS_ADMIN_COMPONENTS
-else:
-    ADMIN_COMPONENTS = NORMAL_MODE_ADMIN_COMPONENTS + PROMS_ADMIN_COMPONENTS
 
+if settings.DESIGN_MODE:
+    ADMIN_COMPONENTS = ADMIN_COMPONENTS + DESIGN_MODE_ADMIN_COMPONENTS
+
+if settings.SYSTEM_ROLE is SystemRoles.NORMAL:
+    ADMIN_COMPONENTS = ADMIN_COMPONENTS + NORMAL_MODE_ADMIN_COMPONENTS
+
+if settings.SYSTEM_ROLE is SystemRoles.CIC_DEV:
+    ADMIN_COMPONENTS = ADMIN_COMPONENTS + NORMAL_MODE_ADMIN_COMPONENTS + PROMS_ADMIN_COMPONENTS
+
+if settings.SYSTEM_ROLE is SystemRoles.CIC_CLINICAL:
+    ADMIN_COMPONENTS = ADMIN_COMPONENTS + NORMAL_MODE_ADMIN_COMPONENTS + PROMS_ADMIN_COMPONENTS
 
 for model_class, model_admin in ADMIN_COMPONENTS:
     if not admin.site.is_registered(model_class):

@@ -230,7 +230,7 @@ def scroll_to_multisection_cde(section, cde, item=1):
                                                                         item))
 
 
-def scroll_to_cde(section, cde):
+def scroll_to_cde(section, cde, item=None):
     """
     navigate to a given section and cde, scrolling to make the field visible
     return the input element

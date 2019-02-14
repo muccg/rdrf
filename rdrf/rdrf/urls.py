@@ -40,6 +40,7 @@ from rdrf.views.proms_views import PromsLandingPageView
 from rdrf.views.proms_views import PromsCompletedPageView
 from rdrf.views.proms_views import PromsClinicalView
 from rdrf.views.proms_views import PromsQRCodeImageView
+from rdrf.system_role import SystemRoles
 from rdrf.views.copyright_view import CopyrightView
 
 
@@ -72,9 +73,9 @@ def handler_application_error(request):
 
 JavaScriptCatalog.domain = "django"  # The default domain didn't work for me
 
-urlpatterns = []
+normalpatterns = []
 if settings.DEBUG is True:
-    urlpatterns += [
+    normalpatterns += [
         re_path(r'^test404', handler404, name='test 404'),
         re_path(r'^test500', handler500, name='test 500'),
         re_path(r'^testAppError', handler_application_error, name='test application error'),
@@ -113,8 +114,38 @@ two_factor_auth_urls = [
     re_path(r'^account/two_factor/disable/?$', DisableView.as_view(), name='disable'),
 ]
 
+proms_patterns = [
+    re_path(r'^translations/jsi18n/$', JavaScriptCatalog.as_view(), name='javascript-catalog'),
+    re_path(r'^rpc', form_view.RPCHandler.as_view(), name='rpc'),
+    path('admin/', admin.site.urls),
+    re_path(r'', include((two_factor_auth_urls, 'two_factor'), namespace=None)),
 
-urlpatterns += [
+    re_path(r'^logout/?$', auth_views.LogoutView.as_view(), name='logout'),
+    re_path(r'^password_change/?$', auth_views.PasswordChangeView.as_view(), name='password_change'),
+    re_path(r'^password_change/done/?$', auth_views.PasswordChangeDoneView.as_view(), name='password_change_done'),
+
+    re_path(r'^login_assistance/?$', auth_views.PasswordResetView.as_view(),
+            kwargs={
+            'password_reset_form': RDRFLoginAssistanceForm,
+            'template_name': 'registration/login_assistance_form.html',
+            'subject_template_name': 'registration/login_assistance_subject.txt',
+            'email_template_name': 'registration/login_assistance_email.html',
+            'post_reset_redirect': 'login_assistance_email_sent',
+            },
+            name='login_assistance'),
+
+    re_path(r"^copyright/?$", CopyrightView.as_view(), name="copyright"),
+    re_path(r'^$', landing_view.LandingView.as_view(), name='landing'),
+    re_path(r'^reglist/?', RegistryListView.as_view(), name="reglist"),
+    re_path(r'^import/?', import_registry_view.ImportRegistryView.as_view(),
+            name='import_registry'),
+    re_path(r'^router/', login_router.RouterView.as_view(), name="login_router"),
+
+    re_path(r"^(?P<registry_code>\w+)/?$",
+            registry_view.RegistryView.as_view(), name='registry'),
+]
+
+normalpatterns += [
     re_path(r'^translations/jsi18n/$', JavaScriptCatalog.as_view(), name='javascript-catalog'),
     re_path(r'^iprestrict/', include(('iprestrict.urls', 'iprestrict_urls'), namespace=None)),
     re_path(r'^useraudit/', include('useraudit.urls',)),
@@ -127,7 +158,6 @@ urlpatterns += [
 
     path('admin/', admin.site.urls),
 
- 
 
     re_path(r'', include((two_factor_auth_urls, 'two_factor'), namespace=None)),
 
@@ -319,3 +349,8 @@ urlpatterns += [
 
     re_path(r'^i18n/', include(('django.conf.urls.i18n', 'django_conf_urls'), namespace=None))
 ]
+
+if settings.SYSTEM_ROLE is SystemRoles.CIC_PROMS:
+    urlpatterns = proms_patterns
+else:
+    urlpatterns = normalpatterns
