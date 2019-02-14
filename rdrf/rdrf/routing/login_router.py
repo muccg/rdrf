@@ -16,7 +16,6 @@ from django.http import Http404
 from rdrf.system_role import SystemRoles
 
 
-
 # todo update ophg registries to use new demographics and patients listing
 # forms: we need to fix this properly
 def in_fkrp(user):

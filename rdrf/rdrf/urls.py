@@ -125,24 +125,24 @@ proms_patterns = [
     re_path(r'^password_change/done/?$', auth_views.PasswordChangeDoneView.as_view(), name='password_change_done'),
 
     re_path(r'^login_assistance/?$', auth_views.PasswordResetView.as_view(),
-        kwargs={
+            kwargs={
             'password_reset_form': RDRFLoginAssistanceForm,
             'template_name': 'registration/login_assistance_form.html',
             'subject_template_name': 'registration/login_assistance_subject.txt',
             'email_template_name': 'registration/login_assistance_email.html',
             'post_reset_redirect': 'login_assistance_email_sent',
-        },
-        name='login_assistance'),
+            },
+            name='login_assistance'),
 
-    re_path(r"^copyright/?$", CopyrightView.as_view(), name="copyright"), 
+    re_path(r"^copyright/?$", CopyrightView.as_view(), name="copyright"),
     re_path(r'^$', landing_view.LandingView.as_view(), name='landing'),
     re_path(r'^reglist/?', RegistryListView.as_view(), name="reglist"),
     re_path(r'^import/?', import_registry_view.ImportRegistryView.as_view(),
-        name='import_registry'),
+            name='import_registry'),
     re_path(r'^router/', login_router.RouterView.as_view(), name="login_router"),
 
     re_path(r"^(?P<registry_code>\w+)/?$",
-        registry_view.RegistryView.as_view(), name='registry'),
+            registry_view.RegistryView.as_view(), name='registry'),
 ]
 
 normalpatterns += [
@@ -158,7 +158,6 @@ normalpatterns += [
 
     path('admin/', admin.site.urls),
 
- 
 
     re_path(r'', include((two_factor_auth_urls, 'two_factor'), namespace=None)),
 

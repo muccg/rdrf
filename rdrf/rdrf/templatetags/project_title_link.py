@@ -8,6 +8,6 @@ register = template.Library()
 
 @register.simple_tag
 def project_title_link():
-    if not settings.SYSTEM_ROLE is SystemRoles.CIC_PROMS:
+    if settings.SYSTEM_ROLE is not SystemRoles.CIC_PROMS:
         url_name = settings.PROJECT_TITLE_LINK
         return reverse(url_name)

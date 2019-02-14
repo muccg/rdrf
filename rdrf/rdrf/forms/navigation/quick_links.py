@@ -241,7 +241,7 @@ class Links:
         PROMS = {
             Surveys.text: Surveys,
             SurveyAssignments.text: SurveyAssignments,
-            SurveyRequest.text : SurveyRequest,
+            SurveyRequest.text: SurveyRequest,
         }
 
     if settings.SYSTEM_ROLE is SystemRoles.CIC_PROMS:
@@ -299,37 +299,37 @@ class QuickLinks(object):
 
         if settings.DESIGN_MODE:
             design_menus = {
-                    **Links.REGISTRY_DESIGN,
-                }
+                **Links.REGISTRY_DESIGN,
+            }
 
         if settings.SYSTEM_ROLE in (SystemRoles.CIC_DEV, SystemRoles.NORMAL, SystemRoles.CIC_CLINICAL):
             normal_menus = {
-                    **Links.AUDITING,
-                    **Links.CONSENT,
-                    **Links.DATA_ENTRY,
-                    **Links.DOCTORS,
-                    **Links.EMAIL,
-                    **Links.FAMILY_LINKAGE,
-                    **Links.GENETIC,
-                    **Links.IP_RESTRICT,
-                    **Links.OTHER,
-                    **Links.PERMISSIONS,
-                    **Links.QUESTIONNAIRE,
-                    **Links.REGISTRATION,
-                    **Links.REPORTING,
-                    **Links.STATE_MANAGEMENT,
-                    **Links.USER_MANAGEMENT,
-                    **Links.WORKING_GROUPS,
-                }
+                **Links.AUDITING,
+                **Links.CONSENT,
+                **Links.DATA_ENTRY,
+                **Links.DOCTORS,
+                **Links.EMAIL,
+                **Links.FAMILY_LINKAGE,
+                **Links.GENETIC,
+                **Links.IP_RESTRICT,
+                **Links.OTHER,
+                **Links.PERMISSIONS,
+                **Links.QUESTIONNAIRE,
+                **Links.REGISTRATION,
+                **Links.REPORTING,
+                **Links.STATE_MANAGEMENT,
+                **Links.USER_MANAGEMENT,
+                **Links.WORKING_GROUPS,
+            }
             MenuConfig().patient = {}
 
             MenuConfig().parent = {}
 
             if settings.SYSTEM_ROLE in (SystemRoles.CIC_DEV, SystemRoles.CIC_CLINICAL):
                 if settings.DESIGN_MODE:
-                    design_menus.update({**Links.PROMS,})
+                    design_menus.update({**Links.PROMS, })
                 else:
-                    normal_menus.update({**Links.PROMS,})
+                    normal_menus.update({**Links.PROMS, })
 
             MenuConfig().working_group_staff = {
                 **Links.DATA_ENTRY
@@ -384,7 +384,6 @@ class QuickLinks(object):
             else:
                 design_menus.update(normal_menus)
                 MenuConfig().all = design_menus
-        
 
         if settings.SYSTEM_ROLE is SystemRoles.CIC_PROMS:
             MenuConfig().settings = {
