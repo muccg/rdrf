@@ -3,13 +3,15 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import * as React from 'react';
 import * as ReactDOM from 'react-dom';
 import { Provider } from 'react-redux';
+import { applyMiddleware, compose, createStore } from 'redux';
 import thunk from 'redux-thunk';
-import { createStore, applyMiddleware, compose } from 'redux';
+
 
 import App from './app';
 import { promsPageReducer } from './pages/proms_page/reducers';
 
-const composeEnhancers = window['__REDUX_DEVTOOLS_EXTENSION_COMPOSE__'] || compose;
+const devtoolsExtension = '__REDUX_DEVTOOLS_EXTENSION_COMPOSE__';
+const composeEnhancers = window[devtoolsExtension] || compose;
 
 export const store = createStore(
     promsPageReducer,
@@ -18,7 +20,7 @@ export const store = createStore(
 
 
 const unsubscribe = store.subscribe(() =>
-  console.log(store.getState())
+  global.console.log(store.getState())
 )
 
 ReactDOM.render(
