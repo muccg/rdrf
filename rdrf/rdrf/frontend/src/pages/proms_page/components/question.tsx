@@ -15,6 +15,8 @@ class Question extends React.Component<QuestionInterface, object> {
     constructor(props) {
         super(props);
         this.onSliderChange = this.onSliderChange.bind(this);
+	this.handleConsent = this.handleConsent.bind(this);
+        this.handleChange = this.handleChange.bind(this);
     }
 
     handleChange(event) {
@@ -135,7 +137,7 @@ class Question extends React.Component<QuestionInterface, object> {
                         <FormGroup check>
                             <Label check>
                                 <Input type="checkbox" name={this.props.questions[this.props.stage].cde}
-                                    onChange={this.handleConsent.bind(this)}
+                                    onChange={this.handleConsent}
                                     checked={this.props.answers[question.cde]} />
                                 {consentText}
                             </Label>
@@ -146,7 +148,7 @@ class Question extends React.Component<QuestionInterface, object> {
                                 <Col sm="12" md={{ size: 6, offset: 3 }}>
                                     <Label check>
                                         <Input type="radio" name={this.props.questions[this.props.stage].cde} value={option.code}
-                                            onChange={this.handleChange.bind(this)}
+                                            onChange={this.handleChange}
                                             checked={option.code === this.props.answers[question.cde]} />{option.text}
                                     </Label>
                                 </Col>
