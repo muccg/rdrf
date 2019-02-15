@@ -1,47 +1,44 @@
-import * as React from 'react';
 import * as _ from 'lodash';
+import Slider from 'rc-slider';
+import 'rc-slider/assets/index.css';
+import Tooltip from "rc-tooltip";
+import * as React from 'react';
 import { connect } from 'react-redux';
-
-import { Form, FormGroup, Label, Input, Col } from 'reactstrap';
+import { Col, Form, FormGroup, Input, Label } from 'reactstrap';
 import { QuestionInterface } from './interfaces';
 
 import * as actions from '../reducers';
-import Slider from 'rc-slider';
-import Tooltip from "rc-tooltip";
-import 'rc-slider/assets/index.css';
+
 
 
 class Question extends React.Component<QuestionInterface, object> {
     constructor(props) {
         super(props);
         this.onSliderChange = this.onSliderChange.bind(this);
+        this.handleConsent = this.handleConsent.bind(this);
+        this.handleChange = this.handleChange.bind(this);
     }
 
-    handleChange(event) {
-        console.log("radio button clicked");
-        console.log(event);
-        let cdeValue = event.target.value;
-        let cdeCode = event.target.name;
-        console.log("cde = " + cdeCode.toString());
-        console.log("value = " + cdeValue.toString());
+    public handleChange(event) {
+        const cdeValue = event.target.value;
+        const cdeCode = event.target.name;
         this.props.enterData(cdeCode, cdeValue);
     }
 
-    handleConsent(event) {
-        let isConsentChecked = event.target.checked;
-        let cdeCode = event.target.name;
+    public handleConsent(event) {
+        const isConsentChecked = event.target.checked;
+        const cdeCode = event.target.name;
         this.props.enterData(cdeCode, isConsentChecked);
     }
 
-    onSliderChange = (value) => {
-        console.log(value);
-        let code = this.props.questions[this.props.stage].cde;
+    public onSliderChange = (value) => {
+        const code = this.props.questions[this.props.stage].cde;
         this.props.enterData(code, value);
     }
 
-    getMarks = (question) => {
-        var minValue = question.spec.min;
-        var maxValue = question.spec.max;
+    public getMarks = (question) => {
+        const minValue = question.spec.min;
+        const maxValue = question.spec.max;
         const marks = {
             [minValue]: <strong>{minValue}</strong>,
             10:'10',
@@ -65,7 +62,7 @@ class Question extends React.Component<QuestionInterface, object> {
 
     }
 
-    getSliderHandle = () => {
+    public getSliderHandle = () => {
         const Handle = Slider.Handle;
         const handle = props => {
             const { value, dragging, index, ...restProps } = props;
@@ -86,20 +83,20 @@ class Question extends React.Component<QuestionInterface, object> {
     }
 
 
-    render() {
-        let question = this.props.questions[this.props.stage];
+    public render() {
+        const question = this.props.questions[this.props.stage];
         let defaultValue = 0;
-        if (question.spec.tag=='integer') {
+        if (question.spec.tag === 'integer') {
             if(this.props.answers[question.cde] !== undefined) {
                 defaultValue = this.props.answers[question.cde];
             } else {
                 this.onSliderChange(defaultValue);
             }
         }
-        const box_style = {width: "100px", height:"100px", backgroundColor: "black"};
-        const p_style = {color: "white", align: "center"};
+        const boxStyle = {width: "100px", height:"100px", backgroundColor: "black"};
+        const pStyle = {color: "white", align: "center"};
         const style = { width: "50%", height:"50vh", margin:"0 auto", leftPadding: "100px" };
-        const isConsent = (this.props.questions.length - 1) == this.props.stage;
+        const isConsent = (this.props.questions.length - 1) === this.props.stage;
         const consentText = "I consent to ongoing involvement in the CIC Cancer project" +
             "and receiving a reminder for the next survey.";
 
@@ -111,15 +108,15 @@ class Question extends React.Component<QuestionInterface, object> {
                     <i>{this.props.questions[this.props.stage].instructions}</i>
                 </FormGroup>
                 {
-                    (question.spec.tag=='integer' ?
+                    (question.spec.tag === 'integer' ?
                         <div className='row'>
                             <div className="col">
-                                <div className="float-right" style={box_style}>
-                                    <p className="text-center" style={p_style}>YOUR HEALTH RATE TODAY <b>{defaultValue}</b></p>
+                                <div className="float-right" style={boxStyle}>
+                                    <p className="text-center" style={pStyle}>YOUR HEALTH RATE TODAY <b>{defaultValue}</b></p>
                                 </div>
                             </div>
                             <div className="col" style={style}>
-                                <Slider vertical min={question.spec.min}
+                                <Slider vertical={true} min={question.spec.min}
                                     max={question.spec.max}
                                     defaultValue={defaultValue}
                                     marks={this.getMarks(question)}
@@ -132,21 +129,21 @@ class Question extends React.Component<QuestionInterface, object> {
                         :
 
                         isConsent ?
-                        <FormGroup check>
-                            <Label check>
+                        <FormGroup check={true}>
+                            <Label check={true}>
                                 <Input type="checkbox" name={this.props.questions[this.props.stage].cde}
-                                    onChange={this.handleConsent.bind(this)}
+                                    onChange={this.handleConsent}
                                     checked={this.props.answers[question.cde]} />
                                 {consentText}
                             </Label>
                         </FormGroup>
                         :
-                        _.map(question.spec.tag=='range' ? question.spec.options : [], (option, index) => (
-                            <FormGroup check>
+                        _.map(question.spec.tag==='range' ? question.spec.options : [], (option, index) => (
+                            <FormGroup check={true}>
                                 <Col sm="12" md={{ size: 6, offset: 3 }}>
-                                    <Label check>
+                                    <Label check={true}>
                                         <Input type="radio" name={this.props.questions[this.props.stage].cde} value={option.code}
-                                            onChange={this.handleChange.bind(this)}
+                                            onChange={this.handleChange}
                                             checked={option.code === this.props.answers[question.cde]} />{option.text}
                                     </Label>
                                 </Col>
