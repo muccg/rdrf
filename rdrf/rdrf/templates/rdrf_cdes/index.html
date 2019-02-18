@@ -35,7 +35,7 @@
                     <span class="icon-bar"></span>
                     <span class="icon-bar"></span>
                   </button>
-                  <a href="{% url 'rdrf:landing' %}" class="navbar-brand">RDRF {% version_number %}</a>
+                  <a href="{% url 'landing' %}" class="navbar-brand">RDRF {% version_number %}</a>
             </div>
             <nav class="collapse navbar-collapse bs-navbar-collapse" role="navigation">
                   <ul class="nav navbar-nav navbar-right">
@@ -52,7 +52,7 @@
                           <ul class="dropdown-menu">
                             {% for reg in registries %}
                             <li>
-                                <a href="{% url 'rdrf:registry' reg.code %}">
+                                <a href="{% url 'registry' reg.code %}">
                                     {{reg.name|translate}}{% if reg.version %} v{{reg.version}}{% endif %}
                                 </a>
                             </li>
