@@ -5,6 +5,7 @@ import os
 from ccg_django_utils.conf import EnvConfig
 # import message constants so we can use bootstrap style classes
 from django.contrib.messages import constants as message_constants
+from rdrf.system_role import SystemRoles
 
 env = EnvConfig()
 
@@ -435,6 +436,7 @@ LOGGING = {
 # False ( the default) means registry definition cannot be edited on site
 DESIGN_MODE = env.get('design_mode', False)
 
+
 ################################################################################
 # Customize settings for each registry below
 ################################################################################
@@ -486,7 +488,6 @@ PROJECT_LOGO = env.get("project_logo", "")
 PROJECT_LOGO_LINK = env.get("project_logo_link", "")
 
 
-
 LOCALE_PATHS = env.getlist("locale_paths", [os.path.join(WEBAPP_ROOT, "translations/locale")])
 
 AUTH_PASSWORD_VALIDATORS = [{
@@ -512,6 +513,8 @@ AUTH_PASSWORD_VALIDATORS = [{
 },
 ]
 
+# setup for SYSTEM_ROLE
+SYSTEM_ROLE = SystemRoles.from_value(env.get("SYSTEM_ROLE", "NORMAL"))
 
 # setup for PROMS
 PROMS_SECRET_TOKEN = env.get("proms_secret_token", "foobar")  # todo set this us in env etc

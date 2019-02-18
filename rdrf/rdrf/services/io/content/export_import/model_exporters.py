@@ -109,9 +109,9 @@ class CustomUserExporter(ModelExporter):
         # the user refers to don't exist
         registry_code = self.exporter_context['registry_code']
         for user in self.model.objects.filter(registry__code=registry_code):
-            user.registry = models.Registry.objects.filter(code=registry_code)
-            user.working_groups = groupmodels.WorkingGroup.objects.filter(
-                registry__code=registry_code)
+            user.registry.set(models.Registry.objects.filter(code=registry_code))
+            user.working_groups.set(groupmodels.WorkingGroup.objects.filter(
+                registry__code=registry_code))
             yield user
 
 

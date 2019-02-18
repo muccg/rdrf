@@ -10,6 +10,10 @@ from useraudit.password_expiry import should_warn_about_password_expiry, days_to
 from rdrf.services.io.notifications.email_notification import process_notification
 from rdrf.events.events import EventType
 from rdrf.workflows.verification import verifications_apply
+from django.conf import settings
+from django.http import Http404
+
+from rdrf.system_role import SystemRoles
 
 
 # todo update ophg registries to use new demographics and patients listing
@@ -32,7 +36,12 @@ class RouterView(View):
         redirect_url = None
 
         if user.is_authenticated:
-            if user.is_superuser:
+            if settings.SYSTEM_ROLE is SystemRoles.CIC_PROMS:
+                if user.is_superuser:
+                    redirect_url = reverse(_HOME_PAGE)
+                else:
+                    raise Http404()
+            elif user.is_superuser:
                 redirect_url = reverse(_PATIENTS_LISTING)
             elif user.is_clinician and user.my_registry and verifications_apply(user):
                 redirect_url = reverse("verifications_list", args=[user.registry_code])
@@ -75,8 +84,8 @@ class RouterView(View):
         sentence1 = ungettext(
             'Your password will expire in %(days)d days.',
             'Your password will expire in %(days)d days.', days_left) % {'days': days_left}
-        link = ('<a href="%(url)s" class="alert-link">' + _('Change Password') +
-                '</a>') % {'url': reverse('password_change')}
+        link = '<a href="%(url)s" class="alert-link">' + _('Change Password') + \
+            '</a>' % {'url': reverse('password_change')}
         sentence2 = _('Please use %(link)s to change it.') % {'link': link}
         msg = sentence1 + ' ' + sentence2
 

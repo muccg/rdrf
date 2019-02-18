@@ -504,7 +504,7 @@ class FormView(View):
 
                     from rdrf.helpers.utils import wrap_uploaded_files
                     post_copy = request.POST.copy()
-                    #request.POST.update(request.FILES)
+                    # request.POST.update(request.FILES)
                     post_copy.update(request.FILES)
 
                     form_section[s] = form_class(wrap_uploaded_files(
@@ -835,7 +835,7 @@ class FormView(View):
                         # we grab the list of data items by section code not cde code
                         initial_data = wrap_fs_data_for_form(
                             self.registry, self.dynamic_data[s])
-                    except KeyError as ke:
+                    except KeyError:
                         initial_data = [""]  # * len(section_elements)
                 else:
                     # initial_data = [""] * len(section_elements)
@@ -1472,10 +1472,10 @@ class QuestionnaireConfigurationView(View):
 
             @property
             def questions(self):
-                l = []
+                lst = []
                 for cde_model in self.section_model.cde_models:
-                    l.append(QuestionWrapper(self.registry_form, self.section_model, cde_model))
-                return l
+                    lst.append(QuestionWrapper(self.registry_form, self.section_model, cde_model))
+                return lst
 
             @property
             def name(self):

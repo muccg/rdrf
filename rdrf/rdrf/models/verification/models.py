@@ -1,6 +1,7 @@
 from django.db import models
 from django.utils.translation import ugettext as _
 
+
 class Annotation(models.Model):
     class Meta:
         app_label = "rdrf"

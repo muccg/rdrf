@@ -3,12 +3,18 @@ from django import forms
 from django.core.exceptions import ValidationError
 from django.forms.utils import ErrorDict
 
-from .models import *
+from .models import (
+    Patient,
+    PatientAddress,
+    PatientConsent,
+    Registry,
+    PatientRelative,
+    ParentGuardian,
+    PatientDoctor)
 from rdrf.db.dynamic_data import DynamicDataWrapper
 from rdrf.models.definition.models import ConsentQuestion, ConsentSection, DemographicFields
 from rdrf.forms.widgets.widgets import CountryWidget, StateWidget, ConsentFileInput
 from registry.groups.models import CustomUser, WorkingGroup
-from registry.patients.models import Patient, PatientRelative
 from registry.patients.patient_widgets import PatientRelativeLinkWidget
 from django.utils.translation import ugettext as _
 
@@ -83,7 +89,7 @@ class PatientRelativeForm(forms.ModelForm):
                 elif name == 'date_of_birth':
                     try:
                         self.cleaned_data[name] = self._set_date_of_birth(value)
-                    except Exception as ex:
+                    except Exception:
                         raise ValidationError("Date of Birth must be dd-mm-yyyy")
 
                 elif name == 'patient':
@@ -118,10 +124,10 @@ class PatientAddressForm(forms.ModelForm):
         model = PatientAddress
         fields = ('address_type', 'address', 'country', 'state', 'suburb', 'postcode')
 
-    country = forms.ChoiceField(required=True, 
-                               widget=CountryWidget(attrs={'onChange': 'select_country(this);'}))
+    country = forms.ChoiceField(required=True,
+                                widget=CountryWidget(attrs={'onChange': 'select_country(this);'}))
     state = forms.ChoiceField(required=True,
-                             widget=StateWidget())
+                              widget=StateWidget())
     address = forms.CharField(widget=forms.Textarea(attrs={'rows': 5}))
 
 
@@ -148,8 +154,8 @@ class PatientForm(forms.ModelForm):
         "cols": 30,
     }
 
-    next_of_kin_country = forms.ChoiceField(required=False, 
-        widget=CountryWidget(attrs={'onChange': 'select_country(this);'}))
+    next_of_kin_country = forms.ChoiceField(required=False,
+                                            widget=CountryWidget(attrs={'onChange': 'select_country(this);'}))
     next_of_kin_state = forms.ChoiceField(required=False, widget=StateWidget())
     country_of_birth = forms.ChoiceField(required=False, widget=CountryWidget())
 
@@ -405,9 +411,9 @@ class PatientForm(forms.ModelForm):
         if commit:
             patient_model.save()
             patient_model.working_groups.set(self.cleaned_data["working_groups"])
-            #for wg in self.cleaned_data["working_groups"]:
+            # for wg in self.cleaned_data["working_groups"]:
             #    patient_model.working_groups.add(wg)
-            
+
             for reg in self.cleaned_data["rdrf_registry"]:
                 patient_model.rdrf_registry.add(reg)
 
@@ -423,7 +429,7 @@ class PatientForm(forms.ModelForm):
                 # are we still applicable?! - maybe some field on patient changed which
                 # means not so any longer?
                 if consent_section_model.applicable_to(patient_model):
-                    cv = patient_model.set_consent(consent_question_model, self.custom_consents[consent_field], commit)
+                    patient_model.set_consent(consent_question_model, self.custom_consents[consent_field], commit)
             if not patient_registries:
                 closure = self._make_consent_closure(registry_model, consent_section_model, consent_question_model,
                                                      consent_field)
@@ -438,7 +444,7 @@ class PatientForm(forms.ModelForm):
         def closure(patient_model, registry_ids):
             if registry_model.id in registry_ids:
                 if consent_section_model.applicable_to(patient_model):
-                    cv = patient_model.set_consent(consent_question_model, self.custom_consents[consent_field])
+                    patient_model.set_consent(consent_question_model, self.custom_consents[consent_field])
             else:
                 pass
 

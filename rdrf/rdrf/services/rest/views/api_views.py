@@ -179,7 +179,8 @@ class ListStates(APIView):
 
         wanted_fields = ('name', 'code', 'type', 'country_code')
 
-        def to_dict(x): return dict([(k, getattr(x, k)) for k in wanted_fields])
+        def to_dict(x):
+            return dict([(k, getattr(x, k)) for k in wanted_fields])
 
         return Response(list(map(to_dict, states)))
 

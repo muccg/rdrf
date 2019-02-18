@@ -123,12 +123,11 @@ def try_to_register(step, registry, client_name, email_address, password):
 
     captcha_iframe_element = world.browser.find_element_by_xpath(
         "//iframe[@role='presentation']")
-    #captcha_iframe_element = world.browser.find_element_by_xpath("//iframe[@title='recaptcha widget']")
 
     world.browser.switch_to.frame(captcha_iframe_element)
     utils.scroll_to_y(500)
 
-    captcha_element = world.browser.find_element_by_id('recaptcha-anchor').send_keys(Keys.SPACE)
+    world.browser.find_element_by_id('recaptcha-anchor').send_keys(Keys.SPACE)
 
     time.sleep(4)
     world.browser.switch_to_default_content()
@@ -627,7 +626,7 @@ def should_not_be_able_download(step, download_name):
 def check_history_popup(step, form, section, cde, history_values_csv):
     from selenium.webdriver.common.action_chains import ActionChains
     from selenium.webdriver.common.by import By
-    from selenium.webdriver.support import expected_conditions as EC
+    from selenium.webdriver.support import expected_conditions as ec
     from selenium.webdriver.support.ui import WebDriverWait
 
     history_values = history_values_csv.split(",")
@@ -650,8 +649,8 @@ def check_history_popup(step, form, section, cde, history_values_csv):
 
     history_widget.click()
 
-    modal = WebDriverWait(world.browser, 60).until(
-        EC.visibility_of_element_located((By.XPATH, ".//a[@href='#cde-history-table']"))
+    WebDriverWait(world.browser, 60).until(
+        ec.visibility_of_element_located((By.XPATH, ".//a[@href='#cde-history-table']"))
     )
 
     def find_cell(historical_value):
@@ -661,22 +660,16 @@ def check_history_popup(step, form, section, cde, history_values_csv):
             raise Exception("Can't locate history value '%s'" % historical_value)
 
     for historical_value in history_values:
-        table_cell = find_cell(historical_value)
+        find_cell(historical_value)
 
 
 @step('check the clear checkbox for multisection "(.*)" cde "(.*)" file "(.*)"')
 def clear_file_upload(step, section, cde, download_name):
     # NB. the nots here! We avoid dummy empty forms and the hidden history
     import time
-    section_xpath = ".//div[@class='panel panel-default' and contains(.,'%s') and not(contains(., '__prefix__')) and not(contains(.,'View previous values'))]" % section
-    section_element = world.browser.find_element_by_xpath(section_xpath)
-    mark_for_deletion_label = section_element.find_element_by_xpath(
-        ".//label[contains(., 'Mark for deletion')]")
-    cde_label = section_element.find_element_by_xpath(".//label[contains(., '%s')]" % cde)
     download_link_element = world.browser.find_element_by_link_text(download_name)
     clear_checkbox = download_link_element.find_element_by_xpath(
         ".//following-sibling::input[@type='checkbox']")
-    checkbox_id = clear_checkbox.get_attribute("id")
     y = int(utils.scroll_to(clear_checkbox))
     attempts = 1
     succeeded = False

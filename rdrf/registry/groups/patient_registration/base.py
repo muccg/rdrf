@@ -10,6 +10,7 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+
 class BaseRegistration(object):
 
     _OTHER_CLINICIAN = "clinician-other"
@@ -47,9 +48,9 @@ class BaseRegistration(object):
                 user_group = self._get_group("Clinical Staff")
             else:
                 user_group = self._get_group("Patients")
-            django_user.groups = [user_group.id, ] if user_group else []
+            django_user.groups.set([user_group.id, ] if user_group else [])
         else:
-            django_user.groups = [g.id for g in user_groups]
+            django_user.groups.set([g.id for g in user_groups])
 
         if is_parent:
             django_user.first_name = request.POST['parent_guardian_first_name']
@@ -62,7 +63,7 @@ class BaseRegistration(object):
         else:
             django_user.first_name = request.POST['first_name']
             django_user.last_name = request.POST['surname']
-        django_user.registry = [registry, ] if registry else []
+        django_user.registry.set([registry, ] if registry else [])
         django_user.is_staff = True
         return django_user
 

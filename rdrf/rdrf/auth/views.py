@@ -41,8 +41,8 @@ logger = logging.getLogger(__name__)
 def user_login_callback(sender, request=None, user=None, **kwargs):
     if is_user_privileged(
             user) and not user.require_2_fact_auth and default_device(user) is None:
-        link = ('<a href="%(url)s" class="alert-link">' + _('click here') +
-                '</a>') % {'url': reverse('two_factor:setup')}
+        link = '<a href="%(url)s" class="alert-link">' + _('click here') + \
+            '</a>' % {'url': reverse('two_factor:setup')}
         msg = mark_safe(
             _('We strongly recommend that you protect your account with Two-Factor authentication. '
               'Please %(link)s to set it up.') % {'link': link})
@@ -81,13 +81,13 @@ class DisableView(tfv.profile.DisableView):
 @never_cache
 def login_assistance_confirm(request, uidb64=None, token=None):
 
-    UserModel = get_user_model()
+    user_model = get_user_model()
     assert uidb64 is not None and token is not None  # checked by URLconf
     try:
         # urlsafe_base64_decode() decodes to bytestring on Python 3
         uid = force_text(urlsafe_base64_decode(uidb64))
-        user = UserModel._default_manager.get(pk=uid)
-    except (TypeError, ValueError, OverflowError, UserModel.DoesNotExist):
+        user = user_model._default_manager.get(pk=uid)
+    except (TypeError, ValueError, OverflowError, user_model.DoesNotExist):
         user = None
 
     form = None
@@ -167,8 +167,8 @@ def login_assistance_confirm(request, uidb64=None, token=None):
     deactivation = UserDeactivation.objects.filter(username=user.username).first()
     deactivation_reason = deactivation.reason if deactivation is not None else None
 
-    DEFAULT_REASON_TEXT = _('Your account is currently locked.')
-    REASON_TEXTS = {
+    default_reason_text = _('Your account is currently locked.')
+    reason_texts = {
         UserDeactivation.ACCOUNT_EXPIRED:
             _('Your account is suspended because your account was inactive for too long.'),
         UserDeactivation.PASSWORD_EXPIRED:
@@ -176,7 +176,7 @@ def login_assistance_confirm(request, uidb64=None, token=None):
         UserDeactivation.TOO_MANY_FAILED_LOGINS:
             _('Your account is suspended because you (or someone else) entered an incorrect password too many times.')
     }
-    reason = REASON_TEXTS.get(deactivation_reason, DEFAULT_REASON_TEXT)
+    reason = reason_texts.get(deactivation_reason, default_reason_text)
 
     def is_password_change_required(user):
         # If the password has expired always make them change their password or they will

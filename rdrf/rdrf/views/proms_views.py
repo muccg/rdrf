@@ -23,6 +23,7 @@ import qrcode
 import logging
 logger = logging.getLogger(__name__)
 
+
 class PromsCompletedPageView(View):
     def get(self, request):
         logger.debug("proms completed view")
@@ -72,6 +73,7 @@ class PromsView(View):
         except SurveyAssignment.MultipleObjectsReturned:
             logger.error("Multiple survey assignments for patient token %s" % patient_token)
             return None
+
 
 class PromsLandingPageView(View):
     def get(self, request):
@@ -139,6 +141,7 @@ class PromsLandingPageView(View):
         logger.debug("patient_token set in session")
         logger.debug("redirecting to proms page")
         return HttpResponseRedirect(reverse("proms"))
+
 
 class PromsClinicalView(View):
     """

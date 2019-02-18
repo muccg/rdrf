@@ -293,7 +293,6 @@ class PatientFormMixin(PatientMixin):
             "clinician"
         ])
 
-        
         patient_address_section = (_("Patient Address"), None)
 
         form_sections = [
@@ -369,7 +368,6 @@ class PatientFormMixin(PatientMixin):
         kwargs["user"] = self.request.user
         kwargs["registry_model"] = self.registry_model
         return kwargs
-
 
     def form_valid(self, form):
         # called _after_ all form(s) validated
@@ -551,11 +549,12 @@ class AddPatientView(PatientFormMixin, CreateView):
         from rdrf.models.definition.models import DemographicFields
         user_groups = [g.name for g in user.groups.all()]
         hidden_fields = DemographicFields.objects.filter(field__in=fieldlist,
-                                                        registry=registry,
-                                                        group__name__in=user_groups,
-                                                        hidden=True)
+                                                         registry=registry,
+                                                         group__name__in=user_groups,
+                                                         hidden=True)
 
         return (len(fieldlist) == hidden_fields.count())
+
 
 class PatientEditView(View):
 
@@ -766,8 +765,6 @@ class PatientEditView(View):
             if patient_relatives_forms:
                 self.create_patient_relatives(patient_relatives_forms, patient, registry_model)
 
-
-
             context = {
                 "forms": form_sections,
                 "patient": patient,
@@ -976,7 +973,7 @@ class PatientEditView(View):
                 (next_of_kin,)
             ),
         ]
-            
+
         if registry.has_feature("family_linkage"):
             form_sections = form_sections[:-1]
 
@@ -1087,8 +1084,8 @@ class PatientEditView(View):
         from rdrf.models.definition.models import DemographicFields
         user_groups = [g.name for g in user.groups.all()]
         hidden_fields = DemographicFields.objects.filter(field__in=fieldlist,
-                                                        registry=registry,
-                                                        group__name__in=user_groups,
-                                                        hidden=True)
+                                                         registry=registry,
+                                                         group__name__in=user_groups,
+                                                         hidden=True)
 
         return (len(fieldlist) == hidden_fields.count())

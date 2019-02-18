@@ -1,4 +1,4 @@
 
 export function info(msg: string) {
-    console.log(msg);
+    global.console.log(msg);
 }

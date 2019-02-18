@@ -35,6 +35,9 @@ interface UnconditionalElement  {
     title: string,
     instructions: string,
     spec: Datatype,
+    survey_question_instruction: string,
+    copyright_text : string,
+    source : string,
 }
 
 interface ConditionalElement {
@@ -44,6 +47,9 @@ interface ConditionalElement {
     title: string,
     instructions: string,
     spec: Datatype,
+    survey_question_instruction: string,
+    copyright_text : string,
+    source : string,
 }
 
 type Element = UnconditionalElement | ConditionalElement;
@@ -55,10 +61,10 @@ function evalCondition(cond: Condition, state: any): boolean {
     // We only show applicable questions - i.e. those
     // which evaluate to true
     if (state.answers.hasOwnProperty(cond.cde)) {
-	let answer = state.answers[cond.cde];
+    const answer = state.answers[cond.cde];
 	switch (cond.op) {
 	    case '=':
-		return answer == cond.value;
+		return answer === cond.value;
             default:
 		return false; // extend this later
 	}

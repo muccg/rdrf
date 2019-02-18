@@ -28,7 +28,17 @@ if [ "$1" = 'watch' ]; then
     exit 0
 fi
 
-info "[RUN]: Builtin command not provided [build|watch]"
+if [ "$1" = 'lint' ]; then
+    info "[Run] Lint the JS code"
+
+    yarn install
+    npm run lint
+
+    exit $?
+fi
+
+
+info "[RUN]: Builtin command not provided [build|lint|watch]"
 info "[RUN]: $*"
 
 exec "$@"

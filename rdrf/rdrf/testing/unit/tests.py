@@ -253,7 +253,7 @@ class ImporterTestCase(TestCase):
     def _get_yaml_file(self):
         this_dir = os.path.dirname(__file__)
         logger.info("tests.py  dir = %s" % this_dir)
-        test_yaml= os.path.abspath(os.path.join(this_dir, "..", "..", "fixtures", "exported_fh_registry.yaml"))
+        test_yaml = os.path.abspath(os.path.join(this_dir, "..", "..", "fixtures", "exported_fh_registry.yaml"))
         logger.info("full path to test yaml = %s" % test_yaml)
         return test_yaml
 
@@ -1067,15 +1067,15 @@ class MinTypeTest(TestCase):
     def test_string(self):
         from rdrf.helpers.utils import MinType
         bottom = MinType()
-        l = ["a", "B", bottom]
-        g = sorted(l)
+        lst = ["a", "B", bottom]
+        g = sorted(lst)
         self.assertTrue(g[0] is bottom)
 
     def test_ints(self):
         from rdrf.helpers.utils import MinType
         bottom = MinType()
-        l = [10, 1, -7, bottom]
-        g = sorted(l)
+        lst = [10, 1, -7, bottom]
+        g = sorted(lst)
         self.assertTrue(g[0] is bottom)
 
 
@@ -1365,6 +1365,7 @@ class RemindersTestCase(TestCase):
         lines = result.split("\n")
         print(lines)
         assert "not sent" in lines, "Expected reminder NOT to be sent if two or more already sent"
+
 
 class ClinicalDataTestCase(RDRFTestCase):
     def create_clinicaldata(self, patient_id, registry_code):

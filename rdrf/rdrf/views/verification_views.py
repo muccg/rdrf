@@ -24,6 +24,7 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+
 class VerificationSecurityMixin:
     def security_check(self, user, registry_model, patient_model=None):
         if not registry_model.has_feature("verification"):
@@ -41,6 +42,7 @@ class VerificationSecurityMixin:
         if patient_model is not None:
             if patient_model.pk not in [p.pk for p in Patient.objects.filter(clinician=user)]:
                 raise PermissionDenied()
+
 
 class PatientVerification:
     def __init__(self, user, registry_model, patient_model, context_model, verifications):
@@ -93,6 +95,7 @@ class PatientVerification:
         return reverse("patient_verification", args=[self.registry_model.code,
                                                      self.patient_model.pk,
                                                      self.context_model.pk])
+
 
 class PatientsRequiringVerificationView(View, VerificationSecurityMixin):
     @method_decorator(login_required)
@@ -214,7 +217,6 @@ class PatientVerificationView(View, VerificationSecurityMixin):
         form = make_verification_form(corrected)
 
         if len(corrected) == 0 or form.is_valid():
-            form_state = "valid"
             errors = []
             create_annotations(user,
                                registry_model,
@@ -231,7 +233,6 @@ class PatientVerificationView(View, VerificationSecurityMixin):
             messages.add_message(request, messages.SUCCESS, "Form saved successfully")
             context = self._build_context(request, registry_model, patient_model, form)
         else:
-            form_state = "invalid"
             errors = [e for e in form.errors]
             form = make_verification_form(verifications)
             form = self._wrap_form(patient_model, context_model, form, verifications)
@@ -241,19 +242,18 @@ class PatientVerificationView(View, VerificationSecurityMixin):
         return render(request, 'rdrf_cdes/patient_verification.html', context)
 
     def _get_verification_map(self, request, registry_code):
-         # fields in the POST look like:
-         # runserver_1    | [DEBUG:2018-03-13 16:45:40,339:verification_views.py:123:post] key status_AngelmanRegistryBehaviourAndDevelopment____ANGMuscleTone____ANGBEHDEVMuscleTrunk value =unverified
-         # runserver_1    | [DEBUG:2018-03-13 16:45:40,339:verification_views.py:123:post] key comments_AngelmanRegistryBehaviourAndDevelopment____ANGMuscleTone____ANGBEHDEVMuscleTrunk value =
-         # runserver_1    | [DEBUG:2018-03-13 16:45:40,339:verification_views.py:123:post] key status_AngelmanRegistryBehaviourAndDevelopment____ANGMuscleTone____ANGBEHDEVMuscleLimbs value =unverified
-         # runserver_1    | [DEBUG:2018-03-13 16:45:40,339:verification_views.py:123:post] key comments_AngelmanRegistryBehaviourAndDevelopment____ANGMuscleTone____ANGBEHDEVMuscleLimbs value =
-         # runserver_1    | [DEBUG:2018-03-13 16:45:40,340:verification_views.py:123:post] key status_AngelmanRegistryEpilepsy____ANGFebrileEpilepsy____ANGEpilepsyCease value =corrected
-         # runserver_1    | [DEBUG:2018-03-13 16:45:40,340:verification_views.py:123:post] key AngelmanRegistryEpilepsy____ANGFebrileEpilepsy____ANGEpilepsyCease value =7
-         # runserver_1    | [DEBUG:2018-03-13 16:45:40,340:verification_views.py:123:post] key comments_AngelmanRegistryEpilepsy____ANGFebrileEpilepsy____ANGEpilepsyCease value =
-         # runserver_1    | [DEBUG:2018-03-13 16:45:40,340:verification_views.py:123:post] key status_AngelmanRegistryEpilepsy____ANGFebrileEpilepsy____ANGSeizureFrequencyAFebrile value =verified
-         # runserver_1    | [DEBUG:2018-03-13 16:45:40,340:verification_views.py:123:post] key comments_AngelmanRegistryEpilepsy____ANGFebrileEpilepsy____ANGSeizureFrequencyAFebrile value =low
+        # fields in the POST look like:
+        # runserver_1    | [DEBUG:2018-03-13 16:45:40,339:verification_views.py:123:post] key status_AngelmanRegistryBehaviourAndDevelopment____ANGMuscleTone____ANGBEHDEVMuscleTrunk value =unverified
+        # runserver_1    | [DEBUG:2018-03-13 16:45:40,339:verification_views.py:123:post] key comments_AngelmanRegistryBehaviourAndDevelopment____ANGMuscleTone____ANGBEHDEVMuscleTrunk value =
+        # runserver_1    | [DEBUG:2018-03-13 16:45:40,339:verification_views.py:123:post] key status_AngelmanRegistryBehaviourAndDevelopment____ANGMuscleTone____ANGBEHDEVMuscleLimbs value =unverified
+        # runserver_1    | [DEBUG:2018-03-13 16:45:40,339:verification_views.py:123:post] key comments_AngelmanRegistryBehaviourAndDevelopment____ANGMuscleTone____ANGBEHDEVMuscleLimbs value =
+        # runserver_1    | [DEBUG:2018-03-13 16:45:40,340:verification_views.py:123:post] key status_AngelmanRegistryEpilepsy____ANGFebrileEpilepsy____ANGEpilepsyCease value =corrected
+        # runserver_1    | [DEBUG:2018-03-13 16:45:40,340:verification_views.py:123:post] key AngelmanRegistryEpilepsy____ANGFebrileEpilepsy____ANGEpilepsyCease value =7
+        # runserver_1    | [DEBUG:2018-03-13 16:45:40,340:verification_views.py:123:post] key comments_AngelmanRegistryEpilepsy____ANGFebrileEpilepsy____ANGEpilepsyCease value =
+        # runserver_1    | [DEBUG:2018-03-13 16:45:40,340:verification_views.py:123:post] key status_AngelmanRegistryEpilepsy____ANGFebrileEpilepsy____ANGSeizureFrequencyAFebrile value =verified
+        # runserver_1    | [DEBUG:2018-03-13 16:45:40,340:verification_views.py:123:post] key comments_AngelmanRegistryEpilepsy____ANGFebrileEpilepsy____ANGSeizureFrequencyAFebrile value =low
         from rdrf.helpers.utils import models_from_mongo_key
         registry_model = Registry.objects.get(code=registry_code)
-        verifications = []
         verification_map = {}
 
         def mk_ver(delimited_key):

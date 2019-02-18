@@ -148,7 +148,6 @@ class DownloadQueryView(LoginRequiredMixin, View):
             raise Exception("bad action")
 
         query_model = Query.objects.get(id=query_id)
-        query_form = QueryForm(instance=query_model)
 
         query_params = re.findall("%(.*?)%", query_model.sql_query)
 
@@ -178,8 +177,7 @@ class DownloadQueryView(LoginRequiredMixin, View):
                                       max_items=query_model.max_items)
         rtg.set_table_name(query_model)
         a = datetime.now()
-        messages_dict = database_utils.dump_results_into_reportingdb(
-            reporting_table_generator=rtg)
+        database_utils.dump_results_into_reportingdb(reporting_table_generator=rtg)
         b = datetime.now()
         logger.info("time to dump query %s into reportingdb: %s secs" % (query_model.id, b - a))
         if action == "view":
@@ -194,7 +192,6 @@ class DownloadQueryView(LoginRequiredMixin, View):
         humaniser = Humaniser(query_model.registry)
         spreadsheet_report = SpreadSheetReport(query_model, humaniser)
         with NamedTemporaryFile(suffix=".xlsx") as output:
-            start = datetime.now()
             spreadsheet_report.run(output.name)
             response = FileResponse(
                 open(
@@ -453,8 +450,7 @@ class MultisectionHandler(object):
             size of the list
             padded with None if not
             """
-            l = []
-
+            lst = []
             max_length = max(map(len, list(dl.values())))
             for i in range(max_length):
                 d = {}
@@ -465,8 +461,8 @@ class MultisectionHandler(object):
                         num_nones = max_length - this_list_length
                         this_list.extend([None] * num_nones)
                     d[k] = this_list[i]
-                l.append(d)
-            return l
+                lst.append(d)
+            return lst
 
         # e.g. row = {"name": "Lee", "friends": ["fred", "barry"],
         # "drug":["aspirin","neurophen"], "dose" : [20,23], "height": 56}

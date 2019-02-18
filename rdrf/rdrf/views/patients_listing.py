@@ -296,8 +296,8 @@ class PatientsListingView(View):
 
     def apply_search_filter(self):
         if self.search_term:
-            self.patients = self.patients.filter(Q(given_names__icontains=self.search_term)
-                                                 | Q(family_name__icontains=self.search_term))
+            self.patients = self.patients.filter(
+                Q(given_names__icontains=self.search_term) | Q(family_name__icontains=self.search_term))
 
     def filter_by_user_group(self):
         if not self.user.is_superuser:
@@ -553,7 +553,9 @@ class ColumnContextMenu(Column):
     def sort_key(self, *args, **kwargs):
         return None
 
+
 def cdes_to_verify(registry_model, patient_model, context_model=None):
+    from rdrf.workflows.verification import get_verifiable_cdes
     ver_cdes = get_verifiable_cdes(registry_model)
     return [ver_cde for ver_cde in ver_cdes if not ver_cde.is_current(patient_model, context_model)]
 
