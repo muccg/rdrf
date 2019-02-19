@@ -1,3 +1,4 @@
+import axios from 'axios';
 import { createAction, handleActions } from 'redux-actions';
 
 export const goPrevious = createAction("PROMS_PREVIOUS");
@@ -6,21 +7,21 @@ export const submitAnswers = createAction("PROMS_SUBMIT");
 export const enterData = createAction("PROMS_ENTER_DATA");
 
 import { evalElements } from '../logic';
-import axios from 'axios';
+
 
 axios.defaults.xsrfHeaderName = "X-CSRFTOKEN";
 axios.defaults.xsrfCookieName = "csrftoken";
 
 function submitSurvey(answers: { [index: string]: string }) {
-    let patientToken: string = window.proms_config.patient_token;
-    let registryCode: string = window.proms_config.registry_code;
-    let surveyName: string = window.proms_config.survey_name;
-    let surveyEndpoint: string = window.proms_config.survey_endpoint;
-    let data = {
-        patient_token: patientToken,
-        registry_code: registryCode,
-        survey_name: surveyName,
-        answers: answers
+    const patient_token: string = window.proms_config.patient_token;
+    const registry_code: string = window.proms_config.registry_code;
+    const survey_name: string = window.proms_config.survey_name;
+    const surveyEndpoint: string = window.proms_config.survey_endpoint;
+    const data = {
+        patient_token,
+        registry_code,
+        survey_name,
+        answers
     };
     axios.post(surveyEndpoint, data)
         .then(res => window.location.replace(window.proms_config.completed_page))
@@ -36,16 +37,16 @@ const initialState = {
 
 function isCond(state) {
     const stage = state.stage;
-    return state.questions[stage].tag == 'cond';
+    return state.questions[stage].tag === 'cond';
 }
 
 
 function updateAnswers(action: any, state: any): any {
     // if data entered , update the answers object
-    let cdeCode = action.payload.cde;
-    let newValue = action.payload.value;
-    let oldAnswers = state.answers;
-    var newAnswers = { ...oldAnswers };
+    const cdeCode = action.payload.cde;
+    const newValue = action.payload.value;
+    const oldAnswers = state.answers;
+    const newAnswers = { ...oldAnswers };
     newAnswers[cdeCode] = newValue;
     return newAnswers;
 }
@@ -53,20 +54,20 @@ function updateAnswers(action: any, state: any): any {
 function clearAnswerOnSwipeBack(state: any): any {
     // clear the answer when move to previous question
     const stage = state.stage;
-    let questionCode = state.questions[stage].cde;
-    let oldAnswers = state.answers;
-    let newAnswers = { ...oldAnswers };
+    const questionCode = state.questions[stage].cde;
+    const oldAnswers = state.answers;
+    const newAnswers = { ...oldAnswers };
     delete newAnswers[questionCode];
     return newAnswers;
 }
 
 function updateConsent(state: any): any {
-    let questionCount = state.questions.length;
-    let allAnswers = state.answers;
-    var questionCode = state.questions[questionCount - 1].cde;
+    const questionCount = state.questions.length;
+    const allAnswers = state.answers;
+    const questionCode = state.questions[questionCount - 1].cde;
     if (!allAnswers.hasOwnProperty(questionCode)) {
-        let oldAnswers = state.answers;
-        let newAnswers = { ...oldAnswers };
+        const oldAnswers = state.answers;
+        const newAnswers = { ...oldAnswers };
         newAnswers[questionCode] = false;
         return newAnswers;
     }
@@ -88,8 +89,7 @@ export const promsPageReducer = handleActions({
         }),
     [submitAnswers as any]:
         (state, action: any) => {
-            console.log("submitting answers");
-            let newState = {
+            const newState = {
                 ...state,
                 answers: updateConsent(state),
             };
@@ -98,18 +98,12 @@ export const promsPageReducer = handleActions({
         },
     [enterData as any]:
         (state, action) => {
-            console.log("enterData action received");
-            console.log("action = " + action.toString());
-            console.log("answers before update = " + state.answers.toString());
-            
-            let updatedAnswers = updateAnswers(action, state)
-            console.log("updated answers = " + updatedAnswers.toString());
-            let newState = {
+            const updatedAnswers = updateAnswers(action, state)
+            const newState = {
                 ...state,
                 answers: updateAnswers(action, state),
                 questions: evalElements(window.proms_config.questions, { answers: updatedAnswers }),
             };
-            console.log("newState = " + newState.toString());
             return newState;
         },
 }, initialState);

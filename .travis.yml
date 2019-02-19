@@ -14,6 +14,7 @@ script:
 - export "BRANCH_NAME=$GIT_BRANCH"
 - ./travis-build.sh
 - ./travis-prodbuild.sh
+- ./travis-lint.sh
 
 env:
   global:
