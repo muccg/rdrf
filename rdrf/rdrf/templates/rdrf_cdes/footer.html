@@ -15,7 +15,7 @@
           <a href="https://muccg.github.io/rdrf/" target="_blank">{% trans "RDRF Project" %}</a> |
           <a href="mailto:rdrf@ccg.murdoch.edu.au">{% trans "Email RDRF" %}</a>
       </div>
-      {% if request.user.is_authenticated %}
+      {% if request.user.is_authenticated and cic_system_role %}
         <div>
             <a href="{% url 'copyright' %}">Data set Copyright</a>
         </div>
