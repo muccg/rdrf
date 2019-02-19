@@ -124,6 +124,8 @@ TEMPLATES = [
                 "django.contrib.messages.context_processors.messages",
                 "rdrf.context_processors.context_processors.production",
                 "rdrf.context_processors.context_processors.common_settings",
+                "rdrf.context_processors.context_processors.cic_system_role",
+
             ],
             "debug": DEBUG,
             "loaders": [
