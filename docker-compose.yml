@@ -51,9 +51,7 @@ services:
       service: runserver
     environment:
       - DJANGO_FIXTURES=dev
-      - DESIGN_MODE=1
-      - SYSTEM_ROLE=CIC_PROMS
-      - PROMS_SYSTEM_URL=http://test.com
+      - DESIGN_MODE=0
     volumes_from:
       - datadev
     ports:
