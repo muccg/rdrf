@@ -53,8 +53,7 @@ class Family(object):
         # all the working groups this family spans
         # we need this for checking security
         wgs = [wg for wg in self.index.working_groups.all()]
-        wgs = wgs + [wg for pr in self.relatives for wg in pr.relative_patient.working_groups.all()
-                     if pr.relative_patient]
+        wgs = wgs + [wg for pr in self.relatives for wg in pr.relative_patient.working_groups.all() if pr.relative_patient]
         return wgs
 
 
@@ -849,7 +848,7 @@ class Patient(models.Model):
         cdes_status = {}
         registry_model = registry_form.registry
         registry_code = registry_model.code
-        cde_codes_required = [cde.code for cde in registry_form.complete_form_cdes.all()]
+        cde_codes_required = set([cde.code for cde in registry_form.complete_form_cdes.all()])
         for section_model in registry_form.section_models:
             for cde_model in section_model.cde_models:
                 if cde_model.code in cde_codes_required:
@@ -1130,13 +1129,13 @@ class ClinicianOther(models.Model):
 
         if not self.use_other:
             if self.patient:
-                wgs = [wg for wg in self.user.working_groups.all()]
-                self.patient.working_groups = wgs
+                wgs = set([wg for wg in self.user.working_groups.all()])
+                self.patient.working_groups.set(wgs)
                 self.patient.save()
                 # fkrp use case
                 # if the patient is a user update the user working groups to match
                 if self.patient.user:
-                    self.patient.user.working_groups = [wg for wg in self.patient.working_groups.all()]
+                    self.patient.user.working_groups.set([wg for wg in self.patient.working_groups.all()])
                     self.patient.user.save()
                 # if there user/parent of this patient then need to update their working
                 # groups also

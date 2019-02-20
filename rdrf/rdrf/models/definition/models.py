@@ -253,7 +253,7 @@ class Registry(models.Model):
                 continue
             elif progress_type == "genetic" and "genetic" not in form_model.name.lower():
                 continue
-            completion_cde_codes = [cde.code for cde in form_model.complete_form_cdes.all()]
+            completion_cde_codes = set([cde.code for cde in form_model.complete_form_cdes.all()])
             for section_model in form_model.section_models:
                 for cde_model in section_model.cde_models:
                     if cde_model.code in completion_cde_codes:
