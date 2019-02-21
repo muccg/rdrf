@@ -89,33 +89,12 @@ two_factor_auth_urls = [
     re_path(r'^account/two_factor/qrcode/?$', QRGeneratorView.as_view(), name='qr'),
     re_path(r'^account/two_factor/setup/complete/?$', twv.SetupCompleteView.as_view(),
             name='setup_complete'),
-    #    We're not using a few of these urls currently
-    #
-    #    url(
-    #        regex=r'^account/two_factor/backup/tokens/?$',
-    #        view=twv.BackupTokensView.as_view(),
-    #        name='backup_tokens',
-    #    ),
-    #    url(
-    #        regex=r'^account/two_factor/backup/phone/register/?$',
-    #        view=twv.PhoneSetupView.as_view(),
-    #        name='phone_create',
-    #    ),
-    #    url(
-    #        regex=r'^account/two_factor/backup/phone/unregister/(?P<pk>\d+)/?$',
-    #        view=twv.PhoneDeleteView.as_view(),
-    #        name='phone_delete',
-    #    ),
-    #    url(
-    #        regex=r'^account/two_factor/?$',
-    #        view=twv.ProfileView.as_view(),
-    #        name='profile',
-    #    ),
     re_path(r'^account/two_factor/disable/?$', DisableView.as_view(), name='disable'),
 ]
 
 proms_patterns = [
     re_path(r'^translations/jsi18n/$', JavaScriptCatalog.as_view(), name='javascript-catalog'),
+    re_path(r'^api/proms/v1/', include(('rdrf.services.rest.urls.proms_api_urls', 'proms_api_urls'), namespace=None)),
     re_path(r'^rpc', form_view.RPCHandler.as_view(), name='rpc'),
     path('admin/', admin.site.urls),
     re_path(r'', include((two_factor_auth_urls, 'two_factor'), namespace=None)),
@@ -168,12 +147,9 @@ normalpatterns += [
     re_path(r'^logout/?$', auth_views.LogoutView.as_view(), name='logout'),
     re_path(r'^password_change/?$', auth_views.PasswordChangeView.as_view(), name='password_change'),
     re_path(r'^password_change/done/?$', auth_views.PasswordChangeDoneView.as_view(), name='password_change_done'),
-    # url(r'^password_reset/$', views.password_reset, name='password_reset'),
     re_path(r'^password_reset/?$', auth_views.PasswordResetView.as_view(),
             kwargs={'password_reset_form': RDRFPasswordResetForm}, name='password_reset'),
     re_path(r'^password_reset/done/?$', auth_views.PasswordResetDoneView.as_view(), name='password_reset_done'),
-    # url(r'^reset/(?P<uidb64>[0-9A-Za-z_\-]+)/(?P<token>[0-9A-Za-z]{1,13}-[0-9A-Za-z]{1,20})/$',
-    #     auth_views.password_reset_confirm, name='password_reset_confirm'),
     re_path(r'^reset/(?P<uidb64>[0-9A-Za-z_\-]+)/(?P<token>[0-9A-Za-z]{1,13}-[0-9A-Za-z]{1,20})/?$',
             auth_views.PasswordResetConfirmView.as_view(),
             kwargs={'set_password_form': RDRFSetPasswordForm},
@@ -275,7 +251,6 @@ normalpatterns += [
 
 
 
-    # -------------------------------------------
     # ---- Clinician related URLs -----------------
     re_path(r"^(?P<registry_code>\w+)/(?P<patient_id>\d+)/clinician/?$",
             clinician_view.ClinicianFormView.as_view(), name="clinician_form_view"),

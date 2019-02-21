@@ -2,7 +2,6 @@ from django.urls import re_path
 from rdrf.services.rest.views import api_views
 from rdrf.routing.custom_rest_router import DefaultRouterWithSimpleViews
 
-# app_name = 'rdrf'
 
 router = DefaultRouterWithSimpleViews()
 router.register(r'registries', api_views.RegistryList, base_name='registry')
