@@ -31,9 +31,10 @@
             {% endblock %}
         </div>
 
-      <script src="{% static 'proms/js/runtime-bundle.min.js' %}"></script>
-      <script src="{% static 'proms/js/vendors-bundle.min.js' %}"></script>
-
+        {% if cic_system_role %}  
+            <script src="{% static 'proms/js/runtime-bundle.min.js' %}"></script>
+            <script src="{% static 'proms/js/vendors-bundle.min.js' %}"></script>
+        {% enddif %}
 
       <script>
 	var questions = JSON.parse('{{ questions | safe }}');
@@ -47,7 +48,8 @@
 	};
       </script>
 
-
+    {% if cic_system_role %}
       <script src="{% static 'proms/js/main-bundle.min.js' %}"></script>
+    {% endif %}
 </body>
 </html>
