@@ -212,7 +212,7 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
         if registry_form_model.open:
             return True
 
-        form_allowed_groups = set([g for g in registry_form_model.groups_allowed.all()])
+        form_allowed_groups = [g for g in registry_form_model.groups_allowed.all()]
 
         for group in self.groups.all():
             if group in form_allowed_groups:

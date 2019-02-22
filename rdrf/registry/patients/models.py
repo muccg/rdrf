@@ -848,7 +848,7 @@ class Patient(models.Model):
         cdes_status = {}
         registry_model = registry_form.registry
         registry_code = registry_model.code
-        cde_codes_required = set([cde.code for cde in registry_form.complete_form_cdes.all()])
+        cde_codes_required = [cde.code for cde in registry_form.complete_form_cdes.all()]
         for section_model in registry_form.section_models:
             for cde_model in section_model.cde_models:
                 if cde_model.code in cde_codes_required:
@@ -1129,7 +1129,7 @@ class ClinicianOther(models.Model):
 
         if not self.use_other:
             if self.patient:
-                wgs = set([wg for wg in self.user.working_groups.all()])
+                wgs = [wg for wg in self.user.working_groups.all()]
                 self.patient.working_groups.set(wgs)
                 self.patient.save()
                 # fkrp use case
