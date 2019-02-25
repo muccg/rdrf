@@ -23,13 +23,15 @@
     <link rel="stylesheet" type="text/css" href="{% static 'css/rdrf.css' %}" media="all">
     <link rel="stylesheet" type="text/css" href="{% static 'css/simple-sidebar.css' %}" media="all">
 
-    <!-- test typescript / webpack -->
-    {% if production %}
-    <script src="{% static 'proms/js/runtime-bundle.min.js' %}"></script>
-    <script src="{% static 'proms/js/main-bundle.min.js' %}"></script>
-    {% else %}
-    <script src="{% static 'proms/js/runtime-bundle.min.js' %}"></script>
-    <script src="{% static 'proms/js/main-bundle.min.js' %}"></script>
+    {% if cic_system_role %}
+        <!-- test typescript / webpack -->
+        {% if production %}
+        <script src="{% static 'proms/js/runtime-bundle.min.js' %}"></script>
+        <script src="{% static 'proms/js/main-bundle.min.js' %}"></script>
+        {% else %}
+        <script src="{% static 'proms/js/runtime-bundle.min.js' %}"></script>
+        <script src="{% static 'proms/js/main-bundle.min.js' %}"></script>
+        {% endif %}
     {% endif %}
 
     {% project_stylesheet as PSS %}
