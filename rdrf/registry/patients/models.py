@@ -53,8 +53,7 @@ class Family(object):
         # all the working groups this family spans
         # we need this for checking security
         wgs = [wg for wg in self.index.working_groups.all()]
-        wgs = wgs + [wg for pr in self.relatives for wg in pr.relative_patient.working_groups.all()
-                     if pr.relative_patient]
+        wgs = wgs + [wg for pr in self.relatives for wg in pr.relative_patient.working_groups.all() if pr.relative_patient]
         return wgs
 
 
@@ -1131,12 +1130,12 @@ class ClinicianOther(models.Model):
         if not self.use_other:
             if self.patient:
                 wgs = [wg for wg in self.user.working_groups.all()]
-                self.patient.working_groups = wgs
+                self.patient.working_groups.set(wgs)
                 self.patient.save()
                 # fkrp use case
                 # if the patient is a user update the user working groups to match
                 if self.patient.user:
-                    self.patient.user.working_groups = [wg for wg in self.patient.working_groups.all()]
+                    self.patient.user.working_groups.set([wg for wg in self.patient.working_groups.all()])
                     self.patient.user.save()
                 # if there user/parent of this patient then need to update their working
                 # groups also

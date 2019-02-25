@@ -52,6 +52,7 @@ class FamilyLinkageManager(object):
     def __init__(self, registry_model, packet=None):
         self.registry_model = registry_model
         self.packet = packet
+
         if not registry_model.has_feature("family_linkage"):
             raise FamilyLinkageError("need family linkages feature to use FamilyManager")
 
@@ -61,11 +62,9 @@ class FamilyLinkageManager(object):
             self.index_dict = self.packet["index"]
             self.original_index_dict = self.packet["original_index"]
             self.original_index = int(self.original_index_dict["pk"])
-
             self.relatives = self.packet["relatives"]
             self.index_patient = self._get_index_patient()
-
-            self.working_groups = [wg for wg in self.index_patient.working_groups.all()]
+            self.working_groups = set([wg for wg in self.index_patient.working_groups.all()])
 
         self.mongo_undos = []
 
