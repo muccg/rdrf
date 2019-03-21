@@ -18,6 +18,7 @@ from django.forms.models import model_to_dict
 from django.utils.safestring import mark_safe
 
 from rdrf.helpers.utils import check_calculation
+from rdrf.helpers.utils import generate_token
 from rdrf.helpers.utils import format_date, parse_iso_datetime
 from rdrf.events.events import EventType
 
