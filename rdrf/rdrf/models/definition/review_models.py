@@ -83,6 +83,7 @@ class ReviewItem(models.Model):
                                  choices=ITEM_CHOICES)
 
     category = models.CharField(max_length=80, blank=True, null=True)
+    name = models.CharField(max_length=80, blank=True, null=True)
 
     # the form or section models 
     form = models.ForeignKey(RegistryForm, blank=True, null=True, on_delete=models.CASCADE)

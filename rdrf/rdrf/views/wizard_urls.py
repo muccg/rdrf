@@ -6,8 +6,8 @@ def build_wizard_urls():
             for review_model in registry_model.reviews.all():
                 try:
                     url_patterns.append(review_model.url_pattern)
-                except:
-                    pass
+                except Exception as ex:
+                    print("Error creating wizard url: %s" % ex)
 
         return url_patterns
     except:

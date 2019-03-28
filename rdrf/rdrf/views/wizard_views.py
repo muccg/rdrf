@@ -9,14 +9,8 @@ class ReviewWizardGenerator:
         self.review_model = review_model
         self.base_class = SessionWizardView
 
-    def create_form_class_list(self):
-        # Return a list of form classes that this wizard
-        # will trace through.
-        # The review model has all the data needed to construct these.
-        return create_review_forms(self.review_model)
-
     def create_wizard_class(self):
-        form_list = self._create_form_class_list()
+        form_list = create_review_forms(self.review_model)
         class_name = "ReviewWizard"
 
         def done_method(myself, form_list, form_dict, **kwargs):

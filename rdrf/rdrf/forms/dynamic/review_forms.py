@@ -1,6 +1,13 @@
 from rdrf.models.definition.review_models import REVIEW_ITEM_TYPES
-from django.forms import BaseForm
+from rdrf.models.definition.models import CommonDataElement
+
+from django import forms
 from django.utils.translation import ugettext as _
+
+import logging
+
+
+logger = logging.getLogger(__name__)
 
 
 class ReviewFormGenerator:
@@ -19,10 +26,10 @@ class ReviewFormGenerator:
 
     @property
     def base_class(self):
-        return BaseForm
+        return forms.Form
 
     def get_field_map(self):
-        return {}
+        return {"dummy": forms.CharField(max_length=80)}
 
     def get_media_class(self):
         class Media:
@@ -33,13 +40,9 @@ class ReviewFormGenerator:
     def form_class_dict(self):
         fields_map = self.get_field_map()
         media_class = self.get_media_class()
-        form_class_dict = {"base_fields": fields_map,
+        form_class_dict = {"fields": fields_map,
                            "Media": media_class}
         return form_class_dict
-
-class TestFormGenerator(ReviewFormGenerator):
-    pass
-    
 
 
 class ConsentReviewFormGenerator(ReviewFormGenerator):
@@ -65,6 +68,11 @@ class VerificationReviewFormGenerator(ReviewFormGenerator):
     pass
 
 
+class DummyFormClass(forms.Form):
+    name = forms.CharField(max_length=20)
+    age = forms.IntegerField()
+
+
 GENERATOR_MAP = {
     REVIEW_ITEM_TYPES.CONSENT_FIELD: ConsentReviewFormGenerator,
     REVIEW_ITEM_TYPES.DEMOGRAPHICS_FIELD: DemographicsReviewFormGenerator,
@@ -75,15 +83,23 @@ GENERATOR_MAP = {
 
 
 def create_review_forms(review_model):
+    logger.debug("review_model = %s" % review_model.name)
     # for each review "item" we create the form class to collect data for it
     # the resulting set of forms is sent to a wizard
-    l = []
+    forms_list = []
+    logger.debug("creating review form classes ...")
 
     for review_item in review_model.items.all().order_by("position"):
-        generator_class = GENERATOR_MAP[review_model.item_type]
-        generator = generator_class(review_model)
-        review_form_class = generator.create_form_class()
-        l.append(review_form_class)
-    return l
+        logger.debug("creating review form class for %s" % review_item.name)
+        generator_class = GENERATOR_MAP.get(review_item.item_type, None)
+        if generator_class is None:
+            forms_list.append(DummyFormClass)
+        else:
+            generator = generator_class(review_item)
+            review_form_class = generator.create_form_class()
+            forms_list.append(review_form_class)
+
+    logger.debug("forms list = %s" % forms_list)
+    return forms_list
 
 

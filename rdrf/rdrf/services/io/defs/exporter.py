@@ -575,6 +575,7 @@ class Exporter(object):
                 item_dict["position"] = review_item.position
                 item_dict["item_type"] = review_item.item_type
                 item_dict["category"] = review_item.category
+                item_dict["name"] = review_item.name
                 item_dict["form"] = ""
                 if review_item.form:
                     item_dict["form"] = review_item.form.name
