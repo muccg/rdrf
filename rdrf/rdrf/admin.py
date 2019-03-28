@@ -26,6 +26,10 @@ from rdrf.models.proms.models import SurveyQuestion
 from rdrf.models.proms.models import Precondition
 from rdrf.models.proms.models import SurveyAssignment
 from rdrf.models.proms.models import SurveyRequest
+
+from rdrf.models.definition.review_models import Review
+from rdrf.models.definition.review_models import ReviewItem
+
 from rdrf.system_role import SystemRoles
 
 
@@ -424,6 +428,16 @@ class CDEFileAdmin(admin.ModelAdmin):
     list_display = ("form_name", "section_code", "cde_code", "item")
 
 
+class ReviewItemAdmin(admin.StackedInline):
+    model = ReviewItem
+
+
+class ReviewAdmin(admin.ModelAdmin):
+    model = Review
+    list_display = ("registry", "name", "code")
+    inlines = [ReviewItemAdmin]
+
+
 CDEPermittedValueAdmin = create_restricted_model_admin_class(
     CDEPermittedValue,
     ordering=['code'],
@@ -479,6 +493,7 @@ NORMAL_MODE_ADMIN_COMPONENTS = [
     (Notification, NotificationAdmin),
     (DemographicFields, DemographicFieldsAdmin),
     (ConsentRule, ConsentRuleAdmin),
+    (Review, ReviewAdmin),
 ]
 
 ADMIN_COMPONENTS = []

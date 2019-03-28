@@ -110,7 +110,9 @@ class Exporter(object):
             raise ExportException("Unknown export type")
 
         generic_cdes = self._get_generic_cdes()
-        return self._sort_codes(cdes.union(generic_cdes))
+        review_cdes = set(self._get_review_cdes())
+
+        return self._sort_codes(cdes.union(generic_cdes).union(review_cdes))
 
     @staticmethod
     def _sort_codes(items):
@@ -192,6 +194,7 @@ class Exporter(object):
         data["email_notifications"] = self._get_email_notifications()
         data["consent_rules"] = self._get_consent_rules()
         data["surveys"] = self._get_surveys()
+        data["reviews"] = self._get_reviews()
 
         if self.registry.patient_data_section:
             data["patient_data_section"] = self._create_section_map(
@@ -393,6 +396,23 @@ class Exporter(object):
     def _get_generic_cdes(self):
         return self._get_cdes_for_sections(self.registry.generic_sections)
 
+    def _get_review_cdes(self):
+        cdes = []
+        for review_model in self.registry.reviews.all():
+            for review_item in review_model.items.all():
+                try:
+                    change_question_cde = CommonDataElement.objects.get(code=review_item.change_question_code)
+                    cdes.append(change_question_cde)
+                except CommonDataElement.DoesNotExist:
+                    pass
+                try:
+                    current_status_cde = CommonDataElement.objects.get(code=review_item.current_status_question_code)
+                    cdes.append(current_status_cde)
+                except CommonDataElement.DoesNotExist:
+                    pass
+        return cdes
+            
+
     def _get_working_groups(self):
         from registry.groups.models import WorkingGroup
         return [wg.name for wg in WorkingGroup.objects.filter(registry=self.registry)]
@@ -541,6 +561,32 @@ class Exporter(object):
                 survey_dict["questions"].append(sq_dict)
             data.append(survey_dict)
         return data
+
+    def _get_reviews(self):
+        from rdrf.models.definition.review_models import Review
+        review_dicts = []
+        for review_model in Review.objects.filter(registry=self.registry).order_by("name"):
+            review_dict = {}
+            review_dict["name"] = review_model.name
+            review_dict["code"] = review_model.code
+            review_dict["items"] = []
+            for review_item in review_model.items.all().order_by("position"):
+                item_dict = {}
+                item_dict["position"] = review_item.position
+                item_dict["item_type"] = review_item.item_type
+                item_dict["category"] = review_item.category
+                item_dict["form"] = ""
+                if review_item.form:
+                    item_dict["form"] = review_item.form.name
+                item_dict["section"] = ""
+                if review_item.section:
+                    item_dict["section"] = review_item.section.code
+                item_dict["change_question_code"] = review_item.change_question_code
+                item_dict["current_status_question_code"] = review_item.current_status_question_code
+                item_dict["target_code"] = review_item.target_code
+                review_dict["items"].append(item_dict)
+            review_dicts.append(review_dict)
+        return review_dicts
 
 
 def str_presenter(dumper, data):

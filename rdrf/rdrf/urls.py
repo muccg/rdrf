@@ -42,7 +42,7 @@ from rdrf.views.proms_views import PromsClinicalView
 from rdrf.views.proms_views import PromsQRCodeImageView
 from rdrf.system_role import SystemRoles
 from rdrf.views.copyright_view import CopyrightView
-from rdrf.views.wizard_views import WizardTestView
+from rdrf.views.wizard_urls import build_wizard_urls
 
 
 import logging
@@ -125,8 +125,9 @@ proms_patterns = [
             registry_view.RegistryView.as_view(), name='registry'),
 ]
 
+normalpatterns += build_wizard_urls()
+
 normalpatterns += [
-    re_path(r'^wiztest/?$', WizardTestView.as_view()),
     re_path(r'^translations/jsi18n/$', JavaScriptCatalog.as_view(), name='javascript-catalog'),
     re_path(r'^iprestrict/', include(('iprestrict.urls', 'iprestrict_urls'), namespace=None)),
     re_path(r'^useraudit/', include('useraudit.urls',)),
