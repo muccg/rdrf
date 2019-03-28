@@ -1,11 +1,11 @@
 from django.db import models
-from django.utils.translation import ugettext as _
 
 from rdrf.models.definition.models import Registry
 from rdrf.models.definition.models import RegistryForm
 from rdrf.models.definition.models import Section
 from rdrf.models.definition.models import RDRFContext
 from rdrf.helpers.utils import generate_token
+from rdrf.views.wizard_views import ReviewWizardGenerator
 
 from registry.groups.models import CustomUser
 from registry.patients.models import Patient
@@ -21,9 +21,10 @@ def generate_reviews(registry_model):
 
 
 class Review(models.Model):
-    registry = models.ForeignKey(Registry)
+    registry = models.ForeignKey(Registry, related_name="reviews")
     name = models.CharField(max_length=80)  # e.g. annual review , biannual review
-
+    code = models.Charfield(max_length=80)  # used for url
+    
     def create_for_patient(self, patient, context_model=None):
         if context_model is None:
             context_model = patient.default_context(self.registry)
@@ -39,11 +40,28 @@ class Review(models.Model):
             pr.parent = parent
             pr.save()
 
+    @property
+    def view_name(self):
+        return self.registry.code + "_review_" + self.code
+
+    @property
+    def view(self):
+        generator = ReviewWizardGenerator(self)
+        wizard_class = generator.create_wizard_class()
+        return wizard_class.as_view()
+
+    @property
+    def url_pattern(self):
+        from django.urls import re_path
+        path = "^reviews/%s/%s$" % (self.registry.code,
+                                    self.code)
+        return re_path(path, self.view, name=self.view_name)
+
 
 class REVIEW_ITEM_TYPES:
     CONSENT_FIELD = "CF"        # continue to consent
     DEMOGRAPHICS_FIELD = "DF"   # update some data
-    SECTION_CHANGE =  "SC"      # monitor change in a given section 
+    SECTION_CHANGE =  "SC"      # monitor change in a given section
     MULTISECTION_ITEM = "MI"    # add to a list of items  ( e.g. new therapies since last review)
     MULTISECTION_UPDATE = "MU"  # replace / update a set of items  ( necessary?)
     VERIFICATION = "V"
@@ -51,7 +69,7 @@ class REVIEW_ITEM_TYPES:
 
 class ReviewItem(models.Model):
     position = models.IntegerField(default=0)
-    review = models.ForeignKey(Review)
+    review = models.ForeignKey(Review, related_name="items")
     item_type = models.CharField(max_length=2,
                                  choices=REVIEW_ITEM_TYPES)
 
@@ -99,7 +117,7 @@ class PatientReview(models.Model):
 
 class PatientReviewItem(models.Model):
     created_date = models.DateTimeField(auto_now_add=True)
-    patient_review = models.ForeignKey(PatientReview)
+    patient_review = models.ForeignKey(PatientReview, related_name="items")
     review_item = models.ForeignKey(ReviewItem)
     has_changed = models.CharField(max_length=1,
                                    blank=True,
