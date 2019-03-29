@@ -40,7 +40,7 @@ class ReviewFormGenerator:
     def form_class_dict(self):
         fields_map = self.get_field_map()
         media_class = self.get_media_class()
-        form_class_dict = {"fields": fields_map,
+        form_class_dict = {"base_fields": fields_map,
                            "Media": media_class}
         return form_class_dict
 
