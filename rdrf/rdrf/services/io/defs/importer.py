@@ -573,6 +573,10 @@ class Importer(object):
             self._create_surveys(r)
             logger.info("imported surveys OK")
 
+        if "reviews" in self.data:
+            self._create_reviews(r)
+            logger.info("imported reviews OK")
+
         logger.info("end of import registry objects!")
 
     def _create_consent_rules(self, registry_model):
@@ -639,6 +643,68 @@ class Importer(object):
                     logger.info("Imported precondition: %s = %s" % (sq_model.precondition.cde.code,
                                                                     sq_model.precondition.value))
             logger.info("Imported Survey %s" % survey_model.name)
+
+    def _create_reviews(self, registry_model):
+        from rdrf.models.definition.review_models import Review
+        from rdrf.models.definition.review_models import ReviewItem
+        
+        def goc(klass, **kwargs):
+            instance, created = klass.objects.get_or_create(**kwargs)
+            return instance
+
+        review_codes = [r["code"] for r in self.data["reviews"]]
+        
+        for review_model in Review.objects.filter(registry=registry_model):
+            if review_model.code not in review_codes:
+                review_model.delete()
+ 
+        for review_dict in self.data["reviews"]:
+            review_model = goc(Review,
+                               registry=registry_model,
+                               code=review_dict["code"])
+
+            review_model.name = review_dict["name"]
+            review_model.save()
+
+            # delete items no longer in definition
+            existing_item_codes = set([ri.code for ri in review_model.items.all()])
+            imported_item_codes = set([rd["code"] for rd in review_dict["items"]])
+            items_to_delete = existing_item_codes - imported_item_codes
+            ReviewItem.objects.filter(review=review_model,
+                                      code__in=items_to_delete).delete()
+
+            # now update/create items
+            for item_dict in review_dict["items"]:
+                review_item = goc(ReviewItem,
+                                  review=review_model,
+                                  code=item_dict["code"])
+                review_item.category = item_dict["category"]
+                review_item.name = item_dict["name"]
+                review_item.position = item_dict["position"]
+                review_item.item_type = item_dict["item_type"]
+                review_item.change_question_code = item_dict["change_question_code"]
+                review_item.current_status_question_code = item_dict["current_status_question_code"]
+                review_item.save()
+                
+                if item_dict["form"]:
+                    form_model = RegistryForm.objects.get(registry=registry_model,
+                                             name=item_dict["form"])
+                    review_item.form = form_model
+                if item_dict["section"]:
+                    section_model = Section.objects.get(code=item_dict["section"])
+                    review_item.section = section_model
+
+                review_item.save()
+
+                    
+                
+            
+            
+            
+            
+            
+        
+    
 
     def _create_email_notifications(self, registry):
         from rdrf.models.definition.models import EmailNotification

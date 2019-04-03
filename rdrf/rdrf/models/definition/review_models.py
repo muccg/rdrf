@@ -77,6 +77,7 @@ ITEM_CHOICES = ((REVIEW_ITEM_TYPES.CONSENT_FIELD, _("Consent Item")),
 
 
 class ReviewItem(models.Model):
+    code = models.CharField(max_length=80)
     position = models.IntegerField(default=0)
     review = models.ForeignKey(Review, related_name="items", on_delete=models.CASCADE)
     item_type = models.CharField(max_length=2,
