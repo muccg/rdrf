@@ -1,5 +1,7 @@
 from rdrf.models.definition.review_models import REVIEW_ITEM_TYPES
 from rdrf.models.definition.models import CommonDataElement
+from rdrf.models.definition.models import ConsentSection
+from rdrf.models.definition.models import ConsentQuestion
 
 from django import forms
 from django.utils.translation import ugettext as _
@@ -13,11 +15,13 @@ logger = logging.getLogger(__name__)
 class ReviewFormGenerator:
     def __init__(self, review_item):
         self.review_item = review_item
+        self.review = review_item.review
+        self.registry_model = self.review.registry
 
     def create_form_class(self):
         form_class = type(self.form_class_name,
                           (self.base_class,),
-                          self.form_class_dict)
+                          self.get_field_map())
         return form_class
 
     @property
@@ -29,27 +33,32 @@ class ReviewFormGenerator:
         return forms.Form
 
     def get_field_map(self):
-        return {"dummy": forms.CharField(max_length=80)}
+        field_name = "%sField" % self.__class__.__name__
+        field = forms.CharField(max_length=80, help_text="test")
+        field.label = "testlabel"
+        return {field_name: field}
 
     def get_media_class(self):
         class Media:
             css = {'all': ('dmd_admin.css',)}
         return Media
 
-    @property
-    def form_class_dict(self):
-        fields_map = self.get_field_map()
-        media_class = self.get_media_class()
-        form_class_dict = {"base_fields": fields_map,
-                           "Media": media_class}
-        return form_class_dict
-
 
 class ConsentReviewFormGenerator(ReviewFormGenerator):
     def create_consent_field(self):
-        consent_cde_code = self.review_item.target_code
-        consent_cde_model = CommonDataElement.objects.get(code=consent_cde_code)
-        field_label = _(consent_cde_model.name)
+        consent_section_code, consent_question_code = self.review_item.target_code.split("/")
+        consent_section_model = ConsentSection.objects.get(code=consent_section_code,
+                                                           registry=self.registry_model)
+        consent_question_model = ConsentQuestion.objects.get(code=consent_question_code,
+                                                             section=consent_section_model)
+        field_label = _(consent_question_model.question_label)
+        field_name = consent_question_model.field_key
+        field = forms.BooleanField()
+        field.label = field_label
+        return {field_name: field}
+
+    def get_field_map(self):
+        return self.create_consent_field()
 
 
 class DemographicsReviewFormGenerator(ReviewFormGenerator):

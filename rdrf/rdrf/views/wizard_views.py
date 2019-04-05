@@ -10,6 +10,7 @@ class ReviewWizardGenerator:
         self.base_class = SessionWizardView
 
     def create_wizard_class(self):
+        template_name = "rdrf_cdes/review_form.html"
         form_list = create_review_forms(self.review_model)
         class_name = "ReviewWizard"
 
@@ -20,6 +21,7 @@ class ReviewWizardGenerator:
 
         class_dict = {
             "form_list": form_list,
+            "template_name": template_name,
             "done": done_method,
         }
 
