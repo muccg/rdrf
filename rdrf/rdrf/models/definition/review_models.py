@@ -103,7 +103,6 @@ class VerificationStatus:
     VERIFIED = "V"
     NOT_VERIFIED = "N"
     UNKNOWN = "U"
-    
 
 
 class PatientReview(models.Model):
@@ -142,14 +141,7 @@ class PatientReviewItem(models.Model):
     verification_status = models.CharField(max_length=1,
                                            blank=True,
                                            null=True)
-    
-
     data = models.TextField(blank=True, null=True)  # json data
 
     def save(self):
         pass
-
-    
-    
-    
-    
