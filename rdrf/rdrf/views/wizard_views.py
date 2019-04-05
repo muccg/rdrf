@@ -60,6 +60,20 @@ class ReviewDataHandler:
         if not self.patient_model.in_registry(self.registry_model):
             raise ValidationError("Patient not in registry")
 
+    def _process_review(self):
+        for review_item in self.review_model.items:
+            self._process_review_item(review_item)
+
+    def _process_review_item(self, review_item):
+        item_data = self._get_item_data(review_item)
+        review_item.update_data(self.patient_model,
+                                item_data)
+
+    def _get_item_data(self, review_item):
+        step = self.step_map[review_item.code]
+        return self.form_dict[step]
+        
+
 
 class ReviewWizardGenerator:
     def __init__(self, review_model):
