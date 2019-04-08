@@ -12,6 +12,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 
+
 class ReviewFormGenerator:
     def __init__(self, review_item):
         self.review_item = review_item
@@ -19,8 +20,13 @@ class ReviewFormGenerator:
         self.registry_model = self.review.registry
 
     def create_form_class(self):
+        class Mixin:
+            registry_code = self.registry_model.code
+            review_code = self.review.code
+            review_item_code = self.review_item.code
+            
         form_class = type(self.form_class_name,
-                          (self.base_class,),
+                          (self.base_class, Mixin),
                           self.get_field_map())
         return form_class
 
@@ -45,7 +51,7 @@ class ReviewFormGenerator:
 
 
 class ConsentReviewFormGenerator(ReviewFormGenerator):
-    def create_consent_field(self):
+    def _create_consent_field(self):
         consent_section_code, consent_question_code = self.review_item.target_code.split("/")
         consent_section_model = ConsentSection.objects.get(code=consent_section_code,
                                                            registry=self.registry_model)
@@ -53,12 +59,23 @@ class ConsentReviewFormGenerator(ReviewFormGenerator):
                                                              section=consent_section_model)
         field_label = _(consent_question_model.question_label)
         field_name = consent_question_model.field_key
-        field = forms.BooleanField()
-        field.label = field_label
-        return {field_name: field}
+        field = forms.BooleanField(required=False)
+        field.label = self._remove_leading_number(field_label)
+        return field_name, field
+
+    def _remove_leading_number(self, label):
+        import re
+        pattern = re.compile(r'^(\d+\.?\w*)(.*)$')
+        m = pattern.match(label)
+        if m:
+            return m.group(2).strip()
+        else:
+            return label
+        
 
     def get_field_map(self):
-        return self.create_consent_field()
+        field_name, field = self._create_consent_field()
+        return {field_name: field}
 
 
 class DemographicsReviewFormGenerator(ReviewFormGenerator):
@@ -93,7 +110,7 @@ GENERATOR_MAP = {
 
 def create_review_forms(review_model):
     logger.debug("review_model = %s" % review_model.name)
-    # for each review "item" we create the form class to collect data for it
+    # for each review "item" we create the form _class_ to collect data for it
     # the resulting set of forms is sent to a wizard
     forms_list = []
     logger.debug("creating review form classes ...")

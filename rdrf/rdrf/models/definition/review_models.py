@@ -11,6 +11,14 @@ from registry.groups.models import CustomUser
 from registry.patients.models import Patient
 from registry.patients.models import ParentGuardian
 
+import logging
+
+logger = logging.getLogger(__name__)
+
+
+class InvalidItemType(Exception):
+    pass
+
 
 def generate_reviews(registry_model):
     reviews_dict = registry_model.metadata.get("reviews", {})
@@ -93,16 +101,62 @@ class ReviewItem(models.Model):
     current_status_question_code = models.CharField(max_length=80, blank=True, null=True)  # cde code of status question
     target_code = models.CharField(max_length=80, blank=True, null=True)  # the cde or section code or consent code
 
+    def update_data(self, patient_model, parent_model, context_model, form_data):
+        if self.item_type == REVIEW_ITEM_TYPES.CONSENT_FIELD:
+            self._update_consent_data(patient_model, form_data)
+        elif self.item_type == REVIEW_ITEM_TYPES.DEMOGRAPHICS_FIELD:
+            self._update_demographics_data(patient_model, form_data)
+        elif self.item_type == REVIEW_ITEM_TYPES.SECTION_CHANGE:
+            self._update_section_data(patient_model, context_model, form_data)
+        elif self.item_type == REVIEW_ITEM_TYPES.MULTISECTION_ITEM:
+            self._add_multisection_data(patient_model, context_model, form_data)
+        elif self.item_type == REVIEW_ITEM_TYPES.VERIFICATION:
+            self._update_verification(patient_model, context_model, form_data)
+        else:
+            raise InvalidItemType(self.item_type)
+
+    def _update_consent_data(self, patient_model, form_data):
+        from rdrf.models.definition.models import ConsentQuestion
+        for field_key in form_data:
+            answer = form_data[field_key]
+            logger.debug("consent %s = %s" % (field_key, answer))
+            key_parts = field_key.split("_")
+            question_pk = int(key_parts[3])
+            consent_question_model = ConsentQuestion.objects.get(id=question_pk)
+            patient_model.set_consent(consent_question_model, answer)
+
+
+    def _update_section_data(self, patient_model, context_model, form_data):
+        logger.debug("update section data : todo!")
+
+    def _update_demographics_data(self, patient_model, form_data):
+        logger.debug("update demographics data : todo!")
+
+    def _add_multisection_data(self, patient_model, context_model, form_data):
+        logger.debug("update multisection data : todo!")
+
+    def _update_verification(self, patient_model, context_model, form_data):
+        pass
+    
+
 
 class ReviewStates:
-    CREATED = "C"
-    FINISHED = "F"
+    CREATED = "C"         # created , patient hasn't filled out yet
+    DATA_COLLECTED = "D"  # data collected from review and stored in patient review items
+    FINISHED = "F"        # data fanned out without error from review items
+    ERROR = "E"           # if an error stops the fan out
 
 
 class VerificationStatus:
     VERIFIED = "V"
     NOT_VERIFIED = "N"
     UNKNOWN = "U"
+
+
+class PatientReviewItemStates:
+    CREATED = "C"               # model instance created , waiting for data
+    DATA_COLLECTED = "D"        # data collected
+    FINISHED = "F"
 
 
 class PatientReview(models.Model):
@@ -113,23 +167,24 @@ class PatientReview(models.Model):
     context = models.ForeignKey(RDRFContext, on_delete=models.CASCADE)
     token = models.CharField(max_length=80, unique=True, default=generate_token)
     created_date = models.DateTimeField(auto_now_add=True)
-    completed_date = models.DateTimeField(blank=True)
+    completed_date = models.DateTimeField(blank=True, null=True)
     state = models.CharField(max_length=1, default=ReviewStates.CREATED)
-
-    def generate_wizard(self):
-        pass
-
-    def save(self):
-        for review_item in self.items:
-            pass
 
     def email_link(self):
         pass
 
+    def create_review_items(self):
+        for item in self.review.items.all():
+            pri = PatientReviewItem(patient_review=self,
+                                    review_item=item)
+            pri.save()
+
 
 class PatientReviewItem(models.Model):
     created_date = models.DateTimeField(auto_now_add=True)
+    completed_date = models.DateTimeField(blank=True, null=True)
     patient_review = models.ForeignKey(PatientReview, related_name="items", on_delete=models.CASCADE)
+    state = models.CharField(max_length=1, default=PatientReviewItemStates.CREATED)
     review_item = models.ForeignKey(ReviewItem, on_delete=models.CASCADE)
     has_changed = models.CharField(max_length=1,
                                    blank=True,
@@ -143,5 +198,19 @@ class PatientReviewItem(models.Model):
                                            null=True)
     data = models.TextField(blank=True, null=True)  # json data
 
-    def save(self):
-        pass
+    def update_data(self, cleaned_data):
+        self.data = self._encode_data(cleaned_data)
+        self.state = PatientReviewItemStates.DATA_COLLECTED
+        self.save()
+        # fan out the review data from a patient to the correct place
+        # the model knows how to update the data
+        self.review_item.update_data(self.patient_review.patient,
+                                     self.patient_review.parent,
+                                     self.patient_review.context,
+                                     cleaned_data)
+        self.state = PatientReviewItemStates.FINISHED
+        self.save()
+
+    def _encode_data(self, data):
+        import json
+        return json.dumps(data)
