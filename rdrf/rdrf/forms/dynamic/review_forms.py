@@ -11,7 +11,32 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+class FieldTags:
+    DATA_ENTRY = "data_entry"
+    METADATA = "metadata"
+    
 
+class BaseReviewForm(forms.Form):
+    @property
+    def data_entry_fields(self):
+        for field in self._get_fields_by_tag(FieldTags.DATA_ENTRY):
+            yield field
+
+    @property
+    def metadata_fields(self):
+        for field in self._get_fields_by_tag(FieldTags.METADATA):
+            yield field
+
+    def _get_fields_by_tag(self,tag):
+        # this allows us to partition the types of fields in groups
+        # in the template
+        # we've already tagged the field object
+        # not sure why this is field.field and not field
+
+        for field in self:
+            if hasattr(field.field, "rdrf_tag"):
+                if field.field.rdrf_tag == tag:
+                    yield field
 
 class ReviewFormGenerator:
     def __init__(self, review_item):
@@ -36,18 +61,65 @@ class ReviewFormGenerator:
 
     @property
     def base_class(self):
-        return forms.Form
+        return BaseReviewForm
 
     def get_field_map(self):
-        field_name = "%sField" % self.__class__.__name__
-        field = forms.CharField(max_length=80, help_text="test")
-        field.label = "testlabel"
-        return {field_name: field}
+        field_map = {}
+        metadata_fields = self.generate_metadata_fields()
+        data_entry_fields = self.generate_data_entry_fields()
+        field_map.update(metadata_fields)
+        field_map.update(data_entry_fields)
+
+        return field_map
+
+    def generate_metadata_fields(self):
+        # subclass
+        return {}
+
+    def generate_data_entry_fields(self):
+        # subclass
+        return {}
 
     def get_media_class(self):
         class Media:
             css = {'all': ('dmd_admin.css',)}
         return Media
+
+    def generate_fields_from_section(self, section_model):
+        if section_model is None:
+            return {}
+        d = {}
+        for cde_model in section_model.cde_models:
+           field_name, field = self.generate_field_from_cde(cde_model)
+           field.rdrf_tag = FieldTags.DATA_ENTRY
+           logger.debug("added tag %s to field %s" % (FieldTags.DATA_ENTRY, field))
+           
+           d.update({field_name: field})
+        return d
+
+    def generate_field_from_cde(self, cde_model):
+        field = forms.CharField(max_length=80,
+                                required=False)
+        field.label = _(cde_model.name)
+        field_name = cde_model.code
+        return field_name, field
+
+    def generate_current_status_field(self):
+        field = forms.CharField(max_length=80)
+        field.label = _("What is the current status of this condition?")
+        field.help_text = _("Please indicate the current status of this medical condition in your child/adult.")
+        field_name = "metadata_current_status"
+        field.rdrf_tag = FieldTags.METADATA
+        return field_name, field
+
+    def generate_condition_changed_field(self):
+        field = forms.CharField(max_length=80)
+        field.label = _("Has your child/adult's condition changed since your report?")
+        field_name = "metadata_condition_changed"
+        field.rdrf_tag = FieldTags.METADATA
+        return field_name, field
+        
+        
 
 
 class ConsentReviewFormGenerator(ReviewFormGenerator):
@@ -71,19 +143,36 @@ class ConsentReviewFormGenerator(ReviewFormGenerator):
             return m.group(2).strip()
         else:
             return label
-        
 
-    def get_field_map(self):
+    def generate_data_entry_fields(self):
         field_name, field = self._create_consent_field()
+        field.rdrf_tag = FieldTags.DATA_ENTRY
         return {field_name: field}
 
 
 class DemographicsReviewFormGenerator(ReviewFormGenerator):
-    pass
+    def generate_data_entry_fields(self):
+        section_field_map = self.generate_fields_from_section(self.review_item.section)
+        return section_field_map
 
 
 class SectionMonitorReviewFormGenerator(ReviewFormGenerator):
-    pass
+    def generate_data_entry_fields(self):
+        section_field_map = self.generate_fields_from_section(self.review_item.section)
+        return section_field_map
+
+    def generate_metadata_fields(self):
+        d = {}
+        current_status_field_name, current_status_field = self.generate_current_status_field()
+        d[current_status_field_name] = current_status_field
+        condition_changed_field_name, condition_changed_field = self.generate_condition_changed_field()
+        d[condition_changed_field_name] = condition_changed_field
+
+        return d
+
+        
+        
+        
 
 
 class MultisectionAddReviewFormGenerator(ReviewFormGenerator):

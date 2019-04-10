@@ -1,8 +1,14 @@
 from django.http import HttpResponseRedirect
 from django.core.exceptions import ValidationError
 from formtools.wizard.views import SessionWizardView
+from django.utils.translation import ugettext as _
 
 from rdrf.forms.dynamic.review_forms import create_review_forms
+from rdrf.models.definition.review_models import ReviewStates
+from rdrf.models.definition.review_models import PatientReview
+from rdrf.models.definition.review_models import ReviewItem
+from rdrf.models.definition.review_models import REVIEW_ITEM_TYPES
+from registry.patients.models import ParentGuardian
 
 import logging
 
@@ -54,7 +60,6 @@ class ReviewDataHandler:
             pass
 
     def _update_patient_review(self):
-        from rdrf.models.definition.review_models import ReviewStates
         self.patient_review.state = ReviewStates.DATA_COLLECTED
         self.patient_review.save()
         for patient_review_item in self.patient_review.items.all():
@@ -64,9 +69,6 @@ class ReviewDataHandler:
                 patient_review_item.update_data(form.cleaned_data)
 
     def _populate_models(self):
-        from rdrf.models.definition.review_models import PatientReview
-        from rdrf.models.definition.review_models import ReviewStates
-
         try:
             patient_review = PatientReview.objects.get(token=self.token,
                                                        review=self.review_model,
@@ -103,6 +105,89 @@ class ReviewDataHandler:
         return self.form_map.get(review_item.code, None)
 
 
+class PreviousResponse:
+    def __init__(self, subitem):
+        self.subitem = subitem
+
+    @property
+    def label(self):
+        return "question"
+
+    @property
+    def value(self):
+        return "value"
+
+
+class ReviewItemPageData:
+    """
+    This class gathers together all the relevant information
+    for the review template
+    """
+    def __init__(self, token, review_model, review_form):
+        self.token = token
+        self.review_model = review_model
+        self.review_form = review_form
+        self.review_item_model = ReviewItem.objects.get(review=self.review_model,
+                                                        code=self.review_form.review_item_code)
+        self.patient_review = self._get_patient_review(self.token)
+        self.user = self.patient_review.user # the parent user or self patient
+        self.state = self.patient_review.state
+        self.patient_model = self.patient_review.patient
+        self.parent_model = self._get_parent(self.user)
+        self.is_parent = self.parent_model is not None
+        self.clinician_user = None # todo
+        self.patient_data = self._load_data()
+
+    def _get_patient_review(self, token):
+        return PatientReview.objects.get(token=token)
+
+    def _get_parent(self, user):
+        try:
+            return ParentGuardian.objects.get(user=user)
+        except ParentGuardian.DoesNotExist:
+            return None
+
+    def _load_data(self):
+        self.patient_model.get_dynamic_data(self.review_model.registry,
+                                            collection="cdes",
+                                            context_id=self.patient_review.context.pk)
+    @property
+    def summary(self):
+        return _(self.review_item_model.summary)
+
+    @property
+    def is_clinician_review(self):
+        return self.review_item_model.item_type == REVIEW_ITEM_TYPES.VERIFICATION
+
+    @property
+    def category(self):
+        return _(self.review_item_model.category)
+
+    @property
+    def name(self):
+        return _(self.review_item_model.name)
+
+    @property
+    def title(self):
+        return _(self.review_model.name)
+
+    @property
+    def valid(self):
+        return self.state == ReviewStates.CREATED
+
+    @property
+    def is_parent_review(self):
+        return self.parent_model and self.patient_model
+
+    @property
+    def responses(self):
+        return [PreviousResponse(item) for item in self.items]
+
+    @property
+    def items(self):
+        for form_model, section_model, cde_model in self.review_item
+
+
 class ReviewWizardGenerator:
     def __init__(self, review_model):
         self.review_model = review_model
@@ -126,9 +211,30 @@ class ReviewWizardGenerator:
                                     
             return HttpResponseRedirect("/")
 
+        def get_context_data_method(myself, form, **kwargs):
+            token = myself.request.GET.get("token")
+            page = ReviewItemPageData(token, self.review_model, form)
+                                              
+            context = super(myself.__class__, myself).get_context_data(form=form,
+                                                                        **kwargs)
+
+            context.update({"review_title": page.title,
+                            "summary": page.summary,
+                            "category": page.category,
+                            "name": page.name,
+                            "responses": page.responses,
+                            "valid": page.valid,
+                            "parent": page.parent_model,
+                            "patient": page.patient_model,
+                            "is_clinician_review": page.is_clinician_review,
+                            "is_parent_review": page.is_parent_review,
+                            "clinician": page.clinician_user})
+            return context
+
         class_dict = {
             "form_list": form_list,
             "template_name": template_name,
+            "get_context_data": get_context_data_method,
             "done": done_method,
         }
 

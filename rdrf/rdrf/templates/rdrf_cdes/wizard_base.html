@@ -1,12 +1,35 @@
+{% load static from staticfiles %}
 <html>
   <head>
+    <link rel="stylesheet" href="{% static 'bootstrap-3.3.6/css/bootstrap.min.css' %}">
+    <script type="text/javascript" src="{% static 'bootstrap-3.3.6/js/bootstrap.min.js' %}"></script>
     {% block head %}
     {% endblock %}
   </head>
   <body>
-    <h1>Wizard</h1>
+    {% if valid %}
+    <div class="jumbotron">
+      <h1>{{ review_title }}</h1>
+
+      {% if clinician_review %}
+      <h3>{{ clinician }} reviewing {{patient}} on behalf of {{parent}}</h3>
+      {% endif %}
+
+      {% if parent_review %}
+      <h3>{{ parent }} on behalf of {{patient}}</h3>
+      {% endif %}
+
+      <h2>{{ category }}</h2>
+      
+   </div>
+   {% endif %}
+    
+    {% if valid %}
     {% block content %}
     {% endblock %}
+    {% else %}
+    <h1>This page is no longer valid</h1>
+    {% endif %}
   </body>
 </html>
   

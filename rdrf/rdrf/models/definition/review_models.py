@@ -93,6 +93,7 @@ class ReviewItem(models.Model):
 
     category = models.CharField(max_length=80, blank=True, null=True)
     name = models.CharField(max_length=80, blank=True, null=True)
+    summary = models.TextField(blank=True)
 
     # the form or section models 
     form = models.ForeignKey(RegistryForm, blank=True, null=True, on_delete=models.CASCADE)
@@ -137,7 +138,6 @@ class ReviewItem(models.Model):
 
     def _update_verification(self, patient_model, context_model, form_data):
         pass
-    
 
 
 class ReviewStates:
