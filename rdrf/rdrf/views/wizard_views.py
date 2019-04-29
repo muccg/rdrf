@@ -185,7 +185,7 @@ class ReviewItemPageData:
 
     @property
     def items(self):
-        for form_model, section_model, cde_model in self.review_item
+        return []
 
 
 class ReviewWizardGenerator:

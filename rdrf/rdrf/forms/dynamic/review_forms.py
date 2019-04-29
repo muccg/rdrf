@@ -124,16 +124,17 @@ class ReviewFormGenerator:
 
 class ConsentReviewFormGenerator(ReviewFormGenerator):
     def _create_consent_field(self):
-        consent_section_code, consent_question_code = self.review_item.target_code.split("/")
-        consent_section_model = ConsentSection.objects.get(code=consent_section_code,
-                                                           registry=self.registry_model)
-        consent_question_model = ConsentQuestion.objects.get(code=consent_question_code,
-                                                             section=consent_section_model)
-        field_label = _(consent_question_model.question_label)
-        field_name = consent_question_model.field_key
-        field = forms.BooleanField(required=False)
-        field.label = self._remove_leading_number(field_label)
-        return field_name, field
+        if self.review_item.target_code:
+            consent_section_code, consent_question_code = self.review_item.target_code.split("/")
+            consent_section_model = ConsentSection.objects.get(code=consent_section_code,
+                                                               registry=self.registry_model)
+            consent_question_model = ConsentQuestion.objects.get(code=consent_question_code,
+                                                                 section=consent_section_model)
+            field_label = _(consent_question_model.question_label)
+            field_name = consent_question_model.field_key
+            field = forms.BooleanField(required=False)
+            field.label = self._remove_leading_number(field_label)
+            return field_name, field
 
     def _remove_leading_number(self, label):
         import re
