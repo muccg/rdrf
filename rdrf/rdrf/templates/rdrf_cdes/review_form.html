@@ -26,40 +26,7 @@
       {{ summary }}
     </div>
     </div>
-  </div>
 
-  <!-- column 2 -->
-  <div class="col-md-3">
-    <div class="panel panel-default">
-    <div class="panel-heading">Previous Responses</div>
-    <div class="panel-body">
-    {% for response in responses %}
-    <a href="#">{{response.label }} <span class="badge">{{ response.answer }}</span></a><br> 
-    {% endfor %}
-    </div>
-    </div>
-   </div> <!-- end column -->
-  
-  <div class="col-md-3">
-    <div class="panel panel-default">
-    <div class="panel-heading">Data Fields</div>
-    <div class="panel-body">
-    {% for field in wizard.form.data_entry_fields %}
-    <div class="form-group">
-        {{ field.errors }}
-        {{ field.label_tag }} {{ field }}
-        {% if field.help_text %}
-        <p class="help">{{ field.help_text|safe }}</p>
-        {% endif %}
-    </div>
-    {% endfor %}
-    </div>
-    </div>
-  </div> <!-- end column -->
-
-
-
-  <div class="col-md-3">
   <div class="panel panel-default">
   <div class="panel-heading">Review Fields</div>
   <div class="panel-body">
@@ -75,7 +42,44 @@
     {% endfor %}
     </div>
   </div>
-  </div> 
+
+  </div>
+
+  <!-- column 2 -->
+  <div class="col-md-4">
+    <div class="panel panel-default">
+    <div class="panel-heading">Previous Responses</div>
+    <div class="panel-body">
+    {% for response in responses %}
+    {{response.label}}
+    <span class="label label-default">{{ response.answer }}</span><br>
+    {% endfor %}
+   </div>
+   </div>
+
+
+
+ <div class="panel panel-default">
+    <div class="panel-heading">Data Fields</div>
+    <div class="panel-body">
+    {% for field in wizard.form.data_entry_fields %}
+    <div class="form-group">
+        {{ field.errors }}
+        {{ field.label_tag }} {{ field }}
+        {% if field.help_text %}
+        <p class="help">{{ field.help_text|safe }}</p>
+        {% endif %}
+    </div>
+    {% endfor %}
+    </div>
+    </div>
+
+
+    
+   </div>
+  
+  <div class="col-md-3">
+   </div> 
     
 {% endif %}
 </table>

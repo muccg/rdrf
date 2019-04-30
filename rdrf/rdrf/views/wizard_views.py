@@ -106,16 +106,17 @@ class ReviewDataHandler:
 
 
 class PreviousResponse:
-    def __init__(self, subitem):
-        self.subitem = subitem
+    def __init__(self, field, value):
+        self.field = field
+        self.field_value = value
 
     @property
     def label(self):
-        return "question"
+        return _(self.field)
 
     @property
-    def value(self):
-        return "value"
+    def answer(self):
+        return self.field_value
 
 
 class ReviewItemPageData:
@@ -135,9 +136,11 @@ class ReviewItemPageData:
         self.patient_model = self.patient_review.patient
         self.parent_model = self._get_parent(self.user)
         self.is_parent = self.parent_model is not None
-        self.clinician_user = None # todo
-        self.patient_data = self._load_data()
-
+        self.clinician_user = None
+        # this depends on the type of review item:
+        self.previous_data = self.review_item_model.get_data(self.patient_model,
+                                                             self.patient_review.context)
+                                                                       
     def _get_patient_review(self, token):
         return PatientReview.objects.get(token=token)
 
@@ -147,10 +150,6 @@ class ReviewItemPageData:
         except ParentGuardian.DoesNotExist:
             return None
 
-    def _load_data(self):
-        self.patient_model.get_dynamic_data(self.review_model.registry,
-                                            collection="cdes",
-                                            context_id=self.patient_review.context.pk)
     @property
     def summary(self):
         return _(self.review_item_model.summary)
@@ -181,11 +180,7 @@ class ReviewItemPageData:
 
     @property
     def responses(self):
-        return [PreviousResponse(item) for item in self.items]
-
-    @property
-    def items(self):
-        return []
+        return [PreviousResponse(pair[0], pair[1]) for pair in self.previous_data]
 
 
 class ReviewWizardGenerator:

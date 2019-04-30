@@ -85,6 +85,9 @@ ITEM_CHOICES = ((REVIEW_ITEM_TYPES.CONSENT_FIELD, _("Consent Item")),
 
 
 class ReviewItem(models.Model):
+    """
+    A unit of a review
+    """
     code = models.CharField(max_length=80)
     position = models.IntegerField(default=0)
     review = models.ForeignKey(Review, related_name="items", on_delete=models.CASCADE)
@@ -93,6 +96,7 @@ class ReviewItem(models.Model):
 
     category = models.CharField(max_length=80, blank=True, null=True)
     name = models.CharField(max_length=80, blank=True, null=True)
+    fields = models.TextField(blank=True)  # used for demographics
     summary = models.TextField(blank=True)
 
     # the form or section models 
@@ -138,6 +142,89 @@ class ReviewItem(models.Model):
 
     def _update_verification(self, patient_model, context_model, form_data):
         pass
+
+    def get_data(self, patient_model, context_model):
+        # get previous responses so they can be displayed
+        if self.item_type == REVIEW_ITEM_TYPES.CONSENT_FIELD:
+            return self._get_consent_data(patient_model)
+        elif self.item_type == REVIEW_ITEM_TYPES.DEMOGRAPHICS_FIELD:
+            return self._get_demographics_data(patient_model)
+        elif self.item_type == REVIEW_ITEM_TYPES.SECTION_CHANGE:
+            return self._get_section_data(patient_model, context_model)
+
+        # otherwise
+        return []
+
+    def _get_consent_data(self, patient_model):
+        from rdrf.models.definition.models import ConsentSection
+        from rdrf.models.definition.models import ConsentQuestion
+        from registry.patients.models import ConsentValue
+        consent_section_code, consent_question_code = self.target_code.split("/")
+        consent_section_model = ConsentSection.objects.get(code=consent_section_code,
+                                                           registry=self.review.registry)
+
+        consent_question_model = ConsentQuestion.objects.get(code=consent_question_code,
+                                                             section=consent_section_model)
+
+        field_label = consent_question_model.question_label
+
+        try:
+            consent_value = ConsentValue.objects.get(consent_question=consent_question_model,
+                                                     patient_id=patient_model.pk)
+            answer = consent_value.answer
+
+        except ConsentValue.DoesNotExist:
+            answer = False
+
+        return [(field_label, answer)]
+
+    def _get_demographics_data(self, patient_model):
+        is_address = self.fields.lower().strip() in ["postal_address", "home_address", "address"]
+        if is_address:
+            return self._get_address_data(patient_model)
+        else:
+            return self._get_demographics_fields(patient_model)
+
+    def _get_address_data(self, patient_model):
+        from registry.patients.models import PatientAddress
+        from registry.patients.models import AddressType 
+        pairs = []
+        field = self.fields.lower().strip()
+        if field == "postal_address":
+            address_type = AddressType.objects.get(type="Postal")
+        else:
+            address_type = AddressType.objects.get(type="Home")
+
+
+        try:
+            address = PatientAddress.objects.get(patient=patient_model,
+                                             address_type=address_type)
+        except PatientAddress.DoesNotExist:
+            return []
+            
+        pairs.append(("Address Type", address_type.description))
+        pairs.append(("Address", address.address))
+        pairs.append(("Suburb", address.suburb))
+        pairs.append(("Country",address.country))
+        pairs.append(("State", address.state))
+        pairs.append(("Postcode", address.postcode))
+        return pairs
+
+    def _get_demographics_fields(self, patient_model):
+        return []
+
+    def _get_section_data(self, patient_model, context_model):
+        patient_data = patient_model.get_dynamic_data(self.review.registry,
+                                                      collection="cdes",
+                                                      context_id=context_model.pk)
+
+        
+
+        
+        
+                
+                
+        
 
 
 class ReviewStates:
