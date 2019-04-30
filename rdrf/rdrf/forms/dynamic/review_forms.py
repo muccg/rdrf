@@ -14,7 +14,18 @@ logger = logging.getLogger(__name__)
 class FieldTags:
     DATA_ENTRY = "data_entry"
     METADATA = "metadata"
-    
+
+
+CURRENT_STATUS_CHOICES = (("1", "Currently Experiencing"),
+                          ("2", "Intermittently Experiencing"),
+                          ("3", "Resolved"),
+                          ("4", "Unknown"))
+
+CONDITION_CHOICES = (("1", "Yes"),
+                     ("2", "No"),
+                     ("3", "Unknown"))
+
+
 
 class BaseReviewForm(forms.Form):
     @property
@@ -105,7 +116,7 @@ class ReviewFormGenerator:
         return field_name, field
 
     def generate_current_status_field(self):
-        field = forms.CharField(max_length=80)
+        field = forms.CharField(max_length=1, widget=forms.Select(choices=CURRENT_STATUS_CHOICES))
         field.label = _("What is the current status of this condition?")
         field.help_text = _("Please indicate the current status of this medical condition in your child/adult.")
         field_name = "metadata_current_status"
@@ -113,7 +124,8 @@ class ReviewFormGenerator:
         return field_name, field
 
     def generate_condition_changed_field(self):
-        field = forms.CharField(max_length=80)
+        field = forms.CharField(max_length=1, default="3", widget=forms.Select(choices=CONDITION_CHOICES,
+                                                                  attrs={'class': 'condition'}))
         field.label = _("Has your child/adult's condition changed since your report?")
         field_name = "metadata_condition_changed"
         field.rdrf_tag = FieldTags.METADATA
@@ -171,9 +183,6 @@ class SectionMonitorReviewFormGenerator(ReviewFormGenerator):
 
         return d
 
-        
-        
-        
 
 
 class MultisectionAddReviewFormGenerator(ReviewFormGenerator):
