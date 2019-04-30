@@ -19,6 +19,9 @@ logger = logging.getLogger(__name__)
 class InvalidItemType(Exception):
     pass
 
+class Missing:
+    DISPLAY_VALUE = "Not entered"
+    VALUE = None
 
 def generate_reviews(registry_model):
     reviews_dict = registry_model.metadata.get("reviews", {})
@@ -26,6 +29,7 @@ def generate_reviews(registry_model):
         r = Review(registry=registry_model,
                    name=review_name)
         r.save()
+
 
 
 class Review(models.Model):
@@ -213,18 +217,50 @@ class ReviewItem(models.Model):
     def _get_demographics_fields(self, patient_model):
         return []
 
-    def _get_section_data(self, patient_model, context_model):
-        patient_data = patient_model.get_dynamic_data(self.review.registry,
-                                                      collection="cdes",
-                                                      context_id=context_model.pk)
+    def _get_section_data(self, patient_model, context_model, raw=False):
+        # we need raw values for initial data
+        # display values for the read only
+        assert not self.section.allow_multiple
+        pairs = []
+        data = patient_model.get_dynamic_data(self.review.registry,
+                                              collection="cdes",
+                                              context_id=context_model.pk,
+                                              flattened=True)
 
-        
+        def get_field_value(cde_model):
+            # closure to make things easier ...
+            # this assumes the section in form in registry selected ..
+            # ( we should enforce this as a validation rule )
+            # the data is passed in once to avoid reloading multiple
+            # times
+            raw_value = patient_model.get_form_value(self.review.registry.code,
+                                                     self.form.name,
+                                                     self.section.code,
+                                                     cde_model.code,
+                                                     False,
+                                                     context_model.pk,
+                                                     data)
+            if raw:
+                return raw_value
+            else:
+                return cde_model.get_display_value(raw_value)
 
-        
-        
-                
-                
-        
+        for cde_model in self.section.cde_models:
+            if raw:
+                field = cde_model.code
+            else:
+                field = cde_model.name
+            try:
+                value = get_field_value(cde_model)
+            except KeyError:
+                if raw:
+                    value = Missing.VALUE
+                else:
+                    value = Missing.DISPLAY_VALUE
+
+            pairs.append((field, value))
+
+        return pairs
 
 
 class ReviewStates:

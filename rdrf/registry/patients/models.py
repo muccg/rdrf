@@ -464,6 +464,7 @@ class Patient(models.Model):
         from rdrf.db.dynamic_data import DynamicDataWrapper
         from rdrf.helpers.utils import mongo_key
 
+
         if clinical_data is None:
             wrapper = DynamicDataWrapper(self, rdrf_context_id=context_id)
             data = wrapper.load_dynamic_data(registry_code, "cdes")
@@ -1058,7 +1059,7 @@ class Patient(models.Model):
                         return context_model
             raise Exception("no default context")
 
-    def get_dynamic_data(self, registry_model, collection="cdes", context_id=None):
+    def get_dynamic_data(self, registry_model, collection="cdes", context_id=None, flattened=False):
         from rdrf.db.dynamic_data import DynamicDataWrapper
         if context_id is None:
             default_context = self.default_context(registry_model)
@@ -1069,7 +1070,7 @@ class Patient(models.Model):
 
         wrapper = DynamicDataWrapper(self, rdrf_context_id=context_id)
 
-        return wrapper.load_dynamic_data(registry_model.code, collection, flattened=False)
+        return wrapper.load_dynamic_data(registry_model.code, collection, flattened=flattened)
 
     def update_dynamic_data(self, registry_model, new_mongo_data, context_id=None):
         """
