@@ -6,6 +6,7 @@ from rdrf.models.definition.models import RegistryForm
 from rdrf.models.definition.models import Section
 from rdrf.models.definition.models import RDRFContext
 from rdrf.helpers.utils import generate_token
+from rdrf.helpers.utils import check_models
 
 from registry.groups.models import CustomUser
 from registry.patients.models import Patient
@@ -19,9 +20,11 @@ logger = logging.getLogger(__name__)
 class InvalidItemType(Exception):
     pass
 
+
 class Missing:
     DISPLAY_VALUE = "Not entered"
     VALUE = None
+
 
 def generate_reviews(registry_model):
     reviews_dict = registry_model.metadata.get("reviews", {})
@@ -29,7 +32,6 @@ def generate_reviews(registry_model):
         r = Review(registry=registry_model,
                    name=review_name)
         r.save()
-
 
 
 class Review(models.Model):
@@ -74,18 +76,56 @@ class Review(models.Model):
 class REVIEW_ITEM_TYPES:
     CONSENT_FIELD = "CF"        # continue to consent
     DEMOGRAPHICS_FIELD = "DF"   # update some data
-    SECTION_CHANGE =  "SC"      # monitor change in a given section
+    SECTION_CHANGE = "SC"      # monitor change in a given section
     MULTISECTION_ITEM = "MI"    # add to a list of items  ( e.g. new therapies since last review)
     MULTISECTION_UPDATE = "MU"  # replace / update a set of items  ( necessary?)
     VERIFICATION = "V"
+    CLINICIAN_ACCESS = "CA"     # need specific flag to indicate we want to show the current clinician
+    MULTI_TARGET = "MT"         # a collection of fields referred to by form.section.cde codes
 
 
 ITEM_CHOICES = ((REVIEW_ITEM_TYPES.CONSENT_FIELD, _("Consent Item")),
                 (REVIEW_ITEM_TYPES.DEMOGRAPHICS_FIELD, _("Demographics Field")),
+                (REVIEW_ITEM_TYPES.CLINICIAN_ACCESS, _("Clinician Access")),
+                (REVIEW_ITEM_TYPES.MULTI_TARGET, _("Multi Target")),
                 (REVIEW_ITEM_TYPES.SECTION_CHANGE, _("Section Monitor")),
                 (REVIEW_ITEM_TYPES.MULTISECTION_ITEM, _("Add to Section")),
                 (REVIEW_ITEM_TYPES.MULTISECTION_UPDATE, _("Update Section")),
                 (REVIEW_ITEM_TYPES.VERIFICATION, _("Verification Section")))
+
+
+class TargetUpdater:
+    def __init__(self, review_item, field_id):
+        self.review_item = review_item
+        self.field_id = field_id
+        self.metadata = self.review_item.load_metadata()
+
+    def update(self, patient_model, context_model, answer):
+        for field_dict in self.metadata:
+            target_dict = field_dict["target"]
+            if "form" in target_dict:
+                # update an arbritary cde
+                from rdrf.models.definition.models import RegistryForm
+                from rdrf.models.definition.models import Section
+                from rdrf.models.definition.models import CommonDataElement
+
+                form_name = target_dict["form"]
+                section_code = target_dict["section"]
+                cde_code = target_dict["cde"]
+                registry_model = self.review_item.review.registry
+                form_model = RegistryForm.objects.get(name=form_name,
+                                                      registry=registry_model)
+                section_model = Section.objects.get(code=section_code)
+                cde_model = CommonDataElement.objects.get(code=cde_code)
+
+                check_models(registry_model, form_model, section_model, cde_model)
+
+                patient_model.set_form_value(registry_model.code,
+                                             form_model.name,
+                                             section_model.code,
+                                             cde_model.code,
+                                             answer,
+                                             context_model=context_model)
 
 
 class ReviewItem(models.Model):
@@ -103,12 +143,20 @@ class ReviewItem(models.Model):
     fields = models.TextField(blank=True)  # used for demographics
     summary = models.TextField(blank=True)
 
-    # the form or section models 
+    # the form or section models
     form = models.ForeignKey(RegistryForm, blank=True, null=True, on_delete=models.CASCADE)
     section = models.ForeignKey(Section, blank=True, null=True, on_delete=models.CASCADE)
     change_question_code = models.CharField(max_length=80, blank=True, null=True)  # cde code of change question
     current_status_question_code = models.CharField(max_length=80, blank=True, null=True)  # cde code of status question
     target_code = models.CharField(max_length=80, blank=True, null=True)  # the cde or section code or consent code
+    target_metadata = models.TextField(blank=True, null=True)  # form,section, cde json??
+
+    def load_metadata(self):
+        import json
+        if not self.target_metadata:
+            return []
+        else:
+            return json.loads(self.target_metadata)
 
     def update_data(self, patient_model, parent_model, context_model, form_data):
         if self.item_type == REVIEW_ITEM_TYPES.CONSENT_FIELD:
@@ -121,6 +169,10 @@ class ReviewItem(models.Model):
             self._add_multisection_data(patient_model, context_model, form_data)
         elif self.item_type == REVIEW_ITEM_TYPES.VERIFICATION:
             self._update_verification(patient_model, context_model, form_data)
+        elif self.item_type == REVIEW_ITEM_TYPES.CLINICIAN_ACCESS:
+            self._update_clinician_access(patient_model, context_model, form_data)
+        elif self.item_type == REVIEW_ITEM_TYPES.MULTI_TARGET:
+            self._update_multitargets(patient_model, context_model, form_data)
         else:
             raise InvalidItemType(self.item_type)
 
@@ -134,6 +186,11 @@ class ReviewItem(models.Model):
             consent_question_model = ConsentQuestion.objects.get(id=question_pk)
             patient_model.set_consent(consent_question_model, answer)
 
+    def _update_multitargets(self, patient_model, context_model, form_data):
+        for field_id in form_data:
+            answer = form_data[field_id]
+            updater = TargetUpdater(field_id)
+            updater.update(patient_model, context_model, answer)
 
     def _update_section_data(self, patient_model, context_model, form_data):
         logger.debug("update section data : todo!")
@@ -178,6 +235,7 @@ class ReviewItem(models.Model):
             answer = consent_value.answer
 
         except ConsentValue.DoesNotExist:
+
             answer = False
 
         return [(field_label, answer)]
@@ -191,7 +249,7 @@ class ReviewItem(models.Model):
 
     def _get_address_data(self, patient_model):
         from registry.patients.models import PatientAddress
-        from registry.patients.models import AddressType 
+        from registry.patients.models import AddressType
         pairs = []
         field = self.fields.lower().strip()
         if field == "postal_address":
@@ -199,17 +257,16 @@ class ReviewItem(models.Model):
         else:
             address_type = AddressType.objects.get(type="Home")
 
-
         try:
             address = PatientAddress.objects.get(patient=patient_model,
-                                             address_type=address_type)
+                                                 address_type=address_type)
         except PatientAddress.DoesNotExist:
             return []
-            
+
         pairs.append(("Address Type", address_type.description))
         pairs.append(("Address", address.address))
         pairs.append(("Suburb", address.suburb))
-        pairs.append(("Country",address.country))
+        pairs.append(("Country", address.country))
         pairs.append(("State", address.state))
         pairs.append(("Postcode", address.postcode))
         return pairs
@@ -285,7 +342,8 @@ class PatientReviewItemStates:
 class PatientReview(models.Model):
     review = models.ForeignKey(Review, on_delete=models.CASCADE)
     patient = models.ForeignKey(Patient, on_delete=models.CASCADE)
-    user = models.ForeignKey(CustomUser, blank=True, null=True, on_delete=models.SET_NULL)  # the user who will fill out the review
+    # the user who will fill out the review
+    user = models.ForeignKey(CustomUser, blank=True, null=True, on_delete=models.SET_NULL)
     parent = models.ForeignKey(ParentGuardian, blank=True, null=True, on_delete=models.CASCADE)
     context = models.ForeignKey(RDRFContext, on_delete=models.CASCADE)
     token = models.CharField(max_length=80, unique=True, default=generate_token)

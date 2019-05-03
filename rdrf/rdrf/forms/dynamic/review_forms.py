@@ -2,6 +2,7 @@ from rdrf.models.definition.review_models import REVIEW_ITEM_TYPES
 from rdrf.models.definition.models import CommonDataElement
 from rdrf.models.definition.models import ConsentSection
 from rdrf.models.definition.models import ConsentQuestion
+from rdrf.forms.dynamic.field_lookup import FieldFactory
 
 from django import forms
 from django.utils.translation import ugettext as _
@@ -124,7 +125,7 @@ class ReviewFormGenerator:
         return field_name, field
 
     def generate_condition_changed_field(self):
-        field = forms.CharField(max_length=1, default="3", widget=forms.Select(choices=CONDITION_CHOICES,
+        field = forms.CharField(max_length=1, widget=forms.Select(choices=CONDITION_CHOICES,
                                                                   attrs={'class': 'condition'}))
         field.label = _("Has your child/adult's condition changed since your report?")
         field_name = "metadata_condition_changed"
@@ -183,6 +184,26 @@ class SectionMonitorReviewFormGenerator(ReviewFormGenerator):
 
         return d
 
+
+class MultiTargetReviewFormGenerator(ReviewFormGenerator):
+    def generate_data_entry_fields(self):
+        d = {}
+        metadata = self.review_item.load_metadata()
+        for field_dict in metadata:
+            field_name, field_object = self._create_field(field_dict)
+            d[field_name] = field_object
+        return d
+
+    def _create_field(self, field_dict):
+        field_name = field_dict["name"]
+        field_label = field_dict["label"]
+        target_dict = field_dict["target"]
+        cde_code = target_dict["cde"]
+        cde_model = CommonDataElement.objects.get(code=cde_code)
+        field_factory = FieldFactory(cde_model)
+        field = field_factory.create_field()
+        field.label = field_label
+        return field_name, field
 
 
 class MultisectionAddReviewFormGenerator(ReviewFormGenerator):

@@ -41,18 +41,17 @@ class ReviewDataHandler:
         self._validate_models()
 
     def _build_data_map(self):
-        # the step info isn't relevant - we need the review item code 
+        # the step info isn't relevant - we need the review item code
         d = {}
         for step, form in self.form_dict.items():
             d[form.review_item_code] = form
         self.form_map = d
-            
 
     def update_patient_data(self):
         from django.db import transaction
 
         self._update_patient_review()
-        
+
         try:
             with transaction.atomic():
                 self._process_review()
@@ -124,6 +123,7 @@ class ReviewItemPageData:
     This class gathers together all the relevant information
     for the review template
     """
+
     def __init__(self, token, review_model, review_form):
         self.token = token
         self.review_model = review_model
@@ -131,7 +131,7 @@ class ReviewItemPageData:
         self.review_item_model = ReviewItem.objects.get(review=self.review_model,
                                                         code=self.review_form.review_item_code)
         self.patient_review = self._get_patient_review(self.token)
-        self.user = self.patient_review.user # the parent user or self patient
+        self.user = self.patient_review.user  # the parent user or self patient
         self.state = self.patient_review.state
         self.patient_model = self.patient_review.patient
         self.parent_model = self._get_parent(self.user)
@@ -140,7 +140,7 @@ class ReviewItemPageData:
         # this depends on the type of review item:
         self.previous_data = self.review_item_model.get_data(self.patient_model,
                                                              self.patient_review.context)
-                                                                       
+
     def _get_patient_review(self, token):
         return PatientReview.objects.get(token=token)
 
@@ -203,15 +203,15 @@ class ReviewWizardGenerator:
                                     form_dict)
 
             rdh.update_patient_data()
-                                    
+
             return HttpResponseRedirect("/")
 
         def get_context_data_method(myself, form, **kwargs):
             token = myself.request.GET.get("token")
             page = ReviewItemPageData(token, self.review_model, form)
-                                              
+
             context = super(myself.__class__, myself).get_context_data(form=form,
-                                                                        **kwargs)
+                                                                       **kwargs)
 
             context.update({"review_title": page.title,
                             "summary": page.summary,

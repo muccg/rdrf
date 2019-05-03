@@ -748,3 +748,16 @@ def get_site(request=None):
 
         except Site.DoesNotExist:
             return "http://localhost:8000"
+
+
+def check_models(registry_model, form_model, section_model, cde_model):
+    # raise an error if this quadruple not correct in given registry
+    for f in registry_model.forms:
+        if f.id == form_model.id:
+            for s in f.section_models:
+                if s.id == section_model.id:
+                    for c in s.cde_models:
+                        if c.id == cde_model.id:
+                            return True
+
+    raise ValueError("%s/%s/%s/%s not consistent" % (registry_model, form_model, section_model, cde_model))
