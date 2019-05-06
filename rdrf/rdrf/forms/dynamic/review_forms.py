@@ -1,4 +1,6 @@
 from rdrf.models.definition.review_models import REVIEW_ITEM_TYPES
+from rdrf.models.definition.models import RegistryForm
+from rdrf.models.definition.models import Section
 from rdrf.models.definition.models import CommonDataElement
 from rdrf.models.definition.models import ConsentSection
 from rdrf.models.definition.models import ConsentQuestion
@@ -191,20 +193,48 @@ class MultiTargetReviewFormGenerator(ReviewFormGenerator):
         d = {}
         metadata = self.review_item.load_metadata()
         logger.debug("metadata = %s" % metadata)
+        logger.debug("number of fields = %s" % len(metadata))
+
         for field_dict in metadata:
             field_name, field_object = self._create_field(field_dict)
             d[field_name] = field_object
+            logger.debug("created field for multitarget %s %s" % (field_name, field_object))
+
+        logger.debug("d = %s" % d)
+
+        return d
+
+    def generate_metadata_fields(self):
+        d = {}
+        condition_changed_field_name, condition_changed_field = self.generate_condition_changed_field()
+        d[condition_changed_field_name] = condition_changed_field
+
         return d
 
     def _create_field(self, field_dict):
         field_name = field_dict["name"]
         field_label = field_dict["label"]
         target_dict = field_dict["target"]
+
+        form_name = target_dict["form"]
+        form_model = RegistryForm.objects.get(registry=self.registry_model,
+                                              name=form_name)
         cde_code = target_dict["cde"]
         cde_model = CommonDataElement.objects.get(code=cde_code)
-        field_factory = FieldFactory(cde_model)
+
+        section_code = target_dict["section"]
+        section_model = Section.objects.get(code=section_code)
+
+        field_factory = FieldFactory(self.registry_model,
+                                     form_model,
+                                     section_model,
+                                     cde_model)
+
         field = field_factory.create_field()
+        field.rdrf_tag = FieldTags.DATA_ENTRY
+
         field.label = field_label
+
         return field_name, field
 
 
@@ -235,6 +265,7 @@ def create_review_forms(review_model):
     logger.debug("review_model = %s" % review_model.name)
     # for each review "item" we create the form _class_ to collect data for it
     # the resulting set of forms is sent to a wizard
+
     forms_list = []
     logger.debug("creating review form classes ...")
 
