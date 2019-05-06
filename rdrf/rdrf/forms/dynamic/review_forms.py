@@ -7,10 +7,12 @@ from rdrf.forms.dynamic.field_lookup import FieldFactory
 from django import forms
 from django.utils.translation import ugettext as _
 
+
 import logging
 
 
 logger = logging.getLogger(__name__)
+
 
 class FieldTags:
     DATA_ENTRY = "data_entry"
@@ -27,7 +29,6 @@ CONDITION_CHOICES = (("1", "Yes"),
                      ("3", "Unknown"))
 
 
-
 class BaseReviewForm(forms.Form):
     @property
     def data_entry_fields(self):
@@ -39,7 +40,7 @@ class BaseReviewForm(forms.Form):
         for field in self._get_fields_by_tag(FieldTags.METADATA):
             yield field
 
-    def _get_fields_by_tag(self,tag):
+    def _get_fields_by_tag(self, tag):
         # this allows us to partition the types of fields in groups
         # in the template
         # we've already tagged the field object
@@ -49,6 +50,7 @@ class BaseReviewForm(forms.Form):
             if hasattr(field.field, "rdrf_tag"):
                 if field.field.rdrf_tag == tag:
                     yield field
+
 
 class ReviewFormGenerator:
     def __init__(self, review_item):
@@ -61,7 +63,7 @@ class ReviewFormGenerator:
             registry_code = self.registry_model.code
             review_code = self.review.code
             review_item_code = self.review_item.code
-            
+
         form_class = type(self.form_class_name,
                           (self.base_class, Mixin),
                           self.get_field_map())
@@ -102,11 +104,11 @@ class ReviewFormGenerator:
             return {}
         d = {}
         for cde_model in section_model.cde_models:
-           field_name, field = self.generate_field_from_cde(cde_model)
-           field.rdrf_tag = FieldTags.DATA_ENTRY
-           logger.debug("added tag %s to field %s" % (FieldTags.DATA_ENTRY, field))
-           
-           d.update({field_name: field})
+            field_name, field = self.generate_field_from_cde(cde_model)
+            field.rdrf_tag = FieldTags.DATA_ENTRY
+            logger.debug("added tag %s to field %s" % (FieldTags.DATA_ENTRY, field))
+
+            d.update({field_name: field})
         return d
 
     def generate_field_from_cde(self, cde_model):
@@ -131,8 +133,6 @@ class ReviewFormGenerator:
         field_name = "metadata_condition_changed"
         field.rdrf_tag = FieldTags.METADATA
         return field_name, field
-        
-        
 
 
 class ConsentReviewFormGenerator(ReviewFormGenerator):
@@ -187,8 +187,10 @@ class SectionMonitorReviewFormGenerator(ReviewFormGenerator):
 
 class MultiTargetReviewFormGenerator(ReviewFormGenerator):
     def generate_data_entry_fields(self):
+        logger.debug("Multitarget")
         d = {}
         metadata = self.review_item.load_metadata()
+        logger.debug("metadata = %s" % metadata)
         for field_dict in metadata:
             field_name, field_object = self._create_field(field_dict)
             d[field_name] = field_object
@@ -224,7 +226,8 @@ GENERATOR_MAP = {
     REVIEW_ITEM_TYPES.DEMOGRAPHICS_FIELD: DemographicsReviewFormGenerator,
     REVIEW_ITEM_TYPES.SECTION_CHANGE: SectionMonitorReviewFormGenerator,
     REVIEW_ITEM_TYPES.MULTISECTION_ITEM: MultisectionAddReviewFormGenerator,
-    REVIEW_ITEM_TYPES.VERIFICATION: VerificationReviewFormGenerator
+    REVIEW_ITEM_TYPES.VERIFICATION: VerificationReviewFormGenerator,
+    REVIEW_ITEM_TYPES.MULTI_TARGET: MultiTargetReviewFormGenerator
 }
 
 
@@ -247,5 +250,3 @@ def create_review_forms(review_model):
 
     logger.debug("forms list = %s" % forms_list)
     return forms_list
-
-
