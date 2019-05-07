@@ -4,6 +4,7 @@ from django.utils.translation import ugettext as _
 from rdrf.models.definition.models import Registry
 from rdrf.models.definition.models import RegistryForm
 from rdrf.models.definition.models import Section
+from rdrf.models.definition.models import CommonDataElement
 from rdrf.models.definition.models import RDRFContext
 from rdrf.helpers.utils import generate_token
 from rdrf.helpers.utils import check_models
@@ -212,9 +213,10 @@ class ReviewItem(models.Model):
             return self._get_demographics_data(patient_model)
         elif self.item_type == REVIEW_ITEM_TYPES.SECTION_CHANGE:
             return self._get_section_data(patient_model, context_model)
+        elif self.item_type == REVIEW_ITEM_TYPES.MULTI_TARGET:
+            return self._get_multitarget_data(patient_model, context_model)
 
-        # otherwise
-        return []
+        raise Exception("Unknown Review Type: %s" % self.item_type)
 
     def _get_consent_data(self, patient_model):
         from rdrf.models.definition.models import ConsentSection
@@ -318,6 +320,62 @@ class ReviewItem(models.Model):
             pairs.append((field, value))
 
         return pairs
+
+    def _get_multitarget_data(self, patient_model, context_model, raw=False):
+        pairs = []
+        data = patient_model.get_dynamic_data(self.review.registry,
+                                              collection="cdes",
+                                              context_id=context_model.pk,
+                                              flattened=True)
+
+        for form_model, section_model, cde_model in self.multitargets:
+            try:
+                if raw:
+                    field = cde_model.code
+                else:
+                    field = cde_model.name
+
+                raw_value = patient_model.get_form_value(self.review.registry.code,
+                                                         form_model.name,
+                                                         section_model.code,
+                                                         cde_model.code,
+                                                         False,
+                                                         context_model.pk,
+                                                         data)
+                if raw:
+                    value = raw_value
+                else:
+                    value = cde_model.get_display_value(raw_value)
+
+            except KeyError:
+                if raw:
+                    value = Missing.Value
+                else:
+                    value = Missing.DISPLAY_VALUE
+
+            pairs.append((field, value))
+        return pairs
+
+    @property
+    def multitargets(self):
+        # only applicable to multitargets
+        if not self.item_type == REVIEW_ITEM_TYPES.MULTI_TARGET:
+            raise Exception("Cannot get multitargets of non-multitarget ReviewItem")
+        metadata = self.load_metadata()
+        if not metadata:
+            return []
+
+        def get_models(field_dict):
+            registry_model = self.review.registry
+            target_dict = field_dict["target"]
+            form_model = RegistryForm.objects.get(registry=registry_model,
+                                                  name=target_dict["form"])
+            section_model = Section.objects.get(code=target_dict["section"])
+            cde_model = CommonDataElement.objects.get(code=target_dict["cde"])
+            return form_model, section_model, cde_model
+
+        for field_dict in metadata:
+            yield get_models(field_dict)
 
 
 class ReviewStates:
