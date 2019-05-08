@@ -34,6 +34,7 @@ from rdrf.helpers.transform_cd_dict import get_cd_form, get_section, transform_c
 
 logger = logging.getLogger(__name__)
 
+
 class AbnormalityRulesTestCase(TestCase):
 
     def setUp(self):

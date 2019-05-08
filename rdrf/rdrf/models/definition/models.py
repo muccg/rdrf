@@ -27,6 +27,7 @@ from rdrf.forms.fields.jsonb import DataField
 
 logger = logging.getLogger(__name__)
 
+
 class InvalidAbnormalityConditionError(Exception):
     pass
 
@@ -903,7 +904,7 @@ class CommonDataElement(models.Model):
             )
 
             rules_to_eval = ' or '.join(abnormality_condition_lines)
-            return eval(f"{rules_to_eval}", {'x':value})
+            return eval(f"{rules_to_eval}", {'x': value})
 
         # no abnormality condition
         return False
