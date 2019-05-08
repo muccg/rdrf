@@ -899,12 +899,9 @@ class CommonDataElement(models.Model):
 
             # extract each individual rules from abnormality_condition
             # ignore empty lines
-            abnormality_condition_lines = list(
-                filter(None, map(lambda rule: rule.strip(), self.abnormality_condition.split("\r\n")))
-            )
+            abnormality_condition_lines = [rule.strip() for rule in self.abnormality_condition.splitlines() if rule.strip()]
 
-            rules_to_eval = ' or '.join(abnormality_condition_lines)
-            return eval(f"{rules_to_eval}", {'x': value})
+            return any([eval(line, {'x': value}) for line in abnormality_condition_lines])
 
         # no abnormality condition
         return False
