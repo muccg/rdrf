@@ -62,13 +62,13 @@ class AbnormalityRulesTestCase(TestCase):
         self.assertFalse(self.cde.is_abnormal(11))
 
     def test_empty_lines(self):
-        self.cde.abnormality_condition = "x < 10\\r\\n\\r\\n"
+        self.cde.abnormality_condition = "x < 10\r\n\r\n"
         self.assertTrue(self.cde.is_abnormal(9))
         self.assertFalse(self.cde.is_abnormal(10))
         self.assertFalse(self.cde.is_abnormal(11))
 
     def test_whitespaces(self):
-        self.cde.abnormality_condition = "  x   <   10  \\r\\n  "
+        self.cde.abnormality_condition = "  x   <   10  \r\n  "
         self.assertTrue(self.cde.is_abnormal(9))
         self.assertFalse(self.cde.is_abnormal(10))
         self.assertFalse(self.cde.is_abnormal(11))
@@ -86,10 +86,10 @@ class AbnormalityRulesTestCase(TestCase):
         self.assertFalse(self.cde.is_abnormal(11))
 
     def test_multiple_rules(self):
-        self.cde.abnormality_condition = "x <= 10\\r\\nx in (10,20,30)"
-        self.assertFalse(self.cde.is_abnormal(9))
-        self.assertTrue(self.cde.is_abnormal(10))
-        self.assertFalse(self.cde.is_abnormal(11))
+        self.cde.abnormality_condition = "x < 2 \r\nx > 100"
+        self.assertTrue(self.cde.is_abnormal(1))
+        self.assertFalse(self.cde.is_abnormal(10))
+        self.assertTrue(self.cde.is_abnormal(110))
 
 
 class MigrateCDESTestCase(TestCase):

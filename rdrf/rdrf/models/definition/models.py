@@ -859,7 +859,7 @@ class CommonDataElement(models.Model):
     def validate_abnormality_condition(self):
         # remove all empty lines
         abnormality_condition_lines = list(
-            filter(None, map(lambda rule: rule.strip(), self.abnormality_condition.split("\\r\\n")))
+            filter(None, map(lambda rule: rule.strip(), self.abnormality_condition.split("\r\n")))
         )
 
         def validate_rule(rule):
@@ -899,10 +899,10 @@ class CommonDataElement(models.Model):
             # extract each individual rules from abnormality_condition
             # ignore empty lines
             abnormality_condition_lines = list(
-                filter(None, map(lambda rule: rule.strip(), self.abnormality_condition.split("\\r\\n")))
+                filter(None, map(lambda rule: rule.strip(), self.abnormality_condition.split("\r\n")))
             )
 
-            rules_to_eval = ' and '.join(abnormality_condition_lines)
+            rules_to_eval = ' or '.join(abnormality_condition_lines)
             return eval(f"{rules_to_eval}", {'x':value})
 
         # no abnormality condition
