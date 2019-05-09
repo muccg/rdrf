@@ -98,9 +98,9 @@ class Section(models.Model):
                     "section %s refers to CDE with code %s which doesn't exist" %
                     (self.display_name, code)) for code in missing]
 
-        if " " in self.code:
+        if any(x in self.code for x in (" ", "&")):
             errors["code"] = ValidationError(
-                "Section %s code '%s' contains spaces" %
+                "Section %s code '%s' should not contain spaces or &" %
                 (self.display_name, self.code))
 
         if errors:
