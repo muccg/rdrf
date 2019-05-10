@@ -42,6 +42,7 @@ from rdrf.views.proms_views import PromsClinicalView
 from rdrf.views.proms_views import PromsQRCodeImageView
 from rdrf.system_role import SystemRoles
 from rdrf.views.copyright_view import CopyrightView
+from rdrf.views.actions import ActionExecutorView
 
 
 import logging
@@ -125,6 +126,7 @@ proms_patterns = [
 ]
 
 normalpatterns += [
+    re_path(r'^actions/?', ActionExecutorView.as_view(), name='action'),
     re_path(r'^translations/jsi18n/$', JavaScriptCatalog.as_view(), name='javascript-catalog'),
     re_path(r'^iprestrict/', include(('iprestrict.urls', 'iprestrict_urls'), namespace=None)),
     re_path(r'^useraudit/', include('useraudit.urls',)),
@@ -186,7 +188,8 @@ normalpatterns += [
     re_path(r"^copyright/?$", CopyrightView.as_view(), name="copyright"),
 
     # proms on the clinical side
-    re_path(r"^(?P<registry_code>\w+)/(?P<patient_id>\d+)/clinicalproms/?$", PromsClinicalView.as_view(), name="proms_clinical_view"),
+    re_path(r"^(?P<registry_code>\w+)/(?P<patient_id>\d+)/clinicalproms/?$",
+            PromsClinicalView.as_view(), name="proms_clinical_view"),
     # -------------------------------------------
 
     re_path(r'', include(('registry.urls', 'registry_urls'), namespace="registry")),
