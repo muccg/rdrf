@@ -849,6 +849,15 @@ class CommonDataElement(models.Model):
                 "CDE [%s] has space(s) in code - this causes problems please remove" %
                 self.code)
 
+        if not CommonDataElement.validate_abnormality_condition(self.abnormality_condition):
+            raise ValidationError(
+                f"""The abnormality condition of CDE is incorrect -
+                    Accepted rule examples:
+                    x <= 10 ;
+                    x == "a string / code" ;
+                    10 <= x < 100 ;
+                    x in ("value_1", "value_2")""")
+
         # check javascript calculation for naughty code
         if self.calculation.strip():
             err = check_calculation(self.calculation).strip()
@@ -857,30 +866,30 @@ class CommonDataElement(models.Model):
                     "calculation": [ValidationError(e) for e in err.split("\n")]
                 })
 
-    def validate_abnormality_condition(self):
-        # remove all empty lines
+    @staticmethod
+    def validate_abnormality_condition(abnormality_condition):
         abnormality_condition_lines = list(
-            filter(None, map(lambda rule: rule.strip(), self.abnormality_condition.split("\r\n")))
+            filter(None, map(lambda rule: rule.strip(), abnormality_condition.split("\r\n")))
         )
+        return all(CommonDataElement.validate_rule(rule) for rule in abnormality_condition_lines)
 
-        def validate_rule(rule):
-            # check if the rule is: x <>= number and x == number
-            parsing_format_1 = 'x' + Word("<>=", exact=2) + Word(nums)
-            parsing_format_2 = 'x' + Word("<>", exact=1) + Word(nums)
-            # check if the rule is: number <= x <= number
-            parsing_format_3 = Word(nums) + Word("<=", max=2) + 'x' + Word("<=", max=2) + Word(nums)
-            # check if the rule is: x in (number,number,number)
-            parsing_format_4 = 'x' + Literal('in') + "(" + delimitedList(Word(nums), ',') + ")"
-            # check if the rule is: x in (alphanums_-,alphanums_-,alphanums_-)
-            parsing_format_5 = 'x' + Literal('in') + "(" + delimitedList("\"" + Word(alphanums + '_' + '-') + "\"",
-                                                                         ",") + ")"
+    @staticmethod
+    def validate_rule(rule):
+        # check if the rule is: x <>= number and x == number
+        parsing_format_1 = 'x' + Word("<>=", exact=2) + Word(nums)
+        parsing_format_2 = 'x' + Word("<>", exact=1) + Word(nums)
+        # check if the rule is: string compare
+        parsing_format_3 = 'x' + Word("=", exact=2) + Word("\"" + alphanums + '_' + '-' + "\"")
+        # check if the rule is: number <= x <= number
+        parsing_format_4 = Word(nums) + Word("<=", max=2) + 'x' + Word("<=", max=2) + Word(nums)
+        # check if the rule is: x in (number,number,number)
+        parsing_format_5 = 'x' + Literal('in') + "[" + delimitedList(Word(nums), ',') + "]"
+        # check if the rule is: x in (alphanums_-,alphanums_-,alphanums_-)
+        parsing_format_6 = 'x' + Literal('in') + "[" + delimitedList("\"" + Word(alphanums + '_' + '-') + "\"",
+                                                                     ",") + "]"
 
-            parsing_formats = parsing_format_1 | parsing_format_2 | parsing_format_3 | parsing_format_4 | parsing_format_5
-            return list(parsing_formats.scanString(rule))
-
-        # return false if at least one rule failed.
-        rules = list(map(validate_rule, abnormality_condition_lines))
-        return not [] in rules
+        parsing_formats = parsing_format_1 | parsing_format_2 | parsing_format_3 | parsing_format_4 | parsing_format_5 | parsing_format_6
+        return list(parsing_formats.scanString(rule))
 
     def is_abnormal(self, value):
         if self.abnormality_condition:
@@ -893,7 +902,7 @@ class CommonDataElement(models.Model):
 
             # some sanity checks (it could happen because we updated the validation to be more restrictive
             # but we did not update the existing abnormality_condition to match the new restriction)
-            if not self.validate_abnormality_condition():
+            if not CommonDataElement.validate_abnormality_condition(self.abnormality_condition):
                 raise InvalidAbnormalityConditionError(
                     f"The abnormality condition of CDE {self.code} is incorrect: {self.abnormality_condition}")
 

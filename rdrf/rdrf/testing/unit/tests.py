@@ -56,11 +56,17 @@ class AbnormalityRulesTestCase(TestCase):
         self.cde.abnormality_condition = "x = 10"
         self.assertRaises(InvalidAbnormalityConditionError, self.cde.is_abnormal, value=9)
 
-    def test_equality(self):
+    def test_number_equality(self):
         self.cde.abnormality_condition = "x == 10"
         self.assertFalse(self.cde.is_abnormal(9))
         self.assertTrue(self.cde.is_abnormal(10))
         self.assertFalse(self.cde.is_abnormal(11))
+
+    def test_string_equality(self):
+        self.cde.abnormality_condition = "x == \"10\""
+        self.assertFalse(self.cde.is_abnormal(10))
+        self.assertTrue(self.cde.is_abnormal("10"))
+        self.assertFalse(self.cde.is_abnormal("11"))
 
     def test_empty_lines(self):
         self.cde.abnormality_condition = "x < 10\r\n\r\n"
@@ -75,16 +81,21 @@ class AbnormalityRulesTestCase(TestCase):
         self.assertFalse(self.cde.is_abnormal(11))
 
     def test_in_number_list(self):
-        self.cde.abnormality_condition = "x in (10,20,30)"
+        self.cde.abnormality_condition = "x in [10,20,30]"
         self.assertFalse(self.cde.is_abnormal(9))
         self.assertTrue(self.cde.is_abnormal(10))
+        self.assertTrue(self.cde.is_abnormal(20))
+        self.assertTrue(self.cde.is_abnormal(30))
+        self.assertFalse(self.cde.is_abnormal("10"))
         self.assertFalse(self.cde.is_abnormal(11))
 
     def test_in_string_list(self):
-        self.cde.abnormality_condition = "x in (\"value_1\",\"value_2\",\"value_3\")"
-        self.assertTrue(self.cde.is_abnormal("value_1"))
-        self.assertFalse(self.cde.is_abnormal("value_4"))
-        self.assertFalse(self.cde.is_abnormal(11))
+        self.cde.abnormality_condition = "x in [\"10\",\"20\",\"30\"]"
+        self.assertFalse(self.cde.is_abnormal(10))
+        self.assertTrue(self.cde.is_abnormal("10"))
+        self.assertTrue(self.cde.is_abnormal("20"))
+        self.assertTrue(self.cde.is_abnormal("30"))
+        self.assertFalse(self.cde.is_abnormal("11"))
 
     def test_multiple_rules(self):
         self.cde.abnormality_condition = "x < 2 \r\nx > 100"
