@@ -451,6 +451,13 @@ class PatientForm(forms.ModelForm):
         return closure
 
     def _check_working_groups(self, cleaned_data):
+        def multiple_working_groups_allowed(reg_code):
+            try:
+                registry_model = Registry.objects.get(code=reg_code)
+                return registry_model.has_feature("patients_multiple_working_groups")
+            except Registry.DoesNotExist:
+                return False
+
         working_group_data = {}
         for working_group in cleaned_data["working_groups"]:
             if working_group.registry:
@@ -461,7 +468,7 @@ class PatientForm(forms.ModelForm):
 
         bad = []
         for reg_code in working_group_data:
-            if len(working_group_data[reg_code]) > 1:
+            if len(working_group_data[reg_code]) > 1 and not multiple_working_groups_allowed(reg_code):
                 bad.append(reg_code)
 
         if bad:
