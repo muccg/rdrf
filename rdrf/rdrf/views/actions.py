@@ -5,6 +5,7 @@ from django.utils.decorators import method_decorator
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import get_object_or_404
 from django.core.exceptions import PermissionDenied
+from rdrf.helpers.utils import is_authorised
 
 import logging
 
@@ -16,11 +17,14 @@ class Action:
         self.request = request
         self.command = self._parse_command()
         self.user = self.request.user
+        logger.debug("user = %s" % self.user)
 
     def run(self):
         if self.command == "form":
+            logger.debug("action is form")
             return self._process_form()
         else:
+            logger.debug("unknown action: %s" % self.command)
             raise Http404
 
     def _parse_command(self):
@@ -34,21 +38,44 @@ class Action:
     def _get_patient(self):
         from registry.patients.models import Patient
         from registry.patients.models import ParentGuardian
+        if "id"in self.request.GET:
+            try:
+                patient_model = Patient.objects.get(id=self.request.GET.get("id"))
+                if not is_authorised(self.user, patient_model):
+                    logger.debug("action not authorised")
+                    raise PermissionError
+                else:
+                    logger.debug("patient found by id ok")
+                    return patient_model
+
+            except Patient.DoesNotExist:
+                logger.debug("patient does not exist")
+                raise Http404
+
         try:
-            return Patient.objects.filter(user=self.user).order_by("id").first()
+            logger.debug("patient id not supplied , finding patient assoc with user..")
+            patient_model = Patient.objects.filter(user=self.user).order_by("id").first()
+            if patient_model is not None:
+                logger.debug("found patient associated with user %s" % patient_model)
+                return patient_model
         except Patient.DoesNotExist:
+            logger.debug("user is not a patient ...")
             pass
 
         try:
+            logger.debug("trying parents ... ")
             parent = ParentGuardian.objects.get(user=self.user)
             # what to do if there is more than one child
             # for now we take the first
             children = parent.children
             if children:
+                logger.debug("parent guardian found and no id - returning first child")
                 return children[0]
             else:
+                logger.debug("user is a parent but has not children??? ...")
                 raise Http404
         except ParentGuardian.DoesNotExist:
+            logger.debug("no parent guardian assoc with user ...")
             raise Http404
 
     def _process_form(self):
@@ -69,7 +96,14 @@ class Action:
                                        registry=registry_model)
 
         patient_model = self._get_patient()
-        if not patient_model.in_registry(registry_model):
+        if patient_model is not None:
+            logger.debug("determined patient")
+        else:
+            logger.debug("patient is None??")
+            raise PermissionDenied
+
+        if not patient_model.in_registry(registry_model.code):
+            logger.debug("patient not in registry supplied")
             raise PermissionDenied
 
         from rdrf.helpers.utils import FormLink
@@ -78,11 +112,13 @@ class Action:
                              registry_model,
                              form_model,
                              context_model=default_context)
+        logger.debug("found form link for universal link")
         return HttpResponseRedirect(form_link.url)
 
 
 class ActionExecutorView(View):
     @method_decorator(login_required)
     def get(self, request):
+        logger.debug("actions request")
         action = Action(request)
         return action.run()
