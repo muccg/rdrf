@@ -849,7 +849,7 @@ class CommonDataElement(models.Model):
                 "CDE [%s] has space(s) in code - this causes problems please remove" %
                 self.code)
 
-        if not CommonDataElement.validate_abnormality_condition(self.abnormality_condition):
+        if not validate_abnormality_condition(self.abnormality_condition):
             raise ValidationError(
                 f"""The abnormality condition of CDE is incorrect -
                     Accepted rule examples:
@@ -866,31 +866,6 @@ class CommonDataElement(models.Model):
                     "calculation": [ValidationError(e) for e in err.split("\n")]
                 })
 
-    @staticmethod
-    def validate_abnormality_condition(abnormality_condition):
-        abnormality_condition_lines = list(
-            filter(None, map(lambda rule: rule.strip(), abnormality_condition.split("\r\n")))
-        )
-        return all(CommonDataElement.validate_rule(rule) for rule in abnormality_condition_lines)
-
-    @staticmethod
-    def validate_rule(rule):
-        # check if the rule is: x <>= number and x == number
-        parsing_format_1 = 'x' + Word("<>=", exact=2) + Word(nums)
-        parsing_format_2 = 'x' + Word("<>", exact=1) + Word(nums)
-        # check if the rule is: string compare
-        parsing_format_3 = 'x' + Word("=", exact=2) + Word("\"" + alphanums + '_' + '-' + "\"")
-        # check if the rule is: number <= x <= number
-        parsing_format_4 = Word(nums) + Word("<=", max=2) + 'x' + Word("<=", max=2) + Word(nums)
-        # check if the rule is: x in (number,number,number)
-        parsing_format_5 = 'x' + Literal('in') + "[" + delimitedList(Word(nums), ',') + "]"
-        # check if the rule is: x in (alphanums_-,alphanums_-,alphanums_-)
-        parsing_format_6 = 'x' + Literal('in') + "[" + delimitedList("\"" + Word(alphanums + '_' + '-') + "\"",
-                                                                     ",") + "]"
-
-        parsing_formats = parsing_format_1 | parsing_format_2 | parsing_format_3 | parsing_format_4 | parsing_format_5 | parsing_format_6
-        return list(parsing_formats.scanString(rule))
-
     def is_abnormal(self, value):
         if self.abnormality_condition:
 
@@ -902,18 +877,47 @@ class CommonDataElement(models.Model):
 
             # some sanity checks (it could happen because we updated the validation to be more restrictive
             # but we did not update the existing abnormality_condition to match the new restriction)
-            if not CommonDataElement.validate_abnormality_condition(self.abnormality_condition):
+            if not validate_abnormality_condition(self.abnormality_condition):
                 raise InvalidAbnormalityConditionError(
                     f"The abnormality condition of CDE {self.code} is incorrect: {self.abnormality_condition}")
 
             # extract each individual rules from abnormality_condition
             # ignore empty lines
-            abnormality_condition_lines = [rule.strip() for rule in self.abnormality_condition.splitlines() if rule.strip()]
+            abnormality_condition_lines = [rule.strip() for rule in self.abnormality_condition.splitlines() if
+                                           rule.strip()]
 
             return any([eval(line, {'x': value}) for line in abnormality_condition_lines])
 
         # no abnormality condition
         return False
+
+
+def validate_abnormality_condition(abnormality_condition):
+    abnormality_condition_lines = list(
+        filter(None, map(lambda rule: rule.strip(), abnormality_condition.split("\r\n")))
+    )
+    return all(validate_rule(rule) for rule in abnormality_condition_lines)
+
+
+def validate_rule(rule):
+    # numeric rules
+    eq = Literal("==")
+    le = Literal("<=")
+    ge = Literal(">=")
+    lo = Literal("<")
+    g = Literal(">")
+    quote = "\""
+    numeric_expression = 'x' + (eq | le | ge | lo | g) + Word(nums)
+    range_expression = Word(nums) + (lo | le) + 'x' + (lo | le) + Word(nums)
+    # string rules
+    string_equality_expression = 'x' + eq + Word(quote + alphanums + '_' + '-' + quote)
+    # list rules
+    list_expression = 'x' + Literal('in') + "[" + \
+                      (delimitedList(quote + Word(alphanums + '_' + '-') + quote, ",") |
+                       delimitedList(Word(nums), ',')) + "]"
+
+    parsing_formats = numeric_expression | range_expression | string_equality_expression | list_expression
+    return list(parsing_formats.scanString(rule))
 
 
 class CdePolicy(models.Model):
