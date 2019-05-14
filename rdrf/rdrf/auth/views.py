@@ -54,6 +54,7 @@ def user_login_callback(sender, request=None, user=None, **kwargs):
 
 # Customised Two Factor views
 
+
 @tfv.utils.class_view_decorator(never_cache)
 @tfv.utils.class_view_decorator(login_required)
 class QRGeneratorView(tfv.core.QRGeneratorView):
