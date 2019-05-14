@@ -913,8 +913,7 @@ def validate_rule(rule):
     string_equality_expression = 'x' + eq + Word(quote + alphanums + '_' + '-' + quote)
     # list rules
     list_expression = 'x' + Literal('in') + "[" + \
-                      (delimitedList(quote + Word(alphanums + '_' + '-') + quote, ",") |
-                       delimitedList(Word(nums), ',')) + "]"
+                      (delimitedList(quote + Word(alphanums + '_' + '-') + quote, ",") | delimitedList(Word(nums), ',')) + "]"
 
     parsing_formats = numeric_expression | range_expression | string_equality_expression | list_expression
     return list(parsing_formats.scanString(rule))
