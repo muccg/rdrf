@@ -52,6 +52,16 @@ class AbnormalityRulesTestCase(TestCase):
         self.assertTrue(self.cde.is_abnormal(10))
         self.assertFalse(self.cde.is_abnormal(11))
 
+    def test_float_range(self):
+        self.cde.abnormality_condition = "2.3 < x <= 10.0"
+        self.assertFalse(self.cde.is_abnormal(2.1))
+        self.assertFalse(self.cde.is_abnormal(2.3))
+        self.assertTrue(self.cde.is_abnormal(2.4))
+        self.assertTrue(self.cde.is_abnormal(10))
+        self.assertTrue(self.cde.is_abnormal(10.0))
+        self.assertFalse(self.cde.is_abnormal(10.1))
+        self.assertFalse(self.cde.is_abnormal(11))
+
     def test_invalid_rule(self):
         self.cde.abnormality_condition = "x = 10"
         self.assertRaises(InvalidAbnormalityConditionError, self.cde.is_abnormal, value=9)
