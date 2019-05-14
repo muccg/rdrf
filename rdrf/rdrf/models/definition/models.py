@@ -5,6 +5,8 @@ import logging
 import os.path
 import yaml
 
+from pyparsing import Word, nums, delimitedList, alphanums, Literal
+
 from django.conf import settings
 from django.contrib.auth.models import Group
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
@@ -24,6 +26,10 @@ from rdrf.events.events import EventType
 from rdrf.forms.fields.jsonb import DataField
 
 logger = logging.getLogger(__name__)
+
+
+class InvalidAbnormalityConditionError(Exception):
+    pass
 
 
 class InvalidStructureError(Exception):
@@ -92,9 +98,9 @@ class Section(models.Model):
                     "section %s refers to CDE with code %s which doesn't exist" %
                     (self.display_name, code)) for code in missing]
 
-        if " " in self.code:
+        if any(x in self.code for x in (" ", "&")):
             errors["code"] = ValidationError(
-                "Section %s code '%s' contains spaces" %
+                "Section %s code '%s' should not contain spaces or &" %
                 (self.display_name, self.code))
 
         if errors:
@@ -746,6 +752,10 @@ class CommonDataElement(models.Model):
         max_digits=10,
         decimal_places=2,
         help_text="Only used for numeric fields")
+    abnormality_condition = models.TextField(
+        blank=True,
+        null=True,
+        help_text="Rules triggering a visual notification encouraging the user to process with further investigations")
     is_required = models.BooleanField(
         default=False, help_text="Indicate whether field is non-optional")
     pattern = models.CharField(
@@ -846,6 +856,55 @@ class CommonDataElement(models.Model):
                 raise ValidationError({
                     "calculation": [ValidationError(e) for e in err.split("\n")]
                 })
+
+    def validate_abnormality_condition(self):
+        # remove all empty lines
+        abnormality_condition_lines = list(
+            filter(None, map(lambda rule: rule.strip(), self.abnormality_condition.split("\r\n")))
+        )
+
+        def validate_rule(rule):
+            # check if the rule is: x <>= number and x == number
+            parsing_format_1 = 'x' + Word("<>=", exact=2) + Word(nums)
+            parsing_format_2 = 'x' + Word("<>", exact=1) + Word(nums)
+            # check if the rule is: number <= x <= number
+            parsing_format_3 = Word(nums) + Word("<=", max=2) + 'x' + Word("<=", max=2) + Word(nums)
+            # check if the rule is: x in (number,number,number)
+            parsing_format_4 = 'x' + Literal('in') + "(" + delimitedList(Word(nums), ',') + ")"
+            # check if the rule is: x in (alphanums_-,alphanums_-,alphanums_-)
+            parsing_format_5 = 'x' + Literal('in') + "(" + delimitedList("\"" + Word(alphanums + '_' + '-') + "\"",
+                                                                         ",") + ")"
+
+            parsing_formats = parsing_format_1 | parsing_format_2 | parsing_format_3 | parsing_format_4 | parsing_format_5
+            return list(parsing_formats.scanString(rule))
+
+        # return false if at least one rule failed.
+        rules = list(map(validate_rule, abnormality_condition_lines))
+        return not [] in rules
+
+    def is_abnormal(self, value):
+        if self.abnormality_condition:
+
+            # some sanity check
+            # ignore any non integer / float / string values (.i.e. we ignore multiple selectors)
+            # (if you add a list to the condition, it will be critical to validate deeply the list value to avoid hack)
+            if not isinstance(value, str) and not isinstance(value, float) and not isinstance(value, int):
+                return False
+
+            # some sanity checks (it could happen because we updated the validation to be more restrictive
+            # but we did not update the existing abnormality_condition to match the new restriction)
+            if not self.validate_abnormality_condition():
+                raise InvalidAbnormalityConditionError(
+                    f"The abnormality condition of CDE {self.code} is incorrect: {self.abnormality_condition}")
+
+            # extract each individual rules from abnormality_condition
+            # ignore empty lines
+            abnormality_condition_lines = [rule.strip() for rule in self.abnormality_condition.splitlines() if rule.strip()]
+
+            return any([eval(line, {'x': value}) for line in abnormality_condition_lines])
+
+        # no abnormality condition
+        return False
 
 
 class CdePolicy(models.Model):

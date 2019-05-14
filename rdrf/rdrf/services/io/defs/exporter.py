@@ -287,6 +287,7 @@ class Exporter(object):
             cde_map["widget_name"] = cde_model.widget_name
             cde_map["calculation"] = cde_model.calculation
             cde_map["questionnaire_text"] = cde_model.questionnaire_text
+            cde_map["abnormality_condition"] = cde_model.abnormality_condition
 
             data["cdes"].append(cde_map)
 

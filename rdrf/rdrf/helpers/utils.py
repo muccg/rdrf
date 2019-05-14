@@ -748,3 +748,29 @@ def get_site(request=None):
 
         except Site.DoesNotExist:
             return "http://localhost:8000"
+
+
+def is_authorised(user, patient_model):
+    from registry.patients.models import ParentGuardian
+    # is the given user allowed to see this patient
+    # patient IS user:
+    if patient_model.user and patient_model.user.id == user.id:
+        return True
+    # user is parent of patient
+    try:
+        pg = ParentGuardian.objects.get(user=user)
+        if pg.user and pg.user.id == user.id:
+            if patient_model.id in [p.id for p in pg.children]:
+                return True
+    except ParentGuardian.DoesNotExist:
+        pass
+
+    # otherwise, is the user in (some of) the same working group(s)
+
+    user_wgs = set([wg.id for wg in user.working_groups.all()])
+    patient_wgs = set([wg.id for wg in patient_model.working_groups.all()])
+    common = user_wgs.intersection(patient_wgs)
+    if common:
+        return True
+
+    return False

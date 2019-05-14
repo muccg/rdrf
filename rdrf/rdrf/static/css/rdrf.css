@@ -214,3 +214,22 @@ form .aligned ul.errorlist {
     padding: 25px;
     margin: 25px;
 }
+
+/***************************************************************************
+* CDE forms                              */
+.rdrf-cde-abnormal a {
+    color: #ff5700;
+    font-weight: bolder;
+    font-family: sans-serif;
+}
+.rdrf-cde-abnormal .text-muted {
+    color: #ff5700;
+}
+.rdrf-cde-abnormal input {
+    border: 3px solid #ff5700;
+    color: #ff5700;
+}
+.rdrf-cde-abnormal label.control-label.glyphicon.glyphicon-warning-sign:before {
+    content: "\e107";
+    color: #ff5700;
+}
