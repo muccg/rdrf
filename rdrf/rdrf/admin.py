@@ -396,7 +396,8 @@ class SurveyAdmin(admin.ModelAdmin):
 
 class SurveyRequestAdmin(admin.ModelAdmin):
     model = SurveyRequest
-    list_display = ("patient_name", "survey_name", "patient_token", "created", "updated", "state", "error_detail", "user")
+    list_display = ("patient_name", "survey_name", "patient_token",
+                    "created", "updated", "state", "error_detail", "user")
     search_fields = ("survey_name", "patient__family_name", "patient__given_names")
     list_display_links = None
 
@@ -483,19 +484,19 @@ NORMAL_MODE_ADMIN_COMPONENTS = [
 
 ADMIN_COMPONENTS = []
 
-if settings.SYSTEM_ROLE is SystemRoles.CIC_PROMS:
+if settings.SYSTEM_ROLE == SystemRoles.CIC_PROMS:
     ADMIN_COMPONENTS = PROMS_ADMIN_COMPONENTS
 
 if settings.DESIGN_MODE:
     ADMIN_COMPONENTS = ADMIN_COMPONENTS + DESIGN_MODE_ADMIN_COMPONENTS
 
-if settings.SYSTEM_ROLE is SystemRoles.NORMAL:
+if settings.SYSTEM_ROLE == SystemRoles.NORMAL:
     ADMIN_COMPONENTS = ADMIN_COMPONENTS + NORMAL_MODE_ADMIN_COMPONENTS
 
-if settings.SYSTEM_ROLE is SystemRoles.CIC_DEV:
+if settings.SYSTEM_ROLE == SystemRoles.CIC_DEV:
     ADMIN_COMPONENTS = ADMIN_COMPONENTS + NORMAL_MODE_ADMIN_COMPONENTS + PROMS_ADMIN_COMPONENTS
 
-if settings.SYSTEM_ROLE is SystemRoles.CIC_CLINICAL:
+if settings.SYSTEM_ROLE == SystemRoles.CIC_CLINICAL:
     ADMIN_COMPONENTS = ADMIN_COMPONENTS + NORMAL_MODE_ADMIN_COMPONENTS + PROMS_ADMIN_COMPONENTS
 
 for model_class, model_admin in ADMIN_COMPONENTS:

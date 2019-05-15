@@ -328,7 +328,7 @@ normalpatterns += [
     re_path(r'^i18n/', include(('django.conf.urls.i18n', 'django_conf_urls'), namespace=None))
 ]
 
-if settings.SYSTEM_ROLE is SystemRoles.CIC_PROMS:
+if settings.SYSTEM_ROLE == SystemRoles.CIC_PROMS:
     urlpatterns = proms_patterns
 else:
     urlpatterns = normalpatterns

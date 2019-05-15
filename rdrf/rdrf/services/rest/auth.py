@@ -20,6 +20,7 @@ class PromsAuthentication(authentication.BaseAuthentication):
 
         if secret_token != proms_secret_token:
             logger.info("tokens don't match - failed to auth")
+            raise Exception(request)
             return None
 
         try:

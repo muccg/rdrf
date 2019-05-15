@@ -482,11 +482,9 @@ REST_FRAMEWORK = {
     'DEFAULT_VERSION': 'v1',
 }
 
-# setup for SYSTEM_ROLE
-SYSTEM_ROLE = SystemRoles.from_value(env.get("SYSTEM_ROLE", "NORMAL"))
-
+SYSTEM_ROLE = SystemRoles.get_role(env)
 PROJECT_TITLE = env.get("project_title", "Rare Disease Registry Framework")
-PROJECT_TITLE_LINK = "admin:index" if SYSTEM_ROLE is SystemRoles.CIC_PROMS else "patientslisting"
+PROJECT_TITLE_LINK = "admin:index" if SYSTEM_ROLE == SystemRoles.CIC_PROMS else "patientslisting"
 
 # project logo and link
 PROJECT_LOGO = env.get("project_logo", "")
