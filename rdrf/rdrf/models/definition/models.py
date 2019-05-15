@@ -851,12 +851,9 @@ class CommonDataElement(models.Model):
 
         if not validate_abnormality_condition(self.abnormality_condition, self.datatype):
             raise ValidationError(
-                f"""The abnormality condition of CDE is incorrect -
-                    Accepted rule examples:
-                    x <= 10 ;
-                    x == "a string / code" ;
-                    10 <= x < 100 ;
-                    x in ("value_1", "value_2")""")
+                f"""The abnormality condition is incorrect. It should something like
+                     x in ("code_1", "code_2"), or x <= 10
+                    """)
 
         # check javascript calculation for naughty code
         if self.calculation.strip():
@@ -921,8 +918,8 @@ def validate_rule(rule, datatype):
 
     # If we can not find any matching rule (should only happen when a designer edit the CDE).
     if parsing_formats is None:
-        raise InvalidAbnormalityConditionError(
-            f"This CDE has an unknown datatype: {datatype}")
+        raise ValidationError(
+            f"This CDE datatype \"{datatype}\" is not supported by the abnormality field.")
 
     parsing_formats = LineStart() + parsing_formats + LineEnd()
     return list(parsing_formats.scanString(rule))

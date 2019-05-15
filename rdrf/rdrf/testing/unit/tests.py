@@ -14,7 +14,7 @@ from rdrf.services.io.defs.exporter import Exporter, ExportType
 from rdrf.services.io.defs.importer import Importer, ImportState
 from rdrf.models.definition.models import Registry, RegistryForm, Section
 from rdrf.models.definition.models import CDEPermittedValueGroup, CDEPermittedValue
-from rdrf.models.definition.models import CommonDataElement, InvalidAbnormalityConditionError
+from rdrf.models.definition.models import CommonDataElement, InvalidAbnormalityConditionError, ValidationError
 from rdrf.models.definition.models import ClinicalData
 from rdrf.views.form_view import FormView
 from registry.patients.models import Patient
@@ -58,6 +58,11 @@ class AbnormalityRulesTestCase(TestCase):
     def test_integer_range(self):
         self.cde.abnormality_condition = "2 < x < 10"
         self.assertRaises(InvalidAbnormalityConditionError, self.cde.is_abnormal, value=9)
+
+    def test_unsupported_datatype(self):
+        self.cde.datatype = "boolean"
+        self.cde.abnormality_condition = "x == 1"
+        self.assertRaises(ValidationError, self.cde.is_abnormal, value=9)
 
     def test_number_equality(self):
         self.cde.abnormality_condition = "x == 10"
