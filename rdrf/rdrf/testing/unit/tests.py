@@ -39,6 +39,7 @@ class AbnormalityRulesTestCase(TestCase):
 
     def setUp(self):
         self.cde = CommonDataElement()
+        self.cde.datatype = "integer"
 
     def test_integer(self):
         self.cde.abnormality_condition = "x < 10"
@@ -46,14 +47,16 @@ class AbnormalityRulesTestCase(TestCase):
         self.assertFalse(self.cde.is_abnormal(10))
         self.assertFalse(self.cde.is_abnormal(11))
 
-    def test_integer_range(self):
-        self.cde.abnormality_condition = "2 < x <= 10"
-        self.assertFalse(self.cde.is_abnormal(2))
-        self.assertTrue(self.cde.is_abnormal(10))
-        self.assertFalse(self.cde.is_abnormal(11))
-
-    def test_invalid_rule(self):
+    def test_assignment_rule(self):
         self.cde.abnormality_condition = "x = 10"
+        self.assertRaises(InvalidAbnormalityConditionError, self.cde.is_abnormal, value=9)
+
+    def test_multiple_rules_same_line(self):
+        self.cde.abnormality_condition = "x < 2   x > 100"
+        self.assertRaises(InvalidAbnormalityConditionError, self.cde.is_abnormal, value=9)
+
+    def test_integer_range(self):
+        self.cde.abnormality_condition = "2 < x < 10"
         self.assertRaises(InvalidAbnormalityConditionError, self.cde.is_abnormal, value=9)
 
     def test_number_equality(self):
@@ -63,6 +66,7 @@ class AbnormalityRulesTestCase(TestCase):
         self.assertFalse(self.cde.is_abnormal(11))
 
     def test_string_equality(self):
+        self.cde.datatype = "range"
         self.cde.abnormality_condition = "x == \"10\""
         self.assertFalse(self.cde.is_abnormal(10))
         self.assertTrue(self.cde.is_abnormal("10"))
@@ -90,6 +94,7 @@ class AbnormalityRulesTestCase(TestCase):
         self.assertFalse(self.cde.is_abnormal(11))
 
     def test_in_string_list(self):
+        self.cde.datatype = "range"
         self.cde.abnormality_condition = "x in [\"10\",\"20\",\"30\"]"
         self.assertFalse(self.cde.is_abnormal(10))
         self.assertTrue(self.cde.is_abnormal("10"))
@@ -101,6 +106,7 @@ class AbnormalityRulesTestCase(TestCase):
         self.cde.abnormality_condition = "x < 2 \r\nx > 100"
         self.assertTrue(self.cde.is_abnormal(1))
         self.assertFalse(self.cde.is_abnormal(10))
+        self.assertFalse(self.cde.is_abnormal(30.1))
         self.assertTrue(self.cde.is_abnormal(110))
 
 

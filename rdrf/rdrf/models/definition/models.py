@@ -5,7 +5,7 @@ import logging
 import os.path
 import yaml
 
-from pyparsing import Word, nums, delimitedList, alphanums, Literal
+from pyparsing import Word, nums, delimitedList, alphanums, Literal, LineEnd, LineStart
 
 from django.conf import settings
 from django.contrib.auth.models import Group
@@ -849,7 +849,7 @@ class CommonDataElement(models.Model):
                 "CDE [%s] has space(s) in code - this causes problems please remove" %
                 self.code)
 
-        if not validate_abnormality_condition(self.abnormality_condition):
+        if not validate_abnormality_condition(self.abnormality_condition, self.datatype):
             raise ValidationError(
                 f"""The abnormality condition of CDE is incorrect -
                     Accepted rule examples:
@@ -877,7 +877,7 @@ class CommonDataElement(models.Model):
 
             # some sanity checks (it could happen because we updated the validation to be more restrictive
             # but we did not update the existing abnormality_condition to match the new restriction)
-            if not validate_abnormality_condition(self.abnormality_condition):
+            if not validate_abnormality_condition(self.abnormality_condition, self.datatype):
                 raise InvalidAbnormalityConditionError(
                     f"The abnormality condition of CDE {self.code} is incorrect: {self.abnormality_condition}")
 
@@ -892,14 +892,14 @@ class CommonDataElement(models.Model):
         return False
 
 
-def validate_abnormality_condition(abnormality_condition):
+def validate_abnormality_condition(abnormality_condition, datatype):
     abnormality_condition_lines = list(
         filter(None, map(lambda rule: rule.strip(), abnormality_condition.split("\r\n")))
     )
-    return all(validate_rule(rule) for rule in abnormality_condition_lines)
+    return all(validate_rule(rule, datatype) for rule in abnormality_condition_lines)
 
 
-def validate_rule(rule):
+def validate_rule(rule, datatype):
     # numeric rules
     eq = Literal("==")
     le = Literal("<=")
@@ -907,15 +907,24 @@ def validate_rule(rule):
     lo = Literal("<")
     g = Literal(">")
     quote = "\""
-    numeric_expression = 'x' + (eq | le | ge | lo | g) + Word(nums)
-    range_expression = Word(nums) + (lo | le) + 'x' + (lo | le) + Word(nums)
-    # string rules
-    string_equality_expression = 'x' + eq + Word(quote + alphanums + '_' + '-' + quote)
-    # list rules
-    list_expression = 'x' + Literal('in') + "[" + \
-                      (delimitedList(quote + Word(alphanums + '_' + '-') + quote, ",") | delimitedList(Word(nums), ',')) + "]"
 
-    parsing_formats = numeric_expression | range_expression | string_equality_expression | list_expression
+    parsing_formats = None
+    if datatype in ["range", "string"]:
+        string_equality_expression = 'x' + eq + Word(quote + alphanums + '_' + '-' + quote)
+        string_list_expression = 'x' + Literal('in') + "[" + (delimitedList(quote + Word(alphanums + '_' + '-') + quote, ",")) + "]"
+        parsing_formats = string_equality_expression | string_list_expression
+
+    if datatype in ["integer", "float"]:
+        numeric_expression = 'x' + (eq | le | ge | lo | g) + Word(nums)
+        numeric_list_expression = 'x' + Literal('in') + "[" + (delimitedList(Word(nums), ',')) + "]"
+        parsing_formats = numeric_expression | numeric_list_expression
+
+    # If we can not find any matching rule (should only happen when a designer edit the CDE).
+    if parsing_formats is None:
+        raise InvalidAbnormalityConditionError(
+            f"This CDE has an unknown datatype: {datatype}")
+
+    parsing_formats = LineStart() + parsing_formats + LineEnd()
     return list(parsing_formats.scanString(rule))
 
 
