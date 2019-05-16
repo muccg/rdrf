@@ -11,7 +11,6 @@ from rdrf.services.io.notifications.email_notification import process_notificati
 from rdrf.events.events import EventType
 from rdrf.workflows.verification import verifications_apply
 from django.conf import settings
-from django.http import Http404
 
 from rdrf.system_role import SystemRoles
 
