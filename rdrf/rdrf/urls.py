@@ -44,7 +44,7 @@ from rdrf.system_role import SystemRoles
 from rdrf.views.copyright_view import CopyrightView
 from rdrf.views.wizard_urls import build_wizard_urls
 
-
+from rdrf.views.actions import ActionExecutorView
 import logging
 
 
@@ -94,6 +94,10 @@ two_factor_auth_urls = [
 ]
 
 proms_patterns = [
+    re_path(r'^promslanding/?$', PromsLandingPageView.as_view(), name="proms_landing_page"),
+    re_path(r'^proms/?$', PromsView.as_view(), name="proms"),
+    re_path(r'^promsqrcode/(?P<patient_token>[0-9A-Za-z_\-]+)/?$', PromsQRCodeImageView.as_view(), name="promsqrcode"),
+    re_path(r'^promscompleted/?$', PromsCompletedPageView.as_view(), name="proms_completed"),
     re_path(r'^translations/jsi18n/$', JavaScriptCatalog.as_view(), name='javascript-catalog'),
     re_path(r'^api/proms/v1/', include(('rdrf.services.rest.urls.proms_api_urls', 'proms_api_urls'), namespace=None)),
     re_path(r'^rpc', form_view.RPCHandler.as_view(), name='rpc'),
@@ -128,6 +132,7 @@ proms_patterns = [
 normalpatterns += build_wizard_urls()
 
 normalpatterns += [
+    re_path(r'^actions/?', ActionExecutorView.as_view(), name='action'),
     re_path(r'^translations/jsi18n/$', JavaScriptCatalog.as_view(), name='javascript-catalog'),
     re_path(r'^iprestrict/', include(('iprestrict.urls', 'iprestrict_urls'), namespace=None)),
     re_path(r'^useraudit/', include('useraudit.urls',)),
@@ -189,7 +194,8 @@ normalpatterns += [
     re_path(r"^copyright/?$", CopyrightView.as_view(), name="copyright"),
 
     # proms on the clinical side
-    re_path(r"^(?P<registry_code>\w+)/(?P<patient_id>\d+)/clinicalproms/?$", PromsClinicalView.as_view(), name="proms_clinical_view"),
+    re_path(r"^(?P<registry_code>\w+)/(?P<patient_id>\d+)/clinicalproms/?$",
+            PromsClinicalView.as_view(), name="proms_clinical_view"),
     # -------------------------------------------
 
     re_path(r'', include(('registry.urls', 'registry_urls'), namespace="registry")),
@@ -328,7 +334,7 @@ normalpatterns += [
     re_path(r'^i18n/', include(('django.conf.urls.i18n', 'django_conf_urls'), namespace=None))
 ]
 
-if settings.SYSTEM_ROLE is SystemRoles.CIC_PROMS:
+if settings.SYSTEM_ROLE == SystemRoles.CIC_PROMS:
     urlpatterns = proms_patterns
 else:
     urlpatterns = normalpatterns

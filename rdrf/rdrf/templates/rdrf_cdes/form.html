@@ -11,6 +11,7 @@
 {% load static %}
 {% load i18n admin_urls admin_static admin_modify %}
 {% load translate %}
+{%  load is_abnormal %}
 
 
 {% block extrastyle %}
@@ -413,8 +414,13 @@
                             {% endwith%}
                         {% else %}
                             {% for field in forms|get_form_object:s %}
-                                <div class="form-group rdrf-cde-field invisibutton-container">
-                                    <label for="{{field.id_for_label}}" class="col-sm-3 control-label">
+                                <div class="form-group rdrf-cde-field invisibutton-container
+                                       {% if field|is_abnormal %}
+                                        rdrf-cde-abnormal
+                                       {% endif %}">
+                                    <label for="{{field.id_for_label}}" class="col-sm-3 control-label {% if field|is_abnormal %}
+                                        glyphicon glyphicon-warning-sign
+                                       {% endif %}">
                                         {% if field.field.cde.code and not CREATE_MODE and have_dynamic_data %}
                                         <a href="{% url 'registry_form_field_history' registry_code form_name patient_id s context_id field.field.cde.code %}"
                                            onclick="rdrf_click_form_field_history(event, this)"

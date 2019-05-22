@@ -14,7 +14,7 @@ from rdrf.services.io.defs.exporter import Exporter, ExportType
 from rdrf.services.io.defs.importer import Importer, ImportState
 from rdrf.models.definition.models import Registry, RegistryForm, Section
 from rdrf.models.definition.models import CDEPermittedValueGroup, CDEPermittedValue
-from rdrf.models.definition.models import CommonDataElement
+from rdrf.models.definition.models import CommonDataElement, InvalidAbnormalityConditionError
 from rdrf.models.definition.models import ClinicalData
 from rdrf.views.form_view import FormView
 from registry.patients.models import Patient
@@ -33,6 +33,75 @@ import json
 from rdrf.helpers.transform_cd_dict import get_cd_form, get_section, transform_cd_dict
 
 logger = logging.getLogger(__name__)
+
+
+class AbnormalityRulesTestCase(TestCase):
+
+    def setUp(self):
+        self.cde = CommonDataElement()
+
+    def test_integer(self):
+        self.cde.abnormality_condition = "x < 10"
+        self.assertTrue(self.cde.is_abnormal(9))
+        self.assertFalse(self.cde.is_abnormal(10))
+        self.assertFalse(self.cde.is_abnormal(11))
+
+    def test_integer_range(self):
+        self.cde.abnormality_condition = "2 < x <= 10"
+        self.assertFalse(self.cde.is_abnormal(2))
+        self.assertTrue(self.cde.is_abnormal(10))
+        self.assertFalse(self.cde.is_abnormal(11))
+
+    def test_invalid_rule(self):
+        self.cde.abnormality_condition = "x = 10"
+        self.assertRaises(InvalidAbnormalityConditionError, self.cde.is_abnormal, value=9)
+
+    def test_number_equality(self):
+        self.cde.abnormality_condition = "x == 10"
+        self.assertFalse(self.cde.is_abnormal(9))
+        self.assertTrue(self.cde.is_abnormal(10))
+        self.assertFalse(self.cde.is_abnormal(11))
+
+    def test_string_equality(self):
+        self.cde.abnormality_condition = "x == \"10\""
+        self.assertFalse(self.cde.is_abnormal(10))
+        self.assertTrue(self.cde.is_abnormal("10"))
+        self.assertFalse(self.cde.is_abnormal("11"))
+
+    def test_empty_lines(self):
+        self.cde.abnormality_condition = "x < 10\r\n\r\n"
+        self.assertTrue(self.cde.is_abnormal(9))
+        self.assertFalse(self.cde.is_abnormal(10))
+        self.assertFalse(self.cde.is_abnormal(11))
+
+    def test_whitespaces(self):
+        self.cde.abnormality_condition = "  x   <   10  \r\n  "
+        self.assertTrue(self.cde.is_abnormal(9))
+        self.assertFalse(self.cde.is_abnormal(10))
+        self.assertFalse(self.cde.is_abnormal(11))
+
+    def test_in_number_list(self):
+        self.cde.abnormality_condition = "x in [10,20,30]"
+        self.assertFalse(self.cde.is_abnormal(9))
+        self.assertTrue(self.cde.is_abnormal(10))
+        self.assertTrue(self.cde.is_abnormal(20))
+        self.assertTrue(self.cde.is_abnormal(30))
+        self.assertFalse(self.cde.is_abnormal("10"))
+        self.assertFalse(self.cde.is_abnormal(11))
+
+    def test_in_string_list(self):
+        self.cde.abnormality_condition = "x in [\"10\",\"20\",\"30\"]"
+        self.assertFalse(self.cde.is_abnormal(10))
+        self.assertTrue(self.cde.is_abnormal("10"))
+        self.assertTrue(self.cde.is_abnormal("20"))
+        self.assertTrue(self.cde.is_abnormal("30"))
+        self.assertFalse(self.cde.is_abnormal("11"))
+
+    def test_multiple_rules(self):
+        self.cde.abnormality_condition = "x < 2 \r\nx > 100"
+        self.assertTrue(self.cde.is_abnormal(1))
+        self.assertFalse(self.cde.is_abnormal(10))
+        self.assertTrue(self.cde.is_abnormal(110))
 
 
 class MigrateCDESTestCase(TestCase):

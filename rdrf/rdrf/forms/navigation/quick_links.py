@@ -128,7 +128,7 @@ class Links:
             reverse("admin:rdrf_contextformgroup_changelist"),
             _("Registry Context Form Groups"))
 
-    if settings.SYSTEM_ROLE is SystemRoles.CIC_PROMS:
+    if settings.SYSTEM_ROLE == SystemRoles.CIC_PROMS:
         Importer = QuickLink(reverse("import_registry"), _("Importer"))
         Users = QuickLink(reverse("admin:groups_customuser_changelist"), _('Users'))
 
@@ -229,7 +229,7 @@ class Links:
         REGISTRATION = {}
         VERIFICATION = {}
 
-    if settings.SYSTEM_ROLE is SystemRoles.CIC_PROMS:
+    if settings.SYSTEM_ROLE == SystemRoles.CIC_PROMS:
         OTHER = {
             Importer.text: Importer,
         }
@@ -247,7 +247,7 @@ class Links:
             SurveyRequest.text: SurveyRequest,
         }
 
-    if settings.SYSTEM_ROLE is SystemRoles.CIC_PROMS:
+    if settings.SYSTEM_ROLE == SystemRoles.CIC_PROMS:
         if settings.DESIGN_MODE:
             REGISTRY_DESIGN = {
                 Registries.text: Registries,
@@ -388,7 +388,7 @@ class QuickLinks(object):
                 design_menus.update(normal_menus)
                 MenuConfig().all = design_menus
 
-        if settings.SYSTEM_ROLE is SystemRoles.CIC_PROMS:
+        if settings.SYSTEM_ROLE == SystemRoles.CIC_PROMS:
             MenuConfig().settings = {
                 **Links.PERMISSIONS,
                 **Links.REGISTRATION,
@@ -488,13 +488,13 @@ class QuickLinks(object):
                                                       'verification')
 
     def _permission_matrix_links(self):
-        if settings.SYSTEM_ROLE is SystemRoles.CIC_PROMS:
+        if settings.SYSTEM_ROLE == SystemRoles.CIC_PROMS:
             return {}
         # enable permission links
         Links.PERMISSIONS = self._per_registry_links('Permissions', 'permission_matrix')
 
     def _consent_links(self):
-        if settings.SYSTEM_ROLE is SystemRoles.CIC_PROMS:
+        if settings.SYSTEM_ROLE == SystemRoles.CIC_PROMS:
             return {}
         # enable consent links
         Links.CONSENT = self._per_registry_links('Consents', 'consent_list')
@@ -502,7 +502,7 @@ class QuickLinks(object):
     def menu_links(self, groups):
         # get links for the 'menu' menu
         links = {}
-        if settings.SYSTEM_ROLE is SystemRoles.CIC_PROMS:
+        if settings.SYSTEM_ROLE == SystemRoles.CIC_PROMS:
             return {}
         for group in groups:
             links = {**links, **self._group_links(group.lower())}
@@ -510,7 +510,7 @@ class QuickLinks(object):
 
     def settings_links(self):
         # get links for the 'settings' menu
-        if settings.SYSTEM_ROLE is SystemRoles.CIC_PROMS:
+        if settings.SYSTEM_ROLE == SystemRoles.CIC_PROMS:
             return {}
         links = MenuConfig().settings
         return OrderedDict(sorted(links.items())).values()

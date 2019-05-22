@@ -7,11 +7,25 @@ import logging
 logger = logging.getLogger(__name__)
 
 
+def get_token(request, token):
+    logger.info("proms auth getting token %s ..." % token)
+    if token not in request.META:
+        logger.info("%s not in request - returning None" % token)
+        return None
+    else:
+        token_value = request.META.get(token)
+        logger.info("%s = %s" % (token, token_value))
+        return token_value
+
+
 class PromsAuthentication(authentication.BaseAuthentication):
     def authenticate(self, request):
         logger.info("authenticating proms")
         from django.conf import settings
-        secret_token = request.META.get('HTTP_PROMS_SECRET_TOKEN')
+        secret_token = get_token(request, 'HTTP_PROMS_SECRET_TOKEN')
+        if secret_token is None:
+            secret_token = get_token(request, 'PROMS_SECRET_TOKEN')
+
         logger.info("token from request: %s" % secret_token)
         proms_secret_token = settings.PROMS_SECRET_TOKEN
         logger.info("settings proms token: %s" % proms_secret_token)

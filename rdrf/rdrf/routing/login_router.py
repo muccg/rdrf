@@ -11,7 +11,6 @@ from rdrf.services.io.notifications.email_notification import process_notificati
 from rdrf.events.events import EventType
 from rdrf.workflows.verification import verifications_apply
 from django.conf import settings
-from django.http import Http404
 
 from rdrf.system_role import SystemRoles
 
@@ -36,11 +35,8 @@ class RouterView(View):
         redirect_url = None
 
         if user.is_authenticated:
-            if settings.SYSTEM_ROLE is SystemRoles.CIC_PROMS:
-                if user.is_superuser:
-                    redirect_url = reverse(_HOME_PAGE)
-                else:
-                    raise Http404()
+            if settings.SYSTEM_ROLE == SystemRoles.CIC_PROMS:
+                redirect_url = reverse(_HOME_PAGE)
             elif user.is_superuser:
                 redirect_url = reverse(_PATIENTS_LISTING)
             elif user.is_clinician and user.my_registry and verifications_apply(user):
