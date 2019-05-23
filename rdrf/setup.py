@@ -49,7 +49,7 @@ requirements = [
     "ua-parser==0.8.0",
     "user-agents==1.1.0",
     "django-user-agents==0.3.2",
-    "django-simple-history==2.7.0"
+    "django-simple-history==2.7.2",
     "django-formtools",
 ]
 
