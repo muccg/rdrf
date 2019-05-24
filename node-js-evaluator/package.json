@@ -1,0 +1,12 @@
+{
+  "name": "node-js-evaluator",
+  "version": "1.0.0",
+  "description": "Web service evaluating JS code",
+  "main": "index.js",
+  "author": "Murdoch CCG",
+  "license": "MIT",
+  "dependencies": {
+    "body-parser": "^1.19.0",
+    "express": "^4.16.4"
+  }
+}

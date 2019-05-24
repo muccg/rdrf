@@ -77,3 +77,13 @@ services:
       - clinicaldb
       - reportingdb
       - cache
+
+  node_js_evaluator:
+    build: 
+      context: ./node-js-evaluator
+      dockerfile: Dockerfile
+    ports:
+      - "3031:3031"
+    volumes:
+      - /app/node_modules
+      - ./node-js-evaluator:/app
