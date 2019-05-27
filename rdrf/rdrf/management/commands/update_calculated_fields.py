@@ -18,14 +18,14 @@ class Command(BaseCommand):
                             help='Only calculate the fields for a specific patient')
         parser.add_argument('--registry_code', action='append', type=str,
                             help='Only calculate the fields for a specific registry')
-        parser.add_argument('--cde_code', action='append', type=str,
-                            help='Only calculate the fields for a specific CDE')
         parser.add_argument('--context_id', action='append', type=int,
                             help='Only calculate the fields for a specific context')
         parser.add_argument('--form_name', action='append', type=str,
                             help='Only calculate the fields for a specific form')
         parser.add_argument('--section_code', action='append', type=str,
                             help='Only calculate the fields for a specific section')
+        parser.add_argument('--cde_code', action='append', type=str,
+                            help='Only calculate the fields for a specific CDE')
 
     def handle(self, *args, **options):
         self.stdout.write(self.style.SUCCESS(options['patient_id']))
@@ -86,33 +86,53 @@ class Command(BaseCommand):
                                 # context_var - it is the context variable of the js code (not to be confused with the RDRF context model).
                                 context_var = build_context_var(patient_model, context_id, registry_model, form_name,
                                                                 cde_models_tree)
-                                # For each calculated cdes in this form, do a WS call to the node server evaluation the js code.
-                                for calculated_cde_model in calculated_cde_models:
-                                    if calculated_cde_model.code in context_var.keys():
-                                        # web service call to the nodejs calculation evaluation script.
-                                        new_calculated_cde_value = call_ws_calculation(calculated_cde_model,
-                                                                                       patient_model,
-                                                                                       context_var)
 
-                                        # if the result is a new value, then store in a temp var so we can update the form at its context level.
-                                        if context_var[calculated_cde_model.code] != new_calculated_cde_value:
-                                            changed_calculated_cdes[calculated_cde_model.code] = \
-                                                {"old_value": context_var[calculated_cde_model.code],
-                                                 "new_value": new_calculated_cde_value}
+                                # For each section of the form (we only do that because we need to know the section_code when calling set_form_value)
+                                for section_code in cde_models_tree[registry_model.code][form_name].keys():
 
-                                # TODO: store the new form value in the ClinicalData model - only when values
-                                if changed_calculated_cdes:
-                                    print(f"These are the new value of the form/context {changed_calculated_cdes}")
+                                    # For each calculated cdes in this section, do a WS call to the node server evaluation the js code.
+                                    for calculated_cde_model in calculated_cde_models:
+                                        if calculated_cde_model.code in context_var.keys() and calculated_cde_model.code in \
+                                                cde_models_tree[registry_model.code][form_name][section_code].keys():
+                                            # web service call to the nodejs calculation evaluation script.
+                                            new_calculated_cde_value = call_ws_calculation(calculated_cde_model,
+                                                                                           patient_model,
+                                                                                           context_var)
 
-                                # TODO: alert us than the form has been updated (so we can track that the code is properly working)
+                                            # if the result is a new value, then store in a temp var so we can update the form at its context level.
+                                            if context_var[calculated_cde_model.code] != new_calculated_cde_value:
+                                                changed_calculated_cdes[calculated_cde_model.code] = \
+                                                    {"old_value": context_var[calculated_cde_model.code],
+                                                     "new_value": new_calculated_cde_value,
+                                                     "section_code": section_code}
 
-                                # TODO: don't forget to update the form history (context level - if at least)
-
-                                # TODO: web service call + storing value could be done in a function run asynchronously
-                                #       (not that simple because we need to check the node server can accept that many connections | postgres transaction to be implemented too).
+                                save_new_calculation(changed_calculated_cdes, context_id, form_name, patient_model,
+                                                     registry_model)
 
         end = time.time()
         self.stdout.write(self.style.SUCCESS(f"All fields have been successfully updated in {end - start} seconds."))
+
+
+def save_new_calculation(changed_calculated_cdes, context_id, form_name, patient_model, registry_model):
+    # TODO: storing value could be done in a function run asynchronously
+    #
+
+    # save the new form values in the ClinicalData model only when we have one values
+    context_model = RDRFContext.objects.get(id=context_id)
+    if changed_calculated_cdes:
+        print(f"These are the new value of the form/context {changed_calculated_cdes}")
+        # for changed_calculated_cde_code in changed_calculated_cdes.keys():
+        #     patient_model.set_form_value(registry_code=registry_model.code,
+        #                                  form_name=form_name,
+        #                                  section_code=changed_calculated_cdes[changed_calculated_cde_code].section_code,
+        #                                  data_element_code=changed_calculated_cde_code,
+        #                                  value=changed_calculated_cdes[changed_calculated_cde_code].new_value,
+        #                                  save_snapshot=changed_calculated_cdes.keys(-1) == changed_calculated_cde_code,
+        #                                  context_model=context_model)
+
+    # TODO: alert us than the form has been updated (so we can track that the code is properly working)
+
+    # TODO: don't forget to update the form history (context level - if at least)
 
 
 def context_ids_for_patient_and_form(patient_model, form_name, registry_model):
@@ -162,6 +182,9 @@ def build_context_var(patient_model, context_id, registry_model, form_name, cde_
 
 
 def call_ws_calculation(calculated_cde_model, patient_model, context_var):
+    # TODO: web service call could be done asynchronously
+    #       (not that simple because we need to check the node server can accept that many connections).
+
     print(f"{calculated_cde_model.code}")
     # Build the web service call parameter.
     patient_var = {'sex': patient_model.sex, 'date_of_birth': patient_model.date_of_birth.__format__("%Y-%m-%d")}
@@ -229,8 +252,10 @@ def build_cde_models_tree(calculated_cde_models, options, command):
                             if cde_models_tree \
                                     and form_model.registry.code in cde_models_tree \
                                     and form_model.name in cde_models_tree[form_model.registry.code] \
-                                    and section_model.code in cde_models_tree[form_model.registry.code][form_model.name]:
-                                built_cdes = cde_models_tree[form_model.registry.code][form_model.name][section_model.code]
+                                    and section_model.code in cde_models_tree[form_model.registry.code][
+                                        form_model.name]:
+                                built_cdes = cde_models_tree[form_model.registry.code][form_model.name][
+                                    section_model.code]
                             else:
                                 built_cdes = {}
                             # Check if we already retrieved some cde models for this form.
