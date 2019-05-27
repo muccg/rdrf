@@ -75,9 +75,9 @@ class Command(BaseCommand):
                         # Add the cde model to the dictionary.
                         cde_models_tree = {**cde_models_tree,
                                            form_name.registry.code: {**built_forms,
-                                                                form_name.name: {**built_sections,
-                                                                            section_model.code: {**built_cdes,
-                                                                                           cde_code: cde_model}}}}
+                                                                     form_name.name: {**built_sections,
+                                                                                      section_model.code: {**built_cdes,
+                                                                                                           cde_code: cde_model}}}}
 
         print("----------------------- RUN CALCULATIONS --------------------------")
 
@@ -95,11 +95,11 @@ class Command(BaseCommand):
                         context_var = {}
 
                         # Retrieve the context ids related to the patient / registry / form.
-                        form_model = RegistryForm.objects.get(name=form_name,registry=registry_model)
+                        form_model = RegistryForm.objects.get(name=form_name, registry=registry_model)
                         form_group_items_models = ContextFormGroupItem.objects.filter(registry_form=form_model)
                         context_models = RDRFContext.objects.filter(registry=registry_model,
-                                                              object_id=patient_model.id,
-                                                              context_form_group__in=[form_group_item_model.context_form_group for form_group_item_model in form_group_items_models])
+                                                                    object_id=patient_model.id,
+                                                                    context_form_group__in=[form_group_item_model.context_form_group for form_group_item_model in form_group_items_models])
                         context_ids = [context_model.id for context_model in context_models]
 
                         # If no context, it means we are in the case of a single context like DD registry.
@@ -121,8 +121,8 @@ class Command(BaseCommand):
 
                                     try:
                                         cde_value = patient_model.get_form_value(registry_code=registry_model.code,
-                                                                          data_element_code=cde_code, form_name=form_name,
-                                                                          section_code=section_model, context_id=context_id, clinical_data=data)
+                                                                                 data_element_code=cde_code, form_name=form_name,
+                                                                                 section_code=section_model, context_id=context_id, clinical_data=data)
                                         # Ff cde is a date then display the JS format.
                                         if cde_value is not None and cde_models_tree[registry_model.code][form_name][section_model][cde_code].datatype == 'date':
                                             cde_value = datetime.strptime(cde_value, '%Y-%m-%d').__format__("%d-%m-%Y")
@@ -143,13 +143,13 @@ class Command(BaseCommand):
                                         log(msg) {
                                             console.log(msg);
                                         }
-                                    
+
                                         get(data, key) {
                                             return data[key];
                                             // console.log("A function is calling RDRF.get ADSAFE - ignoring...");
                                         }
                                     }
-                                    
+
                                     RDRF = new Rdrf();"""
                                     js_code = f"{rdrf_var} patient = {json.dumps(patient_var)}; context = {json.dumps(context_var)}; {calculated_cde_model.calculation}"
                                     headers = {'Content-Type': 'application/json'}
