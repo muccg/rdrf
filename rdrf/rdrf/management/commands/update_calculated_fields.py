@@ -111,6 +111,7 @@ class Command(BaseCommand):
 
                         # For each context ids related to the patient / registry / form.
                         for context_id in context_ids:
+                            changed_calculated_cdes = {}
                             # Retrieve the clinitcal_data for this registry / patient / context.
                             wrapper = DynamicDataWrapper(patient_model, rdrf_context_id=context_id)
                             data = wrapper.load_dynamic_data(registry_model.code, "cdes")
@@ -158,11 +159,23 @@ class Command(BaseCommand):
                                     # Retrieve the new value by web service.
                                     resp = requests.post(url='http://node_js_evaluator:3131/eval', headers=headers,
                                                          json=encoded_js_code)
-
-                                    print('Result: {}'.format(resp.json()))
+                                    new_calculated_cde_value = format(resp.json())
+                                    print(format(resp.json()))
+                                    print(f"Result: {new_calculated_cde_value}")
                                     print(f"----------------------- END CALCULATION --------------------------")
 
-                                    # TODO: store the new form value in the ClinicalData model
+                                    # Retrieve all fields to update
+                                    if context_var[calculated_cde_model.code] != new_calculated_cde_value:
+                                        changed_calculated_cdes[calculated_cde_model.code] = \
+                                            {"old_value": context_var[calculated_cde_model.code], "new_value": new_calculated_cde_value}
+
+                            # TODO: store the new form value in the ClinicalData model - only when values
+                            if changed_calculated_cdes:
+                                print(f"These are the new value of the form/context {changed_calculated_cdes}")
+
+                            # TODO: alert us than the form has been updated (so we can track that the code is properly working)
+
+                            # TODO: don't forget to update the form history (context level - if at least)
 
                                     # TODO: web service call + storing value could be done in a function run asynchronously
                                     #       (not that simple because we need to check the node server can accept that many connections | postgres transaction to be implemented too).
