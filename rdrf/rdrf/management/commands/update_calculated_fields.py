@@ -34,7 +34,8 @@ class Command(BaseCommand):
 
         if options['cde_code']:
             if not options['form_name'] or not options['section_code']:
-                self.stdout.write(self.style.ERROR("You must provide a form_name and section_code when providing a cde_code"))
+                self.stdout.write(
+                    self.style.ERROR("You must provide a form_name and section_code when providing a cde_code"))
                 exit(1)
             # Note that has form_name and section_code are provided, if ever the code does not exist for this form/section, then it will just be ignored.
             calculated_cde_models = [CommonDataElement.objects.get(code='')]
@@ -89,7 +90,8 @@ class Command(BaseCommand):
                                 for calculated_cde_model in calculated_cde_models:
                                     if calculated_cde_model.code in context_var.keys():
                                         # web service call to the nodejs calculation evaluation script.
-                                        new_calculated_cde_value = call_ws_calculation(calculated_cde_model, patient_model,
+                                        new_calculated_cde_value = call_ws_calculation(calculated_cde_model,
+                                                                                       patient_model,
                                                                                        context_var)
 
                                         # if the result is a new value, then store in a temp var so we can update the form at its context level.
@@ -176,9 +178,9 @@ def call_ws_calculation(calculated_cde_model, patient_model, context_var):
                                         }
 
                                         RDRF = new Rdrf();"""
-    js_code = f"""{rdrf_var} patient = {json.dumps(patient_var)}
-        context = {json.dumps(
-            context_var)}
+    js_code = f"""{rdrf_var} 
+        patient = {json.dumps(patient_var)}
+        context = {json.dumps(context_var)}
         {calculated_cde_model.calculation}"""
     headers = {'Content-Type': 'application/json'}
     # we encode the JS function.
@@ -194,7 +196,6 @@ def call_ws_calculation(calculated_cde_model, patient_model, context_var):
 
 
 def build_cde_models_tree(calculated_cde_models, options, command):
-
     # The cde models in a tree format for easy access
     # Format: {..., registry.code:{..., form.name:{..., section.code:{..., cde.code:cde.model}}}}
     cde_models_tree = {}
@@ -216,7 +217,8 @@ def build_cde_models_tree(calculated_cde_models, options, command):
 
             section_models = Section.objects.filter(code__in=form_model.get_sections())
             # Retrieve the form cde models only if at least one section has a calculated field.
-            if any(i.code in section.get_elements() for i in calculated_cde_models for section in section_models):
+            if any(calculated_cde_model.code in section.get_elements() for calculated_cde_model in calculated_cde_models
+                   for section in section_models):
 
                 for section_model in section_models:
                     # if a section_code argument was passed, only reference cdes that are in this section.
@@ -254,6 +256,7 @@ def build_cde_models_tree(calculated_cde_models, options, command):
                             cde_models_tree = {**cde_models_tree,
                                                form_model.registry.code: {**built_forms,
                                                                           form_model.name: {**built_sections,
-                                                                                            section_model.code: {**built_cdes,
-                                                                                                                 cde_code: cde_model}}}}
+                                                                                            section_model.code: {
+                                                                                                **built_cdes,
+                                                                                                cde_code: cde_model}}}}
     return cde_models_tree
