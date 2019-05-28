@@ -10,7 +10,7 @@ app.use(bodyParser.urlencoded({extended: true}));
 app.post('/eval', (req, res) => {
     const code_to_eval = "try { " + decodeURIComponent(req.body.jscode) + "} catch (e) {console.log(e); res.send(JSON.stringify(\"\"));}";
     const evaluated_value = eval(code_to_eval);
-    res.send(JSON.stringify({value: evaluated_value, isNan: isNaN(evaluated_value)}));
+    res.send(JSON.stringify({value: evaluated_value, isNan: (isNaN(evaluated_value) && typeof(evaluated_value) === "number")}));
 });
 
 app.listen(port, () => console.log(`JS Evaluator listening on port ${port}!`));

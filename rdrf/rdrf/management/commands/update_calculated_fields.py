@@ -120,7 +120,7 @@ def save_new_calculation(changed_calculated_cdes, context_id, form_name, patient
     # save the new form values in the ClinicalData model only when we have one values
     context_model = RDRFContext.objects.get(id=context_id)
     if changed_calculated_cdes:
-        print(f"These are the new value of the form/context {changed_calculated_cdes}")
+        print(f"UPDATING DB: These are the new value of the form/context {changed_calculated_cdes}")
         # for changed_calculated_cde_code in changed_calculated_cdes.keys():
         #     patient_model.set_form_value(registry_code=registry_model.code,
         #                                  form_name=form_name,
