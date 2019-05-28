@@ -173,6 +173,10 @@ def build_context_var(patient_model, context_id, registry_model, form_name, cde_
                 if cde_value is not None and cde_models_tree[registry_model.code][form_name][section_model][
                         cde_code].datatype == 'date':
                     cde_value = datetime.strptime(cde_value, '%Y-%m-%d').__format__("%d-%m-%Y")
+                if cde_value is None:
+                    # the js context variable does not contain any null value, only empty string.
+                    # (because the js context variable values are retrieved by jquery val())
+                    cde_value = ""
                 context_var[cde_code] = cde_value
             except KeyError:
                 # we ignore empty values.
@@ -211,8 +215,9 @@ def call_ws_calculation(calculated_cde_model, patient_model, context_var):
     # Retrieve the new value by web service.
     resp = requests.post(url='http://node_js_evaluator:3131/eval', headers=headers,
                          json=encoded_js_code)
-    new_calculated_cde_value = format(resp.json())
-
+    ws_value = resp.json()
+    print(f"Result: {ws_value}")
+    new_calculated_cde_value = "NaN" if ws_value['isNan'] else str(ws_value['value'])
     print(f"Result: {new_calculated_cde_value}")
     print(f"----------------------- END CALCULATION --------------------------")
     return new_calculated_cde_value
