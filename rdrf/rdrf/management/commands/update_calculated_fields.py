@@ -1,4 +1,5 @@
 import json
+import random
 import time
 import urllib.parse
 from datetime import datetime
@@ -8,6 +9,10 @@ from django.core.management.base import BaseCommand
 
 from rdrf.models.definition.models import CommonDataElement, RegistryForm, Section, RDRFContext, ContextFormGroupItem
 from registry.patients.models import Patient, DynamicDataWrapper
+
+
+class ScriptUser:
+    username = 'Calculated field script'
 
 
 class Command(BaseCommand):
@@ -27,8 +32,29 @@ class Command(BaseCommand):
         parser.add_argument('--cde_code', action='append', type=str,
                             help='Only calculate the fields for a specific CDE')
 
+    def DANGER_overwrite_a_calculated_cde_for_testing_purpose(self):
+        test_form_name = 'FollowUp'
+        test_registry_code = 'fh'
+        test_context_model = RDRFContext.objects.get(id=5)
+        test_patient_model = Patient.objects.get(id=2)
+        test_section_code = 'FHDeath'
+        test_cde_code = 'FHDeathAge'
+        test_cde_value = str(random.randint(1, 101))
+        test_patient_model.set_form_value(registry_code=test_registry_code,
+                                          form_name=test_form_name,
+                                          section_code=test_section_code,
+                                          data_element_code=test_cde_code,
+                                          value=test_cde_value,
+                                          save_snapshot=True,
+                                          user=ScriptUser(),
+                                          context_model=test_context_model)
+        print(f"NEW {test_cde_code}: {test_cde_value}")
+
     def handle(self, *args, **options):
         self.stdout.write(self.style.SUCCESS(options['patient_id']))
+
+        # Comment out the next line when wanting to do dirty testing.
+        # self.DANGER_overwrite_a_calculated_cde_for_testing_purpose()
 
         start = time.time()
 
@@ -121,18 +147,23 @@ def save_new_calculation(changed_calculated_cdes, context_id, form_name, patient
     context_model = RDRFContext.objects.get(id=context_id)
     if changed_calculated_cdes:
         print(f"UPDATING DB: These are the new value of the form/context {changed_calculated_cdes}")
-        # for changed_calculated_cde_code in changed_calculated_cdes.keys():
-        #     patient_model.set_form_value(registry_code=registry_model.code,
-        #                                  form_name=form_name,
-        #                                  section_code=changed_calculated_cdes[changed_calculated_cde_code].section_code,
-        #                                  data_element_code=changed_calculated_cde_code,
-        #                                  value=changed_calculated_cdes[changed_calculated_cde_code].new_value,
-        #                                  save_snapshot=changed_calculated_cdes.keys(-1) == changed_calculated_cde_code,
-        #                                  context_model=context_model)
+        for changed_calculated_cde_code in changed_calculated_cdes.keys():
+            patient_model.set_form_value(registry_code=registry_model.code,
+                                         form_name=form_name,
+                                         section_code=changed_calculated_cdes[changed_calculated_cde_code][
+                                             'section_code'],
+                                         data_element_code=changed_calculated_cde_code,
+                                         value=changed_calculated_cdes[changed_calculated_cde_code]['new_value'],
+                                         save_snapshot=list(changed_calculated_cdes.keys())[
+                                             -1] == changed_calculated_cde_code,
+                                         user=ScriptUser(),
+                                         context_model=context_model)
 
     # TODO: alert us than the form has been updated (so we can track that the code is properly working)
 
     # TODO: don't forget to update the form history (context level - if at least)
+
+    print(f"--------------- END SAVING CALCULATION FOR THIS FORM (context: {context_id}) -------------------")
 
 
 def context_ids_for_patient_and_form(patient_model, form_name, registry_model):
@@ -150,7 +181,7 @@ def context_ids_for_patient_and_form(patient_model, form_name, registry_model):
     if not context_ids:
         context_ids = [c.id for c in patient_model.context_models]
 
-    print(f"Form: {form_name} contexts: {context_ids}")
+    print(f"FORM: {form_name} contexts: {context_ids} patient id: {patient_model.id}")
     print("---------------------------------------")
     return context_ids
 
@@ -188,7 +219,7 @@ def build_context_var(patient_model, context_id, registry_model, form_name, cde_
 def call_ws_calculation(calculated_cde_model, patient_model, context_var):
     # TODO: web service call could be done asynchronously
     #       (not that simple because we need to check the node server can accept that many connections).
-
+    print()
     print(f"{calculated_cde_model.code}")
     # Build the web service call parameter.
     patient_var = {'sex': patient_model.sex, 'date_of_birth': patient_model.date_of_birth.__format__("%Y-%m-%d")}
@@ -216,10 +247,9 @@ def call_ws_calculation(calculated_cde_model, patient_model, context_var):
     resp = requests.post(url='http://node_js_evaluator:3131/eval', headers=headers,
                          json=encoded_js_code)
     ws_value = resp.json()
-    print(f"Result: {ws_value}")
+    print(f"JSON Result: {ws_value}")
     new_calculated_cde_value = "NaN" if ws_value['isNan'] else str(ws_value['value'])
     print(f"Result: {new_calculated_cde_value}")
-    print(f"----------------------- END CALCULATION --------------------------")
     return new_calculated_cde_value
 
 
