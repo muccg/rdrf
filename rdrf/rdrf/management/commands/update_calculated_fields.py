@@ -32,6 +32,9 @@ class Command(BaseCommand):
         parser.add_argument('--cde_code', action='append', type=str,
                             help='Only calculate the fields for a specific CDE')
 
+        # Test command line example
+        # django-admin update_calculated_fields --patient_id=2 --registry_code=fh --form_name=ClinicalData --section_code=SEC0007 --context_id=2 --cde_code=CDEfhDutchLipidClinicNetwork
+
     def DANGER_overwrite_a_calculated_cde_for_testing_purpose(self):
         test_form_name = 'FollowUp'
         test_registry_code = 'fh'
@@ -51,7 +54,6 @@ class Command(BaseCommand):
         print(f"NEW {test_cde_code}: {test_cde_value}")
 
     def handle(self, *args, **options):
-        self.stdout.write(self.style.SUCCESS(options['patient_id']))
 
         # Comment out the next line when wanting to do dirty testing.
         # self.DANGER_overwrite_a_calculated_cde_for_testing_purpose()
@@ -64,7 +66,7 @@ class Command(BaseCommand):
                     self.style.ERROR("You must provide a form_name and section_code when providing a cde_code"))
                 exit(1)
             # Note that has form_name and section_code are provided, if ever the code does not exist for this form/section, then it will just be ignored.
-            calculated_cde_models = [CommonDataElement.objects.get(code='')]
+            calculated_cde_models = CommonDataElement.objects.filter(code__in=options['cde_code'])
         else:
             # Retrieve all calculated fields.
             calculated_cde_models = CommonDataElement.objects.exclude(calculation='')
@@ -90,7 +92,7 @@ class Command(BaseCommand):
         print("----------------------- RUN CALCULATIONS --------------------------")
 
         if options['patient_id']:
-            patient_models = [Patient.objects.get(id=options['patient_id'])]
+            patient_models = Patient.objects.filter(id__in=options['patient_id'])
         else:
             # For all patient.
             patient_models = Patient.objects.all()
@@ -107,7 +109,7 @@ class Command(BaseCommand):
                         # We keep this call when the context id is passed as command argument for sanity check purpose
                         context_ids = context_ids_for_patient_and_form(patient_model, form_name, registry_model)
                         for context_id in context_ids:
-                            if not options['context_id'] or options['context_id'] == context_id:
+                            if not options['context_id'] or context_id in options['context_id']:
                                 changed_calculated_cdes = {}
                                 # context_var - it is the context variable of the js code (not to be confused with the RDRF context model).
                                 context_var = build_context_var(patient_model, context_id, registry_model, form_name,
@@ -115,7 +117,6 @@ class Command(BaseCommand):
 
                                 # For each section of the form (we only do that because we need to know the section_code when calling set_form_value)
                                 for section_code in cde_models_tree[registry_model.code][form_name].keys():
-
                                     # For each calculated cdes in this section, do a WS call to the node server evaluation the js code.
                                     for calculated_cde_model in calculated_cde_models:
                                         if calculated_cde_model.code in context_var.keys() and calculated_cde_model.code in \
@@ -266,22 +267,21 @@ def build_cde_models_tree(calculated_cde_models, options, command):
             command.stdout.write(
                 command.style.ERROR("You must provide a registry_code when providing a form_name"))
             exit(1)
-        form_models = [RegistryForm.objects.get(form_name=options['form_name'])]
+        form_models = RegistryForm.objects.filter(name__in=options['form_name'])
     else:
         form_models = RegistryForm.objects.all()
     for form_model in form_models:
         # if a registry_code argument was passed, only reference form that are in this registry.
-        if not options['registry_code'] or options['registry_code'] == form_model.registry.code:
+        if not options['registry_code'] or form_model.registry.code in options['registry_code']:
 
             section_models = Section.objects.filter(code__in=form_model.get_sections())
             # Retrieve the form cde models only if at least one section has a calculated field.
+            # and if a section_code argument was passed, only reference cdes from the form containing this section.
             if any(calculated_cde_model.code in section.get_elements() for calculated_cde_model in calculated_cde_models
-                   for section in section_models):
+                   for section in section_models) and (not options['section_code'] or any(section.code in options['section_code']
+                   for section in section_models)):
 
                 for section_model in section_models:
-                    # if a section_code argument was passed, only reference cdes that are in this section.
-                    if not options['section_code'] or options['section_code'] == section_model.code:
-
                         for cde_code in section_model.get_elements():
                             # Check if we already retrieved some cde models for this section.
                             if cde_models_tree \
