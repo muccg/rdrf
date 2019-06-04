@@ -1,13 +1,15 @@
 import json
 import random
 import time
+import sys
+import math
 import urllib.parse
 from datetime import datetime
 
 import requests
 from django.core.management.base import BaseCommand
 
-from rdrf.models.definition.models import CommonDataElement, RegistryForm, Section, RDRFContext, ContextFormGroupItem
+from rdrf.models.definition.models import ClinicalData, CommonDataElement, RegistryForm, Section, RDRFContext, ContextFormGroupItem
 from registry.patients.models import Patient, DynamicDataWrapper
 
 
@@ -112,6 +114,8 @@ class Command(BaseCommand):
                             if not options['context_id'] or context_id in options['context_id']:
                                 changed_calculated_cdes = {}
                                 # context_var - it is the context variable of the js code (not to be confused with the RDRF context model).
+                                form_cde_values = get_form_cde_values(patient_model, context_id, registry_model, form_name,
+                                                  cde_models_tree)
                                 context_var = build_context_var(patient_model, context_id, registry_model, form_name,
                                                                 cde_models_tree)
 
@@ -126,6 +130,8 @@ class Command(BaseCommand):
                                                                                            patient_model,
                                                                                            context_var)
 
+                                            test_converted_python_calculation(calculated_cde_model, new_calculated_cde_value, patient_model, form_cde_values, self)
+
                                             # if the result is a new value, then store in a temp var so we can update the form at its context level.
                                             if context_var[calculated_cde_model.code] != new_calculated_cde_value:
                                                 changed_calculated_cdes[calculated_cde_model.code] = \
@@ -138,6 +144,193 @@ class Command(BaseCommand):
 
         end = time.time()
         self.stdout.write(self.style.SUCCESS(f"All fields have been successfully updated in {end - start} seconds."))
+
+####################### BEGIN OF CDEfhDutchLipidClinicNetwork ###################################
+
+def bad(value):
+    return  value is None or math.isnan(value)
+
+
+def patientAgeAtAssessment2(dob, assessmentDate):
+    age = assessmentDate.year - dob.year
+    m = assessmentDate.month - dob.month
+    if m < 0 or (m == 0 and assessmentDate.day < dob.day):
+        age = age - 1
+    return age
+
+
+
+def getLDL(context):
+    untreated = context["CDE00013"]
+    adjusted = context["LDLCholesterolAdjTreatment"]
+    try:
+        L = float(untreated)
+        if math.isnan(L):
+            raise Exception(f"untreated not filled out")
+        return L
+    except:
+        try:
+            # // try adjusted value
+            L = float(adjusted)
+            if not math.isnan(L):
+                return L
+            else:
+                return None
+        except:
+            return None
+
+
+def getScore(context, patient):
+
+    assessmentDate = context["DateOfAssessment"]
+
+    isAdult = patientAgeAtAssessment2(patient.date_of_birth, datetime.strptime(assessmentDate, '%Y-%m-%d')) >= 18
+    index = context["CDEIndexOrRelative"] == "fh_is_index"
+    relative = context["CDEIndexOrRelative"] == "fh_is_relative"
+
+    YES = "fh2_y"
+
+    # family history
+    FAM_HIST_PREM_CVD_FIRST_DEGREE_RELATIVE = context["CDE00004"]
+    FAM_HIST_HYPERCHOL_FIRST_DEGREE_RELATIVE = context["CDE00003"]
+    FAM_HIST_CHILD_HYPERCOL = context["FHFamilyHistoryChild"]
+    YES_CHILD = "y_childunder18"
+    FAM_HIST_TENDON_FIRST_DEGREE_RELATIVE = context["FHFamHistTendonXanthoma"]
+    FAM_HIST_ARCUS_CORNEALIS_FIRST_DEGREE_RELATIVE = context["FHFamHistArcusCornealis"]
+
+    # clinical history
+    PERS_HIST_COR_HEART = context["CDE00011"]
+    HAS_COR_HEART_DISEASE = "fhpremcvd_yes_corheartdisease"
+    PERS_HIST_CVD = context["FHPersHistCerebralVD"]
+
+    # physical examination
+    TENDON_XANTHOMA = context["CDE00001"]
+    ARCUS_CORNEALIS = context["CDE00002"]
+
+
+    def familyHistoryScore():
+        score = 0
+
+        if ((FAM_HIST_PREM_CVD_FIRST_DEGREE_RELATIVE == YES) or (FAM_HIST_HYPERCHOL_FIRST_DEGREE_RELATIVE == YES)):
+            score += 1
+
+        if (((FAM_HIST_TENDON_FIRST_DEGREE_RELATIVE == YES) or (
+                FAM_HIST_ARCUS_CORNEALIS_FIRST_DEGREE_RELATIVE == YES)) or (FAM_HIST_CHILD_HYPERCOL == YES_CHILD)):
+            score += 2
+
+        return score
+
+    def clinicalHistoryScore():
+        score = 0
+
+        if (PERS_HIST_COR_HEART == HAS_COR_HEART_DISEASE):
+            score += 2
+
+        if (PERS_HIST_CVD == YES):
+            score += 1
+
+        return score
+
+    def physicalExaminationScore():
+        score = 0
+
+        if (TENDON_XANTHOMA == "y"):
+            score += 6
+
+        if (ARCUS_CORNEALIS == "y"):
+            score += 4
+
+        return score
+
+    def investigationScore():
+        L = getLDL(context)
+
+        if bad(L):
+            raise Exception(f"Please fill in LDL values")
+        else:
+            score = 0
+
+            if (4.0 <= L) and (L < 5.0):
+                score += 1
+
+            # NB the sheet uses <= 6.4 but technically we could have L = 6.45 say
+            # whicn using the sheet would give undefined ...
+            # add 3 to score if 5.0 <= L <= 6.4
+            if (5.0 <= L) and (L < 6.5):
+                score += 3
+
+            # add 5 to score if 6.5 <= L <= 8.4
+            if (6.5 <= L) and (L < 8.5):
+                score += 5
+
+            # add 8 to score if L >= 8.5
+
+            if L >= 8.5:
+                score += 8
+
+            return score
+
+    if index:
+        # console.log("patient is index");
+        if isAdult:
+
+            try:
+                score = familyHistoryScore() + clinicalHistoryScore() + physicalExaminationScore() + investigationScore()
+                return score
+            except:
+                return ""
+        else:
+            # console.log("child - score blank");
+            # // child  - score not used ( only categorisation )
+            return ""
+
+    else:
+        if relative:
+            # console.log("relative – score blank");
+            # // relative  - score not used ( only categorisation )
+            return ""
+
+def CDEfhDutchLipidClinicNetwork(patient, context):
+    print(f"RUNNING CDEfhDutchLipidClinicNetwork")
+
+    return str(getScore(context, patient))
+
+################ END OF CDEfhDutchLipidClinicNetwork ################################3
+
+
+def calculate_cde(patient_model, form_cde_values , calculated_cde_model):
+    patient_date_of_birth = patient_model.date_of_birth
+    patient_sex = patient_model.sex
+    print(f"patient date of birth {patient_date_of_birth} - {patient_sex}")
+
+    # print(form_cde_values)
+    form_values = {}
+    for section in form_cde_values["sections"]:
+        for cde in section["cdes"]:
+            #TODO ignore multiple section - check if it is okay
+            if type(cde) is not list:
+                form_values = {**form_values, cde["code"]:cde["value"]}
+    print(form_values)
+
+    # TODO we need to store/retrieve the calculation in a different module
+    func = getattr(sys.modules[__name__], calculated_cde_model.code, None)
+    if func:
+        return func(patient_model, form_values)
+    else:
+        raise Exception(f"Trying to call unknown calculated function {calculated_cde_model.code}()")
+
+
+def test_converted_python_calculation(calculated_cde_model, new_calculated_cde_value, patient_model, form_cde_values, command):
+    #TODO remove this condition when function name implemented in the cde model.
+    if calculated_cde_model.code == 'CDEfhDutchLipidClinicNetwork':
+        new_python_calculated_value = calculate_cde(patient_model, form_cde_values, calculated_cde_model)
+        if not (new_python_calculated_value == new_calculated_cde_value):
+            command.stdout.write(
+                command.style.ERROR(f"{calculated_cde_model.code} python calculation value: {new_python_calculated_value} - expected value: {new_calculated_cde_value}"))
+        else:
+            command.stdout.write(
+                command.style.SUCCESS(
+                    f"{calculated_cde_model.code} python calculation value: {new_python_calculated_value} - expected value: {new_calculated_cde_value}"))
 
 
 def save_new_calculation(changed_calculated_cdes, context_id, form_name, patient_model, registry_model):
@@ -186,6 +379,17 @@ def context_ids_for_patient_and_form(patient_model, form_name, registry_model):
     print("---------------------------------------")
     return context_ids
 
+
+def get_form_cde_values(patient_model, context_id, registry_model, form_name, cde_models_tree):
+    collection = ClinicalData.objects.collection(registry_model.code, "cdes")
+    data = collection.find(patient_model, context_id).data()
+    if data :
+        forms = data.first()
+        # print(f"forms: {forms['forms']}")
+        for form in forms["forms"]:
+            if form["name"] == form_name:
+                return form
+    return None
 
 def build_context_var(patient_model, context_id, registry_model, form_name, cde_models_tree):
     context_var = {}
