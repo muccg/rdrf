@@ -527,6 +527,16 @@ class Exporter(object):
             survey_dict["display_name"] = survey_model.display_name
             survey_dict["questions"] = []
             survey_dict["is_followup"] = survey_model.is_followup
+            if survey_model.context_form_group:
+                cfg = survey_model.context_form_group.name
+            else:
+                cfg = ""
+            survey_dict["context_form_group"] = cfg
+
+            if survey_model.form:
+                survey_dict["form"] = survey_model.form.name
+            else:
+                survey_dict["form"] = ""
 
             for sq in survey_model.survey_questions.all():
                 sq_dict = {}

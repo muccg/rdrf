@@ -5,7 +5,9 @@ from django.db import models
 from django.urls import reverse
 
 from rdrf.models.definition.models import Registry
+from rdrf.models.definition.models import RegistryForm
 from rdrf.models.definition.models import CommonDataElement
+from rdrf.models.definition.models import ContextFormGroup
 from rdrf.services.io.notifications.notifications import Notifier
 from rdrf.services.io.notifications.notifications import NotificationError
 from registry.patients.models import Patient
@@ -29,6 +31,16 @@ class Survey(models.Model):
     name = models.CharField(max_length=80)
     display_name = models.CharField(max_length=80, blank=True, null=True)
     is_followup = models.BooleanField(default=False)
+    context_form_group = models.ForeignKey(ContextFormGroup,
+                                           blank=True,
+                                           null=True,
+                                           on_delete=models.SET_NULL)
+
+    # if this set will on try to populate this form on proms pull
+    form = models.ForeignKey(RegistryForm,
+                             blank=True,
+                             null=True,
+                             on_delete=models.SET_NULL)
 
     @property
     def client_rep(self):
