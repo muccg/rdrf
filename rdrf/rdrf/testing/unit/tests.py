@@ -31,8 +31,47 @@ from django.core.management import call_command
 import json
 
 from rdrf.helpers.transform_cd_dict import get_cd_form, get_section, transform_cd_dict
+from rdrf.scripts import calculated_functions
 
 logger = logging.getLogger(__name__)
+
+
+class CalculatedFunctionsTestCase(TestCase):
+
+    def setUp(self):
+        # Note that we convert the string date as a date django date
+        patient_date_of_birth = '2000-01-01'
+        self.patient_values = {'date_of_birth': datetime.strptime(patient_date_of_birth, '%Y-%m-%d'),
+                               'sex': 1}
+
+    def test_CDEfhDutchLipidClinicNetwork(self):
+        self.form_values = {'CDE00001': 'y',
+                            'CDE00002': 'y',
+                            'CDE00003': 'fh2_y',
+                            'CDE00004': 'fh2_y',
+                            'CDE00011': 'fhpremcvd_yes_corheartdisease',
+                            'CDE00013': 10.0,
+                            'CDEIndexOrRelative': 'fh_is_index',
+                            'DateOfAssessment': '2019-05-10',
+                            'FHFamHistArcusCornealis': 'fh2_y',
+                            'FHFamHistTendonXanthoma': 'fh2_y',
+                            'FHFamilyHistoryChild': 'fh_n',
+                            'FHPersHistCerebralVD': 'fh2_y',
+                            'LDLCholesterolAdjTreatment': '21.74'}
+        self.assertEqual(calculated_functions.CDEfhDutchLipidClinicNetwork(self.patient_values, self.form_values), '24')
+
+
+    def test_CDE00024(self):
+        self.form_values = {'CDE00003': 'fh2_y',
+                            'CDE00004': 'fh2_y',
+                            'CDE00013': 10.0,
+                            'CDEfhDutchLipidClinicNetwork': '24',
+                            'CDEIndexOrRelative': 'fh_is_index',
+                            'DateOfAssessment': '2019-05-10',
+                            'FHFamHistArcusCornealis': 'fh2_y',
+                            'FHFamHistTendonXanthoma': 'fh2_y',
+                            'LDLCholesterolAdjTreatment': '21.74'}
+        self.assertEqual(calculated_functions.CDE00024(self.patient_values, self.form_values), 'Definite')
 
 
 class AbnormalityRulesTestCase(TestCase):

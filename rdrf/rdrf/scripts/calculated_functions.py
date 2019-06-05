@@ -1,10 +1,13 @@
-import math
 from datetime import datetime
+
+import math
+
 
 ####################### BEGIN OF CDEfhDutchLipidClinicNetwork ###################################
 
 def bad(value):
-    return  value is None or math.isnan(value)
+    print(math.isnan(value))
+    return (value is None) or (math.isnan(value))
 
 
 def patientAgeAtAssessment2(dob, assessmentDate):
@@ -13,7 +16,6 @@ def patientAgeAtAssessment2(dob, assessmentDate):
     if m < 0 or (m == 0 and assessmentDate.day < dob.day):
         age = age - 1
     return age
-
 
 
 def getLDL(context):
@@ -37,10 +39,9 @@ def getLDL(context):
 
 
 def getScore(context, patient):
-
     assessmentDate = context["DateOfAssessment"]
 
-    isAdult = patientAgeAtAssessment2(patient.date_of_birth, datetime.strptime(assessmentDate, '%Y-%m-%d')) >= 18
+    isAdult = patientAgeAtAssessment2(patient["date_of_birth"], datetime.strptime(assessmentDate, '%Y-%m-%d')) >= 18
     index = context["CDEIndexOrRelative"] == "fh_is_index"
     relative = context["CDEIndexOrRelative"] == "fh_is_relative"
 
@@ -62,7 +63,6 @@ def getScore(context, patient):
     # physical examination
     TENDON_XANTHOMA = context["CDE00001"]
     ARCUS_CORNEALIS = context["CDE00002"]
-
 
     def familyHistoryScore():
         score = 0
@@ -127,7 +127,6 @@ def getScore(context, patient):
             return score
 
     if index:
-        # console.log("patient is index");
         if isAdult:
 
             try:
@@ -136,19 +135,171 @@ def getScore(context, patient):
             except:
                 return ""
         else:
-            # console.log("child - score blank");
-            # // child  - score not used ( only categorisation )
+            # child  - score not used ( only categorisation )
             return ""
 
     else:
         if relative:
-            # console.log("relative – score blank");
-            # // relative  - score not used ( only categorisation )
+            # relative  - score not used ( only categorisation )
             return ""
+
 
 def CDEfhDutchLipidClinicNetwork(patient, context):
     print(f"RUNNING CDEfhDutchLipidClinicNetwork")
 
     return str(getScore(context, patient))
 
-################ END OF CDEfhDutchLipidClinicNetwork ################################3
+
+################ END OF CDEfhDutchLipidClinicNetwork ################################
+
+
+################ BEGINNING OF CD00024 ################################
+
+def getFloat(x):
+    y = float(x)
+    if not math.isnan(y):
+        return y
+    return None
+
+
+def getFilledOutScore(x, y):
+    xval = getFloat(x)
+    if xval is not None:
+        return xval
+    return getFloat(y)
+
+
+def CDE00024_getLDL(context):
+    untreated = context["CDE00013"]
+    adjusted = context["LDLCholesterolAdjTreatment"]
+    return getFilledOutScore(untreated, adjusted)
+
+
+def catchild(context):
+    # // for index patients
+    L = CDE00024_getLDL(context)
+    if bad(L):
+        return ""
+
+    def anyrel(context):
+        return (context["CDE00003"] == "fh2_y") or (context["CDE00004"] == "fh2_y") or (
+                context["FHFamHistTendonXanthoma"] == "fh2_y") or (context["FHFamHistArcusCornealis"] == "fh2_y")
+
+    # //Definite if DNA Analysis is Yes
+    # //other wise
+    if L > 5.0:
+        return "Highly Probable"
+
+    if L >= 4.0 and anyrel(context):
+        return "Probable"
+
+    if L >= 4.0:
+        return "Possible"
+
+    return "Unlikely"
+
+
+def catadult(score):
+    # // for index patients
+    if bad(score):
+        return ""
+
+    if score == "":
+        return ""
+
+    if score < 3:
+        return "Unlikely"
+
+    if (3 <= score) and (score < 6):
+        return "Possible"
+
+    if (6 <= score) and (score <= 8):
+        return "Probable"
+
+    return "Definite"
+
+
+def catrelative(sex, age, lipid_score):
+    if bad(lipid_score):
+        return ""
+
+    table = None
+    BIG = 99999999999999.00
+    MALE_TABLE = [
+        # //  AGE         Unlikely   Uncertain  Likely
+        [[0, 14], [[-1, 3.099], [3.1, 3.499], [3.5, BIG]]],
+        [[15, 24], [[-1, 2.999], [3.0, 3.499], [3.5, BIG]]],
+        [[25, 34], [[-1, 3.799], [3.8, 4.599], [4.6, BIG]]],
+        [[35, 44], [[-1, 3.999], [4.0, 4.799], [4.8, BIG]]],
+        [[45, 54], [[-1, 4.399], [4.4, 5.299], [5.3, BIG]]],
+        [[55, 999], [[-1, 4.299], [4.3, 5.299], [5.3, BIG]]]]
+
+    FEMALE_TABLE = [
+        # //  AGE         Unlikely   Uncertain  Likely
+        [[0, 14], [[-1, 3.399], [3.4, 3.799], [3.8, BIG]]],
+        [[15, 24], [[-1, 3.299], [3.3, 3.899], [3.9, BIG]]],
+        [[25, 34], [[-1, 3.599], [3.6, 4.299], [4.3, BIG]]],
+        [[35, 44], [[-1, 3.699], [3.7, 4.399], [4.4, BIG]]],
+        [[45, 54], [[-1, 3.999], [4.0, 4.899], [4.9, BIG]]],
+        [[55, 999], [[-1, 4.399], [4.4, 5.299], [5.3, BIG]]]]
+
+    def inRange(value, a, b):
+        return (value >= a) and (value <= b)
+
+    def lookupCat(age, score, table):
+        cats = ["Unlikely", "Uncertain", "Likely"]
+        for i in range(table.length):
+            row = table[i]
+            ageInterval = row[0]
+            ageMin = ageInterval[0]
+            ageMax = ageInterval[1]
+            if (inRange(age, ageMin, ageMax)):
+                catRanges = row[1]
+                for j in range(3):
+                    range = catRanges[j]
+                    rangeMin = range[0]
+                    rangeMax = range[1]
+
+                    if (inRange(score, rangeMin, rangeMax)):
+                        category = cats[j]
+                        return category
+
+        return ""
+
+    if sex == '1':
+        table = MALE_TABLE
+
+    if sex == '2':
+        table = FEMALE_TABLE
+
+    if table is None:
+        return ""
+
+    return lookupCat(age, lipid_score, table)
+
+
+def categorise(context, patient):
+    dutch_lipid_network_score = float(context["CDEfhDutchLipidClinicNetwork"])
+    assessmentDate = datetime.strptime(context["DateOfAssessment"], '%Y-%m-%d')
+    isAdult = patientAgeAtAssessment2(patient["date_of_birth"], assessmentDate) >= 18.0
+    index = context["CDEIndexOrRelative"] == "fh_is_index"
+    relative = context["CDEIndexOrRelative"] == "fh_is_relative"
+
+    if (index):
+        if (isAdult):
+            return catadult(dutch_lipid_network_score)
+        return catchild(context)
+
+    if (relative):
+        age = patientAgeAtAssessment2(patient["date_of_birth"], assessmentDate)
+        L = CDE00024_getLDL(context)
+        sex = patient.sex
+        cr = catrelative(sex, age, L)
+        return cr
+
+
+def CDE00024(patient, context):
+    print(f"RUNNING CDE00024")
+    return str(categorise(context, patient))
+
+################ END OF CD00024 ################################

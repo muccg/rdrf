@@ -11,7 +11,7 @@ from django.core.management.base import BaseCommand
 
 from rdrf.models.definition.models import ClinicalData, CommonDataElement, RegistryForm, Section, RDRFContext, ContextFormGroupItem
 from registry.patients.models import Patient, DynamicDataWrapper
-import rdrf.scripts.calculated_functions
+from rdrf.scripts import  calculated_functions
 
 
 class ScriptUser:
@@ -148,9 +148,12 @@ class Command(BaseCommand):
 
 
 def calculate_cde(patient_model, form_cde_values , calculated_cde_model):
-    patient_date_of_birth = patient_model.date_of_birth
-    patient_sex = patient_model.sex
-    print(f"patient date of birth {patient_date_of_birth} - {patient_sex}")
+    # patient_date_of_birth = patient_model.date_of_birth
+    # patient_sex = patient_model.sex
+    # print(f"patient date of birth {patient_date_of_birth} - {patient_sex}")
+
+    patient_values = {'date_of_birth': patient_model.date_of_birth,
+               'sex': patient_model.sex}
 
     # print(form_cde_values)
     form_values = {}
@@ -162,17 +165,17 @@ def calculate_cde(patient_model, form_cde_values , calculated_cde_model):
     print(form_values)
 
     # TODO we need to store/retrieve the calculation in a different module
-    mod = __import__('rdrf.scripts.calculated_functions')
-    func = getattr(mod, calculated_cde_model.code, None)
+    mod = __import__('rdrf.scripts.calculated_functions', fromlist=['object'])
+    func = getattr(mod, calculated_cde_model.code)
     if func:
-        return func(patient_model, form_values)
+        return func(patient_values, form_values)
     else:
         raise Exception(f"Trying to call unknown calculated function {calculated_cde_model.code}()")
 
 
 def test_converted_python_calculation(calculated_cde_model, new_calculated_cde_value, patient_model, form_cde_values, command):
     #TODO remove this condition when function name implemented in the cde model.
-    if calculated_cde_model.code == 'CDEfhDutchLipidClinicNetwork':
+    if calculated_cde_model.code in ['CDEfhDutchLipidClinicNetwork', 'CDE00024']:
         new_python_calculated_value = calculate_cde(patient_model, form_cde_values, calculated_cde_model)
         if not (new_python_calculated_value == new_calculated_cde_value):
             command.stdout.write(
