@@ -355,7 +355,7 @@ def roundToTwo(num):
 
 
 def LDLCholesterolAdjTreatment(patient, context):
-    print(f"RUNNING CDE00024")
+    print(f"RUNNING LDLCholesterolAdjTreatment")
 
     # Inputs
     # LDL-cholesterol concentration
@@ -370,3 +370,21 @@ def LDLCholesterolAdjTreatment(patient, context):
         return ""
 
 ################ END OF LDLCholesterolAdjTreatment ################################
+
+################ BEGINNING OF CDEBMI ################################
+
+def CDEBMI(patient, context):
+    print(f"RUNNING CDEBMI")
+
+
+    height = context["CDEHeight"]
+    weight = context["CDEWeight"]
+
+    if not height or not weight:
+        return "NaN"
+
+    bmi = weight / (height * height)
+
+    return str(roundToTwo(bmi))
+
+################ END OF CDEBMI ################################

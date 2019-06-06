@@ -79,6 +79,14 @@ class CalculatedFunctionsTestCase(TestCase):
                             'PlasmaLipidTreatment': 'FAEzetimibe/atorvastatin20'}
         self.assertEqual(calculated_functions.LDLCholesterolAdjTreatment(self.patient_values, self.form_values), '21.74')
 
+    def test_CDEBMI(self):
+        self.form_values = {'CDEHeight': "",
+                            'CDEWeight': ""}
+        self.assertEqual(calculated_functions.CDEBMI(self.patient_values, self.form_values), 'NaN')
+        self.form_values = {'CDEHeight': 1.82,
+                            'CDEWeight': 86.0}
+        self.assertEqual(calculated_functions.CDEBMI(self.patient_values, self.form_values), '25.96')
+
 
 class AbnormalityRulesTestCase(TestCase):
 

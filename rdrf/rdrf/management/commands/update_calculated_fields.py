@@ -175,7 +175,7 @@ def calculate_cde(patient_model, form_cde_values , calculated_cde_model):
 
 def test_converted_python_calculation(calculated_cde_model, new_calculated_cde_value, patient_model, form_cde_values, command):
     #TODO remove this condition when function name implemented in the cde model.
-    if calculated_cde_model.code in ['CDEfhDutchLipidClinicNetwork', 'CDE00024', 'LDLCholesterolAdjTreatment']:
+    if calculated_cde_model.code in ['CDEfhDutchLipidClinicNetwork', 'CDE00024', 'LDLCholesterolAdjTreatment', 'CDEBMI']:
         new_python_calculated_value = calculate_cde(patient_model, form_cde_values, calculated_cde_model)
         if not (new_python_calculated_value == new_calculated_cde_value):
             command.stdout.write(
