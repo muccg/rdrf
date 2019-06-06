@@ -196,7 +196,7 @@ class ReviewWizardGenerator:
         def done_method(myself, form_list, form_dict, **kwargs):
             # when all valid data processed ,
             # fan the data back out
-            token = myself.request.GET.get('token')
+            token = myself.request.GET.get('t')
             rdh = ReviewDataHandler(self.review_model,
                                     token,
                                     form_list,
@@ -207,7 +207,7 @@ class ReviewWizardGenerator:
             return HttpResponseRedirect("/")
 
         def get_context_data_method(myself, form, **kwargs):
-            token = myself.request.GET.get("token")
+            token = myself.request.GET.get("t")
             page = ReviewItemPageData(token, self.review_model, form)
 
             context = super(myself.__class__, myself).get_context_data(form=form,
