@@ -40,7 +40,7 @@ class CalculatedFunctionsTestCase(TestCase):
 
     def setUp(self):
         # Note that we convert the string date as a date django date
-        patient_date_of_birth = '2000-01-01'
+        patient_date_of_birth = '2000-05-17'
         self.patient_values = {'date_of_birth': datetime.strptime(patient_date_of_birth, '%Y-%m-%d'),
                                'sex': 1}
 
@@ -86,6 +86,12 @@ class CalculatedFunctionsTestCase(TestCase):
         self.form_values = {'CDEHeight': 1.82,
                             'CDEWeight': 86.0}
         self.assertEqual(calculated_functions.CDEBMI(self.patient_values, self.form_values), '25.96')
+
+    def test_FHDeathAge(self):
+        self.form_values = {'FHDeathDate': ""}
+        self.assertEqual(calculated_functions.FHDeathAge(self.patient_values, self.form_values), 'NaN')
+        self.form_values = {'FHDeathDate': '2019-05-11'}
+        self.assertEqual(calculated_functions.FHDeathAge(self.patient_values, self.form_values), '18')
 
 
 class AbnormalityRulesTestCase(TestCase):

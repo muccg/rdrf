@@ -369,13 +369,13 @@ def LDLCholesterolAdjTreatment(patient, context):
     except:
         return ""
 
+
 ################ END OF LDLCholesterolAdjTreatment ################################
 
 ################ BEGINNING OF CDEBMI ################################
 
 def CDEBMI(patient, context):
     print(f"RUNNING CDEBMI")
-
 
     height = context["CDEHeight"]
     weight = context["CDEWeight"]
@@ -387,4 +387,24 @@ def CDEBMI(patient, context):
 
     return str(roundToTwo(bmi))
 
+
 ################ END OF CDEBMI ################################
+
+################ BEGINNING OF FHDeathAge ################################
+
+def FHDeathAge(patient, context):
+    print(f"RUNNING FHDeathAge")
+
+    if not context["FHDeathDate"]:
+        return "NaN"
+
+    deathDate = datetime.strptime(context["FHDeathDate"], '%Y-%m-%d')
+    birthDate = patient["date_of_birth"]
+    deathAge = patientAgeAtAssessment2(birthDate, deathDate)
+
+    if not deathAge:
+        return None
+
+    return str(deathAge)
+
+################ END OF FHDeathAge ################################
