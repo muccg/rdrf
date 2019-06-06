@@ -74,6 +74,12 @@ class CalculatedFunctionsTestCase(TestCase):
         self.assertEqual(calculated_functions.CDE00024(self.patient_values, self.form_values), 'Definite')
 
 
+    def test_LDLCholesterolAdjTreatment(self):
+        self.form_values = {'CDE00019': 10.0,
+                            'PlasmaLipidTreatment': 'FAEzetimibe/atorvastatin20'}
+        self.assertEqual(calculated_functions.LDLCholesterolAdjTreatment(self.patient_values, self.form_values), '21.74')
+
+
 class AbnormalityRulesTestCase(TestCase):
 
     def setUp(self):

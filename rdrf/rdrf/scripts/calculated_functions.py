@@ -1,4 +1,5 @@
 from datetime import datetime
+from decimal import Decimal, ROUND_HALF_UP
 
 import math
 
@@ -302,4 +303,70 @@ def CDE00024(patient, context):
     print(f"RUNNING CDE00024")
     return str(categorise(context, patient))
 
+
 ################ END OF CD00024 ################################
+
+################ BEGINNING OF LDLCholesterolAdjTreatment ################################
+
+# helper functions
+def correction_factor(dose):
+    # Correction values for each PV:
+    table = {
+        "FAAtorvastatin10": 1.618123,
+        "FAAtorvastatin20": 1.763668,
+        "FAAtorvastatin40": 1.937984,
+        "FAAtorvastatin80": 2.150538,
+        "FARosuvastatin5": 1.709402,
+        "FARosuvastatin10": 1.872659,
+        "FARosuvastatin20": 2.070393,
+        "FARosuvastatin40": 2.314815,
+        "FARosuvastatin80": 2.624672,
+        "FASimvastatin10": 1.37741,
+        "FASimvastatin20": 1.492537,
+        "FASimvastatin40": 1.636661,
+        "FASimvastatin80": 1.818182,
+        "FAEzetimibe10": 1.236094,
+        "FAEzetimibe/simvastatin10": 1.855288,
+        "FAEzetimibe/simvastatin20": 2.008032,
+        "FAEzetimibe/simvastatin40": 2.252252,
+        "FAEzetimibe/simvastatin80": 2.463054,
+        "FAEzetimibe/atorvastatin10": 2,
+        "FAEzetimibe/atorvastatin20": 2.173913,
+        "FAEzetimibe/atorvastatin40": 2.173913,
+        "FAEzetimibe/atorvastatin80": 2.5,
+        "FAEzetimibe/rosuvastatin10": 2.48139,
+        "FAEzetimibe/rosuvastatin20": 2.739726,
+        "FAEzetimibe/rosuvastatin40": 3.333333,
+        "FAPravastatin10": 1.251564,
+        "FAPravastatin20": 1.322751,
+        "FAPravastatin40": 1.422475,
+        "FAOther": 1.43,
+    }
+
+    try:
+        return table[dose]
+    except:
+        return 0.0
+
+
+def roundToTwo(num):
+    # rounding function: 1.0049 => 1.00, 1.0050 => 1.01, 1.0060 => 1.01
+    return Decimal(num).quantize(Decimal('0.00'), rounding=ROUND_HALF_UP)
+
+
+def LDLCholesterolAdjTreatment(patient, context):
+    print(f"RUNNING CDE00024")
+
+    # Inputs
+    # LDL-cholesterol concentration
+    ldl_chol = float(context["CDE00019"])
+    # Dosage
+    dose = context["PlasmaLipidTreatment"]
+
+    try:
+        return str(roundToTwo(ldl_chol * correction_factor(dose)))
+
+    except:
+        return ""
+
+################ END OF LDLCholesterolAdjTreatment ################################
