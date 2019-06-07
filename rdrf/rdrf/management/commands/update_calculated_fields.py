@@ -127,11 +127,13 @@ class Command(BaseCommand):
                                         if calculated_cde_model.code in context_var.keys() and calculated_cde_model.code in \
                                                 cde_models_tree[registry_model.code][form_name][section_code].keys():
                                             # web service call to the nodejs calculation evaluation script.
+                                            # TODO comment this call - we keep it for testing purpose
+                                            # TODO when removing, you need to remove new_calculated_cde_value param from test_converted_python_calculation
                                             new_calculated_cde_value = call_ws_calculation(calculated_cde_model,
                                                                                            patient_model,
                                                                                            context_var)
 
-                                            test_converted_python_calculation(calculated_cde_model, new_calculated_cde_value, patient_model, form_cde_values, self)
+                                            new_calculated_cde_value = test_converted_python_calculation(calculated_cde_model, new_calculated_cde_value, patient_model, form_cde_values, self)
 
                                             # if the result is a new value, then store in a temp var so we can update the form at its context level.
                                             if context_var[calculated_cde_model.code] != new_calculated_cde_value:
@@ -184,6 +186,7 @@ def test_converted_python_calculation(calculated_cde_model, new_calculated_cde_v
             command.stdout.write(
                 command.style.SUCCESS(
                     f"{calculated_cde_model.code} python calculation value: {new_python_calculated_value} - expected value: {new_calculated_cde_value}"))
+            return new_python_calculated_value
 
 
 def save_new_calculation(changed_calculated_cdes, context_id, form_name, patient_model, registry_model):
