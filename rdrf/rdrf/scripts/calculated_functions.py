@@ -408,3 +408,23 @@ def FHDeathAge(patient, context):
     return str(deathAge)
 
 ################ END OF FHDeathAge ################################
+
+
+################ BEGINNING OF DDAgeAtDiagnosis ################################
+
+def DDAgeAtDiagnosis(patient, context):
+    print(f"RUNNING DDAgeAtDiagnosis")
+
+    if not context["DateOfDiagnosis"]:
+        return "NaN"
+
+    diagnosisDate = datetime.strptime(context["DateOfDiagnosis"], '%Y-%m-%d')
+    birthDate = patient["date_of_birth"]
+    deathAge = patientAgeAtAssessment2(birthDate, diagnosisDate)
+
+    if not deathAge:
+        return None
+
+    return str(deathAge)
+
+################ END OF DDAgeAtDiagnosis ################################

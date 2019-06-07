@@ -93,6 +93,12 @@ class CalculatedFunctionsTestCase(TestCase):
         self.form_values = {'FHDeathDate': '2019-05-11'}
         self.assertEqual(calculated_functions.FHDeathAge(self.patient_values, self.form_values), '18')
 
+    def test_DDAgeAtDiagnosis(self):
+        self.form_values = {'DateOfDiagnosis': ""}
+        self.assertEqual(calculated_functions.DDAgeAtDiagnosis(self.patient_values, self.form_values), 'NaN')
+        self.form_values = {'DateOfDiagnosis': '2019-05-01'}
+        self.assertEqual(calculated_functions.DDAgeAtDiagnosis(self.patient_values, self.form_values), '18')
+
 
 class AbnormalityRulesTestCase(TestCase):
 
