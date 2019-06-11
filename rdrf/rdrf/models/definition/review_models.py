@@ -163,7 +163,8 @@ class ReviewItem(models.Model):
     def _update_consent_data(self, patient_model, form_data):
         from rdrf.models.definition.models import ConsentQuestion
         for field_key in form_data:
-            if field_key.startswith("consent"):
+            logger.debug("field_key = %s" % field_key)
+            if field_key.startswith("customconsent"):
                 answer = form_data[field_key]
                 logger.debug("consent %s = %s" % (field_key, answer))
                 key_parts = field_key.split("_")
