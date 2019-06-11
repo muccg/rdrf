@@ -14,32 +14,31 @@ logger = logging.getLogger(__name__)
 class ReviewWizardLandingView(View):
     @method_decorator(login_required)
     def get(self, request, *args, **kwargs):
-        token = self._preprocess(request)
-        return self._process_token(request, token, args, kwargs)
+        token = self._get_token(request)
+        return self._get_wizard_view(request,
+                                     token,
+                                     args,
+                                     kwargs,
+                                     initialise=True)
 
-    def _preprocess(self, request):
+    def _get_token(self, request):
         token = request.GET.get("t", None)
         if token is None:
             raise Http404
         return token
 
-    def _process_token(self, request, token, args, kwargs):
+    def _get_wizard_view(self, request, token, args, kwargs, initialise=False):
         from rdrf.models.definition.review_models import PatientReview
-        from rdrf.models.definition.review_models import ReviewStates
         patient_review_model = get_object_or_404(PatientReview, token=token)
 
         if not is_authorised(request.user,
                              patient_review_model.patient):
             raise PermissionDenied
 
-        if patient_review_model.state != ReviewStates.CREATED:
-            raise Http404
-
-        wizard_view = patient_review_model.review.view
-
+        wizard_view = patient_review_model.create_wizard_view(initialise)
         return wizard_view(request, *args, **kwargs)
 
     @method_decorator(login_required)
     def post(self, request, *args, **kwargs):
-        token = self._preprocess(request)
-        return self._process_token(request, token, args, kwargs)
+        token = self._get_token(request)
+        return self._get_wizard_view(request, token, args, kwargs)

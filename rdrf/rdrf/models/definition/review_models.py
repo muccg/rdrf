@@ -59,20 +59,6 @@ class Review(models.Model):
     def view_name(self):
         return self.registry.code + "_review_" + self.code
 
-    @property
-    def view(self):
-        from rdrf.views.wizard_views import ReviewWizardGenerator
-        generator = ReviewWizardGenerator(self)
-        wizard_class = generator.create_wizard_class()
-        return wizard_class.as_view()
-
-    @property
-    def url_pattern(self):
-        from django.urls import re_path
-        path = "^reviews/%s/%s$" % (self.registry.code,
-                                    self.code)
-        return re_path(path, self.view, name=self.view_name)
-
 
 class REVIEW_ITEM_TYPES:
     CONSENT_FIELD = "CF"        # continue to consent
@@ -143,12 +129,9 @@ class ReviewItem(models.Model):
     name = models.CharField(max_length=80, blank=True, null=True)
     fields = models.TextField(blank=True)  # used for demographics
     summary = models.TextField(blank=True)
-
     # the form or section models
     form = models.ForeignKey(RegistryForm, blank=True, null=True, on_delete=models.CASCADE)
     section = models.ForeignKey(Section, blank=True, null=True, on_delete=models.CASCADE)
-    change_question_code = models.CharField(max_length=80, blank=True, null=True)  # cde code of change question
-    current_status_question_code = models.CharField(max_length=80, blank=True, null=True)  # cde code of status question
     target_code = models.CharField(max_length=80, blank=True, null=True)  # the cde or section code or consent code
     target_metadata = models.TextField(blank=True, null=True)  # form,section, cde json??
 
@@ -180,12 +163,13 @@ class ReviewItem(models.Model):
     def _update_consent_data(self, patient_model, form_data):
         from rdrf.models.definition.models import ConsentQuestion
         for field_key in form_data:
-            answer = form_data[field_key]
-            logger.debug("consent %s = %s" % (field_key, answer))
-            key_parts = field_key.split("_")
-            question_pk = int(key_parts[3])
-            consent_question_model = ConsentQuestion.objects.get(id=question_pk)
-            patient_model.set_consent(consent_question_model, answer)
+            if field_key.startswith("consent"):
+                answer = form_data[field_key]
+                logger.debug("consent %s = %s" % (field_key, answer))
+                key_parts = field_key.split("_")
+                question_pk = int(key_parts[3])
+                consent_question_model = ConsentQuestion.objects.get(id=question_pk)
+                patient_model.set_consent(consent_question_model, answer)
 
     def _update_multitargets(self, patient_model, context_model, form_data):
         for field_id in form_data:
@@ -391,6 +375,19 @@ class VerificationStatus:
     UNKNOWN = "U"
 
 
+class HasChangedStates:
+    YES = "1"
+    NO = "2"
+    UNKNOWN = "3"
+
+
+class ConditionStates:
+    CURRENTLY_EXPERIENCING = "1"
+    INTERMITTENTLY_EXPERIENCING = "2"
+    RESOLVED = "3"
+    UNKNOWN = "4"
+
+
 class PatientReviewItemStates:
     CREATED = "C"               # model instance created , waiting for data
     DATA_COLLECTED = "D"        # data collected
@@ -418,6 +415,44 @@ class PatientReview(models.Model):
                                     review_item=item)
             pri.save()
 
+    def reset(self):
+        self.state = ReviewStates.CREATED
+        self.completed_date = None
+        self .save()
+        for item in self.items.all():
+            item.state = PatientReviewItemStates.CREATED
+            item.has_changed = None
+            item.current_status = None
+            item.verification_status = None
+            item.data = None
+            item.save()
+
+    def create_wizard_view(self, initialise=False):
+        from rdrf.views.wizard_views import ReviewWizardGenerator
+        generator = ReviewWizardGenerator(self.review)
+        wizard_class = generator.create_wizard_class()
+        if initialise:
+            initial_data = self._get_initial_data()
+            logger.debug("initial data = %s" % initial_data)
+            return wizard_class.as_view()
+        else:
+            return wizard_class.as_view()
+
+    def _get_initial_data(self):
+        logger.debug("getting initial data")
+        d = {}
+        for item_index, review_item in enumerate(self.review.items.all()):
+            logger.debug("looking at index %s item %s" % (item_index, review_item))
+            d[str(item_index)] = self._get_initial_data_for_review_item(review_item)
+        return d
+
+    def _get_initial_data_for_review_item(self, review_item):
+        d = {}
+        d["metadata_condition_changed"] = ConditionStates.UNKNOWN
+        if review_item.item_type in [REVIEW_ITEM_TYPES.SECTION_CHANGE]:
+            d["metadata_current_status"] = ConditionStates.UNKNOWN
+        return d
+
 
 class PatientReviewItem(models.Model):
     created_date = models.DateTimeField(auto_now_add=True)
@@ -438,15 +473,24 @@ class PatientReviewItem(models.Model):
     data = models.TextField(blank=True, null=True)  # json data
 
     def update_data(self, cleaned_data):
+        logger.debug("updating %s if needed" % self.review_item.code)
         self.data = self._encode_data(cleaned_data)
         self.state = PatientReviewItemStates.DATA_COLLECTED
         self.save()
         # fan out the review data from a patient to the correct place
         # the model knows how to update the data
-        self.review_item.update_data(self.patient_review.patient,
-                                     self.patient_review.parent,
-                                     self.patient_review.context,
-                                     cleaned_data)
+        self.has_changed = cleaned_data.get("metadata_condition_changed", None)
+        logger.debug("self.has_changed = %s" % self.has_changed)
+        self.current_status = cleaned_data.get("metadata_current_status", None)
+        logger.debug("self.current_status = %s" % self.current_status)
+        if self.has_changed == HasChangedStates.YES:
+            logger.debug("%s has changed" % self.review_item.code)
+            self.review_item.update_data(self.patient_review.patient,
+                                         self.patient_review.parent,
+                                         self.patient_review.context,
+                                         cleaned_data)
+        else:
+            logger.debug("condition hasn't changed - no updates done!")
         self.state = PatientReviewItemStates.FINISHED
         self.save()
 

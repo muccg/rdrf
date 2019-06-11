@@ -94,6 +94,7 @@ class Links:
             _("Registry Demographics Fields"))
         ConsentRules = QuickLink(reverse("admin:rdrf_consentrule_changelist"), _("Consent Rules"))
         Reviews = QuickLink(reverse("admin:rdrf_review_changelist"), _("Reviews"))
+        PatientReviews = QuickLink(reverse("admin:rdrf_patientreview_changelist"), _("Patient Reviews"))
 
     if settings.SYSTEM_ROLE in (SystemRoles.CIC_DEV, SystemRoles.CIC_PROMS, SystemRoles.CIC_CLINICAL):
         Surveys = QuickLink(reverse("admin:rdrf_survey_changelist"), _("Surveys"))
@@ -166,6 +167,7 @@ class Links:
                 ArchivedPatients.text: ArchivedPatients,
                 ConsentRules.text: ConsentRules,
                 Reviews.text: Reviews,
+                PatientReviews.text: PatientReviews,
             }
         else:
             OTHER = {
@@ -177,6 +179,7 @@ class Links:
                 ArchivedPatients.text: ArchivedPatients,
                 ConsentRules.text: ConsentRules,
                 Reviews.text: Reviews,
+                PatientReviews.text: PatientReviews,
             }
         EXPLORER = {
             Explorer.text: Explorer,

@@ -21,14 +21,14 @@ class FieldTags:
     METADATA = "metadata"
 
 
-CURRENT_STATUS_CHOICES = (("1", "Currently Experiencing"),
-                          ("2", "Intermittently Experiencing"),
-                          ("3", "Resolved"),
-                          ("4", "Unknown"))
+CURRENT_STATUS_CHOICES = (("1", _("Currently Experiencing")),
+                          ("2", _("Intermittently Experiencing")),
+                          ("3", _("Resolved")),
+                          ("4", _("Unknown")))
 
-CONDITION_CHOICES = (("1", "Yes"),
-                     ("2", "No"),
-                     ("3", "Unknown"))
+CONDITION_CHOICES = (("1", _("Yes")),
+                     ("2", _("No")),
+                     ("3", _("Unknown")))
 
 
 class BaseReviewForm(forms.Form):
@@ -121,7 +121,9 @@ class ReviewFormGenerator:
         return field_name, field
 
     def generate_current_status_field(self):
-        field = forms.CharField(max_length=1, widget=forms.Select(choices=CURRENT_STATUS_CHOICES))
+        field = forms.CharField(max_length=1,
+                                widget=forms.Select(choices=CURRENT_STATUS_CHOICES),
+                                initial="4")
         field.label = _("What is the current status of this condition?")
         field.help_text = _("Please indicate the current status of this medical condition in your child/adult.")
         field_name = "metadata_current_status"
@@ -129,8 +131,10 @@ class ReviewFormGenerator:
         return field_name, field
 
     def generate_condition_changed_field(self):
-        field = forms.CharField(max_length=1, widget=forms.Select(choices=CONDITION_CHOICES,
-                                                                  attrs={'class': 'condition'}))
+        field = forms.CharField(max_length=1,
+                                widget=forms.Select(choices=CONDITION_CHOICES,
+                                                    attrs={'class': 'condition'}),
+                                initial="3")
         field.label = _("Has your child/adult's condition changed since your report?")
         field_name = "metadata_condition_changed"
         field.rdrf_tag = FieldTags.METADATA
@@ -165,11 +169,24 @@ class ConsentReviewFormGenerator(ReviewFormGenerator):
         field.rdrf_tag = FieldTags.DATA_ENTRY
         return {field_name: field}
 
+    def generate_metadata_fields(self):
+        d = {}
+        condition_changed_field_name, condition_changed_field = self.generate_condition_changed_field()
+        d[condition_changed_field_name] = condition_changed_field
+        return d
+
 
 class DemographicsReviewFormGenerator(ReviewFormGenerator):
     def generate_data_entry_fields(self):
         section_field_map = self.generate_fields_from_section(self.review_item.section)
+        logger.debug("section_field_map = %s" % section_field_map)
         return section_field_map
+
+    def generate_metadata_fields(self):
+        d = {}
+        condition_changed_field_name, condition_changed_field = self.generate_condition_changed_field()
+        d[condition_changed_field_name] = condition_changed_field
+        return d
 
 
 class SectionMonitorReviewFormGenerator(ReviewFormGenerator):

@@ -14,6 +14,8 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+THANKYOU_PAGE = "/"  # TODO
+
 
 class TokenError(Exception):
     pass
@@ -48,17 +50,6 @@ class ReviewDataHandler:
         self.form_map = d
 
     def update_patient_data(self):
-        from django.db import transaction
-
-        self._update_patient_review()
-
-        try:
-            with transaction.atomic():
-                self._process_review()
-        except ReviewDataError:
-            pass
-
-    def _update_patient_review(self):
         self.patient_review.state = ReviewStates.DATA_COLLECTED
         self.patient_review.save()
         for patient_review_item in self.patient_review.items.all():
@@ -66,6 +57,10 @@ class ReviewDataHandler:
             if code in self.form_map:
                 form = self.form_map[code]
                 patient_review_item.update_data(form.cleaned_data)
+
+    def complete(self):
+        self.patient_review.state = ReviewStates.FINISHED
+        self.patient_review.save()
 
     def _populate_models(self):
         try:
@@ -84,21 +79,6 @@ class ReviewDataHandler:
     def _validate_models(self):
         if not self.patient_model.in_registry(self.registry_model.code):
             raise ValidationError("Patient not in registry")
-
-    def _process_review(self):
-        for review_item in self.review_model.items.all():
-            self._process_review_item(review_item)
-
-    def _process_review_item(self, review_item):
-        form = self._get_item_data(review_item)
-        item_data = form.cleaned_data
-        if item_data is not None:
-            logger.debug("updating review item %s with data %s ..." % (review_item.code,
-                                                                       item_data))
-            review_item.update_data(self.patient_model,
-                                    self.parent_model,
-                                    self.context_model,
-                                    item_data)
 
     def _get_item_data(self, review_item):
         return self.form_map.get(review_item.code, None)
@@ -203,8 +183,9 @@ class ReviewWizardGenerator:
                                     form_dict)
 
             rdh.update_patient_data()
+            rdh.complete()
 
-            return HttpResponseRedirect("/")
+            return HttpResponseRedirect(THANKYOU_PAGE)
 
         def get_context_data_method(myself, form, **kwargs):
             token = myself.request.GET.get("t")

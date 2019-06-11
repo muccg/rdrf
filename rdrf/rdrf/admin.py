@@ -29,6 +29,8 @@ from rdrf.models.proms.models import SurveyRequest
 
 from rdrf.models.definition.review_models import Review
 from rdrf.models.definition.review_models import ReviewItem
+from rdrf.models.definition.review_models import PatientReview
+from rdrf.models.definition.review_models import PatientReviewItem
 
 from rdrf.system_role import SystemRoles
 
@@ -439,6 +441,21 @@ class ReviewAdmin(admin.ModelAdmin):
     inlines = [ReviewItemAdmin]
 
 
+class PatientReviewItemAdmin(admin.StackedInline):
+    model = PatientReviewItem
+
+
+class PatientReviewAdmin(admin.ModelAdmin):
+    model = PatientReview
+    list_display = ("patient",
+                    "parent",
+                    "token",
+                    "created_date",
+                    "completed_date",
+                    "state")
+    inlines = [PatientReviewItemAdmin]
+
+
 CDEPermittedValueAdmin = create_restricted_model_admin_class(
     CDEPermittedValue,
     ordering=['code'],
@@ -495,6 +512,7 @@ NORMAL_MODE_ADMIN_COMPONENTS = [
     (DemographicFields, DemographicFieldsAdmin),
     (ConsentRule, ConsentRuleAdmin),
     (Review, ReviewAdmin),
+    (PatientReview, PatientReviewAdmin),
 ]
 
 ADMIN_COMPONENTS = []
