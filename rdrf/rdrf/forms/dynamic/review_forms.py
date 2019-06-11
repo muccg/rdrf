@@ -5,6 +5,7 @@ from rdrf.models.definition.models import CommonDataElement
 from rdrf.models.definition.models import ConsentSection
 from rdrf.models.definition.models import ConsentQuestion
 from rdrf.forms.dynamic.field_lookup import FieldFactory
+from rdrf.helpers.utils import mongo_key_from_models
 
 from django import forms
 from django.utils.translation import ugettext as _
@@ -29,6 +30,11 @@ CURRENT_STATUS_CHOICES = (("1", _("Currently Experiencing")),
 CONDITION_CHOICES = (("1", _("Yes")),
                      ("2", _("No")),
                      ("3", _("Unknown")))
+
+
+class PseudoForm:
+    def __init__(self, form_name):
+        self.name = form_name
 
 
 class BaseReviewForm(forms.Form):
@@ -101,12 +107,12 @@ class ReviewFormGenerator:
             css = {'all': ('dmd_admin.css',)}
         return Media
 
-    def generate_fields_from_section(self, section_model):
+    def generate_fields_from_section(self, form_model, section_model):
         if section_model is None:
             return {}
         d = {}
         for cde_model in section_model.cde_models:
-            field_name, field = self.generate_field_from_cde(cde_model)
+            field_name, field = self.create_cde_field((form_model, section_model, cde_model))
             field.rdrf_tag = FieldTags.DATA_ENTRY
             logger.debug("added tag %s to field %s" % (FieldTags.DATA_ENTRY, field))
 
@@ -138,6 +144,40 @@ class ReviewFormGenerator:
         field.label = _("Has your child/adult's condition changed since your report?")
         field_name = "metadata_condition_changed"
         field.rdrf_tag = FieldTags.METADATA
+        return field_name, field
+
+    def create_cde_field(self, spec):
+        if isinstance(spec, tuple):
+            form_model, section_model, cde_model = spec
+            field_label = cde_model.name
+            field_name = mongo_key_from_models(form_model, section_model, cde_model)
+        elif isinstance(spec, dict):
+            field_dict = spec
+            field_name = field_dict["name"]
+            field_label = field_dict["label"]
+            target_dict = field_dict["target"]
+
+            form_name = target_dict["form"]
+            form_model = RegistryForm.objects.get(registry=self.registry_model,
+                                                  name=form_name)
+            cde_code = target_dict["cde"]
+            cde_model = CommonDataElement.objects.get(code=cde_code)
+
+            section_code = target_dict["section"]
+            section_model = Section.objects.get(code=section_code)
+        else:
+            raise Exception("unknown spec: %s" % spec)
+
+        field_factory = FieldFactory(self.registry_model,
+                                     form_model,
+                                     section_model,
+                                     cde_model)
+
+        field = field_factory.create_field()
+        field.rdrf_tag = FieldTags.DATA_ENTRY
+
+        field.label = field_label
+
         return field_name, field
 
 
@@ -178,7 +218,8 @@ class ConsentReviewFormGenerator(ReviewFormGenerator):
 
 class DemographicsReviewFormGenerator(ReviewFormGenerator):
     def generate_data_entry_fields(self):
-        section_field_map = self.generate_fields_from_section(self.review_item.section)
+        form_model = PseudoForm("Demographics")
+        section_field_map = self.generate_fields_from_section(form_model, self.review_item.section)
         logger.debug("section_field_map = %s" % section_field_map)
         return section_field_map
 
@@ -191,7 +232,10 @@ class DemographicsReviewFormGenerator(ReviewFormGenerator):
 
 class SectionMonitorReviewFormGenerator(ReviewFormGenerator):
     def generate_data_entry_fields(self):
-        section_field_map = self.generate_fields_from_section(self.review_item.section)
+        form_model = self.review_item.form
+        section_model = self.review_item.section
+        section_field_map = self.generate_fields_from_section(form_model,
+                                                              section_model)
         return section_field_map
 
     def generate_metadata_fields(self):
@@ -213,7 +257,7 @@ class MultiTargetReviewFormGenerator(ReviewFormGenerator):
         logger.debug("number of fields = %s" % len(metadata))
 
         for field_dict in metadata:
-            field_name, field_object = self._create_field(field_dict)
+            field_name, field_object = self.create_cde_field(field_dict)
             d[field_name] = field_object
             logger.debug("created field for multitarget %s %s" % (field_name, field_object))
 
@@ -227,32 +271,6 @@ class MultiTargetReviewFormGenerator(ReviewFormGenerator):
         d[condition_changed_field_name] = condition_changed_field
 
         return d
-
-    def _create_field(self, field_dict):
-        field_name = field_dict["name"]
-        field_label = field_dict["label"]
-        target_dict = field_dict["target"]
-
-        form_name = target_dict["form"]
-        form_model = RegistryForm.objects.get(registry=self.registry_model,
-                                              name=form_name)
-        cde_code = target_dict["cde"]
-        cde_model = CommonDataElement.objects.get(code=cde_code)
-
-        section_code = target_dict["section"]
-        section_model = Section.objects.get(code=section_code)
-
-        field_factory = FieldFactory(self.registry_model,
-                                     form_model,
-                                     section_model,
-                                     cde_model)
-
-        field = field_factory.create_field()
-        field.rdrf_tag = FieldTags.DATA_ENTRY
-
-        field.label = field_label
-
-        return field_name, field
 
 
 class MultisectionAddReviewFormGenerator(ReviewFormGenerator):
