@@ -110,9 +110,8 @@ class Exporter(object):
             raise ExportException("Unknown export type")
 
         generic_cdes = self._get_generic_cdes()
-        review_cdes = set(self._get_review_cdes())
 
-        return self._sort_codes(cdes.union(generic_cdes).union(review_cdes))
+        return self._sort_codes(cdes.union(generic_cdes))
 
     @staticmethod
     def _sort_codes(items):
@@ -397,23 +396,6 @@ class Exporter(object):
     def _get_generic_cdes(self):
         return self._get_cdes_for_sections(self.registry.generic_sections)
 
-    def _get_review_cdes(self):
-        cdes = []
-        for review_model in self.registry.reviews.all():
-            for review_item in review_model.items.all():
-                try:
-                    change_question_cde = CommonDataElement.objects.get(code=review_item.change_question_code)
-                    cdes.append(change_question_cde)
-                except CommonDataElement.DoesNotExist:
-                    pass
-                try:
-                    current_status_cde = CommonDataElement.objects.get(code=review_item.current_status_question_code)
-                    cdes.append(current_status_cde)
-                except CommonDataElement.DoesNotExist:
-                    pass
-        return cdes
-            
-
     def _get_working_groups(self):
         from registry.groups.models import WorkingGroup
         return [wg.name for wg in WorkingGroup.objects.filter(registry=self.registry)]
@@ -583,8 +565,6 @@ class Exporter(object):
                 item_dict["section"] = ""
                 if review_item.section:
                     item_dict["section"] = review_item.section.code
-                item_dict["change_question_code"] = review_item.change_question_code
-                item_dict["current_status_question_code"] = review_item.current_status_question_code
                 item_dict["target_code"] = review_item.target_code
                 review_dict["items"].append(item_dict)
             review_dicts.append(review_dict)

@@ -164,13 +164,14 @@ class ReviewItemPageData:
 
 
 class ReviewWizardGenerator:
-    def __init__(self, review_model):
-        self.review_model = review_model
+    def __init__(self, patient_review_model):
+        self.patient_review = patient_review_model
+        self.review_model = patient_review_model.review
         self.base_class = SessionWizardView
 
     def create_wizard_class(self):
         template_name = "rdrf_cdes/review_form.html"
-        form_list = create_review_forms(self.review_model)
+        form_list = create_review_forms(self.patient_review_model)
         class_name = "ReviewWizard"
 
         def done_method(myself, form_list, form_dict, **kwargs):

@@ -433,6 +433,7 @@ class CDEFileAdmin(admin.ModelAdmin):
 
 class ReviewItemAdmin(admin.StackedInline):
     model = ReviewItem
+    ordering = ['position']
 
 
 class ReviewAdmin(admin.ModelAdmin):

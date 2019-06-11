@@ -647,17 +647,17 @@ class Importer(object):
     def _create_reviews(self, registry_model):
         from rdrf.models.definition.review_models import Review
         from rdrf.models.definition.review_models import ReviewItem
-        
+
         def goc(klass, **kwargs):
             instance, created = klass.objects.get_or_create(**kwargs)
             return instance
 
         review_codes = [r["code"] for r in self.data["reviews"]]
-        
+
         for review_model in Review.objects.filter(registry=registry_model):
             if review_model.code not in review_codes:
                 review_model.delete()
- 
+
         for review_dict in self.data["reviews"]:
             review_model = goc(Review,
                                registry=registry_model,
@@ -682,29 +682,17 @@ class Importer(object):
                 review_item.name = item_dict["name"]
                 review_item.position = item_dict["position"]
                 review_item.item_type = item_dict["item_type"]
-                review_item.change_question_code = item_dict["change_question_code"]
-                review_item.current_status_question_code = item_dict["current_status_question_code"]
                 review_item.save()
-                
+
                 if item_dict["form"]:
                     form_model = RegistryForm.objects.get(registry=registry_model,
-                                             name=item_dict["form"])
+                                                          name=item_dict["form"])
                     review_item.form = form_model
                 if item_dict["section"]:
                     section_model = Section.objects.get(code=item_dict["section"])
                     review_item.section = section_model
 
                 review_item.save()
-
-                    
-                
-            
-            
-            
-            
-            
-        
-    
 
     def _create_email_notifications(self, registry):
         from rdrf.models.definition.models import EmailNotification

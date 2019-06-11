@@ -115,11 +115,47 @@ class TargetUpdater:
                                              context_model=context_model)
 
 
+def parse_appearance_condition(condition):
+    # formname.sectioncode.cdecode == value
+    if not condition:
+        return None
+    if "==" not in condition:
+        return None
+    spec, value = condition.strip().split("==")
+    if "." not in spec:
+        return None
+    form_name, section_code, cde_code = spec.strip().split(".")
+    form_model = RegistryForm.objects.get(name=form_name)
+    section_model = Section.objects.get(code=section_code)
+    cde_model = CommonDataElement.objects.get(code=cde_code)
+    value = value.strip()
+    datatype = cde_model.datatype.lower().strip()
+    if datatype == "integer":
+        value = int(value)
+    elif datatype in ['float', 'decimal']:
+        value = float(value)
+    else:
+        # leave as string
+        pass
+
+    def checker(patient_review_model):
+        patient = patient_review_model.patient
+        registry_model = patient_review_model.registry
+        form_value = patient.get_form_value(registry_model.code,
+                                            form_model.name,
+                                            section_model.code,
+                                            cde_model.code)
+        return value == form_value
+
+    return checker
+
+
 class ReviewItem(models.Model):
     """
     A unit of a review
     """
     code = models.CharField(max_length=80)
+    appearance_condition = models.TextField(blank=True, null=True)
     position = models.IntegerField(default=0)
     review = models.ForeignKey(Review, related_name="items", on_delete=models.CASCADE)
     item_type = models.CharField(max_length=2,
@@ -362,6 +398,18 @@ class ReviewItem(models.Model):
         for field_dict in metadata:
             yield get_models(field_dict)
 
+    def is_applicable_to(self, patient_review):
+        if not self.appearance_condition:
+            return True
+        else:
+            appearance_check = parse_appearance_condition(self.appearance_condition)
+            if appearance_check is None:
+                return True
+            elif callable(appearance_check):
+                return appearance_check(patient_review)
+            else:
+                raise Exception("Error checking appeaance condition")
+
 
 class ReviewStates:
     CREATED = "C"         # created , patient hasn't filled out yet
@@ -430,7 +478,7 @@ class PatientReview(models.Model):
 
     def create_wizard_view(self, initialise=False):
         from rdrf.views.wizard_views import ReviewWizardGenerator
-        generator = ReviewWizardGenerator(self.review)
+        generator = ReviewWizardGenerator(self)
         wizard_class = generator.create_wizard_class()
         if initialise:
             initial_data = self._get_initial_data()

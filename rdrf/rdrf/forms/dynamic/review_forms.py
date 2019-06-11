@@ -296,23 +296,24 @@ GENERATOR_MAP = {
 }
 
 
-def create_review_forms(review_model):
+def create_review_forms(patient_review_model):
+    review_model = patient_review_model.review
     logger.debug("review_model = %s" % review_model.name)
     # for each review "item" we create the form _class_ to collect data for it
     # the resulting set of forms is sent to a wizard
-
     forms_list = []
     logger.debug("creating review form classes ...")
 
     for review_item in review_model.items.all().order_by("position"):
-        logger.debug("creating review form class for %s" % review_item.name)
-        generator_class = GENERATOR_MAP.get(review_item.item_type, None)
-        if generator_class is None:
-            forms_list.append(DummyFormClass)
-        else:
-            generator = generator_class(review_item)
-            review_form_class = generator.create_form_class()
-            forms_list.append(review_form_class)
+        if review_item.is_applicable_to(patient_review_model):
+            logger.debug("creating review form class for %s" % review_item.name)
+            generator_class = GENERATOR_MAP.get(review_item.item_type, None)
+            if generator_class is None:
+                forms_list.append(DummyFormClass)
+            else:
+                generator = generator_class(review_item)
+                review_form_class = generator.create_form_class()
+                forms_list.append(review_form_class)
 
     logger.debug("forms list = %s" % forms_list)
     return forms_list
