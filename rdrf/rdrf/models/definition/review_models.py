@@ -260,7 +260,54 @@ class ReviewItem(models.Model):
                                                  answer))
 
     def _update_demographics_data(self, patient_model, form_data, user):
+        logger.debug("demographics form data = %s" % form_data)
         logger.debug("update demographics data : todo!")
+        from registry.patients.models import AddressType, PatientAddress
+        # {'metadata_condition_changed': '1',
+        # 'Demographics____PatientDataAddressSection____AddressType': 'AddressTypeHome',
+        # 'Demographics____PatientDataAddressSection____Address': '1 Test Street',
+        # 'Demographics____PatientDataAddressSection____Country': 'AU',
+        # 'Demographics____PatientDataAddressSection____State': 'SA',
+        # 'Demographics____PatientDataAddressSection____SuburbTown': 'Armadale',
+        # 'Demographics____PatientDataAddressSection____postcode': '6112'}
+        address_type = None
+        address_map = {}
+        delim = "____"
+
+        def get_country(country_code):
+            import pycountry
+            for country in pycountry.countries:
+                if country.alpha_2 == country_code:
+                    return country.name
+            return ""
+
+        for field_id in form_data:
+            if field_id.startswith("Demographics"):
+                parts = field_id.split(delim)
+                field = parts[-1]
+                address_map[field] = form_data[field_id]
+        address_type = address_map.get("AddressType", "AddressTypeHome")
+        if address_type == "AddressTypeHome":
+            address_type_obj, created = AddressType.objects.get_or_create(type="Home")
+            if created:
+                address_type_obj.description = "Home"
+                address_type_obj.save()
+        else:
+            address_type_obj, created = AddressType.objects.get_or_create(type="Postal")
+            if created:
+                address_type_obj.description = "Postal"
+                address_type_obj.save()
+
+        patient_address, created = PatientAddress.objects.get_or_create(patient=patient_model,
+                                                                        address_type=address_type_obj)
+        patient_address.address = address_map.get("Address", "")
+        patient_address.suburb = address_map.get("SuburbTown", "")
+        # Country is country code  e.g. AU
+        patient_address.country = address_map.get("Country", "")
+        patient_address.state = patient_address.country + "-" + address_map.get("State", "")
+        patient_address.postcode = address_map.get("postcode", "")
+        patient_address.save()
+        logger.debug("patient address saved ok")
 
     def _add_multisection_data(self, patient_model, context_model, form_data, user):
         logger.debug("update multisection data : todo!")
