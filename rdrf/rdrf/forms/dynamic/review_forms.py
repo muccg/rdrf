@@ -168,6 +168,8 @@ class ReviewFormGenerator:
         else:
             raise Exception("unknown spec: %s" % spec)
 
+        cde_model.is_required = False
+
         field_factory = FieldFactory(self.registry_model,
                                      form_model,
                                      section_model,

@@ -52,11 +52,13 @@ class ReviewDataHandler:
     def update_patient_data(self):
         self.patient_review.state = ReviewStates.DATA_COLLECTED
         self.patient_review.save()
+        user = self.patient_review.user
         for patient_review_item in self.patient_review.items.all():
             code = patient_review_item.review_item.code
             if code in self.form_map:
                 form = self.form_map[code]
-                patient_review_item.update_data(form.cleaned_data)
+                patient_review_item.update_data(form.cleaned_data,
+                                                user)
 
     def complete(self):
         self.patient_review.state = ReviewStates.FINISHED
@@ -171,7 +173,7 @@ class ReviewWizardGenerator:
 
     def create_wizard_class(self):
         template_name = "rdrf_cdes/review_form.html"
-        form_list = create_review_forms(self.patient_review_model)
+        form_list = create_review_forms(self.patient_review)
         class_name = "ReviewWizard"
 
         def done_method(myself, form_list, form_dict, **kwargs):

@@ -8,6 +8,8 @@ from rdrf.models.definition.models import CommonDataElement
 from rdrf.models.definition.models import RDRFContext
 from rdrf.helpers.utils import generate_token
 from rdrf.helpers.utils import check_models
+from rdrf.helpers.utils import models_from_mongo_key
+from django.core.exceptions import ValidationError
 
 from registry.groups.models import CustomUser
 from registry.patients.models import Patient
@@ -92,9 +94,6 @@ class TargetUpdater:
             target_dict = field_dict["target"]
             if "form" in target_dict:
                 # update an arbritary cde
-                from rdrf.models.definition.models import RegistryForm
-                from rdrf.models.definition.models import Section
-                from rdrf.models.definition.models import CommonDataElement
 
                 form_name = target_dict["form"]
                 section_code = target_dict["section"]
@@ -178,25 +177,25 @@ class ReviewItem(models.Model):
         else:
             return json.loads(self.target_metadata)
 
-    def update_data(self, patient_model, parent_model, context_model, form_data):
+    def update_data(self, patient_model, parent_model, context_model, form_data, user):
         if self.item_type == REVIEW_ITEM_TYPES.CONSENT_FIELD:
-            self._update_consent_data(patient_model, form_data)
+            self._update_consent_data(patient_model, form_data, user)
         elif self.item_type == REVIEW_ITEM_TYPES.DEMOGRAPHICS_FIELD:
-            self._update_demographics_data(patient_model, form_data)
+            self._update_demographics_data(patient_model, form_data, user)
         elif self.item_type == REVIEW_ITEM_TYPES.SECTION_CHANGE:
-            self._update_section_data(patient_model, context_model, form_data)
+            self._update_section_data(patient_model, context_model, form_data, user)
         elif self.item_type == REVIEW_ITEM_TYPES.MULTISECTION_ITEM:
-            self._add_multisection_data(patient_model, context_model, form_data)
+            self._add_multisection_data(patient_model, context_model, form_data, user)
         elif self.item_type == REVIEW_ITEM_TYPES.VERIFICATION:
-            self._update_verification(patient_model, context_model, form_data)
+            self._update_verification(patient_model, context_model, form_data, user)
         elif self.item_type == REVIEW_ITEM_TYPES.CLINICIAN_ACCESS:
-            self._update_clinician_access(patient_model, context_model, form_data)
+            self._update_clinician_access(patient_model, context_model, form_data, user)
         elif self.item_type == REVIEW_ITEM_TYPES.MULTI_TARGET:
-            self._update_multitargets(patient_model, context_model, form_data)
+            self._update_multitargets(patient_model, context_model, form_data, user)
         else:
             raise InvalidItemType(self.item_type)
 
-    def _update_consent_data(self, patient_model, form_data):
+    def _update_consent_data(self, patient_model, form_data, user):
         from rdrf.models.definition.models import ConsentQuestion
         for field_key in form_data:
             logger.debug("field_key = %s" % field_key)
@@ -208,22 +207,65 @@ class ReviewItem(models.Model):
                 consent_question_model = ConsentQuestion.objects.get(id=question_pk)
                 patient_model.set_consent(consent_question_model, answer)
 
-    def _update_multitargets(self, patient_model, context_model, form_data):
+    def _update_multitargets(self, patient_model, context_model, form_data, user):
         for field_id in form_data:
             answer = form_data[field_id]
             updater = TargetUpdater(field_id)
             updater.update(patient_model, context_model, answer)
 
-    def _update_section_data(self, patient_model, context_model, form_data):
-        logger.debug("update section data : todo!")
+    def _update_section_data(self, patient_model, context_model, form_data, user):
+        logger.debug("updating section data for %s ..." % self.code)
+        registry_model = self.review.registry
+        if not registry_model.has_feature("contexts"):
+            # set_form_value requires this
+            # default context is determined in method..
+            context_to_use = None
+        else:
+            context_to_use = context_model
 
-    def _update_demographics_data(self, patient_model, form_data):
+        registry_code = registry_model.code
+        form_model = self.form
+        form_name = form_model.name
+        section_model = self.section
+        section_code = section_model.code
+        codes = [cde.code for cde in section_model.cde_models]
+        error_msg = "Bad field in %s" % self.code
+        for field_id in form_data:
+            if field_id.startswith("metadata_"):
+                # bookkeeping field not part of section
+                continue
+            logger.debug("updating %s" % field_id)
+            field_form_model, field_section_model, field_cde_model = models_from_mongo_key(registry_model,
+                                                                                           field_id)
+            if field_form_model.name != form_model.name:
+                raise ValidationError(error_msg)
+            if field_section_model.code != section_model.code:
+                raise ValidationError(error_msg)
+            if field_cde_model.code not in codes:
+                raise ValidationError(error_msg)
+
+            cde_code = field_cde_model.code
+            answer = form_data[field_id]
+            patient_model.set_form_value(registry_code,
+                                         form_name,
+                                         section_code,
+                                         cde_code,
+                                         answer,
+                                         context_to_use,
+                                         save_snapshot=True,
+                                         user=user)
+            logger.debug("%s.%s.%s set to %s" % (form_name,
+                                                 section_code,
+                                                 cde_code,
+                                                 answer))
+
+    def _update_demographics_data(self, patient_model, form_data, user):
         logger.debug("update demographics data : todo!")
 
-    def _add_multisection_data(self, patient_model, context_model, form_data):
+    def _add_multisection_data(self, patient_model, context_model, form_data, user):
         logger.debug("update multisection data : todo!")
 
-    def _update_verification(self, patient_model, context_model, form_data):
+    def _update_verification(self, patient_model, context_model, form_data, user):
         pass
 
     def get_data(self, patient_model, context_model):
@@ -521,7 +563,7 @@ class PatientReviewItem(models.Model):
                                            null=True)
     data = models.TextField(blank=True, null=True)  # json data
 
-    def update_data(self, cleaned_data):
+    def update_data(self, cleaned_data, user):
         logger.debug("updating %s if needed" % self.review_item.code)
         self.data = self._encode_data(cleaned_data)
         self.state = PatientReviewItemStates.DATA_COLLECTED
@@ -537,7 +579,8 @@ class PatientReviewItem(models.Model):
             self.review_item.update_data(self.patient_review.patient,
                                          self.patient_review.parent,
                                          self.patient_review.context,
-                                         cleaned_data)
+                                         cleaned_data,
+                                         user)
         else:
             logger.debug("condition hasn't changed - no updates done!")
         self.state = PatientReviewItemStates.FINISHED
