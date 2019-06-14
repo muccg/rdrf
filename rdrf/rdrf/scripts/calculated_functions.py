@@ -252,24 +252,23 @@ def catrelative(sex, age, lipid_score):
     def inRange(value, a, b):
         return (value >= a) and (value <= b)
 
-    def lookupCat(age, score, table):
+    def lookupCat(cat_age, cat_score, cat_table):
         cats = ["Unlikely", "Uncertain", "Likely"]
-        for i in range(table.length):
-            row = table[i]
+        for i in range(0, len(cat_table)):
+            row = cat_table[i]
             ageInterval = row[0]
             ageMin = ageInterval[0]
             ageMax = ageInterval[1]
-            if (inRange(age, ageMin, ageMax)):
+            if (inRange(cat_age, ageMin, ageMax)):
                 catRanges = row[1]
-                for j in range(3):
-                    range = catRanges[j]
-                    rangeMin = range[0]
-                    rangeMax = range[1]
+                for j in range(0, 3):
+                    ranges = catRanges[j]
+                    rangeMin = ranges[0]
+                    rangeMax = ranges[1]
 
-                    if (inRange(score, rangeMin, rangeMax)):
+                    if (inRange(cat_score, rangeMin, rangeMax)):
                         category = cats[j]
                         return category
-
         return ""
 
     if sex == '1':
@@ -449,3 +448,86 @@ def DDAgeAtDiagnosis_inputs():
     return ["DateOfDiagnosis"]
 
 ################ END OF DDAgeAtDiagnosis ################################
+
+
+################ BEGINNING OF poemScore ################################
+
+DAYS0 = "NoDays"
+DAYS1TO2 = "1to2Days"
+DAYS3TO4 = "3to4Days"
+DAYS5TO6 = "5to6Days"
+EVERYDAY = "EveryDay"
+
+def convert(val):
+    if val == "DAYS0":
+        return 0
+    if val == "DAYS1TO2":
+        return 1
+    if val == "DAYS3TO4":
+        return 2
+    if val == "DAYS5TO6":
+        return 3
+    if val == "EVERYDAY":
+        return 4
+    return 0
+
+
+def getQ(cde):
+    try:
+       return convert(cde)
+    except:
+        return 0
+
+
+def getCategory(score):
+    if score <= 2:
+        return "Clear or almost clear"
+    if score <= 7:
+        return "Mild eczema"
+    if score <= 16:
+        return "Moderate eczema"
+    if score <= 24:
+        return "Severe eczema"
+    if score <= 28:
+        return "Very severe eczema"
+    return ""
+
+
+def poemScore(patient, context):
+
+    q1 = context["poemQ1"]
+    q2 = context["poemQ2"]
+    q3 = context["poemQ3"]
+    q4 = context["poemQ4"]
+    q5 = context["poemQ5"]
+    q6 = context["poemQ6"]
+    q7 = context["poemQ7"]
+
+    answers = [getQ(q1), getQ(q2), getQ(q3), getQ(q4), getQ(q5), getQ(q6), getQ(q7)]
+    counts = {}
+
+    for i in range(0, len(answers)):
+        answer = answers[i]
+        if len(counts):
+            counts[answer] = counts[answer] + 1
+        else:
+            counts[answer] = 1
+
+    if counts[0] == 1:
+        s = sum(answers)
+        cat = getCategory(s)
+        result = s.__str__() + " ( " + cat + " )"
+    else:
+        if counts[0] >= 2:
+            result = "UNSCORED"
+        else:
+            s = sum(answers)
+            cat = getCategory(s)
+            result = s.__str__() + " ( " + cat + " )"
+
+    return result
+
+def poemScore_inputs():
+    return ["poemQ1", "poemQ2", "poemQ3", "poemQ4", "poemQ5", "poemQ6", "poemQ7", ]
+
+################ END OF poemScore ################################
