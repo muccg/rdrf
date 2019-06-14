@@ -1,86 +1,109 @@
-(function($) {
-    $.fn.add_calculation = function(options) {
-        var settings = $.extend({
-            // These are the defaults.
-            calculation: function(context) { context.result = "???"; },
-            subjects: '', // E.g. "CDE01,CDE02" comma separated list of inputs to the calculation
-            prefix: '',//  formcode^^sectioncode^^
-            target: "value",
-            observer: '',  // the cde code of the output e,g, CDE03
-            // Stuff below added to allow calculations to retrieve remote model properties
-            // injected_model will always be Patient for now
-            injected_model: "",  // e.g. Patient  ( model class name)
-            injected_model_id: null,  // the id of the injected model instance to retrieve
-            api_url: ""  //the url to request model data on eg /api/v1/patient/1
+(function ($) {
 
-        }, options);
+        let required_cde_inputs = {};
+        let calculated_cde_inputs = {}
+        let patient_date_of_birth = '';
+        let patient_sex = '';
+
+        const update_function = function (calculated_cdes) {
+            // console.log(`UPDATE FUNCTION: ${calculated_cdes}`);
+
+            calculated_cdes.forEach(cde_code => {
+                // console.log(`UPDATE FUNCTION CDE: ${calculated_cdes} : ${cde_code}`);
+                // Retrieve all values of input
+                calculated_cde_inputs_json_values = {};
+                calculated_cde_inputs[cde_code].forEach((required_input_cde) => {
+
+                    let cde_value = $(`[id$=__${required_input_cde}]`).val();
+                    // console.log(`${required_input_cde}: ${cde_value}`);
+
+                    // check if it is a date like dd-mm-yyyy and convert it in yyyy-mm-dd
+                    if (moment(cde_value, "D-M-YYYY",true).isValid()) {
+                        // console.log(`Detecting wrong date: ${required_input_cde}: ${cde_value}`);
+                        cde_value = moment(cde_value).format('YYYY-MM-DD');
+                        // console.log(`New date: ${cde_value}`);
+                    }
+
+                    // check if it is a number and convert it in a number
+                    if ($(`[id$=__${required_input_cde}]`).attr('type') === 'number') {
+                        cde_value = parseFloat(cde_value);
+                        // console.log(`convert type in number ${required_input_cde}: ${cde_value}`)
+                    }
 
 
+                    calculated_cde_inputs_json_values[required_input_cde] = cde_value;
+                });
 
-        // locate the codes anywhere on the page ( we assume only one occurance of given cde for now
-        function locate_code(code) {
-            var id = $('[id*=' + code + ']').attr("id");
-            return "#" + id;
-        }
-
-        var subject_codes_string = _.map(settings.subjects.split(","), function(code)
-            { return locate_code(code);}).join();
-
-        function get_object(model, model_id) {
-            var d = $.Deferred();
-             if (model_id == -1) {
-                 d.resolve([]);
-                 return;
-            }
-
-            $.get(settings.api_url)
-                .done(function(object) {
-                    d.resolve(object);
+                const body = {
+                    'cde_code': cde_code,
+                    'patient_date_of_birth': patient_date_of_birth,
+                    'patient_sex': patient_sex,
+                    'form_values': calculated_cde_inputs_json_values
+                };
+                // console.log("BODY json");
+                // console.log(body);
+                fetch(`/api/v1/calculatedcdes/`, {
+                    method: 'post',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': $("[name=csrfmiddlewaretoken]").val()
+                    },
+                    body: JSON.stringify(body)
                 })
-                .fail(d.reject);
-
-            return d.promise();
+                    .then(function (response) {
+                        return response.json();
+                    })
+                    .then(function (myJson) {
+                        // console.log(`New value: ${cde_code} ${myJson}`);
+                        // if new value change it and display an notification
+                        $(`[id$=__${cde_code}]`).val(myJson)
+                        $(`[id$=__${cde_code}]`).trigger("change");
+                    });
+            });
         }
 
-        var update_function = function() {
-            var context = {};
-            var subject_codes = settings.subjects.split(",");
+        $.fn.add_calculation = function (options) {
 
-            for (var i = 0; i < subject_codes.length; i++) {
-                // Note how we use the prefix to map from the page to the context variable names
-                // and reverse map to update the output
-                var subject_code_id_on_page = locate_code(subject_codes[i]);
-                context[subject_codes[i]] = $(subject_code_id_on_page).val();
+            patient_date_of_birth = options.patient_date_of_birth;
+            patient_sex = options.patient_sex;
+
+            calculated_cde_inputs[options.observer] = options.cde_inputs;
+
+            options.cde_inputs.forEach((input_cde_code) => {
+                // find the DOM id of the matching input
+
+                // record the input in an array so we can assign the
+                required_cde_inputs[input_cde_code] = required_cde_inputs[input_cde_code] != undefined ?
+                    [...required_cde_inputs[input_cde_code], options.observer] : [options.observer];
+            });
+
+            // console.log(`ADD CALCULTATION ${options.observer}`);
+            // console.log(required_cde_inputs);
+
+            try {
+                // call on initial page load
+                // console.log([options.observer]);
+                update_function([options.observer]); //call it to ensure if calculation changes on server
+                // we are always in sync(RDR-426 )
+
+                //update the onchange
+                Object.keys(required_cde_inputs).forEach(function (cde_input) {
+                    $(`[id$=__${cde_input}]`).off("change");
+                    $(`[id$=__${cde_input}]`).change(function() {
+                        // console.log('ELEMENT UPDATED:');
+                        // console.log($( this ));
+                        // console.log($( this ).val());
+                        update_function(required_cde_inputs[cde_input])
+                    });
+
+                });
+
+            } catch (err) {
+                alert(err);
             }
-
-            var model_promise = get_object(settings.injected_model.toLowerCase(),
-                                           settings.injected_model_id);
-
-            $.when(model_promise)
-             .done(function(injected_models) {
-                        try {
-                            settings.calculation.apply(null, [context].concat(injected_models));
-                        }
-                        catch (err) {
-                            console.error("CDE calculation error", err);
-                            context.result = "ERROR";
-                        }
-                        $("#id_" + settings.prefix + settings.observer).val(context.result);
-                        $("#id_" + settings.prefix + settings.observer).trigger("rdrf_calculation_performed");
-             });
         };
 
-        $(subject_codes_string).on("input change", update_function);
-        $(subject_codes_string).on("rdrf_calculation_performed", update_function);
-
-        try {
-            // call on initial page load
-            update_function(); //call it to ensure if calculation changes on server
-                               // we are always in sync(RDR-426 )
-        }
-        catch (err) {
-            alert(err);
-        }
-    };
-
-}(jQuery));
+    }
+    (jQuery)
+)
+;

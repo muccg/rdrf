@@ -9,7 +9,7 @@ from collections import OrderedDict
 from rdrf.forms.dynamic import fields
 from rdrf.forms.widgets import widgets
 import logging
-from rdrf.forms.dynamic.calculated_fields import CalculatedFieldParser, CalculatedFieldParseError
+from rdrf.forms.dynamic.calculated_fields import CalculatedFieldScriptCreator, CalculatedFieldScriptCreatorError
 from rdrf.forms.dynamic.validation import ValidatorFactory
 from rdrf.models.definition.models import CommonDataElement
 
@@ -401,7 +401,7 @@ class FieldFactory(object):
 
                 if self._is_calculated_field():
                     try:
-                        parser = CalculatedFieldParser(
+                        parser = CalculatedFieldScriptCreator(
                             self.registry,
                             self.registry_form,
                             self.section,
@@ -413,7 +413,7 @@ class FieldFactory(object):
                         options['widget'] = CalculatedFieldWidget(script)
                         return django.forms.CharField(**options)
 
-                    except CalculatedFieldParseError as pe:
+                    except CalculatedFieldScriptCreatorError as pe:
                         logger.error("Calculated Field %s Error: %s" % (self.cde, pe))
 
                 field_or_tuple = self.DATATYPE_DICTIONARY.get(

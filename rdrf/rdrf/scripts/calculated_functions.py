@@ -2,12 +2,14 @@ from datetime import datetime
 from decimal import Decimal, ROUND_HALF_UP
 
 import math
+import logging
+logger = logging.getLogger(__name__)
 
 
 ####################### BEGIN OF CDEfhDutchLipidClinicNetwork ###################################
 
 def bad(value):
-    print(math.isnan(value))
+    # print(math.isnan(value))
     return (value is None) or (math.isnan(value))
 
 
@@ -150,6 +152,9 @@ def CDEfhDutchLipidClinicNetwork(patient, context):
 
     return str(getScore(context, patient))
 
+def CDEfhDutchLipidClinicNetwork_inputs():
+    return ["DateOfAssessment", "CDEIndexOrRelative", "CDE00004", "CDE00003", "FHFamilyHistoryChild", "FHFamHistTendonXanthoma",
+            "FHFamHistArcusCornealis", "CDE00011", "FHPersHistCerebralVD", "CDE00001", "CDE00002", "CDE00013", "LDLCholesterolAdjTreatment"]
 
 ################ END OF CDEfhDutchLipidClinicNetwork ################################
 
@@ -280,7 +285,7 @@ def catrelative(sex, age, lipid_score):
 
 
 def categorise(context, patient):
-    dutch_lipid_network_score = float(context["CDEfhDutchLipidClinicNetwork"])
+    dutch_lipid_network_score = None if context["CDEfhDutchLipidClinicNetwork"] == "" else float(context["CDEfhDutchLipidClinicNetwork"])
     assessmentDate = datetime.strptime(context["DateOfAssessment"], '%Y-%m-%d')
     isAdult = patientAgeAtAssessment2(patient["date_of_birth"], assessmentDate) >= 18.0
     index = context["CDEIndexOrRelative"] == "fh_is_index"
@@ -294,7 +299,7 @@ def categorise(context, patient):
     if (relative):
         age = patientAgeAtAssessment2(patient["date_of_birth"], assessmentDate)
         L = CDE00024_getLDL(context)
-        sex = patient.sex
+        sex = patient["sex"]
         cr = catrelative(sex, age, L)
         return cr
 
@@ -302,6 +307,10 @@ def categorise(context, patient):
 def CDE00024(patient, context):
     print(f"RUNNING CDE00024")
     return str(categorise(context, patient))
+
+def CDE00024_inputs():
+    return ["CDEIndexOrRelative", "DateOfAssessment", "CDEfhDutchLipidClinicNetwork", "FHFamHistTendonXanthoma", "FHFamHistArcusCornealis",
+            "CDE00003", "CDE00004", "LDLCholesterolAdjTreatment", "CDE00013"]
 
 
 ################ END OF CD00024 ################################
@@ -369,6 +378,9 @@ def LDLCholesterolAdjTreatment(patient, context):
     except:
         return ""
 
+def LDLCholesterolAdjTreatment_inputs():
+    return ["PlasmaLipidTreatment", "CDE00019"]
+
 
 ################ END OF LDLCholesterolAdjTreatment ################################
 
@@ -386,6 +398,9 @@ def CDEBMI(patient, context):
     bmi = weight / (height * height)
 
     return str(roundToTwo(bmi))
+
+def CDEBMI_inputs():
+    return ["CDEHeight", "CDEWeight"]
 
 
 ################ END OF CDEBMI ################################
@@ -407,6 +422,9 @@ def FHDeathAge(patient, context):
 
     return str(deathAge)
 
+def FHDeathAge_inputs():
+    return ["FHDeathDate"]
+
 ################ END OF FHDeathAge ################################
 
 
@@ -426,5 +444,8 @@ def DDAgeAtDiagnosis(patient, context):
         return None
 
     return str(deathAge)
+
+def DDAgeAtDiagnosis_inputs():
+    return ["DateOfDiagnosis"]
 
 ################ END OF DDAgeAtDiagnosis ################################
