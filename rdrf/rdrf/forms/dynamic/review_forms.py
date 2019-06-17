@@ -175,10 +175,21 @@ class ReviewFormGenerator:
         field.rdrf_tag = FieldTags.METADATA
         return field_name, field
 
+    def _deduce_section(self, form_model, cde_model):
+        # this assumes unique cde codes..
+        for section_model in form_model.section_models:
+            if cde_model.code in [x.code for x in section_model.cde_models]:
+                return section_model
+
     def create_cde_field(self, spec):
         if isinstance(spec, tuple):
             form_model, section_model, cde_model = spec
             field_label = cde_model.name
+            if section_model is None:
+                section_model = self._deduce_section(form_model, cde_model)
+                if section_model is None:
+                    raise Exception("cannot deduce section for %s %s" % (form_model.name,
+                                                                         cde_model.code))
             field_name = mongo_key_from_models(form_model, section_model, cde_model)
         elif isinstance(spec, dict):
             field_dict = spec

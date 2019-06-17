@@ -664,6 +664,7 @@ class Importer(object):
                                code=review_dict["code"])
 
             review_model.name = review_dict["name"]
+            review_model.review_type = review_dict["review_type"]
             review_model.save()
 
             # delete items no longer in definition
@@ -682,6 +683,9 @@ class Importer(object):
                 review_item.name = item_dict["name"]
                 review_item.position = item_dict["position"]
                 review_item.item_type = item_dict["item_type"]
+                review_item.fields = item_dict["fields"]
+                review_item.summary = item_dict["summary"]
+                review_item.appearance_condition = item_dict["appearance_condition"]
                 review_item.save()
 
                 if item_dict["form"]:

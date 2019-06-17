@@ -552,6 +552,7 @@ class Exporter(object):
             review_dict = {}
             review_dict["name"] = review_model.name
             review_dict["code"] = review_model.code
+            review_dict["review_type"] = review_model.review_type
             review_dict["items"] = []
             for review_item in review_model.items.all().order_by("position"):
                 item_dict = {}
@@ -566,6 +567,9 @@ class Exporter(object):
                 if review_item.section:
                     item_dict["section"] = review_item.section.code
                 item_dict["target_code"] = review_item.target_code
+                item_dict["fields"] = review_item.fields
+                item_dict["summary"] = review_item.summary
+                item_dict["appearance_condition"] = review_item.appearance_condition
                 review_dict["items"].append(item_dict)
             review_dicts.append(review_dict)
         return review_dicts
