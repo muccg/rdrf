@@ -1,0 +1,72 @@
+{% extends "rdrf_cdes/wizard_base.html" %}
+{% load i18n %}
+
+{% block head %}
+{{ wizard.form.media }}
+{% endblock %}
+
+{% block content %}
+<p>Step {{ wizard.steps.step1 }} of {{ wizard.steps.count }}</p>
+<form action="" method="post">{% csrf_token %}
+{{ wizard.management_form }}
+{% if wizard.form.forms %}
+    {{ wizard.form.management_form }}
+    {% for form in wizard.form.forms %}
+        {{ form }}
+    {% endfor %}
+{% else %}
+   
+<div class="container-fluid">
+  
+<div class="row">
+  <div class="col-sm-12">
+    <h2>{{ name }}</h2> 
+  </div>
+</div>
+
+<div class="row">
+  <div class="col-sm-2">
+    <div class="summary">
+      {{ summary }}
+    </div>
+  </div>
+
+<div class="col-sm-10">
+  
+{% for wrapper in wizard.form.fields_with_verifications %}
+
+  <div class="row">
+
+  <div class="col-sm-4"> 
+        {{ wrapper.field.errors }}
+        {{ wrapper.field.label_tag }}
+  </div>
+
+  <div class="col-sm-4"> 
+        {{ wrapper.field }}
+        {% if wrapper.field.help_text %}
+        <p class="help">{{ wrapper.field.help_text|safe }}</p>
+        {% endif %}
+  </div>
+
+  <div class="col-sm-4">
+       <div class="form-group">
+	{{ wrapper.ver_field }}
+       </div>
+  </div>
+
+  </div> <!-- end inner row -->
+   {% endfor %}
+  </div> <!-- end of col --> 
+  </div> <!-- end of row -->
+
+</div> <!-- end of container -->
+    
+{% endif %}
+{% if wizard.steps.prev %}
+<button name="wizard_goto_step" type="submit" value="{{ wizard.steps.first }}">{% trans "first step" %}</button>
+<button name="wizard_goto_step" type="submit" value="{{ wizard.steps.prev }}">{% trans "prev step" %}</button>
+{% endif %}
+<input type="submit" value="{% trans "submit" %}"/>
+</form>
+{% endblock %}
