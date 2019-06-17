@@ -35,10 +35,12 @@ class ReviewWizardLandingView(View):
                              patient_review_model.patient):
             raise PermissionDenied
 
+        logger.debug("initialise = %s" % initialise)
         wizard_view = patient_review_model.create_wizard_view(initialise)
         return wizard_view(request, *args, **kwargs)
 
     @method_decorator(login_required)
     def post(self, request, *args, **kwargs):
         token = self._get_token(request)
+        logger.debug("token = %s" % token)
         return self._get_wizard_view(request, token, args, kwargs)

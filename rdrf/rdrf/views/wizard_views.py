@@ -26,7 +26,7 @@ class ReviewDataError(Exception):
 
 
 class ReviewDataHandler:
-    def __init__(self, review_model, token, form_list, form_dict):
+    def __init__(self, review_model, token, form_list, form_dict, user):
         self.review_model = review_model
         self.registry_model = review_model.registry
         self.token = token
@@ -37,6 +37,7 @@ class ReviewDataHandler:
         self.patient_model = None
         self.parent_model = None
         self.context_model = None
+        self.user = user
         self._build_data_map()
 
         self._populate_models()  # validates token and creates target models
@@ -75,6 +76,7 @@ class ReviewDataHandler:
             raise TokenError()
 
         self.patient_review = patient_review
+        self.patient_review.user = self.user
         self.patient_model = patient_review.patient
         self.context_model = patient_review.context
 
@@ -123,6 +125,12 @@ class ReviewItemPageData:
         self.previous_data = self.review_item_model.get_data(self.patient_model,
                                                              self.patient_review.context)
 
+    def _trans(self, s):
+        if s:
+            return _(s)
+        else:
+            return ""
+
     def _get_patient_review(self, token):
         return PatientReview.objects.get(token=token)
 
@@ -134,7 +142,7 @@ class ReviewItemPageData:
 
     @property
     def summary(self):
-        return _(self.review_item_model.summary)
+        return self._trans(self.review_item_model.summary)
 
     @property
     def is_clinician_review(self):
@@ -142,15 +150,16 @@ class ReviewItemPageData:
 
     @property
     def category(self):
-        return _(self.review_item_model.category)
+        if self.review_item_model.category:
+            return self._trans(self.review_item_model.category)
 
     @property
     def name(self):
-        return _(self.review_item_model.name)
+        return self._trans(self.review_item_model.name)
 
     @property
     def title(self):
-        return _(self.review_model.name)
+        return self._trans(self.review_model.name)
 
     @property
     def valid(self):
@@ -165,6 +174,11 @@ class ReviewItemPageData:
         return [PreviousResponse(pair[0], pair[1]) for pair in self.previous_data]
 
 
+class ReviewTemplates:
+    CAREGIVER_REVIEW = "rdrf_cdes/review_form.html"
+    CLINICIAN_VERIFICATION = "rdrf_cdes/clinician_review_form.html"
+
+
 class ReviewWizardGenerator:
     def __init__(self, patient_review_model):
         self.patient_review = patient_review_model
@@ -172,7 +186,12 @@ class ReviewWizardGenerator:
         self.base_class = SessionWizardView
 
     def create_wizard_class(self):
-        template_name = "rdrf_cdes/review_form.html"
+
+        if self.review_model.review_type == "R":
+            template_name = ReviewTemplates.CAREGIVER_REVIEW
+        elif self.review_model.review_type == "V":
+            template_name = ReviewTemplates.CLINICIAN_VERIFICATION
+
         form_list = create_review_forms(self.patient_review)
         class_name = "ReviewWizard"
 
@@ -180,10 +199,12 @@ class ReviewWizardGenerator:
             # when all valid data processed ,
             # fan the data back out
             token = myself.request.GET.get('t')
+            user = myself.request.user
             rdh = ReviewDataHandler(self.review_model,
                                     token,
                                     form_list,
-                                    form_dict)
+                                    form_dict,
+                                    user)
 
             rdh.update_patient_data()
             rdh.complete()

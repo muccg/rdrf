@@ -20,7 +20,6 @@ from django.forms.models import model_to_dict
 from django.utils.safestring import mark_safe
 
 from rdrf.helpers.utils import check_calculation
-from rdrf.helpers.utils import generate_token
 from rdrf.helpers.utils import format_date, parse_iso_datetime
 from rdrf.events.events import EventType
 
@@ -774,7 +773,8 @@ class CommonDataElement(models.Model):
         blank=True,
         help_text="The text to use in any public facing questionnaires/registration forms")
 
-    important = models.BooleanField(default=False, help_text="Indicate whether the field should be emphasised with a green asterisk")
+    important = models.BooleanField(
+        default=False, help_text="Indicate whether the field should be emphasised with a green asterisk")
 
     def __str__(self):
         return "CDE %s:%s" % (self.code, self.name)
@@ -1719,7 +1719,8 @@ class ContextFormGroup(models.Model):
             raise ValidationError("One Context Form Group must be chosen as the default")
 
         if self.naming_scheme == "C" and self._valid_naming_cde_to_use(self.naming_cde_to_use) is None:
-            raise ValidationError("Invalid naming cde: Should be form name/section code/cde code where all codes must exist")
+            raise ValidationError(
+                "Invalid naming cde: Should be form name/section code/cde code where all codes must exist")
 
     def _valid_naming_cde_to_use(self, naming_cde_to_use):
         validation_message = "Invalid naming cde: Should be form name/section code/cde code where all codes must exist"

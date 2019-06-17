@@ -49,7 +49,7 @@
     <div class="panel-body">
     {% for response in responses %}
     {{response.label}}
-    <span class="label label-default">{{ response.answer }}</span><br>
+    <span class="label label-default float-right">{{ response.answer }}</span><br>
     {% endfor %}
    </div>
    </div>
@@ -77,10 +77,12 @@
 
 
   <script>
+    var hasChangedPattern = "metadata_condition_changed_0"; // yes
     $(document).on("ready", function () {
     $("#data-entry").hide();
+    var hasChangedId = $("[id$='" + hasChangedPattern + "']").attr("id");
     $(".condition").change(function() {
-    if($(this).val()=="1") {
+    if($("#" + hasChangedId).is(":checked")) {
     $("#data-entry").show();
     } else {
     $("#data-entry").hide();

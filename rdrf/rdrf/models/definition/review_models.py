@@ -29,6 +29,10 @@ class Missing:
     VALUE = None
 
 
+REVIEW_TYPE_CHOICES = (("R", "Caregiver Review"),
+                       ("V", "Clinician Verification"))
+
+
 def generate_reviews(registry_model):
     reviews_dict = registry_model.metadata.get("reviews", {})
     for review_name, review_sections in reviews_dict.items():
@@ -41,6 +45,9 @@ class Review(models.Model):
     registry = models.ForeignKey(Registry, related_name="reviews", on_delete=models.CASCADE)
     name = models.CharField(max_length=80)  # e.g. annual review , biannual review
     code = models.CharField(max_length=80)  # used for url
+    review_type = models.CharField(max_length=1,
+                                   choices=REVIEW_TYPE_CHOICES,
+                                   default="R")
 
     def create_for_patient(self, patient, context_model=None):
         if context_model is None:
@@ -312,9 +319,6 @@ class ReviewItem(models.Model):
     def _add_multisection_data(self, patient_model, context_model, form_data, user):
         logger.debug("update multisection data : todo!")
 
-    def _update_verification(self, patient_model, context_model, form_data, user):
-        pass
-
     def get_data(self, patient_model, context_model):
         # get previous responses so they can be displayed
         if self.item_type == REVIEW_ITEM_TYPES.CONSENT_FIELD:
@@ -325,6 +329,8 @@ class ReviewItem(models.Model):
             return self._get_section_data(patient_model, context_model)
         elif self.item_type == REVIEW_ITEM_TYPES.MULTI_TARGET:
             return self._get_multitarget_data(patient_model, context_model)
+        elif self.item_type == REVIEW_ITEM_TYPES.VERIFICATION:
+            return []
 
         raise Exception("Unknown Review Type: %s" % self.item_type)
 
@@ -499,6 +505,35 @@ class ReviewItem(models.Model):
             else:
                 raise Exception("Error checking appeaance condition")
 
+    @property
+    def verification_triples(self):
+        logger.debug("ver triples ..")
+        if self.form:
+            logger.debug("form set ...")
+            if self.section:
+                logger.debug("section set ...")
+                if self.fields:
+                    codes = [x.strip() for x in self.fields.split(",")]
+                    cde_models = [cde_model for cde_model in self.section.cde_models if cde_model.code in codes]
+                else:
+                    cde_models = self.section.cde_models
+
+                for cde_model in cde_models:
+                    logger.debug("yielding %s %s %s" % (self.form.name,
+                                                        self.section.code,
+                                                        cde_model.code))
+                    yield self.form, self.section, cde_model
+            else:
+                for section_model in self.form.section_models:
+                    for cde_model in section_model.cde_models:
+                        logger.debug("yielding %s %s %s" % (self.form.name,
+                                                            section_model.code,
+                                                            cde_model.code))
+                        yield self.form, section_model, cde_model
+        else:
+            logger.debug("returning []")
+            return []  # ??
+
 
 class ReviewStates:
     CREATED = "C"         # created , patient hasn't filled out yet
@@ -629,9 +664,62 @@ class PatientReviewItem(models.Model):
                                          cleaned_data,
                                          user)
         else:
-            logger.debug("condition hasn't changed - no updates done!")
+            if self.review_item.review.review_type == "V":
+                self._update_verifications(cleaned_data, user)
+            else:
+                logger.debug("condition hasn't changed - no updates done!")
+
         self.state = PatientReviewItemStates.FINISHED
         self.save()
+
+    def _update_verifications(self, form_data, user):
+        logger.debug("creating verifications for user %s" % user)
+        logger.debug("form data = %s" % form_data)
+        from rdrf.models.definition.verification_models import Verification
+        patient_model = self.patient_review.patient
+        context_model = self.patient_review.context
+        registry_model = self.patient_review.review.registry
+        logger.debug("patient is %s" % patient_model)
+        pri = self
+        logger.debug("pri is %s" % pri)
+        if user is not None:
+            username = user.username
+        else:
+            username = ""
+
+        logger.debug("username = %s" % username)
+
+        for form_model, section_model, cde_model in self.review_item.verification_triples:
+            logger.debug("%s %s %s .." % (form_model.name,
+                                          section_model.code,
+                                          cde_model.code))
+            value_key = "%s____%s____%s" % (form_model.name,
+                                            section_model.code,
+                                            cde_model.code)
+            logger.debug("value key = %s" % value_key)
+            ver_key = "ver/%s" % value_key
+            logger.debug("ver key = %s" % ver_key)
+            if ver_key in form_data:
+                logger.debug("found ver key %s" % ver_key)
+                status = form_data[ver_key]
+                logger.debug("ver status = %s" % status)
+                value = form_data[value_key]
+                logger.debug("form value = %s" % value)
+
+                verification_model = Verification(patient=patient_model,
+                                                  patient_review_item=pri,
+                                                  registry=registry_model,
+                                                  context=context_model,
+                                                  form_name=form_model.name,
+                                                  section_code=section_model.code,
+                                                  cde_code=cde_model.code,
+                                                  status=status,
+                                                  data=str(value),
+                                                  username=username)
+
+                verification_model.create_summary()
+                verification_model.save()
+                logger.debug("created verification ok")
 
     def _encode_data(self, data):
         import json

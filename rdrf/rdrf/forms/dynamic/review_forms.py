@@ -20,16 +20,16 @@ logger = logging.getLogger(__name__)
 class FieldTags:
     DATA_ENTRY = "data_entry"
     METADATA = "metadata"
+    VERIFICATION = "verification"
 
-
-CURRENT_STATUS_CHOICES = (("1", _("Currently Experiencing")),
-                          ("2", _("Intermittently Experiencing")),
-                          ("3", _("Resolved")),
-                          ("4", _("Unknown")))
 
 CONDITION_CHOICES = (("1", _("Yes")),
                      ("2", _("No")),
                      ("3", _("Unknown")))
+
+VERIFICATION_CHOICES = (("V", "Verified"),
+                        ("N", "Not Verified"),
+                        ("U", "Unknown"))
 
 
 class PseudoForm:
@@ -47,6 +47,29 @@ class BaseReviewForm(forms.Form):
     def metadata_fields(self):
         for field in self._get_fields_by_tag(FieldTags.METADATA):
             yield field
+
+    @property
+    def verification_fields(self):
+        for field in self._get_fields_by_tag(FieldTags.VERIFICATION):
+            yield field
+
+    @property
+    def fields_with_verifications(self):
+        ver_fields = {field.name: field for field in self.verification_fields}
+
+        class Wrapper:
+            def __init__(self, field, ver_field):
+                self.field = field
+                self.ver_field = ver_field
+        wrappers = []
+        for field in self.data_entry_fields:
+            ver_name = "ver/%s" % field.name
+            ver_field = ver_fields.get(ver_name, None)
+            if ver_field is not None:
+                wrappers.append(Wrapper(field, ver_field))
+            else:
+                raise Exception("no ver")
+        return wrappers
 
     def _get_fields_by_tag(self, tag):
         # this allows us to partition the types of fields in groups
@@ -71,6 +94,7 @@ class ReviewFormGenerator:
             registry_code = self.registry_model.code
             review_code = self.review.code
             review_item_code = self.review_item.code
+            review_item_type = self.review_item.item_type
 
         form_class = type(self.form_class_name,
                           (self.base_class, Mixin),
@@ -107,13 +131,17 @@ class ReviewFormGenerator:
             css = {'all': ('dmd_admin.css',)}
         return Media
 
-    def generate_fields_from_section(self, form_model, section_model):
+    def generate_fields_from_section(self, form_model, section_model, include_verification=False):
         if section_model is None:
             return {}
         d = {}
         for cde_model in section_model.cde_models:
             field_name, field = self.create_cde_field((form_model, section_model, cde_model))
             field.rdrf_tag = FieldTags.DATA_ENTRY
+            if include_verification:
+                ver_field_name, ver_field = self.generate_verification_field(field_name)
+                d[ver_field_name] = ver_field
+                logger.debug("added tag %s to field %s" % (FieldTags.DATA_ENTRY, field))
             logger.debug("added tag %s to field %s" % (FieldTags.DATA_ENTRY, field))
 
             d.update({field_name: field})
@@ -126,20 +154,21 @@ class ReviewFormGenerator:
         field_name = cde_model.code
         return field_name, field
 
-    def generate_current_status_field(self):
+    def generate_verification_field(self, target_field_name):
+        # item = 0 for non multisection target
+        # item = 0,1,2 for multisection target
         field = forms.CharField(max_length=1,
-                                widget=forms.Select(choices=CURRENT_STATUS_CHOICES),
-                                initial="4")
-        field.label = _("What is the current status of this condition?")
-        field.help_text = _("Please indicate the current status of this medical condition in your child/adult.")
-        field_name = "metadata_current_status"
-        field.rdrf_tag = FieldTags.METADATA
+                                widget=forms.Select(choices=VERIFICATION_CHOICES),
+                                initial="U")
+        field.label = ""  # field will sit next to the "real" field
+        field_name = "ver/%s" % target_field_name
+        field.rdrf_tag = FieldTags.VERIFICATION
         return field_name, field
 
     def generate_condition_changed_field(self):
         field = forms.CharField(max_length=1,
-                                widget=forms.Select(choices=CONDITION_CHOICES,
-                                                    attrs={'class': 'condition'}),
+                                widget=forms.RadioSelect(choices=CONDITION_CHOICES,
+                                                         attrs={'class': 'condition'}),
                                 initial="3")
         field.label = _("Has your child/adult's condition changed since your report?")
         field_name = "metadata_condition_changed"
@@ -242,8 +271,6 @@ class SectionMonitorReviewFormGenerator(ReviewFormGenerator):
 
     def generate_metadata_fields(self):
         d = {}
-        current_status_field_name, current_status_field = self.generate_current_status_field()
-        d[current_status_field_name] = current_status_field
         condition_changed_field_name, condition_changed_field = self.generate_condition_changed_field()
         d[condition_changed_field_name] = condition_changed_field
 
@@ -280,7 +307,35 @@ class MultisectionAddReviewFormGenerator(ReviewFormGenerator):
 
 
 class VerificationReviewFormGenerator(ReviewFormGenerator):
-    pass
+    def generate_data_entry_fields(self):
+        d = {}
+        form_model = self.review_item.form
+        section_model = self.review_item.section
+        if form_model is None and section_model is None:
+            logger.debug("returning ad hoc fields")
+            return self._ad_hoc_data_entry_fields(self.review_item.target_metadata)
+
+        if self.review_item.fields:
+            cde_models = self._get_cdes(self.review_item.fields)  # subset of fields from the section
+        else:
+            cde_models = section_model.cde_models   # assume all
+
+        for cde_model in cde_models:
+            if cde_model.calculation:
+                continue
+            cde_field_name, cde_field_obj = self.create_cde_field((form_model, section_model, cde_model))
+            d[cde_field_name] = cde_field_obj
+            target = cde_field_name
+            ver_field_name, ver_field_obj = self.generate_verification_field(target)
+            d[ver_field_name] = ver_field_obj
+        return d
+
+    def _ad_hoc_data_entry_fields(self, target_metadata):
+        return {}
+
+    def _get_cdes(self, cde_codes_csv):
+        cde_codes = [s.strip() for s in cde_codes_csv.split(",")]
+        return [CommonDataElement.objects.get(code=cde_code) for cde_code in cde_codes]
 
 
 class DummyFormClass(forms.Form):

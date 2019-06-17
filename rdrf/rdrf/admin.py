@@ -31,6 +31,7 @@ from rdrf.models.definition.review_models import Review
 from rdrf.models.definition.review_models import ReviewItem
 from rdrf.models.definition.review_models import PatientReview
 from rdrf.models.definition.review_models import PatientReviewItem
+from rdrf.models.definition.verification_models import Verification
 
 from rdrf.system_role import SystemRoles
 
@@ -457,6 +458,19 @@ class PatientReviewAdmin(admin.ModelAdmin):
     inlines = [PatientReviewItemAdmin]
 
 
+class VerificationAdmin(admin.ModelAdmin):
+    model = Verification
+    list_display = ("patient",
+                    "registry",
+                    "form_name",
+                    "section_code",
+                    "cde_code",
+                    "created_date",
+                    "status",
+                    "username",
+                    "data")
+
+
 CDEPermittedValueAdmin = create_restricted_model_admin_class(
     CDEPermittedValue,
     ordering=['code'],
@@ -514,6 +528,7 @@ NORMAL_MODE_ADMIN_COMPONENTS = [
     (ConsentRule, ConsentRuleAdmin),
     (Review, ReviewAdmin),
     (PatientReview, PatientReviewAdmin),
+    (Verification, VerificationAdmin),
 ]
 
 ADMIN_COMPONENTS = []

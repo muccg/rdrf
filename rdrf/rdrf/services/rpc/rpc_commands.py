@@ -263,3 +263,27 @@ def rpc_get_forms_list(request, registry_code, patient_id, form_group_id):
 
     return {"status": "success",
             "html": html}
+
+
+def rpc_check_verification(request,
+                           registry_code,
+                           patient_id,
+                           context_id,
+                           form_name,
+                           section_code,
+                           item_index,
+                           cde_code,
+                           value):
+    from rdrf.models.definition.verification_models import check_verification
+
+    is_verified = check_verification(registry_code,
+                                     patient_id,
+                                     context_id,
+                                     form_name,
+                                     section_code,
+                                     item_index,
+                                     cde_code,
+                                     value)
+
+    return {"status": "success",
+            "verified": is_verified}
