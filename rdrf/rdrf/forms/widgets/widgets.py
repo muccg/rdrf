@@ -379,7 +379,7 @@ class ReadOnlySelect(widgets.Select):
     def _make_label(self, html):
         import re
         html = html.replace("\n", "")
-        pattern = re.compile(r'.*selected=\"selected\">(.*?)</option>.*')
+        pattern = re.compile(r'.*selected>(.*?)</option>.*')
         m = pattern.match(html)
         if m:
             option_display_text = m.groups(1)[0]

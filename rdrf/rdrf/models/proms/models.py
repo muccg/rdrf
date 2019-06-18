@@ -5,7 +5,9 @@ from django.db import models
 from django.urls import reverse
 
 from rdrf.models.definition.models import Registry
+from rdrf.models.definition.models import RegistryForm
 from rdrf.models.definition.models import CommonDataElement
+from rdrf.models.definition.models import ContextFormGroup
 from rdrf.services.io.notifications.notifications import Notifier
 from rdrf.services.io.notifications.notifications import NotificationError
 from registry.patients.models import Patient
@@ -29,6 +31,16 @@ class Survey(models.Model):
     name = models.CharField(max_length=80)
     display_name = models.CharField(max_length=80, blank=True, null=True)
     is_followup = models.BooleanField(default=False)
+    context_form_group = models.ForeignKey(ContextFormGroup,
+                                           blank=True,
+                                           null=True,
+                                           on_delete=models.SET_NULL)
+
+    # if this set will on try to populate this form on proms pull
+    form = models.ForeignKey(RegistryForm,
+                             blank=True,
+                             null=True,
+                             on_delete=models.SET_NULL)
 
     @property
     def client_rep(self):
@@ -292,8 +304,17 @@ class SurveyRequest(models.Model):
 
     @property
     def name(self):
-        return "%s %s Survey" % (self.registry.name,
-                                 self.survey_name)
+        return "%s %s" % (self.registry.name,
+                          self.survey_name)
+
+    @property
+    def display_name(self):
+        survey_model = Survey.objects.get(name=self.survey_name,
+                                          registry=self.registry)
+        if survey_model.display_name:
+            return survey_model.display_name
+
+        return self.survey_name
 
     def _send_email(self):
         logger.debug("sending email to user with link")
@@ -301,7 +322,7 @@ class SurveyRequest(models.Model):
             emailer = Notifier()
             subject_line = "%s %s Survey Request" % (self.registry.name,
                                                      self.survey_name)
-            email_body = "Please use the following link to take the %s survey: %s" % (self.name,
+            email_body = "Please use the following link to take the %s survey: %s" % (self.display_name,
                                                                                       self.email_link)
 
             emailer.send_email(self.patient.email,

@@ -149,9 +149,9 @@ class PromsProcessor:
 
     def _update_proms_fields(self, survey_request, survey_data):
         from rdrf.models.definition.models import RDRFContext
-        from rdrf.models.definition.models import ContextFormGroup
         # pokes downloaded proms into correct fields inside
         # clinical system
+        context_model = None
         logger.debug("updating downloaded proms for survey request %s" % survey_request.pk)
         patient_model = survey_request.patient
         metadata = self.registry_model.metadata
@@ -164,12 +164,46 @@ class PromsProcessor:
             logger.warning("No Consent metadata exists")
 
         is_followup = survey_request.survey.is_followup
+        context_form_group = survey_request.survey.context_form_group
+        if context_form_group is None and self.registry_model.has_feature("contexts"):
+            error_msg = "No Context Form Group selected on Survey %s" % survey_request.survey.name
+            raise Exception(error_msg)
+
+        if survey_request.survey.form:
+            target_form_model = survey_request.survey.form
+        else:
+            target_form_model = None
 
         if is_followup:
-            context_form_group = ContextFormGroup.objects.get(registry=self.registry_model, name="Followup")
             context_model = RDRFContext(registry=self.registry_model, context_form_group=context_form_group,
                                         content_object=patient_model, display_name="Follow Up")
             context_model.save()
+        else:
+            if self.registry_model.has_feature("contexts"):
+                try:
+                    context_model = RDRFContext.objects.get(registry=self.registry_model,
+                                                            context_form_group=context_form_group,
+                                                            object_id=patient_model.pk)
+
+                    if target_form_model and target_form_model not in context_form_group.forms:
+                        error_msg = "The target form %s is not in the form group %s" % (target_form_model.name,
+                                                                                        context_form_group.name)
+                        raise Exception(error_msg)
+                except RDRFContext.DoesNotExist:
+                    error_msg = "Cannot locate context for group %s patient id %s" % (context_form_group,
+                                                                                      patient_model.pk)
+                    raise Exception(error_msg)
+                except RDRFContext.MultipleObjectsReturned:
+                    error_msg = "Expecting one context for group %s patient id %s" % (context_form_group,
+                                                                                      patient_model.pk)
+                    raise Exception(error_msg)
+
+            else:
+                # we should just use the "default" context
+                context_model = patient_model.default_context(self.registry_model)
+
+        if context_model is None:
+            raise Exception("cannot determine proms pull context for patient id %s" % patient_model.pk)
 
         for cde_code, value in survey_data.items():
             try:
@@ -188,7 +222,7 @@ class PromsProcessor:
                         is_consent = True
 
                 if not is_consent:
-                    form_model, section_model = self._locate_cde(cde_model)
+                    form_model, section_model = self._locate_cde(cde_model, context_model, target_form_model)
             except BaseException:
                 logger.error("could not locate cde %s" % cde_code)
                 # should fail for now skip
@@ -196,30 +230,24 @@ class PromsProcessor:
                 continue
 
             try:
-                if is_followup:
-                    patient_model.set_form_value(self.registry_model.code,
-                                                 form_model.name,
-                                                 section_model.code,
-                                                 cde_model.code,
-                                                 value,
-                                                 context_model)
-                else:
-                    patient_model.set_form_value(self.registry_model.code,
-                                                 form_model.name,
-                                                 section_model.code,
-                                                 cde_model.code,
-                                                 value)
+                patient_model.set_form_value(self.registry_model.code,
+                                             form_model.name,
+                                             section_model.code,
+                                             cde_model.code,
+                                             value,
+                                             context_model)
             except Exception as ex:
                 logger.error("Error updating proms field %s->%s: %s" % (cde_code,
                                                                         value,
                                                                         ex))
                 continue
 
-            logger.debug("proms updated! %s %s %s %s --> %s" % (patient_model,
-                                                                form_model.name,
-                                                                section_model.code,
-                                                                cde_model.code,
-                                                                value))
+            logger.debug("proms updated: patient %s context %s form %s sec %s cde %s val %s" % (patient_model,
+                                                                                                context_model.pk,
+                                                                                                form_model.name,
+                                                                                                section_model.code,
+                                                                                                cde_model.code,
+                                                                                                value))
 
         survey_request.state = SurveyRequestStates.RECEIVED
         survey_request.response = json.dumps(survey_data)
@@ -232,9 +260,16 @@ class PromsProcessor:
         consent_question_model = ConsentQuestion.objects.get(code=consent_code)
         patient_model.set_consent(consent_question_model, answer)
 
-    def _locate_cde(self, target_cde_model):
+    def _locate_cde(self, target_cde_model, context_model, target_form_model):
         # retrieve first available..
-        for form_model in self.registry_model.forms:
+        if target_form_model:
+            form_models = [target_form_model]
+        elif context_model.context_form_group:
+            form_models = context_model.context_form_group.forms
+        else:
+            form_models = self.registry_model.forms
+
+        for form_model in form_models:
             for section_model in form_model.section_models:
                 if not section_model.allow_multiple:
                     for cde_model in section_model.cde_models:

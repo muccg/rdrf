@@ -391,6 +391,7 @@ class PreconditionAdmin(admin.ModelAdmin):
 class SurveyQuestionAdmin(admin.StackedInline):
     model = SurveyQuestion
     extra = 0
+    ordering = ('position',)
     list_display = ("registry", "name", "expression")
     inlines = [PreconditionAdmin]
 

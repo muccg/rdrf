@@ -617,7 +617,27 @@ class Importer(object):
             survey_model.name = survey_dict["name"]
             survey_model.display_name = survey_dict.get("display_name", "")
             survey_model.is_followup = survey_dict.get("is_followup", False)
+            context_form_group_name = survey_dict.get("context_form_group", None)
+            if context_form_group_name:
+                from rdrf.models.definition.models import ContextFormGroup
+                cfg = ContextFormGroup.objects.get(name=context_form_group_name,
+                                                   registry=registry_model)
+            else:
+                cfg = None
+
             survey_model.save()
+            if cfg:
+                survey_model.context_form_group = cfg
+                survey_model.save()
+
+            form_name = survey_dict.get("form", None)
+            if form_name:
+                from rdrf.models.definition.models import RegistryForm
+                form_model = RegistryForm.objects.get(registry=registry_model,
+                                                      name=form_name)
+                survey_model.form = form_model
+                survey_model.save()
+
             logger.info("saved survey_model %s" % survey_model.name)
 
             for sq in survey_dict["questions"]:
@@ -652,7 +672,9 @@ class Importer(object):
             instance, created = klass.objects.get_or_create(**kwargs)
             return instance
 
+        logger.debug("getting codes from reviews")
         review_codes = [r["code"] for r in self.data["reviews"]]
+        logger.debug("got codes from reviews")
 
         for review_model in Review.objects.filter(registry=registry_model):
             if review_model.code not in review_codes:
