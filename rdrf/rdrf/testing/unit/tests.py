@@ -47,6 +47,24 @@ class AbnormalityRulesTestCase(TestCase):
         self.assertFalse(self.cde.is_abnormal(10))
         self.assertFalse(self.cde.is_abnormal(11))
 
+    def test_minus_integer(self):
+        self.cde.abnormality_condition = "x <= -10"
+        self.assertTrue(self.cde.is_abnormal(-11))
+        self.assertTrue(self.cde.is_abnormal(-10))
+        self.assertFalse(self.cde.is_abnormal(-9))
+        self.assertFalse(self.cde.is_abnormal(0))
+        self.assertFalse(self.cde.is_abnormal(10))
+
+    def test_float(self):
+        self.cde.datatype = "float"
+        self.cde.abnormality_condition = "x < 10.2"
+        self.assertTrue(self.cde.is_abnormal(9))
+        self.assertTrue(self.cde.is_abnormal(10))
+        self.assertTrue(self.cde.is_abnormal(10.0))
+        self.assertTrue(self.cde.is_abnormal(10.1))
+        self.assertFalse(self.cde.is_abnormal(10.2))
+        self.assertFalse(self.cde.is_abnormal(11))
+
     def test_assignment_rule(self):
         self.cde.abnormality_condition = "x = 10"
         self.assertRaises(InvalidAbnormalityConditionError, self.cde.is_abnormal, value=9)
@@ -59,6 +77,11 @@ class AbnormalityRulesTestCase(TestCase):
         self.cde.abnormality_condition = "2 < x < 10"
         self.assertRaises(InvalidAbnormalityConditionError, self.cde.is_abnormal, value=9)
 
+    def test_float_range(self):
+        self.cde.datatype = "float"
+        self.cde.abnormality_condition = "2.0 < x <= 10.0"
+        self.assertRaises(InvalidAbnormalityConditionError, self.cde.is_abnormal, value=9)
+
     def test_unsupported_datatype(self):
         self.cde.datatype = "boolean"
         self.cde.abnormality_condition = "x == 1"
@@ -69,6 +92,38 @@ class AbnormalityRulesTestCase(TestCase):
         self.assertFalse(self.cde.is_abnormal(9))
         self.assertTrue(self.cde.is_abnormal(10))
         self.assertFalse(self.cde.is_abnormal(11))
+
+    def test_float_equality(self):
+        self.cde.datatype = "float"
+        self.cde.abnormality_condition = "x == 10.2"
+        self.assertFalse(self.cde.is_abnormal(10))
+        self.assertTrue(self.cde.is_abnormal(10.2))
+        self.assertFalse(self.cde.is_abnormal(10.3))
+
+    def test_minus_float_equality(self):
+        self.cde.datatype = "float"
+        self.cde.abnormality_condition = "x == -10.2"
+        self.assertFalse(self.cde.is_abnormal(10.2))
+        self.assertTrue(self.cde.is_abnormal(-10.2))
+        self.cde.abnormality_condition = "x == -10.0"
+        self.assertTrue(self.cde.is_abnormal(-10))
+        self.assertTrue(self.cde.is_abnormal(-10.0))
+        self.assertFalse(self.cde.is_abnormal(-10.2))
+
+    def test_bad_float(self):
+        self.cde.datatype = "float"
+        self.cde.abnormality_condition = "x == 10."
+        self.assertRaises(InvalidAbnormalityConditionError, self.cde.is_abnormal, value=9)
+
+    def test_second_bad_float(self):
+        self.cde.datatype = "float"
+        self.cde.abnormality_condition = "x == 10.1."
+        self.assertRaises(InvalidAbnormalityConditionError, self.cde.is_abnormal, value=9)
+
+    def test_third_bad_float(self):
+        self.cde.datatype = "float"
+        self.cde.abnormality_condition = "x == 10.1.2"
+        self.assertRaises(InvalidAbnormalityConditionError, self.cde.is_abnormal, value=9)
 
     def test_string_equality(self):
         self.cde.datatype = "range"
@@ -90,13 +145,30 @@ class AbnormalityRulesTestCase(TestCase):
         self.assertFalse(self.cde.is_abnormal(11))
 
     def test_in_number_list(self):
-        self.cde.abnormality_condition = "x in [10,20,30]"
+        self.cde.abnormality_condition = "x in [-2,10,20,30]"
+        self.assertFalse(self.cde.is_abnormal(-10))
+        self.assertTrue(self.cde.is_abnormal(-2))
         self.assertFalse(self.cde.is_abnormal(9))
         self.assertTrue(self.cde.is_abnormal(10))
         self.assertTrue(self.cde.is_abnormal(20))
         self.assertTrue(self.cde.is_abnormal(30))
         self.assertFalse(self.cde.is_abnormal("10"))
         self.assertFalse(self.cde.is_abnormal(11))
+
+    def test_in_float_list(self):
+        self.cde.datatype = "float"
+        self.cde.abnormality_condition = "x in [10.0,20.0,30.0]"
+        self.assertFalse(self.cde.is_abnormal(9))
+        self.assertTrue(self.cde.is_abnormal(10))
+        self.assertTrue(self.cde.is_abnormal(10.0))
+        self.assertTrue(self.cde.is_abnormal(20))
+        self.assertTrue(self.cde.is_abnormal(20.0))
+        self.assertTrue(self.cde.is_abnormal(30))
+        self.assertTrue(self.cde.is_abnormal(30.0))
+        self.assertFalse(self.cde.is_abnormal("10"))
+        self.assertFalse(self.cde.is_abnormal("10.0"))
+        self.assertFalse(self.cde.is_abnormal(11))
+        self.assertFalse(self.cde.is_abnormal(10.3))
 
     def test_in_string_list(self):
         self.cde.datatype = "range"
