@@ -113,6 +113,9 @@ class UserChangeForm(UserValidationMixin, forms.ModelForm):
                 id__in=[wg.id for wg in self.user.working_groups.all()])
             self.fields['registry'].queryset = Registry.objects.filter(
                 code__in=[reg.code for reg in self.user.registry.all()])
+        password = self.fields.get('password')
+        if password:
+            password.help_text = password.help_text.format('../password/')
 
     from django.contrib.auth.forms import UserChangeForm as OldUserChangeForm
     password = ReadOnlyPasswordHashField(
