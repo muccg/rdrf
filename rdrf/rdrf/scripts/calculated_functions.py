@@ -1,9 +1,16 @@
 from datetime import datetime
 from decimal import Decimal, ROUND_HALF_UP
-
 import math
 import logging
 logger = logging.getLogger(__name__)
+
+# This module (file) contains the calulated fields functions.
+# What are calculated field:
+# CDE can be read-only field that are automatically calculated. We call them calculated fields. Their values are set by
+# the functions
+# These field are created and set by us, RDRF developer as we are the maintainer of these CDE calculation.
+# The RDRF designer can still edit these field in the administration but can not change the calculations.
+# They must not change the CDE code.
 
 
 ####################### BEGIN OF CDEfhDutchLipidClinicNetwork ###################################
@@ -149,7 +156,8 @@ def getScore(context, patient):
 
 def CDEfhDutchLipidClinicNetwork(patient, context):
     print(f"RUNNING CDEfhDutchLipidClinicNetwork")
-
+    if context["DateOfAssessment"] == "" or context["DateOfAssessment"] is None:
+        return ""
     return str(getScore(context, patient))
 
 def CDEfhDutchLipidClinicNetwork_inputs():
@@ -305,6 +313,10 @@ def categorise(context, patient):
 
 def CDE00024(patient, context):
     print(f"RUNNING CDE00024")
+
+    if context["DateOfAssessment"] == "" or context["DateOfAssessment"] is None:
+        return ""
+
     return str(categorise(context, patient))
 
 def CDE00024_inputs():
@@ -367,6 +379,9 @@ def LDLCholesterolAdjTreatment(patient, context):
 
     # Inputs
     # LDL-cholesterol concentration
+    if context["CDE00019"] == "" or context["CDE00019"] is None:
+        return ""
+
     ldl_chol = float(context["CDE00019"])
     # Dosage
     dose = context["PlasmaLipidTreatment"]
