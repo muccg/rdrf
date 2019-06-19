@@ -57,7 +57,7 @@ class Command(BaseCommand):
         if review_code is None:
             self._print("Error: review code required")
             sys.exit(1)
-        
+
         try:
             review_model = Review.objects.get(registry=registry_model,
                                               code=review_code)
@@ -69,20 +69,10 @@ class Command(BaseCommand):
         if default_context is None:
             self._print("Error: default context could not be determined")
             sys.exit(1)
-        
+
         pr = PatientReview(review=review_model,
                            patient=patient_model,
                            context=default_context)
 
         pr.save()
         pr.create_review_items()
-        
-                           
-                           
-
-            
-            
-
-        
-
-        
