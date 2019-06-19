@@ -218,7 +218,7 @@ class CountryWidget(widgets.Select):
         output = [format_html("<select{}>", flatatt(final_attrs))]
         empty_option = "<option value=''>---------</option>"
         output.append(empty_option)
-        for country in pycountry.countries:
+        for country in sorted(pycountry.countries, key=lambda c: c.name):
             if value == country.alpha_2:
                 output.append("<option value='%s' selected>%s</option>" %
                               (country.alpha_2, country.name))

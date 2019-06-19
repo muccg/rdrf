@@ -5,7 +5,7 @@ import logging
 import os.path
 import yaml
 
-from pyparsing import Word, nums, delimitedList, alphanums, Literal, LineEnd, LineStart
+from pyparsing import Word, nums, Optional, delimitedList, alphanums, Literal, LineEnd, LineStart
 
 from django.conf import settings
 from django.contrib.auth.models import Group
@@ -913,8 +913,9 @@ def validate_rule(rule, datatype):
         parsing_formats = string_equality_expression | string_list_expression
 
     if datatype in ["integer", "float"]:
-        numeric_expression = 'x' + (eq | le | ge | lo | g) + Word(nums)
-        numeric_list_expression = 'x' + Literal('in') + "[" + (delimitedList(Word(nums), ',')) + "]"
+        number = Optional('-') + Word(nums) + Optional('.' + Word(nums))
+        numeric_expression = 'x' + (eq | le | ge | lo | g) + number
+        numeric_list_expression = 'x' + Literal('in') + "[" + (delimitedList(number, ',')) + "]"
         parsing_formats = numeric_expression | numeric_list_expression
 
     # If we can not find any matching rule (should only happen when a designer edit the CDE).
