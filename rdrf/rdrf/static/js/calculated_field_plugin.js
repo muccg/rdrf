@@ -19,8 +19,9 @@
 
                     // check if it is a date like dd-mm-yyyy and convert it in yyyy-mm-dd
                     if (moment(cde_value, "D-M-YYYY",true).isValid()) {
-                        // console.log(`Detecting wrong date: ${required_input_cde}: ${cde_value}`);
-                        cde_value = moment(cde_value).format('YYYY-MM-DD');
+                        // console.log(`Detecting wrong date: ${required_input_cde}: ${cde_value}`)
+                        // console.log(moment(cde_value))
+                        cde_value = moment(cde_value, "D-M-YYYY",true).format('YYYY-MM-DD');
                         // console.log(`New date: ${cde_value}`);
                     }
 

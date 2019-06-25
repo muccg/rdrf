@@ -12,6 +12,19 @@ logger = logging.getLogger(__name__)
 # The RDRF designer can still edit these field in the administration but can not change the calculations.
 # They must not change the CDE code.
 
+# The input text are always set by the front end to empty string when they are not filled.
+# However when these calculated functions are called by command line, the input which are not filled are not set because
+# get_form_value do not return them.
+
+
+def fill_missing_input(context, input_func_name):
+    mod = __import__('rdrf.scripts.calculated_functions', fromlist=['object'])
+    func = getattr(mod, input_func_name)
+    for cde_code in func():
+        if cde_code not in context.keys():
+            context[cde_code] = ""
+    return context
+
 
 ####################### BEGIN OF CDEfhDutchLipidClinicNetwork ###################################
 
@@ -155,10 +168,18 @@ def getScore(context, patient):
 
 
 def CDEfhDutchLipidClinicNetwork(patient, context):
-    print(f"RUNNING CDEfhDutchLipidClinicNetwork")
-    if context["DateOfAssessment"] == "" or context["DateOfAssessment"] is None:
+
+    context = fill_missing_input(context, 'CDEfhDutchLipidClinicNetwork_inputs')
+
+    # print(f"RUNNING CDEfhDutchLipidClinicNetwork")
+    if  context["DateOfAssessment"] is None or context["DateOfAssessment"] == "":
         return ""
-    return str(getScore(context, patient))
+    score = str(getScore(context, patient))
+    # print(score)
+    # # remove trailing 0: 14.23 => 14.23, 14.20 => 14.2, 14.00 => 14
+    # score_no_trailing_zero = score.rstrip('0').rstrip('.') if '.' in score else score
+    # print(score_no_trailing_zero)
+    return score
 
 def CDEfhDutchLipidClinicNetwork_inputs():
     return ["DateOfAssessment", "CDEIndexOrRelative", "CDE00004", "CDE00003", "FHFamilyHistoryChild", "FHFamHistTendonXanthoma",
@@ -170,9 +191,10 @@ def CDEfhDutchLipidClinicNetwork_inputs():
 ################ BEGINNING OF CD00024 ################################
 
 def getFloat(x):
-    y = float(x)
-    if not math.isnan(y):
-        return y
+    if x is not None:
+        y = float(x)
+        if not math.isnan(y):
+            return y
     return None
 
 
@@ -312,9 +334,11 @@ def categorise(context, patient):
 
 
 def CDE00024(patient, context):
-    print(f"RUNNING CDE00024")
+    # print(f"RUNNING CDE00024")
 
-    if context["DateOfAssessment"] == "" or context["DateOfAssessment"] is None:
+    context = fill_missing_input(context, 'CDE00024_inputs')
+
+    if context["DateOfAssessment"] is None or context["DateOfAssessment"] == "":
         return ""
 
     return str(categorise(context, patient))
@@ -375,19 +399,28 @@ def roundToTwo(num):
 
 
 def LDLCholesterolAdjTreatment(patient, context):
-    print(f"RUNNING LDLCholesterolAdjTreatment")
+    # print(f"RUNNING LDLCholesterolAdjTreatment")
+
+    context = fill_missing_input(context, 'LDLCholesterolAdjTreatment_inputs')
 
     # Inputs
     # LDL-cholesterol concentration
-    if context["CDE00019"] == "" or context["CDE00019"] is None:
-        return ""
+
+    # if empty CDE000019 return a NaN error
+    if context["CDE00019"] is None or context["CDE00019"] == "":
+        return "NaN"
 
     ldl_chol = float(context["CDE00019"])
     # Dosage
     dose = context["PlasmaLipidTreatment"]
 
     try:
-        return str(roundToTwo(ldl_chol * correction_factor(dose)))
+        LDLCholesterolAdjTreatment = str(roundToTwo(ldl_chol * correction_factor(dose)))
+        # print(LDLCholesterolAdjTreatment)
+        # remove trailing 0: 14.23 => 14.23, 14.20 => 14.2, 14.00 => 14
+        trimmed_LDLCholesterolAdjTreatment = LDLCholesterolAdjTreatment.rstrip('0').rstrip('.') if '.' in LDLCholesterolAdjTreatment else LDLCholesterolAdjTreatment
+        # print(trimmed_LDLCholesterolAdjTreatment)
+        return trimmed_LDLCholesterolAdjTreatment
 
     except:
         return ""
@@ -401,17 +434,30 @@ def LDLCholesterolAdjTreatment_inputs():
 ################ BEGINNING OF CDEBMI ################################
 
 def CDEBMI(patient, context):
-    print(f"RUNNING CDEBMI")
+    # print(f"RUNNING CDEBMI")
+
+    context = fill_missing_input(context, 'CDEBMI_inputs')
 
     height = context["CDEHeight"]
     weight = context["CDEWeight"]
+
+    # Simulating wrid JS behaviour to match JS calculation
+    # Hopefull we decide later to remove this behaviour but in a first stage in converting the JS calculation in python
+    # we try to match the exact result of the JS calulcation (even thought they may be wrong like age calculation bug or
+    # weird like here with "" / NUMBER => 0)
+    if not weight and height:
+        return "0"
 
     if not height or not weight:
         return "NaN"
 
     bmi = weight / (height * height)
 
-    return str(roundToTwo(bmi))
+    CDEBMI = str(roundToTwo(bmi))
+    # remove trailing 0: 14.23 => 14.23, 14.20 => 14.2, 14.00 => 14
+    trimmed_CDEBMI = CDEBMI.rstrip('0').rstrip('.') if '.' in CDEBMI else CDEBMI
+    return trimmed_CDEBMI
+
 
 def CDEBMI_inputs():
     return ["CDEHeight", "CDEWeight"]
@@ -420,18 +466,28 @@ def CDEBMI_inputs():
 ################ END OF CDEBMI ################################
 
 ################ BEGINNING OF FHDeathAge ################################
+epoch = datetime.utcfromtimestamp(0)
+def unix_time_millis(dt):
+    return (dt - epoch).total_seconds() * 1000.0
+
+def broken_rounded_age(birthDate, assessmentDate):
+    age = unix_time_millis(assessmentDate) - unix_time_millis(datetime.combine(birthDate, datetime.min.time()))
+    age_in_years  = age / ( 1000.0 * 3600.0 * 24.0 * 365.0)
+    return math.floor(age_in_years)
 
 def FHDeathAge(patient, context):
-    print(f"RUNNING FHDeathAge")
+    # print(f"RUNNING FHDeathAge")
+
+    context = fill_missing_input(context, 'FHDeathAge_inputs')
 
     if not context["FHDeathDate"]:
         return "NaN"
 
     deathDate = datetime.strptime(context["FHDeathDate"], '%Y-%m-%d')
     birthDate = patient["date_of_birth"]
-    deathAge = patientAgeAtAssessment2(birthDate, deathDate)
+    deathAge = broken_rounded_age(birthDate, deathDate)
 
-    if not deathAge:
+    if deathAge is None or deathAge == "":
         return None
 
     return str(deathAge)
@@ -441,11 +497,64 @@ def FHDeathAge_inputs():
 
 ################ END OF FHDeathAge ################################
 
+################ BEGINNING OF fhAgeAtConsent ################################
+def fhAgeAtConsent(patient, context):
+    # print(f"RUNNING fhAgeAtConsent")
+
+    context = fill_missing_input(context, 'fhAgeAtConsent_inputs')
+
+    if not context["FHconsentDate"]:
+        return "NaN"
+
+    consentDate = datetime.strptime(context["FHconsentDate"], '%Y-%m-%d')
+    birthDate = patient["date_of_birth"]
+    consentAge = broken_rounded_age(birthDate, consentDate)
+
+    if consentAge is None or consentAge == "":
+        return None
+
+    return str(consentAge)
+
+def fhAgeAtConsent_inputs():
+    return ["FHconsentDate"]
+
+################ END OF fhAgeAtConsent ################################
+
+################ BEGINNING OF fhAgeAtAssessment ################################
+
+
+
+
+def fhAgeAtAssessment(patient, context):
+    # print(f"RUNNING fhAgeAtAssessment")
+
+    context = fill_missing_input(context, 'fhAgeAtAssessment_inputs')
+
+    if not context["DateOfAssessment"]:
+        return "NaN"
+
+    assessmentDate = datetime.strptime(context["DateOfAssessment"], '%Y-%m-%d')
+    birthDate = patient["date_of_birth"]
+    assessmentAge = broken_rounded_age(birthDate, assessmentDate)
+
+    if assessmentAge is None or assessmentAge == "":
+        return None
+
+    return str(assessmentAge)
+
+
+def fhAgeAtAssessment_inputs():
+    return ["DateOfAssessment"]
+
+################ END OF fhAgeAtAssessment ################################
+
 
 ################ BEGINNING OF DDAgeAtDiagnosis ################################
 
 def DDAgeAtDiagnosis(patient, context):
-    print(f"RUNNING DDAgeAtDiagnosis")
+    # print(f"RUNNING DDAgeAtDiagnosis")
+
+    context = fill_missing_input(context, 'DDAgeAtDiagnosis_inputs')
 
     if not context["DateOfDiagnosis"]:
         return "NaN"
@@ -454,7 +563,7 @@ def DDAgeAtDiagnosis(patient, context):
     birthDate = patient["date_of_birth"]
     deathAge = patientAgeAtAssessment2(birthDate, diagnosisDate)
 
-    if not deathAge:
+    if deathAge is None or deathAge == "":
         return None
 
     return str(deathAge)
@@ -509,6 +618,8 @@ def getCategory(score):
 
 
 def poemScore(patient, context):
+
+    context = fill_missing_input(context, 'poemScore_inputs')
 
     q1 = context["poemQ1"]
     q2 = context["poemQ2"]
