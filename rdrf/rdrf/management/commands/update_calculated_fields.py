@@ -1,8 +1,6 @@
 import json
 import random
 import time
-import sys
-import math
 import urllib.parse
 from datetime import datetime
 
@@ -11,14 +9,12 @@ from django.core.management.base import BaseCommand
 
 from rdrf.models.definition.models import ClinicalData, CommonDataElement, RegistryForm, Section, RDRFContext, ContextFormGroupItem
 from registry.patients.models import Patient, DynamicDataWrapper
-from rdrf.scripts import  calculated_functions
 
+# do not display debug information for the node js call.
 import logging
 logging.getLogger("requests").setLevel(logging.WARNING)
 logging.getLogger("urllib3").setLevel(logging.WARNING)
 
-first_issue = True
-total_issue_left = 0
 
 class ScriptUser:
     username = 'Calculated field script'
@@ -26,8 +22,6 @@ class ScriptUser:
 
 class Command(BaseCommand):
     help = 'Update calculated field values. It is mainly use to trigger periodic update.'
-
-
 
     def add_arguments(self, parser):
         parser.add_argument('--patient_id', action='append', type=int,
@@ -99,9 +93,6 @@ class Command(BaseCommand):
         #                         }
         #         }
         cde_models_tree = build_cde_models_tree(calculated_cde_models, options, self)
-        # print(f"CDE MODELS TREE: {cde_models_tree}")
-
-        # print("----------------------- RUN CALCULATIONS --------------------------")
 
         if options['patient_id']:
             patient_models = Patient.objects.filter(id__in=options['patient_id'])
@@ -125,16 +116,12 @@ class Command(BaseCommand):
                                 changed_calculated_cdes = {}
                                 # context_var - it is the context variable of the js code (not to be confused with the RDRF context model).
                                 form_cde_values = get_form_cde_values(patient_model, context_id, registry_model, form_name,
-                                                  cde_models_tree)
+                                                                      cde_models_tree)
                                 context_var = build_context_var(patient_model, context_id, registry_model, form_name,
                                                                 cde_models_tree)
 
-                                # print(f"CONTEXT VAR: {context_var}")
-
                                 # For each section of the form (we only do that because we need to know the section_code when calling set_form_value)
-                                # print(f"section names: {cde_models_tree[registry_model.code][form_name].keys()}")
                                 for section_code in cde_models_tree[registry_model.code][form_name].keys():
-                                    # print(f"PARSING SECTION: {section_code}")
                                     # For each calculated cdes in this section, do a WS call to the node server evaluation the js code.
                                     for calculated_cde_model in calculated_cde_models:
                                         if calculated_cde_model.code in context_var.keys() and calculated_cde_model.code in \
@@ -159,36 +146,19 @@ class Command(BaseCommand):
                                                      registry_model)
 
         end = time.time()
-        if total_issue_left:
-            self.stdout.write(
-                self.style.ERROR(
-                    f"How many other issues to fix: {total_issue_left}"))
-
-        self.stdout.write(self.style.SUCCESS(f"All fields have been successfully updated in {end - start} seconds."))
+        self.stdout.write(self.style.SUCCESS(f"Script ended in {end - start} seconds."))
 
 
-def calculate_cde(patient_model, form_cde_values , calculated_cde_model):
-    # patient_date_of_birth = patient_model.date_of_birth
-    # patient_sex = patient_model.sex
-    # print(f"patient date of birth {patient_date_of_birth} - {patient_sex}")
-
+def calculate_cde(patient_model, form_cde_values, calculated_cde_model):
     patient_values = {'date_of_birth': patient_model.date_of_birth,
-               'sex': patient_model.sex}
-
-    # print(form_cde_values)
+                      'sex': patient_model.sex}
     form_values = {}
     for section in form_cde_values["sections"]:
         for cde in section["cdes"]:
-            #TODO ignore multiple section - check if it is okay
+            # TODO ignore cde of list type - check if it is okay
             if type(cde) is not list:
-                form_values = {**form_values, cde["code"]:cde["value"]}
+                form_values = {**form_values, cde["code"]: cde["value"]}
 
-    # print(f"cde code: {calculated_cde_model.code}")
-    # print(f"FORM VALUES: {form_cde_values}")
-    # print(form_values)
-    # print(f"Patient id: {patient_model.id}")
-
-    # TODO we need to store/retrieve the calculation in a different module
     mod = __import__('rdrf.scripts.calculated_functions', fromlist=['object'])
     func = getattr(mod, calculated_cde_model.code)
     if func:
@@ -197,33 +167,16 @@ def calculate_cde(patient_model, form_cde_values , calculated_cde_model):
         raise Exception(f"Trying to call unknown calculated function {calculated_cde_model.code}()")
 
 
-
-
 def test_converted_python_calculation(calculated_cde_model, new_calculated_cde_value, patient_model, form_cde_values, command):
-    global first_issue, total_issue_left
-    #TODO remove this condition when function name implemented in the cde model.
-    # if calculated_cde_model.code in ['CDEfhDutchLipidClinicNetwork', 'CDE00024', 'LDLCholesterolAdjTreatment', 'CDEBMI', 'FHDeathAge', 'DDAgeAtDiagnosis']:
     new_python_calculated_value = calculate_cde(patient_model, form_cde_values, calculated_cde_model)
     if not (new_python_calculated_value == new_calculated_cde_value):
-        if first_issue:
-            print(f"patient_model.id: {patient_model.id} patient_model.date_of_birth: {patient_model.date_of_birth} patient_model.sex: {patient_model.sex}")
-            print(f"form_cde_values: {form_cde_values}")
-            first_issue = False
-            command.stdout.write(
-                command.style.ERROR(f"{calculated_cde_model.code} python calculation value: {new_python_calculated_value} - expected value: {new_calculated_cde_value}"))
-        else:
-            total_issue_left = total_issue_left + 1
+        command.stdout.write(
+            command.style.ERROR(f"{calculated_cde_model.code} python calculation value: {new_python_calculated_value} - expected value: {new_calculated_cde_value}"))
     else:
-        # command.stdout.write(
-        #     command.style.SUCCESS(
-        #         f"{calculated_cde_model.code} python calculation value: {new_python_calculated_value} - expected value: {new_calculated_cde_value}"))
         return new_python_calculated_value
 
 
 def save_new_calculation(changed_calculated_cdes, context_id, form_name, patient_model, registry_model):
-    # TODO: storing value could be done in a function run asynchronously
-    #
-
     # save the new form values in the ClinicalData model only when we have one values
     context_model = RDRFContext.objects.get(id=context_id)
     if changed_calculated_cdes:
@@ -241,11 +194,7 @@ def save_new_calculation(changed_calculated_cdes, context_id, form_name, patient
         #                                  user=ScriptUser(),
         #                                  context_model=context_model)
 
-    # TODO: alert us than the form has been updated (so we can track that the code is properly working)
-
-    # TODO: don't forget to update the form history (context level - if at least)
-
-    # print(f"--------------- END SAVING CALCULATION FOR THIS FORM (context: {context_id}) -------------------")
+    # TODO: record/alert someone than the form has been updated (so we can track that the code is properly working)
 
 
 def context_ids_for_patient_and_form(patient_model, form_name, registry_model):
@@ -263,21 +212,19 @@ def context_ids_for_patient_and_form(patient_model, form_name, registry_model):
     if not context_ids:
         context_ids = [c.id for c in patient_model.context_models]
 
-    # print(f"FORM: {form_name} contexts: {context_ids} patient id: {patient_model.id}")
-    # print("---------------------------------------")
     return context_ids
 
 
 def get_form_cde_values(patient_model, context_id, registry_model, form_name, cde_models_tree):
     collection = ClinicalData.objects.collection(registry_model.code, "cdes")
     data = collection.find(patient_model, context_id).data()
-    if data :
+    if data:
         forms = data.first()
-        # print(f"forms: {forms['forms']}")
         for form in forms["forms"]:
             if form["name"] == form_name:
                 return form
     return None
+
 
 def build_context_var(patient_model, context_id, registry_model, form_name, cde_models_tree):
     context_var = {}
@@ -304,19 +251,12 @@ def build_context_var(patient_model, context_id, registry_model, form_name, cde_
                 context_var[cde_code] = cde_value
             except KeyError:
                 # we ignore empty values.
-                # print(f"IGNORING EMPTY VALUE: {cde_code}")
-                # context_var[cde_code] = ""
-                # print(context_var)
                 pass
 
     return context_var
 
 
 def call_ws_calculation(calculated_cde_model, patient_model, context_var):
-    # TODO: web service call could be done asynchronously
-    #       (not that simple because we need to check the node server can accept that many connections).
-    # print()
-    # print(f"{calculated_cde_model.code}")
     # Build the web service call parameter.
     patient_var = {'sex': patient_model.sex, 'date_of_birth': patient_model.date_of_birth.__format__("%Y-%m-%d")}
     rdrf_var = """
@@ -343,12 +283,9 @@ def call_ws_calculation(calculated_cde_model, patient_model, context_var):
     resp = requests.post(url='http://node_js_evaluator:3131/eval', headers=headers,
                          json=encoded_js_code)
     ws_value = resp.json()
-    # print(f"JSON Result: {ws_value}")
-    # print(type(ws_value))
     if ws_value == "":
         return ""
     new_calculated_cde_value = "NaN" if ws_value['isNan'] else str(ws_value['value'])
-    # print(f"Result: {new_calculated_cde_value}")
     return new_calculated_cde_value
 
 
@@ -377,44 +314,44 @@ def build_cde_models_tree(calculated_cde_models, options, command):
             # and if a section_code argument was passed, only reference cdes from the form containing this section.
             if any(calculated_cde_model.code in section.get_elements() for calculated_cde_model in calculated_cde_models
                    for section in section_models) and (not options['section_code'] or any(section.code in options['section_code']
-                   for section in section_models)):
+                                                                                          for section in section_models)):
 
                 for section_model in section_models:
-                        for cde_code in section_model.get_elements():
+                    for cde_code in section_model.get_elements():
                             # Check if we already retrieved some cde models for this section.
-                            if cde_models_tree \
-                                    and form_model.registry.code in cde_models_tree \
-                                    and form_model.name in cde_models_tree[form_model.registry.code] \
-                                    and section_model.code in cde_models_tree[form_model.registry.code][
-                                        form_model.name]:
-                                built_cdes = cde_models_tree[form_model.registry.code][form_model.name][
-                                    section_model.code]
-                            else:
-                                built_cdes = {}
-                            # Check if we already retrieved some cde models for this form.
-                            if cde_models_tree \
-                                    and form_model.registry.code in cde_models_tree \
-                                    and form_model.name in cde_models_tree[form_model.registry.code]:
-                                built_sections = cde_models_tree[form_model.registry.code][form_model.name]
-                            else:
-                                built_sections = {}
-                            # Check if we already retrieved some cde models for this registry.
-                            if cde_models_tree \
-                                    and form_model.registry.code in cde_models_tree:
-                                built_forms = cde_models_tree[form_model.registry.code]
-                            else:
-                                built_forms = {}
-                            # Cache the cde models so we don't retrieve twice the same cde model from the DB.
-                            if cde_code in cde_models_caching.keys():
-                                cde_model = cde_models_caching[cde_code]
-                            else:
-                                cde_model = CommonDataElement.objects.get(code=cde_code)
-                                cde_models_caching[cde_code] = cde_model
-                            # Add the cde model to the dictionary.
-                            cde_models_tree = {**cde_models_tree,
-                                               form_model.registry.code: {**built_forms,
-                                                                          form_model.name: {**built_sections,
-                                                                                            section_model.code: {
-                                                                                                **built_cdes,
-                                                                                                cde_code: cde_model}}}}
+                        if cde_models_tree \
+                                and form_model.registry.code in cde_models_tree \
+                                and form_model.name in cde_models_tree[form_model.registry.code] \
+                                and section_model.code in cde_models_tree[form_model.registry.code][
+                                    form_model.name]:
+                            built_cdes = cde_models_tree[form_model.registry.code][form_model.name][
+                                section_model.code]
+                        else:
+                            built_cdes = {}
+                        # Check if we already retrieved some cde models for this form.
+                        if cde_models_tree \
+                                and form_model.registry.code in cde_models_tree \
+                                and form_model.name in cde_models_tree[form_model.registry.code]:
+                            built_sections = cde_models_tree[form_model.registry.code][form_model.name]
+                        else:
+                            built_sections = {}
+                        # Check if we already retrieved some cde models for this registry.
+                        if cde_models_tree \
+                                and form_model.registry.code in cde_models_tree:
+                            built_forms = cde_models_tree[form_model.registry.code]
+                        else:
+                            built_forms = {}
+                        # Cache the cde models so we don't retrieve twice the same cde model from the DB.
+                        if cde_code in cde_models_caching.keys():
+                            cde_model = cde_models_caching[cde_code]
+                        else:
+                            cde_model = CommonDataElement.objects.get(code=cde_code)
+                            cde_models_caching[cde_code] = cde_model
+                        # Add the cde model to the dictionary.
+                        cde_models_tree = {**cde_models_tree,
+                                           form_model.registry.code: {**built_forms,
+                                                                      form_model.name: {**built_sections,
+                                                                                        section_model.code: {
+                                                                                            **built_cdes,
+                                                                                            cde_code: cde_model}}}}
     return cde_models_tree

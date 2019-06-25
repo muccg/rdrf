@@ -29,11 +29,10 @@ def fill_missing_input(context, input_func_name):
 ####################### BEGIN OF CDEfhDutchLipidClinicNetwork ###################################
 
 def bad(value):
-    # print(math.isnan(value))
     return (value is None) or (math.isnan(value))
 
 
-def patientAgeAtAssessment2(dob, assessmentDate):
+def calculate_age(dob, assessmentDate):
     age = assessmentDate.year - dob.year
     m = assessmentDate.month - dob.month
     if m < 0 or (m == 0 and assessmentDate.day < dob.day):
@@ -64,7 +63,7 @@ def getLDL(context):
 def getScore(context, patient):
     assessmentDate = context["DateOfAssessment"]
 
-    isAdult = patientAgeAtAssessment2(patient["date_of_birth"], datetime.strptime(assessmentDate, '%Y-%m-%d')) >= 18
+    isAdult = calculate_age(patient["date_of_birth"], datetime.strptime(assessmentDate, '%Y-%m-%d')) >= 18
     index = context["CDEIndexOrRelative"] == "fh_is_index"
     relative = context["CDEIndexOrRelative"] == "fh_is_relative"
 
@@ -172,7 +171,7 @@ def CDEfhDutchLipidClinicNetwork(patient, context):
     context = fill_missing_input(context, 'CDEfhDutchLipidClinicNetwork_inputs')
 
     # print(f"RUNNING CDEfhDutchLipidClinicNetwork")
-    if  context["DateOfAssessment"] is None or context["DateOfAssessment"] == "":
+    if context["DateOfAssessment"] is None or context["DateOfAssessment"] == "":
         return ""
     score = str(getScore(context, patient))
     # print(score)
@@ -180,6 +179,7 @@ def CDEfhDutchLipidClinicNetwork(patient, context):
     # score_no_trailing_zero = score.rstrip('0').rstrip('.') if '.' in score else score
     # print(score_no_trailing_zero)
     return score
+
 
 def CDEfhDutchLipidClinicNetwork_inputs():
     return ["DateOfAssessment", "CDEIndexOrRelative", "CDE00004", "CDE00003", "FHFamilyHistoryChild", "FHFamHistTendonXanthoma",
@@ -219,7 +219,7 @@ def catchild(context):
 
     def anyrel(context):
         return (context["CDE00003"] == "fh2_y") or (context["CDE00004"] == "fh2_y") or (
-                context["FHFamHistTendonXanthoma"] == "fh2_y") or (context["FHFamHistArcusCornealis"] == "fh2_y")
+            context["FHFamHistTendonXanthoma"] == "fh2_y") or (context["FHFamHistArcusCornealis"] == "fh2_y")
 
     # //Definite if DNA Analysis is Yes
     # //other wise
@@ -316,7 +316,7 @@ def catrelative(sex, age, lipid_score):
 def categorise(context, patient):
     dutch_lipid_network_score = None if context["CDEfhDutchLipidClinicNetwork"] == "" else float(context["CDEfhDutchLipidClinicNetwork"])
     assessmentDate = datetime.strptime(context["DateOfAssessment"], '%Y-%m-%d')
-    isAdult = patientAgeAtAssessment2(patient["date_of_birth"], assessmentDate) >= 18.0
+    isAdult = calculate_age(patient["date_of_birth"], assessmentDate) >= 18.0
     index = context["CDEIndexOrRelative"] == "fh_is_index"
     relative = context["CDEIndexOrRelative"] == "fh_is_relative"
 
@@ -326,7 +326,7 @@ def categorise(context, patient):
         return catchild(context)
 
     if (relative):
-        age = patientAgeAtAssessment2(patient["date_of_birth"], assessmentDate)
+        age = calculate_age(patient["date_of_birth"], assessmentDate)
         L = CDE00024_getLDL(context)
         sex = patient["sex"]
         cr = catrelative(sex, age, L)
@@ -342,6 +342,7 @@ def CDE00024(patient, context):
         return ""
 
     return str(categorise(context, patient))
+
 
 def CDE00024_inputs():
     return ["CDEIndexOrRelative", "DateOfAssessment", "CDEfhDutchLipidClinicNetwork", "FHFamHistTendonXanthoma", "FHFamHistArcusCornealis",
@@ -425,6 +426,7 @@ def LDLCholesterolAdjTreatment(patient, context):
     except:
         return ""
 
+
 def LDLCholesterolAdjTreatment_inputs():
     return ["PlasmaLipidTreatment", "CDE00019"]
 
@@ -467,13 +469,17 @@ def CDEBMI_inputs():
 
 ################ BEGINNING OF FHDeathAge ################################
 epoch = datetime.utcfromtimestamp(0)
+
+
 def unix_time_millis(dt):
     return (dt - epoch).total_seconds() * 1000.0
 
+
 def broken_rounded_age(birthDate, assessmentDate):
     age = unix_time_millis(assessmentDate) - unix_time_millis(datetime.combine(birthDate, datetime.min.time()))
-    age_in_years  = age / ( 1000.0 * 3600.0 * 24.0 * 365.0)
+    age_in_years = age / (1000.0 * 3600.0 * 24.0 * 365.0)
     return math.floor(age_in_years)
+
 
 def FHDeathAge(patient, context):
     # print(f"RUNNING FHDeathAge")
@@ -492,12 +498,15 @@ def FHDeathAge(patient, context):
 
     return str(deathAge)
 
+
 def FHDeathAge_inputs():
     return ["FHDeathDate"]
 
 ################ END OF FHDeathAge ################################
 
 ################ BEGINNING OF fhAgeAtConsent ################################
+
+
 def fhAgeAtConsent(patient, context):
     # print(f"RUNNING fhAgeAtConsent")
 
@@ -515,14 +524,13 @@ def fhAgeAtConsent(patient, context):
 
     return str(consentAge)
 
+
 def fhAgeAtConsent_inputs():
     return ["FHconsentDate"]
 
 ################ END OF fhAgeAtConsent ################################
 
 ################ BEGINNING OF fhAgeAtAssessment ################################
-
-
 
 
 def fhAgeAtAssessment(patient, context):
@@ -561,12 +569,13 @@ def DDAgeAtDiagnosis(patient, context):
 
     diagnosisDate = datetime.strptime(context["DateOfDiagnosis"], '%Y-%m-%d')
     birthDate = patient["date_of_birth"]
-    deathAge = patientAgeAtAssessment2(birthDate, diagnosisDate)
+    deathAge = calculate_age(birthDate, diagnosisDate)
 
     if deathAge is None or deathAge == "":
         return None
 
     return str(deathAge)
+
 
 def DDAgeAtDiagnosis_inputs():
     return ["DateOfDiagnosis"]
@@ -581,6 +590,7 @@ DAYS1TO2 = "1to2Days"
 DAYS3TO4 = "3to4Days"
 DAYS5TO6 = "5to6Days"
 EVERYDAY = "EveryDay"
+
 
 def convert(val):
     if val == "DAYS0":
@@ -598,7 +608,7 @@ def convert(val):
 
 def getQ(cde):
     try:
-       return convert(cde)
+        return convert(cde)
     except:
         return 0
 
@@ -652,6 +662,7 @@ def poemScore(patient, context):
             result = s.__str__() + " ( " + cat + " )"
 
     return result
+
 
 def poemScore_inputs():
     return ["poemQ1", "poemQ2", "poemQ3", "poemQ4", "poemQ5", "poemQ6", "poemQ7", ]
