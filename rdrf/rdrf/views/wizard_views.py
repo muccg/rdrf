@@ -7,7 +7,7 @@ from rdrf.forms.dynamic.review_forms import create_review_forms
 from rdrf.models.definition.review_models import ReviewStates
 from rdrf.models.definition.review_models import PatientReview
 from rdrf.models.definition.review_models import ReviewItem
-from rdrf.models.definition.review_models import REVIEW_ITEM_TYPES
+from rdrf.models.definition.review_models import ReviewItemTypes
 from registry.patients.models import ParentGuardian
 
 import logging
@@ -146,7 +146,7 @@ class ReviewItemPageData:
 
     @property
     def is_clinician_review(self):
-        return self.review_item_model.item_type == REVIEW_ITEM_TYPES.VERIFICATION
+        return self.review_item_model.item_type == ReviewItemTypes.VERIFICATION
 
     @property
     def category(self):

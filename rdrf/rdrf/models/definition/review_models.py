@@ -69,7 +69,7 @@ class Review(models.Model):
         return self.registry.code + "_review_" + self.code
 
 
-class REVIEW_ITEM_TYPES:
+class ReviewItemTypes:
     CONSENT_FIELD = "CF"        # continue to consent
     DEMOGRAPHICS_FIELD = "DF"   # update some data
     SECTION_CHANGE = "SC"      # monitor change in a given section
@@ -80,14 +80,14 @@ class REVIEW_ITEM_TYPES:
     MULTI_TARGET = "MT"         # a collection of fields referred to by form.section.cde codes
 
 
-ITEM_CHOICES = ((REVIEW_ITEM_TYPES.CONSENT_FIELD, _("Consent Item")),
-                (REVIEW_ITEM_TYPES.DEMOGRAPHICS_FIELD, _("Demographics Field")),
-                (REVIEW_ITEM_TYPES.CLINICIAN_ACCESS, _("Clinician Access")),
-                (REVIEW_ITEM_TYPES.MULTI_TARGET, _("Multi Target")),
-                (REVIEW_ITEM_TYPES.SECTION_CHANGE, _("Section Monitor")),
-                (REVIEW_ITEM_TYPES.MULTISECTION_ITEM, _("Add to Section")),
-                (REVIEW_ITEM_TYPES.MULTISECTION_UPDATE, _("Update Section")),
-                (REVIEW_ITEM_TYPES.VERIFICATION, _("Verification Section")))
+ITEM_CHOICES = ((ReviewItemTypes.CONSENT_FIELD, _("Consent Item")),
+                (ReviewItemTypes.DEMOGRAPHICS_FIELD, _("Demographics Field")),
+                (ReviewItemTypes.CLINICIAN_ACCESS, _("Clinician Access")),
+                (ReviewItemTypes.MULTI_TARGET, _("Multi Target")),
+                (ReviewItemTypes.SECTION_CHANGE, _("Section Monitor")),
+                (ReviewItemTypes.MULTISECTION_ITEM, _("Add to Section")),
+                (ReviewItemTypes.MULTISECTION_UPDATE, _("Update Section")),
+                (ReviewItemTypes.VERIFICATION, _("Verification Section")))
 
 
 class TargetUpdater:
@@ -185,19 +185,19 @@ class ReviewItem(models.Model):
             return json.loads(self.target_metadata)
 
     def update_data(self, patient_model, parent_model, context_model, form_data, user):
-        if self.item_type == REVIEW_ITEM_TYPES.CONSENT_FIELD:
+        if self.item_type == ReviewItemTypes.CONSENT_FIELD:
             self._update_consent_data(patient_model, form_data, user)
-        elif self.item_type == REVIEW_ITEM_TYPES.DEMOGRAPHICS_FIELD:
+        elif self.item_type == ReviewItemTypes.DEMOGRAPHICS_FIELD:
             self._update_demographics_data(patient_model, form_data, user)
-        elif self.item_type == REVIEW_ITEM_TYPES.SECTION_CHANGE:
+        elif self.item_type == ReviewItemTypes.SECTION_CHANGE:
             self._update_section_data(patient_model, context_model, form_data, user)
-        elif self.item_type == REVIEW_ITEM_TYPES.MULTISECTION_ITEM:
+        elif self.item_type == ReviewItemTypes.MULTISECTION_ITEM:
             self._add_multisection_data(patient_model, context_model, form_data, user)
-        elif self.item_type == REVIEW_ITEM_TYPES.VERIFICATION:
+        elif self.item_type == ReviewItemTypes.VERIFICATION:
             self._update_verification(patient_model, context_model, form_data, user)
-        elif self.item_type == REVIEW_ITEM_TYPES.CLINICIAN_ACCESS:
+        elif self.item_type == ReviewItemTypes.CLINICIAN_ACCESS:
             self._update_clinician_access(patient_model, context_model, form_data, user)
-        elif self.item_type == REVIEW_ITEM_TYPES.MULTI_TARGET:
+        elif self.item_type == ReviewItemTypes.MULTI_TARGET:
             self._update_multitargets(patient_model, context_model, form_data, user)
         else:
             raise InvalidItemType(self.item_type)
@@ -321,15 +321,15 @@ class ReviewItem(models.Model):
 
     def get_data(self, patient_model, context_model):
         # get previous responses so they can be displayed
-        if self.item_type == REVIEW_ITEM_TYPES.CONSENT_FIELD:
+        if self.item_type == ReviewItemTypes.CONSENT_FIELD:
             return self._get_consent_data(patient_model)
-        elif self.item_type == REVIEW_ITEM_TYPES.DEMOGRAPHICS_FIELD:
+        elif self.item_type == ReviewItemTypes.DEMOGRAPHICS_FIELD:
             return self._get_demographics_data(patient_model)
-        elif self.item_type == REVIEW_ITEM_TYPES.SECTION_CHANGE:
+        elif self.item_type == ReviewItemTypes.SECTION_CHANGE:
             return self._get_section_data(patient_model, context_model)
-        elif self.item_type == REVIEW_ITEM_TYPES.MULTI_TARGET:
+        elif self.item_type == ReviewItemTypes.MULTI_TARGET:
             return self._get_multitarget_data(patient_model, context_model)
-        elif self.item_type == REVIEW_ITEM_TYPES.VERIFICATION:
+        elif self.item_type == ReviewItemTypes.VERIFICATION:
             return []
 
         raise Exception("Unknown Review Type: %s" % self.item_type)
@@ -475,7 +475,7 @@ class ReviewItem(models.Model):
     @property
     def multitargets(self):
         # only applicable to multitargets
-        if not self.item_type == REVIEW_ITEM_TYPES.MULTI_TARGET:
+        if not self.item_type == ReviewItemTypes.MULTI_TARGET:
             raise Exception("Cannot get multitargets of non-multitarget ReviewItem")
         metadata = self.load_metadata()
         if not metadata:
@@ -622,7 +622,7 @@ class PatientReview(models.Model):
     def _get_initial_data_for_review_item(self, review_item):
         d = {}
         d["metadata_condition_changed"] = ConditionStates.UNKNOWN
-        if review_item.item_type in [REVIEW_ITEM_TYPES.SECTION_CHANGE]:
+        if review_item.item_type in [ReviewItemTypes.SECTION_CHANGE]:
             d["metadata_current_status"] = ConditionStates.UNKNOWN
         return d
 

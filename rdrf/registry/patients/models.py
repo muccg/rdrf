@@ -464,7 +464,6 @@ class Patient(models.Model):
         from rdrf.db.dynamic_data import DynamicDataWrapper
         from rdrf.helpers.utils import mongo_key
 
-
         if clinical_data is None:
             wrapper = DynamicDataWrapper(self, rdrf_context_id=context_id)
             data = wrapper.load_dynamic_data(registry_code, "cdes")

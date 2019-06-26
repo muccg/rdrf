@@ -61,7 +61,7 @@ def check_verification(registry_code,
     registry_model = Registry.objects.get(code=registry_code)
     patient_model = Patient.objects.get(id=patient_id)
     context_model = RDRFContext.objects.get(id=context_id)
-    STATUS_VERIFIED = "V"
+    status_verified = "V"
 
     verifications = Verification.objects.filter(patient=patient_model,
                                                 context=context_model,
@@ -70,7 +70,7 @@ def check_verification(registry_code,
                                                 section_code=section_code,
                                                 item=item_index,
                                                 cde_code=cde_code,
-                                                status=STATUS_VERIFIED).order_by("-created_date")
+                                                status=status_verified).order_by("-created_date")
     verified = False
     if len(verifications) > 0:
         # this is the latest verfied value

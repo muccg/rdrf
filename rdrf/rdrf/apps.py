@@ -1,3 +1,6 @@
+# flake8: noqa
+# ignoring the linting because of all unused imports which were necessary for missed migrations.
+
 from django.apps import AppConfig
 import logging
 

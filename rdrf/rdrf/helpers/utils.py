@@ -749,6 +749,7 @@ def get_site(request=None):
         except Site.DoesNotExist:
             return "http://localhost:8000"
 
+
 def check_models(registry_model, form_model, section_model, cde_model):
     # raise an error if this quadruple not correct in given registry
     for f in registry_model.forms:
@@ -761,7 +762,7 @@ def check_models(registry_model, form_model, section_model, cde_model):
 
     raise ValueError("%s/%s/%s/%s not consistent" % (registry_model, form_model, section_model, cde_model))
 
-    
+
 def is_authorised(user, patient_model):
     from registry.patients.models import ParentGuardian
     # is the given user allowed to see this patient
