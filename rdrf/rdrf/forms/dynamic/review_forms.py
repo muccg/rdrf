@@ -1,4 +1,4 @@
-from rdrf.models.definition.review_models import REVIEW_ITEM_TYPES
+from rdrf.models.definition.review_models import ReviewItemTypes
 from rdrf.models.definition.models import RegistryForm
 from rdrf.models.definition.models import Section
 from rdrf.models.definition.models import CommonDataElement
@@ -355,12 +355,12 @@ class DummyFormClass(forms.Form):
 
 
 GENERATOR_MAP = {
-    REVIEW_ITEM_TYPES.CONSENT_FIELD: ConsentReviewFormGenerator,
-    REVIEW_ITEM_TYPES.DEMOGRAPHICS_FIELD: DemographicsReviewFormGenerator,
-    REVIEW_ITEM_TYPES.SECTION_CHANGE: SectionMonitorReviewFormGenerator,
-    REVIEW_ITEM_TYPES.MULTISECTION_ITEM: MultisectionAddReviewFormGenerator,
-    REVIEW_ITEM_TYPES.VERIFICATION: VerificationReviewFormGenerator,
-    REVIEW_ITEM_TYPES.MULTI_TARGET: MultiTargetReviewFormGenerator
+    ReviewItemTypes.CONSENT_FIELD: ConsentReviewFormGenerator,
+    ReviewItemTypes.DEMOGRAPHICS_FIELD: DemographicsReviewFormGenerator,
+    ReviewItemTypes.SECTION_CHANGE: SectionMonitorReviewFormGenerator,
+    ReviewItemTypes.MULTISECTION_ITEM: MultisectionAddReviewFormGenerator,
+    ReviewItemTypes.VERIFICATION: VerificationReviewFormGenerator,
+    ReviewItemTypes.MULTI_TARGET: MultiTargetReviewFormGenerator
 }
 
 
