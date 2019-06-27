@@ -51,6 +51,8 @@ requirements = [
     "django-user-agents==0.3.2",
     "django-simple-history==2.7.2",
     "django-formtools",
+    "python-ldap",
+    "django-auth-ldap",
 ]
 
 

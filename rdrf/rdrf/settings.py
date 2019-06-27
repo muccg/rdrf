@@ -1,4 +1,6 @@
 # Django settings for rdrf project.
+from django_auth_ldap.config import LDAPSearch, LDAPGroupQuery, GroupOfNamesType
+import ldap
 import os
 # A wrapper around environment which has been populated from
 # /etc/rdrf/rdrf.conf in production. Also does type conversion of values
@@ -199,14 +201,48 @@ INSTALLED_APPS = [
 ]
 
 
+# LDAP
+
+AUTH_LDAP_SERVER_URI = "ldap://ldap.forumsys.com:389"
+AUTH_LDAP_BIND_DN = "cn=read-only-admin,dc=example,dc=com"
+AUTH_LDAP_BIND_PASSWORD = "password"
+AUTH_LDAP_USER_SEARCH = LDAPSearch(
+    "dc=example,dc=com", ldap.SCOPE_SUBTREE, "(uid=%(user)s)"
+)
+
+AUTH_LDAP_USER_ATTR_MAP = {"first_name": "sn",
+                           "last_name": "sn"}
+
+
+AUTH_LDAP_USER_FLAGS_BY_GROUP = {
+    "is_active": "cn=active,ou=groups,dc=example,dc=com",
+    "is_staff": (
+        LDAPGroupQuery("cn=staff,ou=groups,dc=example,dc=com")
+        | LDAPGroupQuery("cn=admin,ou=groups,dc=example,dc=com")
+    ),
+    "is_superuser": "cn=superuser,ou=groups,dc=example,dc=com",
+}
+
+# Set up the basic group parameters.
+AUTH_LDAP_GROUP_SEARCH = LDAPSearch(
+    "ou=django,ou=groups,dc=example,dc=com",
+    ldap.SCOPE_SUBTREE,
+    "(objectClass=groupOfNames)",
+)
+
+AUTH_LDAP_GROUP_TYPE = GroupOfNamesType(name_attr="cn")
+
 # these determine which authentication method to use
 # apps use modelbackend by default, but can be overridden here
 # see: https://docs.djangoproject.com/en/dev/ref/settings/#authentication-backends
+
 AUTHENTICATION_BACKENDS = [
+    'rdrf.auth.ldap_backend.RDRFLDAPBackend',
     'useraudit.password_expiry.AccountExpiryBackend',
     'django.contrib.auth.backends.ModelBackend',
     'useraudit.backend.AuthFailedLoggerBackend',
 ]
+
 
 # email
 EMAIL_USE_TLS = env.get("email_use_tls", False)
