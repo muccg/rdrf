@@ -322,8 +322,15 @@ class SurveyRequest(models.Model):
             emailer = Notifier()
             subject_line = "%s %s Survey Request" % (self.registry.name,
                                                      self.survey_name)
-            email_body = "Please use the following link to take the %s survey: %s" % (self.display_name,
-                                                                                      self.email_link)
+            email_body = f"""You are receiving this email because you agreed to take part in the Continuous Improvement in Care - Cancer Project.
+
+We would appreciate if you could complete the following survey prior to your next appointment with the doctor.
+
+Your answers will help your doctor to identify any areas where you are having problems, so that these can be addressed promptly.
+
+Please click on the following link to begin the survey:
+
+{self.email_link}"""
 
             emailer.send_email(self.patient.email,
                                subject_line,
