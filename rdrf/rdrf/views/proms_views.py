@@ -16,6 +16,7 @@ from rdrf.forms.proms_forms import SurveyRequestForm
 from rdrf.models.proms.models import SurveyRequest
 from rdrf.models.proms.models import SurveyRequestStates
 from django.http import JsonResponse
+from django.conf import settings
 import json
 import qrcode
 
@@ -61,7 +62,14 @@ class PromsView(View):
                    "questions": json.dumps(survey_questions),
                    }
 
-        return render(request, "proms/proms.html", context)
+        if hasattr(settings, "PROMS_TEMPLATE"):
+            proms_template = settings.PROMS_TEMPLATE
+        else:
+            proms_template = "proms/proms.html"
+
+        logger.info("using proms template %s" % proms_template)
+
+        return render(request, proms_template, context)
 
     def _get_survey_assignment(self, patient_token):
         # patient tokens should be once off so unique to assignments
