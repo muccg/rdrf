@@ -1,3 +1,4 @@
+from rest_framework import status
 import logging
 import requests
 
@@ -12,8 +13,18 @@ from rdrf.services.io.notifications.notifications import Notifier
 from rdrf.services.io.notifications.notifications import NotificationError
 from registry.patients.models import Patient
 from rdrf.helpers.utils import generate_token
+from rdrf.helpers.utils import escape_for_javascript as efj
 
-from rest_framework import status
+
+def clean(s):
+    return s.replace("'", "").replace('"', "")
+
+
+def clean_options(options):
+    for option_dict in options:
+        option_dict['text'] = clean(option_dict['text'])
+    return options
+
 
 logger = logging.getLogger(__name__)
 
@@ -94,8 +105,8 @@ class SurveyQuestion(models.Model):
                     "cde": self.cde.code,
                     "datatype": self.cde.datatype,
                     "instructions": self._clean_instructions(self.cde.instructions),
-                    "title": self.cde.name,
-                    "survey_question_instruction": self.instruction,
+                    "title": clean(self.cde.name),
+                    "survey_question_instruction": clean(self.instruction),
                     "copyright_text": self.copyright_text,
                     "source": self.source,
                     "spec": self._get_cde_specification()}
@@ -104,9 +115,9 @@ class SurveyQuestion(models.Model):
             return {"tag": "cond",
                     "cde": self.cde.code,
                     "instructions": self._clean_instructions(self.cde.instructions),
-                    "title": self.cde.name,
+                    "title": clean(self.cde.name),
                     "spec": self._get_cde_specification(),
-                    "survey_question_instruction": self.instruction,
+                    "survey_question_instruction": clean(self.instruction),
                     "copyright_text": self.copyright_text,
                     "source": self.source,
                     "cond": {"op": "=",
@@ -117,7 +128,7 @@ class SurveyQuestion(models.Model):
 
     def _get_options(self):
         if self.cde.datatype == 'range':
-            return self.cde.pv_group.options
+            return clean_options(self.cde.pv_group.options)
         else:
             return []
 
