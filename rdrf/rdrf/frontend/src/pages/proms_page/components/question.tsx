@@ -96,7 +96,8 @@ class Question extends React.Component<QuestionInterface, object> {
         const boxStyle = {width: "100px", height:"100px", backgroundColor: "black"};
         const pStyle = {color: "white", align: "center"};
         const style = { width: "50%", height:"50vh", margin:"0 auto", leftPadding: "100px" };
-        const isConsent = (this.props.questions.length - 1) === this.props.stage;
+        const isLast = (this.props.questions.length - 1) === this.props.stage;
+	const isConsent = question.cde === "PROMSConsent";
         const consentText = "I consent to ongoing involvement in the CIC Cancer project" +
             "and receiving a reminder for the next survey.";
 

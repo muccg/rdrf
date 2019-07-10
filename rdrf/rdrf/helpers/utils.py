@@ -787,3 +787,7 @@ def is_authorised(user, patient_model):
         return True
 
     return False
+
+
+def escape_for_javascript(s):
+    return s.replace("'", "\'").replace('"', '\"')

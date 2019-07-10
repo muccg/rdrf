@@ -23,6 +23,11 @@ import logging
 logger = logging.getLogger(__name__)
 
 
+def multicde(cde_model):
+    datatype = cde_model.datatype.lower().strip()
+    return datatype == "range" and cde_model.allow_multiple
+
+
 @method_decorator(csrf_exempt, name='dispatch')
 class SurveyEndpoint(View):
 
@@ -230,12 +235,19 @@ class PromsProcessor:
                 continue
 
             try:
+                if not self.registry_model.has_feature("contexts"):
+                    context_arg = None
+                else:
+                    context_arg = context_model
+
+                if multicde(cde_model) and type(value) is not list:
+                    value = [value]
                 patient_model.set_form_value(self.registry_model.code,
                                              form_model.name,
                                              section_model.code,
                                              cde_model.code,
                                              value,
-                                             context_model)
+                                             context_arg)
             except Exception as ex:
                 logger.error("Error updating proms field %s->%s: %s" % (cde_code,
                                                                         value,
