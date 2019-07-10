@@ -1,7 +1,6 @@
 from rest_framework import status
 import logging
 import requests
-
 from django.db import models
 from django.urls import reverse
 
@@ -13,7 +12,6 @@ from rdrf.services.io.notifications.notifications import Notifier
 from rdrf.services.io.notifications.notifications import NotificationError
 from registry.patients.models import Patient
 from rdrf.helpers.utils import generate_token
-from rdrf.helpers.utils import escape_for_javascript as efj
 
 
 def clean(s):
