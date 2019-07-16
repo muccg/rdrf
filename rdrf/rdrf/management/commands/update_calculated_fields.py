@@ -283,7 +283,7 @@ def call_ws_calculation(calculated_cde_model, patient_model, context_var):
     resp = requests.post(url='http://node_js_evaluator:3131/eval', headers=headers,
                          json=encoded_js_code)
     ws_value = resp.json()
-    if ws_value == "":
+    if ws_value == "" or 'value' not in ws_value.keys():
         return ""
     new_calculated_cde_value = "NaN" if ws_value['isNan'] else str(ws_value['value'])
     return new_calculated_cde_value

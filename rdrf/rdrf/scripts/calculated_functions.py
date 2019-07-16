@@ -173,12 +173,16 @@ def CDEfhDutchLipidClinicNetwork(patient, context):
     # print(f"RUNNING CDEfhDutchLipidClinicNetwork")
     if context["DateOfAssessment"] is None or context["DateOfAssessment"] == "":
         return ""
-    score = str(getScore(context, patient))
+    score = getScore(context, patient)
     # print(score)
     # # remove trailing 0: 14.23 => 14.23, 14.20 => 14.2, 14.00 => 14
     # score_no_trailing_zero = score.rstrip('0').rstrip('.') if '.' in score else score
     # print(score_no_trailing_zero)
-    return score
+
+    if score is None:
+        return ""
+
+    return str(score)
 
 
 def CDEfhDutchLipidClinicNetwork_inputs():
@@ -341,7 +345,12 @@ def CDE00024(patient, context):
     if context["DateOfAssessment"] is None or context["DateOfAssessment"] == "":
         return ""
 
-    return str(categorise(context, patient))
+    category = categorise(context, patient)
+
+    if category is None:
+        return ""
+
+    return str(category)
 
 
 def CDE00024_inputs():
