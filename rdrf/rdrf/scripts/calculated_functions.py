@@ -96,6 +96,9 @@ def getScore(context, patient):
                 FAM_HIST_ARCUS_CORNEALIS_FIRST_DEGREE_RELATIVE == YES)) or (FAM_HIST_CHILD_HYPERCOL == YES_CHILD)):
             score += 2
 
+        if score > 2:
+            score = 2
+
         return score
 
     def clinicalHistoryScore():
@@ -107,6 +110,9 @@ def getScore(context, patient):
         if (PERS_HIST_CVD == YES):
             score += 1
 
+        if score > 2:
+            score = 2
+
         return score
 
     def physicalExaminationScore():
@@ -117,6 +123,9 @@ def getScore(context, patient):
 
         if (ARCUS_CORNEALIS == "y"):
             score += 4
+
+        if score > 6:
+            score = 6
 
         return score
 
