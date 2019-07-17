@@ -28,7 +28,8 @@ class Question extends React.Component<QuestionInterface, object> {
 
     public handleMultiChange(event) {
 	const cdeCode = event.target.name;
-	let values, options;
+	let values;
+	let options;
         options = event.target.options;
         values = [];
         _.each(event.target.options, (option: HTMLOptionElement) => {
@@ -142,7 +143,7 @@ class Question extends React.Component<QuestionInterface, object> {
 	const isConsent = question.cde === "PROMSConsent";
         const consentText = "I consent to ongoing involvement in the CIC Cancer project" +
             "and receiving a reminder for the next survey.";
-	const isMultiSelect = question.spec.tag == 'range' && question.spec.allow_multiple;
+	const isMultiSelect = question.spec.tag === 'range' && question.spec.allow_multiple;
 
 	if (isMultiSelect) {
 	    return this.renderMultiSelect(question);
