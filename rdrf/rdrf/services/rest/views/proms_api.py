@@ -240,8 +240,6 @@ class PromsProcessor:
                 else:
                     context_arg = context_model
 
-                if multicde(cde_model) and type(value) is not list:
-                    value = [value]
                 patient_model.set_form_value(self.registry_model.code,
                                              form_model.name,
                                              section_model.code,

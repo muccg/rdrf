@@ -19,6 +19,7 @@ interface Option {
 interface RangeDatatype {
     tag: 'range',
     options: [Option],
+    allow_multiple: boolean,
 }
 
 interface IntegerDatatype {

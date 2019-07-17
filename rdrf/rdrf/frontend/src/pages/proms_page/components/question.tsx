@@ -17,12 +17,27 @@ class Question extends React.Component<QuestionInterface, object> {
         this.onSliderChange = this.onSliderChange.bind(this);
         this.handleConsent = this.handleConsent.bind(this);
         this.handleChange = this.handleChange.bind(this);
+	this.handleMultiChange = this.handleMultiChange.bind(this);
     }
 
     public handleChange(event) {
         const cdeValue = event.target.value;
         const cdeCode = event.target.name;
         this.props.enterData(cdeCode, cdeValue);
+    }
+
+    public handleMultiChange(event) {
+	const cdeCode = event.target.name;
+	let values, options;
+        options = event.target.options;
+        values = [];
+        _.each(event.target.options, (option: HTMLOptionElement) => {
+            if (option.selected) {
+                values.push(option.value);
+            }
+        });
+
+	this.props.enterData(cdeCode, values);
     }
 
     public handleConsent(event) {
@@ -82,6 +97,33 @@ class Question extends React.Component<QuestionInterface, object> {
         return handle;
     }
 
+    public renderMultiSelect(question: any) {
+	return (
+	     <Form>
+                <FormGroup tag="fieldset">
+                  <h6><i>{question.survey_question_instruction}</i></h6>
+                  <h4>{question.title}</h4>
+                  <i>{question.instructions}</i>
+	        </FormGroup>
+	    <FormGroup>
+	    <Col sm="12" md={{size:6, offset:3}}>
+		<Input type="select"
+	    name={question.cde}
+	    onChange={this.handleMultiChange}
+	         multiple>
+	    { _.map(question.spec.options, (option, index) => (
+		    <option key={option.code} value={option.code}>
+		    {option.text}
+		    </option>
+	    ))
+	    }
+            </Input>
+	    </Col>
+	    </FormGroup>
+	    </Form>
+	);
+    }
+
 
     public render() {
         const question = this.props.questions[this.props.stage];
@@ -100,6 +142,11 @@ class Question extends React.Component<QuestionInterface, object> {
 	const isConsent = question.cde === "PROMSConsent";
         const consentText = "I consent to ongoing involvement in the CIC Cancer project" +
             "and receiving a reminder for the next survey.";
+	const isMultiSelect = question.spec.tag == 'range' && question.spec.allow_multiple;
+
+	if (isMultiSelect) {
+	    return this.renderMultiSelect(question);
+	}
 
         return (
             <Form>
