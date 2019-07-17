@@ -19,7 +19,7 @@ requirements = [
     "django-storages==1.7.1",
     "django-templatetag-handlebars==1.3.1",
     "django-templatetag-sugar==1.0",
-    "django-useraudit==1.7.1",
+    "django-useraudit==1.7.0",
     "django-uwsgi==0.2.2",
     "geoip2==2.9.0",
     "jsonschema==3.0.1",
