@@ -15,6 +15,8 @@ from rdrf.helpers.utils import generate_token
 
 
 def clean(s):
+    if s is None:
+        return ""
     return s.replace("'", "").replace('"', "")
 
 
