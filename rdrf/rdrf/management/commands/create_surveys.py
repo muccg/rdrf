@@ -89,12 +89,7 @@ class Command(BaseCommand):
         survey_request = SurveyRequest(registry=registry_model,
                                        patient=patient_model,
                                        survey_name=survey_model.name,
-                                       user=parent_user.username,
-                                       communication_type="email")
+                                       user=parent_user.username)
         survey_request.save()
-
-        result = survey_request.send()
-        if not result:
-            self._print("Error sending email for survey")
-        else:
-            self._print("Sent survey request OK")
+        print("patient %s token %s" % (patient_model.pk,
+                                       survey_request.patient_token))
