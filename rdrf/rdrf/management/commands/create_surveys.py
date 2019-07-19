@@ -89,6 +89,7 @@ class Command(BaseCommand):
         survey_request = SurveyRequest(registry=registry_model,
                                        patient=patient_model,
                                        survey_name=survey_model.name,
+                                       state="requested",
                                        user=parent_user.username)
         survey_request.save()
         survey_request._send_proms_request()  # this creates the survey assignment
