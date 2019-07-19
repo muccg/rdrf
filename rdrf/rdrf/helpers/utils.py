@@ -764,6 +764,8 @@ def check_models(registry_model, form_model, section_model, cde_model):
 
 
 def is_authorised(user, patient_model):
+    if user.is_superuser:
+        return True
     from registry.patients.models import ParentGuardian
     # is the given user allowed to see this patient
     # patient IS user:
@@ -783,8 +785,10 @@ def is_authorised(user, patient_model):
     user_wgs = set([wg.id for wg in user.working_groups.all()])
     patient_wgs = set([wg.id for wg in patient_model.working_groups.all()])
     common = user_wgs.intersection(patient_wgs)
-    if common:
+    if common and not user.is_parent:
         return True
+
+    logger.info("user %s is not authorised for patient %s" % (user, patient_model.pk))
 
     return False
 

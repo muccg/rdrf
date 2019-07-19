@@ -98,6 +98,8 @@ class PromsLandingPageView(View):
             raise Http404
 
         registry_model = get_object_or_404(Registry, code=registry_code)
+        check_login = registry_model.has_feature("proms_landing_login")
+
         logger.debug("registry = %s" % registry_model)
         survey_assignment = get_object_or_404(SurveyAssignment,
                                               patient_token=patient_token,
@@ -108,6 +110,26 @@ class PromsLandingPageView(View):
             "preamble_text": preamble_text,
             "survey_name": survey_display_name
         }
+
+        if check_login:
+            if request.user.is_anonymous:
+                logger.info("%s not authorised to see survey %s" % (request.user,
+                                                                    patient_token))
+                raise Http404
+            else:
+                from rdrf.helpers.utils import is_authorised
+                # NB this will only work if proms on same site
+                t = survey_assignment.patient_token
+                survey_request = get_object_or_404(SurveyRequest,
+                                                   patient_token=t,
+                                                   state="requested")
+                patient_model = survey_request.patient
+
+                if not is_authorised(request.user, patient_model):
+                    logger.info("%s not authorised to see survey %s" % (request.user,
+                                                                        patient_token))
+                    raise Http404
+
         return render(request, "proms/preamble.html", context)
 
     def _is_valid(self, patient_token, registry_code, survey_name):

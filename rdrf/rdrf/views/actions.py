@@ -20,9 +20,13 @@ class Action:
         logger.debug("user = %s" % self.user)
 
     def run(self):
+        logger.debug("action = %s" % self.command)
         if self.command == "form":
             logger.debug("action is form")
             return self._process_form()
+        elif self.command == "survey":
+            logger.debug("processing survey")
+            return self._process_survey()
         else:
             logger.debug("unknown action: %s" % self.command)
             raise Http404
@@ -77,6 +81,36 @@ class Action:
         except ParentGuardian.DoesNotExist:
             logger.debug("no parent guardian assoc with user ...")
             raise Http404
+
+    def _process_survey(self):
+        from rdrf.models.definition.models import Registry
+        from rdrf.models.proms.models import SurveyRequest
+        from rdrf.models.proms.models import SurveyRequestStates
+
+        registry_code = self._get_field("registry")
+        registry_model = get_object_or_404(Registry,
+                                           code=registry_code)
+
+        if not self.user.in_registry(registry_model):
+            raise PermissionDenied
+
+        patient_model = self._get_patient()
+
+        if patient_model is None:
+            raise PermissionDenied
+
+        survey_name = self._get_field("name")
+
+        try:
+            qry = SurveyRequest.objects.filter(patient=patient_model,
+                                               state=SurveyRequestStates.REQUESTED,
+                                               registry=registry_model,
+                                               survey_name=survey_name)
+            last_request = qry.order_by("-created").first()
+        except SurveyRequest.DoesNotExist:
+            raise Http404
+
+        return HttpResponseRedirect(last_request.email_link)
 
     def _process_form(self):
         from rdrf.models.definition.models import Registry
