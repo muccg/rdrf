@@ -118,8 +118,8 @@ class CustomUserAdmin(UserAdmin):
     get_working_groups.short_description = "Working Groups"
     get_registries.short_description = "Registries"
 
-    search_fields = ('email',)
-    ordering = ('email',)
+    search_fields = ('username', 'email')
+    ordering = ('username',)
     filter_horizontal = ()
 
     def status(self, user):
