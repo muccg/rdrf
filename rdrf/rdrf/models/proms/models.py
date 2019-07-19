@@ -136,13 +136,14 @@ class SurveyQuestion(models.Model):
         if self.cde.datatype == 'range':
             return {
                 "tag": "range",
-                "options": self._get_options()
+                "options": self._get_options(),
+                "allow_multiple": self.cde.allow_multiple,  # allow for multiselect options
             }
         elif self.cde.datatype == 'integer':
             return {
                 "tag": "integer",
                 "max": int(self.cde.max_value),
-                "min": int(self.cde.min_value)
+                "min": int(self.cde.min_value),
             }
 
     @property

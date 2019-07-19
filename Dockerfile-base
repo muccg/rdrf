@@ -1,4 +1,4 @@
-FROM muccg/python-base:3.6-debian-8
+FROM muccg/python-base:3.7-debian-9
 MAINTAINER https://github.com/muccg/rdrf/
 
 ENV PROJECT_NAME rdrf
@@ -21,7 +21,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
   libpcre3 \
   libpq5 \
   mime-support \
-  nodejs-legacy \
+  libnode64 \
+  nodejs \
   unixodbc \
   && apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
