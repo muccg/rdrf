@@ -147,6 +147,8 @@ class RDRFContextLauncherComponent(RDRFComponent):
             return True
 
     def _get_proms_link(self):
+        if self.registry_model.has_feature("no_proms_link"):
+            return None
         if not self.registry_model.has_feature("proms_clinical"):
             return None
         return reverse("proms_clinical_view",
