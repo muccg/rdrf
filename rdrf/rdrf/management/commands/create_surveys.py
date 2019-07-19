@@ -91,6 +91,6 @@ class Command(BaseCommand):
                                        survey_name=survey_model.name,
                                        user=parent_user.username)
         survey_request.save()
-        survey_request.send()  # this creates the survey assignment
+        survey_request._send_proms_request()  # this creates the survey assignment
         print("patient %s token %s" % (patient_model.pk,
                                        survey_request.patient_token))
