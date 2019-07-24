@@ -139,14 +139,20 @@ class Question extends React.Component<QuestionInterface, object> {
         const pStyle = {color: "white", align: "center"};
         const style = { width: "50%", height:"50vh", margin:"0 auto", leftPadding: "100px" };
         const isLast = (this.props.questions.length - 1) === this.props.stage;
-	const isConsent = question.cde === "PROMSConsent";
-        const consentText = "I consent to ongoing involvement in the CIC Cancer project" +
-            "and receiving a reminder for the next survey.";
-	const isMultiSelect = question.spec.tag === 'range' && question.spec.allow_multiple;
 
-	if (isMultiSelect) {
-	    return this.renderMultiSelect(question);
-	}
+	      const isConsent = question.cde === "PROMSConsent";
+        const consentText = <div>By ticking this box you:
+                                <ul>
+                                    <li>Give consent for the information you provide to be used for the CIC Cancer project; and </li>
+                                    <li>Will receive a reminder when the next survey is due.</li>
+                                </ul>
+                            </div>;
+        const isMultiSelect = question.spec.tag === 'range' && question.spec.allow_multiple;
+
+        if (isMultiSelect) {
+            return this.renderMultiSelect(question);
+        }
+
 
         return (
             <Form>
