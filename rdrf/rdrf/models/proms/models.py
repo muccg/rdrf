@@ -4,14 +4,14 @@ import requests
 from django.db import models
 from django.urls import reverse
 
-from rdrf.models.definition.models import Registry
-from rdrf.models.definition.models import RegistryForm
+from rdrf.models.definition.models import Registry, RegistryForm, Section
 from rdrf.models.definition.models import CommonDataElement
 from rdrf.models.definition.models import ContextFormGroup
 from rdrf.services.io.notifications.notifications import Notifier
 from rdrf.services.io.notifications.notifications import NotificationError
 from registry.patients.models import Patient
 from rdrf.helpers.utils import generate_token
+from django.forms import ValidationError
 
 
 def clean(s):
@@ -82,6 +82,8 @@ class SurveyQuestion(models.Model):
     position = models.IntegerField(null=True, blank=True)
     survey = models.ForeignKey(Survey, related_name='survey_questions', on_delete=models.CASCADE)
     cde = models.ForeignKey(CommonDataElement, on_delete=models.CASCADE)
+    cde_path = models.CharField(max_length=255, blank=True, null=True,
+                                help_text="Format: <i>/[form_name]/[section_code]/</i><br/>Example: <i>/BaselineTreatmentForm/BASELINETREATMENT/</i>")
     precondition = models.ForeignKey(Precondition,
                                      blank=True,
                                      null=True,
@@ -152,6 +154,31 @@ class SurveyQuestion(models.Model):
             return self.cde.name + " always"
         else:
             return self.cde.name + "  if " + self.precondition.cde.name + " = " + self.precondition.value
+
+    def clean(self):
+        if self.cde_path:
+            # Extract form and section code from /FROM_NAME/SECTION_CODE/.
+            path_values = list(filter(None, self.cde_path.split("/")))
+
+            # Check the path contain a form_name and section_code, and only these exact two variables.
+            if len(path_values) != 2:
+                raise ValidationError(f"[{self.cde.code}:{self.name}] The path '{self.cde_path}' is not properly formatted - it should contains exactly one form name and one section code separated by slashes: \"/FORM_NAME/SECTION_CODE/\"")
+            path_form_name, path_section_code = path_values
+
+            # Check that the form_name exist for the selected registry.
+            try:
+                path_form = RegistryForm.objects.get(name=path_form_name, registry=self.survey.registry)
+            except (RegistryForm.DoesNotExist, RegistryForm.MultipleObjectsReturned) as e:
+                raise ValidationError(f"[{self.cde.code}:{self.name}] The form '{path_form_name}' doesn't exist the selected registry {self.survey.registry.code}")
+
+            # Check that the section name exist for this form_name.
+            if path_section_code not in path_form.sections.split(","):
+                raise ValidationError(f"[{self.cde.code}:{self.name}] The section '{path_section_code}' does not exist in the form '{path_form_name}'")
+
+            # Check that the cde exist for this section.
+            if self.cde.code not in Section.objects.get(code=path_section_code).get_elements():
+                raise ValidationError(
+                    f"[{self.cde.code}:{self.name}] The cde {self.cde.code} does not exist in the form '{path_form_name}' / section '{path_section_code}'")
 
 
 class SurveyStates:

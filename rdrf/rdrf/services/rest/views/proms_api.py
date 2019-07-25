@@ -1,6 +1,6 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rdrf.models.definition.models import Registry
+from rdrf.models.definition.models import Registry, RegistryForm, Section
 from rdrf.models.definition.models import CommonDataElement
 from rdrf.models.proms.models import Survey
 from rdrf.models.proms.models import SurveyAssignment
@@ -210,6 +210,11 @@ class PromsProcessor:
         if context_model is None:
             raise Exception("cannot determine proms pull context for patient id %s" % patient_model.pk)
 
+        # Retrieve the cde_path
+        cde_paths = {}
+        for question in survey_request.survey.survey_questions.all():
+            cde_paths = {**cde_paths, question.cde.code: question.cde_path}
+
         for cde_code, value in survey_data.items():
             try:
                 cde_model = CommonDataElement.objects.get(code=cde_code)
@@ -217,7 +222,6 @@ class PromsProcessor:
                 logger.error("could not find cde %s" % cde_code)
                 continue
 
-            # NB. this assumes cde  is unique across reg ...
             try:
                 is_consent = False
                 if consent_exists:
@@ -227,9 +231,16 @@ class PromsProcessor:
                         is_consent = True
 
                 if not is_consent:
-                    form_model, section_model = self._locate_cde(cde_model, context_model, target_form_model)
-            except BaseException:
-                logger.error("could not locate cde %s" % cde_code)
+                    # Find the cde code in the survey questions and check existance of cde_path
+                    if cde_code in cde_paths.keys() and cde_paths[cde_code]:
+                        form_name, section_code = list(filter(None, cde_paths[cde_code].split("/")))
+                        form_model = RegistryForm.objects.get(name=form_name, registry__code=self.registry_model.code)
+                        section_model = Section.objects.get(code=section_code)
+                    else:
+                        # override target_form_model if cde_path exists
+                        form_model, section_model = self._locate_cde(cde_model, context_model, target_form_model)
+            except BaseException as e:
+                logger.error(f"could not locate cde {cde_code}: {e}")
                 # should fail for now skip
 
                 continue

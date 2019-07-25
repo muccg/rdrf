@@ -543,6 +543,7 @@ class Exporter(object):
             for sq in survey_model.survey_questions.all():
                 sq_dict = {}
                 sq_dict["cde"] = sq.cde.code
+                sq_dict["cde_path"] = sq.cde_path
                 sq_dict["position"] = sq.position
                 sq_dict["precondition"] = None
                 sq_dict["instruction"] = sq.instruction
