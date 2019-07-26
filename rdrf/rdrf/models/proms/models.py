@@ -168,7 +168,7 @@ class SurveyQuestion(models.Model):
             # Check that the form_name exist for the selected registry.
             try:
                 path_form = RegistryForm.objects.get(name=path_form_name, registry=self.survey.registry)
-            except (RegistryForm.DoesNotExist, RegistryForm.MultipleObjectsReturned) as e:
+            except (RegistryForm.DoesNotExist, RegistryForm.MultipleObjectsReturned):
                 raise ValidationError(f"[{self.cde.code}:{self.name}] The form '{path_form_name}' doesn't exist the selected registry {self.survey.registry.code}")
 
             # Check that the section name exist for this form_name.
