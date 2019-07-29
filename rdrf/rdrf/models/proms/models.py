@@ -66,7 +66,9 @@ class Survey(models.Model):
             if question.cde.datatype != "range":
                 logger.debug("%s not a range" % question.cde.code)
                 # raise ValidationError("Survey questions must be ranges")
-
+        # Check the context group form is selected if the registry support context.
+        if self.registry.has_feature("contexts") and self.context_form_group is None:
+            raise ValidationError("You forgot to select the context form group.")
 
 class Precondition(models.Model):
     survey = models.ForeignKey(Survey, on_delete=models.CASCADE)
