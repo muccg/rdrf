@@ -70,6 +70,7 @@ class Survey(models.Model):
         if self.registry.has_feature("contexts") and self.context_form_group is None:
             raise ValidationError("You forgot to select the context form group.")
 
+
 class Precondition(models.Model):
     survey = models.ForeignKey(Survey, on_delete=models.CASCADE)
     cde = models.ForeignKey(CommonDataElement, on_delete=models.CASCADE)
@@ -182,13 +183,13 @@ class SurveyQuestion(models.Model):
                 raise ValidationError(
                     f"[{self.cde.code}] The cde {self.cde.code} does not exist in the form '{path_form_name}' / section '{path_section_code}'")
         else:
-            #Check that a default form is selected for this survey.
+            # Check that a default form is selected for this survey.
             if self.survey.form is None:
                 raise ValidationError(
                     f"[{self.cde.code}] You must set the survey default form if you don't enter a cde path for this field.")
 
-            #Check the cde exists in the selected form.
-            #Check the cde is in one section only in the selected form.
+            # Check the cde exists in the selected form.
+            # Check the cde is in one section only in the selected form.
             is_cde_in_form = False
             second_section_with_same_cde = False
             default_form_sections = self.survey.form.sections.split(",")
