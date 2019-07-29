@@ -162,23 +162,48 @@ class SurveyQuestion(models.Model):
 
             # Check the path contain a form_name and section_code, and only these exact two variables.
             if len(path_values) != 2:
-                raise ValidationError(f"[{self.cde.code}:{self.name}] The path '{self.cde_path}' is not properly formatted - it should contains exactly one form name and one section code separated by slashes: \"/FORM_NAME/SECTION_CODE/\"")
+                raise ValidationError(f"[{self.cde.code}] The path '{self.cde_path}' is not properly formatted - it should contains exactly one form name and one section code separated by slashes: \"/FORM_NAME/SECTION_CODE/\"")
             path_form_name, path_section_code = path_values
 
             # Check that the form_name exist for the selected registry.
             try:
                 path_form = RegistryForm.objects.get(name=path_form_name, registry=self.survey.registry)
             except (RegistryForm.DoesNotExist, RegistryForm.MultipleObjectsReturned):
-                raise ValidationError(f"[{self.cde.code}:{self.name}] The form '{path_form_name}' doesn't exist the selected registry {self.survey.registry.code}")
+                raise ValidationError(f"[{self.cde.code}] The form '{path_form_name}' doesn't exist the selected registry {self.survey.registry.code}")
 
             # Check that the section name exist for this form_name.
             if path_section_code not in path_form.sections.split(","):
-                raise ValidationError(f"[{self.cde.code}:{self.name}] The section '{path_section_code}' does not exist in the form '{path_form_name}'")
+                raise ValidationError(f"[{self.cde.code}] The section '{path_section_code}' does not exist in the form '{path_form_name}'")
 
             # Check that the cde exist for this section.
             if self.cde.code not in Section.objects.get(code=path_section_code).get_elements():
                 raise ValidationError(
-                    f"[{self.cde.code}:{self.name}] The cde {self.cde.code} does not exist in the form '{path_form_name}' / section '{path_section_code}'")
+                    f"[{self.cde.code}] The cde {self.cde.code} does not exist in the form '{path_form_name}' / section '{path_section_code}'")
+        else:
+            #Check that a default form is selected for this survey.
+            if self.survey.form is None:
+                raise ValidationError(
+                    f"[{self.cde.code}] You must set the survey default form if you don't enter a cde path for this field.")
+
+            #Check the cde exists in the selected form.
+            #Check the cde is in one section only in the selected form.
+            is_cde_in_form = False
+            second_section_with_same_cde = False
+            default_form_sections = self.survey.form.sections.split(",")
+            for form_section_code in default_form_sections:
+                if self.cde.code in Section.objects.get(code=form_section_code).get_elements():
+                    if is_cde_in_form:
+                        second_section_with_same_cde = True
+                    else:
+                        is_cde_in_form = True
+
+            if not is_cde_in_form:
+                raise ValidationError(
+                    f"[{self.cde.code}] The cde is not in the selected survey default form. If the cde is part of a different form enter the cde path.")
+
+            if second_section_with_same_cde:
+                raise ValidationError(
+                    f"[{self.cde.code}] The cde is in at least two different section in the selected default survey form. You must enter the cde path.")
 
 
 class SurveyStates:
