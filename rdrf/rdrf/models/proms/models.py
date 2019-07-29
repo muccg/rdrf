@@ -71,8 +71,7 @@ class Survey(models.Model):
             raise ValidationError("You forgot to select the context form group.")
         # Check that the selected form is in the correct form group
         if self.form and self.form not in self.context_form_group.forms:
-            raise ValidationError("The selected form %s is not in the form group %s" % (self.form.name,
-                                                                            self.context_form_group.name))
+            raise ValidationError(f"The selected form {self.form.name} is not in the form group {self.context_form_group.name}")
 
 
 class Precondition(models.Model):
