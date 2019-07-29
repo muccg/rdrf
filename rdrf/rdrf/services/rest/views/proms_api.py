@@ -251,12 +251,13 @@ class PromsProcessor:
                 else:
                     context_arg = context_model
 
-                patient_model.set_form_value(self.registry_model.code,
-                                             form_model.name,
-                                             section_model.code,
-                                             cde_model.code,
-                                             value,
-                                             context_arg)
+                if not is_consent:
+                    patient_model.set_form_value(self.registry_model.code,
+                                                 form_model.name,
+                                                 section_model.code,
+                                                 cde_model.code,
+                                                 value,
+                                                 context_arg)
             except Exception as ex:
                 logger.error("Error updating proms field %s->%s: %s" % (cde_code,
                                                                         value,
