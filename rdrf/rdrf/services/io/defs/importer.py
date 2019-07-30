@@ -646,6 +646,7 @@ class Importer(object):
                 sq_model.instruction = sq.get("instruction", None)
                 sq_model.copyright_text = sq.get("copyright_text", None)
                 sq_model.source = sq.get("source", None)
+                sq_model.cde_path = sq.get("cde_path", None)
                 cde_model = CommonDataElement.objects.get(code=sq["cde"])
                 sq_model.cde = cde_model
                 sq_model.save()

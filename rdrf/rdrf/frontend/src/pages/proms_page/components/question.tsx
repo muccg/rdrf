@@ -140,7 +140,7 @@ class Question extends React.Component<QuestionInterface, object> {
         const style = { width: "50%", height:"50vh", margin:"0 auto", leftPadding: "100px" };
         const isLast = (this.props.questions.length - 1) === this.props.stage;
 
-	      const isConsent = question.cde === "PROMSConsent";
+        const isConsent = question.cde === "PROMSConsent";
         const consentText = <div>By ticking this box you:
                                 <ul>
                                     <li>Give consent for the information you provide to be used for the CIC Cancer project; and </li>
@@ -152,7 +152,6 @@ class Question extends React.Component<QuestionInterface, object> {
         if (isMultiSelect) {
             return this.renderMultiSelect(question);
         }
-
 
         return (
             <Form>
