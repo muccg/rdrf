@@ -202,7 +202,6 @@ class SurveyQuestion(models.Model):
             raise ValidationError(
                 f"[{self.cde.code}] The cde {self.cde.code} does not exist in the form '{path_form_name}' / section '{path_section_code}'")
 
-
     def validate_default_form_exists(self):
         if self.survey.form is None:
             raise ValidationError(
