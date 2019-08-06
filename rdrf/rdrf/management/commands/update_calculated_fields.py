@@ -3,6 +3,7 @@ import random
 import time
 import urllib.parse
 from datetime import datetime
+import copy
 
 import requests
 from django.core.management.base import BaseCommand
@@ -14,6 +15,7 @@ from registry.patients.models import Patient, DynamicDataWrapper
 import logging
 logging.getLogger("requests").setLevel(logging.WARNING)
 logging.getLogger("urllib3").setLevel(logging.WARNING)
+logger = logging.getLogger(__name__)
 
 
 class ScriptUser:
@@ -64,6 +66,7 @@ class Command(BaseCommand):
         # self.DANGER_overwrite_a_calculated_cde_for_testing_purpose()
 
         start = time.time()
+        modified_patients = []
 
         if options['cde_code']:
             if not options['form_name'] or not options['section_code']:
@@ -136,7 +139,10 @@ class Command(BaseCommand):
                                             new_calculated_cde_value = test_converted_python_calculation(calculated_cde_model, new_calculated_cde_value, patient_model, form_cde_values, self)
 
                                             # if the result is a new value, then store in a temp var so we can update the form at its context level.
+                                            # print(f"{calculated_cde_model.code}: current DB value {context_var[calculated_cde_model.code]} - Patient: {patient_model.id}")
                                             if context_var[calculated_cde_model.code] != new_calculated_cde_value:
+                                                if patient_model.id not in modified_patients:
+                                                    modified_patients.append(patient_model.id)
                                                 changed_calculated_cdes[calculated_cde_model.code] = \
                                                     {"old_value": context_var[calculated_cde_model.code],
                                                      "new_value": new_calculated_cde_value,
@@ -148,6 +154,24 @@ class Command(BaseCommand):
         end = time.time()
         self.stdout.write(self.style.SUCCESS(f"Script ended in {end - start} seconds."))
 
+        # Rerun the calculation when a patient value that were changed.
+        for modified_patient_id in modified_patients:
+            patient_option = options.copy()
+            # little security to avoid unexpected buggy loop.
+            # Do not run additional recalculation if ever we have been doing more than 10 times for the same patient.
+            if 'recalculate_step' not in patient_option.keys() or patient_option['recalculate_step'] < 10:
+                patient_option['patient_id'] = [modified_patient_id]
+                # calculate new step value
+                if 'recalculate_step' not in patient_option.keys():
+                    step = 1
+                else:
+                    step = patient_option['recalculate_step'] + 1
+                patient_option['recalculate_step'] = step
+                logger.info(f"[RECALCULATING] we are recalculating the patient id {modified_patient_id} - recalculation number: {step} ")
+                self.handle(**patient_option)
+            else:
+                logger.info(f"[BUG] We tried to recalculate the patient id {modified_patient_id} more the 10 times. "
+                            f"We stopped this patient calculated field update.")
 
 def calculate_cde(patient_model, form_cde_values, calculated_cde_model):
     patient_values = {'date_of_birth': patient_model.date_of_birth,
@@ -170,29 +194,32 @@ def calculate_cde(patient_model, form_cde_values, calculated_cde_model):
 def test_converted_python_calculation(calculated_cde_model, new_calculated_cde_value, patient_model, form_cde_values, command):
     new_python_calculated_value = calculate_cde(patient_model, form_cde_values, calculated_cde_model)
     if not (new_python_calculated_value == new_calculated_cde_value):
-        command.stdout.write(
-            command.style.ERROR(f"{calculated_cde_model.code} python calculation value: {new_python_calculated_value} - expected value: {new_calculated_cde_value}"))
-    else:
-        return new_python_calculated_value
+        # TODO: temp: ignore date related error because we do want to fix the problem of one year younger
+        # if calculated_cde_model.code not in ('fhAgeAtAssessment', 'fhAgeAtConsent', 'FHDeathAge'):
+        if calculated_cde_model.code not in ('',):
+            command.stdout.write(
+                command.style.ERROR(f"{calculated_cde_model.code} python calculation value: {new_python_calculated_value} - expected value: {new_calculated_cde_value} - Patient: {patient_model.id}"))
+        # exit(1)
+    return new_python_calculated_value
 
 
 def save_new_calculation(changed_calculated_cdes, context_id, form_name, patient_model, registry_model):
     # save the new form values in the ClinicalData model only when we have one values
     context_model = RDRFContext.objects.get(id=context_id)
     if changed_calculated_cdes:
-        pass
-        # print(f"UPDATING DB: These are the new value of the form/context {changed_calculated_cdes}")
-        # for changed_calculated_cde_code in changed_calculated_cdes.keys():
-        #     patient_model.set_form_value(registry_code=registry_model.code,
-        #                                  form_name=form_name,
-        #                                  section_code=changed_calculated_cdes[changed_calculated_cde_code][
-        #                                      'section_code'],
-        #                                  data_element_code=changed_calculated_cde_code,
-        #                                  value=changed_calculated_cdes[changed_calculated_cde_code]['new_value'],
-        #                                  save_snapshot=list(changed_calculated_cdes.keys())[
-        #                                      -1] == changed_calculated_cde_code,
-        #                                  user=ScriptUser(),
-        #                                  context_model=context_model)
+        # pass
+        print(f"UPDATING DB: These are the new value of the form/context {changed_calculated_cdes} - patient: {patient_model.id} - context: {context_id}")
+        for changed_calculated_cde_code in changed_calculated_cdes.keys():
+            patient_model.set_form_value(registry_code=registry_model.code,
+                                         form_name=form_name,
+                                         section_code=changed_calculated_cdes[changed_calculated_cde_code][
+                                             'section_code'],
+                                         data_element_code=changed_calculated_cde_code,
+                                         value=changed_calculated_cdes[changed_calculated_cde_code]['new_value'],
+                                         save_snapshot=list(changed_calculated_cdes.keys())[
+                                             -1] == changed_calculated_cde_code,
+                                         user=ScriptUser(),
+                                         context_model=context_model)
 
     # TODO: record/alert someone than the form has been updated (so we can track that the code is properly working)
 

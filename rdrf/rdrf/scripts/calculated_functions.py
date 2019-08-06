@@ -420,12 +420,25 @@ def LDLCholesterolAdjTreatment(patient, context):
     if context["CDE00019"] is None or context["CDE00019"] == "":
         return "NaN"
 
-    ldl_chol = float(context["CDE00019"])
+    # if empty PlasmaLipidTreatment return a NaN error
+    if context["PlasmaLipidTreatment"] is None or context["PlasmaLipidTreatment"] == "":
+        return "NaN"
+
+    ldl_chol = context["CDE00019"]
     # Dosage
     dose = context["PlasmaLipidTreatment"]
 
     try:
-        LDLCholesterolAdjTreatment = str(roundToTwo(ldl_chol * correction_factor(dose)))
+        # print(ldl_chol)
+        # print(type(ldl_chol))
+        # print(correction_factor(dose))
+        # print(type(correction_factor(dose)))
+        # print(ldl_chol * correction_factor(dose))
+        # print(type(ldl_chol * correction_factor(dose)))
+        # print(Decimal(str(ldl_chol)) * Decimal(str(correction_factor(dose))))
+        # print(type(Decimal(str(ldl_chol)) * Decimal(str(correction_factor(dose)))))
+
+        LDLCholesterolAdjTreatment = str(roundToTwo(Decimal(str(ldl_chol * correction_factor(dose)))))
         # print(LDLCholesterolAdjTreatment)
         # remove trailing 0: 14.23 => 14.23, 14.20 => 14.2, 14.00 => 14
         trimmed_LDLCholesterolAdjTreatment = LDLCholesterolAdjTreatment.rstrip('0').rstrip('.') if '.' in LDLCholesterolAdjTreatment else LDLCholesterolAdjTreatment
@@ -486,7 +499,11 @@ def unix_time_millis(dt):
 
 def broken_rounded_age(birthDate, assessmentDate):
     age = unix_time_millis(assessmentDate) - unix_time_millis(datetime.combine(birthDate, datetime.min.time()))
+
+    # print(unix_time_millis(datetime.combine(birthDate, datetime.min.time())))
+    # print(age)
     age_in_years = age / (1000.0 * 3600.0 * 24.0 * 365.0)
+    # print(age_in_years)
     return math.floor(age_in_years)
 
 
@@ -500,7 +517,7 @@ def FHDeathAge(patient, context):
 
     deathDate = datetime.strptime(context["FHDeathDate"], '%Y-%m-%d')
     birthDate = patient["date_of_birth"]
-    deathAge = broken_rounded_age(birthDate, deathDate)
+    deathAge = calculate_age(birthDate, deathDate)
 
     if deathAge is None or deathAge == "":
         return None
@@ -526,7 +543,10 @@ def fhAgeAtConsent(patient, context):
 
     consentDate = datetime.strptime(context["FHconsentDate"], '%Y-%m-%d')
     birthDate = patient["date_of_birth"]
-    consentAge = broken_rounded_age(birthDate, consentDate)
+    consentAge = calculate_age(birthDate, consentDate)
+    # print(f"DOB: {patient['date_of_birth']}")
+    # print(unix_time_millis(datetime.combine(patient["date_of_birth"], datetime.min.time())))
+    # print(f"birthDate: {birthDate} - consentDate: {consentDate}")
 
     if consentAge is None or consentAge == "":
         return None
@@ -552,7 +572,7 @@ def fhAgeAtAssessment(patient, context):
 
     assessmentDate = datetime.strptime(context["DateOfAssessment"], '%Y-%m-%d')
     birthDate = patient["date_of_birth"]
-    assessmentAge = broken_rounded_age(birthDate, assessmentDate)
+    assessmentAge = calculate_age(birthDate, assessmentDate)
 
     if assessmentAge is None or assessmentAge == "":
         return None
