@@ -44,7 +44,7 @@ class CalculatedFunctionsTestCase(TestCase):
         self.patient_values = {'date_of_birth': datetime.strptime(patient_date_of_birth, '%Y-%m-%d'),
                                'sex': 1}
 
-    def test_CDEfhDutchLipidClinicNetwork(self):
+    def test_CDEfhDutchLipidClinicNetwork_all_cap_reached(self):
         self.form_values = {'CDE00001': 'y',
                             'CDE00002': 'y',
                             'CDE00003': 'fh2_y',
@@ -58,7 +58,7 @@ class CalculatedFunctionsTestCase(TestCase):
                             'FHFamilyHistoryChild': 'fh_n',
                             'FHPersHistCerebralVD': 'fh2_y',
                             'LDLCholesterolAdjTreatment': '21.74'}
-        self.assertEqual(calculated_functions.CDEfhDutchLipidClinicNetwork(self.patient_values, self.form_values), '24')
+        self.assertEqual(calculated_functions.CDEfhDutchLipidClinicNetwork(self.patient_values, self.form_values), '18')
 
     def test_CDEfhDutchLipidClinicNetwork_2(self):
         self.patient_values = {'date_of_birth': datetime.strptime('1990-01-01', '%Y-%m-%d'),
@@ -76,7 +76,7 @@ class CalculatedFunctionsTestCase(TestCase):
                             'FHFamilyHistoryChild': 'fh_n',
                             'FHPersHistCerebralVD': 'fh2_y',
                             'LDLCholesterolAdjTreatment': '6'}
-        self.assertEqual(calculated_functions.CDEfhDutchLipidClinicNetwork(self.patient_values, self.form_values), '16')
+        self.assertEqual(calculated_functions.CDEfhDutchLipidClinicNetwork(self.patient_values, self.form_values), '11')
 
     def test_CDEfhDutchLipidClinicNetwork_3(self):
         self.patient_values = {'date_of_birth': datetime.strptime('2000-10-01', '%Y-%m-%d'),
