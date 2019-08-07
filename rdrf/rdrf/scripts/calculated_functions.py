@@ -50,7 +50,7 @@ def getLDL(context):
         return L
     except:
         try:
-            # // try adjusted value
+            # try adjusted value
             L = float(adjusted)
             if not math.isnan(L):
                 return L
@@ -151,7 +151,6 @@ def getScore(context, patient):
                 score += 5
 
             # add 8 to score if L >= 8.5
-
             if L >= 8.5:
                 score += 8
 
@@ -179,14 +178,9 @@ def CDEfhDutchLipidClinicNetwork(patient, context):
 
     context = fill_missing_input(context, 'CDEfhDutchLipidClinicNetwork_inputs')
 
-    # print(f"RUNNING CDEfhDutchLipidClinicNetwork")
     if context["DateOfAssessment"] is None or context["DateOfAssessment"] == "":
         return ""
     score = getScore(context, patient)
-    # print(score)
-    # # remove trailing 0: 14.23 => 14.23, 14.20 => 14.2, 14.00 => 14
-    # score_no_trailing_zero = score.rstrip('0').rstrip('.') if '.' in score else score
-    # print(score_no_trailing_zero)
 
     if score is None:
         return ""
@@ -225,7 +219,7 @@ def CDE00024_getLDL(context):
 
 
 def catchild(context):
-    # // for index patients
+    # for index patients
     L = CDE00024_getLDL(context)
     if bad(L):
         return ""
@@ -234,8 +228,8 @@ def catchild(context):
         return (context["CDE00003"] == "fh2_y") or (context["CDE00004"] == "fh2_y") or (
             context["FHFamHistTendonXanthoma"] == "fh2_y") or (context["FHFamHistArcusCornealis"] == "fh2_y")
 
-    # //Definite if DNA Analysis is Yes
-    # //other wise
+    # Definite if DNA Analysis is Yes
+    # other wise
     if L > 5.0:
         return "Highly Probable"
 
@@ -249,7 +243,7 @@ def catchild(context):
 
 
 def catadult(score):
-    # // for index patients
+    # for index patients
     if bad(score):
         return ""
 
@@ -275,7 +269,7 @@ def catrelative(sex, age, lipid_score):
     table = None
     BIG = 99999999999999.00
     MALE_TABLE = [
-        # //  AGE         Unlikely   Uncertain  Likely
+        # AGE        Unlikely     Uncertain       Likely
         [[0, 14], [[-1, 3.099], [3.1, 3.499], [3.5, BIG]]],
         [[15, 24], [[-1, 2.999], [3.0, 3.499], [3.5, BIG]]],
         [[25, 34], [[-1, 3.799], [3.8, 4.599], [4.6, BIG]]],
@@ -284,7 +278,7 @@ def catrelative(sex, age, lipid_score):
         [[55, 999], [[-1, 4.299], [4.3, 5.299], [5.3, BIG]]]]
 
     FEMALE_TABLE = [
-        # //  AGE         Unlikely   Uncertain  Likely
+        # AGE         Unlikely    Uncertain       Likely
         [[0, 14], [[-1, 3.399], [3.4, 3.799], [3.8, BIG]]],
         [[15, 24], [[-1, 3.299], [3.3, 3.899], [3.9, BIG]]],
         [[25, 34], [[-1, 3.599], [3.6, 4.299], [4.3, BIG]]],
@@ -347,7 +341,6 @@ def categorise(context, patient):
 
 
 def CDE00024(patient, context):
-    # print(f"RUNNING CDE00024")
 
     context = fill_missing_input(context, 'CDE00024_inputs')
 
@@ -418,12 +411,8 @@ def roundToTwo(num):
 
 
 def LDLCholesterolAdjTreatment(patient, context):
-    # print(f"RUNNING LDLCholesterolAdjTreatment")
 
     context = fill_missing_input(context, 'LDLCholesterolAdjTreatment_inputs')
-
-    # Inputs
-    # LDL-cholesterol concentration
 
     # if empty CDE000019 return a NaN error
     if context["CDE00019"] is None or context["CDE00019"] == "":
@@ -438,20 +427,9 @@ def LDLCholesterolAdjTreatment(patient, context):
     dose = context["PlasmaLipidTreatment"]
 
     try:
-        # print(ldl_chol)
-        # print(type(ldl_chol))
-        # print(correction_factor(dose))
-        # print(type(correction_factor(dose)))
-        # print(ldl_chol * correction_factor(dose))
-        # print(type(ldl_chol * correction_factor(dose)))
-        # print(Decimal(str(ldl_chol)) * Decimal(str(correction_factor(dose))))
-        # print(type(Decimal(str(ldl_chol)) * Decimal(str(correction_factor(dose)))))
-
         LDLCholesterolAdjTreatment = str(roundToTwo(Decimal(str(ldl_chol * correction_factor(dose)))))
-        # print(LDLCholesterolAdjTreatment)
         # remove trailing 0: 14.23 => 14.23, 14.20 => 14.2, 14.00 => 14
         trimmed_LDLCholesterolAdjTreatment = LDLCholesterolAdjTreatment.rstrip('0').rstrip('.') if '.' in LDLCholesterolAdjTreatment else LDLCholesterolAdjTreatment
-        # print(trimmed_LDLCholesterolAdjTreatment)
         return trimmed_LDLCholesterolAdjTreatment
 
     except:
@@ -467,17 +445,15 @@ def LDLCholesterolAdjTreatment_inputs():
 ################ BEGINNING OF CDEBMI ################################
 
 def CDEBMI(patient, context):
-    # print(f"RUNNING CDEBMI")
 
     context = fill_missing_input(context, 'CDEBMI_inputs')
 
     height = context["CDEHeight"]
     weight = context["CDEWeight"]
 
-    # Simulating wrid JS behaviour to match JS calculation
+    # Simulating weird behaviour to match the current JS calculation results
     # Hopefull we decide later to remove this behaviour but in a first stage in converting the JS calculation in python
-    # we try to match the exact result of the JS calulcation (even thought they may be wrong like age calculation bug or
-    # weird like here with "" / NUMBER => 0)
+    # we try to match the exact result of the JS calculation (even thought they may be wrong like this problem with "" / NUMBER => 0)
     if not weight and height:
         return "0"
 
@@ -506,18 +482,7 @@ def unix_time_millis(dt):
     return (dt - epoch).total_seconds() * 1000.0
 
 
-def broken_rounded_age(birthDate, assessmentDate):
-    age = unix_time_millis(assessmentDate) - unix_time_millis(datetime.combine(birthDate, datetime.min.time()))
-
-    # print(unix_time_millis(datetime.combine(birthDate, datetime.min.time())))
-    # print(age)
-    age_in_years = age / (1000.0 * 3600.0 * 24.0 * 365.0)
-    # print(age_in_years)
-    return math.floor(age_in_years)
-
-
 def FHDeathAge(patient, context):
-    # print(f"RUNNING FHDeathAge")
 
     context = fill_missing_input(context, 'FHDeathAge_inputs')
 
@@ -543,7 +508,6 @@ def FHDeathAge_inputs():
 
 
 def fhAgeAtConsent(patient, context):
-    # print(f"RUNNING fhAgeAtConsent")
 
     context = fill_missing_input(context, 'fhAgeAtConsent_inputs')
 
@@ -553,9 +517,6 @@ def fhAgeAtConsent(patient, context):
     consentDate = datetime.strptime(context["FHconsentDate"], '%Y-%m-%d')
     birthDate = patient["date_of_birth"]
     consentAge = calculate_age(birthDate, consentDate)
-    # print(f"DOB: {patient['date_of_birth']}")
-    # print(unix_time_millis(datetime.combine(patient["date_of_birth"], datetime.min.time())))
-    # print(f"birthDate: {birthDate} - consentDate: {consentDate}")
 
     if consentAge is None or consentAge == "":
         return None
@@ -572,7 +533,6 @@ def fhAgeAtConsent_inputs():
 
 
 def fhAgeAtAssessment(patient, context):
-    # print(f"RUNNING fhAgeAtAssessment")
 
     context = fill_missing_input(context, 'fhAgeAtAssessment_inputs')
 
@@ -598,7 +558,6 @@ def fhAgeAtAssessment_inputs():
 ################ BEGINNING OF DDAgeAtDiagnosis ################################
 
 def DDAgeAtDiagnosis(patient, context):
-    # print(f"RUNNING DDAgeAtDiagnosis")
 
     context = fill_missing_input(context, 'DDAgeAtDiagnosis_inputs')
 

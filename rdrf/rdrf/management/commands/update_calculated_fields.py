@@ -3,7 +3,6 @@ import random
 import time
 import urllib.parse
 from datetime import datetime
-import copy
 
 import requests
 from django.core.management.base import BaseCommand
@@ -42,28 +41,7 @@ class Command(BaseCommand):
         # Test command line example
         # django-admin update_calculated_fields --patient_id=2 --registry_code=fh --form_name=ClinicalData --section_code=SEC0007 --context_id=2 --cde_code=CDEfhDutchLipidClinicNetwork
 
-    def DANGER_overwrite_a_calculated_cde_for_testing_purpose(self):
-        test_form_name = 'FollowUp'
-        test_registry_code = 'fh'
-        test_context_model = RDRFContext.objects.get(id=5)
-        test_patient_model = Patient.objects.get(id=2)
-        test_section_code = 'FHDeath'
-        test_cde_code = 'FHDeathAge'
-        test_cde_value = str(random.randint(1, 101))
-        test_patient_model.set_form_value(registry_code=test_registry_code,
-                                          form_name=test_form_name,
-                                          section_code=test_section_code,
-                                          data_element_code=test_cde_code,
-                                          value=test_cde_value,
-                                          save_snapshot=True,
-                                          user=ScriptUser(),
-                                          context_model=test_context_model)
-        print(f"NEW {test_cde_code}: {test_cde_value}")
-
     def handle(self, *args, **options):
-
-        # Comment out the next line when wanting to do dirty testing.
-        # self.DANGER_overwrite_a_calculated_cde_for_testing_purpose()
 
         start = time.time()
         modified_patients = []
@@ -139,7 +117,6 @@ class Command(BaseCommand):
                                             new_calculated_cde_value = test_converted_python_calculation(calculated_cde_model, new_calculated_cde_value, patient_model, form_cde_values, self)
 
                                             # if the result is a new value, then store in a temp var so we can update the form at its context level.
-                                            # print(f"{calculated_cde_model.code}: current DB value {context_var[calculated_cde_model.code]} - Patient: {patient_model.id}")
                                             if context_var[calculated_cde_model.code] != new_calculated_cde_value:
                                                 if patient_model.id not in modified_patients:
                                                     modified_patients.append(patient_model.id)
@@ -194,12 +171,7 @@ def calculate_cde(patient_model, form_cde_values, calculated_cde_model):
 def test_converted_python_calculation(calculated_cde_model, new_calculated_cde_value, patient_model, form_cde_values, command):
     new_python_calculated_value = calculate_cde(patient_model, form_cde_values, calculated_cde_model)
     if not (new_python_calculated_value == new_calculated_cde_value):
-        # TODO: temp: ignore date related error because we do want to fix the problem of one year younger
-        # if calculated_cde_model.code not in ('fhAgeAtAssessment', 'fhAgeAtConsent', 'FHDeathAge'):
-        if calculated_cde_model.code not in ('',):
-            command.stdout.write(
-                command.style.ERROR(f"{calculated_cde_model.code} python calculation value: {new_python_calculated_value} - expected value: {new_calculated_cde_value} - Patient: {patient_model.id}"))
-        # exit(1)
+        logger.info(f"CHANGE DETECTED: {calculated_cde_model.code} python calculation value: {new_python_calculated_value} - expected value: {new_calculated_cde_value} - Patient: {patient_model.id}")
     return new_python_calculated_value
 
 
@@ -207,8 +179,7 @@ def save_new_calculation(changed_calculated_cdes, context_id, form_name, patient
     # save the new form values in the ClinicalData model only when we have one values
     context_model = RDRFContext.objects.get(id=context_id)
     if changed_calculated_cdes:
-        # pass
-        print(f"UPDATING DB: These are the new value of the form/context {changed_calculated_cdes} - patient: {patient_model.id} - context: {context_id}")
+        logger.info(f"UPDATING DB: These are the new value of the form/context {changed_calculated_cdes} - patient: {patient_model.id} - context: {context_id}")
         for changed_calculated_cde_code in changed_calculated_cdes.keys():
             patient_model.set_form_value(registry_code=registry_model.code,
                                          form_name=form_name,
@@ -220,8 +191,6 @@ def save_new_calculation(changed_calculated_cdes, context_id, form_name, patient
                                              -1] == changed_calculated_cde_code,
                                          user=ScriptUser(),
                                          context_model=context_model)
-
-    # TODO: record/alert someone than the form has been updated (so we can track that the code is properly working)
 
 
 def context_ids_for_patient_and_form(patient_model, form_name, registry_model):
