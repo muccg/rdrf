@@ -42,7 +42,6 @@ class Command(BaseCommand):
         # django-admin update_calculated_fields --patient_id=2 --registry_code=fh --form_name=ClinicalData --section_code=SEC0007 --context_id=2 --cde_code=CDEfhDutchLipidClinicNetwork
 
     def handle(self, *args, **options):
-
         start = time.time()
         modified_patients = []
 
@@ -107,14 +106,8 @@ class Command(BaseCommand):
                                     for calculated_cde_model in calculated_cde_models:
                                         if calculated_cde_model.code in context_var.keys() and calculated_cde_model.code in \
                                                 cde_models_tree[registry_model.code][form_name][section_code].keys():
-                                            # web service call to the nodejs calculation evaluation script.
-                                            # TODO comment this call - we keep it for testing purpose
-                                            # TODO when removing, you need to remove new_calculated_cde_value param from test_converted_python_calculation
-                                            new_calculated_cde_value = call_ws_calculation(calculated_cde_model,
-                                                                                           patient_model,
-                                                                                           context_var)
 
-                                            new_calculated_cde_value = test_converted_python_calculation(calculated_cde_model, new_calculated_cde_value, patient_model, form_cde_values, self)
+                                            new_calculated_cde_value = calculate_cde(patient_model, form_cde_values, calculated_cde_model)
 
                                             # if the result is a new value, then store in a temp var so we can update the form at its context level.
                                             if context_var[calculated_cde_model.code] != new_calculated_cde_value:
@@ -166,13 +159,6 @@ def calculate_cde(patient_model, form_cde_values, calculated_cde_model):
         return func(patient_values, form_values)
     else:
         raise Exception(f"Trying to call unknown calculated function {calculated_cde_model.code}()")
-
-
-def test_converted_python_calculation(calculated_cde_model, new_calculated_cde_value, patient_model, form_cde_values, command):
-    new_python_calculated_value = calculate_cde(patient_model, form_cde_values, calculated_cde_model)
-    if not (new_python_calculated_value == new_calculated_cde_value):
-        logger.info(f"CHANGE DETECTED: {calculated_cde_model.code} python calculation value: {new_python_calculated_value} - expected value: {new_calculated_cde_value} - Patient: {patient_model.id}")
-    return new_python_calculated_value
 
 
 def save_new_calculation(changed_calculated_cdes, context_id, form_name, patient_model, registry_model):
@@ -250,39 +236,6 @@ def build_context_var(patient_model, context_id, registry_model, form_name, cde_
                 pass
 
     return context_var
-
-
-def call_ws_calculation(calculated_cde_model, patient_model, context_var):
-    # Build the web service call parameter.
-    patient_var = {'sex': patient_model.sex, 'date_of_birth': patient_model.date_of_birth.__format__("%Y-%m-%d")}
-    rdrf_var = """
-                                        class Rdrf {
-                                            log(msg) {
-                                                console.log(msg);
-                                            }
-
-                                            get(data, key) {
-                                                return data[key];
-                                                // console.log("A function is calling RDRF.get ADSAFE - ignoring...");
-                                            }
-                                        }
-
-                                        RDRF = new Rdrf();"""
-    js_code = f"""{rdrf_var} 
-        patient = {json.dumps(patient_var)}
-        context = {json.dumps(context_var)}
-        {calculated_cde_model.calculation}"""
-    headers = {'Content-Type': 'application/json'}
-    # we encode the JS function.
-    encoded_js_code = {"jscode": urllib.parse.quote(js_code)}
-    # Retrieve the new value by web service.
-    resp = requests.post(url='http://node_js_evaluator:3131/eval', headers=headers,
-                         json=encoded_js_code)
-    ws_value = resp.json()
-    if ws_value == "" or 'value' not in ws_value.keys():
-        return ""
-    new_calculated_cde_value = "NaN" if ws_value['isNan'] else str(ws_value['value'])
-    return new_calculated_cde_value
 
 
 def build_cde_models_tree(calculated_cde_models, options, command):
