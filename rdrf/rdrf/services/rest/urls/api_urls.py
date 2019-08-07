@@ -1,4 +1,4 @@
-from django.urls import re_path, path
+from django.urls import re_path
 from rdrf.services.rest.views import api_views
 from rdrf.routing.custom_rest_router import DefaultRouterWithSimpleViews
 

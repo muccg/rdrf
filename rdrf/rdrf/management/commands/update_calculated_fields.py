@@ -1,12 +1,6 @@
-import json
-import random
 import time
-import urllib.parse
 from datetime import datetime
-
-import requests
 from django.core.management.base import BaseCommand
-
 from rdrf.models.definition.models import ClinicalData, CommonDataElement, RegistryForm, Section, RDRFContext, ContextFormGroupItem
 from registry.patients.models import Patient, DynamicDataWrapper
 
@@ -143,6 +137,7 @@ class Command(BaseCommand):
                 logger.info(f"[BUG] We tried to recalculate the patient id {modified_patient_id} more the 10 times. "
                             f"We stopped this patient calculated field update.")
 
+
 def calculate_cde(patient_model, form_cde_values, calculated_cde_model):
     patient_values = {'date_of_birth': patient_model.date_of_birth,
                       'sex': patient_model.sex}
@@ -267,7 +262,7 @@ def build_cde_models_tree(calculated_cde_models, options, command):
 
                 for section_model in section_models:
                     for cde_code in section_model.get_elements():
-                            # Check if we already retrieved some cde models for this section.
+                        # Check if we already retrieved some cde models for this section.
                         if cde_models_tree \
                                 and form_model.registry.code in cde_models_tree \
                                 and form_model.name in cde_models_tree[form_model.registry.code] \

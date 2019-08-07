@@ -1,3 +1,9 @@
+# flake8: noqa
+# Ignore pep8 linting for a while - the code matching the JS calculated field it will make it easier to find the difference.
+# This decision was taken in August 2019 - by 2020 the code should have been in prod for some time - you can then fix all pep8
+# WARNING: you CANNOT change the name of the CDE function so you must ignore the linting for them as they must have uppercase
+# to match the calculated cde codes.
+
 from datetime import datetime
 from decimal import Decimal, ROUND_HALF_UP
 import math

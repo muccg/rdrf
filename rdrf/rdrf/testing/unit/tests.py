@@ -44,7 +44,7 @@ class CalculatedFunctionsTestCase(TestCase):
         self.patient_values = {'date_of_birth': datetime.strptime(patient_date_of_birth, '%Y-%m-%d'),
                                'sex': 1}
 
-    def test_CDEfhDutchLipidClinicNetwork_all_cap_reached(self):
+    def test_cdefhdutchLipidclinicnetwork_all_cap_reached(self):
         self.form_values = {'CDE00001': 'y',
                             'CDE00002': 'y',
                             'CDE00003': 'fh2_y',
@@ -60,7 +60,7 @@ class CalculatedFunctionsTestCase(TestCase):
                             'LDLCholesterolAdjTreatment': '21.74'}
         self.assertEqual(calculated_functions.CDEfhDutchLipidClinicNetwork(self.patient_values, self.form_values), '18')
 
-    def test_CDEfhDutchLipidClinicNetwork_2(self):
+    def test_cdefhdutchLipidclinicnetwork_2(self):
         self.patient_values = {'date_of_birth': datetime.strptime('1990-01-01', '%Y-%m-%d'),
                                'sex': 2}
         self.form_values = {'CDE00001': 'y',
@@ -78,7 +78,7 @@ class CalculatedFunctionsTestCase(TestCase):
                             'LDLCholesterolAdjTreatment': '6'}
         self.assertEqual(calculated_functions.CDEfhDutchLipidClinicNetwork(self.patient_values, self.form_values), '11')
 
-    def test_CDEfhDutchLipidClinicNetwork_3(self):
+    def test_cdefhdutchLipidclinicnetwork_3(self):
         self.patient_values = {'date_of_birth': datetime.strptime('2000-10-01', '%Y-%m-%d'),
                                'sex': 1}
         self.form_values = {'CDE00001': 'n',
@@ -96,7 +96,7 @@ class CalculatedFunctionsTestCase(TestCase):
                             'LDLCholesterolAdjTreatment': None}
         self.assertEqual(calculated_functions.CDEfhDutchLipidClinicNetwork(self.patient_values, self.form_values), '')
 
-    def test_CDE00024(self):
+    def test_cde00024(self):
         self.form_values = {'CDE00003': 'fh2_y',
                             'CDE00004': 'fh2_y',
                             'CDE00013': 10.0,
@@ -108,13 +108,12 @@ class CalculatedFunctionsTestCase(TestCase):
                             'LDLCholesterolAdjTreatment': '21.74'}
         self.assertEqual(calculated_functions.CDE00024(self.patient_values, self.form_values), 'Definite')
 
-
-    def test_LDLCholesterolAdjTreatment(self):
+    def test_ldlcholesteroladjtreatment(self):
         self.form_values = {'CDE00019': 10.0,
                             'PlasmaLipidTreatment': 'FAEzetimibe/atorvastatin20'}
         self.assertEqual(calculated_functions.LDLCholesterolAdjTreatment(self.patient_values, self.form_values), '21.74')
 
-    def test_CDEBMI(self):
+    def test_cdebmi(self):
         self.form_values = {'CDEHeight': "",
                             'CDEWeight': ""}
         self.assertEqual(calculated_functions.CDEBMI(self.patient_values, self.form_values), 'NaN')
@@ -122,13 +121,13 @@ class CalculatedFunctionsTestCase(TestCase):
                             'CDEWeight': 86.0}
         self.assertEqual(calculated_functions.CDEBMI(self.patient_values, self.form_values), '25.96')
 
-    def test_FHDeathAge(self):
+    def test_fhdeathage(self):
         self.form_values = {'FHDeathDate': ""}
         self.assertEqual(calculated_functions.FHDeathAge(self.patient_values, self.form_values), 'NaN')
         self.form_values = {'FHDeathDate': '2019-05-11'}
         self.assertEqual(calculated_functions.FHDeathAge(self.patient_values, self.form_values), '18')
 
-    def test_DDAgeAtDiagnosis(self):
+    def test_ddageatdiagnosis(self):
         self.form_values = {'DateOfDiagnosis': ""}
         self.assertEqual(calculated_functions.DDAgeAtDiagnosis(self.patient_values, self.form_values), 'NaN')
         self.form_values = {'DateOfDiagnosis': '2019-05-01'}

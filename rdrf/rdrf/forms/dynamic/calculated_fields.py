@@ -1,7 +1,5 @@
 import logging
-import re
 from django.conf import settings
-from django.urls import reverse
 from registry.patients.models import Patient
 
 logger = logging.getLogger(__name__)
@@ -48,12 +46,12 @@ class CalculatedFieldScriptCreator(object):
             <script>
             $(document).ready(function(){
                  const inputid = '#id_%s%s';
-                 
+
                  $(inputid).add_calculation({
                     cde_inputs: %s,
                     patient_sex: %s,
                     patient_date_of_birth: '%s',
-                   
+
                     observer: "%s",
                     });
                 });
