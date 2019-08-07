@@ -90,13 +90,7 @@
                 //update the onchange
                 Object.keys(required_cde_inputs).forEach(function (cde_input) {
                     $(`[id$=__${cde_input}]`).off("change");
-                    $(`[id$=__${cde_input}]`).change(function() {
-                        // console.log('ELEMENT UPDATED:');
-                        // console.log($( this ));
-                        // console.log($( this ).val());
-                        update_function(required_cde_inputs[cde_input])
-                    });
-
+                    $(`[id$=__${cde_input}]`).on('change keyup', _.debounce((e) => {update_function(required_cde_inputs[cde_input])}, 250))
                 });
 
             } catch (err) {
