@@ -344,7 +344,7 @@ class ReportingTableGenerator(object):
         # field values were meant as a caching technique to speed
         # up reports
         return self.registry_model.has_feature("use_field_values")
-    
+
     @timed
     def run_explorer_query(self, database_utils):
         from copy import copy
