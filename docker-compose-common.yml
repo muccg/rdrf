@@ -72,7 +72,6 @@ services:
       - WAIT_FOR_REPORTING_DB=1
       - WAIT_FOR_CACHE=1
       - DJANGO_MAILGUN_API_KEY=${DJANGO_MAILGUN_API_KEY}
-      - DESIGN_MODE=1
 
   uwsgi:
     image: muccg/rdrf-dev
