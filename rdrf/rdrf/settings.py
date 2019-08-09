@@ -392,6 +392,13 @@ LOGGING = {
             'when': 'midnight',
             'formatter': 'verbose'
         },
+        'admin_command_file': {
+            'level': 'INFO',
+            'class': 'ccg_django_utils.loghandlers.ParentPathFileHandler',
+            'filename': os.path.join(LOG_DIRECTORY, 'admin_command.log'),
+            'when': 'midnight',
+            'formatter': 'verbose'
+        },
         'mail_admins': {
             'level': 'ERROR',
             'filters': ['require_debug_false'],
@@ -421,7 +428,7 @@ LOGGING = {
             'propagate': True,
         },
         'rdrf.management.commands': {
-            'handlers': ['shell'],
+            'handlers': ['shell', 'admin_command_file'],
             'level': 'DEBUG' if DEBUG else 'INFO',
             'propagate': False,
         },

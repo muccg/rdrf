@@ -31,8 +31,107 @@ from django.core.management import call_command
 import json
 
 from rdrf.helpers.transform_cd_dict import get_cd_form, get_section, transform_cd_dict
+from rdrf.scripts import calculated_functions
 
 logger = logging.getLogger(__name__)
+
+
+class CalculatedFunctionsTestCase(TestCase):
+
+    def setUp(self):
+        # Note that we convert the string date as a date django date
+        patient_date_of_birth = '2000-05-17'
+        self.patient_values = {'date_of_birth': datetime.strptime(patient_date_of_birth, '%Y-%m-%d'),
+                               'sex': 1}
+
+    def test_cdefhdutchlipidclinicnetwork_all_cap_reached(self):
+        self.form_values = {'CDE00001': 'y',
+                            'CDE00002': 'y',
+                            'CDE00003': 'fh2_y',
+                            'CDE00004': 'fh2_y',
+                            'CDE00011': 'fhpremcvd_yes_corheartdisease',
+                            'CDE00013': 10.0,
+                            'CDEIndexOrRelative': 'fh_is_index',
+                            'DateOfAssessment': '2019-05-10',
+                            'FHFamHistArcusCornealis': 'fh2_y',
+                            'FHFamHistTendonXanthoma': 'fh2_y',
+                            'FHFamilyHistoryChild': 'fh_n',
+                            'FHPersHistCerebralVD': 'fh2_y',
+                            'LDLCholesterolAdjTreatment': '21.74'}
+        self.assertEqual(calculated_functions.CDEfhDutchLipidClinicNetwork(self.patient_values, self.form_values), '18')
+
+    def test_cdefhdutchlipidclinicnetwork_2(self):
+        self.patient_values = {'date_of_birth': datetime.strptime('1990-01-01', '%Y-%m-%d'),
+                               'sex': 2}
+        self.form_values = {'CDE00001': 'y',
+                            'CDE00002': 'y',
+                            'CDE00003': 'fh2_n',
+                            'CDE00004': 'fh2_n',
+                            'CDE00011': 'fhpremcvd_yes_corheartdisease',
+                            'CDE00013': '',
+                            'CDEIndexOrRelative': 'fh_is_index',
+                            'DateOfAssessment': '2016-01-09',
+                            'FHFamHistArcusCornealis': 'fh2_n',
+                            'FHFamHistTendonXanthoma': 'fh2_n',
+                            'FHFamilyHistoryChild': 'fh_n',
+                            'FHPersHistCerebralVD': 'fh2_y',
+                            'LDLCholesterolAdjTreatment': '6'}
+        self.assertEqual(calculated_functions.CDEfhDutchLipidClinicNetwork(self.patient_values, self.form_values), '11')
+
+    def test_cdefhdutchlipidclinicnetwork_3(self):
+        self.patient_values = {'date_of_birth': datetime.strptime('2000-10-01', '%Y-%m-%d'),
+                               'sex': 1}
+        self.form_values = {'CDE00001': 'n',
+                            'CDE00002': 'n',
+                            'CDE00003': 'fh2_y',
+                            'CDE00004': 'fh2_y',
+                            'CDE00011': 'fhpremcvd_no',
+                            'CDE00013': 12.0,
+                            'CDEIndexOrRelative': 'fh_is_relative',
+                            'DateOfAssessment': '2016-10-01',
+                            'FHFamHistArcusCornealis': 'fh2_n',
+                            'FHFamHistTendonXanthoma': 'fh2_n',
+                            'FHFamilyHistoryChild': 'fh_y',
+                            'FHPersHistCerebralVD': 'fh2_y',
+                            'LDLCholesterolAdjTreatment': None}
+        self.assertEqual(calculated_functions.CDEfhDutchLipidClinicNetwork(self.patient_values, self.form_values), '')
+
+    def test_cde00024(self):
+        self.form_values = {'CDE00003': 'fh2_y',
+                            'CDE00004': 'fh2_y',
+                            'CDE00013': 10.0,
+                            'CDEfhDutchLipidClinicNetwork': '24',
+                            'CDEIndexOrRelative': 'fh_is_index',
+                            'DateOfAssessment': '2019-05-10',
+                            'FHFamHistArcusCornealis': 'fh2_y',
+                            'FHFamHistTendonXanthoma': 'fh2_y',
+                            'LDLCholesterolAdjTreatment': '21.74'}
+        self.assertEqual(calculated_functions.CDE00024(self.patient_values, self.form_values), 'Definite')
+
+    def test_ldlcholesteroladjtreatment(self):
+        self.form_values = {'CDE00019': 10.0,
+                            'PlasmaLipidTreatment': 'FAEzetimibe/atorvastatin20'}
+        self.assertEqual(calculated_functions.LDLCholesterolAdjTreatment(self.patient_values, self.form_values), '21.74')
+
+    def test_cdebmi(self):
+        self.form_values = {'CDEHeight': "",
+                            'CDEWeight': ""}
+        self.assertEqual(calculated_functions.CDEBMI(self.patient_values, self.form_values), 'NaN')
+        self.form_values = {'CDEHeight': 1.82,
+                            'CDEWeight': 86.0}
+        self.assertEqual(calculated_functions.CDEBMI(self.patient_values, self.form_values), '25.96')
+
+    def test_fhdeathage(self):
+        self.form_values = {'FHDeathDate': ""}
+        self.assertEqual(calculated_functions.FHDeathAge(self.patient_values, self.form_values), 'NaN')
+        self.form_values = {'FHDeathDate': '2019-05-11'}
+        self.assertEqual(calculated_functions.FHDeathAge(self.patient_values, self.form_values), '18')
+
+    def test_ddageatdiagnosis(self):
+        self.form_values = {'DateOfDiagnosis': ""}
+        self.assertEqual(calculated_functions.DDAgeAtDiagnosis(self.patient_values, self.form_values), 'NaN')
+        self.form_values = {'DateOfDiagnosis': '2019-05-01'}
+        self.assertEqual(calculated_functions.DDAgeAtDiagnosis(self.patient_values, self.form_values), '18')
 
 
 class AbnormalityRulesTestCase(TestCase):

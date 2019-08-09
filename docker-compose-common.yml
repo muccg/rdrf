@@ -40,7 +40,7 @@ services:
       - WAIT_FOR_DB=1
 
   db:
-    image: muccg/postgres-ssl:9.4
+    image: muccg/postgres-ssl:10.6
     environment:
       - POSTGRES_USER=webapp
       - POSTGRES_PASSWORD=webapp
