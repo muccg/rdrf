@@ -162,7 +162,7 @@ class SurveyQuestion(models.Model):
             return self.cde.name + "  if " + self.precondition.cde.name + " = " + self.precondition.value
 
     def clean(self):
-        if self.cde.code != "PROMSConsent":
+        if self.cde.code not in ("PROMSConsent", "PromsGender"):
             if self.cde_path:
                 # Check that the cde_path is well formatted.
                 # Check that the form, section and cde are valid for this path.
