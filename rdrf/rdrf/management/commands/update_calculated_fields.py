@@ -148,7 +148,7 @@ def calculate_cde(patient_model, form_cde_values, calculated_cde_model):
             if type(cde) is not list:
                 form_values = {**form_values, cde["code"]: cde["value"]}
 
-    mod = __import__('rdrf.scripts.calculated_functions', fromlist=['object'])
+    mod = __import__('rdrf.forms.fields.calculated_functions', fromlist=['object'])
     func = getattr(mod, calculated_cde_model.code)
     if func:
         return func(patient_values, form_values)

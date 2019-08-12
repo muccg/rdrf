@@ -24,7 +24,7 @@ logger = logging.getLogger(__name__)
 
 
 def fill_missing_input(context, input_func_name):
-    mod = __import__('rdrf.scripts.calculated_functions', fromlist=['object'])
+    mod = __import__('rdrf.forms.fields.calculated_functions', fromlist=['object'])
     func = getattr(mod, input_func_name)
     for cde_code in func():
         if cde_code not in context.keys():
