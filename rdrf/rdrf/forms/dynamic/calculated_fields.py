@@ -32,7 +32,7 @@ class CalculatedFieldScriptCreator(object):
             self.section.code + settings.FORM_SECTION_DELIMITER
         observer_code = self.cde.code
 
-        mod = __import__('rdrf.scripts.calculated_functions', fromlist=['object'])
+        mod = __import__('rdrf.forms.fields.calculated_functions', fromlist=['object'])
         func = getattr(mod, f"{self.cde.code}_inputs")
         # required_cde_inputs = {}
         if func:

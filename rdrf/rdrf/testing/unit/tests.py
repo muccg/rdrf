@@ -31,7 +31,7 @@ from django.core.management import call_command
 import json
 
 from rdrf.helpers.transform_cd_dict import get_cd_form, get_section, transform_cd_dict
-from rdrf.scripts import calculated_functions
+from rdrf.forms.fields import calculated_functions
 
 logger = logging.getLogger(__name__)
 

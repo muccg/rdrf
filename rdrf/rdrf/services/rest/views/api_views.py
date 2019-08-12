@@ -305,7 +305,7 @@ class CalculatedCdeValue(APIView):
         patient_values = {'date_of_birth': datetime.strptime(request.data["patient_date_of_birth"], '%Y-%m-%d').date(),
                           'sex': str(request.data["patient_sex"])}
         form_values = request.data["form_values"]
-        mod = __import__('rdrf.scripts.calculated_functions', fromlist=['object'])
+        mod = __import__('rdrf.forms.fields.calculated_functions', fromlist=['object'])
         func = getattr(mod, request.data["cde_code"])
         if func:
             return Response(func(patient_values, form_values))
