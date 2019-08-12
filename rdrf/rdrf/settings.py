@@ -393,11 +393,11 @@ LOGGING = {
             'formatter': 'verbose'
         },
         'admin_command_file': {
-           'level': 'INFO',
-           'class': 'ccg_django_utils.loghandlers.ParentPathFileHandler',
-           'filename': os.path.join(LOG_DIRECTORY, 'admin_command.log'),
-           'when': 'midnight',
-           'formatter': 'verbose'
+            'level': 'INFO',
+            'class': 'ccg_django_utils.loghandlers.ParentPathFileHandler',
+            'filename': os.path.join(LOG_DIRECTORY, 'admin_command.log'),
+            'when': 'midnight',
+            'formatter': 'verbose'
         },
         'mail_admins': {
             'level': 'ERROR',
