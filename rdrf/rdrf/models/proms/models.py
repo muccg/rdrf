@@ -70,7 +70,7 @@ class Survey(models.Model):
         if self.registry.has_feature("contexts") and self.context_form_group is None:
             raise ValidationError("You forgot to select the context form group.")
         # Check that the selected form is in the correct form group
-        if self.form and self.form not in self.context_form_group.forms:
+        if self.registry.has_feature("contexts") and self.form and self.form not in self.context_form_group.forms:
             raise ValidationError(f"The selected form {self.form.name} is not in the form group {self.context_form_group.name}")
 
 
