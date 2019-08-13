@@ -319,22 +319,22 @@ class ReviewItem(models.Model):
     def _add_multisection_data(self, patient_model, context_model, form_data, user):
         logger.debug("update multisection data : todo!")
 
-    def get_data(self, patient_model, context_model):
+    def get_data(self, patient_model, context_model, raw=False):
         # get previous responses so they can be displayed
         if self.item_type == ReviewItemTypes.CONSENT_FIELD:
-            return self._get_consent_data(patient_model)
+            return self._get_consent_data(patient_model, raw=raw)
         elif self.item_type == ReviewItemTypes.DEMOGRAPHICS_FIELD:
-            return self._get_demographics_data(patient_model)
+            return self._get_demographics_data(patient_model, raw=raw)
         elif self.item_type == ReviewItemTypes.SECTION_CHANGE:
-            return self._get_section_data(patient_model, context_model)
+            return self._get_section_data(patient_model, context_model, raw=raw)
         elif self.item_type == ReviewItemTypes.MULTI_TARGET:
-            return self._get_multitarget_data(patient_model, context_model)
+            return self._get_multitarget_data(patient_model, context_model, raw=raw)
         elif self.item_type == ReviewItemTypes.VERIFICATION:
             return []
 
         raise Exception("Unknown Review Type: %s" % self.item_type)
 
-    def _get_consent_data(self, patient_model):
+    def _get_consent_data(self, patient_model, raw=False):
         from rdrf.models.definition.models import ConsentSection
         from rdrf.models.definition.models import ConsentQuestion
         from registry.patients.models import ConsentValue
@@ -358,14 +358,14 @@ class ReviewItem(models.Model):
 
         return [(field_label, answer)]
 
-    def _get_demographics_data(self, patient_model):
+    def _get_demographics_data(self, patient_model, raw=False):
         is_address = self.fields.lower().strip() in ["postal_address", "home_address", "address"]
         if is_address:
             return self._get_address_data(patient_model)
         else:
             return self._get_demographics_fields(patient_model)
 
-    def _get_address_data(self, patient_model):
+    def _get_address_data(self, patient_model, raw=False):
         from registry.patients.models import PatientAddress
         from registry.patients.models import AddressType
         pairs = []
@@ -380,6 +380,13 @@ class ReviewItem(models.Model):
                                                  address_type=address_type)
         except PatientAddress.DoesNotExist:
             return []
+
+        if raw:
+            return {"address_type": address_type.pk,
+                    "suburb": address.surburb,
+                    "country": address.country,
+                    "postcode": address.postcode,
+                    "state": address.state}
 
         pairs.append(("Address Type", address_type.description))
         pairs.append(("Address", address.address))
@@ -591,7 +598,7 @@ class PatientReview(models.Model):
     def reset(self):
         self.state = ReviewStates.CREATED
         self.completed_date = None
-        self .save()
+        self.save()
         for item in self.items.all():
             item.state = PatientReviewItemStates.CREATED
             item.has_changed = None
@@ -624,7 +631,18 @@ class PatientReview(models.Model):
         d["metadata_condition_changed"] = ConditionStates.UNKNOWN
         if review_item.item_type in [ReviewItemTypes.SECTION_CHANGE]:
             d["metadata_current_status"] = ConditionStates.UNKNOWN
+
+        # get initial filled in data from form
+        self._load_initial_form_data_for_review_item(review_item, d)
         return d
+
+    def _load_initial_form_data_for_review_item(self, review_item, data_dict):
+        # update data_dict
+        patient_model = self.patient
+        context_model = self.context
+        review_item_data = review_item.get_data(patient_model, context_model, raw=True)
+        logger.debug("review_item_data = %s" % review_item_data)
+        data_dict.update(review_item_data)
 
 
 class PatientReviewItem(models.Model):
