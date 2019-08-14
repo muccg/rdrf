@@ -32,6 +32,7 @@ function _arrayWithoutHoles(arr) {
   var calculated_cde_inputs = {};
   var patient_date_of_birth = "";
   var patient_sex = "";
+  var wsurl = "";
 
   var update_function = function update_function(calculated_cdes) {
     calculated_cdes.forEach(function(cde_code) {
@@ -58,7 +59,7 @@ function _arrayWithoutHoles(arr) {
         patient_sex: patient_sex,
         form_values: calculated_cde_inputs_json_values
       };
-      fetch("/api/v1/calculatedcdes/", {
+      fetch(wsurl, {
         method: "post",
         headers: {
           "Content-Type": "application/json",
@@ -79,6 +80,7 @@ function _arrayWithoutHoles(arr) {
   $.fn.add_calculation = function(options) {
     patient_date_of_birth = options.patient_date_of_birth;
     patient_sex = options.patient_sex;
+    wsurl = options.wsurl;
     calculated_cde_inputs[options.observer] = options.cde_inputs;
     options.cde_inputs.forEach(function(input_cde_code) {
       required_cde_inputs[input_cde_code] =
