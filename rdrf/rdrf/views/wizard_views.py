@@ -195,6 +195,14 @@ class ReviewWizardGenerator:
         form_list = create_review_forms(self.patient_review)
         class_name = "ReviewWizard"
 
+        def get_form_initial_method(myself, step):
+            logger.debug("xxxxx getting initial form data for step %s" % step)
+            logger.debug("NB. class level initial_dict = %s" % myself.initial_dict)
+            data = myself.initial_dict.get(step, {})
+            logger.debug("initial data for step %s = %s" % (step,
+                                                            data))
+            return data
+
         def done_method(myself, form_list, form_dict, **kwargs):
             # when all valid data processed ,
             # fan the data back out
@@ -232,10 +240,12 @@ class ReviewWizardGenerator:
             return context
 
         class_dict = {
+            "initial_dict": {},
             "form_list": form_list,
             "template_name": template_name,
             "get_context_data": get_context_data_method,
             "done": done_method,
+            "get_form_initial":  get_form_initial_method,
         }
 
         wizard_class = type(class_name, (self.base_class,), class_dict)

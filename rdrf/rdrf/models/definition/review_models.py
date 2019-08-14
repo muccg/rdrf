@@ -9,6 +9,8 @@ from rdrf.models.definition.models import RDRFContext
 from rdrf.helpers.utils import generate_token
 from rdrf.helpers.utils import check_models
 from rdrf.helpers.utils import models_from_mongo_key
+from rdrf.helpers.utils import mongo_key_from_models
+
 from django.core.exceptions import ValidationError
 
 from registry.groups.models import CustomUser
@@ -31,6 +33,23 @@ class Missing:
 
 REVIEW_TYPE_CHOICES = (("R", "Caregiver Review"),
                        ("V", "Clinician Verification"))
+
+
+ADDRESS_FIELD_MAP = {"address_type": "Demographics____PatientDataAddressSection____AddressType",
+                     "address": "Demographics____PatientDataAddressSection____Address",
+                     "suburb": "Demographics____PatientDataAddressSection____SuburbTown",
+                     "state": "Demographics____PatientDataAddressSection____State",
+                     "postcode": "Demographics____PatientDataAddressSection____postcode",
+                     "country": "Demographics____PatientDataAddressSection____Country"}
+
+ADDRESS_VALUE_MAP = {"Home": "AddressTypeHome",
+                     "Postal": "AddressTypePostal"}
+
+
+def get_state(state_code):
+    s = state_code.upper()
+    if s.startswith("AU-"):
+        return s.split("-")[1]
 
 
 def generate_reviews(registry_model):
@@ -321,17 +340,28 @@ class ReviewItem(models.Model):
 
     def get_data(self, patient_model, context_model, raw=False):
         # get previous responses so they can be displayed
+        logger.debug("get_data for review item %s raw = %s" % (self.code,
+                                                               raw))
+
+        logger.debug("item type = %s" % self.item_type)
+
         if self.item_type == ReviewItemTypes.CONSENT_FIELD:
+            logger.debug("getting consent data")
             return self._get_consent_data(patient_model, raw=raw)
         elif self.item_type == ReviewItemTypes.DEMOGRAPHICS_FIELD:
+            logger.debug("getting demographics data")
             return self._get_demographics_data(patient_model, raw=raw)
         elif self.item_type == ReviewItemTypes.SECTION_CHANGE:
+            logger.debug("getting section data")
             return self._get_section_data(patient_model, context_model, raw=raw)
         elif self.item_type == ReviewItemTypes.MULTI_TARGET:
+            logger.debug("getting multitarget data")
             return self._get_multitarget_data(patient_model, context_model, raw=raw)
         elif self.item_type == ReviewItemTypes.VERIFICATION:
+            logger.debug("getting verification data")
             return []
 
+        logger.debug("unknown review item type")
         raise Exception("Unknown Review Type: %s" % self.item_type)
 
     def _get_consent_data(self, patient_model, raw=False):
@@ -361,11 +391,15 @@ class ReviewItem(models.Model):
     def _get_demographics_data(self, patient_model, raw=False):
         is_address = self.fields.lower().strip() in ["postal_address", "home_address", "address"]
         if is_address:
-            return self._get_address_data(patient_model)
+            return self._get_address_data(patient_model, raw)
         else:
-            return self._get_demographics_fields(patient_model)
+            return self._get_demographics_fields(patient_model, raw)
 
     def _get_address_data(self, patient_model, raw=False):
+        if raw:
+            logger.debug("getting raw address data")
+        else:
+            logger.debug("getting display address data")
         from registry.patients.models import PatientAddress
         from registry.patients.models import AddressType
         pairs = []
@@ -378,15 +412,24 @@ class ReviewItem(models.Model):
         try:
             address = PatientAddress.objects.get(patient=patient_model,
                                                  address_type=address_type)
+            logger.debug("got patient address: %s" % address)
         except PatientAddress.DoesNotExist:
+            logger.debug("can't find any address for patient")
+            if raw:
+                return {}
             return []
 
         if raw:
-            return {"address_type": address_type.pk,
-                    "suburb": address.surburb,
-                    "country": address.country,
-                    "postcode": address.postcode,
-                    "state": address.state}
+            logger.debug("returning raw address map:")
+            m = ADDRESS_FIELD_MAP
+            raw_map = {m["address_type"]: ADDRESS_VALUE_MAP.get(address_type.type, ""),
+                       m["suburb"]: address.suburb,
+                       m["address"]: address.address,
+                       m["country"]: address.country,
+                       m["postcode"]: address.postcode,
+                       m["state"]: get_state(address.state)}
+            logger.debug("raw address map = %s" % raw_map)
+            return raw_map
 
         pairs.append(("Address Type", address_type.description))
         pairs.append(("Address", address.address))
@@ -394,6 +437,7 @@ class ReviewItem(models.Model):
         pairs.append(("Country", address.country))
         pairs.append(("State", address.state))
         pairs.append(("Postcode", address.postcode))
+        logger.debug("display data for address = %s" % pairs)
         return pairs
 
     def _get_demographics_fields(self, patient_model):
@@ -426,6 +470,23 @@ class ReviewItem(models.Model):
                 return raw_value
             else:
                 return cde_model.get_display_value(raw_value)
+
+        if raw:
+            # return a dictionary
+            d = {}
+            for cde_model in self.section.cde_models:
+                delimited_key = mongo_key_from_models(self.form,
+                                                      self.section,
+                                                      cde_model)
+                try:
+                    raw_value = get_field_value(cde_model)
+                    d[delimited_key] = raw_value
+                except KeyError:
+                    pass
+
+            return d
+
+        # if not raw return a list of pairs of display values
 
         for cde_model in self.section.cde_models:
             if raw:
@@ -612,37 +673,43 @@ class PatientReview(models.Model):
         generator = ReviewWizardGenerator(self)
         wizard_class = generator.create_wizard_class()
         if initialise:
+            logger.debug("create_wizard_view initialising data")
             initial_data = self._get_initial_data()
-            logger.debug("initial data = %s" % initial_data)
+            logger.debug("initial wizard data = %s" % initial_data)
+            wizard_class.initial_dict = initial_data
             return wizard_class.as_view()
         else:
+            logger.debug("create_wizard_view not intitialising")
             return wizard_class.as_view()
 
     def _get_initial_data(self):
-        logger.debug("getting initial data")
+        logger.debug("getting initial data for patient review %s" % self.id)
         d = {}
-        for item_index, review_item in enumerate(self.review.items.all()):
+        for item_index, review_item in enumerate(self.review.items.all().order_by("id")):
             logger.debug("looking at index %s item %s" % (item_index, review_item))
             d[str(item_index)] = self._get_initial_data_for_review_item(review_item)
         return d
 
     def _get_initial_data_for_review_item(self, review_item):
+        logger.debug("starting to get initial data for review_item %s" % review_item.code)
         d = {}
         d["metadata_condition_changed"] = ConditionStates.UNKNOWN
         if review_item.item_type in [ReviewItemTypes.SECTION_CHANGE]:
             d["metadata_current_status"] = ConditionStates.UNKNOWN
 
-        # get initial filled in data from form
+        # get initial filled in data from rdrf form
         self._load_initial_form_data_for_review_item(review_item, d)
         return d
 
     def _load_initial_form_data_for_review_item(self, review_item, data_dict):
         # update data_dict
+        logger.debug("getting initial raw form data for review item %s" % review_item.code)
         patient_model = self.patient
         context_model = self.context
         review_item_data = review_item.get_data(patient_model, context_model, raw=True)
-        logger.debug("review_item_data = %s" % review_item_data)
+        logger.debug("raw review_item_data = %s" % review_item_data)
         data_dict.update(review_item_data)
+        logger.debug("updated data_dict: %s" % data_dict)
 
 
 class PatientReviewItem(models.Model):
