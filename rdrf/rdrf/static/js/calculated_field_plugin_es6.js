@@ -4,12 +4,13 @@
         let calculated_cde_inputs = {}
         let patient_date_of_birth = '';
         let patient_sex = '';
+        let wsurl = '';
 
         const update_function = function (calculated_cdes) {
 
             calculated_cdes.forEach(cde_code => {
                 // Retrieve all values of input
-                calculated_cde_inputs_json_values = {};
+                let calculated_cde_inputs_json_values = {};
                 calculated_cde_inputs[cde_code].forEach((required_input_cde) => {
 
                     let cde_value = $(`[id$=__${required_input_cde}]`).val();
@@ -35,7 +36,7 @@
                     'form_values': calculated_cde_inputs_json_values
                 };
 
-                fetch(`/api/v1/calculatedcdes/`, {
+                fetch(wsurl, {
                     method: 'post',
                     headers: {
                         'Content-Type': 'application/json',
@@ -57,6 +58,7 @@
 
             patient_date_of_birth = options.patient_date_of_birth;
             patient_sex = options.patient_sex;
+            wsurl =options.wsurl;
 
             calculated_cde_inputs[options.observer] = options.cde_inputs;
 

@@ -1,6 +1,7 @@
 import logging
 from django.conf import settings
 from registry.patients.models import Patient
+from rest_framework.reverse import reverse
 
 logger = logging.getLogger(__name__)
 
@@ -42,6 +43,7 @@ class CalculatedFieldScriptCreator(object):
 
         patient_model = Patient.objects.get(id=self.injected_model_id)
         patient_date_of_birth = patient_model.date_of_birth.__format__("%Y-%m-%d")
+        wsurl = reverse("v1:calculatedcde-list")
         javascript = """
             <script>
             $(document).ready(function(){
@@ -51,11 +53,11 @@ class CalculatedFieldScriptCreator(object):
                     cde_inputs: %s,
                     patient_sex: %s,
                     patient_date_of_birth: '%s',
-
                     observer: "%s",
+                    wsurl: "%s",
                     });
                 });
 
-            </script>""" % (prefix, observer_code, cde_inputs, patient_model.sex, patient_date_of_birth, observer_code)
+            </script>""" % (prefix, observer_code, cde_inputs, patient_model.sex, patient_date_of_birth, observer_code, wsurl)
 
         return javascript
