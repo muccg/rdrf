@@ -48,7 +48,7 @@ class Command(BaseCommand):
             calculated_cde_models = CommonDataElement.objects.filter(code__in=options['cde_code'])
         else:
             # Retrieve all calculated fields.
-            calculated_cde_models = CommonDataElement.objects.exclude(calculation='')
+            calculated_cde_models = CommonDataElement.objects.filter(datatype='calculated')
 
         # Cache the cde models in a tree format
         # We will use this tree format:
