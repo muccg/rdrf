@@ -595,7 +595,9 @@ class Patient(models.Model):
             value,
             context_model=None,
             save_snapshot=False,
-            user=None):
+            user=None,
+            skip_bad_key=False):
+
         from rdrf.db.dynamic_data import DynamicDataWrapper
         from rdrf.helpers.utils import mongo_key
         from rdrf.forms.progress.form_progress import FormProgress
@@ -629,7 +631,7 @@ class Patient(models.Model):
         else:
             mongo_data[key] = value
             mongo_data[timestamp] = t
-            wrapper.save_dynamic_data(registry_code, "cdes", mongo_data)
+            wrapper.save_dynamic_data(registry_code, "cdes", mongo_data, skip_bad_key=skip_bad_key)
 
         # update form progress
         registry_model = Registry.objects.get(code=registry_code)
