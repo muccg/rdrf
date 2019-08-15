@@ -795,3 +795,17 @@ def is_authorised(user, patient_model):
 
 def escape_for_javascript(s):
     return s.replace("'", "\'").replace('"', '\"')
+
+
+def is_calculated(cde_model):
+    return cde_model.datatype == "calculated"
+
+
+def get_normal_fields(section_model):
+    """
+    Yield only the non-calculated fields
+    in the given section.
+    """
+    for cde_model in section_model.cde_models:
+        if not is_calculated(cde_model):
+            yield cde_model

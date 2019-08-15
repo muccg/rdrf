@@ -108,17 +108,17 @@ class ReviewItemPageData:
     for the review template
     """
 
-    def __init__(self, token, review_model, review_form):
+    def __init__(self, token, review_model, review_form, review_user):
         self.token = token
         self.review_model = review_model
         self.review_form = review_form
         self.review_item_model = ReviewItem.objects.get(review=self.review_model,
                                                         code=self.review_form.review_item_code)
         self.patient_review = self._get_patient_review(self.token)
-        self.user = self.patient_review.user  # the parent user or self patient
+        self.user = review_user
         self.state = self.patient_review.state
         self.patient_model = self.patient_review.patient
-        self.parent_model = self._get_parent(self.user)
+        self.parent_model = self._get_parent(self.patient_model)
         self.is_parent = self.parent_model is not None
         self.clinician_user = None
         # this depends on the type of review item:
@@ -134,11 +134,21 @@ class ReviewItemPageData:
     def _get_patient_review(self, token):
         return PatientReview.objects.get(token=token)
 
-    def _get_parent(self, user):
-        try:
-            return ParentGuardian.objects.get(user=user)
-        except ParentGuardian.DoesNotExist:
+    def _get_parent(self, patient_model):
+        parents = ParentGuardian.objects.filter(patient__in=[patient_model])
+        num_parents = len(parents)
+        if num_parents == 1:
+            return parents[0]
+        elif num_parents == 0:
             return None
+        else:
+            # if more than one parent ( possible?)
+            # try to locate based on the logged in user
+            for parent in parents:
+                if parent.user.id == self.user.id:
+                    return parent
+                # choose first
+            return parents[0]
 
     @property
     def summary(self):
@@ -180,9 +190,10 @@ class ReviewTemplates:
 
 
 class ReviewWizardGenerator:
-    def __init__(self, patient_review_model):
+    def __init__(self, patient_review_model, review_user):
         self.patient_review = patient_review_model
         self.review_model = patient_review_model.review
+        self.review_user = review_user  # the user filling out the review
         self.base_class = SessionWizardView
 
     def create_wizard_class(self):
@@ -221,7 +232,7 @@ class ReviewWizardGenerator:
 
         def get_context_data_method(myself, form, **kwargs):
             token = myself.request.GET.get("t")
-            page = ReviewItemPageData(token, self.review_model, form)
+            page = ReviewItemPageData(token, self.review_model, form, self.review_user)
 
             context = super(myself.__class__, myself).get_context_data(form=form,
                                                                        **kwargs)

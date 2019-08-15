@@ -30,13 +30,15 @@ class ReviewWizardLandingView(View):
 
     def _get_wizard_view(self, request, token, args, kwargs, initialise=False):
         from rdrf.models.definition.review_models import PatientReview
+        review_user = request.user
         patient_review_model = get_object_or_404(PatientReview, token=token)
 
         if not is_authorised(request.user,
                              patient_review_model.patient):
             raise PermissionDenied
 
-        wizard_view = patient_review_model.create_wizard_view(initialise)
+        wizard_view = patient_review_model.create_wizard_view(initialise,
+                                                              review_user=review_user)
         return wizard_view(request, *args, **kwargs)
 
     @method_decorator(login_required)

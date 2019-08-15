@@ -10,6 +10,7 @@ from rdrf.helpers.utils import generate_token
 from rdrf.helpers.utils import check_models
 from rdrf.helpers.utils import models_from_mongo_key
 from rdrf.helpers.utils import mongo_key_from_models
+from rdrf.helpers.utils import get_normal_fields
 
 from django.core.exceptions import ValidationError
 
@@ -254,7 +255,7 @@ class ReviewItem(models.Model):
         form_name = form_model.name
         section_model = self.section
         section_code = section_model.code
-        codes = [cde.code for cde in section_model.cde_models]
+        codes = [cde.code for cde in get_normal_fields(section_model)]
         error_msg = "Bad field in %s" % self.code
         for field_id in form_data:
             if field_id.startswith("metadata_"):
@@ -447,6 +448,7 @@ class ReviewItem(models.Model):
         # we need raw values for initial data
         # display values for the read only
         assert not self.section.allow_multiple
+
         pairs = []
         data = patient_model.get_dynamic_data(self.review.registry,
                                               collection="cdes",
@@ -474,7 +476,7 @@ class ReviewItem(models.Model):
         if raw:
             # return a dictionary
             d = {}
-            for cde_model in self.section.cde_models:
+            for cde_model in get_normal_fields(self.section):
                 delimited_key = mongo_key_from_models(self.form,
                                                       self.section,
                                                       cde_model)
@@ -488,7 +490,7 @@ class ReviewItem(models.Model):
 
         # if not raw return a list of pairs of display values
 
-        for cde_model in self.section.cde_models:
+        for cde_model in get_normal_fields(self.section):
             if raw:
                 field = cde_model.code
             else:
@@ -582,9 +584,9 @@ class ReviewItem(models.Model):
                 logger.debug("section set ...")
                 if self.fields:
                     codes = [x.strip() for x in self.fields.split(",")]
-                    cde_models = [cde_model for cde_model in self.section.cde_models if cde_model.code in codes]
+                    cde_models = [cde_model for cde_model in get_normal_fields(self.section) if cde_model.code in codes]
                 else:
-                    cde_models = self.section.cde_models
+                    cde_models = get_normal_fields(self.section.cde_models)
 
                 for cde_model in cde_models:
                     logger.debug("yielding %s %s %s" % (self.form.name,
@@ -593,7 +595,7 @@ class ReviewItem(models.Model):
                     yield self.form, self.section, cde_model
             else:
                 for section_model in self.form.section_models:
-                    for cde_model in section_model.cde_models:
+                    for cde_model in get_normal_fields(section_model):
                         logger.debug("yielding %s %s %s" % (self.form.name,
                                                             section_model.code,
                                                             cde_model.code))
@@ -668,9 +670,9 @@ class PatientReview(models.Model):
             item.data = None
             item.save()
 
-    def create_wizard_view(self, initialise=False):
+    def create_wizard_view(self, initialise=False, review_user=None):
         from rdrf.views.wizard_views import ReviewWizardGenerator
-        generator = ReviewWizardGenerator(self)
+        generator = ReviewWizardGenerator(self, review_user)
         wizard_class = generator.create_wizard_class()
         if initialise:
             logger.debug("create_wizard_view initialising data")

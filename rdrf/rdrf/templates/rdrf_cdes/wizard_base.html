@@ -3,34 +3,36 @@
   <head>
     <link rel="stylesheet" href="{% static 'bootstrap-3.3.6/css/bootstrap.min.css' %}">
     <link rel="stylesheet" href="{% static 'css/rdrf.css' %}">
+    <link rel="stylesheet" href="{% static 'css/review.css' %}">
     <script type="text/javascript" src="{% static 'js/vendor/jquery-1.11.3.min.js' %}"></script>
     <script type="text/javascript" src="{% static 'bootstrap-3.3.6/js/bootstrap.min.js' %}"></script>
+
     {% block head %}
     {% endblock %}
+
   </head>
   <body>
     {% if valid %}
-    <div class="jumbotron">
-      <h1>{{ review_title }}</h1>
+      <div class="jumbotron">
+        <h1>{{ review_title }}</h1>
+        <h3>Reviewer: {{request.user}}</h3>
+        
+        {% if is_clinician_review %}
+          <h3>{{ clinician }} reviewing {{patient}} on behalf of {{parent}}</h3>
+        {% endif %}
 
-      {% if clinician_review %}
-      <h3>{{ clinician }} reviewing {{patient}} on behalf of {{parent}}</h3>
-      {% endif %}
-
-      {% if parent_review %}
-      <h3>{{ parent }} on behalf of {{patient}}</h3>
-      {% endif %}
+        {% if is_parent_review %}
+          <h3>Caregiver: {{ parent.first_name }} {{ parent.last_name}}</h3>
+          <h3>Patient: {{patient.given_names }} {{patient.family_name }}
+        {% endif %}
 
       <h2>{{ category }}</h2>
       
-   </div>
-   {% endif %}
-    
-    {% if valid %}
-    {% block content %}
-    {% endblock %}
+      </div>
+      {% block content %}
+      {% endblock %}
     {% else %}
-    <h1>This page is no longer valid</h1>
+      <h1>This page is no longer valid</h1>
     {% endif %}
   </body>
 </html>

@@ -16,87 +16,97 @@
         {{ form }}
     {% endfor %}
 {% else %}
+
 <div class="row">
-
-  <div class="col-md-3">
+  <!-- start column 1 -->
+  <div class="col-md-2">
+    <!-- start review item explanation panel -->
     <div class="panel panel-default">
-    <div class="panel-heading">{{ name }}</div>
-    <div class="panel-body">
-      {{ summary }}
+      <div class="panel-heading">{{ name }}</div>
+      <div class="panel-body">
+        {{ summary }}
+      </div>
     </div>
-    </div>
-
+    <!-- end review item explanation panel -->
+  
+  <!-- start review fields panel -->
   <div class="panel panel-default">
-  <div class="panel-heading">Review Fields</div>
-  <div class="panel-body">
-    {% for field in wizard.form.metadata_fields %}
-    <div class="form-group">
-        {{ field.errors }}
-        {{ field.label_tag }} {{ field }}
-        {% if field.help_text %}
-        <p class="help">{{ field.help_text|safe }}</p>
-        {% endif %}
-    </div>
-    {% endfor %}
+    <div class="panel-heading">Review Fields</div>
+    <div class="panel-body">
+      {% for field in wizard.form.metadata_fields %}
+        <div class="form-group">
+          {{ field.errors }}
+          {{ field.label_tag }} {{ field }}
+          {% if field.help_text %}
+            <p class="help">{{ field.help_text|safe }}</p>
+          {% endif %}
+        </div>
+      {% endfor %}
     </div>
   </div>
-
+  <!-- end review fields panel -->
   </div>
+  <!-- end column 1 -->
 
-  <div class="col-md-4">
+  <!-- start column 2 -->
+  <div class="col-md-6">
+    <!-- start previous responses panel -->
     <div class="panel panel-default">
-    <div class="panel-heading">Previous Responses</div>
-    <div class="panel-body">
-    {% for response in responses %}
-    {{response.label}}
-    <span class="label label-default float-right">{{ response.answer }}</span><br>
-    {% endfor %}
-   </div>
-   </div>
-
-
-
- <div id="data-entry" class="panel panel-default">
-    <div class="panel-heading">Data Fields</div>
-    <div class="panel-body">
-    {% for field in wizard.form.data_entry_fields %}
-    <div class="form-group">
-        {{ field.errors }}
-        {{ field.label_tag }} {{ field }}
-        {% if field.help_text %}
-        <p class="help">{{ field.help_text|safe }}</p>
-        {% endif %}
+      <div class="panel-heading">Previous Responses</div>
+      <div class="panel-body">
+        {% for response in responses %}
+          {{response.label}}
+          <span class="label label-default float-right">{{ response.answer }}</span><br>
+        {% endfor %}
+      </div>
     </div>
-    {% endfor %}
+    <!-- end previous responses panel -->
+  </div>
+  <!-- end of column 2 -->
+
+  <!-- start colummn 3 -->
+  <div class="col-md-4">
+    <!-- start data entry panel -->
+    <div id="data-entry" class="panel panel-default">
+      <div class="panel-heading">Data Fields</div>
+      <div class="panel-body">
+        {% for field in wizard.form.data_entry_fields %}
+          <!-- start of form group -->
+          <div class="form-group">
+            {{ field.errors }}
+            {{ field.label_tag }}<br>
+            {{ field }}
+            {% if field.help_text %}
+              <p class="help">{{ field.help_text|safe }}</p>
+            {% endif %}
+          </div>
+          <!-- end of form group -->
+        {% endfor %}
+      </div> <!-- end of panel body -->
     </div>
-    </div>
+    <!-- end data entry panel -->
+  </div> <!-- end of column 3 -->
 
-
-    
-   </div>
-
-
-  <script>
-    var hasChangedPattern = "metadata_condition_changed_0"; // yes
-    $(document).on("ready", function () {
+</div> <!-- end of row -->
+<script>
+  var hasChangedPattern = "metadata_condition_changed_0"; // yes
+  $(document).on("ready", function () {
     $("#data-entry").hide();
     var hasChangedId = $("[id$='" + hasChangedPattern + "']").attr("id");
     $(".condition").change(function() {
-    if($("#" + hasChangedId).is(":checked")) {
-    $("#data-entry").show();
-    } else {
-    $("#data-entry").hide();
-    }
+      if($("#" + hasChangedId).is(":checked")) {
+        $("#data-entry").show();
+      } else {
+        $("#data-entry").hide();
+      }
     });
 
     $(".condition").trigger("change");
-    });
-    
-  </script>
-  
-    
+  });   
+</script>    
 {% endif %}
 </table>
+
 {% if wizard.steps.prev %}
 <button name="wizard_goto_step" type="submit" value="{{ wizard.steps.first }}">{% trans "first step" %}</button>
 <button name="wizard_goto_step" type="submit" value="{{ wizard.steps.prev }}">{% trans "prev step" %}</button>

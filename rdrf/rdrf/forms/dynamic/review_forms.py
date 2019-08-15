@@ -6,6 +6,7 @@ from rdrf.models.definition.models import ConsentSection
 from rdrf.models.definition.models import ConsentQuestion
 from rdrf.forms.dynamic.field_lookup import FieldFactory
 from rdrf.helpers.utils import mongo_key_from_models
+from rdrf.helpers.utils import get_normal_fields
 
 from django import forms
 from django.utils.translation import ugettext as _
@@ -135,7 +136,7 @@ class ReviewFormGenerator:
         if section_model is None:
             return {}
         d = {}
-        for cde_model in section_model.cde_models:
+        for cde_model in get_normal_fields(section_model):
             field_name, field = self.create_cde_field((form_model, section_model, cde_model))
             field.rdrf_tag = FieldTags.DATA_ENTRY
             if include_verification:
