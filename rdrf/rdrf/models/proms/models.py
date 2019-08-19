@@ -333,11 +333,9 @@ class SurveyRequest(models.Model):
         logger.debug("api_url = %s" % api_url)
 
         survey_assignment_data = self._get_survey_assignment_data()
-        headers = {'PROMS_SECRET_TOKEN': settings.PROMS_SECRET_TOKEN}
+        survey_assignment_data = {**survey_assignment_data, 'proms_secret_token': settings.PROMS_SECRET_TOKEN}
 
-        response = requests.post(api_url,
-                                 data=survey_assignment_data,
-                                 headers=headers)
+        response = requests.post(api_url, data=survey_assignment_data)
         logger.debug("response code %s" % response.status_code)
         self.check_response_for_error(response)
         logger.debug("posted data")
