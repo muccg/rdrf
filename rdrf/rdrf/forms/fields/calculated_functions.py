@@ -596,15 +596,15 @@ EVERYDAY = "EveryDay"
 
 
 def convert(val):
-    if val == "DAYS0":
+    if val == DAYS0:
         return 0
-    if val == "DAYS1TO2":
+    if val == DAYS1TO2:
         return 1
-    if val == "DAYS3TO4":
+    if val == DAYS3TO4:
         return 2
-    if val == "DAYS5TO6":
+    if val == DAYS5TO6:
         return 3
-    if val == "EVERYDAY":
+    if val == EVERYDAY:
         return 4
     return 0
 
@@ -646,23 +646,18 @@ def poemScore(patient, context):
     counts = {}
 
     for i in range(0, len(answers)):
-        answer = answers[i]
-        if len(counts):
+        answer = str(answers[i])
+        if answer in counts.keys():
             counts[answer] = counts[answer] + 1
         else:
             counts[answer] = 1
 
-    if counts[0] == 1:
+    if "0" in counts.keys() and counts["0"] >= 2:
+        result = "UNSCORED"
+    else:
         s = sum(answers)
         cat = getCategory(s)
         result = s.__str__() + " ( " + cat + " )"
-    else:
-        if counts[0] >= 2:
-            result = "UNSCORED"
-        else:
-            s = sum(answers)
-            cat = getCategory(s)
-            result = s.__str__() + " ( " + cat + " )"
 
     return result
 

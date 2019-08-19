@@ -133,6 +133,21 @@ class CalculatedFunctionsTestCase(TestCase):
         self.form_values = {'DateOfDiagnosis': '2019-05-01'}
         self.assertEqual(calculated_functions.DDAgeAtDiagnosis(self.patient_values, self.form_values), '18')
 
+    def test_poemscore(self):
+        self.form_values = {'poemQ1': "NoDays", 'poemQ2': "NoDays", 'poemQ3': "NoDays", 'poemQ4': "NoDays",
+                            'poemQ5': "NoDays", 'poemQ6': "NoDays", 'poemQ7': "NoDays" }
+        self.assertEqual(calculated_functions.poemScore(self.patient_values, self.form_values), 'UNSCORED')
+        self.form_values = {'poemQ1': "NoDays", 'poemQ2': "NoDays", 'poemQ3': "1to2Days", 'poemQ4': "1to2Days",
+                            'poemQ5': "1to2Days", 'poemQ6': "1to2Days", 'poemQ7': "1to2Days" }
+        self.assertEqual(calculated_functions.poemScore(self.patient_values, self.form_values), 'UNSCORED')
+        self.form_values = {'poemQ1': "NoDays", 'poemQ2': "1to2Days", 'poemQ3': "1to2Days", 'poemQ4': "1to2Days",
+                            'poemQ5': "1to2Days", 'poemQ6': "1to2Days", 'poemQ7': "1to2Days" }
+        self.assertEqual(calculated_functions.poemScore(self.patient_values, self.form_values), '6 ( Mild eczema )')
+        self.form_values = {'poemQ1': "EveryDay", 'poemQ2': "EveryDay", 'poemQ3': "EveryDay", 'poemQ4': "EveryDay",
+                            'poemQ5': "EveryDay", 'poemQ6': "EveryDay", 'poemQ7': "EveryDay" }
+        self.assertEqual(calculated_functions.poemScore(self.patient_values, self.form_values), '28 ( Very severe eczema )')
+
+
 
 class AbnormalityRulesTestCase(TestCase):
 
