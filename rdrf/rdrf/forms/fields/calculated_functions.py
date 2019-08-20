@@ -606,7 +606,7 @@ def convert(val):
         return 3
     if val == EVERYDAY:
         return 4
-    return 0
+    return -1
 
 
 def getQ(cde):
@@ -652,10 +652,17 @@ def poemScore(patient, context):
         else:
             counts[answer] = 1
 
-    if "0" in counts.keys() and counts["0"] >= 2:
+    if "-1" in counts.keys() and counts["-1"] >= 2:
         result = "UNSCORED"
     else:
-        s = sum(answers)
+        # Change answers -1 into 0.
+        # We previously set unanswered questions to -1 to differentiate then from 0days (as 0days equals 0)
+        # but now that we are going to calculate the total score, so we want the unanswered questions
+        # to not affect the final score and so to be set to 0.
+        logger.debug(f"answer: {answers}")
+        fixed_answers = [answer if answer != -1 else 0 for answer in answers]
+        logger.debug(f"fixed_answer: {fixed_answers}")
+        s = sum(fixed_answers)
         cat = getCategory(s)
         result = s.__str__() + " ( " + cat + " )"
 

@@ -134,12 +134,20 @@ class CalculatedFunctionsTestCase(TestCase):
         self.assertEqual(calculated_functions.DDAgeAtDiagnosis(self.patient_values, self.form_values), '18')
 
     def test_poemscore(self):
-        self.form_values = {'poemQ1': "NoDays", 'poemQ2': "NoDays", 'poemQ3': "NoDays", 'poemQ4': "NoDays",
-                            'poemQ5': "NoDays", 'poemQ6': "NoDays", 'poemQ7': "NoDays"}
+        self.form_values = {'poemQ1': "", 'poemQ2': "", 'poemQ3': "", 'poemQ4': "", 'poemQ5': "", 'poemQ6': "",
+                            'poemQ7': ""}
         self.assertEqual(calculated_functions.poemScore(self.patient_values, self.form_values), 'UNSCORED')
-        self.form_values = {'poemQ1': "NoDays", 'poemQ2': "NoDays", 'poemQ3': "1to2Days", 'poemQ4': "1to2Days",
+        self.form_values = {'poemQ1': "", 'poemQ2': "", 'poemQ3': "1to2Days", 'poemQ4': "1to2Days",
                             'poemQ5': "1to2Days", 'poemQ6': "1to2Days", 'poemQ7': "1to2Days"}
         self.assertEqual(calculated_functions.poemScore(self.patient_values, self.form_values), 'UNSCORED')
+        self.form_values = {'poemQ1': "", 'poemQ2': "NoDays", 'poemQ3': "NoDays", 'poemQ4': "NoDays",
+                            'poemQ5': "NoDays", 'poemQ6': "NoDays", 'poemQ7': "NoDays"}
+        self.assertEqual(calculated_functions.poemScore(self.patient_values, self.form_values),
+                         '0 ( Clear or almost clear )')
+        self.form_values = {'poemQ1': "NoDays", 'poemQ2': "NoDays", 'poemQ3': "NoDays", 'poemQ4': "NoDays",
+                            'poemQ5': "NoDays", 'poemQ6': "NoDays", 'poemQ7': "NoDays"}
+        self.assertEqual(calculated_functions.poemScore(self.patient_values, self.form_values),
+                         '0 ( Clear or almost clear )')
         self.form_values = {'poemQ1': "NoDays", 'poemQ2': "1to2Days", 'poemQ3': "1to2Days", 'poemQ4': "1to2Days",
                             'poemQ5': "1to2Days", 'poemQ6': "1to2Days", 'poemQ7': "1to2Days"}
         self.assertEqual(calculated_functions.poemScore(self.patient_values, self.form_values), '6 ( Mild eczema )')
