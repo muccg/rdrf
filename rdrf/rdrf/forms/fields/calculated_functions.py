@@ -596,17 +596,17 @@ EVERYDAY = "EveryDay"
 
 
 def convert(val):
-    if val == "DAYS0":
+    if val == DAYS0:
         return 0
-    if val == "DAYS1TO2":
+    if val == DAYS1TO2:
         return 1
-    if val == "DAYS3TO4":
+    if val == DAYS3TO4:
         return 2
-    if val == "DAYS5TO6":
+    if val == DAYS5TO6:
         return 3
-    if val == "EVERYDAY":
+    if val == EVERYDAY:
         return 4
-    return 0
+    return -1
 
 
 def getQ(cde):
@@ -646,23 +646,25 @@ def poemScore(patient, context):
     counts = {}
 
     for i in range(0, len(answers)):
-        answer = answers[i]
-        if len(counts):
+        answer = str(answers[i])
+        if answer in counts.keys():
             counts[answer] = counts[answer] + 1
         else:
             counts[answer] = 1
 
-    if counts[0] == 1:
-        s = sum(answers)
+    if "-1" in counts.keys() and counts["-1"] >= 2:
+        result = "UNSCORED"
+    else:
+        # Change answers -1 into 0.
+        # We previously set unanswered questions to -1 to differentiate then from 0days (as 0days equals 0)
+        # but now that we are going to calculate the total score, so we want the unanswered questions
+        # to not affect the final score and so to be set to 0.
+        logger.debug(f"answer: {answers}")
+        fixed_answers = [answer if answer != -1 else 0 for answer in answers]
+        logger.debug(f"fixed_answer: {fixed_answers}")
+        s = sum(fixed_answers)
         cat = getCategory(s)
         result = s.__str__() + " ( " + cat + " )"
-    else:
-        if counts[0] >= 2:
-            result = "UNSCORED"
-        else:
-            s = sum(answers)
-            cat = getCategory(s)
-            result = s.__str__() + " ( " + cat + " )"
 
     return result
 
