@@ -115,13 +115,12 @@ class PromsProcessor:
         api = "/api/proms/v1/promsdownload"
 
         api_url = self.proms_url + api
-        headers = {'PROMS_SECRET_TOKEN': settings.PROMS_SECRET_TOKEN}
         logger.debug("making request to %s" % api_url)
-
-        response = requests.post(api_url,
-                                 headers=headers)
+        post_data = {'proms_secret_token': settings.PROMS_SECRET_TOKEN}
+        response = requests.post(api_url, data=post_data)
 
         if response.status_code != 200:
+            logger.info(f"Error retrieving proms")
             raise Exception("Error retrieving proms")
         else:
             logger.debug("got proms data from proms system OK")

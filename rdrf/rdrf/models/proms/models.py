@@ -70,8 +70,12 @@ class Survey(models.Model):
         if self.registry.has_feature("contexts") and self.context_form_group is None:
             raise ValidationError("You forgot to select the context form group.")
         # Check that the selected form is in the correct form group
-        if self.form and self.form not in self.context_form_group.forms:
+        if self.registry.has_feature("contexts") and self.form and self.form not in self.context_form_group.forms:
             raise ValidationError(f"The selected form {self.form.name} is not in the form group {self.context_form_group.name}")
+        # Check that the context group form match the followup checkbox
+        if self.registry.has_feature("contexts") and self.context_form_group is not None \
+                and self.context_form_group.context_type == "M" and self.is_followup is False:
+            raise ValidationError("The 'is followup' checkbox does not match the 'context form group' input.")
 
 
 class Precondition(models.Model):
@@ -162,7 +166,7 @@ class SurveyQuestion(models.Model):
             return self.cde.name + "  if " + self.precondition.cde.name + " = " + self.precondition.value
 
     def clean(self):
-        if self.cde.code != "PROMSConsent":
+        if self.cde.code not in ("PROMSConsent", "PromsGender"):
             if self.cde_path:
                 # Check that the cde_path is well formatted.
                 # Check that the form, section and cde are valid for this path.
@@ -333,11 +337,9 @@ class SurveyRequest(models.Model):
         logger.debug("api_url = %s" % api_url)
 
         survey_assignment_data = self._get_survey_assignment_data()
-        headers = {'PROMS_SECRET_TOKEN': settings.PROMS_SECRET_TOKEN}
+        survey_assignment_data = {**survey_assignment_data, 'proms_secret_token': settings.PROMS_SECRET_TOKEN}
 
-        response = requests.post(api_url,
-                                 data=survey_assignment_data,
-                                 headers=headers)
+        response = requests.post(api_url, data=survey_assignment_data)
         logger.debug("response code %s" % response.status_code)
         self.check_response_for_error(response)
         logger.debug("posted data")

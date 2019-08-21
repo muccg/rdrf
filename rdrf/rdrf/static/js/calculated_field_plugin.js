@@ -1,86 +1,112 @@
+"use strict";
+
+function _toConsumableArray(arr) {
+  return (
+    _arrayWithoutHoles(arr) || _iterableToArray(arr) || _nonIterableSpread()
+  );
+}
+
+function _nonIterableSpread() {
+  throw new TypeError("Invalid attempt to spread non-iterable instance");
+}
+
+function _iterableToArray(iter) {
+  if (
+    Symbol.iterator in Object(iter) ||
+    Object.prototype.toString.call(iter) === "[object Arguments]"
+  )
+    return Array.from(iter);
+}
+
+function _arrayWithoutHoles(arr) {
+  if (Array.isArray(arr)) {
+    for (var i = 0, arr2 = new Array(arr.length); i < arr.length; i++) {
+      arr2[i] = arr[i];
+    }
+    return arr2;
+  }
+}
+
 (function($) {
-    $.fn.add_calculation = function(options) {
-        var settings = $.extend({
-            // These are the defaults.
-            calculation: function(context) { context.result = "???"; },
-            subjects: '', // E.g. "CDE01,CDE02" comma separated list of inputs to the calculation
-            prefix: '',//  formcode^^sectioncode^^
-            target: "value",
-            observer: '',  // the cde code of the output e,g, CDE03
-            // Stuff below added to allow calculations to retrieve remote model properties
-            // injected_model will always be Patient for now
-            injected_model: "",  // e.g. Patient  ( model class name)
-            injected_model_id: null,  // the id of the injected model instance to retrieve
-            api_url: ""  //the url to request model data on eg /api/v1/patient/1
+  var required_cde_inputs = {};
+  var calculated_cde_inputs = {};
+  var patient_date_of_birth = "";
+  var patient_sex = "";
+  var wsurl = "";
 
-        }, options);
+  var update_function = function update_function(calculated_cdes) {
+    calculated_cdes.forEach(function(cde_code) {
+      // Retrieve all values of input
+      var calculated_cde_inputs_json_values = {};
+      calculated_cde_inputs[cde_code].forEach(function(required_input_cde) {
+        var cde_value = $("[id$=__".concat(required_input_cde, "]")).val(); // check if it is a date like dd-mm-yyyy and convert it in yyyy-mm-dd
 
+        if (moment(cde_value, "D-M-YYYY", true).isValid()) {
+          cde_value = moment(cde_value, "D-M-YYYY", true).format("YYYY-MM-DD");
+        } // check if it is a number and convert it in a number
 
-
-        // locate the codes anywhere on the page ( we assume only one occurance of given cde for now
-        function locate_code(code) {
-            var id = $('[id*=' + code + ']').attr("id");
-            return "#" + id;
+        if (
+          $("[id$=__".concat(required_input_cde, "]")).attr("type") === "number"
+        ) {
+          cde_value = parseFloat(cde_value);
         }
 
-        var subject_codes_string = _.map(settings.subjects.split(","), function(code)
-            { return locate_code(code);}).join();
+        calculated_cde_inputs_json_values[required_input_cde] = cde_value;
+      });
+      var body = {
+        cde_code: cde_code,
+        patient_date_of_birth: patient_date_of_birth,
+        patient_sex: patient_sex,
+        form_values: calculated_cde_inputs_json_values
+      };
+      fetch(wsurl, {
+        method: "post",
+        headers: {
+          "Content-Type": "application/json",
+          "X-CSRFToken": $("[name=csrfmiddlewaretoken]").val()
+        },
+        body: JSON.stringify(body)
+      })
+        .then(function(response) {
+          return response.json();
+        })
+        .then(function(myJson) {
+          $("[id$=__".concat(cde_code, "]")).val(myJson);
+          $("[id$=__".concat(cde_code, "]")).trigger("change");
+        });
+    });
+  };
 
-        function get_object(model, model_id) {
-            var d = $.Deferred();
-             if (model_id == -1) {
-                 d.resolve([]);
-                 return;
-            }
+  $.fn.add_calculation = function(options) {
+    patient_date_of_birth = options.patient_date_of_birth;
+    patient_sex = options.patient_sex;
+    wsurl = options.wsurl;
+    calculated_cde_inputs[options.observer] = options.cde_inputs;
+    options.cde_inputs.forEach(function(input_cde_code) {
+      required_cde_inputs[input_cde_code] =
+        required_cde_inputs[input_cde_code] != undefined
+          ? [].concat(_toConsumableArray(required_cde_inputs[input_cde_code]), [
+              options.observer
+            ])
+          : [options.observer];
+    });
 
-            $.get(settings.api_url)
-                .done(function(object) {
-                    d.resolve(object);
-                })
-                .fail(d.reject);
+    try {
+      // call on initial page load
+      update_function([options.observer]); //call it to ensure if calculation changes on server
+      //update the onchange
 
-            return d.promise();
-        }
-
-        var update_function = function() {
-            var context = {};
-            var subject_codes = settings.subjects.split(",");
-
-            for (var i = 0; i < subject_codes.length; i++) {
-                // Note how we use the prefix to map from the page to the context variable names
-                // and reverse map to update the output
-                var subject_code_id_on_page = locate_code(subject_codes[i]);
-                context[subject_codes[i]] = $(subject_code_id_on_page).val();
-            }
-
-            var model_promise = get_object(settings.injected_model.toLowerCase(),
-                                           settings.injected_model_id);
-
-            $.when(model_promise)
-             .done(function(injected_models) {
-                        try {
-                            settings.calculation.apply(null, [context].concat(injected_models));
-                        }
-                        catch (err) {
-                            console.error("CDE calculation error", err);
-                            context.result = "ERROR";
-                        }
-                        $("#id_" + settings.prefix + settings.observer).val(context.result);
-                        $("#id_" + settings.prefix + settings.observer).trigger("rdrf_calculation_performed");
-             });
-        };
-
-        $(subject_codes_string).on("input change", update_function);
-        $(subject_codes_string).on("rdrf_calculation_performed", update_function);
-
-        try {
-            // call on initial page load
-            update_function(); //call it to ensure if calculation changes on server
-                               // we are always in sync(RDR-426 )
-        }
-        catch (err) {
-            alert(err);
-        }
-    };
-
-}(jQuery));
+      Object.keys(required_cde_inputs).forEach(function(cde_input) {
+        $("[id$=__".concat(cde_input, "]")).off("change");
+        $("[id$=__".concat(cde_input, "]")).on(
+          "change keyup",
+          _.debounce(function(e) {
+            update_function(required_cde_inputs[cde_input]);
+          }, 250)
+        );
+      });
+    } catch (err) {
+      alert(err);
+    }
+  };
+})(jQuery);

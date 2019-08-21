@@ -339,6 +339,12 @@ class ReportingTableGenerator(object):
         return {"error_messages": self.error_messages,
                 "warning_messages": self.warning_messages}
 
+    @property
+    def use_field_values(self):
+        # field values were meant as a caching technique to speed
+        # up reports
+        return self.registry_model.has_feature("use_field_values")
+
     @timed
     def run_explorer_query(self, database_utils):
         from copy import copy
@@ -347,9 +353,14 @@ class ReportingTableGenerator(object):
         row_num = 0
         blank_row = self._get_blank_row()
 
-        for row in database_utils.generate_results2(self.reverse_map,
-                                                    self.col_map,
-                                                    max_items=self.max_items):
+        if self.use_field_values:
+            generate_func = database_utils.generate_results2
+        else:
+            generate_func = database_utils.generate_results
+
+        for row in generate_func(self.reverse_map,
+                                 self.col_map,
+                                 max_items=self.max_items):
             new_row = copy(blank_row)
             new_row.update(row)
             self.insert_row(new_row)
