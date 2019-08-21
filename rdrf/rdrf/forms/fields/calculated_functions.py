@@ -659,9 +659,7 @@ def poemScore(patient, context):
         # We previously set unanswered questions to -1 to differentiate then from 0days (as 0days equals 0)
         # but now that we are going to calculate the total score, so we want the unanswered questions
         # to not affect the final score and so to be set to 0.
-        logger.debug(f"answer: {answers}")
         fixed_answers = [answer if answer != -1 else 0 for answer in answers]
-        logger.debug(f"fixed_answer: {fixed_answers}")
         s = sum(fixed_answers)
         cat = getCategory(s)
         result = s.__str__() + " ( " + cat + " )"
