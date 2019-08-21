@@ -74,7 +74,8 @@ class Survey(models.Model):
             raise ValidationError(f"The selected form {self.form.name} is not in the form group {self.context_form_group.name}")
         # Check that the context group form match the followup checkbox
         if self.registry.has_feature("contexts") and self.context_form_group is not None \
-                and self.context_form_group.context_type == "M" and self.is_followup is False:
+                and ((self.context_form_group.context_type == "M" and self.is_followup is False)
+                     or (self.context_form_group.context_type != "M" and self.is_followup is True)):
             raise ValidationError("The 'is followup' checkbox does not match the 'context form group' input.")
 
 
