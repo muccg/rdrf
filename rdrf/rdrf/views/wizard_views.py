@@ -256,7 +256,7 @@ class ReviewWizardGenerator:
             "template_name": template_name,
             "get_context_data": get_context_data_method,
             "done": done_method,
-            "get_form_initial":  get_form_initial_method,
+            "get_form_initial": get_form_initial_method,
         }
 
         wizard_class = type(class_name, (self.base_class,), class_dict)
