@@ -694,3 +694,68 @@ def ANGCurrentPatientAge_inputs():
     return []
 
 ################ END OF ANGCurrentPatientAge ################################
+
+################ BEGINNING OF ANGBMImetric ################################
+
+def ANGBMImetric(patient, context):
+
+    context = fill_missing_input(context, 'ANGBMImetric_inputs')
+
+    height = context["ANGObesityHeight"]
+    weight = context["ANGObesityWeight"]
+
+    # Simulating weird behaviour to match the current JS calculation results
+    # Hopefull we decide later to remove this behaviour but in a first stage in converting the JS calculation in python
+    # we try to match the exact result of the JS calculation (even thought they may be wrong like this problem with "" / NUMBER => 0)
+    if not weight and height:
+        return "0"
+
+    if not height or not weight:
+        return "NaN"
+
+    bmi = weight / (height * height)
+
+    ANGObesityBMI = str(roundToTwo(bmi))
+    # remove trailing 0: 14.23 => 14.23, 14.20 => 14.2, 14.00 => 14
+    trimmed_ANGObesityBMI = ANGObesityBMI.rstrip('0').rstrip('.') if '.' in ANGObesityBMI else ANGObesityBMI
+    return trimmed_ANGObesityBMI
+
+
+def ANGBMImetric_inputs():
+    return ["ANGObesityHeight", "ANGObesityWeight"]
+
+
+################ END OF ANGBMImetric ################################
+
+################ BEGINNING OF ANGBMIimperial ################################
+
+def ANGBMIimperial(patient, context):
+
+    context = fill_missing_input(context, 'ANGBMIimperial_inputs')
+
+    feet = context["ANGObesityHeightft"]
+    inches = context["ANGHeightIn"]
+    weight = context["ANGObesityWeightlb"]
+
+    # Simulating weird behaviour to match the current JS calculation results
+    # Hopefull we decide later to remove this behaviour but in a first stage in converting the JS calculation in python
+    # we try to match the exact result of the JS calculation (even thought they may be wrong like this problem with "" / NUMBER => 0)
+    if not weight and (feet or inches):
+        return "0"
+
+    if not feet or not inches or not weight:
+        return "NaN"
+
+    height = feet * 12 + inches
+
+    bmi = (weight * 703) / (height * height)
+
+    ANGimperialBMI = str(roundToTwo(bmi))
+    # remove trailing 0: 14.23 => 14.23, 14.20 => 14.2, 14.00 => 14
+    trimmed_ANGimperialBMI = ANGimperialBMI.rstrip('0').rstrip('.') if '.' in ANGimperialBMI else ANGimperialBMI
+    return trimmed_ANGimperialBMI
+
+def ANGBMIimperial_inputs():
+    return ["ANGObesityHeightft", "ANGHeightIn", "ANGObesityWeightlb"]
+
+################ END OF ANGBMIimperial ################################
