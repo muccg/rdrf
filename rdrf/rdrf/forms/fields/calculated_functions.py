@@ -676,40 +676,88 @@ def poemScore_inputs():
 
 ################ END OF poemScore ################################
 
-
 ################ BEGINNING OF ANGCurrentPatientAge ################################
-def ANGCurrentPatientAge(patient, context):
-    context = fill_missing_input(context, 'ANGCurrentPatientAge_inputs')
-    if not context["DateOfDiagnosis"]:
-        return "NaN"
-    diagnosisDate = datetime.strptime(context["DateOfDiagnosis"], '%Y-%m-%d')
-    birthDate = patient["date_of_birth"]
-    deathAge = calculate_age(birthDate, diagnosisDate)
-    if deathAge is None or deathAge == "":
-        return None
-    return str(deathAge)
 
+def ANGCurrentPatientAge(patient, context):
+
+    if not patient["date_of_birth"]:
+        return "NaN"
+
+    todayDate = datetime.now()
+    birthDate = patient["date_of_birth"]
+    currentPatientAge = calculate_age(birthDate, todayDate)
+
+    if currentPatientAge is None or currentPatientAge == "":
+        return None
+
+    return str(currentPatientAge)
 
 def ANGCurrentPatientAge_inputs():
-    return ["DateOfDiagnosis"]
+    return []
+
 ################ END OF ANGCurrentPatientAge ################################
+
+################ BEGINNING OF ANGBMImetric ################################
+
+def ANGBMImetric(patient, context):
+
+    context = fill_missing_input(context, 'ANGBMImetric_inputs')
+
+    height = context["ANGObesityHeight"]
+    weight = context["ANGObesityWeight"]
+
+    # Simulating weird behaviour to match the current JS calculation results
+    # Hopefull we decide later to remove this behaviour but in a first stage in converting the JS calculation in python
+    # we try to match the exact result of the JS calculation (even thought they may be wrong like this problem with "" / NUMBER => 0)
+    if not weight and height:
+        return "0"
+
+    if not height or not weight:
+        return "NaN"
+
+    bmi = weight / (height * height)
+
+    ANGObesityBMI = str(roundToTwo(bmi))
+    # remove trailing 0: 14.23 => 14.23, 14.20 => 14.2, 14.00 => 14
+    trimmed_ANGObesityBMI = ANGObesityBMI.rstrip('0').rstrip('.') if '.' in ANGObesityBMI else ANGObesityBMI
+    return trimmed_ANGObesityBMI
 
 
 def ANGBMImetric_inputs():
-    # TODO fix!!!!!!
-    return None
+    return ["ANGObesityHeight", "ANGObesityWeight"]
 
 
-def ANGBMImetric(patient, context):
-    # TODO fix!!!!!!
-    return "25"
+################ END OF ANGBMImetric ################################
 
-
-def ANGBMIimperial_inputs():
-    # TODO fix!!!!!!
-    return None
-
+################ BEGINNING OF ANGBMIimperial ################################
 
 def ANGBMIimperial(patient, context):
-    # TODO fix!!!!!!
-    return "25"
+
+    context = fill_missing_input(context, 'ANGBMIimperial_inputs')
+
+    feet = context["ANGObesityHeightft"]
+    inches = context["ANGHeightIn"]
+    weight = context["ANGObesityWeightlb"]
+
+    # Simulating weird behaviour to match the current JS calculation results
+    # Hopefull we decide later to remove this behaviour but in a first stage in converting the JS calculation in python
+    # we try to match the exact result of the JS calculation (even thought they may be wrong like this problem with "" / NUMBER => 0)
+    if not weight and (feet or inches):
+        return "0"
+
+    if not feet or not inches or not weight:
+        return "NaN"
+
+    height = feet * 12 + inches
+
+    bmi = (weight * 703) / (height * height)
+
+    ANGimperialBMI = str(roundToTwo(bmi))
+    # remove trailing 0: 14.23 => 14.23, 14.20 => 14.2, 14.00 => 14
+    trimmed_ANGimperialBMI = ANGimperialBMI.rstrip('0').rstrip('.') if '.' in ANGimperialBMI else ANGimperialBMI
+    return trimmed_ANGimperialBMI
+
+def ANGBMIimperial_inputs():
+    return ["ANGObesityHeightft", "ANGHeightIn", "ANGObesityWeightlb"]
+
+################ END OF ANGBMIimperial ################################
