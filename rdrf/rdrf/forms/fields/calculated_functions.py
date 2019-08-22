@@ -673,3 +673,24 @@ def poemScore_inputs():
     return ["poemQ1", "poemQ2", "poemQ3", "poemQ4", "poemQ5", "poemQ6", "poemQ7", ]
 
 ################ END OF poemScore ################################
+
+################ BEGINNING OF ANGCurrentPatientAge ################################
+
+def ANGCurrentPatientAge(patient, context):
+
+    if not patient["date_of_birth"]:
+        return "NaN"
+
+    todayDate = datetime.now()
+    birthDate = patient["date_of_birth"]
+    currentPatientAge = calculate_age(birthDate, todayDate)
+
+    if currentPatientAge is None or currentPatientAge == "":
+        return None
+
+    return str(currentPatientAge)
+
+def ANGCurrentPatientAge_inputs():
+    return []
+
+################ END OF ANGCurrentPatientAge ################################
