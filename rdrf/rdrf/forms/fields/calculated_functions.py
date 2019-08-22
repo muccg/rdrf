@@ -327,7 +327,8 @@ def catrelative(sex, age, lipid_score):
 
 
 def categorise(context, patient):
-    dutch_lipid_network_score = None if context["CDEfhDutchLipidClinicNetwork"] == "" else float(context["CDEfhDutchLipidClinicNetwork"])
+    dutch_lipid_network_score = None if context["CDEfhDutchLipidClinicNetwork"] == "" else float(
+        context["CDEfhDutchLipidClinicNetwork"])
     assessmentDate = datetime.strptime(context["DateOfAssessment"], '%Y-%m-%d')
     isAdult = calculate_age(patient["date_of_birth"], assessmentDate) >= 18.0
     index = context["CDEIndexOrRelative"] == "fh_is_index"
@@ -435,7 +436,8 @@ def LDLCholesterolAdjTreatment(patient, context):
     try:
         LDLCholesterolAdjTreatment = str(roundToTwo(Decimal(str(ldl_chol * correction_factor(dose)))))
         # remove trailing 0: 14.23 => 14.23, 14.20 => 14.2, 14.00 => 14
-        trimmed_LDLCholesterolAdjTreatment = LDLCholesterolAdjTreatment.rstrip('0').rstrip('.') if '.' in LDLCholesterolAdjTreatment else LDLCholesterolAdjTreatment
+        trimmed_LDLCholesterolAdjTreatment = LDLCholesterolAdjTreatment.rstrip('0').rstrip(
+            '.') if '.' in LDLCholesterolAdjTreatment else LDLCholesterolAdjTreatment
         return trimmed_LDLCholesterolAdjTreatment
 
     except:
@@ -673,3 +675,41 @@ def poemScore_inputs():
     return ["poemQ1", "poemQ2", "poemQ3", "poemQ4", "poemQ5", "poemQ6", "poemQ7", ]
 
 ################ END OF poemScore ################################
+
+
+################ BEGINNING OF ANGCurrentPatientAge ################################
+def ANGCurrentPatientAge(patient, context):
+    context = fill_missing_input(context, 'ANGCurrentPatientAge_inputs')
+    if not context["DateOfDiagnosis"]:
+        return "NaN"
+    diagnosisDate = datetime.strptime(context["DateOfDiagnosis"], '%Y-%m-%d')
+    birthDate = patient["date_of_birth"]
+    deathAge = calculate_age(birthDate, diagnosisDate)
+    if deathAge is None or deathAge == "":
+        return None
+    return str(deathAge)
+
+
+def ANGCurrentPatientAge_inputs():
+    return ["DateOfDiagnosis"]
+################ END OF ANGCurrentPatientAge ################################
+
+
+def ANGBMImetric_inputs():
+    # TODO fix!!!!!!
+    return None
+
+
+def ANGBMImetric(patient, context):
+    # TODO fix!!!!!!
+    return "25"
+
+
+def ANGBMIimperial_inputs():
+    # TODO fix!!!!!!
+    return None
+
+
+def ANGBMIimperial(patient, context):
+    # TODO fix!!!!!!
+    return "25"
