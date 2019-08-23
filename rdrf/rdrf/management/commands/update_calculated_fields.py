@@ -162,6 +162,10 @@ def save_new_calculation(changed_calculated_cdes, context_id, form_name, patient
     if changed_calculated_cdes:
         logger.info(f"UPDATING DB: These are the new value of the form/context {changed_calculated_cdes} - registry: {registry_model.code} - patient: {patient_model.id} - form: {form_name} - context: {context_id}")
         for changed_calculated_cde_code in changed_calculated_cdes.keys():
+            # Set the context_model to None for registry not supportting context feature because set_form_value() is picky about receiving it.
+            # (to my understanding registries with no context feature still set context values so set_form_value() should deal with it)
+            if not registry_model.has_feature("contexts"):
+                context_model = None
             patient_model.set_form_value(registry_code=registry_model.code,
                                          form_name=form_name,
                                          section_code=changed_calculated_cdes[changed_calculated_cde_code][
