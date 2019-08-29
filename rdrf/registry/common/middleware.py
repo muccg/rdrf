@@ -2,6 +2,7 @@ import logging
 from django.http import HttpResponseRedirect
 from django.urls import reverse
 from django.utils.deprecation import MiddlewareMixin
+from ccg_django_utils.conf import EnvConfig
 
 logger = logging.getLogger(__name__)
 
@@ -30,7 +31,9 @@ class EnforceTwoFactorAuthMiddleware(MiddlewareMixin):
         if user is None or user.is_anonymous:
             return None
 
-        if not user.is_verified() and user.require_2_fact_auth:
+        site_requires_2fa = EnvConfig().get("require_2fa", False) == 1
+
+        if not user.is_verified() and (site_requires_2fa or user.require_2_fact_auth):
             return HttpResponseRedirect(reverse('two_factor:setup'))
 
         return None
