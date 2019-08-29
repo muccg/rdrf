@@ -505,7 +505,7 @@ LOCALE_PATHS = env.getlist("locale_paths", [os.path.join(WEBAPP_ROOT, "translati
 AUTH_PASSWORD_VALIDATORS = [{
     'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
     'OPTIONS': {
-            'min_length': 8,
+            'min_length': env.get("password_min_length", 8),
     }
 },
     {
