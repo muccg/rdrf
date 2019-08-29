@@ -6,4 +6,4 @@ register = template.Library()
 
 @register.simple_tag
 def countries():
-    return pycountry.countries
+    return sorted(pycountry.countries, key=lambda c: c.name)
