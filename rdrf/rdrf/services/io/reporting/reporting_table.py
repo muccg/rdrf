@@ -358,13 +358,16 @@ class ReportingTableGenerator(object):
         else:
             generate_func = database_utils.generate_results
 
+        values = []
         for row in generate_func(self.reverse_map,
                                  self.col_map,
                                  max_items=self.max_items):
             new_row = copy(blank_row)
             new_row.update(row)
-            self.insert_row(new_row)
+            values.append(self.insert_row(new_row))
             row_num += 1
+
+        self.engine.execute(self.table.insert(), values)
 
         if errors > 0:
             logger.info("query errors: %s" % errors)
@@ -379,7 +382,7 @@ class ReportingTableGenerator(object):
             if isinstance(value, str):
                 value_dict[k] = value
 
-        self.engine.execute(self.table.insert().values(**value_dict))
+        return value_dict
 
     def _create_column(self, name, datatype=alc.String):
         self.column_names.append(name)
