@@ -92,7 +92,7 @@ class Command(BaseCommand):
                                 form_cde_values = get_form_cde_values(patient_model, context_id, registry_model, form_name,
                                                                       cde_models_tree)
                                 context_var = build_context_var(patient_model, context_id, registry_model, form_name,
-                                                                cde_models_tree)
+                                                                cde_models_tree, calculated_cde_models)
 
                                 # For each section of the form (we only do that because we need to know the section_code when calling set_form_value)
                                 for section_code in cde_models_tree[registry_model.code][form_name].keys():
@@ -204,8 +204,9 @@ def get_form_cde_values(patient_model, context_id, registry_model, form_name, cd
     return None
 
 
-def build_context_var(patient_model, context_id, registry_model, form_name, cde_models_tree):
+def build_context_var(patient_model, context_id, registry_model, form_name, cde_models_tree, calculated_cde_models):
     context_var = {}
+    calculated_cde_codes = [calculated_cde_model.code for calculated_cde_model in calculated_cde_models]
     # Retrieve the clinical_data for this registry / patient / context.
     wrapper = DynamicDataWrapper(patient_model, rdrf_context_id=context_id)
     data = wrapper.load_dynamic_data(registry_model.code, "cdes")
@@ -228,6 +229,9 @@ def build_context_var(patient_model, context_id, registry_model, form_name, cde_
                     cde_value = ""
                 context_var[cde_code] = cde_value
             except KeyError:
+                # we set the "never recorded" calculated values to None so these calculated fields get updated.
+                if cde_code in calculated_cde_codes:
+                    context_var[cde_code] = None
                 # we ignore empty values.
                 pass
 
