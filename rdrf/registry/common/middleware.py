@@ -31,7 +31,7 @@ class EnforceTwoFactorAuthMiddleware(MiddlewareMixin):
         if user is None or user.is_anonymous:
             return None
 
-        site_requires_2fa = True if EnvConfig().get("require_2fa", False) == 1 else False
+        site_requires_2fa = EnvConfig().get("require_2fa", False) == 1
 
         if not user.is_verified() and (site_requires_2fa or user.require_2_fact_auth):
             return HttpResponseRedirect(reverse('two_factor:setup'))
