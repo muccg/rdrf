@@ -605,13 +605,17 @@ class Patient(models.Model):
         registry_model = Registry.objects.get(code=registry_code)
         if registry_model.has_feature("contexts") and context_model is None:
             raise Exception("No context model set")
-        elif not registry_model.has_feature("contexts") and context_model is not None:
-            raise Exception("context model should not be explicit for non-supporting registry")
-        elif not registry_model.has_feature("contexts") and context_model is None:
-            # the usual case
+        elif not registry_model.has_feature("contexts"):
+            # Get the context_model
             from rdrf.db.contexts_api import RDRFContextManager
             rdrf_context_manager = RDRFContextManager(registry_model)
-            context_model = rdrf_context_manager.get_or_create_default_context(self)
+            default_context_model = rdrf_context_manager.get_or_create_default_context(self)
+            if context_model is not None:
+                # Sanity check that the passed context is the correct default_context_model
+                if context_model.id != default_context_model.id:
+                    raise Exception("The context_model passed as parameter is not the patient default context model.")
+            else:
+                context_model = default_context_model
 
         wrapper = DynamicDataWrapper(self, rdrf_context_id=context_model.pk)
         if user:
