@@ -7,11 +7,11 @@ from django.urls import reverse
 from rdrf.models.definition.models import Registry, RegistryForm, Section
 from rdrf.models.definition.models import CommonDataElement
 from rdrf.models.definition.models import ContextFormGroup
-from rdrf.services.io.notifications.notifications import Notifier
-from rdrf.services.io.notifications.notifications import NotificationError
 from registry.patients.models import Patient
 from rdrf.helpers.utils import generate_token
 from django.forms import ValidationError
+from rdrf.events.events import EventType
+from rdrf.services.io.notifications.email_notification import process_notification
 
 
 def clean(s):
@@ -314,7 +314,20 @@ class SurveyRequest(models.Model):
             if (self.communication_type == 'email'):
                 try:
                     logger.debug("sending email to patient ...")
-                    self._send_email()
+                    # As we don't know how friendly the message needs to be, admin can pick the name format.
+                    template_data = {
+                        "display_name": self.patient.display_name,
+                        "combined_name": self.patient.combined_name,
+                        "given_names": self.patient.given_names,
+                        "family_name": self.patient.family_name,
+                        "patient_email": self.patient.email,
+                        "email_link": self.email_link,
+                        "registry_name": self.registry.name,
+                        "survey_name": self.survey_name
+                    }
+                    process_notification(self.registry.code,
+                                         EventType.SURVEY_REQUEST,
+                                         template_data)
                     logger.debug("sent email to patient OK")
 
                     return True
@@ -402,31 +415,6 @@ class SurveyRequest(models.Model):
             return survey_model.display_name
 
         return self.survey_name
-
-    def _send_email(self):
-        logger.debug("sending email to user with link")
-        try:
-            emailer = Notifier()
-            subject_line = "%s %s Survey Request" % (self.registry.name,
-                                                     self.survey_name)
-            email_body = f"""You are receiving this email because you agreed to take part in the Continuous Improvement in Care - Cancer Project.
-
-We would appreciate if you could complete the following survey prior to your next appointment with the doctor.
-
-Your answers will help your doctor to identify any areas where you are having problems, so that these can be addressed promptly.
-
-Please click on the following link to begin the survey:
-
-{self.email_link}"""
-
-            emailer.send_email(self.patient.email,
-                               subject_line,
-                               email_body)
-
-        except NotificationError as nerr:
-            raise PromsEmailError(nerr)
-        except Exception as ex:
-            raise PromsEmailError(ex)
 
     @property
     def qrcode_link(self):

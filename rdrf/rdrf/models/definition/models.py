@@ -1492,7 +1492,7 @@ class EmailNotification(models.Model):
         (EventType.CLINICIAN_ACTIVATION, "Clinician Activation"),
         (EventType.CLINICIAN_SELECTED, "Clinician Selected"),
         (EventType.PARTICIPANT_CLINICIAN_NOTIFICATION, "Participant Clinician Notification"),
-
+        (EventType.SURVEY_REQUEST, "Survey Request"),
     )
 
     description = models.CharField(max_length=100, choices=EMAIL_NOTIFICATIONS)
