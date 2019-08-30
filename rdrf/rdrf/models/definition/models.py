@@ -1912,7 +1912,7 @@ class ClinicalData(models.Model):
         if not self.modjgo_schema:
             try:
                 with open(self.modjgo_schema_file) as f:
-                    self.modjgo_schema = yaml.load(f.read())
+                    self.modjgo_schema = yaml.safe_load(f.read())
             except BaseException:
                 logger.exception("Error reading %s" % self.modjgo_schema_file)
 

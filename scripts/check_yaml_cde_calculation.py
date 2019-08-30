@@ -22,7 +22,7 @@ def main():
 
 def check_file(filename):
     num_errors = 0
-    data = yaml.load(io.open(filename, errors="replace"))
+    data = yaml.safe_load(io.open(filename, errors="replace"))
     for cde in data.get("cdes") or []:
         calc = cde.get("calculation")
         if calc:

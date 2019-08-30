@@ -75,7 +75,7 @@ class Command(BaseCommand):
 
         if os.path.exists(schema_path):
             with open(schema_path) as sf:
-                return yaml.load(sf)
+                return yaml.safe_load(sf)
 
         raise FileNotFoundError(errno.ENOENT,
                                 os.strerror(errno.ENOENT),

@@ -92,7 +92,7 @@ class Importer(object):
 
     def load_yaml_from_string(self, yaml_string):
         self.yaml_data_file = "yaml string"
-        self.data = yaml.load(yaml_string)
+        self.data = yaml.safe_load(yaml_string)
         self.state = ImportState.LOADED
 
     def load_yaml(self, yaml_data_file):

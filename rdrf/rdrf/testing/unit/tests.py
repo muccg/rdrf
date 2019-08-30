@@ -459,7 +459,7 @@ class ExporterTestCase(RDRFTestCase):
             f.write(yaml_data)
 
         with open("/tmp/test.yaml") as f:
-            data = yaml.load(f)
+            data = yaml.safe_load(f)
 
         test_key('EXPORT_TYPE', data)
         test_key('RDRF_VERSION', data)

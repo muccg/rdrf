@@ -16,7 +16,7 @@ class MigrationView(View):
         sma_rdrf = None
 
         if request.FILES:
-            sma_rdrf = yaml.load(request.FILES['rdrf_yaml'].read())
+            sma_rdrf = yaml.safe_load(request.FILES['rdrf_yaml'].read())
             sma_legacy = json.loads(request.FILES['legacy_json'].read())
             self.rdrf_legacy = sma_legacy
 

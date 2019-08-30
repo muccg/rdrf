@@ -119,7 +119,7 @@ class Command(BaseCommand):
     def _load_yaml_file(self, file_name):
         with open(file_name, encoding='utf-8') as f:
             try:
-                self.data = yaml.load(f)
+                self.data = yaml.safe_load(f)
             except Exception as ex:
                 print("could not load yaml file %s: %s" % (file_name,
                                                            ex))
