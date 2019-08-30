@@ -87,12 +87,13 @@ class PromsDelete(APIView):
     @method_decorator(csrf_exempt)
     def post(self, request, format=None):
         registry_code = request.POST.get("registry_code")
-        self.get_queryset(registry_code).delete()
-        logger.info(f"deleted completed surveys that were downloaded for {registry_code} registry")
+        survey_ids = request.POST.getlist("survey_ids")
+        self.get_queryset(registry_code, survey_ids).delete()
+        logger.info(f"deleted {len(survey_ids)} completed surveys that were downloaded for {registry_code} registry")
         return Response("deleted")
 
-    def get_queryset(self, registry_code):
-        return SurveyAssignment.objects.filter(state="completed", registry__code=registry_code)
+    def get_queryset(self, registry_code, survey_ids):
+        return SurveyAssignment.objects.filter(state="completed", registry__code=registry_code, id__in=survey_ids)
 
 
 class PromsDownload(APIView):
@@ -102,9 +103,10 @@ class PromsDownload(APIView):
     @method_decorator(csrf_exempt)
     def post(self, request, format=None):
         registry_code = request.POST.get("registry_code", "")
-        completed_surveys = SurveyAssignmentSerializer(self.get_queryset(registry_code), many=True)
+        completed_survey_assignments = self.get_queryset(registry_code)
+        completed_surveys = SurveyAssignmentSerializer(completed_survey_assignments, many=True)
         response = Response(completed_surveys.data)
-        logger.info(f"deleted completed surveys that were downloaded for {registry_code} registry")
+        logger.info(f"downloaded {len(completed_survey_assignments)} completed surveys that were downloaded for {registry_code} registry")
         return response
 
     def get_queryset(self, registry_code):
@@ -139,6 +141,7 @@ class PromsProcessor:
             logger.debug("got proms data from proms system OK")
             data = response.json()
             logger.debug("There are %s surveys" % len(data))
+            survey_ids = []
             for survey_response in data:
                 patient_token = survey_response["patient_token"]
                 logger.debug("patient token = %s" % patient_token)
@@ -170,9 +173,13 @@ class PromsProcessor:
 
                 self._update_proms_fields(survey_request, survey_data)
 
-            # All went well, we can now delete the proms for this registry.
-            if len(data) > 0:
-                self.delete_registry_proms(post_data)
+                # Store the survey id so we can delete it on the PROMS site once all surveys are downloaded.
+                survey_ids.append(survey_response["id"])
+
+            # All went well, we can now delete the downloaded surveys from the PROMS site.
+            if len(survey_ids) > 0:
+                delete_post_data = {**post_data, 'survey_ids': survey_ids}
+                self.delete_registry_proms(delete_post_data)
 
     def delete_registry_proms(self, post_data):
         api_delete = "/api/proms/v1/promsdelete"
