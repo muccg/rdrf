@@ -80,22 +80,37 @@ class SurveyAssignments(APIView):
         return Response(ser.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
+class PromsDelete(APIView):
+    authentication_classes = (PromsAuthentication,)
+    permission_classes = (AllowAny,)
+
+    @method_decorator(csrf_exempt)
+    def post(self, request, format=None):
+        registry_code = request.POST.get("registry_code")
+        survey_ids = request.POST.getlist("survey_ids")
+        self.get_queryset(registry_code, survey_ids).delete()
+        logger.info(f"deleted {len(survey_ids)} completed surveys that were downloaded for {registry_code} registry")
+        return Response("deleted")
+
+    def get_queryset(self, registry_code, survey_ids):
+        return SurveyAssignment.objects.filter(state="completed", registry__code=registry_code, id__in=survey_ids)
+
+
 class PromsDownload(APIView):
     authentication_classes = (PromsAuthentication,)
     permission_classes = (AllowAny,)
 
     @method_decorator(csrf_exempt)
     def post(self, request, format=None):
-        logger.debug("received download request ...")
-        completed_surveys = SurveyAssignmentSerializer(self.get_queryset(), many=True)
+        registry_code = request.POST.get("registry_code", "")
+        completed_survey_assignments = self.get_queryset(registry_code)
+        completed_surveys = SurveyAssignmentSerializer(completed_survey_assignments, many=True)
         response = Response(completed_surveys.data)
-        logger.debug("serialised surveys")
-        self.get_queryset().delete()
-        logger.debug("deleted completed surveys that were downloaded")
+        logger.info(f"downloaded {len(completed_survey_assignments)} completed surveys that were downloaded for {registry_code} registry")
         return response
 
-    def get_queryset(self):
-        return SurveyAssignment.objects.filter(state="completed")
+    def get_queryset(self, registry_code):
+        return SurveyAssignment.objects.filter(state="completed", registry__code=registry_code)
 
 
 class PromsProcessor:
@@ -116,7 +131,7 @@ class PromsProcessor:
 
         api_url = self.proms_url + api
         logger.debug("making request to %s" % api_url)
-        post_data = {'proms_secret_token': settings.PROMS_SECRET_TOKEN}
+        post_data = {'proms_secret_token': settings.PROMS_SECRET_TOKEN, 'registry_code': self.registry_model.code}
         response = requests.post(api_url, data=post_data)
 
         if response.status_code != 200:
@@ -126,6 +141,7 @@ class PromsProcessor:
             logger.debug("got proms data from proms system OK")
             data = response.json()
             logger.debug("There are %s surveys" % len(data))
+            survey_ids = []
             for survey_response in data:
                 patient_token = survey_response["patient_token"]
                 logger.debug("patient token = %s" % patient_token)
@@ -134,13 +150,19 @@ class PromsProcessor:
                 logger.debug("survey response = %s" % survey_response)
                 survey_data = json.loads(survey_response["response"])
                 logger.debug("survey data = %s" % survey_data)
+
+                # Sanity check: the survey registry must the same as the current registry
+                if survey_response['registry_code'] != self.registry_model.code:
+                    raise Exception(f"survey response registry code '{survey_response['registry_code']}' "
+                                    f"not equal to pull_proms registry code '{self.registry_model.code}'")
+
                 try:
                     survey_request = SurveyRequest.objects.get(patient_token=patient_token,
                                                                survey_name=survey_name,
                                                                state=SurveyRequestStates.REQUESTED,
-                                                               registry=self.registry_model)
+                                                               registry__code=survey_response['registry_code'])
                 except SurveyRequest.DoesNotExist:
-                    logger.error("could find survey request")
+                    logger.error("could not find survey request")
                     continue
 
                 except SurveyRequest.MultipleObjectsReturned:
@@ -150,6 +172,22 @@ class PromsProcessor:
                 logger.debug("matched survey request %s" % survey_request.pk)
 
                 self._update_proms_fields(survey_request, survey_data)
+
+                # Store the survey id so we can delete it on the PROMS site once all surveys are downloaded.
+                survey_ids.append(survey_response["id"])
+
+            # All went well, we can now delete the downloaded surveys from the PROMS site.
+            if len(survey_ids) > 0:
+                delete_post_data = {**post_data, 'survey_ids': survey_ids}
+                self.delete_registry_proms(delete_post_data)
+
+    def delete_registry_proms(self, post_data):
+        api_delete = "/api/proms/v1/promsdelete"
+        api_delete_url = self.proms_url + api_delete
+        delete_response = requests.post(api_delete_url, data=post_data)
+        if delete_response.status_code != 200:
+            logger.info(f"Error deleting proms for {self.registry_model.code} registry")
+            raise Exception(f"Error deleting proms for {self.registry_model.code} registry")
 
     def _update_proms_fields(self, survey_request, survey_data):
         from rdrf.models.definition.models import RDRFContext
