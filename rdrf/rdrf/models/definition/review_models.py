@@ -407,8 +407,10 @@ class ReviewItem(models.Model):
         field = self.fields.lower().strip()
         if field == "postal_address":
             address_type = AddressType.objects.get(type="Postal")
-        else:
+        elif field == 'home_address':
             address_type = AddressType.objects.get(type="Home")
+        else:
+            address_type = ''
 
         try:
             address = PatientAddress.objects.get(patient=patient_model,
@@ -441,7 +443,7 @@ class ReviewItem(models.Model):
         logger.debug("display data for address = %s" % pairs)
         return pairs
 
-    def _get_demographics_fields(self, patient_model):
+    def _get_demographics_fields(self, patient_model, raw):
         return []
 
     def _get_section_data(self, patient_model, context_model, raw=False):
