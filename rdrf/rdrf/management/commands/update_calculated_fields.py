@@ -88,32 +88,35 @@ class Command(BaseCommand):
                         for context_id in context_ids:
                             if not options['context_id'] or context_id in options['context_id']:
                                 changed_calculated_cdes = {}
-                                # context_var - it is the context variable of the js code (not to be confused with the RDRF context model).
+                                # Get the existing cde values from the currently processed form.
                                 form_cde_values = get_form_cde_values(patient_model, context_id, registry_model, form_name,
                                                                       cde_models_tree)
-                                context_var = build_context_var(patient_model, context_id, registry_model, form_name,
-                                                                cde_models_tree, calculated_cde_models)
+                                # If the form does not exist, then no need to process this form.
+                                if form_cde_values:
+                                    # context_var - it is the context variable of the js code (not to be confused with the RDRF context model).
+                                    context_var = build_context_var(patient_model, context_id, registry_model, form_name,
+                                                                    cde_models_tree, calculated_cde_models)
 
-                                # For each section of the form (we only do that because we need to know the section_code when calling set_form_value)
-                                for section_code in cde_models_tree[registry_model.code][form_name].keys():
-                                    # For each calculated cdes in this section, do a WS call to the node server evaluation the js code.
-                                    for calculated_cde_model in calculated_cde_models:
-                                        if calculated_cde_model.code in context_var.keys() and calculated_cde_model.code in \
-                                                cde_models_tree[registry_model.code][form_name][section_code].keys():
+                                    # For each section of the form (we only do that because we need to know the section_code when calling set_form_value)
+                                    for section_code in cde_models_tree[registry_model.code][form_name].keys():
+                                        # For each calculated cdes in this section, do a WS call to the node server evaluation the js code.
+                                        for calculated_cde_model in calculated_cde_models:
+                                            if calculated_cde_model.code in context_var.keys() and calculated_cde_model.code in \
+                                                    cde_models_tree[registry_model.code][form_name][section_code].keys():
 
-                                            new_calculated_cde_value = calculate_cde(patient_model, form_cde_values, calculated_cde_model)
+                                                new_calculated_cde_value = calculate_cde(patient_model, form_cde_values, calculated_cde_model)
 
-                                            # if the result is a new value, then store in a temp var so we can update the form at its context level.
-                                            if context_var[calculated_cde_model.code] != new_calculated_cde_value:
-                                                if patient_model.id not in modified_patients:
-                                                    modified_patients.append(patient_model.id)
-                                                changed_calculated_cdes[calculated_cde_model.code] = \
-                                                    {"old_value": context_var[calculated_cde_model.code],
-                                                     "new_value": new_calculated_cde_value,
-                                                     "section_code": section_code}
+                                                # if the result is a new value, then store in a temp var so we can update the form at its context level.
+                                                if context_var[calculated_cde_model.code] != new_calculated_cde_value:
+                                                    if patient_model.id not in modified_patients:
+                                                        modified_patients.append(patient_model.id)
+                                                    changed_calculated_cdes[calculated_cde_model.code] = \
+                                                        {"old_value": context_var[calculated_cde_model.code],
+                                                         "new_value": new_calculated_cde_value,
+                                                         "section_code": section_code}
 
-                                save_new_calculation(changed_calculated_cdes, context_id, form_name, patient_model,
-                                                     registry_model)
+                                    save_new_calculation(changed_calculated_cdes, context_id, form_name, patient_model,
+                                                         registry_model)
 
         end = time.time()
         self.stdout.write(self.style.SUCCESS(f"Script ended in {end - start} seconds."))
