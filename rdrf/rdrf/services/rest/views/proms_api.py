@@ -144,6 +144,7 @@ class PromsProcessor:
             data = response.json()
             logger.debug("There are %s surveys" % len(data))
             survey_ids = []
+            patient_ids = set()
             for survey_response in data:
                 patient_token = survey_response["patient_token"]
                 logger.debug("patient token = %s" % patient_token)
@@ -173,6 +174,9 @@ class PromsProcessor:
 
                 logger.debug("matched survey request %s" % survey_request.pk)
 
+                # Remember the patient ids so we can later update the calculated field for this patient.
+                patient_ids.add(survey_request.patient.id)
+
                 self._update_proms_fields(survey_request, survey_data)
 
                 # Store the survey id so we can delete it on the PROMS site once all surveys are downloaded.
@@ -182,6 +186,11 @@ class PromsProcessor:
             if len(survey_ids) > 0:
                 delete_post_data = {**post_data, 'survey_ids': survey_ids}
                 self.delete_registry_proms(delete_post_data)
+
+            # Fix calculation for this registry
+            if patient_ids:
+                from django.core.management import call_command
+                call_command('update_calculated_fields', registry_code=self.registry_model.code, patient_id=patient_ids)
 
     def delete_registry_proms(self, post_data):
         api_delete = "/api/proms/v1/promsdelete"
