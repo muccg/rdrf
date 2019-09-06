@@ -110,7 +110,9 @@ class PromsDownload(APIView):
         return response
 
     def get_queryset(self, registry_code):
-        return SurveyAssignment.objects.filter(state="completed", registry__code=registry_code)
+        # we order the survey by updated date so the last answered survey will overwrite previous answered survey
+        # (in case there are multiple answers for the same survey/patient)
+        return SurveyAssignment.objects.filter(state="completed", registry__code=registry_code).order_by('updated')
 
 
 class PromsProcessor:
