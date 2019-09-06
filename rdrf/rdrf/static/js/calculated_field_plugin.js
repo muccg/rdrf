@@ -68,11 +68,22 @@ function _arrayWithoutHoles(arr) {
         body: JSON.stringify(body)
       })
         .then(function(response) {
+          if (!response.ok) {
+            throw new Error(response.statusText);
+          }
+
           return response.json();
         })
-        .then(function(myJson) {
-          $("[id$=__".concat(cde_code, "]")).val(myJson);
+        .then(function(result) {
+          if (result.stat === "fail") {
+            throw new Error(result.message);
+          }
+
+          $("[id$=__".concat(cde_code, "]")).val(result);
           $("[id$=__".concat(cde_code, "]")).trigger("change");
+        })
+        .catch(function(errormsg) {
+          console.log(errormsg);
         });
     });
   };

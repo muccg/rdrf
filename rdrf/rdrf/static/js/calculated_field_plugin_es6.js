@@ -45,11 +45,20 @@
                     body: JSON.stringify(body)
                 })
                     .then(function (response) {
-                        return response.json();
+                        if (!response.ok) {
+                            throw new Error(response.statusText);
+                        }
+                        return response.json()
                     })
-                    .then(function (myJson) {
-                        $(`[id$=__${cde_code}]`).val(myJson)
-                        $(`[id$=__${cde_code}]`).trigger("change");
+                    .then(function (result) {
+                        if (result.stat === "fail") {
+                            throw new Error(result.message);
+                        }
+                        $("[id$=__".concat(cde_code, "]")).val(result);
+                        $("[id$=__".concat(cde_code, "]")).trigger("change");
+                    })
+                    .catch(function (errormsg) {
+                        console.log(errormsg);
                     });
             });
         }
