@@ -55,7 +55,7 @@ class CalculatedFieldScriptCreator(object):
                     patient_date_of_birth: '%s',
                     observer: "%s",
                     wsurl: "%s",
-                    is_date_type: "%s"
+                    cde_data_type: "%s"
                     });
                 });
 
