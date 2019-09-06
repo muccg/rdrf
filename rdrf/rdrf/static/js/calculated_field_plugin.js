@@ -33,25 +33,16 @@ function _arrayWithoutHoles(arr) {
   var patient_date_of_birth = "";
   var patient_sex = "";
   var wsurl = "";
-  var is_date_type = "";
-  var do_fetch = true;
 
   var update_function = function update_function(calculated_cdes) {
     calculated_cdes.forEach(function(cde_code) {
-      do_fetch = true; // Retrieve all values of input
-
+      // Retrieve all values of input
       var calculated_cde_inputs_json_values = {};
       calculated_cde_inputs[cde_code].forEach(function(required_input_cde) {
         var cde_value = $("[id$=__".concat(required_input_cde, "]")).val(); // check if it is a date like dd-mm-yyyy and convert it in yyyy-mm-dd
 
         if (moment(cde_value, "D-M-YYYY", true).isValid()) {
           cde_value = moment(cde_value, "D-M-YYYY", true).format("YYYY-MM-DD");
-        }
-
-        if (is_date_type === "calculated") {
-          if (!moment(cde_value, "YYYY-MM-DD", true).isValid()) {
-            do_fetch = false;
-          }
         } // check if it is a number and convert it in a number
 
         if (
@@ -66,34 +57,29 @@ function _arrayWithoutHoles(arr) {
         cde_code: cde_code,
         patient_date_of_birth: patient_date_of_birth,
         patient_sex: patient_sex,
-        form_values: calculated_cde_inputs_json_values,
-        is_date_type: is_date_type
+        form_values: calculated_cde_inputs_json_values
       };
-
-      if (do_fetch) {
-        fetch(wsurl, {
-          method: "post",
-          headers: {
-            "Content-Type": "application/json",
-            "X-CSRFToken": $("[name=csrfmiddlewaretoken]").val()
-          },
-          body: JSON.stringify(body)
+      fetch(wsurl, {
+        method: "post",
+        headers: {
+          "Content-Type": "application/json",
+          "X-CSRFToken": $("[name=csrfmiddlewaretoken]").val()
+        },
+        body: JSON.stringify(body)
+      })
+        .then(function(response) {
+          return response.json();
         })
-          .then(function(response) {
-            return response.json();
-          })
-          .then(function(myJson) {
-            $("[id$=__".concat(cde_code, "]")).val(myJson);
-            $("[id$=__".concat(cde_code, "]")).trigger("change");
-          });
-      }
+        .then(function(myJson) {
+          $("[id$=__".concat(cde_code, "]")).val(myJson);
+          $("[id$=__".concat(cde_code, "]")).trigger("change");
+        });
     });
   };
 
   $.fn.add_calculation = function(options) {
     patient_date_of_birth = options.patient_date_of_birth;
     patient_sex = options.patient_sex;
-    is_date_type = options.is_date_type;
     wsurl = options.wsurl;
     calculated_cde_inputs[options.observer] = options.cde_inputs;
     options.cde_inputs.forEach(function(input_cde_code) {

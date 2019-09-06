@@ -55,10 +55,9 @@ class CalculatedFieldScriptCreator(object):
                     patient_date_of_birth: '%s',
                     observer: "%s",
                     wsurl: "%s",
-                    is_date_type: "%s"
                     });
                 });
 
-            </script>""" % (prefix, observer_code, cde_inputs, patient_model.sex, patient_date_of_birth, observer_code, wsurl, self.cde.datatype)
+            </script>""" % (prefix, observer_code, cde_inputs, patient_model.sex, patient_date_of_birth, observer_code, wsurl)
 
         return javascript
