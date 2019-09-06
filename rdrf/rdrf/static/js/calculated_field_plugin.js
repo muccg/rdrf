@@ -33,7 +33,7 @@ function _arrayWithoutHoles(arr) {
   var patient_date_of_birth = "";
   var patient_sex = "";
   var wsurl = "";
-  var is_date_type = "";
+  var cde_data_type = "";
   var do_fetch = true;
 
   var update_function = function update_function(calculated_cdes) {
@@ -48,7 +48,7 @@ function _arrayWithoutHoles(arr) {
           cde_value = moment(cde_value, "D-M-YYYY", true).format("YYYY-MM-DD");
         }
 
-        if (is_date_type === "calculated") {
+        if (cde_data_type === "calculated") {
           if (!moment(cde_value, "YYYY-MM-DD", true).isValid()) {
             do_fetch = false;
           }
@@ -67,7 +67,7 @@ function _arrayWithoutHoles(arr) {
         patient_date_of_birth: patient_date_of_birth,
         patient_sex: patient_sex,
         form_values: calculated_cde_inputs_json_values,
-        is_date_type: is_date_type
+        cde_data_type: cde_data_type
       };
 
       if (do_fetch) {
@@ -93,7 +93,7 @@ function _arrayWithoutHoles(arr) {
   $.fn.add_calculation = function(options) {
     patient_date_of_birth = options.patient_date_of_birth;
     patient_sex = options.patient_sex;
-    is_date_type = options.is_date_type;
+    cde_data_type = options.cde_data_type;
     wsurl = options.wsurl;
     calculated_cde_inputs[options.observer] = options.cde_inputs;
     options.cde_inputs.forEach(function(input_cde_code) {
