@@ -4,6 +4,7 @@
 # WARNING: you CANNOT change the name of the CDE function so you must ignore the linting for them as they must have uppercase
 # to match the calculated cde codes.
 
+from rest_framework.exceptions import ParseError
 from datetime import datetime
 from decimal import Decimal, ROUND_HALF_UP
 import math
@@ -69,7 +70,7 @@ def getLDL(context):
 def getScore(context, patient):
     assessmentDate = context["DateOfAssessment"]
 
-    isAdult = calculate_age(patient["date_of_birth"], datetime.strptime(assessmentDate, '%Y-%m-%d')) >= 18
+    isAdult = calculate_age(patient["date_of_birth"], validate_date(assessmentDate)) >= 18
     index = context["CDEIndexOrRelative"] == "fh_is_index"
     relative = context["CDEIndexOrRelative"] == "fh_is_relative"
 
@@ -327,9 +328,9 @@ def catrelative(sex, age, lipid_score):
 
 
 def categorise(context, patient):
-    dutch_lipid_network_score = None if context["CDEfhDutchLipidClinicNetwork"] == "" else float(
+    dutch_lipid_network_score = None if context["CDEfhDutchLipidClinicNetwork"] == "" else validate_float(
         context["CDEfhDutchLipidClinicNetwork"])
-    assessmentDate = datetime.strptime(context["DateOfAssessment"], '%Y-%m-%d')
+    assessmentDate = validate_date(context["DateOfAssessment"])
     isAdult = calculate_age(patient["date_of_birth"], assessmentDate) >= 18.0
     index = context["CDEIndexOrRelative"] == "fh_is_index"
     relative = context["CDEIndexOrRelative"] == "fh_is_relative"
@@ -497,7 +498,7 @@ def FHDeathAge(patient, context):
     if not context["FHDeathDate"]:
         return "NaN"
 
-    deathDate = datetime.strptime(context["FHDeathDate"], '%Y-%m-%d')
+    deathDate = validate_date(context["FHDeathDate"])
     birthDate = patient["date_of_birth"]
     deathAge = calculate_age(birthDate, deathDate)
 
@@ -522,7 +523,7 @@ def fhAgeAtConsent(patient, context):
     if not context["FHconsentDate"]:
         return "NaN"
 
-    consentDate = datetime.strptime(context["FHconsentDate"], '%Y-%m-%d')
+    consentDate = validate_date(context["FHconsentDate"])
     birthDate = patient["date_of_birth"]
     consentAge = calculate_age(birthDate, consentDate)
 
@@ -547,7 +548,7 @@ def fhAgeAtAssessment(patient, context):
     if not context["DateOfAssessment"]:
         return "NaN"
 
-    assessmentDate = datetime.strptime(context["DateOfAssessment"], '%Y-%m-%d')
+    assessmentDate = validate_date(context["DateOfAssessment"])
     birthDate = patient["date_of_birth"]
     assessmentAge = calculate_age(birthDate, assessmentDate)
 
@@ -572,7 +573,7 @@ def DDAgeAtDiagnosis(patient, context):
     if not context["DateOfDiagnosis"]:
         return "NaN"
 
-    diagnosisDate = datetime.strptime(context["DateOfDiagnosis"], '%Y-%m-%d')
+    diagnosisDate = validate_date(context["DateOfDiagnosis"])
     birthDate = patient["date_of_birth"]
     deathAge = calculate_age(birthDate, diagnosisDate)
 
@@ -759,3 +760,15 @@ def ANGBMIimperial_inputs():
     return ["ANGObesityHeightft", "ANGHeightIn", "ANGObesityWeightlb"]
 
 ################ END OF ANGBMIimperial ################################
+
+def validate_date(date):
+    try:
+        return datetime.strptime(date, '%Y-%m-%d')
+    except ValueError:
+        raise ParseError(detail="Bad date format")
+
+def validate_float(tocast):
+    try:
+        return float(tocast)
+    except ValueError:
+        raise ParseError(detail="Not a float")
