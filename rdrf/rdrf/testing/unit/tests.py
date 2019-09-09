@@ -1583,7 +1583,7 @@ class RemindersTestCase(TestCase):
             self._setup_user("testuser", Time.LONG_AGO, group="parents")
             result = self._run_command(registry_code="foobar", days=365)
             assert result == "testuser\n", "Expected testuser instead got [%s]" % result
-        
+
         # but not other types of users
         self._setup_user("testuser", Time.LONG_AGO, group="curators")
         result = self._run_command(registry_code="foobar", days=365)
