@@ -1573,10 +1573,17 @@ class RemindersTestCase(TestCase):
         assert result == "testuser\n", "Expected testuser instead got [%s]" % result
 
         # parents are detected
-        self._setup_user("testuser", Time.LONG_AGO, group="parents")
-        result = self._run_command(registry_code="foobar", days=365)
-        assert result == "testuser\n", "Expected testuser instead got [%s]" % result
-
+        parent_feature = True
+        # Check parent feature is enabled.
+        try:
+            __import__('angelman.parent_view')
+        except ImportError:
+            parent_feature = False
+        if parent_feature:
+            self._setup_user("testuser", Time.LONG_AGO, group="parents")
+            result = self._run_command(registry_code="foobar", days=365)
+            assert result == "testuser\n", "Expected testuser instead got [%s]" % result
+        
         # but not other types of users
         self._setup_user("testuser", Time.LONG_AGO, group="curators")
         result = self._run_command(registry_code="foobar", days=365)
