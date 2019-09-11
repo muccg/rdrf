@@ -572,8 +572,8 @@ class ReviewItem(models.Model):
                 value = get_field_value(patient_model,
                                         self.review.registry,
                                         context_model,
-                                        form_model,
-                                        section_model,
+                                        self.form,
+                                        self.section,
                                         cde_model,
                                         data,
                                         raw)
