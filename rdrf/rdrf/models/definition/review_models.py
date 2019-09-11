@@ -23,6 +23,27 @@ import logging
 logger = logging.getLogger(__name__)
 
 
+def get_field_value(patient_model,
+                    registry_model,
+                    context_model,
+                    form_model,
+                    section_model,
+                    cde_model,
+                    data,
+                    raw):
+    raw_value = patient_model.get_form_value(registry_model.code,
+                                             form_model.name,
+                                             section_model.code,
+                                             cde_model.code,
+                                             False,
+                                             context_model.pk,
+                                             data)
+    if raw:
+        return raw_value
+    else:
+        return cde_model.get_display_value(raw_value)
+
+
 class InvalidItemType(Exception):
     pass
 
@@ -68,6 +89,9 @@ class Review(models.Model):
     review_type = models.CharField(max_length=1,
                                    choices=REVIEW_TYPE_CHOICES,
                                    default="R")
+
+    def __str__(self):
+        return self.code
 
     def create_for_patient(self, patient, context_model=None):
         if context_model is None:
@@ -196,6 +220,9 @@ class ReviewItem(models.Model):
     section = models.ForeignKey(Section, blank=True, null=True, on_delete=models.CASCADE)
     target_code = models.CharField(max_length=80, blank=True, null=True)  # the cde or section code or consent code
     target_metadata = models.TextField(blank=True, null=True)  # form,section, cde json??
+
+    def __str__(self):
+        return self.code
 
     def load_metadata(self):
         import json
@@ -360,10 +387,26 @@ class ReviewItem(models.Model):
             return self._get_multitarget_data(patient_model, context_model, raw=raw)
         elif self.item_type == ReviewItemTypes.VERIFICATION:
             logger.debug("getting verification data")
-            return []
+            return self._get_verification_data(patient_model, context_model, raw=raw)
 
         logger.debug("unknown review item type")
         raise Exception("Unknown Review Type: %s" % self.item_type)
+
+    def _get_verification_data(self, patient_model, context_model, raw):
+        if raw:
+            if self.fields:
+                use_fields = True
+            else:
+                use_fields = False
+
+            if not self.form and not self.section:
+                return []
+            return self._get_section_data(patient_model,
+                                          context_model,
+                                          raw,
+                                          use_fields=use_fields)
+        else:
+            return []
 
     def _get_consent_data(self, patient_model, raw=False):
         from rdrf.models.definition.models import ConsentSection
@@ -446,44 +489,72 @@ class ReviewItem(models.Model):
     def _get_demographics_fields(self, patient_model, raw):
         return []
 
-    def _get_section_data(self, patient_model, context_model, raw=False):
+    def _get_section_data(self, patient_model, context_model, raw=False, use_fields=False):
         # we need raw values for initial data
         # display values for the read only
-        assert not self.section.allow_multiple
+        if self.section:
+            assert not self.section.allow_multiple
 
         pairs = []
         data = patient_model.get_dynamic_data(self.review.registry,
                                               collection="cdes",
                                               context_id=context_model.pk,
                                               flattened=True)
-
-        def get_field_value(cde_model):
-            # closure to make things easier ...
-            # this assumes the section in form in registry selected ..
-            # ( we should enforce this as a validation rule )
-            # the data is passed in once to avoid reloading multiple
-            # times
-            raw_value = patient_model.get_form_value(self.review.registry.code,
-                                                     self.form.name,
-                                                     self.section.code,
-                                                     cde_model.code,
-                                                     False,
-                                                     context_model.pk,
-                                                     data)
-            if raw:
-                return raw_value
-            else:
-                return cde_model.get_display_value(raw_value)
-
         if raw:
+            if use_fields:
+                allowed_cde_codes = [x.strip() for x in self.fields.strip().split(",")]
+
+                def get_fields_iterator():
+                    for cde_model in self.section.cde_models:
+                        if cde_model.code in allowed_cde_codes:
+                            yield cde_model
+
+                def get_fields_from_anywhere():
+                    for section_model in self.form.section_models:
+                        if not section_model.allow_multiple:
+                            for cde_model in section_model.cde_models:
+                                if cde_model.code in allowed_cde_codes:
+                                    yield self.form, section_model, cde_model
+
+                if self.section:
+                    logger.debug("using get_fields_iterator")
+                    cde_iterator = get_fields_iterator
+                else:
+                    logger.debug("using get_fields_from_anywhere")
+                    cde_iterator = get_fields_from_anywhere
+            else:
+                def section_iterator():
+                    for cde_model in get_normal_fields(self.section):
+                        yield cde_model
+
+                cde_iterator = section_iterator
+                logger.debug("using section_iterator")
+
             # return a dictionary
             d = {}
-            for cde_model in get_normal_fields(self.section):
-                delimited_key = mongo_key_from_models(self.form,
-                                                      self.section,
+            for thing in cde_iterator():
+                logger.debug(thing)
+                if type(thing) is tuple:
+                    logger.debug("got a triple")
+                    form_model, section_model, cde_model = thing
+                else:
+                    logger.debug("got a cde model")
+                    form_model = self.form
+                    section_model = self.section
+                    cde_model = thing
+
+                delimited_key = mongo_key_from_models(form_model,
+                                                      section_model,
                                                       cde_model)
                 try:
-                    raw_value = get_field_value(cde_model)
+                    raw_value = get_field_value(patient_model,
+                                                self.review.registry,
+                                                context_model,
+                                                form_model,
+                                                section_model,
+                                                cde_model,
+                                                data,
+                                                raw)
                     d[delimited_key] = raw_value
                 except KeyError:
                     pass
@@ -498,7 +569,14 @@ class ReviewItem(models.Model):
             else:
                 field = cde_model.name
             try:
-                value = get_field_value(cde_model)
+                value = get_field_value(patient_model,
+                                        self.review.registry,
+                                        context_model,
+                                        form_model,
+                                        section_model,
+                                        cde_model,
+                                        data,
+                                        raw)
             except KeyError:
                 if raw:
                     value = Missing.VALUE
@@ -618,6 +696,7 @@ class VerificationStatus:
     VERIFIED = "V"
     NOT_VERIFIED = "N"
     UNKNOWN = "U"
+    CORRECTED = "C"
 
 
 class HasChangedStates:
@@ -650,6 +729,11 @@ class PatientReview(models.Model):
     created_date = models.DateTimeField(auto_now_add=True)
     completed_date = models.DateTimeField(blank=True, null=True)
     state = models.CharField(max_length=1, default=ReviewStates.CREATED)
+
+    @property
+    def moniker(self):
+        return "%s for %s" % (self.review.code,
+                              self.patient)
 
     def email_link(self):
         pass

@@ -909,7 +909,8 @@ def validate_rule(rule, datatype):
     parsing_formats = None
     if datatype in ["range", "string"]:
         string_equality_expression = 'x' + eq + Word(quote + alphanums + '_' + '-' + quote)
-        string_list_expression = 'x' + Literal('in') + "[" + (delimitedList(quote + Word(alphanums + '_' + '-') + quote, ",")) + "]"
+        string_list_expression = 'x' + \
+            Literal('in') + "[" + (delimitedList(quote + Word(alphanums + '_' + '-') + quote, ",")) + "]"
         parsing_formats = string_equality_expression | string_list_expression
 
     if datatype in ["integer", "float"]:
@@ -1035,7 +1036,8 @@ class RegistryForm(models.Model):
             return de_camelcase(self.name)
 
     def __str__(self):
-        return "%s %s Form comprising %s" % (self.registry, self.name, self.sections)
+        return self.name
+        # return "%s %s Form comprising %s" % (self.registry, self.name, self.sections)
 
     def get_sections(self):
         return list(map(str.strip, self.sections.split(",")))

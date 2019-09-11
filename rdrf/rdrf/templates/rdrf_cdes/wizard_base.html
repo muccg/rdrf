@@ -13,22 +13,19 @@
   </head>
   <body>
     {% if valid %}
-      <div class="jumbotron">
-        <h1>{{ review_title }}</h1>
-        <h3>Reviewer: {{request.user}}</h3>
-        
+      <nav class="navbar navbar-default navbar-fixed-top">
+        <div class="navbar-text"><b>{{ review_title }}</b></div>
+	<div class="navbar-text"><b>{{ category }}</b></div>
         {% if is_clinician_review %}
-          <h3>{{ clinician }} reviewing {{patient}} on behalf of {{parent}}</h3>
+          <div class="navbar-text">{{ clinician }} reviewing {{patient}} on behalf of {{parent}}</div>
         {% endif %}
-
         {% if is_parent_review %}
-          <h3>Caregiver: {{ parent.first_name }} {{ parent.last_name}}</h3>
-          <h3>Patient: {{patient.given_names }} {{patient.family_name }}
+          <div class="navbar-text">Caregiver: {{ parent.first_name }} {{ parent.last_name}}</div>
+          <div class="navbar-text">Patient: {{patient.given_names }} {{patient.family_name }}</div>
         {% endif %}
-
-      <h2>{{ category }}</h2>
+        <div class="navbar-text">Current User: {{request.user}}</div>
       
-      </div>
+      </nav>
       {% block content %}
       {% endblock %}
     {% else %}

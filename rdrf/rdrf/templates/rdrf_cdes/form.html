@@ -437,6 +437,9 @@
                                         {% if  field.field.important %}
                                            <span class="glyphicon glyphicon-asterisk" style="color: green;" aria-hidden="true"></span>
                                         {% endif %}
+                                        {% if  field.verification_status == "V" %}
+                                           <span class="glyphicon glyphicon-ok" style="color: green;" aria-hidden="true"></span>
+                                        {% endif %}
                                     </label>
                                     <div class="col-sm-9">
                                         {{field|safe}}<p class="text-muted"><i>{{field.help_text}}</i></p>

@@ -30,7 +30,8 @@ CONDITION_CHOICES = (("1", _("Yes")),
 
 VERIFICATION_CHOICES = (("V", "Verified"),
                         ("N", "Not Verified"),
-                        ("U", "Unknown"))
+                        ("U", "Unknown"),
+                        ('C', 'Corrected'))
 
 
 class PseudoForm:

@@ -3,6 +3,14 @@ from django.core.management import BaseCommand
 explanation = "This command creates a Patient Review"
 
 
+def get_parent(patient_model):
+    from registry.patients.models import ParentGuardian
+    parents = ParentGuardian.objects.filter(patient__in=[patient_model]).order_by('id')
+    if len(parents) > 0:
+        return parents[0]
+    return None
+
+
 class Command(BaseCommand):
     help = 'Create a Patient review'
 
@@ -74,5 +82,7 @@ class Command(BaseCommand):
                            patient=patient_model,
                            context=default_context)
 
+        pr.save()
+        pr.parent = get_parent(patient_model)
         pr.save()
         pr.create_review_items()

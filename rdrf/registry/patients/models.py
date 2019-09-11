@@ -53,7 +53,8 @@ class Family(object):
         # all the working groups this family spans
         # we need this for checking security
         wgs = [wg for wg in self.index.working_groups.all()]
-        wgs = wgs + [wg for pr in self.relatives for wg in pr.relative_patient.working_groups.all() if pr.relative_patient]
+        wgs = wgs + [wg for pr in self.relatives for wg in pr.relative_patient.working_groups.all()
+                     if pr.relative_patient]
         return wgs
 
 
@@ -1239,6 +1240,9 @@ class ParentGuardian(models.Model):
         null=True,
         related_name="parent_user_object",
         on_delete=models.SET_NULL)
+
+    def __str__(self):
+        return "%s %s" % (self.first_name, self.last_name)
 
     @property
     def children(self):

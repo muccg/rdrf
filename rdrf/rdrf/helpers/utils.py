@@ -809,3 +809,62 @@ def get_normal_fields(section_model):
     for cde_model in section_model.cde_models:
         if not is_calculated(cde_model):
             yield cde_model
+
+
+def annotate_form_with_verifications(patient_model,
+                                     context_model,
+                                     registry_model,
+                                     form_model,
+                                     section_model,
+                                     initial_data,
+                                     section_form):
+    if not registry_model.has_feature("verification"):
+        return
+
+    def get_cde_model(django_field):
+        from rdrf.models.definition.models import CommonDataElement
+        delimited_key = str(django_field)
+        cde_code = delimited_key.split("____")[-1]
+        return CommonDataElement.objects.get(code=cde_code)
+
+    for field in section_form.fields:
+        value = section_form[field].value()
+        cde_model = get_cde_model(field)
+        verification_status = get_verification_status(patient_model,
+                                                      context_model,
+                                                      registry_model,
+                                                      form_model,
+                                                      section_model,
+                                                      cde_model,
+                                                      value)
+
+        if verification_status is not None:
+            # add a flag
+            logger.debug("verification status = %s" % verification_status)
+            section_form[field].verification_status = verification_status
+
+
+def get_verification_status(patient_model,
+                            context_model,
+                            registry_model,
+                            form_model,
+                            section_model,
+                            cde_model,
+                            value):
+
+    from rdrf.models.definition.verification_models import Verification
+    verifications = Verification.objects.filter(patient=patient_model,
+                                                context=context_model,
+                                                registry=registry_model,
+                                                form_name=form_model.name,
+                                                section_code=section_model.code,
+                                                cde_code=cde_model.code)
+
+    last_verification = verifications.order_by("-created_date").first()
+    if last_verification:
+        verified_value = last_verification.data
+        if str(value) == verified_value:
+            if last_verification.status == "V":
+                # verified
+                return "V"
+    return None

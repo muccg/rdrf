@@ -54,6 +54,8 @@ from rdrf.forms.components import RDRFContextLauncherComponent
 from rdrf.forms.components import RDRFPatientInfoComponent
 from rdrf.security.security_checks import security_check_user_patient
 
+from rdrf.helpers.utils import annotate_form_with_verifications
+
 import logging
 
 logger = logging.getLogger(__name__)
@@ -815,6 +817,14 @@ class FormView(View):
                 # return a normal form
                 initial_data = wrap_fs_data_for_form(self.registry, self.dynamic_data)
                 form_section[s] = form_class(self.dynamic_data, initial=initial_data)
+                if self.registry.has_feature("verification"):
+                    annotate_form_with_verifications(patient_model,
+                                                     self.rdrf_context,
+                                                     self.registry,
+                                                     self.registry_form,
+                                                     section_model,
+                                                     initial_data,
+                                                     form_section[s])
 
             else:
                 # Ensure that we can have multiple formsets on the one page

@@ -451,7 +451,8 @@ class PatientReviewItemAdmin(admin.StackedInline):
 
 class PatientReviewAdmin(admin.ModelAdmin):
     model = PatientReview
-    list_display = ("patient",
+    list_display = ("moniker",
+                    "patient",
                     "parent",
                     "token",
                     "created_date",
