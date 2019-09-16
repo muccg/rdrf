@@ -33,7 +33,7 @@
     "@types/redux-thunk": "^2.1.0",
     "axios": "^0.18.0",
     "bootstrap": "^4.1.1",
-    "css-loader": "^0.28.11",
+    "css-loader": "^3.2.0",
     "datatables.net": "^1.10.16",
     "datatables.net-bs": "^1.10.16",
     "file-loader": "^1.1.11",
