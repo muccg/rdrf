@@ -19,7 +19,7 @@ export const store = createStore(
 );
 
 
-const unsubscribe = store.subscribe(() => {})
+const unsubscribe = store.subscribe(() => true )
 
 ReactDOM.render(
     <Provider store={store}>
