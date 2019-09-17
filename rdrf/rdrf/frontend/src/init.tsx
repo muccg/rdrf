@@ -20,7 +20,7 @@ export const store = createStore(
 
 
 const unsubscribe = store.subscribe(() =>
-  global.console.log(store.getState())
+  console.log(store.getState())
 )
 
 ReactDOM.render(
