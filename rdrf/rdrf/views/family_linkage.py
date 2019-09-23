@@ -7,6 +7,7 @@ from django.http import Http404
 from django.urls import reverse
 from django.http import HttpResponse
 from django.db import transaction
+from django.core.management import call_command
 
 from rdrf.models.definition.models import Registry
 from registry.patients.models import Patient, PatientRelative
@@ -155,6 +156,7 @@ class FamilyLinkageManager(object):
     def _change_index(self, old_index_patient, new_index_patient):
         self.set_as_index_patient(new_index_patient)
         updated_rels = set([])
+        index_and_rels = set()
         original_relatives = set([r.pk for r in old_index_patient.relatives.all()])
         for relative_dict in self.relatives:
             if relative_dict["class"] == "PatientRelative":
@@ -162,8 +164,9 @@ class FamilyLinkageManager(object):
                 patient_relative.patient = new_index_patient
                 patient_relative.relationship = relative_dict["relationship"]
                 patient_relative.save()
-                updated_rels.add(patient_relative.pk)
-
+                updated_rels.add(patient_relative.patient.id)
+                index_and_rels.add(patient_relative.relative_patient.id)
+                index_and_rels.add(patient_relative.patient.id)
             elif relative_dict["class"] == "Patient":
                 # index 'demoted' : create patient rel object
                 patient = Patient.objects.get(pk=relative_dict["pk"])
@@ -177,9 +180,14 @@ class FamilyLinkageManager(object):
                 self.set_as_relative(patient)
                 new_patient_relative.relationship = relative_dict["relationship"]
                 new_patient_relative.save()
-                updated_rels.add(new_patient_relative.pk)
+                updated_rels.add(new_patient_relative.patient.id)
+                index_and_rels.add(new_patient_relative.relative_patient.id)
+                index_and_rels.add(new_patient_relative.patient.id)
             else:
                 fml_log("???? %s" % relative_dict)
+
+        # recalculate fields for the changed patients
+        call_command('update_calculated_fields', registry_code=self.registry_model.code, patient_id=index_and_rels)
 
         promoted_relatives = original_relatives - updated_rels
         fml_log("promoted rels = %s" % promoted_relatives)
