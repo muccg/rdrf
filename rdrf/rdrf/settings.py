@@ -406,35 +406,42 @@ LOGGING = {
             'class': 'django.utils.log.AdminEmailHandler',
             'include_html': True
         },
+        'syslog': {
+            'level': 'INFO',
+            'class': 'logging.handlers.SysLogHandler',
+            'formatter': 'verbose',
+            # uncomment next line if rsyslog works with unix socket only (UDP reception disabled)
+            'address': ('172.21.0.1', 514)
+        }
     },
     'loggers': {
         '': {
-            'handlers': ['console', 'file'],
+            'handlers': ['console', 'file', 'syslog'],
             'level': 'DEBUG' if DEBUG else 'INFO',
             'propagate': True
         },
         'django.request': {
-            'handlers': ['mail_admins'],
+            'handlers': ['mail_admins', 'syslog'],
             'level': 'ERROR',
             'propagate': True,
         },
         'django.security': {
-            'handlers': ['mail_admins'],
+            'handlers': ['mail_admins', 'syslog'],
             'level': 'ERROR',
             'propagate': True,
         },
         'django.db.backends': {
-            'handlers': ['mail_admins'],
+            'handlers': ['mail_admins', 'syslog'],
             'level': 'CRITICAL',
             'propagate': True,
         },
         'rdrf.management.commands': {
-            'handlers': ['shell', 'admin_command_file'],
+            'handlers': ['shell', 'admin_command_file', 'syslog'],
             'level': 'DEBUG' if DEBUG else 'INFO',
             'propagate': False,
         },
         'rdrf.export_import': {
-            'handlers': ['console_simple'],
+            'handlers': ['console_simple', 'syslog'],
             'formatter': 'simplest',
             'level': 'DEBUG' if DEBUG else 'INFO',
             'propagate': False,
