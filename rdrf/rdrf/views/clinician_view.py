@@ -202,7 +202,6 @@ class ClinicianFormView(View):
             self.patient_model.given_names, self.patient_model.family_name)
 
         try:
-            logger.debug(request.POST)
             self.clinician_other_model = ClinicianOther.objects.get(
                 patient=self.patient_model)
         except ClinicianOther.DoesNotExist:

@@ -382,7 +382,7 @@ class FormDataParser(object):
                         try:
                             form_model, section_model, cde_model = models_from_mongo_key(self.registry_model, key)
                         except BadKeyError:
-                            logger.debug(f"Skipping key: {key}")
+                            logger.info(f"we are skipping the form data key '{key}'")
                     else:
                         form_model, section_model, cde_model = models_from_mongo_key(self.registry_model, key)
                     value = self.form_data[key]

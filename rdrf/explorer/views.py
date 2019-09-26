@@ -413,9 +413,9 @@ class MultisectionHandler(object):
         self.reverse_map = reverse_column_map
         self.row_count = 0
 
+    # TODO: This function seems to be unused. Confirm it, and delete this function.
     def unroll_wide(self, row_dict):
-        for key in row_dict:
-            logger.debug("unroll_wide key = %s  value = %s" % (key, row_dict[key]))
+        pass
 
     def unroll(self, row):
         """

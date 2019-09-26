@@ -584,16 +584,14 @@ class FormView(View):
 
             # save report friendly field values
             try:
-                logger.debug("trying to create field values for %s" % patient)
                 if self.rdrf_context:
                     create_field_values(registry,
                                         patient,
                                         self.rdrf_context,
                                         remove_existing=True,
                                         form_model=form_obj)
-                logger.debug("created field values for patient %s" % patient)
             except Exception as ex:
-                logger.debug("error creating field values: %s" % ex)
+                logger.warning("error creating field values: %s" % ex)
                 raise
 
             if self.CREATE_MODE and dyn_patient.rdrf_context_id != "add":
@@ -609,8 +607,9 @@ class FormView(View):
                                         newly_created_context,
                                         remove_existing=True,
                                         form_model=form_obj)
+                # TODO: the following line is smelly - it is eating all exceptions.
                 except Exception as ex:
-                    logger.debug("Error creating field values for new context: %s" % ex)
+                    logger.warning("Error creating field values for new context: %s" % ex)
 
                 return HttpResponseRedirect(
                     reverse(
@@ -627,8 +626,6 @@ class FormView(View):
             if registry.has_feature("rulesengine"):
                 rules_block = registry.metadata.get("rules", {})
                 form_rules = rules_block.get(form_obj.name, [])
-                logger.debug("checking rules for %s" % form_obj.name)
-                logger.debug("form_rules = %s" % form_rules)
                 if len(form_rules) > 0:
                     # this may redirect or produce side effects
                     rules_evaluation_context = {"patient_model": patient,
@@ -639,8 +636,6 @@ class FormView(View):
                     action_result = self._evaluate_form_rules(form_rules, rules_evaluation_context)
                     if isinstance(action_result, HttpResponseRedirect):
                         return action_result
-                else:
-                    logger.debug("No evaluation rules to apply")
 
         patient_name = '%s %s' % (patient.given_names, patient.family_name)
         # progress saved to progress collection in mongo

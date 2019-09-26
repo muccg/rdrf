@@ -37,14 +37,12 @@ class RulesEvaluator:
         self.evaluation_context = evaluation_context
 
     def get_action(self):
-        logger.debug("rules = %s" % self.rules)
         for condition_block, action in self.rules:
             condition = self._eval(condition_block)
             if condition:
                 return self._eval_action(action)
 
     def _eval(self, expr):
-        logger.debug("evaluating expr %s" % expr)
         # atoms evaluate themselves
         if not isinstance(expr, type([])):
             return expr
@@ -57,7 +55,6 @@ class RulesEvaluator:
             elif head == Tokens.GET:
                 cde = expr[1]
                 value = self._get_cde_value(cde)
-                logger.debug("get value = %s" % value)
                 return value
             elif head == Tokens.AND:
                 rest = expr[1:]
@@ -84,9 +81,7 @@ class RulesEvaluator:
             elif head == Tokens.IN:
                 element = self._eval(expr[1])
                 a_list = list(map(self._eval, expr[2]))
-                logger.debug("in: element = %s a_list = %s" % (element, a_list))
                 result = element in a_list
-                logger.debug("in result = %s" % result)
                 return result
             elif head == Tokens.BETWEEN:
                 value = self._eval(expr[1])
@@ -133,11 +128,9 @@ class RulesEvaluator:
             from django.urls import reverse
             from django.http import HttpResponseRedirect
             url_name = action[1]
-            logger.debug("redirecting to %s" % url_name)
             return HttpResponseRedirect(reverse(url_name))
         elif head == Actions.WORKFLOW:
             # set the current workflow somehow ( session ???)
             workflow = action[1]
-            logger.debug("setting current workflow to %s" % workflow)
         else:
             raise RulesEvaluationError("Unknown action: %s" % head)

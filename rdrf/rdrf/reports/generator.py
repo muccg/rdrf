@@ -204,7 +204,6 @@ class DataSource:
         snapshots = history.find(patient_model, record_type="snapshot")
         snapshots = sorted([s for s in snapshots],
                            key=attrgetter("pk"), reverse=True)
-        logger.debug("got %s snapshots" % len(snapshots))
         for snapshot in snapshots:
             if snapshot.data and "record" in snapshot.data:
                 record = snapshot.data["record"]
@@ -510,7 +509,6 @@ class Generator:
             table_name = model._meta.db_table
             self._mirror_table(
                 table_name, self.default_engine, self.reporting_engine)
-            logger.debug("mirrored table %s OK" % table_name)
 
         def add_models(models):
             bad = []
@@ -566,8 +564,7 @@ class Generator:
         for form_model in self.registry_model.forms:
             if form_model.name.startswith("GeneratedQuestionnaire"):
                 continue
-            logger.debug("creating table for clinical form %s" %
-                         form_model.name)
+
             columns = self._create_form_columns(form_model)
             table = self._create_table(form_model.name, columns)
 
@@ -615,7 +612,6 @@ class Generator:
         multi_tables = [t for t in self.clinical_tables if t.is_multisection]
         for clinical_table in form_tables:
             row_count = 0
-            logger.debug("processing form table %s" % clinical_table)
             datasources = [self.column_map[column]
                            for column in clinical_table.columns]
             for patient_model in self.patients:
@@ -706,13 +702,11 @@ class Generator:
         if "!" in table_name:
             table_name = table_name.replace("!", "")
 
-        logger.debug("creating table %s" % table_name)
         self._drop_table(table_name)
         table = alc.Table(table_name, MetaData(
             self.reporting_engine), *columns, schema=None)
         table.create()
         # these cause failures in migration ...
-        logger.debug("created table %s OK" % table_name)
         return table
 
     def _drop_table(self, table_name):
@@ -720,9 +714,8 @@ class Generator:
         conn = self.reporting_engine.connect()
         try:
             conn.execute(drop_table_sql)
-            logger.debug("dropped existing table %s" % table_name)
         except Exception as ex:
-            logger.debug("could not drop table %s: %s" % (table_name,
-                                                          ex))
+            logger.warning("could not drop table %s: %s" % (table_name,
+                                                            ex))
 
         conn.close()

@@ -1472,18 +1472,13 @@ def sync_user(sender, instance, **kwargs):
 
 @receiver(post_save, sender=Patient)
 def update_family_linkage_fields(sender, instance, **kwargs):
-    logger.debug("updating family linkage fields")
     for registry_model in instance.rdrf_registry.all():
-        logger.debug("checking %s" % registry_model)
         if registry_model.has_feature("family_linkage"):
-            logger.debug("%s has family linkage" % registry_model)
             from rdrf.views.family_linkage import FamilyLinkageManager
             flm = FamilyLinkageManager(registry_model, None)
             if instance.is_index:
-                logger.debug("%s is an index" % instance)
                 flm.set_as_index_patient(instance)
             else:
-                logger.debug("%s is a relative" % instance)
                 flm.set_as_relative(instance)
 
 

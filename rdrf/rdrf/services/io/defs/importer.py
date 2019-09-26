@@ -673,9 +673,7 @@ class Importer(object):
             instance, created = klass.objects.get_or_create(**kwargs)
             return instance
 
-        logger.debug("getting codes from reviews")
         review_codes = [r["code"] for r in self.data["reviews"]]
-        logger.debug("got codes from reviews")
 
         for review_model in Review.objects.filter(registry=registry_model):
             if review_model.code not in review_codes:

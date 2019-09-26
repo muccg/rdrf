@@ -42,7 +42,6 @@ class RdrfEmail(object):
             if len(recipients) == 0:
                 # If the recipient template does not evaluate to a valid email address this will be
                 # true
-                logger.debug("no recipients")
                 return
             for recipient in recipients:
                 language = self._get_preferred_language(recipient)
@@ -182,5 +181,4 @@ def process_notification(reg_code=None, description=None, template_data={}):
             logger.info("Sending email %s" % note)
             email = RdrfEmail(email_notification=note)
             email.template_data = template_data
-            logger.debug("template_data = %s" % template_data)
             email.send()

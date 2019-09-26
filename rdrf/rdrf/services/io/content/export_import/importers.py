@@ -32,8 +32,6 @@ class DataGroupImporter(object):
         self.logger = logger
 
     def import_datagroups(self, datagroups_meta, workdir, **options):
-        if len(datagroups_meta) > 0:
-            self.logger.debug('Importing %d datagroups', len(datagroups_meta))
         for datagroup_meta in datagroups_meta:
             importer = self.catalogue.datagroups.get(
                 get_meta_value(
@@ -57,8 +55,6 @@ class DataGroupImporter(object):
         if logger is not None:
             self.logger = logger
         self.child_logger = maybe_indent(self.logger)
-
-        self.logger.debug("Importing data group '%s'", get_meta_value(datagroup_meta, 'name'))
 
         datagroup_dir = get_meta_value(datagroup_meta, 'dir_name')
         workdir = os.path.join(parent_workdir, datagroup_dir)
@@ -115,7 +111,6 @@ class ModelImporter(object):
         checksum = get_meta_value(model_meta, 'md5_checksum')
         object_count = get_meta_value(model_meta, 'object_count')
 
-        self.logger.debug("Importing model '%s'", model_name)
         self.check_checksum(file_name, checksum)
 
         self.check_no_data_in_table(model_name)
@@ -127,7 +122,6 @@ class ModelImporter(object):
                 # We could model.save() all models in a transaction that we
                 # we roll back, but that feels too dangerous
                 f.read()
-                self.child_logger.debug('Would import %d models', object_count)
                 return
 
             actual_object_count = 0
@@ -135,7 +129,6 @@ class ModelImporter(object):
                 model.save()
                 actual_object_count += 1
             self.check_object_count(model_name, object_count, actual_object_count)
-            self.child_logger.debug('Imported %d models', actual_object_count)
 
 
 def get_meta_value(meta, key, path=None):

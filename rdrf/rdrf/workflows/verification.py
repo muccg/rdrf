@@ -146,10 +146,10 @@ class VerifiableCDE:
         the cde has changed?
         """
         def carp(msg):
-            logger.debug("Annotations Patient %s Context %s CDE %s: %s" % (patient_model,
-                                                                           context_model.id,
-                                                                           self.cde_model.code,
-                                                                           msg))
+            logger.info("Annotations Patient %s Context %s CDE %s: %s" % (patient_model,
+                                                                          context_model.id,
+                                                                          self.cde_model.code,
+                                                                          msg))
 
         annotations_query = Annotation.objects.filter(patient_id=patient_model.pk,
                                                       context_id=context_model.pk,
@@ -168,11 +168,8 @@ class VerifiableCDE:
             if not self._value_changed(last_annotation.cde_value, form_cde_value):
                 carp("value changed : patient value = [%s] annotation value = [%s]" % (last_annotation.cde_value,
                                                                                        form_cde_value))
-
-                logger.debug("returning last annotation as values have not changed: %s" % last_annotation)
                 return last_annotation
             else:
-                logger.debug("returning None as values have changed so new verification required")
                 return None
 
         # cde will show up as unverified
@@ -182,15 +179,10 @@ class VerifiableCDE:
     def _value_changed(self, annotation_cde_value, form_cde_value):
         # complication here because the stored type is a string
         # let's just string compare
-        logger.debug("checking value changed for cde %s" % self.cde_model.code)
-        logger.debug("ann cde value = %s" % annotation_cde_value)
-        logger.debug("form cde value = %s" % form_cde_value)
         values_differ = str(annotation_cde_value) != str(form_cde_value)
         if values_differ:
-            logger.debug("values differ")
             return True
         else:
-            logger.debug("values are the same..")
             return False
 
 
@@ -221,23 +213,17 @@ def get_verifications(user, registry_model, patient_model, context_model):
     verifiable_cdes = get_verifiable_cdes(registry_model)
     verifications = []
     for v in verifiable_cdes:
-        logger.debug("getting verification for cde %s" % v.cde_model.code)
-
         last_annotation = v.has_annotation(user,
                                            registry_model,
                                            patient_model,
                                            context_model)
 
         if last_annotation is not None:
-            logger.debug("found an annotation")
             v.status = last_annotation.annotation_type
-            logger.debug("status = %s" % v.status)
             v.comments = last_annotation.comment
-            logger.debug("comments = %s" % v.comments)
             v.clinician_data = last_annotation.cde_value
 
         else:
-            logger.debug("no annotation")
             v.status = VerificationStatus.UNVERIFIED
 
         verifications.append(v)
@@ -325,7 +311,6 @@ def send_participant_notification(registry_model, clinician_user, patient_model,
 
 def get_diagnosis(registry_model, verifications):
     diagnosis_code = registry_model.diagnosis_code
-    logger.debug("diagnosis code = %s" % diagnosis_code)
     if not diagnosis_code:
         return None
     for v in verifications:

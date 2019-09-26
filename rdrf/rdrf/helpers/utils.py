@@ -336,7 +336,6 @@ def timed(func):
         b = datetime.datetime.now()
         c = b - a
         func_name = func.__name__
-        logger.debug("%s time = %s secs" % (func_name, c))
         return result
     return wrapper
 
@@ -840,7 +839,6 @@ def annotate_form_with_verifications(patient_model,
 
         if verification_status is not None:
             # add a flag
-            logger.debug("verification status = %s" % verification_status)
             section_form[field].verification_status = verification_status
 
 

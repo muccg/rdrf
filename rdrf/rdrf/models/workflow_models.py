@@ -106,5 +106,4 @@ class ClinicianSignupRequest(models.Model):
                                      clinician_other=clinician_other,
                                      clinician_email=clinician_email)
         csr.save()
-        logger.debug("created ClinicianSignUpRequest OK")
         return csr

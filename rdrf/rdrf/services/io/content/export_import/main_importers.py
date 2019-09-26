@@ -108,10 +108,6 @@ class ZipFileImporter(object):
                     self.meta,
                     'type'),
                 requested_import_type=import_type)
-            self.logger.debug(
-                '  Import type: %s (%s)',
-                self.requested_type.name,
-                self.requested_type.code)
             importer.output_import_info()
             importer.do_import()
 
@@ -179,7 +175,6 @@ class BaseImporter(DelegateMixin):
     def import_datagroups(self, meta):
         meta = self.maybe_filter_meta(meta)
         self.check_app_schema_versions_match()
-        self.logger.debug('Importing %d datagroups', len(meta))
         datagroup_importers = self.catalogue.datagroups
         for data_group_meta in meta:
             importer = datagroup_importers.get(data_group_meta['name'])(self.catalogue)
@@ -196,11 +191,7 @@ class BaseImporter(DelegateMixin):
     def output_import_info(self):
         logger = IndentedLogger(self.logger, indent_level=2)
         zipfile_type = definitions.ExportTypes.from_name(get_meta_value(self.meta, 'type'))
-        logger.debug('Zipfile type: %s (%s)', zipfile_type.name, zipfile_type.code)
         also_includes = zipfile_type.includes
-        if also_includes:
-            logger.debug('(also includes import types: %s)' %
-                         ', '.join("'%s' (%s)" % (t.name, t.code) for t in also_includes))
 
         app_schema_version_different = self.diff_app_versions()
         if len(app_schema_version_different) > 0:
@@ -242,13 +233,13 @@ class RegistryImporter(BaseImporter):
     def output_import_info(self):
         logger = BaseImporter.output_import_info(self)
         registry = get_meta_value(self.meta, 'registry')
-        logger.debug(
+        logger.info(
             'Registry: %s (%s v%s)',
             registry.get('name'),
             registry.get('code'),
             registry.get('version'))
-        logger.debug(' ' * len('Registry: ') + '%s', registry.get('description'))
-        logger.debug(
+        logger.info(' ' * len('Registry: ') + '%s', registry.get('description'))
+        logger.info(
             'Exported at: %s',
             dateutil.parser.parse(
                 get_meta_value(
