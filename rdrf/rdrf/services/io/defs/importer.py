@@ -418,8 +418,7 @@ class Importer(object):
                 raise ValueError("Not a dictionary")
             return True
         except ValueError as verr:
-            logger.error("invalid metadata ( should be json dictionary): %s Error %s" %
-                        (metadata_json, verr))
+            logger.error("invalid metadata ( should be json dictionary): %s Error %s" % (metadata_json, verr))
             return False
 
     def _create_registry_objects(self):

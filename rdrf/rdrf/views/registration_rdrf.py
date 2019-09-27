@@ -36,7 +36,9 @@ class RdrfRegistrationView(RegistrationView):
 
     def post(self, request, *args, **kwargs):
         token = request.session.get("token", None)
-        workflow = get_registration_workflow(token)
+        # TODO: confirm we run this following line for checking (it does not seem the case -
+        # that may be some old code we forgot to remove)
+        get_registration_workflow(token)
         form_class = self.get_form_class()
         form = self.get_form(form_class)
 

@@ -191,7 +191,11 @@ class BaseImporter(DelegateMixin):
     def output_import_info(self):
         logger = IndentedLogger(self.logger, indent_level=2)
         zipfile_type = definitions.ExportTypes.from_name(get_meta_value(self.meta, 'type'))
+        logger.info('Zipfile type: %s (%s)', zipfile_type.name, zipfile_type.code)
         also_includes = zipfile_type.includes
+        if also_includes:
+            logger.info('(also includes import types: %s)' %
+                ', '.join("'%s' (%s)" % (t.name, t.code) for t in also_includes))
 
         app_schema_version_different = self.diff_app_versions()
         if len(app_schema_version_different) > 0:

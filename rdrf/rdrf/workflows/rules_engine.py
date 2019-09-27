@@ -132,5 +132,6 @@ class RulesEvaluator:
         elif head == Actions.WORKFLOW:
             # set the current workflow somehow ( session ???)
             workflow = action[1]
+            logger.info("setting current workflow to %s" % workflow)
         else:
             raise RulesEvaluationError("Unknown action: %s" % head)

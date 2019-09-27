@@ -134,9 +134,11 @@ class PromsLandingPageView(View):
 
         registry_model = get_object_or_404(Registry, code=registry_code)
 
-        survey_model = get_object_or_404(Survey,
-                                         registry=registry_model,
-                                         name=survey_name)
+        # Check survey model exists.
+        get_object_or_404(Survey,
+                          registry=registry_model,
+                          name=survey_name)
+
         survey_assignment = get_object_or_404(SurveyAssignment,
                                               registry=registry_model,
                                               survey_name=survey_name,
