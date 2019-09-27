@@ -337,7 +337,7 @@ def timed(func):
         c = b - a
         func_name = func.__name__
         logger.debug("%s time = %s secs" % (func_name, c))
-        return result       
+        return result
     return wrapper
 
 

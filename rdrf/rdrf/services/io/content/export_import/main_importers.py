@@ -195,7 +195,7 @@ class BaseImporter(DelegateMixin):
         also_includes = zipfile_type.includes
         if also_includes:
             logger.info('(also includes import types: %s)' %
-                ', '.join("'%s' (%s)" % (t.name, t.code) for t in also_includes))
+                        ', '.join("'%s' (%s)" % (t.name, t.code) for t in also_includes))
 
         app_schema_version_different = self.diff_app_versions()
         if len(app_schema_version_different) > 0:
