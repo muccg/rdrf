@@ -169,7 +169,7 @@ def process_notification(reg_code=None, description=None, template_data={}):
     notes = EmailNotification.objects.filter(registry__code=reg_code, description=description)
     for note in notes:
         if note.disabled:
-            logger.warning("Email disabled")
+            logger.warning("Can not process notification - Email disabled")
         else:
             email = RdrfEmail(email_notification=note)
             email.template_data = template_data
