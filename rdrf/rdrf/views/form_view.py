@@ -240,7 +240,7 @@ class FormView(View):
         except RDRFContextError as ex:
             logger.error(
                 "Error setting rdrf context id %s for patient %s in %s: %s" %
-                (context_id, patient_model, self.registry, ex))
+                (context_id, patient_model.id, self.registry, ex))
 
             raise RDRFContextSwitchError
 
