@@ -195,7 +195,7 @@ class BaseImporter(DelegateMixin):
 
         app_schema_version_different = self.diff_app_versions()
         if len(app_schema_version_different) > 0:
-            logger.warn(
+            logger.warning(
                 'WARNING: Schema difference detected between your registry and the export file.'
                 'App(s): %s', ', '.join(app_schema_version_different))
 

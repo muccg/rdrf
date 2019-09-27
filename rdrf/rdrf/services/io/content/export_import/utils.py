@@ -40,7 +40,7 @@ class IndentedLogger(object):
         self.logger.warning(self.indentation + msg, *args, **kwargs)
 
     def warn(self, msg, *args, **kwargs):
-        self.logger.warn(self.indentation + msg, *args, **kwargs)
+        self.logger.warning(self.indentation + msg, *args, **kwargs)
 
     def error(self, msg, *args, **kwargs):
         self.logger.error(self.indentation + msg, *args, **kwargs)

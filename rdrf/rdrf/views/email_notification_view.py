@@ -56,7 +56,7 @@ class ResendEmail(View):
     def _ensure_registration_not_expired(self):
         registration = self.template_data.get('registration')
         if registration is None:
-            logger.warn(
+            logger.warning(
                 'Template data for notification history %s should contain "registration" object',
                 self.notification_history_id)
             return

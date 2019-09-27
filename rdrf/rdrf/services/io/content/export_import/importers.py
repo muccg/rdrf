@@ -18,7 +18,7 @@ def allow_if_forced(checkfn):
             return checkfn(self, *args, **kwargs)
         except ImportError as exc:
             if self.force:
-                self.logger.warn('FORCED THROUGH, despite WARNING: %s', exc)
+                self.logger.warning('FORCED THROUGH, despite WARNING: %s', exc)
             else:
                 raise
 
