@@ -286,10 +286,7 @@ class Registry(models.Model):
         return self.questionnaire_section_prefix + form_name + section_code
 
     def generate_questionnaire(self):
-        logger.info("starting to generate questionnaire for %s" % self)
         if not new_style_questionnaire(self):
-            logger.info(
-                "This reqistry is not exposing any questionnaire questions - nothing to do")
             return
         questions = []
         for form in self.forms:
@@ -348,8 +345,6 @@ class Registry(models.Model):
             qsection.elements = ",".join(
                 [cde_code for cde_code in section_map[(form_name, original_section_code)]])
             qsection.save()
-            logger.info("created section %s containing cdes %s" %
-                        (qsection.code, qsection.elements))
             generated_section_codes.append(qsection.code)
 
             section_ordering_map[form_name + "." + original_section_code] = qsection.code
@@ -371,12 +366,11 @@ class Registry(models.Model):
         )
         generated_questionnaire_form.registry = self
         generated_questionnaire_form.is_questionnaire = True
-        logger.info("created questionnaire form %s" % generated_questionnaire_form.name)
         generated_questionnaire_form.sections = patient_info_section + \
             "," + self._get_patient_address_section() + "," + ",".join(ordered_codes)
         generated_questionnaire_form.save()
 
-        logger.info("finished generating questionnaire for registry %s" % self.code)
+        logger.info("generated questionnaire for registry %s" % self.code)
 
     def _get_patient_info_section(self):
         return "PatientData"
@@ -470,14 +464,9 @@ class Registry(models.Model):
         """
         self._check_structure(new_structure)
 
-        logger.info("updating structure for registry %s pk %s" % (self, self.pk))
-        logger.info("old structure = %s" % self.structure)
-        logger.info("new structure = %s" % new_structure)
-
         # don't include generated form
         original_forms = [
             f for f in self.forms if f.name != f.registry.generated_questionnaire_name]
-        logger.info("original forms = %s" % original_forms)
 
         self.name = new_structure["name"]
         self.code = new_structure["code"]
@@ -615,9 +604,6 @@ class Registry(models.Model):
 
                 for pair in section_dict["elements"]:
                     element_code = pair[0]
-
-                    logger.info("checking section %s code %s" %
-                                (section_dict["code"], element_code))
                     try:
                         CommonDataElement.objects.get(code=element_code)
                     except CommonDataElement.DoesNotExist:

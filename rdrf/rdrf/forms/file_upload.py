@@ -42,8 +42,8 @@ class FileUpload(object):
             try:
                 return reverse("file_upload", kwargs=kwargs)
             except NoReverseMatch:
-                logger.info("Couldn't make URL for file record %s" %
-                            str(self.fs_dict))
+                logger.warning("Couldn't make URL for file record %s" %
+                               str(self.fs_dict))
 
         return ""
 

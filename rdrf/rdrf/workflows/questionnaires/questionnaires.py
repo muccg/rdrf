@@ -416,7 +416,7 @@ class PatientCreator(object):
             logger.error("couldn't set qr to processed: %s" % ex)
             raise PatientCreatorError("Error setting qr to processed: %s" % ex)
 
-        mylogger.info("Created patient %s (%s)  OK" % (patient, patient.pk))
+        mylogger.info("Created patient (%s)" % (patient.pk))
         return patient
 
     def _create_custom_consents(self, patient_model, custom_consent_dict):
@@ -1087,9 +1087,6 @@ class Questionnaire(object):
         # NOT the dynamically generated questionnaire form's version ...
         errors = []
 
-        logger.info("starting updating patient %s (%s) from questionnaire data" % (
-            patient_model, patient_model.pk))
-
         non_multi_updates = [(q.target.field_expression, q.value)
                              for q in selected_questions if not q.is_multi]
 
@@ -1150,7 +1147,7 @@ class Questionnaire(object):
                 "Questionnaire update of Patient %s succeeded without error." %
                 patient_model.pk)
         else:
-            logger.info("Questionnaire update of Patient %s had %s errors: " % (
+            logger.warning("Questionnaire update of Patient %s had %s errors: " % (
                 patient_model.pk, num_errors))
             for msg in errors:
                 logger.error("Questionnaire update error: %s" % msg)

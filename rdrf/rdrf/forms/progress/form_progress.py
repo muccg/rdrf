@@ -298,7 +298,6 @@ class FormProgress(object):
         return True
 
     def _calculate(self, dynamic_data, patient_model=None):
-        logger.info("calculating progress")
         if patient_model is not None:
             self.current_patient = patient_model
 

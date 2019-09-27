@@ -21,8 +21,8 @@ def _user_is_patient_type(user):
 
 
 def _security_violation(user, patient_model):
-    logger.info("SECURITY VIOLATION User %s Patient %s" % (user.pk,
-                                                           patient_model.pk))
+    logger.warning("SECURITY VIOLATION User %s Patient %s" % (user.pk,
+                                                              patient_model.pk))
     raise PermissionDenied()
 
 

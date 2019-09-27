@@ -64,8 +64,6 @@ class PromsView(View):
         else:
             proms_template = "proms/proms.html"
 
-        logger.info("using proms template %s" % proms_template)
-
         return render(request, proms_template, context)
 
     def _get_survey_assignment(self, patient_token):
@@ -105,8 +103,7 @@ class PromsLandingPageView(View):
 
         if check_login:
             if request.user.is_anonymous:
-                logger.info("%s not authorised to see survey %s" % (request.user,
-                                                                    patient_token))
+                logger.warning(f"User id {request.user.id} not authorised to see survey (user is anonymous)")
                 raise Http404
             else:
                 from rdrf.helpers.utils import is_authorised
@@ -118,8 +115,7 @@ class PromsLandingPageView(View):
                 patient_model = survey_request.patient
 
                 if not is_authorised(request.user, patient_model):
-                    logger.info("%s not authorised to see survey %s" % (request.user,
-                                                                        patient_token))
+                    logger.warning(f"User id {request.user.id} not authorised to see survey")
                     raise Http404
 
         return render(request, "proms/preamble.html", context)

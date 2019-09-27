@@ -62,10 +62,10 @@ class ResendEmail(View):
             return
         user = registration.user
         if user.is_active:
-            logger.info('User "%s" already active. Not changing anything.', user)
+            logger.info(f"User id {user.id} already active. Not changing anything.")
             return
         registration.activated = False
         user.date_joined = timezone.now()
         registration.save()
         user.save()
-        logger.info('Changed date_joined of user "%s" to today.', user)
+        logger.info(f"Changed date_joined of user id {user.id} to today.")

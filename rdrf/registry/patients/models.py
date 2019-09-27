@@ -1098,9 +1098,8 @@ class Patient(models.Model):
         # NB warning this completely replaces the existing mongo record for the patient
         # useful for "rolling back" after questionnaire update failure
         logger.info(
-            "Warning! : Updating existing dynamic data for %s(%s) in registry %s" %
-            (self, self.pk, registry_model))
-        logger.info("New Mongo data record = %s" % new_mongo_data)
+            "Updating existing dynamic data for Patient (%s) in registry %s" %
+            (self.pk, registry_model))
         if new_mongo_data is not None:
             wrapper.update_dynamic_data(registry_model, new_mongo_data)
 

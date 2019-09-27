@@ -627,7 +627,6 @@ class DynamicDataWrapper(object):
                                                               existing_record, index_map)
 
     def update_dynamic_data(self, registry_model, cdes_record):
-        logger.info("About to update %s in %s with new cdes_record %s" % (self.obj, registry_model, cdes_record))
         # replace entire cdes record with supplied one
         # assumes structure correct ..
 

@@ -146,7 +146,7 @@ class VerifiableCDE:
         the cde has changed?
         """
         def carp(msg):
-            logger.info("Annotations Patient %s Context %s CDE %s: %s" % (patient_model,
+            logger.info("Annotations Patient %s Context %s CDE %s: %s" % (patient_model.id,
                                                                           context_model.id,
                                                                           self.cde_model.code,
                                                                           msg))

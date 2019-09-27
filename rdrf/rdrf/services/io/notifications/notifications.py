@@ -44,15 +44,8 @@ class Notifier(object):
             from django.core.mail import send_mail
             send_mail(subject, body, from_email,
                       [to_email], fail_silently=False)
-
-            logger.info(
-                "Notification Email: %s from %s to %s with subject %s sent OK" %
-                (message_type, from_email, to_email, subject))
         except Exception as ex:
-            logger.error(
-                "Notification Email: %s from %s to %s with subject %s FAILED: %s" %
-                (message_type, from_email, to_email, subject, ex))
-            logger.error("Email body =\n%s" % body)
+            logger.error(f"Notification Email FAILED: {ex}")
             raise NotificationError("email failed")
 
     def send_email_to_username(self, username, subject, body, message_type="System Email",

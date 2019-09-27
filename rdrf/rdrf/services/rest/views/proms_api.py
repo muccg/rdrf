@@ -61,7 +61,6 @@ class SurveyAssignments(APIView):
 
     @method_decorator(csrf_exempt)
     def post(self, request, format=None):
-        logger.info("in survey assignments on proms system")
         ser = SurveyAssignmentSerializer(data=request.data)
         # call is valid befoe save
         if ser.is_valid():
@@ -179,7 +178,7 @@ class PromsProcessor:
         api_delete_url = self.proms_url + api_delete
         delete_response = requests.post(api_delete_url, data=post_data)
         if delete_response.status_code != 200:
-            logger.info(f"Error deleting proms for {self.registry_model.code} registry")
+            logger.warning(f"Error deleting proms for {self.registry_model.code} registry")
             raise Exception(f"Error deleting proms for {self.registry_model.code} registry")
 
     def _update_proms_fields(self, survey_request, survey_data):
