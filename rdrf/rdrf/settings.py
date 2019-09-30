@@ -337,6 +337,22 @@ else:
 # #
 LOG_DIRECTORY = env.get('log_directory', os.path.join(WEBAPP_ROOT, "log"))
 
+# Log handlers
+DEFAULT_LOG_HANDLER = ['console', 'file']
+MAILADMIN_LOG_HANDLER = ['mail_admins']
+COMMAND_LOG_HANDLER = ['shell', 'admin_command_file']
+IMPORT_LOG_HANDLER = ['console_simple']
+
+# Add the syslog handler when syslog is enabled.
+SYSLOG_ENABLED = env.get("syslog_enabled", False)
+SYSLOG_ADDRESS = env.get("syslog_address", "172.21.0.1")
+SYSLOG_PORT = int(env.get("syslog_port", 514))
+if SYSLOG_ENABLED:
+    DEFAULT_LOG_HANDLER.append('syslog')
+    MAILADMIN_LOG_HANDLER.append('syslog')
+    COMMAND_LOG_HANDLER.append('syslog')
+    IMPORT_LOG_HANDLER.append('syslog')
+
 # UserAgent lookup cache location - used by django_user_agents
 USER_AGENTS_CACHE = 'default'
 
@@ -411,37 +427,37 @@ LOGGING = {
             'class': 'logging.handlers.SysLogHandler',
             'formatter': 'verbose',
             # uncomment next line if rsyslog works with unix socket only (UDP reception disabled)
-            'address': ('172.21.0.1', 514)
+            'address': (SYSLOG_ADDRESS, SYSLOG_PORT)
         }
     },
     'loggers': {
         '': {
-            'handlers': ['console', 'file', 'syslog'],
+            'handlers': DEFAULT_LOG_HANDLER,
             'level': 'DEBUG' if DEBUG else 'INFO',
             'propagate': True
         },
         'django.request': {
-            'handlers': ['mail_admins', 'syslog'],
+            'handlers': MAILADMIN_LOG_HANDLER,
             'level': 'ERROR',
             'propagate': True,
         },
         'django.security': {
-            'handlers': ['mail_admins', 'syslog'],
+            'handlers': MAILADMIN_LOG_HANDLER,
             'level': 'ERROR',
             'propagate': True,
         },
         'django.db.backends': {
-            'handlers': ['mail_admins', 'syslog'],
+            'handlers': MAILADMIN_LOG_HANDLER,
             'level': 'CRITICAL',
             'propagate': True,
         },
         'rdrf.management.commands': {
-            'handlers': ['shell', 'admin_command_file', 'syslog'],
+            'handlers': COMMAND_LOG_HANDLER,
             'level': 'DEBUG' if DEBUG else 'INFO',
             'propagate': False,
         },
         'rdrf.export_import': {
-            'handlers': ['console_simple', 'syslog'],
+            'handlers': IMPORT_LOG_HANDLER,
             'formatter': 'simplest',
             'level': 'DEBUG' if DEBUG else 'INFO',
             'propagate': False,
