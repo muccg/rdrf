@@ -56,11 +56,14 @@ services:
       - datadev
     ports:
       - "8000:8000"
+    # links:
+    #   - ldap
     depends_on:
       - db
       - clinicaldb
       - reportingdb
       - cache
+      # - ldap
     networks:
       default:
         aliases:
@@ -77,3 +80,31 @@ services:
       - clinicaldb
       - reportingdb
       - cache
+
+  # ldap:
+  #   container_name: ldap
+  #   image: osixia/openldap
+  #   ports:
+  #     - "389:389"
+  #     - "636:636"
+  #   command: [--copy-service,  --loglevel, debug]
+  #   volumes:
+  #     - ./users.ldif:/container/service/slapd/assets/config/bootstrap/ldif/data.ldif
+  #   environment:
+  #     - LDAP_ADMIN_PASSWORD=admin
+  #     - LDAP_BASE_DN=dc=example,dc=com
+  #     - LDAP_REPLICATION_HOSTS=ldap://ldap.example.com
+  #     - LDAP_DOMAIN=example.com
+
+  # phpldapadmin:
+  #   container_name: phpldapadmin
+  #   image: osixia/phpldapadmin
+  #   ports:
+  #     - "8081:80"
+  #   environment:
+  #     - PHPLDAPADMIN_HTTPS="false"
+  #     - PHPLDAPADMIN_LDAP_HOSTS=ldap
+  #   links:
+  #     - ldap
+  #   depends_on:
+  #     - ldap

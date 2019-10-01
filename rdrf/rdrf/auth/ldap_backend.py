@@ -1,3 +1,4 @@
+from django.conf import settings
 from django_auth_ldap.backend import LDAPBackend
 import logging
 
@@ -13,25 +14,35 @@ class RDRFLDAPBackend(LDAPBackend):
     }
 
     def get_or_build_user(self, username, ldap_user):
-        logger.debug("in get_or_build_user")
         user, built = super().get_or_build_user(username, ldap_user)
-        if built:
-            logger.debug("in built clause")
-            from rdrf.models.definition import Registry
-            from registry.patients.models import WorkingGroup
-            registry_model = Registry.objects.get(code="ICHOMCRC")
-            wg = WorkingGroup.objects.get(registry=registry_model,
-                                          name="RPH")
-            user.is_active = True
-            logger.debug("set is_active")
-            user.is_staff = True
-            logger.debug("set is_staff")
-            user.rdrf_registry.set([registry_model])
-            logger.debug("set registry")
 
-            user.working_groups.set([wg])
-            logger.debug("set working_group")
-            user.save()
-            return user, built
-        else:
-            return user, built
+        # We need to update the user information whatever it existed or not in RDRF database.
+
+        from rdrf.models.definition.models import Registry
+        from registry.groups.models import WorkingGroup
+        registry_model = Registry.objects.get(code=settings.RDRF_AUTH_LDAP_REGISTRY_MODEL)
+        wg = WorkingGroup.objects.get(registry=registry_model,
+                                      name=settings.RDRF_AUTH_LDAP_WORKING_GROUP)
+
+        # Check if user must be staff anyway
+        if settings.RDRF_AUTH_LDAP_USERS_MUST_BE_STAFF:
+            user.is_staff = True
+
+        # Check if 2fa is mandatory
+        if settings.RDRF_AUTH_LDAP_REQUIRE_2FA:
+            user.require_2_fact_auth = True
+
+        # Save the user a first time.
+        # It is required to be able to set working_group and registry in the next lines.
+        user.save()
+
+        # Update working group and registry
+        user.working_groups.set([wg])
+        user.registry.set([registry_model])
+        logger.debug(f"RDRF_AUTH_LDAP_AUTH_GROUP: {settings.RDRF_AUTH_LDAP_AUTH_GROUP}")
+        user.add_group(settings.RDRF_AUTH_LDAP_AUTH_GROUP)
+        user.save()
+
+        logger.debug(f"LDAP USER: {user.__dict__}")
+
+        return user, built
