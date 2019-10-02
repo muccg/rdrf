@@ -277,7 +277,7 @@ class FieldFactory(object):
                 widget_parameter=widget_parameter,
                 widget_context=widget_context)
         else:
-            logger.info("could not locate widget from widget string: %s" % widget_string)
+            logger.warning("could not locate widget from widget string: %s" % widget_string)
 
     def create_field(self):
         field = self._create_field()

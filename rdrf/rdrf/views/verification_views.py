@@ -152,23 +152,17 @@ class PatientVerificationView(View, VerificationSecurityMixin):
         # So we show the patient answer also
         for field in form:
             form_name, section_code, cde_code = field.name.split("____")
-            logger.debug("checking cde %s" % cde_code)
             for v in verifications:
                 if all([v.form_model.name == form_name,
                         v.section_model.code == section_code,
                         v.cde_model.code == cde_code]):
 
                     # display value
-                    logger.debug("adding extra properties to field for template")
-
                     field.patient_answer = v.get_data(patient_model, context_model)
-                    logger.debug("patient display value = %s" % field.patient_answer)
                     # non display value , used in hidden field
                     field.patient_data = v.patient_data
                     field.status = v.status
-                    logger.debug("field status = %s" % field.status)
                     field.comments = v.comments
-                    logger.debug("field comments = %s" % field.comments)
         return form
 
     def _build_context(self, request, registry_model, patient_model, form, form_state="initial", errors=[]):

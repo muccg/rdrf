@@ -382,7 +382,7 @@ class FormDataParser(object):
                         try:
                             form_model, section_model, cde_model = models_from_mongo_key(self.registry_model, key)
                         except BadKeyError:
-                            logger.debug(f"Skipping key: {key}")
+                            logger.info(f"we are skipping the form data key '{key}'")
                     else:
                         form_model, section_model, cde_model = models_from_mongo_key(self.registry_model, key)
                     value = self.form_data[key]
@@ -627,7 +627,6 @@ class DynamicDataWrapper(object):
                                                               existing_record, index_map)
 
     def update_dynamic_data(self, registry_model, cdes_record):
-        logger.info("About to update %s in %s with new cdes_record %s" % (self.obj, registry_model, cdes_record))
         # replace entire cdes record with supplied one
         # assumes structure correct ..
 

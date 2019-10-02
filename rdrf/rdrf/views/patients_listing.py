@@ -184,9 +184,9 @@ class PatientsListingView(View):
         self.do_security_checks()
         if not self.user.is_superuser:
             if self.registry_model.code not in [r.code for r in self.user.registry.all()]:
-                logger.info(
-                    "User %s tried to browse patients in registry %s of which they are not a member" %
-                    (self.user, self.registry_model.code))
+                logger.warning(
+                    "User id %s tried to browse patients in registry %s of which they are not a member" %
+                    (self.user.id, self.registry_model.code))
                 return False
         return True
 

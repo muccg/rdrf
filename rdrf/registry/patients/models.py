@@ -1098,9 +1098,8 @@ class Patient(models.Model):
         # NB warning this completely replaces the existing mongo record for the patient
         # useful for "rolling back" after questionnaire update failure
         logger.info(
-            "Warning! : Updating existing dynamic data for %s(%s) in registry %s" %
-            (self, self.pk, registry_model))
-        logger.info("New Mongo data record = %s" % new_mongo_data)
+            "Updating existing dynamic data for Patient (%s) in registry %s" %
+            (self.pk, registry_model))
         if new_mongo_data is not None:
             wrapper.update_dynamic_data(registry_model, new_mongo_data)
 
@@ -1472,18 +1471,13 @@ def sync_user(sender, instance, **kwargs):
 
 @receiver(post_save, sender=Patient)
 def update_family_linkage_fields(sender, instance, **kwargs):
-    logger.debug("updating family linkage fields")
     for registry_model in instance.rdrf_registry.all():
-        logger.debug("checking %s" % registry_model)
         if registry_model.has_feature("family_linkage"):
-            logger.debug("%s has family linkage" % registry_model)
             from rdrf.views.family_linkage import FamilyLinkageManager
             flm = FamilyLinkageManager(registry_model, None)
             if instance.is_index:
-                logger.debug("%s is an index" % instance)
                 flm.set_as_index_patient(instance)
             else:
-                logger.debug("%s is a relative" % instance)
                 flm.set_as_relative(instance)
 
 

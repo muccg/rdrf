@@ -56,7 +56,6 @@ class BaseRegistration(object):
             django_user.first_name = request.POST['parent_guardian_first_name']
             django_user.last_name = request.POST['parent_guardian_last_name']
         elif is_clinician:
-            logger.debug("setting up clinician")
             # clinician signup only exists on subclass ..
             django_user.first_name = self.clinician_signup.clinician_other.clinician_first_name
             django_user.last_name = self.clinician_signup.clinician_other.clinician_last_name

@@ -139,8 +139,8 @@ class Command(BaseCommand):
                 logger.info(f"[RECALCULATING] we are recalculating the patient id {modified_patient_id} - recalculation number: {step} ")
                 self.handle(**patient_option)
             else:
-                logger.info(f"[BUG] We tried to recalculate the patient id {modified_patient_id} more the 10 times. "
-                            f"We stopped this patient calculated field update.")
+                logger.error(f"[LIKELY A BUG] We tried to recalculate the patient id {modified_patient_id} more the 10 times. "
+                             f"We stopped this patient calculated field update.")
 
 
 def calculate_cde(patient_model, form_cde_values, calculated_cde_model):

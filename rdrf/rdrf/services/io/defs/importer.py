@@ -278,7 +278,6 @@ class Importer(object):
                 # but if value sets are inconsistent we can't help it
 
                 for value_code in import_missing:
-                    logger.info("checking pvg value code %s" % value_code)
                     try:
                         value = CDEPermittedValue.objects.get(code=value_code, pv_group=pvg)
                         logger.warning(
@@ -286,7 +285,7 @@ class Importer(object):
                             (pvg.code, value.code))
                         value.delete()
                     except CDEPermittedValue.DoesNotExist:
-                        logger.info("value does not exist?")
+                        logger.warning(f"CDEPermittedValue value does not exist for pvg {pvg.code} value {value_code}")
 
                     except Exception as ex:
                         logger.error("err: %s" % ex)
@@ -349,7 +348,6 @@ class Importer(object):
                                 (cde_model.code, old_value, import_value))
 
                     setattr(cde_model, field, cde_map[field])
-                    # logger.info("cde %s.%s set to [%s]" % (cde_model.code, field, cde_map[field]))
 
             # Assign value group - pv_group will be empty string is not a range
 
@@ -368,12 +366,9 @@ class Importer(object):
                                            (cde_map["pv_group"], cde_model.code, ex))
 
             cde_model.save()
-            # logger.info("updated cde %s" % cde_model)
 
     def _create_generic_sections(self, generic_section_maps):
-        logger.info("creating generic sections")
         for section_map in generic_section_maps:
-            logger.info("importing generic section map %s" % section_map)
             s, created = Section.objects.get_or_create(code=section_map["code"])
             s.code = section_map["code"]
             s.display_name = section_map["display_name"]
@@ -423,8 +418,7 @@ class Importer(object):
                 raise ValueError("Not a dictionary")
             return True
         except ValueError as verr:
-            logger.info("invalid metadata ( should be json dictionary): %s Error %s" %
-                        (metadata_json, verr))
+            logger.error("invalid metadata ( should be json dictionary): %s Error %s" % (metadata_json, verr))
             return False
 
     def _create_registry_objects(self):
@@ -673,9 +667,7 @@ class Importer(object):
             instance, created = klass.objects.get_or_create(**kwargs)
             return instance
 
-        logger.debug("getting codes from reviews")
         review_codes = [r["code"] for r in self.data["reviews"]]
-        logger.debug("got codes from reviews")
 
         for review_model in Review.objects.filter(registry=registry_model):
             if review_model.code not in review_codes:

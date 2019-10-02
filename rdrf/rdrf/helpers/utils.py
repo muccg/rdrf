@@ -803,7 +803,7 @@ def is_authorised(user, patient_model):
     if common and not user.is_parent:
         return True
 
-    logger.info("user %s is not authorised for patient %s" % (user, patient_model.pk))
+    logger.warning("user %s is not authorised for patient %s" % (user.username, patient_model.pk))
 
     return False
 
@@ -855,7 +855,6 @@ def annotate_form_with_verifications(patient_model,
 
         if verification_status is not None:
             # add a flag
-            logger.debug("verification status = %s" % verification_status)
             section_form[field].verification_status = verification_status
 
 

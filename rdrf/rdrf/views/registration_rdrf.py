@@ -14,19 +14,14 @@ class RdrfRegistrationView(RegistrationView):
     registry_code = None
 
     def get(self, request, *args, **kwargs):
-        logger.debug("RdrfRegistrationView get")
         self.registry_code = kwargs['registry_code']
         workflow = None
         token = request.GET.get("t", None)
         if token:
-            logger.debug("token = %s" % token)
             workflow = get_registration_workflow(token)
             if workflow:
-                logger.debug("workflow found")
                 request.session["token"] = token
                 self.template_name = workflow.get_template()
-            else:
-                logger.debug("no workflow")
 
         form_class = self.get_form_class()
         form = self.get_form(form_class)
@@ -41,15 +36,13 @@ class RdrfRegistrationView(RegistrationView):
 
     def post(self, request, *args, **kwargs):
         token = request.session.get("token", None)
-        logger.debug("token = %s" % token)
-        workflow = get_registration_workflow(token)
-        logger.debug("workflow = %s" % workflow)
+        # TODO: confirm we run this following line for checking (it does not seem the case -
+        # that may be some old code we forgot to remove)
+        get_registration_workflow(token)
         form_class = self.get_form_class()
-        logger.debug("form class = %s" % form_class)
         form = self.get_form(form_class)
 
         if form.is_valid():
-            logger.debug("RdrfRegistrationView post form valid")
             return self.form_valid(form)
         else:
             return self.form_invalid(form)
@@ -84,7 +77,6 @@ class RdrfRegistrationView(RegistrationView):
         with transaction.atomic():
             try:
                 new_user = self.register(form)
-                logger.debug("RdrfRegistrationView form_valid - new_user registered")
                 username = new_user.username
                 success_url = self.get_success_url(new_user)
             except Exception as ex:
@@ -95,8 +87,6 @@ class RdrfRegistrationView(RegistrationView):
         try:
             to, args, kwargs = success_url
         except ValueError:
-            logger.debug("RdrfRegistrationView post - redirecting to success url %s" % success_url)
             return redirect(success_url)
         else:
-            logger.debug("RdrfRegistrationView post - redirecting to sucess url %s" % str(success_url))
             return redirect(to, *args, **kwargs)

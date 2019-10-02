@@ -207,11 +207,7 @@ class ReviewWizardGenerator:
         class_name = "ReviewWizard"
 
         def get_form_initial_method(myself, step):
-            logger.debug("xxxxx getting initial form data for step %s" % step)
-            logger.debug("NB. class level initial_dict = %s" % myself.initial_dict)
             data = myself.initial_dict.get(step, {})
-            logger.debug("initial data for step %s = %s" % (step,
-                                                            data))
             return data
 
         def done_method(myself, form_list, form_dict, **kwargs):
