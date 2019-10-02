@@ -245,7 +245,7 @@ def rpc_get_forms_list(request, registry_code, patient_id, form_group_id):
         try:
             context_form_group = ContextFormGroup.objects.get(id=form_group_id)
         except ContextFormGroup.DoesNotExist:
-            logger.debug("cfg does not exist")
+            logger.warning(f"ContextFormGroup does not exist for form_group_id: {form_group_id}")
             return fail_response
     else:
         context_form_group = None

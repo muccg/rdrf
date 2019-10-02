@@ -1,12 +1,14 @@
 import axios from 'axios';
 import { createAction, handleActions } from 'redux-actions';
 
+import { evalElements } from '../logic';
+
 export const goPrevious = createAction("PROMS_PREVIOUS");
 export const goNext = createAction("PROMS_NEXT");
 export const submitAnswers = createAction("PROMS_SUBMIT");
 export const enterData = createAction("PROMS_ENTER_DATA");
 
-import { evalElements } from '../logic';
+
 
 
 axios.defaults.xsrfHeaderName = "X-CSRFTOKEN";

@@ -32,22 +32,16 @@ def multicde(cde_model):
 class SurveyEndpoint(View):
 
     def post(self, request):
-        logger.debug("survey endpoint post")
         data = json.loads(request.body)
         patient_token = data.get("patient_token")
-        logger.debug("patient_token = %s" % patient_token)
         survey_answers = data.get("answers")
-        logger.debug("answers ditionary = %s" % survey_answers)
         registry_code = data.get("registry_code")
-        logger.debug("registry code = %s" % registry_code)
         survey_name = data.get("survey_name")
 
         registry_model = Registry.objects.get(code=registry_code)
 
         survey_model = Survey.objects.get(registry=registry_model,
                                           name=survey_name)
-
-        logger.debug("survey = %s" % survey_model)
 
         survey_assignment = SurveyAssignment.objects.get(registry=survey_model.registry,
                                                          survey_name=survey_model.name,
@@ -67,15 +61,13 @@ class SurveyAssignments(APIView):
 
     @method_decorator(csrf_exempt)
     def post(self, request, format=None):
-        logger.info("in survey assignments on proms system")
         ser = SurveyAssignmentSerializer(data=request.data)
         # call is valid befoe save
         if ser.is_valid():
             ser.save()
-            logger.debug("ser saved ok")
             return Response({"status": "OK"}, status=status.HTTP_201_CREATED)
         else:
-            logger.debug("serialiser is not valid: %s" % ser.errors)
+            logger.warning("serialiser is not valid: %s" % ser.errors)
 
         return Response(ser.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -127,32 +119,23 @@ class PromsProcessor:
         if not self.proms_url:
             raise Exception("Registry %s does not have an associated proms system" % self.registry_model)
 
-        logger.debug("downloading proms from proms system")
-
         api = "/api/proms/v1/promsdownload"
 
         api_url = self.proms_url + api
-        logger.debug("making request to %s" % api_url)
         post_data = {'proms_secret_token': settings.PROMS_SECRET_TOKEN, 'registry_code': self.registry_model.code}
         response = requests.post(api_url, data=post_data)
 
         if response.status_code != 200:
-            logger.info(f"Error retrieving proms")
+            logger.warning(f"Error retrieving proms")
             raise Exception("Error retrieving proms")
         else:
-            logger.debug("got proms data from proms system OK")
             data = response.json()
-            logger.debug("There are %s surveys" % len(data))
             survey_ids = []
             patient_ids = set()
             for survey_response in data:
                 patient_token = survey_response["patient_token"]
-                logger.debug("patient token = %s" % patient_token)
                 survey_name = survey_response["survey_name"]
-                logger.debug("survey_name = %s" % survey_name)
-                logger.debug("survey response = %s" % survey_response)
                 survey_data = json.loads(survey_response["response"])
-                logger.debug("survey data = %s" % survey_data)
 
                 # Sanity check: the survey registry must the same as the current registry
                 if survey_response['registry_code'] != self.registry_model.code:
@@ -172,8 +155,6 @@ class PromsProcessor:
                     logger.error("too many survey requests")
                     continue
 
-                logger.debug("matched survey request %s" % survey_request.pk)
-
                 # Remember the patient ids so we can later update the calculated field for this patient.
                 patient_ids.add(survey_request.patient.id)
 
@@ -187,7 +168,7 @@ class PromsProcessor:
                 delete_post_data = {**post_data, 'survey_ids': survey_ids}
                 self.delete_registry_proms(delete_post_data)
 
-            # Fix calculation for this registry
+            # Fix calculation for this registry.
             if patient_ids:
                 from django.core.management import call_command
                 call_command('update_calculated_fields', registry_code=self.registry_model.code, patient_id=patient_ids)
@@ -197,7 +178,7 @@ class PromsProcessor:
         api_delete_url = self.proms_url + api_delete
         delete_response = requests.post(api_delete_url, data=post_data)
         if delete_response.status_code != 200:
-            logger.info(f"Error deleting proms for {self.registry_model.code} registry")
+            logger.warning(f"Error deleting proms for {self.registry_model.code} registry")
             raise Exception(f"Error deleting proms for {self.registry_model.code} registry")
 
     def _update_proms_fields(self, survey_request, survey_data):
@@ -205,13 +186,11 @@ class PromsProcessor:
         # pokes downloaded proms into correct fields inside
         # clinical system
         context_model = None
-        logger.debug("updating downloaded proms for survey request %s" % survey_request.pk)
         patient_model = survey_request.patient
         metadata = self.registry_model.metadata
         consent_exists = False
         if "consents" in metadata:
             consent_dict = metadata["consents"]
-            logger.debug("Consent Codes %s" % consent_dict)
             consent_exists = True
         else:
             logger.warning("No Consent metadata exists")
@@ -312,21 +291,12 @@ class PromsProcessor:
                                                                         ex))
                 continue
 
-            logger.debug("proms updated: patient %s context %s form %s sec %s cde %s val %s" % (patient_model,
-                                                                                                context_model.pk,
-                                                                                                form_model.name,
-                                                                                                section_model.code,
-                                                                                                cde_model.code,
-                                                                                                value))
-
         survey_request.state = SurveyRequestStates.RECEIVED
         survey_request.response = json.dumps(survey_data)
         survey_request.save()
-        logger.debug("updated survey_request state to received")
 
     def _update_consentvalue(self, patient_model, consent_code, answer):
         from rdrf.models.definition.models import ConsentQuestion
-        logger.debug("Answer to save %s" % answer)
         consent_question_model = ConsentQuestion.objects.get(code=consent_code)
         patient_model.set_consent(consent_question_model, answer)
 

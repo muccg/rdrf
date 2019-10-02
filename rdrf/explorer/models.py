@@ -214,10 +214,9 @@ class FieldValue(models.Model):
                 if not self.raw_value:
                     return None
                 file_name = json.loads(self.raw_value)["file_name"]
-                logger.debug("got a file name = %s" % file_name)
                 return file_name
             except Exception as ex:
-                logger.debug("error getting filename: %s" % ex)
+                logger.warning("error getting filename: %s" % ex)
                 return None
         elif datatype in ['date', 'datetime']:
             try:

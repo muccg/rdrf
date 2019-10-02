@@ -140,7 +140,7 @@ class RDRFSetPasswordForm(SetPasswordForm):
             else:
                 logger.warning(
                     'User "%s" resetted their password but their account is inactive '
-                    'and settings.ACCOUNT_SELF_UNLOCK_ENABLED is NOT set.', self.user)
+                    'and settings.ACCOUNT_SELF_UNLOCK_ENABLED is NOT set.', self.user.username)
             if not self.user.is_active:
                 request = get_request()
                 if request:

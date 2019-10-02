@@ -240,10 +240,6 @@ class ReportingTableGenerator(object):
                 self.multisection_map = {}
                 self.mongo_column_map = {}  # used to retrieve data later : maps
 
-            def report(self):
-                for i, column_name in enumerate(self.column_names):
-                    logger.info("CLINICAL COLUMN %s %s" % (i, column_name))
-
             def add(self, column_op):
                 # rigmarole to preserve column order for the multisection items
                 if column_op.in_multisection:
@@ -305,7 +301,6 @@ class ReportingTableGenerator(object):
             column_ops.add(column_op)
 
         column_ops.run()
-        column_ops.report()
 
         return column_ops.mongo_column_map
 
@@ -370,7 +365,7 @@ class ReportingTableGenerator(object):
         self.engine.execute(self.table.insert(), values)
 
         if errors > 0:
-            logger.info("query errors: %s" % errors)
+            logger.warning("query errors: %s" % errors)
             self.error_messages.append(
                 "There were %s errors running the report" % errors)
 

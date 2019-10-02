@@ -21,14 +21,12 @@ def stellar_config_path():
 
 
 def reset_password_change_date():
-    logger.info('')
     from registry.groups.models import CustomUser
     from django.utils import timezone
     CustomUser.objects.update(password_change_date=timezone.now())
 
 
 def reset_last_login_date():
-    logger.info('')
     from registry.groups.models import CustomUser
     from django.utils import timezone
     CustomUser.objects.update(last_login=timezone.now())
@@ -60,7 +58,6 @@ def stellar_multidb(args):
     """ Use stellar across multiple databases
     A hack that searches for stellar configs in multiple dirs to allow for snapshot/restore in a multidb setup
     """
-    logger.info(args)
     cwd = os.getcwd()
     rval_code = 0
     rval_out = ''
@@ -87,12 +84,10 @@ def stellar_multidb(args):
 
 
 def remove_snapshot(snapshot_name):
-    logger.info(snapshot_name)
     stellar_multidb(["stellar", "remove", snapshot_name])
 
 
 def save_snapshot(snapshot_name):
-    logger.info(snapshot_name)
     if have_snapshot(snapshot_name):
         remove_snapshot(snapshot_name)
     stellar_multidb(["stellar", "snapshot", snapshot_name])
@@ -112,7 +107,6 @@ def restore_minimal_snapshot():
 
 
 def restore_snapshot(snapshot_name):
-    logger.info(snapshot_name)
     stellar_multidb(["stellar", "restore", snapshot_name])
 
 
@@ -153,7 +147,6 @@ def django_migrate(args=[]):
 
 
 def django_admin(args, fail_on_error=False):
-    logger.info(args)
     return_code, _, _ = subprocess_logging(["django-admin.py"] + args)
 
     if fail_on_error and return_code != 0:
@@ -172,7 +165,7 @@ def show_stats(export_name):
         logger.info("\tregistry = %s" % r)
 
     for p in Patient.objects.all():
-        logger.info("\t\tPatient %s" % p)
+        logger.info("\t\tPatient id %s" % p.id)
 
 
 def click(element):

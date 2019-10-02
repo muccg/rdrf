@@ -112,7 +112,6 @@ class RegistryDefExporter(TopLevelExporter):
 
     def export(self, registry_code, **kwargs):
         self.registry_code = registry_code
-        logger.info("Exporting registry '%s'", registry_code)
         self.export_context['registry_code'] = registry_code
         TopLevelExporter.export(self, **kwargs)
         logger.info("Registry '%s' exported to '%s'", self.registry_code, self.zip_file)
@@ -155,6 +154,5 @@ class Exporter(TopLevelExporter):
         return exporter
 
     def export(self, **kwargs):
-        logger.info("Exporting")
         TopLevelExporter.export(self, **kwargs)
         logger.info("Data exported to '%s'", self.zip_file)

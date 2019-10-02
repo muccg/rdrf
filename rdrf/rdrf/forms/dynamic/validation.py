@@ -34,7 +34,7 @@ def make_validation_func(val_type, cde):
         try:
             re_pattern = re.compile(cde.pattern)
         except Exception:
-            logger.info("CDE %s has bad pattern: %s" % (cde, cde.pattern))
+            logger.warning("CDE %s has bad pattern: %s" % (cde, cde.pattern))
             return None
 
         def vf(value):

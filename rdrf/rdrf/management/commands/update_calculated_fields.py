@@ -3,6 +3,7 @@ from datetime import datetime
 from django.core.management.base import BaseCommand
 from rdrf.models.definition.models import ClinicalData, CommonDataElement, RegistryForm, Section, RDRFContext, ContextFormGroupItem
 from registry.patients.models import Patient, DynamicDataWrapper
+from rdrf.helpers.utils import catch_and_log_exceptions
 
 # do not display debug information for the node js call.
 import logging
@@ -35,6 +36,7 @@ class Command(BaseCommand):
         # Test command line example
         # django-admin update_calculated_fields --patient_id=2 --registry_code=fh --form_name=ClinicalData --section_code=SEC0007 --context_id=2 --cde_code=CDEfhDutchLipidClinicNetwork
 
+    @catch_and_log_exceptions
     def handle(self, *args, **options):
         start = time.time()
         modified_patients = []
@@ -137,8 +139,8 @@ class Command(BaseCommand):
                 logger.info(f"[RECALCULATING] we are recalculating the patient id {modified_patient_id} - recalculation number: {step} ")
                 self.handle(**patient_option)
             else:
-                logger.info(f"[BUG] We tried to recalculate the patient id {modified_patient_id} more the 10 times. "
-                            f"We stopped this patient calculated field update.")
+                logger.error(f"[LIKELY A BUG] We tried to recalculate the patient id {modified_patient_id} more the 10 times. "
+                             f"We stopped this patient calculated field update.")
 
 
 def calculate_cde(patient_model, form_cde_values, calculated_cde_model):

@@ -9,26 +9,20 @@ logger = logging.getLogger(__name__)
 
 class PromsAuthentication(authentication.BaseAuthentication):
     def authenticate(self, request):
-        logger.info("authenticating proms")
         from django.conf import settings
         secret_token = request.POST.get("proms_secret_token", "")
 
-        logger.info("token from request: %s" % secret_token)
         proms_secret_token = settings.PROMS_SECRET_TOKEN
-        logger.info("settings proms token: %s" % proms_secret_token)
         proms_username = settings.PROMS_USERNAME
-        logger.info("settings proms user: %s" % proms_username)
 
         if secret_token != proms_secret_token:
-            logger.info("tokens don't match - failed to auth")
+            logger.warning("tokens don't match - failed to auth")
             return False
 
         try:
             user = CustomUser.objects.get(username=proms_username)
         except CustomUser.DoesNotExist:
-            logger.info("proms user doesn't exist")
+            logger.warning("proms user doesn't exist")
             raise exceptions.AuthenticationFailed('No such user')
-
-        logger.info("authenticated as %s" % proms_username)
 
         return (user, None)

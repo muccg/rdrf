@@ -16,4 +16,4 @@ g = generator.Generator(r)
 with transaction.atomic():
     g.create_tables()
 
-logger.info("FINISHED RUN!")
+logger.info("end of reportingdb.py")

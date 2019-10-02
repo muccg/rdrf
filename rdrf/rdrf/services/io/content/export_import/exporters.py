@@ -33,22 +33,17 @@ class DataGroupExporter(DelegateMixin):
         self.parent_workdir = self.exporter_context['workdir']
         os.makedirs(self.workdir)
         self.meta = defaultdict(list)
-        self.logger.debug("Exporting datagroup '%s' to '%s'", self.name, self.workdir)
 
         child_logger = maybe_indent(self.logger)
         child_context = self.exporter_context.copy()
         child_context['workdir'] = self.workdir
 
-        if len(self.datagroups) > 0:
-            self.logger.debug("Exporting %d nested datagroups" % len(self.datagroups))
         for dg in self.datagroups:
             exporter = self.datagroup_exporters.get(dg)(
                 dg, self.exporters_catalogue, child_logger)
             if exporter.export(**child_context):
                 self.meta['data_groups'].append(exporter.get_meta_info())
 
-        if len(self.models) > 0:
-            self.logger.debug("Exporting %d models" % len(self.models))
         for model_name in self.models:
             exporter = self.model_exporters.get(
                 apps.get_model(model_name))(
@@ -116,11 +111,6 @@ class ModelExporter(object):
         self.workdir = self.exporter_context['workdir']
         self.filename = '%s.%s' % (self.model._meta.db_table, self.format)
 
-        self.logger.debug(
-            "Exporting model '%s' to '%s'",
-            self.full_modelname,
-            self.full_filename)
-
         with open(self.full_filename, 'w') as out:
             serializers.serialize(self.format, self.queryset,
                                   use_natural_primary_keys=True,
@@ -171,7 +161,6 @@ class ModelMetaInfo(BaseMetaInfo):
 
         with open(self.full_filename) as data:
             count = count_generator_items(serializers.deserialize(self.format, data))
-            self.logger.debug('exported %d object(s)', count)
             return count
 
 

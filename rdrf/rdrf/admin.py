@@ -123,8 +123,6 @@ def export_registry_action(modeladmin, request, registry_models_selected):
                     messages.error(request, "Error in export of %s: %s" %
                                    (registry.name, error))
                 return None
-            else:
-                logger.info("Exported YAML Data for %s OK" % registry.name)
             return yaml_data
         except Exception as ex:
             logger.error("export registry action for %s error: %s" % (registry.name, ex))
