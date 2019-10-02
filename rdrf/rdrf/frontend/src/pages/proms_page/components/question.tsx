@@ -1,5 +1,5 @@
 import * as _ from 'lodash';
-import Slider from 'rc-slider';
+import Slider, { Handle } from 'rc-slider';
 import 'rc-slider/assets/index.css';
 import Tooltip from "rc-tooltip";
 import * as React from 'react';
@@ -17,7 +17,7 @@ class Question extends React.Component<QuestionInterface, object> {
         this.onSliderChange = this.onSliderChange.bind(this);
         this.handleConsent = this.handleConsent.bind(this);
         this.handleChange = this.handleChange.bind(this);
-	this.handleMultiChange = this.handleMultiChange.bind(this);
+        this.handleMultiChange = this.handleMultiChange.bind(this);
     }
 
     public handleChange(event) {
@@ -27,9 +27,9 @@ class Question extends React.Component<QuestionInterface, object> {
     }
 
     public handleMultiChange(event) {
-	const cdeCode = event.target.name;
-	let values;
-	let options;
+        const cdeCode = event.target.name;
+        let values;
+        let options;
         options = event.target.options;
         values = [];
         _.each(event.target.options, (option: HTMLOptionElement) => {
@@ -38,7 +38,7 @@ class Question extends React.Component<QuestionInterface, object> {
             }
         });
 
-	this.props.enterData(cdeCode, values);
+        this.props.enterData(cdeCode, values);
     }
 
     public handleConsent(event) {
@@ -57,21 +57,21 @@ class Question extends React.Component<QuestionInterface, object> {
         const maxValue = question.spec.max;
         const marks = {
             [minValue]: <strong>{minValue}</strong>,
-            10:'10',
-            20:'20',
-            30:'30',
-            40:'40',
-            50:'50',
-            60:'60',
-            70:'70',
-            80:'80',
-            90:'90',
+            10: '10',
+            20: '20',
+            30: '30',
+            40: '40',
+            50: '50',
+            60: '60',
+            70: '70',
+            80: '80',
+            90: '90',
             [maxValue]: {
-                  style: {
+                style: {
                     color: 'red',
-                  },
-                  label:<strong>{maxValue}</strong>,
                 },
+                label: <strong>{maxValue}</strong>,
+            },
         };
 
         return marks;
@@ -79,7 +79,7 @@ class Question extends React.Component<QuestionInterface, object> {
     }
 
     public getSliderHandle = () => {
-        const Handle = Slider.Handle;
+        // const Handle = Slider.Handle;
         const handle = props => {
             const { value, dragging, index, ...restProps } = props;
 
@@ -90,38 +90,38 @@ class Question extends React.Component<QuestionInterface, object> {
                     visible={dragging}
                     placement="top"
                     key={index}
-                    >
+                >
                     <Handle value={value} {...restProps} />
                 </Tooltip>
-                );
-            };
+            );
+        };
         return handle;
     }
 
     public renderMultiSelect(question: any) {
-	return (
-	     <Form>
+        return (
+            <Form>
                 <FormGroup tag="fieldset">
-                  <h6><i>{question.survey_question_instruction}</i></h6>
-                  <h4>{question.title}</h4>
-                  <i>{question.instructions}</i>
-	        </FormGroup>
-	    <FormGroup>
-	    <Col sm="12" md={{size:6, offset:3}}>
-	    <Input type="select"
-	    name={question.cde}
-	    onChange={this.handleMultiChange} multiple={true} >
-	    { _.map(question.spec.options, (option, index) => (
-		    <option key={option.code} value={option.code}>
-		    {option.text}
-		    </option>
-	    ))
-	    }
-            </Input>
-	    </Col>
-	    </FormGroup>
-	    </Form>
-	);
+                    <h6><i>{question.survey_question_instruction}</i></h6>
+                    <h4>{question.title}</h4>
+                    <i>{question.instructions}</i>
+                </FormGroup>
+                <FormGroup>
+                    <Col sm="12" md={{ size: 6, offset: 3 }}>
+                        <Input type="select"
+                            name={question.cde}
+                            onChange={this.handleMultiChange} multiple={true} >
+                            {_.map(question.spec.options, (option, index) => (
+                                <option key={option.code} value={option.code}>
+                                    {option.text}
+                                </option>
+                            ))
+                            }
+                        </Input>
+                    </Col>
+                </FormGroup>
+            </Form>
+        );
     }
 
 
@@ -129,24 +129,24 @@ class Question extends React.Component<QuestionInterface, object> {
         const question = this.props.questions[this.props.stage];
         let defaultValue = 0;
         if (question.spec.tag === 'integer') {
-            if(this.props.answers[question.cde] !== undefined) {
+            if (this.props.answers[question.cde] !== undefined) {
                 defaultValue = this.props.answers[question.cde];
             } else {
                 this.onSliderChange(defaultValue);
             }
         }
-        const boxStyle = {width: "100px", height:"100px", backgroundColor: "black"};
-        const pStyle = {color: "white", align: "center"};
-        const style = { width: "50%", height:"50vh", margin:"0 auto", leftPadding: "100px" };
+        const boxStyle = { width: "100px", height: "100px", backgroundColor: "black" };
+        const pStyle = { color: "white", align: "center" };
+        const style = { width: "50%", height: "50vh", margin: "0 auto", leftPadding: "100px" };
         const isLast = (this.props.questions.length - 1) === this.props.stage;
 
         const isConsent = question.cde === "PROMSConsent";
         const consentText = <div>By ticking this box you:
                                 <ul>
-                                    <li>Give consent for the information you provide to be used for the CIC Cancer project; and </li>
-                                    <li>Will receive a reminder when the next survey is due.</li>
-                                </ul>
-                            </div>;
+                <li>Give consent for the information you provide to be used for the CIC Cancer project; and </li>
+                <li>Will receive a reminder when the next survey is due.</li>
+            </ul>
+        </div>;
         const isMultiSelect = question.spec.tag === 'range' && question.spec.allow_multiple;
 
         if (isMultiSelect) {
@@ -182,26 +182,26 @@ class Question extends React.Component<QuestionInterface, object> {
                         :
 
                         isConsent ?
-                        <FormGroup check={true}>
-                            <Label check={true}>
-                                <Input type="checkbox" name={this.props.questions[this.props.stage].cde}
-                                    onChange={this.handleConsent}
-                                    checked={this.props.answers[question.cde]} />
-                                {consentText}
-                            </Label>
-                        </FormGroup>
-                        :
-                        _.map(question.spec.tag==='range' ? question.spec.options : [], (option, index) => (
                             <FormGroup check={true}>
-                                <Col sm="12" md={{ size: 6, offset: 3 }}>
-                                    <Label check={true}>
-                                        <Input type="radio" name={this.props.questions[this.props.stage].cde} value={option.code}
-                                            onChange={this.handleChange}
-                                            checked={option.code === this.props.answers[question.cde]} />{option.text}
-                                    </Label>
-                                </Col>
+                                <Label check={true}>
+                                    <Input type="checkbox" name={this.props.questions[this.props.stage].cde}
+                                        onChange={this.handleConsent}
+                                        checked={this.props.answers[question.cde]} />
+                                    {consentText}
+                                </Label>
                             </FormGroup>
-                        ))
+                            :
+                            _.map(question.spec.tag === 'range' ? question.spec.options : [], (option, index) => (
+                                <FormGroup check={true}>
+                                    <Col sm="12" md={{ size: 6, offset: 3 }}>
+                                        <Label check={true}>
+                                            <Input type="radio" name={this.props.questions[this.props.stage].cde} value={option.code}
+                                                onChange={this.handleChange}
+                                                checked={option.code === this.props.answers[question.cde]} />{option.text}
+                                        </Label>
+                                    </Col>
+                                </FormGroup>
+                            ))
                     )
                 }
             </Form>);
