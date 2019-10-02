@@ -24,6 +24,21 @@ class BadKeyError(Exception):
     pass
 
 
+def catch_and_log_exceptions(func):
+    logger = logging.getLogger(__name__)
+
+    def func_wrapper(*args, **kwargs):
+        try:
+            return func(*args, **kwargs)
+        except Exception as e:
+            import traceback
+            trace_back = traceback.format_exc()
+            message = str(e) + " | " + str(trace_back)
+            logger.error(message)
+            raise e
+    return func_wrapper
+
+
 def get_code(delimited_key):
     return delimited_key.split(settings.FORM_SECTION_DELIMITER)[-1]
 
