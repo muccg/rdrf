@@ -220,8 +220,8 @@ DEV_LDAP_AUTH_GROUP = "Clinical Staff"
 DEV_LDAP_WORKING_GROUP = "RPH"
 # ldap env variables to set in docker compose
 LDAP_ENABLED = env.get("ldap_enabled", False)
-AUTH_LDAP_SERVER_URI = env.get("auth_ldap_server_uri", DEFAULT_LDAP_URL)
-AUTH_LDAP_BIND_DN = env.get("auth_ldap_bind_dn", DEFAULT_LDAP_DN)
+AUTH_LDAP_SERVER_URI = env.get("auth_ldap_server_uri", DEV_LDAP_URL)
+AUTH_LDAP_BIND_DN = env.get("auth_ldap_bind_dn", DEV_LDAP_DN)
 AUTH_LDAP_BIND_PASSWORD = env.get("auth_ldap_bind_password", DEV_LDAP_PASSWORD)
 # enviroment variables prefixed RDRF_ to not conflict with the variables expected by django auth ldap plugin
 RDRF_AUTH_LDAP_BIND_DC = env.get("rdrf_auth_ldap_bind_dc", DEV_LDAP_DC)
