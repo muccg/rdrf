@@ -1,0 +1,66 @@
+dn: ou=people,dc=example,dc=com
+objectClass: organizationalUnit
+ou: people
+
+dn: ou=groups,dc=example,dc=com
+objectClass: organizationalUnit
+ou: groups
+
+dn: cn=cic,ou=groups,dc=example,dc=com
+objectClass: posixGroup
+cn: cic
+gidNumber: 5000
+
+dn: cn=App-MI-CIC-ICHOMCRC,ou=groups,dc=example,dc=com
+objectClass: posixGroup
+cn: App-MI-CIC-ICHOMCRC
+gidNumber: 5006
+
+dn: uid=john,ou=people,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+uid: john
+sn: Doe
+givenName: John
+cn: John Doe
+displayName: John Doe
+uidNumber: 10000
+gidNumber: 5006
+userPassword: password
+gecos: John Doe
+loginShell: /bin/bash
+homeDirectory: /home/john
+Email: john@doe.com
+
+dn: cn=superuser,ou=groups,dc=example,dc=com
+objectClass: posixGroup
+cn: superuser
+gidNumber: 5002
+memberUid: john
+
+
+dn: cn=active,ou=groups,dc=example,dc=com
+objectClass: posixGroup
+cn: active
+gidNumber: 5003
+memberUid: john
+
+
+dn: cn=admin,ou=groups,dc=example,dc=com
+objectClass: posixGroup
+cn: admin
+gidNumber: 5004
+memberUid: john
+
+
+dn: cn=staff,ou=groups,dc=example,dc=com
+objectClass: posixGroup
+cn: staff
+gidNumber: 5005
+memberUid: john
+
+
+
+
+

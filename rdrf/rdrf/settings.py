@@ -1,4 +1,6 @@
 # Django settings for rdrf project.
+from django_auth_ldap.config import LDAPSearch, PosixGroupType
+import ldap
 import os
 # A wrapper around environment which has been populated from
 # /etc/rdrf/rdrf.conf in production. Also does type conversion of values
@@ -14,6 +16,7 @@ SCRIPT_NAME = env.get("script_name", os.environ.get("HTTP_SCRIPT_NAME", ""))
 FORCE_SCRIPT_NAME = env.get("force_script_name", "") or SCRIPT_NAME or None
 
 WEBAPP_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
 
 # General site config
 PRODUCTION = env.get("production", False)
@@ -199,14 +202,59 @@ INSTALLED_APPS = [
 ]
 
 
+# LDAP
+LDAP_ENABLED = env.get("ldap_enabled", False)
+AUTH_LDAP_SERVER_URI = env.get("auth_ldap_server_uri", "ldap://ldap")
+AUTH_LDAP_BIND_DN = env.get("auth_ldap_bind_dn", "cn=admin,dc=example,dc=com")
+AUTH_LDAP_BIND_PASSWORD = env.get("auth_ldap_bind_password", "admin")
+# enviroment variables prefixed RDRF_ to not conflict with the variables expected by django auth ldap plugin
+RDRF_AUTH_LDAP_BIND_DC = env.get("rdrf_auth_ldap_bind_dc", "dc=example,dc=com")
+RDRF_AUTH_LDAP_BIND_GROUP = env.get("rdrf_auth_ldap_bind_group", "ou=groups,dc=example,dc=com")
+RDRF_AUTH_LDAP_FIRST_NAME_ATTR = env.get("rdrf_auth_ldap_first_name_attr", "sn")
+RDRF_AUTH_LDAP_LAST_NAME_ATTR = env.get("rdrf_auth_ldap_last_name_attr", "sn")
+RDRF_AUTH_LDAP_MAIL_ATTR = env.get("rdrf_auth_ldap_mail_attr", "mail")
+RDRF_AUTH_LDAP_IS_ACTIVE_GROUP = env.get("rdrf_auth_ldap_is_active_group", "cn=active,ou=groups,dc=example,dc=com")
+RDRF_AUTH_LDAP_IS_SUPERUSER_GROUP = env.get("rdrf_auth_ldap_is_superuser_group", "cn=superuser,ou=groups,dc=example,dc=com")
+RDRF_AUTH_LDAP_POSTFIXGROUP_ATTR = env.get("rdrf_auth_ldap_postfixgroup_attr", "cn")
+RDRF_AUTH_LDAP_REGISTRY_CODE = env.get("rdrf_auth_ldap_registry_code", "ICHOMCRC")
+RDRF_AUTH_LDAP_AUTH_GROUP = env.get("rdrf_auth_ldap_auth_group", "Clinical Staff")
+RDRF_AUTH_LDAP_WORKING_GROUP = env.get("rdrf_auth_ldap_working_group", "RPH")
+RDRF_AUTH_LDAP_ALLOW_SUPERUSER = env.get("rdrf_auth_ldap_allow_superuser", False)
+RDRF_AUTH_LDAP_FORCE_ISACTIVE = env.get("rdrf_auth_ldap_force_isactive", True)
+RDRF_AUTH_LDAP_REQUIRE_2FA = env.get("rdrf_auth_ldap_require_2fa", False)
+
+
+AUTH_LDAP_USER_ATTR_MAP = {"first_name": RDRF_AUTH_LDAP_FIRST_NAME_ATTR,
+                           "last_name": RDRF_AUTH_LDAP_LAST_NAME_ATTR,
+                           "email": RDRF_AUTH_LDAP_MAIL_ATTR}
+AUTH_LDAP_USER_SEARCH = LDAPSearch(RDRF_AUTH_LDAP_BIND_DC, ldap.SCOPE_SUBTREE, "(uid=%(user)s)")
+
+AUTH_LDAP_USER_FLAGS_BY_GROUP = {}
+
+if RDRF_AUTH_LDAP_ALLOW_SUPERUSER:
+    AUTH_LDAP_USER_FLAGS_BY_GROUP['is_superuser'] = RDRF_AUTH_LDAP_IS_SUPERUSER_GROUP
+
+if not RDRF_AUTH_LDAP_FORCE_ISACTIVE:
+    AUTH_LDAP_USER_FLAGS_BY_GROUP['is_active'] = RDRF_AUTH_LDAP_IS_ACTIVE_GROUP
+
+# Set up the basic group parameters.
+AUTH_LDAP_GROUP_SEARCH = LDAPSearch(RDRF_AUTH_LDAP_BIND_GROUP, ldap.SCOPE_SUBTREE, "(objectClass=posixGroup)")
+AUTH_LDAP_GROUP_TYPE = PosixGroupType(name_attr=RDRF_AUTH_LDAP_POSTFIXGROUP_ATTR)
+# Require group
+AUTH_LDAP_REQUIRE_GROUP = env.get("auth_ldap_require_group", "")
+
 # these determine which authentication method to use
 # apps use modelbackend by default, but can be overridden here
 # see: https://docs.djangoproject.com/en/dev/ref/settings/#authentication-backends
+
 AUTHENTICATION_BACKENDS = [
     'useraudit.password_expiry.AccountExpiryBackend',
     'django.contrib.auth.backends.ModelBackend',
     'useraudit.backend.AuthFailedLoggerBackend',
 ]
+if LDAP_ENABLED:
+    AUTHENTICATION_BACKENDS.insert(0, 'rdrf.auth.ldap_backend.RDRFLDAPBackend')
+
 
 # email
 EMAIL_USE_TLS = env.get("email_use_tls", False)
