@@ -214,17 +214,13 @@ RDRF_AUTH_LDAP_FIRST_NAME_ATTR = env.get("rdrf_auth_ldap_first_name_attr", "sn")
 RDRF_AUTH_LDAP_LAST_NAME_ATTR = env.get("rdrf_auth_ldap_last_name_attr", "sn")
 RDRF_AUTH_LDAP_MAIL_ATTR = env.get("rdrf_auth_ldap_mail_attr", "mail")
 RDRF_AUTH_LDAP_IS_ACTIVE_GROUP = env.get("rdrf_auth_ldap_is_active_group", "cn=active,ou=groups,dc=example,dc=com")
-RDRF_AUTH_LDAP_IS_STAFF_GROUP1 = env.get("rdrf_auth_ldap_is_staff_group1", "cn=staff,ou=groups,dc=example,dc=com")
-RDRF_AUTH_LDAP_IS_STAFF_GROUP2 = env.get("rdrf_auth_ldap_is_staff_group2", "cn=admin,ou=groups,dc=example,dc=com")
 RDRF_AUTH_LDAP_IS_SUPERUSER_GROUP = env.get("rdrf_auth_ldap_is_superuser_group", "cn=superuser,ou=groups,dc=example,dc=com")
 RDRF_AUTH_LDAP_POSTFIXGROUP_ATTR = env.get("rdrf_auth_ldap_postfixgroup_attr", "cn")
-RDRF_AUTH_LDAP_REGISTRY_MODEL = env.get("rdrf_auth_ldap_registry_model", "ICHOMCRC")
+RDRF_AUTH_LDAP_REGISTRY_CODE = env.get("rdrf_auth_ldap_registry_code", "ICHOMCRC")
 RDRF_AUTH_LDAP_AUTH_GROUP = env.get("rdrf_auth_ldap_auth_group", "Clinical Staff")
 RDRF_AUTH_LDAP_WORKING_GROUP = env.get("rdrf_auth_ldap_working_group", "RPH")
 RDRF_AUTH_LDAP_ALLOW_SUPERUSER = env.get("rdrf_auth_ldap_allow_superuser", False)
 RDRF_AUTH_LDAP_FORCE_ISACTIVE = env.get("rdrf_auth_ldap_force_isactive", True)
-RDRF_AUTH_LDAP_ALLOW_STAFF_USER = env.get("rdrf_auth_ldap_allow_staff_user", False)
-RDRF_AUTH_LDAP_USERS_MUST_BE_STAFF = env.get("rdrf_auth_ldap_users_must_be_staff", False)
 RDRF_AUTH_LDAP_REQUIRE_2FA = env.get("rdrf_auth_ldap_require_2fa", False)
 
 
@@ -237,9 +233,6 @@ AUTH_LDAP_USER_FLAGS_BY_GROUP = {}
 
 if RDRF_AUTH_LDAP_ALLOW_SUPERUSER:
     AUTH_LDAP_USER_FLAGS_BY_GROUP['is_superuser'] = RDRF_AUTH_LDAP_IS_SUPERUSER_GROUP
-
-if RDRF_AUTH_LDAP_ALLOW_STAFF_USER and not RDRF_AUTH_LDAP_USERS_MUST_BE_STAFF:
-    AUTH_LDAP_USER_FLAGS_BY_GROUP['is_staff'] = [RDRF_AUTH_LDAP_IS_STAFF_GROUP1, RDRF_AUTH_LDAP_IS_STAFF_GROUP2]
 
 if not RDRF_AUTH_LDAP_FORCE_ISACTIVE:
     AUTH_LDAP_USER_FLAGS_BY_GROUP['is_active'] = RDRF_AUTH_LDAP_IS_ACTIVE_GROUP

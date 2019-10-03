@@ -20,13 +20,12 @@ class RDRFLDAPBackend(LDAPBackend):
 
         from rdrf.models.definition.models import Registry
         from registry.groups.models import WorkingGroup
-        registry_model = Registry.objects.get(code=settings.RDRF_AUTH_LDAP_REGISTRY_MODEL)
+        registry_model = Registry.objects.get(code=settings.RDRF_AUTH_LDAP_REGISTRY_CODE)
         wg = WorkingGroup.objects.get(registry=registry_model,
                                       name=settings.RDRF_AUTH_LDAP_WORKING_GROUP)
 
-        # Check if user must be staff anyway
-        if settings.RDRF_AUTH_LDAP_USERS_MUST_BE_STAFF:
-            user.is_staff = True
+        # User must be staff
+        user.is_staff = True
 
         # Check if 2fa is mandatory
         if settings.RDRF_AUTH_LDAP_REQUIRE_2FA:
