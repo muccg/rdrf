@@ -22,7 +22,7 @@ def _user_is_patient_type(user):
 
 def _security_violation(user, patient_model):
     logger.warning("SECURITY VIOLATION User %s Patient %s" % (user.pk,
-                                                              patient_model.pk))
+                                                              getattr(patient_model, settings.LOG_PATIENT_FIELDNAME)))
     raise PermissionDenied()
 
 

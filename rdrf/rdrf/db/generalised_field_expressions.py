@@ -1,3 +1,4 @@
+from django.conf import settings
 from rdrf.services.io.reporting import report_field_functions
 from registry.patients.models import Patient, PatientAddress
 from rdrf.models.definition.models import ConsentSection, ConsentQuestion
@@ -26,7 +27,7 @@ class GeneralisedFieldExpression(object):
             return self.evaluate(patient_model, mongo_data)
         except Exception as ex:
             logger.error("Error evaluating %s for %s: %s" % (self.__class__.__name__,
-                                                             patient_model.pk,
+                                                             getattr(patient_model, settings.LOG_PATIENT_FIELDNAME),
                                                              ex))
             return "??ERROR??"
 

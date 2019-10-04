@@ -4,6 +4,8 @@ import subprocess
 
 from aloe import world
 
+from django.conf import settings
+
 
 logger = logging.getLogger(__name__)
 
@@ -165,7 +167,7 @@ def show_stats(export_name):
         logger.info("\tregistry = %s" % r)
 
     for p in Patient.objects.all():
-        logger.info("\t\tPatient id %s" % p.id)
+        logger.info("\t\tPatient %s" % getattr(p, settings.LOG_PATIENT_FIELDNAME))
 
 
 def click(element):

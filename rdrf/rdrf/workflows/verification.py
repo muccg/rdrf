@@ -1,6 +1,7 @@
 from explorer.views import Humaniser
 from rdrf.models.verification.models import Annotation
 from registry.patients.models import Patient
+from django.conf import settings
 
 import logging
 logger = logging.getLogger(__name__)
@@ -146,7 +147,8 @@ class VerifiableCDE:
         the cde has changed?
         """
         def carp(msg):
-            logger.info("Annotations Patient %s Context %s CDE %s: %s" % (patient_model.id,
+
+            logger.info("Annotations Patient %s Context %s CDE %s: %s" % (getattr(patient_model, settings.LOG_PATIENT_FIELDNAME),
                                                                           context_model.id,
                                                                           self.cde_model.code,
                                                                           msg))

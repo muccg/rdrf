@@ -3,6 +3,7 @@ from operator import itemgetter
 from itertools import zip_longest
 import logging
 from django.core.files.uploadedfile import InMemoryUploadedFile
+from django.conf import settings
 
 from rdrf.helpers.utils import BadKeyError
 
@@ -760,7 +761,9 @@ class DynamicDataWrapper(object):
             history = self._make_record(registry_code, "history", data=snapshot)
             history.save()
         except Exception as ex:
-            logger.error("Couldn't add to history for patient %s: %s" % (patient_id, ex))
+            from registry.patients.models import Patient
+            patient_model = Patient.objects.get(id=patient_id)
+            logger.error("Couldn't add to history for patient %s: %s" % (getattr(patient_model, settings.LOG_PATIENT_FIELDNAME), ex))
 
     def save_snapshot(self, registry_code, collection_name, form_name=None, form_user=None):
         record = self._get_record(registry_code, collection_name).first()

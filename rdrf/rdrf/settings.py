@@ -385,6 +385,10 @@ else:
 # #
 LOG_DIRECTORY = env.get('log_directory', os.path.join(WEBAPP_ROOT, "log"))
 
+
+# Default LOG patient_model fieldname
+LOG_PATIENT_FIELDNAME = env.get('log_patient_fieldname', 'id')
+
 # Log handlers
 DEFAULT_LOG_HANDLER = ['console', 'file']
 MAILADMIN_LOG_HANDLER = ['mail_admins']
