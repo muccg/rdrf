@@ -282,6 +282,12 @@ if [ "$1" = 'aloe' ]; then
     _aloe "$@"
 fi
 
+# allow execution of a management command
+if [ "$1" = "management-command" ]; then
+    command_line="django-admin.py $2"
+    exec $command_line
+fi
+
 warn "[RUN]: Builtin command not provided [tarball|aloe|runtests|runserver|runserver_plus|uwsgi|uwsgi_local]"
 info "[RUN]: $*"
 
