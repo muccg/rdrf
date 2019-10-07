@@ -203,22 +203,38 @@ INSTALLED_APPS = [
 
 
 # LDAP
+# Default values used by our dev ldap container.
+DEV_LDAP_URL = "ldap://ldap"
+DEV_LDAP_DC = "dc=example,dc=com"
+DEV_LDAP_DN = "cn=admin,dc=example,dc=com"
+DEV_LDAP_GROUP = "ou=groups,dc=example,dc=com"
+DEV_LDAP_IS_ACTIVE_GROUP = "cn=active,ou=groups,dc=example,dc=com"
+DEV_LDAP_IS_SUPERUSER_GROUP = "cn=superuser,ou=groups,dc=example,dc=com"
+DEV_LDAP_PASSWORD = "admin"
+DEV_LDAP_FIRST_NAME_ATTR = "sn"
+DEV_LDAP_LAST_NAME_ATTR = "sn"
+DEV_LDAP_MAIL_ATTR = "mail"
+DEV_LDAP_POSTFIXGROUP_ATTR = "cn"
+DEV_LDAP_REGISTRY_CODE = "ICHOMCRC"
+DEV_LDAP_AUTH_GROUP = "Clinical Staff"
+DEV_LDAP_WORKING_GROUP = "RPH"
+# ldap env variables to set in docker compose
 LDAP_ENABLED = env.get("ldap_enabled", False)
-AUTH_LDAP_SERVER_URI = env.get("auth_ldap_server_uri", "ldap://ldap")
-AUTH_LDAP_BIND_DN = env.get("auth_ldap_bind_dn", "cn=admin,dc=example,dc=com")
-AUTH_LDAP_BIND_PASSWORD = env.get("auth_ldap_bind_password", "admin")
+AUTH_LDAP_SERVER_URI = env.get("auth_ldap_server_uri", DEV_LDAP_URL)
+AUTH_LDAP_BIND_DN = env.get("auth_ldap_bind_dn", DEV_LDAP_DN)
+AUTH_LDAP_BIND_PASSWORD = env.get("auth_ldap_bind_password", DEV_LDAP_PASSWORD)
 # enviroment variables prefixed RDRF_ to not conflict with the variables expected by django auth ldap plugin
-RDRF_AUTH_LDAP_BIND_DC = env.get("rdrf_auth_ldap_bind_dc", "dc=example,dc=com")
-RDRF_AUTH_LDAP_BIND_GROUP = env.get("rdrf_auth_ldap_bind_group", "ou=groups,dc=example,dc=com")
-RDRF_AUTH_LDAP_FIRST_NAME_ATTR = env.get("rdrf_auth_ldap_first_name_attr", "sn")
-RDRF_AUTH_LDAP_LAST_NAME_ATTR = env.get("rdrf_auth_ldap_last_name_attr", "sn")
-RDRF_AUTH_LDAP_MAIL_ATTR = env.get("rdrf_auth_ldap_mail_attr", "mail")
-RDRF_AUTH_LDAP_IS_ACTIVE_GROUP = env.get("rdrf_auth_ldap_is_active_group", "cn=active,ou=groups,dc=example,dc=com")
-RDRF_AUTH_LDAP_IS_SUPERUSER_GROUP = env.get("rdrf_auth_ldap_is_superuser_group", "cn=superuser,ou=groups,dc=example,dc=com")
-RDRF_AUTH_LDAP_POSTFIXGROUP_ATTR = env.get("rdrf_auth_ldap_postfixgroup_attr", "cn")
-RDRF_AUTH_LDAP_REGISTRY_CODE = env.get("rdrf_auth_ldap_registry_code", "ICHOMCRC")
-RDRF_AUTH_LDAP_AUTH_GROUP = env.get("rdrf_auth_ldap_auth_group", "Clinical Staff")
-RDRF_AUTH_LDAP_WORKING_GROUP = env.get("rdrf_auth_ldap_working_group", "RPH")
+RDRF_AUTH_LDAP_BIND_DC = env.get("rdrf_auth_ldap_bind_dc", DEV_LDAP_DC)
+RDRF_AUTH_LDAP_BIND_GROUP = env.get("rdrf_auth_ldap_bind_group", DEV_LDAP_GROUP)
+RDRF_AUTH_LDAP_FIRST_NAME_ATTR = env.get("rdrf_auth_ldap_first_name_attr", DEV_LDAP_FIRST_NAME_ATTR)
+RDRF_AUTH_LDAP_LAST_NAME_ATTR = env.get("rdrf_auth_ldap_last_name_attr", DEV_LDAP_LAST_NAME_ATTR)
+RDRF_AUTH_LDAP_MAIL_ATTR = env.get("rdrf_auth_ldap_mail_attr", DEV_LDAP_MAIL_ATTR)
+RDRF_AUTH_LDAP_IS_ACTIVE_GROUP = env.get("rdrf_auth_ldap_is_active_group", DEV_LDAP_IS_ACTIVE_GROUP)
+RDRF_AUTH_LDAP_IS_SUPERUSER_GROUP = env.get("rdrf_auth_ldap_is_superuser_group", DEV_LDAP_IS_SUPERUSER_GROUP)
+RDRF_AUTH_LDAP_POSTFIXGROUP_ATTR = env.get("rdrf_auth_ldap_postfixgroup_attr", DEV_LDAP_POSTFIXGROUP_ATTR)
+RDRF_AUTH_LDAP_REGISTRY_CODE = env.get("rdrf_auth_ldap_registry_code", DEV_LDAP_REGISTRY_CODE)
+RDRF_AUTH_LDAP_AUTH_GROUP = env.get("rdrf_auth_ldap_auth_group", DEV_LDAP_AUTH_GROUP)
+RDRF_AUTH_LDAP_WORKING_GROUP = env.get("rdrf_auth_ldap_working_group", DEV_LDAP_WORKING_GROUP)
 RDRF_AUTH_LDAP_ALLOW_SUPERUSER = env.get("rdrf_auth_ldap_allow_superuser", False)
 RDRF_AUTH_LDAP_FORCE_ISACTIVE = env.get("rdrf_auth_ldap_force_isactive", True)
 RDRF_AUTH_LDAP_REQUIRE_2FA = env.get("rdrf_auth_ldap_require_2fa", False)
@@ -392,9 +408,11 @@ COMMAND_LOG_HANDLER = ['shell', 'admin_command_file']
 IMPORT_LOG_HANDLER = ['console_simple']
 
 # Add the syslog handler when syslog is enabled.
+DOCKER_HOST_IP = "172.21.0.1"
+DEFAULT_RSYSLOG_PORT = 514
 SYSLOG_ENABLED = env.get("syslog_enabled", False)
-SYSLOG_ADDRESS = env.get("syslog_address", "172.21.0.1")
-SYSLOG_PORT = int(env.get("syslog_port", 514))
+SYSLOG_ADDRESS = env.get("syslog_address", DOCKER_HOST_IP)
+SYSLOG_PORT = int(env.get("syslog_port", DEFAULT_RSYSLOG_PORT))
 if SYSLOG_ENABLED:
     DEFAULT_LOG_HANDLER.append('syslog')
     MAILADMIN_LOG_HANDLER.append('syslog')
