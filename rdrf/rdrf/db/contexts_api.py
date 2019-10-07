@@ -1,6 +1,7 @@
 from rdrf.models.definition.models import Registry
 from rdrf.models.definition.models import RDRFContext
 from django.contrib.contenttypes.models import ContentType
+from django.conf import settings
 
 import logging
 
@@ -47,7 +48,7 @@ class RDRFContextManager(object):
                 return contexts[0]
             else:
                 raise RDRFContextError("Patient %s in %s has more than 1 context" %
-                                       (patient_model, self.registry_model))
+                                       (getattr(patient_model, settings.LOG_PATIENT_FIELDNAME), self.registry_model))
         else:
             default_fixed_context = self.create_fixed_contexts_for_patient(patient_model)
             if default_fixed_context is not None:

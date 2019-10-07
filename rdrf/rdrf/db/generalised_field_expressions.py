@@ -336,13 +336,14 @@ class PatientFieldExpression(GeneralisedFieldExpression):
                     patient_model.save()
                 except WorkingGroup.DoesNotExist:
                     logger.error("Working group %s does not exist" % new_value)
-                    raise Exception("can't update working group on %s" % patient_model)
+                    from django.conf import settings
+                    raise Exception("can't update working group on %s" % getattr(patient_model, settings.LOG_PATIENT_FIELDNAME))
             elif isinstance(new_value, WorkingGroup):
                 patient_model.working_groups.set([new_value])
                 patient_model.save()
             else:
                 logger.error("can't update working group to %s" % new_value)
-                raise Exception("can't update working group on %s" % patient_model)
+                raise Exception("can't update working group on %s" % getattr(patient_model, settings.LOG_PATIENT_FIELDNAME))
 
         else:
             setattr(patient_model, self.field, new_value)
