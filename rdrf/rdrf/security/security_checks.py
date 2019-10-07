@@ -1,6 +1,7 @@
 from registry.patients.models import Patient
 from registry.patients.models import ParentGuardian
 from django.core.exceptions import PermissionDenied
+from django.conf import settings
 import logging
 
 logger = logging.getLogger(__name__)
@@ -22,7 +23,7 @@ def _user_is_patient_type(user):
 
 def _security_violation(user, patient_model):
     logger.warning("SECURITY VIOLATION User %s Patient %s" % (user.pk,
-                                                              patient_model.pk))
+                                                              getattr(patient_model, settings.LOG_PATIENT_FIELDNAME)))
     raise PermissionDenied()
 
 

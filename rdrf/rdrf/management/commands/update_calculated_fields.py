@@ -1,6 +1,7 @@
 import time
 from datetime import datetime
 from django.core.management.base import BaseCommand
+from django.conf import settings
 from rdrf.models.definition.models import ClinicalData, CommonDataElement, RegistryForm, Section, RDRFContext, ContextFormGroupItem
 from registry.patients.models import Patient, DynamicDataWrapper
 from rdrf.helpers.utils import catch_and_log_exceptions
@@ -128,6 +129,7 @@ class Command(BaseCommand):
             patient_option = options.copy()
             # little security to avoid unexpected buggy loop.
             # Do not run additional recalculation if ever we have been doing more than 10 times for the same patient.
+            modified_patient_model = Patient.objects.get(id=modified_patient_id)
             if 'recalculate_step' not in patient_option.keys() or patient_option['recalculate_step'] < 10:
                 patient_option['patient_id'] = [modified_patient_id]
                 # calculate new step value
@@ -136,10 +138,10 @@ class Command(BaseCommand):
                 else:
                     step = patient_option['recalculate_step'] + 1
                 patient_option['recalculate_step'] = step
-                logger.info(f"[RECALCULATING] we are recalculating the patient id {modified_patient_id} - recalculation number: {step} ")
+                logger.info(f"[RECALCULATING] we are recalculating the patient {getattr(modified_patient_model, settings.LOG_PATIENT_FIELDNAME)} - recalculation number: {step} ")
                 self.handle(**patient_option)
             else:
-                logger.error(f"[LIKELY A BUG] We tried to recalculate the patient id {modified_patient_id} more the 10 times. "
+                logger.error(f"[LIKELY A BUG] We tried to recalculate the patient {getattr(modified_patient_model, settings.LOG_PATIENT_FIELDNAME)} more the 10 times. "
                              f"We stopped this patient calculated field update.")
 
 
@@ -165,7 +167,7 @@ def save_new_calculation(changed_calculated_cdes, context_id, form_name, patient
     # save the new form values in the ClinicalData model only when we have one values
     context_model = RDRFContext.objects.get(id=context_id)
     if changed_calculated_cdes:
-        logger.info(f"UPDATING DB: These are the new value of the form/context {changed_calculated_cdes} - registry: {registry_model.code} - patient: {patient_model.id} - form: {form_name} - context: {context_id}")
+        logger.info(f"UPDATING DB: These are the new value of the form/context {changed_calculated_cdes} - registry: {registry_model.code} - patient: {getattr(patient_model, settings.LOG_PATIENT_FIELDNAME)} - form: {form_name} - context: {context_id}")
         for changed_calculated_cde_code in changed_calculated_cdes.keys():
             patient_model.set_form_value(registry_code=registry_model.code,
                                          form_name=form_name,

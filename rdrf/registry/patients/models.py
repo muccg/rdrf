@@ -9,6 +9,7 @@ from django.urls import reverse
 from django.db import models
 from django.db.models.signals import post_save, m2m_changed, post_delete
 from django.dispatch import receiver
+from django.conf import settings
 import pycountry
 
 from rdrf.db.dynamic_data import DynamicDataWrapper
@@ -1072,7 +1073,7 @@ class Patient(models.Model):
             if default_context is not None:
                 context_id = default_context.pk
             else:
-                raise Exception("need context id to get dynamic data for patient %s" % self.pk)
+                raise Exception("need context id to get dynamic data for patient %s" % getattr(self, settings.LOG_PATIENT_FIELDNAME))
 
         wrapper = DynamicDataWrapper(self, rdrf_context_id=context_id)
 
@@ -1092,7 +1093,7 @@ class Patient(models.Model):
             else:
                 raise Exception(
                     "need context id to get update dynamic data for patient %s" %
-                    self.pk)
+                    getattr(self, settings.LOG_PATIENT_FIELDNAME))
 
         wrapper = DynamicDataWrapper(self, rdrf_context_id=context_id)
         # NB warning this completely replaces the existing mongo record for the patient

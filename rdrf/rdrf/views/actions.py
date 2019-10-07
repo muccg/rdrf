@@ -6,6 +6,7 @@ from django.contrib.auth.decorators import login_required
 from django.shortcuts import get_object_or_404
 from django.core.exceptions import PermissionDenied
 from rdrf.helpers.utils import is_authorised
+from django.conf import settings
 
 import logging
 
@@ -41,7 +42,8 @@ class Action:
             try:
                 patient_model = Patient.objects.get(id=patient_id)
                 if not is_authorised(self.user, patient_model):
-                    logger.warning(f"action not authorised for user:{self.user.id} on patient:{patient_model.id}")
+                    patient_logfield = getattr(patient_model, settings.LOG_PATIENT_FIELDNAME)
+                    logger.warning(f"action not authorised for user:{self.user.id} on patient:{patient_logfield}")
                     raise PermissionError
                 else:
                     return patient_model
@@ -124,7 +126,8 @@ class Action:
             raise PermissionDenied
 
         if not patient_model.in_registry(registry_model.code):
-            logger.warning(f"patient {patient_model.id} not in registry supplied")
+            patient_logfield = getattr(patient_model, settings.LOG_PATIENT_FIELDNAME)
+            logger.warning(f"patient {patient_logfield} not in registry supplied")
             raise PermissionDenied
 
         from rdrf.helpers.utils import FormLink

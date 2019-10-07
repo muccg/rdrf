@@ -803,7 +803,7 @@ def is_authorised(user, patient_model):
     if common and not user.is_parent:
         return True
 
-    logger.warning("user %s is not authorised for patient %s" % (user.username, patient_model.pk))
+    logger.warning("user %s is not authorised for patient %s" % (user.username, getattr(patient_model, settings.LOG_PATIENT_FIELDNAME)))
 
     return False
 

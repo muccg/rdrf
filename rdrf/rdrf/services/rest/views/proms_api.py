@@ -11,6 +11,7 @@ from django.views.generic.base import View
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
 from django.shortcuts import render
+from django.conf import settings
 from rest_framework import status
 from rdrf.services.rest.serializers import SurveyAssignmentSerializer
 from rdrf.services.rest.auth import PromsAuthentication
@@ -222,12 +223,12 @@ class PromsProcessor:
                                                                                         context_form_group.name)
                         raise Exception(error_msg)
                 except RDRFContext.DoesNotExist:
-                    error_msg = "Cannot locate context for group %s patient id %s" % (context_form_group,
-                                                                                      patient_model.pk)
+                    error_msg = "Cannot locate context for group %s patient %s" % (context_form_group,
+                                                                                   getattr(patient_model, settings.LOG_PATIENT_FIELDNAME))
                     raise Exception(error_msg)
                 except RDRFContext.MultipleObjectsReturned:
-                    error_msg = "Expecting one context for group %s patient id %s" % (context_form_group,
-                                                                                      patient_model.pk)
+                    error_msg = "Expecting one context for group %s patient %s" % (context_form_group,
+                                                                                   getattr(patient_model, settings.LOG_PATIENT_FIELDNAME))
                     raise Exception(error_msg)
 
             else:
@@ -235,7 +236,7 @@ class PromsProcessor:
                 context_model = patient_model.default_context(self.registry_model)
 
         if context_model is None:
-            raise Exception("cannot determine proms pull context for patient id %s" % patient_model.pk)
+            raise Exception("cannot determine proms pull context for patient %s" % getattr(patient_model, settings.LOG_PATIENT_FIELDNAME))
 
         # Retrieve the cde_path
         cde_paths = {}

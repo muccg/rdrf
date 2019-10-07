@@ -7,6 +7,7 @@ from rdrf.helpers.utils import cached
 from rdrf.db.dynamic_data import DynamicDataWrapper
 from rdrf.models.definition.models import CommonDataElement, ClinicalData
 from rdrf.db.generalised_field_expressions import GeneralisedFieldExpressionParser
+from django.conf import settings
 
 logger = logging.getLogger(__name__)
 
@@ -200,8 +201,10 @@ class SpreadSheetReport:
                     patient_record))
         except Exception as ex:
             patient_id = patient_record["django_id"]
+            from registry.patients.models import Patient
+            patient_model = Patient.objects.get(id=patient_id)
             logger.error("Error getting cde %s/%s/%s for patient %s snapshot: %s" %
-                         (form_model.name, section_model.code, cde_model.code, patient_id, ex))
+                         (form_model.name, section_model.code, cde_model.code, getattr(patient_model, settings.LOG_PATIENT_FIELDNAME), ex))
 
             return "?ERROR?"
 
@@ -373,10 +376,12 @@ class SpreadSheetReport:
         except Exception as ex:
             cde = "%s/%s/%s" % (form_model.name,
                                 section_model.code, cde_model.code)
-            logger.error("Error getting current cde %s for %s: %s" % (cde,
-                                                                      patient_record[
-                                                                          "django_id"],
-                                                                      ex))
+            patient_id = patient_record["django_id"]
+            from registry.patients.models import Patient
+            patient_model = Patient.objects.get(id=patient_id)
+            logger.error("Error getting current cde %s for patient %s: %s" % (cde,
+                                                                              getattr(patient_model, settings.LOG_PATIENT_FIELDNAME),
+                                                                              ex))
             return "??ERROR??"
 
     def _get_snapshots(self, patient):
