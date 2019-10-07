@@ -1,6 +1,7 @@
 from registry.patients.models import Patient
 from registry.patients.models import ParentGuardian
 from django.core.exceptions import PermissionDenied
+from django.conf import settings
 import logging
 
 logger = logging.getLogger(__name__)
