@@ -625,5 +625,7 @@ PROMS_SECRET_TOKEN = env.get("proms_secret_token", "foobar")  # todo set this us
 PROMS_USERNAME = env.get("proms_username", "promsuser")
 PROMS_LOGO = env.get("proms_logo", "")
 
-SESSION_SECURITY_WARN_AFTER = 0
-SESSION_SECURITY_EXPIRE_AFTER = 0
+SESSION_SECURITY_ENABLE = env.get("session_security_enable", False)
+if SESSION_SECURITY_ENABLE:
+    SESSION_SECURITY_WARN_AFTER = env.get("session_security_warn_after", 480)
+    SESSION_SECURITY_EXPIRE_AFTER = env.get("session_security_expire_after", 600)
