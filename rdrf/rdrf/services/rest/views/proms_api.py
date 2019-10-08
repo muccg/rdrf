@@ -268,7 +268,10 @@ class PromsProcessor:
                         # override target_form_model if cde_path exists
                         form_model, section_model = self._locate_cde(cde_model, context_model, target_form_model)
             except BaseException as e:
-                logger.error(f"could not locate cde {cde_code}: {e}")
+                import traceback
+                trace_back = traceback.format_exc()
+                message = str(e) + " | " + str(trace_back)
+                logger.error(f"could not locate cde {cde_code}: {message}")
                 # should fail for now skip
 
                 continue
