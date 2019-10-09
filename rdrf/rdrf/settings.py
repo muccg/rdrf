@@ -255,7 +255,8 @@ if not RDRF_AUTH_LDAP_FORCE_ISACTIVE:
     AUTH_LDAP_USER_FLAGS_BY_GROUP['is_active'] = RDRF_AUTH_LDAP_IS_ACTIVE_GROUP
 
 # Set up the basic group parameters.
-AUTH_LDAP_GROUP_SEARCH = LDAPSearch(RDRF_AUTH_LDAP_BIND_GROUP, ldap.SCOPE_SUBTREE, "(objectClass=posixGroup)")
+AUTH_LDAP_GROUP_SEARCH_OBJECTCLASS = env.get("auth_ldap_user_search_attr", "posixGroup")
+AUTH_LDAP_GROUP_SEARCH = LDAPSearch(RDRF_AUTH_LDAP_BIND_GROUP, ldap.SCOPE_SUBTREE, f"(objectClass={AUTH_LDAP_GROUP_SEARCH_OBJECTCLASS})")
 AUTH_LDAP_GROUP_TYPE = PosixGroupType(name_attr=RDRF_AUTH_LDAP_POSTFIXGROUP_ATTR)
 # Require group
 AUTH_LDAP_REQUIRE_GROUP = env.get("auth_ldap_require_group", "")
