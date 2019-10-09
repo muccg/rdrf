@@ -243,7 +243,8 @@ RDRF_AUTH_LDAP_REQUIRE_2FA = env.get("rdrf_auth_ldap_require_2fa", False)
 AUTH_LDAP_USER_ATTR_MAP = {"first_name": RDRF_AUTH_LDAP_FIRST_NAME_ATTR,
                            "last_name": RDRF_AUTH_LDAP_LAST_NAME_ATTR,
                            "email": RDRF_AUTH_LDAP_MAIL_ATTR}
-AUTH_LDAP_USER_SEARCH = LDAPSearch(RDRF_AUTH_LDAP_BIND_DC, ldap.SCOPE_SUBTREE, "(uid=%(user)s)")
+AUTH_LDAP_USER_SEARCH_ATTR = env.get("auth_ldap_user_search_attr", "uid")
+AUTH_LDAP_USER_SEARCH = LDAPSearch(RDRF_AUTH_LDAP_BIND_DC, ldap.SCOPE_SUBTREE, f"({AUTH_LDAP_USER_SEARCH_ATTR}=%(user)s)")
 
 AUTH_LDAP_USER_FLAGS_BY_GROUP = {}
 
