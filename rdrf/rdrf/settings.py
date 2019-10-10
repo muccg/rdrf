@@ -224,6 +224,9 @@ DEV_LDAP_GROUP_TYPE_ATTR = "cn"
 DEV_LDAP_REGISTRY_CODE = "ICHOMCRC"
 DEV_LDAP_AUTH_GROUP = "Clinical Staff"
 DEV_LDAP_WORKING_GROUP = "RPH"
+DEV_LDAP_GROUP_PERMS = False
+DEV_LDAP_CACHE_GROUPS = False
+DEV_LDAP_CACHE_TIMEOUT = 1  # Default to 1 hour.
 
 # these enviroment variables are prefixed RDRF_ to not conflict with the variables expected by LDAP auth middleware.
 RDRF_AUTH_LDAP_BIND_DC = env.get("rdrf_auth_ldap_bind_dc", DEV_LDAP_DC)
@@ -240,7 +243,7 @@ RDRF_AUTH_LDAP_WORKING_GROUP = env.get("rdrf_auth_ldap_working_group", DEV_LDAP_
 RDRF_AUTH_LDAP_ALLOW_SUPERUSER = env.get("rdrf_auth_ldap_allow_superuser", False)
 RDRF_AUTH_LDAP_FORCE_ISACTIVE = env.get("rdrf_auth_ldap_force_isactive", True)
 RDRF_AUTH_LDAP_REQUIRE_2FA = env.get("rdrf_auth_ldap_require_2fa", False)
-RDRF_AUTH_LDAP_GROUP_SEARCH_TYPE = env.get("rdrf_auth_ldap_group_search_objectclass", "posix")
+RDRF_AUTH_LDAP_GROUP_SEARCH_TYPE = env.get("rdrf_auth_ldap_group_search_type", "posix")
 RDRF_AUTH_LDAP_GROUP_SEARCH_FIELD = env.get("rdrf_auth_ldap_group_search_field", "objectClass")
 RDRF_AUTH_LDAP_GROUP_SEARCH_FIELD_VALUE = env.get("rdrf_auth_ldap_group_search_field_value", "posixGroup")
 RDRF_AUTH_LDAP_USER_SEARCH_ATTR = env.get("rdrf_auth_ldap_user_search_attr", "uid")
@@ -273,10 +276,13 @@ AUTH_LDAP_GROUP_SEARCH = LDAPSearch(RDRF_AUTH_LDAP_BIND_GROUP, ldap.SCOPE_SUBTRE
                                     f"({RDRF_AUTH_LDAP_GROUP_SEARCH_FIELD}={RDRF_AUTH_LDAP_GROUP_SEARCH_FIELD_VALUE})")
 if RDRF_AUTH_LDAP_GROUP_SEARCH_TYPE == "posix":
     AUTH_LDAP_GROUP_TYPE = PosixGroupType(name_attr=RDRF_AUTH_LDAP_GROUP_TYPE_ATTR)
-elif RDRF_UTH_LDAP_GROUP_SEARCH_TYPE == "groupofnames":
+elif RDRF_AUTH_LDAP_GROUP_SEARCH_TYPE == "groupofnames":
     AUTH_LDAP_GROUP_TYPE = GroupOfNamesType()
 elif RDRF_AUTH_LDAP_GROUP_SEARCH_TYPE == "activedirectory":
     AUTH_LDAP_GROUP_TYPE = ActiveDirectoryGroupType(name_attr=RDRF_AUTH_LDAP_GROUP_TYPE_ATTR)
+AUTH_LDAP_FIND_GROUP_PERMS = env.get("auth_ldap_find_group_perms", DEV_LDAP_GROUP_PERMS)
+AUTH_LDAP_CACHE_GROUPS = env.get("auth_ldap_cache_groups", DEV_LDAP_CACHE_GROUPS)
+AUTH_LDAP_GROUP_CACHE_TIMEOUT = env.get("auth_ldap_group_cache_timeout", DEV_LDAP_CACHE_TIMEOUT)
 
 # Security: set required LDAP group (user must be in this LDAP group to login in RDRF)
 AUTH_LDAP_REQUIRE_GROUP = env.get("auth_ldap_require_group", "")
