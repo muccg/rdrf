@@ -1,5 +1,8 @@
 # Django settings for rdrf project.
-from django_auth_ldap.config import LDAPSearch, PosixGroupType
+from django_auth_ldap.config import LDAPSearch
+from django_auth_ldap.config import PosixGroupType
+from django_auth_ldap.config import GroupOfNamesType
+from django_auth_ldap.config import ActiveDirectoryGroupType
 import ldap
 import os
 # A wrapper around environment which has been populated from
@@ -244,7 +247,8 @@ AUTH_LDAP_USER_ATTR_MAP = {"first_name": RDRF_AUTH_LDAP_FIRST_NAME_ATTR,
                            "last_name": RDRF_AUTH_LDAP_LAST_NAME_ATTR,
                            "email": RDRF_AUTH_LDAP_MAIL_ATTR}
 AUTH_LDAP_USER_SEARCH_ATTR = env.get("auth_ldap_user_search_attr", "uid")
-AUTH_LDAP_USER_SEARCH = LDAPSearch(RDRF_AUTH_LDAP_BIND_DC, ldap.SCOPE_SUBTREE, f"({AUTH_LDAP_USER_SEARCH_ATTR}=%(user)s)")
+AUTH_LDAP_USER_SEARCH = LDAPSearch(RDRF_AUTH_LDAP_BIND_DC, ldap.SCOPE_SUBTREE,
+                                   f"({AUTH_LDAP_USER_SEARCH_ATTR}=%(user)s)")
 
 AUTH_LDAP_USER_FLAGS_BY_GROUP = {}
 
@@ -255,9 +259,19 @@ if not RDRF_AUTH_LDAP_FORCE_ISACTIVE:
     AUTH_LDAP_USER_FLAGS_BY_GROUP['is_active'] = RDRF_AUTH_LDAP_IS_ACTIVE_GROUP
 
 # Set up the basic group parameters.
-AUTH_LDAP_GROUP_SEARCH_OBJECTCLASS = env.get("auth_ldap_group_search_objectclass", "posixGroup")
-AUTH_LDAP_GROUP_SEARCH = LDAPSearch(RDRF_AUTH_LDAP_BIND_GROUP, ldap.SCOPE_SUBTREE, f"(objectClass={AUTH_LDAP_GROUP_SEARCH_OBJECTCLASS})")
-AUTH_LDAP_GROUP_TYPE = PosixGroupType(name_attr=RDRF_AUTH_LDAP_POSTFIXGROUP_ATTR)
+AUTH_LDAP_GROUP_SEARCH_FIELD = env.get("auth_ldap_group_search_field", "objectClass")
+
+AUTH_LDAP_GROUP_SEARCH_FIELD_VALUE = env.get("auth_ldap_group_search_field_value", "posixGroup")
+
+AUTH_LDAP_GROUP_SEARCH = LDAPSearch(RDRF_AUTH_LDAP_BIND_GROUP, ldap.SCOPE_SUBTREE,
+                                    f"({AUTH_LDAP_GROUP_SEARCH_FIELD}={AUTH_LDAP_GROUP_SEARCH_FIELD_VALUE})")
+
+if AUTH_LDAP_GROUP_SEARCH_OBJECTCLASS == "posixGroup":
+    AUTH_LDAP_GROUP_TYPE = PosixGroupType(name_attr=RDRF_AUTH_LDAP_POSTFIXGROUP_ATTR)
+elif AUTH_LDAP_GROUP_SEARCH_OBJECTCLASS == "groupOfNames":
+    AUTH_LDAP_GROUP_TYPE = GroupOfNamesType()
+
+
 # Require group
 AUTH_LDAP_REQUIRE_GROUP = env.get("auth_ldap_require_group", "")
 
