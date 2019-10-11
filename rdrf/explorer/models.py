@@ -289,7 +289,7 @@ class Query(models.Model):
                 raise ValidationError("Report Config Errors: %s" % error_string)
 
         # Check for dangereous sql queries.
-        securityerrors = check_suspicious_sql(self.sql_query, 'unknown')
+        securityerrors = check_suspicious_sql(self.sql_query, self.created_by)
         if securityerrors:
             error_msg = ' | '.join(securityerrors)
             raise ValidationError(f"{error_msg}")
