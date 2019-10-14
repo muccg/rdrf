@@ -26,18 +26,7 @@ class Command(BaseCommand):
         modified_patients = []
 
         if options['man']:
-            print("-----------------------------\n")
-            print("WHAT DOES IT DO?\n")
-            print("-----------------------------\n")
-            print("This admin command displays the form names, section codes and cde codes that are causing RDRF to crash.\n")
-            print("\n-----------------------------\n")
-            print("WHY DOES THE PROBLEM OCCUR?\n")
-            print("-----------------------------\n")
-            print("This situation happens when designers edit form names and section/cde codes. Our code logic does not erase or update the ClinicalData under these names and codes, causing the site to crash.\n")
-            print("\n-----------------------------\n")
-            print("WHAT SHOULD YOU DO?\n")
-            print("-----------------------------\n")
-            print("Till we update the edit code logic, you must create a script updating or removing these obsolete ClinicalData data.\n")
+            self.display_help()
             exit(1)
 
         bad_codes = get_bad_codes()
@@ -63,6 +52,20 @@ class Command(BaseCommand):
                 self.stdout.write(self.style.ERROR(f"CDEs"))
                 self.stdout.write(self.style.ERROR(f"{bad_codes['cde_codes']}"))
                 self.stdout.write(self.style.ERROR(f""))
+
+    def display_help(self):
+        print("-----------------------------\n")
+        print("WHAT DOES IT DO?\n")
+        print("-----------------------------\n")
+        print("This admin command displays the form names, section codes and cde codes that are causing RDRF to crash.\n")
+        print("\n-----------------------------\n")
+        print("WHY DOES THE PROBLEM OCCUR?\n")
+        print("-----------------------------\n")
+        print("This situation happens when designers edit form names and section/cde codes. Our code logic does not erase or update the ClinicalData under these names and codes, causing the site to crash.\n")
+        print("\n-----------------------------\n")
+        print("WHAT SHOULD YOU DO?\n")
+        print("-----------------------------\n")
+        print("Till we update the edit code logic, you must create a script updating or removing these obsolete ClinicalData data.\n")
 
 
 def get_bad_codes():
