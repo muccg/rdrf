@@ -1,6 +1,5 @@
 import time
 import json
-from datetime import datetime
 from django.core.management.base import BaseCommand
 from rdrf.helpers.utils import catch_and_log_exceptions
 from rdrf.models.definition.models import ClinicalData, RegistryForm, CommonDataElement, Section
@@ -34,7 +33,6 @@ class Command(BaseCommand):
     @catch_and_log_exceptions
     def handle(self, *args, **options):
         start = time.time()
-        modified_patients = []
 
         print("Detecting form/section/cde codes that are in the ClinicalData data but does not exists anymore...\n")
 
