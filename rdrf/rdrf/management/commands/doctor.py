@@ -1,4 +1,5 @@
 import time
+import json
 from datetime import datetime
 from django.core.management.base import BaseCommand
 from rdrf.helpers.utils import catch_and_log_exceptions
@@ -17,6 +18,8 @@ class Command(BaseCommand):
     help = 'Doctor checkes the database or code health.'
 
     display_users = False
+
+    users_listing = []
 
     def add_arguments(self, parser):
         parser.add_argument('--man', action='store_true',
@@ -45,6 +48,10 @@ class Command(BaseCommand):
 
         if not self.display_users:
             self.display_bad_codes(bad_codes)
+
+        if options['json']:
+            print("")
+            print(json.dumps(self.users_listing))
 
         end = time.time()
         print("")
@@ -110,44 +117,46 @@ class Command(BaseCommand):
         clinicaldatas = ClinicalData.objects.all()
         for clinicaldata in clinicaldatas:
             if clinicaldata.collection == "history":
-
                 bad_codes = self.get_bad_codes_from_collection(clinicaldata.data, form_names, section_codes, cde_codes, bad_codes)
 
         return bad_codes
 
     def get_bad_codes_from_collection(self, collection_cdes_data, form_names, section_codes, cde_codes, bad_codes):
         patient_id = collection_cdes_data['django_id']
+        context_id = collection_cdes_data['context_id']
         for form in collection_cdes_data['record']['forms']:
             if form["name"] not in form_names and form["name"] not in bad_codes["form_names"]:
                 if self.display_users:
-                    self.display_user_row(patient_id, "form", form["name"])
+                    self.users_listing.append(self.display_user_row(patient_id, "form", form["name"]))
                 bad_codes["form_names"].append(form["name"])
             for section in form["sections"]:
                 if section["code"] not in section_codes and section["code"] not in bad_codes["section_codes"]:
                     if self.display_users:
-                        self.display_user_row(patient_id, "section", section["code"])
+                        self.users_listing.append(self.display_user_row(patient_id, "section", section["code"]))
                     bad_codes["section_codes"].append(section["code"])
                 if section["allow_multiple"]:
                     for sub_cdes in section["cdes"]:
                         for cde in sub_cdes:
                             if cde["code"] not in cde_codes and cde["code"] not in bad_codes["cde_codes"]:
                                 if self.display_users:
-                                    self.display_user_row(patient_id, "cde", cde["code"], cde["value"])
+                                    self.users_listing.append(self.display_user_row(patient_id, "cde", cde["code"], cde["value"]))
                                 bad_codes["cde_codes"].append(cde["code"])
                 else:
                     for cde in section["cdes"]:
                         if cde["code"] not in cde_codes and cde["code"] not in bad_codes["cde_codes"]:
                             if self.display_users:
-                                self.display_user_row(patient_id, "cde", cde["code"], cde["value"])
+                                self.users_listing.append(self.display_user_row(patient_id, "cde", cde["code"], cde["value"]))
                             bad_codes["cde_codes"].append(cde["code"])
         return bad_codes
 
     def display_user_row(self, patient_id, element, code, value='RDRF_NOT_SET_display_user_row'):
-        patient_id = "{:<10}".format(patient_id)
-        element = "{:<9}".format(element)
-        code = "{:<25}".format(code)
+        formatted_patient_id = "{:<10}".format(patient_id)
+        formatted_element = "{:<9}".format(element)
+        formatted_code = "{:<25}".format(code)
 
         if value != "RDRF_NOT_SET_display_user_row":
-            self.stdout.write(self.style.ERROR(f"{patient_id} | {element} | {code} | {value}"))
+            self.stdout.write(self.style.ERROR(f"{formatted_patient_id} | {formatted_element} | {formatted_code} | {value}"))
+            return {"patient_id": patient_id, "type": element, "code": code, "value": value}
         else:
-            self.stdout.write(self.style.ERROR(f"{patient_id} | {element} | {code} |"))
+            self.stdout.write(self.style.ERROR(f"{formatted_patient_id} | {formatted_element} | {formatted_code} |"))
+            return {"patient_id": patient_id, "type": element, "code": code}
