@@ -9,6 +9,7 @@ def production(request):
 def common_settings(request):
     return {
         'ACCOUNT_SELF_UNLOCK_ENABLED': settings.ACCOUNT_SELF_UNLOCK_ENABLED,
+        'enable_pwd_change': settings.ENABLE_PWD_CHANGE
     }
 
 
