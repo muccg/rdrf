@@ -177,8 +177,11 @@
                                 <li><a href="{% url 'parent_edit' registry_code parent.id %}"><span class="glyphicon glyphicon-wrench"></span>
                                         {% trans "Account" %}</a></li>
                                 {% endif %}
-                                <li><a href="{% url 'password_change' %}"><span class="glyphicon glyphicon-random"></span>
+                                {% if enable_pwd_change %}
+                                <li><a href="{% url 'password_change' %}"><span
+                                            class="glyphicon glyphicon-random"></span>
                                         {% trans "Change Password" %}</a></li>
+                                {% endif %}
                                 {% if user.is_verified %}
                                 <li><a href="{% url 'two_factor:disable' %}"><span class="glyphicon glyphicon-remove"></span>
                                         {% trans "Disable two-factor auth" %}</a></li>
