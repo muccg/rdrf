@@ -483,6 +483,8 @@ class Importer(object):
             create_permission("rdrf", "registryform", permission_code_name, permission_name)
 
             f.name = frm_map["name"]
+            if "display_name" in frm_map:
+                f.display_name = frm_map["display_name"]
             if "header" in frm_map:
                 f.header = frm_map["header"]
             else:
