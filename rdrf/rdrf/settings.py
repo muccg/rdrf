@@ -650,3 +650,6 @@ AUTH_PASSWORD_VALIDATORS = [{
 PROMS_SECRET_TOKEN = env.get("proms_secret_token", "foobar")  # todo set this us in env etc
 PROMS_USERNAME = env.get("proms_username", "promsuser")
 PROMS_LOGO = env.get("proms_logo", "")
+
+# Enable user password change
+ENABLE_PWD_CHANGE = env.get("enable_pwd_change", True)
