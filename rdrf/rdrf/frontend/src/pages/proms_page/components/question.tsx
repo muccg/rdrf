@@ -173,7 +173,7 @@ class Question extends React.Component<QuestionInterface, object> {
         </div>;
         const isMultiSelect = (question.spec && question.spec.tag === 'range') && question.spec.allow_multiple;
 
-        if (question.datatype === "string") {
+        if ((question.tag === "cond" && question.spec == null) || question.datatype === "string") {
             return this.renderInput(question);
         }
 
