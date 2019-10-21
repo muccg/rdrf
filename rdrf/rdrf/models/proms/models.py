@@ -309,7 +309,7 @@ class SurveyRequest(models.Model):
                 try:
                     # As we don't know how friendly the message needs to be, admin can pick the name format.
                     template_data = {
-                        "display_name": self.patient.display_name,
+                        "display_name": f"{self.patient.given_names} {self.patient.family_name}",
                         "combined_name": self.patient.combined_name,
                         "given_names": self.patient.given_names,
                         "family_name": self.patient.family_name,
