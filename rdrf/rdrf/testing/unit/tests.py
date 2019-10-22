@@ -1743,6 +1743,7 @@ class ClinicalDataTestCase(RDRFTestCase):
         self.assertEqual(clinicaldata_model2.active, True)
         self.assertEqual(patient_model2.id, clinicaldata_model2.django_id)
 
+
 class UpdateCalculatedFieldsTestCase(FormTestCase):
 
     def setUp(self):
@@ -1791,39 +1792,38 @@ class UpdateCalculatedFieldsTestCase(FormTestCase):
             mongo_record) == 20
 
         # Change the CDE value and save it.
-        changed_calculated_cdes= {"CDEAge": {"old_value": 20, "new_value": 21, "section_code": "sectionA"}}
+        changed_calculated_cdes = {"CDEAge": {"old_value": 20, "new_value": 21, "section_code": "sectionA"}}
         from rdrf.management.commands.update_calculated_fields import save_new_calculation
         save_new_calculation(changed_calculated_cdes, self.context_id, self.simple_form.name, self.patient, self.registry)
 
         # Check that the CDE value has been updated.
         mongo_record = collection.find(self.patient, self.context_id).data().first()
 
-        CDEAge_value =  self.form_value(
+        cdeage_value = self.form_value(
             self.simple_form.name,
             self.sectionA.code,
             "CDEAge",
-            mongo_record) 
-        self.assertEqual(CDEAge_value, 21)
+            mongo_record)
+        self.assertEqual(cdeage_value, 21)
 
     def test_update_calculated_fields_command(self):
 
         # Check the CDE value is correctly setup.
         collection = ClinicalData.objects.collection(self.registry.code, "cdes")
         mongo_record = collection.find(self.patient, self.context_id).data().first()
-        CDEBMI_value = self.form_value(
+        cdebmi_value = self.form_value(
             self.simple_form.name,
             self.sectionB.code,
             "CDEBMI",
             mongo_record)
-        self.assertEqual(CDEBMI_value, "38")
+        self.assertEqual(cdebmi_value, "38")
 
-        call_command('update_calculated_fields', registry_code=self.registry.code, patient_id=[self.patient.id])    
+        call_command('update_calculated_fields', registry_code=self.registry.code, patient_id=[self.patient.id])
 
         mongo_record = collection.find(self.patient, self.context_id).data().first()
-        CDEBMI_value =  self.form_value(
+        cdebmi_value = self.form_value(
             self.simple_form.name,
             self.sectionB.code,
             "CDEBMI",
-            mongo_record) 
-        self.assertEqual(CDEBMI_value, "25.96")
-
+            mongo_record)
+        self.assertEqual(cdebmi_value, "25.96")
