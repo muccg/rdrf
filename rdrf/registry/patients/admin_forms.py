@@ -246,7 +246,7 @@ class PatientForm(forms.ModelForm):
 
                     if readonly and not hidden:
                         if field in ["date_of_birth", "date_of_death", "date_of_migration"]:
-                            self.fields[field].widget = forms.DateInput(attrs={'class': 'datepicker', 'readonly': 'readonly'}, format='%d-%m-%Y')
+                            self.fields[field].widget = forms.DateInput(attrs={'readonly': 'readonly', 'datepicker': 'true'}, format='%d-%m-%Y')
                         else:
                             self.fields[field].widget = forms.TextInput(attrs={'readonly': 'readonly'})
 
