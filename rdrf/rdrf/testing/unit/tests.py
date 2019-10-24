@@ -1749,8 +1749,8 @@ class UpdateCalculatedFieldsTestCase(FormTestCase):
     def setUp(self):
         super().setUp()
 
-        def form_value(form_name, section_code, cde_code, mongo_record):
-            for form in mongo_record["forms"]:
+        def form_value(form_name, section_code, cde_code, db_record):
+            for form in db_record["forms"]:
                 if form["name"] == form_name:
                     for section in form["sections"]:
                         if section["code"] == section_code:
@@ -1784,12 +1784,12 @@ class UpdateCalculatedFieldsTestCase(FormTestCase):
     def test_save_new_calculation(self):
         # Check the CDE value is correctly setup.
         collection = ClinicalData.objects.collection(self.registry.code, "cdes")
-        mongo_record = collection.find(self.patient, self.context_id).data().first()
+        db_record = collection.find(self.patient, self.context_id).data().first()
         assert self.form_value(
             self.simple_form.name,
             self.sectionA.code,
             "CDEAge",
-            mongo_record) == 20
+            db_record) == 20
 
         # Change the CDE value and save it.
         changed_calculated_cdes = {"CDEAge": {"old_value": 20, "new_value": 21, "section_code": "sectionA"}}
@@ -1797,33 +1797,33 @@ class UpdateCalculatedFieldsTestCase(FormTestCase):
         save_new_calculation(changed_calculated_cdes, self.context_id, self.simple_form.name, self.patient, self.registry)
 
         # Check that the CDE value has been updated.
-        mongo_record = collection.find(self.patient, self.context_id).data().first()
+        db_record = collection.find(self.patient, self.context_id).data().first()
 
         cdeage_value = self.form_value(
             self.simple_form.name,
             self.sectionA.code,
             "CDEAge",
-            mongo_record)
+            db_record)
         self.assertEqual(cdeage_value, 21)
 
     def test_update_calculated_fields_command(self):
 
         # Check the CDE value is correctly setup.
         collection = ClinicalData.objects.collection(self.registry.code, "cdes")
-        mongo_record = collection.find(self.patient, self.context_id).data().first()
+        db_record = collection.find(self.patient, self.context_id).data().first()
         cdebmi_value = self.form_value(
             self.simple_form.name,
             self.sectionB.code,
             "CDEBMI",
-            mongo_record)
+            db_record)
         self.assertEqual(cdebmi_value, "38")
 
         call_command('update_calculated_fields', registry_code=self.registry.code, patient_id=[self.patient.id])
 
-        mongo_record = collection.find(self.patient, self.context_id).data().first()
+        db_record = collection.find(self.patient, self.context_id).data().first()
         cdebmi_value = self.form_value(
             self.simple_form.name,
             self.sectionB.code,
             "CDEBMI",
-            mongo_record)
+            db_record)
         self.assertEqual(cdebmi_value, "25.96")
