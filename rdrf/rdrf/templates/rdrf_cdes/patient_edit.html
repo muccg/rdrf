@@ -425,4 +425,10 @@
             </div>
         </form>
     </div>
+    <script>
+        $(document).on('focus', 'input[datepicker="true"][readonly="readonly"]', function () {
+            event.preventDefault();
+            event.stopPropagation();
+        });
+    </script>
 {% endblock %}
