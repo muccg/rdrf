@@ -637,7 +637,7 @@ class FormTestCase(RDRFTestCase):
         self.sectionA = self.create_section(
             "sectionA", "Simple Section A", ["CDEName", "CDEAge"])
         self.sectionB = self.create_section(
-            "sectionB", "Simple Section B", ["CDEHeight", "CDEWeight"])
+            "sectionB", "Simple Section B", ["CDEHeight", "CDEWeight", "CDEBMI"])
         # A multi allowed section with no file cdes
         self.sectionC = self.create_section(
             "sectionC", "MultiSection No Files Section C", ["CDEName", "CDEAge"], True)
@@ -1742,3 +1742,88 @@ class ClinicalDataTestCase(RDRFTestCase):
         self.assertEqual(patient_model2.active, True)
         self.assertEqual(clinicaldata_model2.active, True)
         self.assertEqual(patient_model2.id, clinicaldata_model2.django_id)
+
+
+class UpdateCalculatedFieldsTestCase(FormTestCase):
+
+    def setUp(self):
+        super().setUp()
+
+        def form_value(form_name, section_code, cde_code, db_record):
+            for form in db_record["forms"]:
+                if form["name"] == form_name:
+                    for section in form["sections"]:
+                        if section["code"] == section_code:
+                            for cde in section["cdes"]:
+                                if cde["code"] == cde_code:
+                                    return cde["value"]
+        self.form_value = form_value
+
+        from rdrf.management.commands.update_calculated_fields import context_ids_for_patient_and_form
+        context_ids = context_ids_for_patient_and_form(self.patient, self.simple_form.name, self.registry)
+        self.context_id = context_ids[0]
+
+        ff = FormFiller(self.simple_form)
+        ff.sectionA.CDEName = "Fred"
+        ff.sectionA.CDEAge = 20
+        ff.sectionB.CDEHeight = 1.82
+        ff.sectionB.CDEWeight = 86.0
+        ff.sectionB.CDEBMI = 38
+
+        form_data = ff.data
+        request = self._create_request(self.simple_form, form_data)
+        view = FormView()
+        view.request = request
+        view.post(
+            request,
+            self.registry.code,
+            self.simple_form.pk,
+            self.patient.pk,
+            self.context_id)
+
+    def test_save_new_calculation(self):
+        # Check the CDE value is correctly setup.
+        collection = ClinicalData.objects.collection(self.registry.code, "cdes")
+        db_record = collection.find(self.patient, self.context_id).data().first()
+        assert self.form_value(
+            self.simple_form.name,
+            self.sectionA.code,
+            "CDEAge",
+            db_record) == 20
+
+        # Change the CDE value and save it.
+        changed_calculated_cdes = {"CDEAge": {"old_value": 20, "new_value": 21, "section_code": "sectionA"}}
+        from rdrf.management.commands.update_calculated_fields import save_new_calculation
+        save_new_calculation(changed_calculated_cdes, self.context_id, self.simple_form.name, self.patient, self.registry)
+
+        # Check that the CDE value has been updated.
+        db_record = collection.find(self.patient, self.context_id).data().first()
+
+        cdeage_value = self.form_value(
+            self.simple_form.name,
+            self.sectionA.code,
+            "CDEAge",
+            db_record)
+        self.assertEqual(cdeage_value, 21)
+
+    def test_update_calculated_fields_command(self):
+
+        # Check the CDE value is correctly setup.
+        collection = ClinicalData.objects.collection(self.registry.code, "cdes")
+        db_record = collection.find(self.patient, self.context_id).data().first()
+        cdebmi_value = self.form_value(
+            self.simple_form.name,
+            self.sectionB.code,
+            "CDEBMI",
+            db_record)
+        self.assertEqual(cdebmi_value, "38")
+
+        call_command('update_calculated_fields', registry_code=self.registry.code, patient_id=[self.patient.id])
+
+        db_record = collection.find(self.patient, self.context_id).data().first()
+        cdebmi_value = self.form_value(
+            self.simple_form.name,
+            self.sectionB.code,
+            "CDEBMI",
+            db_record)
+        self.assertEqual(cdebmi_value, "25.96")
