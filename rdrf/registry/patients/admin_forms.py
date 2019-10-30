@@ -236,10 +236,19 @@ class PatientForm(forms.ModelForm):
                             pass
 
                     if hidden:
-                        self.fields[field].widget = forms.HiddenInput()
-                        self.fields[field].label = ""
+                        if field in ["date_of_birth", "date_of_death", "date_of_migration"]:
+                            self.fields[field].widget = forms.DateInput(attrs={'class': 'datepicker', 'style': 'display:none;'}, format='%d-%m-%Y')
+                            self.fields[field].label = ""
+                            self.fields[field].help_text = ""
+                        else:
+                            self.fields[field].widget = forms.HiddenInput()
+                            self.fields[field].label = ""
+
                     if readonly and not hidden:
-                        self.fields[field].widget = forms.TextInput(attrs={'readonly': 'readonly'})
+                        if field in ["date_of_birth", "date_of_death", "date_of_migration"]:
+                            self.fields[field].widget = forms.DateInput(attrs={'class': 'datepicker', 'readonly': 'readonly'}, format='%d-%m-%Y')
+                        else:
+                            self.fields[field].widget = forms.TextInput(attrs={'readonly': 'readonly'})
 
         if self._is_adding_patient(kwargs):
             self._setup_add_form()
