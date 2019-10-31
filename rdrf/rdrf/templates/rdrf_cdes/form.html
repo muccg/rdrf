@@ -11,8 +11,7 @@
 {% load static %}
 {% load i18n admin_urls admin_static admin_modify %}
 {% load translate %}
-{%  load is_abnormal %}
-
+{% load is_abnormal %}
 
 {% block extrastyle %}
     {{ block.super }}
@@ -246,7 +245,7 @@
 	<div class="btn-group" role="group" aria-label="...">
 		<button id="submit-btn" type="submit" class="btn btn-success" value="Save">
 			<span class="glyphicon glyphicon-floppy-save" aria-hidden="true"></span> {% trans "Save" %}
-		</button>
+        </button>
 
 		<a href="" class="btn btn-danger">
 			<span class="glyphicon glyphicon-remove" aria-hidden="true"></span> {% trans "Cancel" %}
@@ -455,6 +454,10 @@
             {% endfor %}
         </div>
     </form>
+    {% if registry_has_locking and can_lock%}
+        <a class="btn btn-info btn-xs pull-right" href="{% url 'registry_form_switchlock' registry_code form_name patient_id context_id %}">
+        <i class="rdrf-lockicon rdrf-lockiconbutton fas fa-lock"></i> Lock this form</a>
+    {% endif %}
 
  </div>
 

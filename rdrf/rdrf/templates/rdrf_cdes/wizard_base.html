@@ -1,6 +1,7 @@
 {% load static from staticfiles %}
 <html>
   <head>
+    <link rel="stylesheet" href="{% static css/vendor/font-awesome.css}">
     <link rel="stylesheet" href="{% static 'bootstrap-3.3.6/css/bootstrap.min.css' %}">
     <link rel="stylesheet" href="{% static 'css/rdrf.css' %}">
     <link rel="stylesheet" href="{% static 'css/review.css' %}">
@@ -13,24 +14,24 @@
   </head>
   <body>
     {% if valid %}
-      <nav class="navbar navbar-default navbar-fixed-top">
-        <div class="navbar-text"><b>{{ review_title }}</b></div>
-	<div class="navbar-text"><b>{{ category }}</b></div>
-        {% if is_clinician_review %}
-          <div class="navbar-text">{{ clinician }} reviewing {{patient}} on behalf of {{parent}}</div>
-        {% endif %}
-        {% if is_parent_review %}
-          <div class="navbar-text">Caregiver: {{ parent.first_name }} {{ parent.last_name}}</div>
-          <div class="navbar-text">Patient: {{patient.given_names }} {{patient.family_name }}</div>
-        {% endif %}
-        <div class="navbar-text">Current User: {{request.user}}</div>
-      
-      </nav>
-      {% block content %}
-      {% endblock %}
+    <nav class="navbar navbar-default navbar-fixed-top">
+      <div class="navbar-text"><b>{{ review_title }}</b></div>
+      <div class="navbar-text"><b>{{ category }}</b></div>
+      {% if is_clinician_review %}
+      <div class="navbar-text">{{ clinician }} reviewing {{patient}} on behalf of {{parent}}</div>
+      {% endif %}
+      {% if is_parent_review %}
+      <div class="navbar-text">Caregiver: {{ parent.first_name }} {{ parent.last_name}}</div>
+      <div class="navbar-text">Patient: {{patient.given_names }} {{patient.family_name }}</div>
+      {% endif %}
+      <div class="navbar-text">Current User: {{request.user}}</div>
+
+    </nav>
+    {% block content %}
+    {% endblock %}
     {% else %}
-      <h1>This page is no longer valid</h1>
+    <h1>This page is no longer valid</h1>
     {% endif %}
   </body>
 </html>
-  
+
