@@ -893,7 +893,7 @@ def check_suspicious_sql(sql_query, user):
     if not sql_query_lowercase.startswith("select p.id"):
         logger.warning(f"User {user} tries to write/validate a SQL request not starting by SELECT p.id: {sql_query_lowercase}")
         securityerrors.append("The SQL query must start with SELECT p.id")
-    if any(sql_command in sql_query_lowercase for sql_command in ["drop", "union", "update"]):
-        logger.warning(f"User {user} tries to write/validate a suspicious SQL request containing DROP, UNION or UPDATE: {sql_query_lowercase}")
-        securityerrors.append("The SQL query must not contain any of these keywords: DROP, UNION, UPDATE")
+    if any(sql_command in sql_query_lowercase for sql_command in ["drop", "delete", "update"]):
+        logger.warning(f"User {user} tries to write/validate a suspicious SQL request containing DROP, DELETE or UPDATE: {sql_query_lowercase}")
+        securityerrors.append("The SQL query must not contain any of these keywords: DROP, DELETE, UPDATE")
     return securityerrors
