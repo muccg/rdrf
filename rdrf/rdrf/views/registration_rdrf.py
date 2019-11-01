@@ -45,7 +45,9 @@ class RdrfRegistrationView(RegistrationView):
         if form.is_valid():
             return self.form_valid(form)
         else:
-            return self.form_invalid(form)
+            context = self.get_context_data(form=form)
+            context['registry_code'] = request.POST.get('registry_code', '')
+            return render(request, self.template_name, context)
 
     def get_context_data(self, **kwargs):
         context = super(RdrfRegistrationView, self).get_context_data(**kwargs)
