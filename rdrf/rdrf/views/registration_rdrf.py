@@ -1,6 +1,7 @@
 from django.shortcuts import redirect
 from django.urls import reverse
 from django.db import transaction
+from django.shortcuts import render
 from registration.backends.default.views import RegistrationView
 from rdrf.workflows.registration import get_registration_workflow
 import logging
