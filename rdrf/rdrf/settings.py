@@ -661,5 +661,4 @@ if SESSION_SECURITY_ENABLE:
 
 # Enable user password change
 ENABLE_PWD_CHANGE = env.get("enable_pwd_change", True)
-
 REGISTRATION_ENABLED = env.get("registration_enabled", True)
