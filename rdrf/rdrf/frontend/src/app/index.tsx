@@ -87,27 +87,27 @@ class App extends React.Component<AppInterface, object> {
         }
         else {
             nextButton = !isMobile ?
-                (<Col sm={{ size: 1 }}>
-                    <Button onClick={this.moveNext} size="sm" color="info">Next</Button>
+                (<Col sm={{ size: 2 }} style={{ display: 'flex', justifyContent: 'flex-end' }}>
+                    <Button onClick={this.moveNext} size="sm" color="info" style={{ minWidth: '90px' }}>Next</Button>
                 </Col>) :
                 (<i onClick={this.moveNext}> <GoChevronRight style={{ fontSize: '56px' }} /> </i>)
         }
 
         if (this.atBeginning()) {
             backButton = !isMobile ?
-                (<Col sm={{ size: 1 }}>
-                    <Button onClick={this.movePrevious} color="info" size="sm" disabled={true} >Previous</Button>
+                (<Col sm={{ size: 2 }} style={{ display: 'flex' }}>
+                    <Button onClick={this.movePrevious} color="info" size="sm" disabled={true} style={{ minWidth: '90px' }}>Previous</Button>
                 </Col>) : (<i onClick={this.movePrevious}> <GoChevronLeft style={{ fontSize: '56px' }} /> </i>)
         } else {
             backButton = !isMobile ?
-                (<Col sm={{ size: 1 }}>
-                    <Button onClick={this.movePrevious} color="info" size="sm">Previous</Button>
+                (<Col sm={{ size: 2 }} style={{ display: 'flex' }}>
+                    <Button onClick={this.movePrevious} color="info" size="sm" style={{ minWidth: '90px' }}>Previous</Button>
                 </Col>) : (<i onClick={this.movePrevious}> <GoChevronLeft style={{ fontSize: '56px' }} /> </i>)
         }
 
         if (!this.atEnd()) {
             progressBar = (
-                <Col>
+                <Col sm={{ size: 8 }}>
                     <Progress color="info" value={this.getProgress()}>{this.getProgress()}%</Progress>
                 </Col>
             )
