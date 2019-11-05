@@ -334,7 +334,9 @@ normalpatterns += [
             ActivationView.as_view(),
             name='registration_activate'),
 
-    re_path(r'^i18n/', include(('django.conf.urls.i18n', 'django_conf_urls'), namespace=None))
+    re_path(r'^i18n/', include(('django.conf.urls.i18n', 'django_conf_urls'), namespace=None)),
+
+    re_path(r'session_security/', include('session_security.urls')),
 ]
 
 if settings.SYSTEM_ROLE == SystemRoles.CIC_PROMS:

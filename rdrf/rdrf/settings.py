@@ -163,6 +163,7 @@ MIDDLEWARE = (
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django_otp.middleware.OTPMiddleware',
     'registry.common.middleware.EnforceTwoFactorAuthMiddleware',
+    'session_security.middleware.SessionSecurityMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
@@ -202,6 +203,7 @@ INSTALLED_APPS = [
     'two_factor',
     'django_user_agents',
     'formtools',
+    'session_security'
 ]
 
 
@@ -651,5 +653,13 @@ PROMS_SECRET_TOKEN = env.get("proms_secret_token", "foobar")  # todo set this us
 PROMS_USERNAME = env.get("proms_username", "promsuser")
 PROMS_LOGO = env.get("proms_logo", "")
 
+
+SESSION_SECURITY_ENABLE = env.get("session_security_enable", False)
+if SESSION_SECURITY_ENABLE:
+    SESSION_SECURITY_WARN_AFTER = env.get("session_security_warn_after", 480)
+    SESSION_SECURITY_EXPIRE_AFTER = env.get("session_security_expire_after", 600)
+
+    
 # Enable user password change
 ENABLE_PWD_CHANGE = env.get("enable_pwd_change", True)
+

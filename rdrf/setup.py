@@ -53,6 +53,7 @@ requirements = [
     "django-formtools",
     "python-ldap",
     "django-auth-ldap",
+    "django-session-security==2.6.5"
 ]
 
 
