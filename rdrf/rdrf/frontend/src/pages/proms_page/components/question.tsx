@@ -26,6 +26,11 @@ class Question extends React.Component<QuestionInterface, object> {
         this.props.enterData(cdeCode, cdeValue);
     }
 
+    public handleInputChange = (event) => {
+        const code = this.props.questions[this.props.stage].cde;
+        this.props.enterData(code, event.target.value);
+    }
+
     public handleMultiChange(event) {
         const cdeCode = event.target.name;
         let values;
@@ -124,11 +129,30 @@ class Question extends React.Component<QuestionInterface, object> {
         );
     }
 
+    public renderInput(question: any) {
+        return (
+            <Form>
+                <FormGroup tag="fieldset">
+                    <h6><i>{question.survey_question_instruction}</i></h6>
+                    <h4>{question.title}</h4>
+                    <i>{question.instructions}</i>
+                </FormGroup>
+                <FormGroup>
+                    <Col sm="12" md={{ size: 6, offset: 3 }}>
+                        <Input type="text"
+                            name={question.cde}
+                            onChange={this.handleInputChange} />
+                    </Col>
+                </FormGroup>
+            </Form >
+        );
+    }
+
 
     public render() {
         const question = this.props.questions[this.props.stage];
         let defaultValue = 0;
-        if (question.spec.tag === 'integer') {
+        if (question.spec && question.spec.tag === 'integer') {
             if (this.props.answers[question.cde] !== undefined) {
                 defaultValue = this.props.answers[question.cde];
             } else {
@@ -147,7 +171,11 @@ class Question extends React.Component<QuestionInterface, object> {
                 <li>Will receive a reminder when the next survey is due.</li>
             </ul>
         </div>;
-        const isMultiSelect = question.spec.tag === 'range' && question.spec.allow_multiple;
+        const isMultiSelect = (question.spec && question.spec.tag === 'range') && question.spec.allow_multiple;
+
+        if ((question.tag === "cond" && question.spec == null) || question.datatype === "string") {
+            return this.renderInput(question);
+        }
 
         if (isMultiSelect) {
             return this.renderMultiSelect(question);

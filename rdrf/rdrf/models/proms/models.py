@@ -68,11 +68,11 @@ class Survey(models.Model):
         if self.registry.has_feature("contexts") and self.form and self.form not in self.context_form_group.forms:
             raise ValidationError(f"The selected form {self.form.name} is not in the form group {self.context_form_group.name}")
         # Check that the context group form match the followup checkbox
-        has_bad_settings_for_module = self.context_form_group.context_type != 'M' and self.is_followup is True
-        has_bad_settings_for_followup = self.context_form_group.context_type == 'M' and self.is_followup is False
-        has_form_group = self.registry.has_feature('contexts') and self.context_form_group is not None
-        if has_form_group and (has_bad_settings_for_followup or has_bad_settings_for_module):
-            raise ValidationError("The 'is followup' checkbox does not match the 'context form group' input.")
+        if self.registry.has_feature('contexts'):
+            has_bad_settings_for_module = self.context_form_group.context_type != 'M' and self.is_followup is True
+            has_bad_settings_for_followup = self.context_form_group.context_type == 'M' and self.is_followup is False
+            if has_bad_settings_for_followup or has_bad_settings_for_module:
+                raise ValidationError("The 'is followup' checkbox does not match the 'context form group' input.")
 
 
 class Precondition(models.Model):
@@ -309,7 +309,7 @@ class SurveyRequest(models.Model):
                 try:
                     # As we don't know how friendly the message needs to be, admin can pick the name format.
                     template_data = {
-                        "display_name": self.patient.display_name,
+                        "display_name": f"{self.patient.given_names} {self.patient.family_name}",
                         "combined_name": self.patient.combined_name,
                         "given_names": self.patient.given_names,
                         "family_name": self.patient.family_name,

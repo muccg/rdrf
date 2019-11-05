@@ -359,7 +359,7 @@ class ReportingTableGenerator(object):
                                  max_items=self.max_items):
             new_row = copy(blank_row)
             new_row.update(row)
-            values.append(self.insert_row(new_row))
+            values.append(new_row)
             row_num += 1
 
         self.engine.execute(self.table.insert(), values)
@@ -370,14 +370,6 @@ class ReportingTableGenerator(object):
                 "There were %s errors running the report" % errors)
 
         return self._get_result_messages_dict()
-
-    def insert_row(self, value_dict):
-        for k in value_dict:
-            value = value_dict[k]
-            if isinstance(value, str):
-                value_dict[k] = value
-
-        return value_dict
 
     def _create_column(self, name, datatype=alc.String):
         self.column_names.append(name)

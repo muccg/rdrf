@@ -19,6 +19,7 @@
     <title>{% trans "Rare Disease Registry Framework" %}</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
+    <link rel="stylesheet" href="{% static 'css/vendor/font-awesome.css' %}">
     <link rel="stylesheet" href="{% static 'bootstrap-3.3.6/css/bootstrap.min.css' %}">
     <link rel="stylesheet" type="text/css" href="{% static 'css/rdrf.css' %}" media="all">
     <link rel="stylesheet" type="text/css" href="{% static 'css/simple-sidebar.css' %}" media="all">
@@ -179,8 +180,11 @@
                                 <li><a href="{% url 'parent_edit' registry_code parent.id %}"><span class="glyphicon glyphicon-wrench"></span>
                                         {% trans "Account" %}</a></li>
                                 {% endif %}
-                                <li><a href="{% url 'password_change' %}"><span class="glyphicon glyphicon-random"></span>
+                                {% if enable_pwd_change %}
+                                <li><a href="{% url 'password_change' %}"><span
+                                            class="glyphicon glyphicon-random"></span>
                                         {% trans "Change Password" %}</a></li>
+                                {% endif %}
                                 {% if user.is_verified %}
                                 <li><a href="{% url 'two_factor:disable' %}"><span class="glyphicon glyphicon-remove"></span>
                                         {% trans "Disable two-factor auth" %}</a></li>
@@ -215,8 +219,7 @@
             <div class="row">
                 <div class="col-md-12">
                     <p>
-                        <h3><span class="glyphicon glyphicon-list-alt" aria-hidden="true"></span> {{
-                            location|translate|safe }}</h3>
+                        <h3><span class="glyphicon glyphicon-list-alt" aria-hidden="true"></span> {{ location|translate|safe }}</h3>
                     </p>
                     {{ patient_link | safe}}
                 </div>

@@ -162,19 +162,21 @@
 			var registryId = $("#id_registry").val();
 			var parts = window.location.pathname.split("/");
 			var reportId = parts[parts.length - 1];
-	
-			rpc.send("reporting_command", [reportId, registryId, "get_field_data", null], function (response) {
-				if (response.status == 'success') {
-					setUpMongoFields(response.result);
-				} else {
-					$("#js-errors").slideDown("slow", function() {
-						$(this).html(response.error);
-						setTimeout(function() {
-							$("#js-errors").slideUp("slow")
-						}, 2000);
-					});
-				}
-			});
+			
+			if (registryId) {
+				rpc.send("reporting_command", [reportId, registryId, "get_field_data", null], function (response) {
+					if (response.status == 'success') {
+						setUpMongoFields(response.result);
+					} else {
+						$("#js-errors").slideDown("slow", function() {
+							$(this).html(response.error);
+							setTimeout(function() {
+								$("#js-errors").slideUp("slow")
+							}, 2000);
+						});
+					}
+				});
+			}
 		});
 
 	

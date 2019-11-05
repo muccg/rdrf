@@ -29,10 +29,10 @@
 
 
 
-
-                <a href="admin/password_change/">Change password</a> /
-
-                <a href="admin/logout/">Log out</a>
+            {% if enable_pwd_change %}
+            <a href="admin/password_change/">Change password</a> /
+            {% endif %}
+            <a href="admin/logout/">Log out</a>
 
         </div>
 

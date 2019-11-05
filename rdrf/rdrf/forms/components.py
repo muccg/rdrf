@@ -15,10 +15,11 @@ logger = logging.getLogger("registry_log")
 
 class Link(object):
 
-    def __init__(self, url, text, current):
+    def __init__(self, url, text, current, locking=False):
         self.url = url
         self.text = text
         self.current = current
+        self.locking = locking
 
 
 class LauncherError(Exception):
@@ -136,6 +137,7 @@ class RDRFContextLauncherComponent(RDRFComponent):
             "clinician_form_link": self._get_clinician_form_link(),
             "proms_link": self._get_proms_link(),
             "can_add_proms": not self._proms_adding_disabled(),
+            "registry": self.registry_model
         }
 
         return data
@@ -248,10 +250,10 @@ class RDRFContextLauncherComponent(RDRFComponent):
             else:
                 return False
 
-        for url, text in self.patient_model.get_forms_by_group(context_form_group):
+        for url, text, locking in self.patient_model.get_forms_by_group(context_form_group):
             if not text:
                 text = "Not set"
-            link_obj = Link(url, text, is_current(url))
+            link_obj = Link(url, text, is_current(url), locking)
             links.append(link_obj)
         return links
 

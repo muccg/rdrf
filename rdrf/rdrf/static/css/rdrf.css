@@ -233,3 +233,20 @@ form .aligned ul.errorlist {
     content: "\e107";
     color: #ff5700;
 }
+
+.rdrf-lockicon {
+    font-family: FontAwesome;
+    font-weight: normal;
+    font-style: normal;
+    text-decoration: inherit;
+    -webkit-font-smoothing: antialiased;
+}
+
+.rdrf-lockiconbutton {
+    color: white;
+}
+
+.rdrf-form_lock_icon {
+    color: #9d9d9d;
+    margin-left: 7px;
+}

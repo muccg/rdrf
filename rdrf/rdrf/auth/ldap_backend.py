@@ -26,6 +26,7 @@ class RDRFLDAPBackend(LDAPBackend):
 
         # User must be staff
         user.is_staff = True
+        user.is_active = True
 
         # Check if 2fa is mandatory
         if settings.RDRF_AUTH_LDAP_REQUIRE_2FA:

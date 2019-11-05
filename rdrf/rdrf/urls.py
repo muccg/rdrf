@@ -33,6 +33,7 @@ from rdrf.views.lookup_views import RecaptchaValidator
 from rdrf.views.context_views import RDRFContextCreateView, RDRFContextEditView
 from rdrf.views import patients_listing
 from rdrf.views import clinician_view
+from rdrf.views.change_password import ChangePasswordView
 from rdrf.views.verification_views import PatientsRequiringVerificationView
 from rdrf.views.verification_views import PatientVerificationView
 from rdrf.views.proms_views import PromsView
@@ -105,7 +106,7 @@ proms_patterns = [
     re_path(r'', include((two_factor_auth_urls, 'two_factor'), namespace=None)),
 
     re_path(r'^logout/?$', auth_views.LogoutView.as_view(), name='logout'),
-    re_path(r'^password_change/?$', auth_views.PasswordChangeView.as_view(), name='password_change'),
+    re_path(r'^password_change/?$', ChangePasswordView.as_view(), name='password_change'),
     re_path(r'^password_change/done/?$', auth_views.PasswordChangeDoneView.as_view(), name='password_change_done'),
 
     re_path(r'^login_assistance/?$', auth_views.PasswordResetView.as_view(),
@@ -152,7 +153,7 @@ normalpatterns += [
     # Login is done by two_factor:login included above
 
     re_path(r'^logout/?$', auth_views.LogoutView.as_view(), name='logout'),
-    re_path(r'^password_change/?$', auth_views.PasswordChangeView.as_view(), name='password_change'),
+    re_path(r'^password_change/?$', ChangePasswordView.as_view(), name='password_change'),
     re_path(r'^password_change/done/?$', auth_views.PasswordChangeDoneView.as_view(), name='password_change_done'),
     re_path(r'^password_reset/?$', auth_views.PasswordResetView.as_view(),
             kwargs={'password_reset_form': RDRFPasswordResetForm}, name='password_reset'),
@@ -222,6 +223,9 @@ normalpatterns += [
 
     re_path(r"^(?P<registry_code>\w+)/forms/(?P<form_id>\w+)/(?P<patient_id>\d+)/(?P<context_id>\d+)?$",
             form_view.FormView.as_view(), name='registry_form'),
+
+    re_path(r"^(?P<registry_code>\w+)/forms/switchlock/(?P<form_id>\w+)/(?P<patient_id>\d+)/(?P<context_id>\d+)?$",
+            form_view.FormSwitchLockingView.as_view(), name='registry_form_switchlock'),
 
     re_path(r"^(?P<registry_code>\w+)/forms/print/(?P<form_id>\w+)/(?P<patient_id>\d+)/(?P<context_id>\d+)?$",
             form_view.FormPrintView.as_view(), name='registry_form_print'),
