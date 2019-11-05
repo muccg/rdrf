@@ -310,21 +310,6 @@ normalpatterns += [
             RecaptchaValidator.as_view(), name="recaptcha_validator"),
     # -------------------------------------------
 
-    re_path(r'^(?P<registry_code>\w+)/register/?$',
-            RdrfRegistrationView.as_view(),
-            name='registration_register'),
-    re_path(r'^register/complete/?$',
-            TemplateView.as_view(
-                template_name='registration/registration_complete.html'),
-            name='registration_complete'),
-    re_path(r'^register/failed/?$',
-            TemplateView.as_view(
-                template_name='registration/registration_failed.html'),
-            name='registration_failed'),
-    re_path(r'^register/closed/?$',
-            TemplateView.as_view(
-                template_name='registration/registration_closed.html'),
-            name='registration_disallowed'),
     re_path(r'^activate/complete/?$',
             TemplateView.as_view(
                 template_name='registration/activation_complete.html'),
@@ -338,6 +323,24 @@ normalpatterns += [
 
     re_path(r'session_security/', include('session_security.urls')),
 ]
+
+if settings.REGISTRATION_ENABLED:
+    registry_ulrs = [re_path(r'^(?P<registry_code>\w+)/register/?$',
+                             RdrfRegistrationView.as_view(),
+                             name='registration_register'),
+                     re_path(r'^register/complete/?$',
+                             TemplateView.as_view(
+                                 template_name='registration/registration_complete.html'),
+                             name='registration_complete'),
+                     re_path(r'^register/failed/?$',
+                             TemplateView.as_view(
+                                 template_name='registration/registration_failed.html'),
+                             name='registration_failed'),
+                     re_path(r'^register/closed/?$',
+                             TemplateView.as_view(
+                                 template_name='registration/registration_closed.html'),
+                             name='registration_disallowed')]
+    normalpatterns = normalpatterns + registry_ulrs
 
 if settings.SYSTEM_ROLE == SystemRoles.CIC_PROMS:
     urlpatterns = proms_patterns

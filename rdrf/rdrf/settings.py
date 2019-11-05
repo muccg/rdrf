@@ -659,7 +659,7 @@ if SESSION_SECURITY_ENABLE:
     SESSION_SECURITY_WARN_AFTER = env.get("session_security_warn_after", 480)
     SESSION_SECURITY_EXPIRE_AFTER = env.get("session_security_expire_after", 600)
 
-    
 # Enable user password change
 ENABLE_PWD_CHANGE = env.get("enable_pwd_change", True)
 
+REGISTRATION_ENABLED = env.get("registration_enabled", True)
