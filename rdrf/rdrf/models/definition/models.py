@@ -1850,6 +1850,7 @@ class ClinicalData(models.Model):
     context_id = models.IntegerField(db_index=True, blank=True, null=True)
     active = models.BooleanField(
         default=True, help_text="Indicate whether an entity is active or not")
+    metadata = models.TextField(blank=True, null=True)
 
     objects = ClinicalDataQuerySet.as_manager()
 
@@ -1866,6 +1867,38 @@ class ClinicalData(models.Model):
 
     def __str__(self):
         return json.dumps(model_to_dict(self), indent=2)
+
+    def get_metadata_locking(self, form_name):
+        # the clinical metadata are only stored with the cdes collection
+        if self.collection != "cdes":
+            raise Exception("coding error: metadata are stored in the cdes collection")
+
+        if self.metadata:
+            metadata = json.loads(self.metadata)
+            if form_name in metadata["forms"].keys():
+                return metadata["forms"][form_name]['locking']
+        return False
+
+    def switch_metadata_locking(self, form_name):
+        # the clinical metadata are only stored with the cdes collection
+        if self.collection != "cdes":
+            raise Exception("coding error: metadata are stored in the cdes collection")
+
+        # Set default value when no metadata exist yet.
+        metadata = {"forms": {form_name: {'locking': True}}}
+
+        if self.metadata:
+            metadata = json.loads(self.metadata)
+            if form_name in metadata["forms"].keys():
+                metadata["forms"][form_name]['locking'] = not metadata["forms"][form_name]['locking']
+            else:
+                # Some metadata existed for other forms, but not for this form_name.
+                metadata["forms"] = {form_name: {'locking': True}}
+
+        logger.debug(f"Switching to {form_name} locking to: {metadata['forms'][form_name]['locking']}")
+
+        self.metadata = json.dumps(metadata)
+        self.save()
 
     def cde_val(self, form_name, section_code, cde_code):
         forms = self.data.get("forms", [])

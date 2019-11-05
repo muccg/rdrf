@@ -5,27 +5,28 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
     <head>
         <title>{% trans "Rare Disease Registry Framework" %}</title>
-  
+
+        <link rel="stylesheet" href="{% static 'css/vendor/font-awesome.css' %}">
         <link rel="stylesheet" href="{% static 'bootstrap-3.3.6/css/bootstrap.min.css' %}">
-  
+
         <script type="text/javascript" src="{% static 'js/vendor/jquery-1.11.3.min.js' %}" ></script>
         <script type="text/javascript" src="{% static 'bootstrap-3.3.6/js/bootstrap.min.js' %}"></script>
-        
+
         {% block extrahead %}
         {% endblock %}
-    
+
     </head>
     <body>
 
 
-<div id="wrap">
+        <div id="wrap">
 
-    <div class="container">
-        {% block content%}
-        {% endblock%}
-    </div>
+            <div class="container">
+                {% block content%}
+                {% endblock%}
+            </div>
 
-</div>
+        </div>
 
-</body>
+    </body>
 </html>

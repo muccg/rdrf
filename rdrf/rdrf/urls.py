@@ -224,6 +224,9 @@ normalpatterns += [
     re_path(r"^(?P<registry_code>\w+)/forms/(?P<form_id>\w+)/(?P<patient_id>\d+)/(?P<context_id>\d+)?$",
             form_view.FormView.as_view(), name='registry_form'),
 
+    re_path(r"^(?P<registry_code>\w+)/forms/switchlock/(?P<form_id>\w+)/(?P<patient_id>\d+)/(?P<context_id>\d+)?$",
+            form_view.FormSwitchLockingView.as_view(), name='registry_form_switchlock'),
+
     re_path(r"^(?P<registry_code>\w+)/forms/print/(?P<form_id>\w+)/(?P<patient_id>\d+)/(?P<context_id>\d+)?$",
             form_view.FormPrintView.as_view(), name='registry_form_print'),
 

@@ -10,9 +10,8 @@ from django.forms.formsets import formset_factory
 from django.urls import reverse
 from django.utils.decorators import method_decorator
 from django.contrib.auth.decorators import login_required
-
 from rdrf.models.definition.models import RegistryForm, Registry, QuestionnaireResponse
-from rdrf.models.definition.models import Section, CommonDataElement
+from rdrf.models.definition.models import Section, CommonDataElement, ClinicalData
 from registry.patients.models import Patient, ParentGuardian
 from rdrf.forms.dynamic.dynamic_forms import create_form_class_for_section
 from rdrf.db.dynamic_data import DynamicDataWrapper
@@ -188,6 +187,36 @@ class SectionInfo(object):
         return form_instance
 
 
+class FormSwitchLockingView(View):
+    @login_required_method
+    def get(self, request, registry_code, form_id, patient_id, context_id=None):
+
+        # Switch the locking.
+        context_model = RDRFContext.objects.get(id=context_id)
+        form_model = RegistryForm.objects.get(id=form_id)
+        form_name = form_model.name
+
+        if not request.user.is_authenticated or not request.user.has_perm("rdrf.form_%s_can_lock" % form_model.name):
+            logger.warning(f"User {request.user.id} ({request.user}) is trying to lock/unlock the form {form_model.name} \
+                for context {context_model.id} - patient {patient_id} without the permission!")
+            raise Exception("You don't have the permission to lock/unlock this form.")
+
+        # the clinical metadata are only stored with the cdes collection
+        try:
+            clinical_data = ClinicalData.objects.get(
+                registry_code=registry_code,
+                collection="cdes",
+                django_id=patient_id,
+                django_model="Patient",
+                context_id=context_id)
+            clinical_data.switch_metadata_locking(form_name)
+        except ClinicalData.DoesNotExist:
+            # Not ClinicalData means the form is not save yet, just ignore the command.
+            pass
+
+        return HttpResponseRedirect(reverse("registry_form", args=[registry_code, form_id, patient_id, context_id]))
+
+
 class FormView(View):
 
     def __init__(self, *args, **kwargs):
@@ -351,13 +380,35 @@ class FormView(View):
                                                         self.rdrf_context,
                                                         registry_form=self.registry_form)
 
+        # Retrieve locking information
+        if self.rdrf_context:
+            try:
+                clinical_data = ClinicalData.objects.get(
+                    registry_code=self.registry.code,
+                    collection="cdes",
+                    django_id=patient_model.id,
+                    django_model="Patient",
+                    context_id=self.rdrf_context.id)
+                metadata_locking = clinical_data.get_metadata_locking(self.registry_form.name)
+            except ClinicalData.DoesNotExist:
+                # The form has not been saved yet, so it is unlock.
+                metadata_locking = False
+        else:
+            # Not context (for example clicking on add a FollowUp)
+            metadata_locking = False
+
         context = self._build_context(user=request.user, patient_model=patient_model)
         context["location"] = location_name(self.registry_form, self.rdrf_context)
         # we provide a "path" to the header field which contains an embedded Django template
         context["header"] = self.registry_form.header
         context["header_expression"] = "rdrf://model/RegistryForm/%s/header" % self.registry_form.pk
         context["settings"] = settings
-
+        context["registry_has_locking"] = self.registry.has_feature("form_locking")
+        context["metadata_locking"] = metadata_locking
+        context["can_lock"] = self.user and self.user.has_perm("rdrf.form_%s_can_lock" % self.registry_form.name)
+        logger.debug("rdrf.form_%s_can_lock" % self.registry_form.name)
+        logger.debug(f"CANLOCK: {context['can_lock']}")
+        logger.debug(f"USER: {self.user}")
         patient_info_component = RDRFPatientInfoComponent(self.registry, patient_model)
 
         if not self.CREATE_MODE:
@@ -391,12 +442,17 @@ class FormView(View):
 
         context["my_contexts_url"] = patient_model.get_contexts_url(self.registry)
         context["context_id"] = rdrf_context_id
-
         return self._render_context(request, context)
 
     def _render_context(self, request, context):
         context.update(csrf(request))
-        return render(request, self._get_template(), context)
+
+        if context['metadata_locking']:
+            template = "rdrf_cdes/form_readonly.html"
+        else:
+            template = self._get_template()
+
+        return render(request, template, context)
 
     def _get_field_ids(self, form_class):
         # the ids of each cde on the form

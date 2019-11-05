@@ -226,7 +226,7 @@
 
     <br>
     <div class="row">
-    <div class="col-md-10">
+    <div class="col-md-12">
         <form class="form-horizontal" enctype="multipart/form-data" method="post">{% csrf_token %}
             {% if has_form_progress %}
                 <div class="well">
@@ -384,6 +384,10 @@
 
 
     </form>
+    {% if registry_has_locking and can_lock%}
+        <a class="btn btn-info btn-xs pull-right" href="{% url 'registry_form_switchlock' registry_code form_name patient_id context_id %}">
+        <i class="rdrf-lockicon rdrf-lockiconbutton fas fa-unlock"></i> Unlock this form</a>
+    {% endif %}
 
  </div>
 

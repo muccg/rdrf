@@ -482,6 +482,11 @@ class Importer(object):
             permission_name = "Form '%s' is readonly (%s)" % (f.name, f.registry.code.upper())
             create_permission("rdrf", "registryform", permission_code_name, permission_name)
 
+            # Create can unlock permission.
+            can_lock_permission_code_name = "form_%s_can_lock" % f.id
+            can_lock_permission_name = "Form '%s' can be locked (%s)" % (f.name, f.registry.code.upper())
+            create_permission("rdrf", "registryform", can_lock_permission_code_name, can_lock_permission_name)
+
             f.name = frm_map["name"]
             if "display_name" in frm_map:
                 f.display_name = frm_map["display_name"]

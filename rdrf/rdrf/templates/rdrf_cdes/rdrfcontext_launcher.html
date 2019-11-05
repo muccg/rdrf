@@ -1,6 +1,7 @@
 <!-- start demographics form launcher -->
 {% load i18n %}
 {% load translate %}
+{% load has_feature %}
 <script>
   /*
   var USE_ACCORDION = false;
@@ -14,21 +15,21 @@
   );
   });
   */
-  </script>
+</script>
 
 <style>
   .panel-body  {
     word-break:break-word
-}
+  }
 </style>
 
 <div width="100%" class="panel panel-default collapsible">
   <div class="panel-body">
     {% if current_form_name == "Demographics" %}
-     <i>{% trans 'Demographics' %}</i>
-  {% else %}
-     <a href="{{demographics_link}}">{% trans 'Demographics' %}</a>
-  {% endif %}
+    <i>{% trans 'Demographics' %}</i>
+    {% else %}
+    <a href="{{demographics_link}}">{% trans 'Demographics' %}</a>
+    {% endif %}
   </div>
 </div>
 
@@ -37,10 +38,10 @@
 <div width="100%" class="panel panel-default collapsible">
   <div class="panel-body">
     {% if current_form_name == "Consents" %}
-     <i>{% trans 'Consents' %}</i>
-  {% else %}
-     <a href="{{consents_link}}">{% trans 'Consents' %}</a>
-  {% endif %}
+    <i>{% trans 'Consents' %}</i>
+    {% else %}
+    <a href="{{consents_link}}">{% trans 'Consents' %}</a>
+    {% endif %}
   </div>
 </div>
 
@@ -49,10 +50,10 @@
 <div width="100%" class="panel panel-default collapsible">
   <div class="panel-body">
     {% if current_form_name == "Clinician" %}
-     <i>{% trans 'Clinician' %}</i>
-  {% else %}
-     <a href="{{clinician_form_link}}">{% trans 'Clinician' %}</a>
-  {% endif %}
+    <i>{% trans 'Clinician' %}</i>
+    {% else %}
+    <a href="{{clinician_form_link}}">{% trans 'Clinician' %}</a>
+    {% endif %}
   </div>
 </div>
 {% endif %}
@@ -61,10 +62,10 @@
 <div width="100%" class="panel panel-default collapsible">
   <div class="panel-body">
     {% if current_form_name == "Proms" %}
-     <i>{% trans 'Proms' %}</i>
-  {% else %}
-     <a href="{{proms_link}}">{% trans 'Proms' %}</a>
-  {% endif %}
+    <i>{% trans 'Proms' %}</i>
+    {% else %}
+    <a href="{{proms_link}}">{% trans 'Proms' %}</a>
+    {% endif %}
   </div>
 </div>
 {% endif %}
@@ -83,22 +84,22 @@
 
 
 {% for fixed_context in fixed_contexts %}
-  <div class="panel panel-default collapsible">
-    <div class="panel-heading">
-      {{fixed_context.name|translate}}
-    </div>
-    <div class="panel-body">
-      {% for form in fixed_context.forms %}
-        <p>
-          {% if form.current %}
-              <i>{{form.text|translate}}</i>
-          {% else %}
-            <a href="{{form.url}}">{{form.text|translate}}</a>
-        {% endif %}
-        </p>
-      {% endfor %}
-    </div>
+<div class="panel panel-default collapsible">
+  <div class="panel-heading">
+    {{fixed_context.name|translate}}
   </div>
+  <div class="panel-body">
+    {% for form in fixed_context.forms %}
+    <p>
+      {% if form.current %}
+      <i>{{form.text|translate}}</i>
+      {% else %}
+      <a href="{{form.url}}">{{form.text|translate}}</a>
+      {% endif %}
+    </p>
+    {% endfor %}
+  </div>
+</div>
 {% endfor %}
 
 
@@ -106,43 +107,52 @@
 {% for multiple_context in multiple_contexts %}
 <!-- START MMMMMM -->
 <div width="100%" class="panel panel-default collapsible">
-    <div class="panel-heading" data-toggle="collapse" data-target="#existing_{{multiple_context.id}}">
-      {{multiple_context.heading}}
-      {% if can_add_proms %}
-      <a class="btn btn-info btn-xs pull-right"
-         onclick="location.href='{{multiple_context.add_link_url}}';">
-         <span class="glyphicon glyphicon-plus" aria-hidden="true"></span> Add</a>
-       {% endif %} 
-    </div>
-    <div id="existing_{{multiple_context.id}}" class="panel-body">
-      {% for link in multiple_context.existing_links %}
-          {% if not link.current %}
-             <a href="{{link.url}}">{% trans link.text %}</a><br>
-	  {% else %}
-	     <i>{{link.text}}</i><br>
-	  {% endif %}
-      
-      {% endfor %}
+  <div class="panel-heading" data-toggle="collapse" data-target="#existing_{{multiple_context.id}}">
+    {{multiple_context.heading}}
+    {% if can_add_proms %}
+    <a class="btn btn-info btn-xs pull-right"
+       onclick="location.href='{{multiple_context.add_link_url}}';">
+       <span class="glyphicon glyphicon-plus" aria-hidden="true"></span> Add</a>
+     {% endif %}
+  </div>
+  <div id="existing_{{multiple_context.id}}" class="panel-body">
+    {% for link in multiple_context.existing_links %}
+    {% if not link.current %}
+    <a href="{{link.url}}">{% trans link.text %}</a>
+    {% if registry|has_feature:"form_locking" and link.locking %}
+    <i class="rdrf-lockicon rdrf-form_lock_icon fas fa-lock"></i>
+    {% endif %}
+    <br>
+    {% else %}
 
-    </div>
- </div>
+    <i>{{link.text}}</i>
+    {% if registry|has_feature:"form_locking" and link.locking %}
+    <i class="rdrf-lockicon rdrf-form_lock_icon fas fa-lock"></i>
+    {% endif %}
+    <br>
+    {% endif %}
+
+    {% endfor %}
+
+  </div>
+</div>
 
 <!-- END MMMMMM -->
 {% endfor %}
-  
+
 
 {% else %}
 <!-- consent locked -->
 <div width="100%" class="panel panel-default collapsible">
   <div class="panel-body">
     {% if current_form_name == "Consents" %}
-     <i>{% trans "Consents" %}</i>
-  {% else %}
-     <a href="{{consents_link}}">{% trans 'Consents' %}</a>
-  {% endif %}
+    <i>{% trans "Consents" %}</i>
+    {% else %}
+    <a href="{{consents_link}}">{% trans 'Consents' %}</a>
+    {% endif %}
   </div>
 </div>
-  
+
 {% endif %}
 
 <!-- end demographics form launcher -->

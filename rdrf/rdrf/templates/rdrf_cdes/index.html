@@ -13,6 +13,7 @@
     <!-- stylesheets -->
     <link rel="stylesheet" type="text/css" href="{% static 'css/compiled/theme.css' %}">
     <link rel="stylesheet" type="text/css" href="{% static 'css/vendor/animate.css' %}">
+    <link rel="stylesheet" href="{% static 'css/vendor/font-awesome.css' %}">
     <link rel="stylesheet" href="{% static 'bootstrap-3.3.6/css/bootstrap.min.css' %}">
     <link rel="stylesheet" href="{% static 'bootstrap-3.3.6/css/bootstrap-theme.min.css' %}">
 
@@ -28,17 +29,17 @@
 </head>
 <body id="home">
     <header class="navbar navbar-inverse hero" role="banner">
-          <div class="container">
+        <div class="container">
             <div class="navbar-header">
-                  <button class="navbar-toggle" type="button" data-toggle="collapse" data-target=".bs-navbar-collapse">
+                <button class="navbar-toggle" type="button" data-toggle="collapse" data-target=".bs-navbar-collapse">
                     <span class="icon-bar"></span>
                     <span class="icon-bar"></span>
                     <span class="icon-bar"></span>
-                  </button>
-                  <a href="{% url 'landing' %}" class="navbar-brand">RDRF {% version_number %}</a>
+                </button>
+                <a href="{% url 'landing' %}" class="navbar-brand">RDRF {% version_number %}</a>
             </div>
             <nav class="collapse navbar-collapse bs-navbar-collapse" role="navigation">
-                  <ul class="nav navbar-nav navbar-right">
+                <ul class="nav navbar-nav navbar-right">
                     <li>
                         <a href="https://muccg.github.io/rdrf/">{% trans "Project" %}</a>
                     </li>
@@ -47,9 +48,9 @@
                     </li>
                     <li class="dropdown">
                         <a href="#" class="dropdown-toggle" data-toggle="dropdown">
-                              {% trans "Registries on this site" %} <b class="caret"></b>
-                          </a>
-                          <ul class="dropdown-menu">
+                            {% trans "Registries on this site" %} <b class="caret"></b>
+                        </a>
+                        <ul class="dropdown-menu">
                             {% for reg in registries %}
                             <li>
                                 <a href="{% url 'registry' reg.code %}">
@@ -60,9 +61,9 @@
                         </ul>
                     </li>
 
-                  </ul>
+                </ul>
             </nav>
-          </div>
+        </div>
     </header>
 
     <div id="hero">
@@ -92,10 +93,10 @@
                 <div class="col-md-12">
                     <h3>{% trans "What is the Rare Disease Registry Framework?" %}</h3>
                     <p>{% blocktrans %}
-		      The Rare Disease Registry Framework (RDRF) is an open source tool for the creation of web-based patient registries. What makes it unique is that data entry forms and questionnaires are
+              The Rare Disease Registry Framework (RDRF) is an open source tool for the creation of web-based patient registries. What makes it unique is that data entry forms and questionnaires are
                         based on reusable data element definitions (called "Common Data Elements" ) which can be created and/or loaded into the system at
                       runtime. This means that registries can be created and modified without changes to the source code. RDRF has been developed at the Centre for Comparative Genomics, Murdoch University, Western Australia in partnership with the Office of Population Health Genomics, Department of Health Western Australia.
-		      {% endblocktrans %}</p>
+                        {% endblocktrans %}</p>
                 </div>
             </div>
             <div class="divider"></div>
@@ -105,19 +106,19 @@
                     <p>
 M.I. Bellgard, L. Render, M. Radochonski, and A. Hunter, Second generation registry framework, Source Code for Biology and Medicine, 9 (2014), 14.
                     </p>
-		    <p>
-M.I. Bellgard, K.R. Napier, A.H. Bittles, J. Szer, S. Fletcher, N. Zeps, A.A. Hunter and J. Goldblatt, Design of a framework for the deployment of collaborative independent rare disease-centric registries: Gaucher Disease Registry model, Blood Cells Molecules and Diseases, (in press).		
+                    <p>
+M.I. Bellgard, K.R. Napier, A.H. Bittles, J. Szer, S. Fletcher, N. Zeps, A.A. Hunter and J. Goldblatt, Design of a framework for the deployment of collaborative independent rare disease-centric registries: Gaucher Disease Registry model, Blood Cells Molecules and Diseases, (in press).
                     </p>
-		    <p>
+                    <p>
 K.R. Napier, J. Pang, L. Lamont, C.E. Walker, H.J.S. Dawkins, A.A. Hunter, F.M. van Bockxmeer, G.F. Watts, M.I. Bellgard, A web-based registry for familial hypercholesterolaemia Heart, Lung and Circulation, (in press).
-		    </p>
-		    <p>
+                    </p>
+                    <p>
 M.I. Bellgard, K. Napier, L. Render, M. Radochonski, L. Lamont, C. Graham, S.D. Wilton, S. Fletcher, J. Goldblatt, A. Hunter, T. Weeramanthri, A Registry Framework Enabling Patient-Centred Care. Studies in Health Technology and Informatics, 214 (2015), 8-14.
-		    </p>
-		    <p>
+                    </p>
+                    <p>
 M.I. Bellgard, C.E. Walker, K.R. Napier, L. Lamont, A.A. Hunter, L. Render, M. Radochonski, J. Pang, A. Pedrotti, D.R. Sullivan, K. Kostner, W. Bishop, P.M. George, R.C. O’Brien, P.M. Clifton, F.M. van Bockxmeer, S.J. Nicholls, I. Hamilton-Craig, H.J.S. Dawkins and G.F. Watts, Design of the Familial Hypercholesterolaemia Australasia Network Registry: creating opportunities for greater international collaboration. Journal of Atherosclerosis and Thrombrosis, (in press).
-		    </p>
-		    <p>
+                    </p>
+                    <p>
 M. Bellgard, C. Beroud, K. Parkinson, T. Harris, S. Ayme, G. Baynam, T. Weeramanthri, H. Dawkins, and A. Hunter, Dispelling myths about rare disease registry system development, Source Code for Biology and Medicine, 8 (2013), 21.
                     </p>
                     <p>
