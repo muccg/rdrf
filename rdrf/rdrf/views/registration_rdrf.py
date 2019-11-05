@@ -1,6 +1,7 @@
 from django.shortcuts import redirect
 from django.urls import reverse
 from django.db import transaction
+from django.shortcuts import render
 from registration.backends.default.views import RegistrationView
 from rdrf.workflows.registration import get_registration_workflow
 import logging
@@ -45,7 +46,10 @@ class RdrfRegistrationView(RegistrationView):
         if form.is_valid():
             return self.form_valid(form)
         else:
-            return self.form_invalid(form)
+            logger.warning(f"Backend validation of the registration has failed: {form.errors.get_json_data()}")
+            context = self.get_context_data(form=form)
+            context['registry_code'] = request.POST.get('registry_code', '')
+            return render(request, self.template_name, context)
 
     def get_context_data(self, **kwargs):
         context = super(RdrfRegistrationView, self).get_context_data(**kwargs)
