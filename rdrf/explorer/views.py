@@ -25,7 +25,7 @@ from rdrf.services.io.reporting.spreadsheet_report import SpreadSheetReport
 from rdrf.services.io.reporting.reporting_table import ReportingTableGenerator
 
 from rdrf.helpers.utils import models_from_mongo_key, is_delimited_key, BadKeyError, cached
-from rdrf.helpers.utils import mongo_key_from_models
+from rdrf.helpers.utils import mongo_key_from_models, check_suspicious_sql
 
 logger = logging.getLogger(__name__)
 
@@ -277,7 +277,12 @@ class SqlQueryView(View):
             else:
                 results = {"success_msg": "Report config field is correct structure"}
         else:
-            results = database_utils.run_sql().result
+            # Check for dangerous sql queries.
+            securityerrors = check_suspicious_sql(form.data["sql_query"], request.user.id)
+            if securityerrors:
+                results = {"error_msg": ' | '.join(securityerrors)}
+            else:
+                results = database_utils.run_sql().result
 
         return JsonResponse(results, safe=False)
 
