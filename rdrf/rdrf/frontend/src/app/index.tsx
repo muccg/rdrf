@@ -140,7 +140,7 @@ class App extends React.Component<AppInterface, object> {
                     </div>
 
                     <div className="mb-4">
-                        <Row>
+                        <Row className="navigationinputs">
                             {backButton}
                             {progressBar}
                             {nextButton}
