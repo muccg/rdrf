@@ -281,6 +281,13 @@
                         success: function(data) {
                            if (data == "OK") {
                                 $(".container-fluid").eq(0).prepend("<div class='alert alert-alert alert-success'>Linkages updated successfully</div>");
+                                var family_data = getFamilyData()
+                                if (family_data.index.pk !==  family_data.original_index.pk) {
+                                    // Redirecting to the new Family linkage link (current one is not working anymore)
+                                    // index link example : /fh/familylinkage/3/edit => we want the 3
+                                    var decomposed_index_link = family_data.index.link.split('/');
+                                    window.location.href = "{% url 'family_linkage' registry_code %}" + decomposed_index_link[decomposed_index_link.length-2];
+                                } 
                            }
                            else {
                                 $(".container-fluid").eq(0).prepend("<div class='alert alert-alert alert-danger'>" + data + "</div>");
