@@ -454,10 +454,12 @@
             {% endfor %}
         </div>
     </form>
-    {% if registry_has_locking and can_lock%}
-        <a class="btn btn-info btn-xs pull-right" href="{% url 'registry_form_switchlock' registry_code form_name patient_id context_id %}">
-        <i class="rdrf-lockicon rdrf-lockiconbutton fas fa-lock"></i> Lock this form</a>
-    {% endif %}
+    {% ifnotequal context_id 'add' %} 
+        {% if registry_has_locking and can_lock%}
+            <a class="btn btn-info btn-xs pull-right" href="{% url 'registry_form_switchlock' registry_code form_name patient_id context_id %}">
+            <i class="rdrf-lockicon rdrf-lockiconbutton fas fa-lock"></i> Lock this form</a>
+        {% endif %}
+    {% endifnotequal %}
 
  </div>
 
