@@ -11,3 +11,11 @@ code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
 }
+
+.navigationinputs.row {
+  flex-wrap: nowrap;
+}
+
+.navigationinputs .progress {
+  background-color: #aeaeae;
+}
