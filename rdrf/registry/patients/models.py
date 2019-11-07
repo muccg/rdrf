@@ -1041,12 +1041,15 @@ class Patient(models.Model):
                                                   self.pk, cm.id))
 
         def link_locking(cm):
-            clinical_data = ClinicalData.objects.get(
-                registry_code=cm.registry.code,
-                collection="cdes",
-                django_id=self.pk,
-                django_model="Patient",
-                context_id=cm.id)
+            try:
+                clinical_data = ClinicalData.objects.get(
+                    registry_code=cm.registry.code,
+                    collection="cdes",
+                    django_id=self.pk,
+                    django_model="Patient",
+                    context_id=cm.id)
+            except ClinicalData.DoesNotExist:
+                return False
             return clinical_data.get_metadata_locking(form_model.name)
 
         return [(link_url(cm), link_text(cm), link_locking(cm)) for cm in context_models]
