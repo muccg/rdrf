@@ -128,6 +128,7 @@ proms_patterns = [
 
     re_path(r"^(?P<registry_code>\w+)/?$",
             registry_view.RegistryView.as_view(), name='registry'),
+    re_path(r'session_security/', include('session_security.urls')),
 ]
 
 normalpatterns += [
@@ -325,7 +326,7 @@ normalpatterns += [
 ]
 
 if settings.REGISTRATION_ENABLED:
-    registry_ulrs = [re_path(r'^(?P<registry_code>\w+)/register/?$',
+    registry_urls = [re_path(r'^(?P<registry_code>\w+)/register/?$',
                              RdrfRegistrationView.as_view(),
                              name='registration_register'),
                      re_path(r'^register/complete/?$',
@@ -340,7 +341,7 @@ if settings.REGISTRATION_ENABLED:
                              TemplateView.as_view(
                                  template_name='registration/registration_closed.html'),
                              name='registration_disallowed')]
-    normalpatterns = normalpatterns + registry_ulrs
+    normalpatterns = normalpatterns + registry_urls
 
 if settings.SYSTEM_ROLE == SystemRoles.CIC_PROMS:
     urlpatterns = proms_patterns
