@@ -1,6 +1,6 @@
 # Ensures db router system check is registered
 
-VERSION = "6.0.16"
+VERSION = "6.0.17"
 __version__ = VERSION
 
 
