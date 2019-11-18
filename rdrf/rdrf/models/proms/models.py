@@ -159,10 +159,23 @@ class SurveyQuestion(models.Model):
                 "allow_multiple": self.cde.allow_multiple,  # allow for multiselect options
             }
         elif self.cde.datatype == 'integer':
+            # see https://docs.djangoproject.com/en/2.2/ref/models/fields/
+            MAX_DJANGO_INT = 2147483647
+            MIN_DJANGO_INT = -2147483648
+            if self.cde.max_value is None:
+                max_val = MAX_DJANGO_INT
+            else:
+                max_val = int(self.cde.max_value)
+
+            if self.cde.min_value is None:
+                min_val = MIN_DJANGO_INT
+            else:
+                min_val = int(self.cde.min_value)
+
             return {
                 "tag": "integer",
-                "max": int(self.cde.max_value),
-                "min": int(self.cde.min_value),
+                "max": max_val,
+                "min": min_val,
             }
 
     @property
