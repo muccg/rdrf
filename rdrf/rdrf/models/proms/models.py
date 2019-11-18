@@ -160,15 +160,15 @@ class SurveyQuestion(models.Model):
             }
         elif self.cde.datatype == 'integer':
             # see https://docs.djangoproject.com/en/2.2/ref/models/fields/
-            MAX_DJANGO_INT = 2147483647
-            MIN_DJANGO_INT = -2147483648
+            max_django_int = 2147483647
+            min_django_int = -2147483648
             if self.cde.max_value is None:
-                max_val = MAX_DJANGO_INT
+                max_val = max_django_int
             else:
                 max_val = int(self.cde.max_value)
 
             if self.cde.min_value is None:
-                min_val = MIN_DJANGO_INT
+                min_val = min_django_int
             else:
                 min_val = int(self.cde.min_value)
 
