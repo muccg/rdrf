@@ -6,8 +6,14 @@ interface EqualsCondition {
     value: any,
 }
 
+interface OrCondition {
+    op: 'or',
+    cde: string,
+    value: any,
+}
+
 // maybe this is enough
-type Condition = EqualsCondition;
+type Condition = EqualsCondition | OrCondition;
 
 // Elements of workflow
 // I tried to make UnconditionalElement just a string but got type errors
@@ -68,6 +74,8 @@ function evalCondition(cond: Condition, state: any): boolean {
         switch (cond.op) {
             case '=':
                 return answer === cond.value;
+	    case 'or':
+		return cond.value.indexOf(answer) > -1;
             default:
                 return false; // extend this later
         }

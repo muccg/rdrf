@@ -66,7 +66,8 @@ class Survey(models.Model):
             raise ValidationError("You forgot to select the context form group.")
         # Check that the selected form is in the correct form group
         if self.registry.has_feature("contexts") and self.form and self.form not in self.context_form_group.forms:
-            raise ValidationError(f"The selected form {self.form.name} is not in the form group {self.context_form_group.name}")
+            raise ValidationError(
+                f"The selected form {self.form.name} is not in the form group {self.context_form_group.name}")
         # Check that the context group form match the followup checkbox
         if self.registry.has_feature('contexts'):
             has_bad_settings_for_module = self.context_form_group.context_type != 'M' and self.is_followup is True
@@ -121,6 +122,18 @@ class SurveyQuestion(models.Model):
                     "spec": self._get_cde_specification()}
 
         else:
+            if "," in self.precondition.value:
+                def vals(s):
+                    return [x.strip() for x in s.split(",")]
+
+                cond_block = {"op": "or",
+                              "cde": self.precondition.cde.code,
+                              "value": vals(self.precondition.value)}
+            else:
+                cond_block = {"op": "=",
+                              "cde": self.precondition.cde.code,
+                              "value": self.precondition.value}
+
             return {"tag": "cond",
                     "cde": self.cde.code,
                     "instructions": self._clean_instructions(self.cde.instructions),
@@ -129,10 +142,7 @@ class SurveyQuestion(models.Model):
                     "survey_question_instruction": clean(self.instruction),
                     "copyright_text": self.copyright_text,
                     "source": self.source,
-                    "cond": {"op": "=",
-                             "cde": self.precondition.cde.code,
-                             "value": self.precondition.value
-                             }
+                    "cond": cond_block,
                     }
 
     def _get_options(self):
