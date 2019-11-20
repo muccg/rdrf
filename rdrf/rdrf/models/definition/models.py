@@ -873,7 +873,8 @@ class CommonDataElement(models.Model):
             try:
                 typed_value = self._get_typed_value(value)
             except ValueError:
-                return True
+                # the tests fail otherwise ...
+                return False
 
             return any([eval(line, {'x': typed_value}) for line in abnormality_condition_lines])
 
