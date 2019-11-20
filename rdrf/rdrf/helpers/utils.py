@@ -443,19 +443,17 @@ def wrap_uploaded_files(registry_code, post_files_data):
             return value
 
     def get_lists(multivaluedict):
-        l = []
+        # fixes rdrf 1099
+        results = []
         for k in multivaluedict:
             v = multivaluedict.getlist(k)
-            logger.debug("key = %s value = %s" % (k, v))
             if len(v) == 1:
-                l.append((k, v[0]))
+                results.append((k, v[0]))
             else:
-                l.append((k, v))
-        return l
+                results.append((k, v))
+        return results
 
-    #wrapped = {key: wrap(key, value) for key, value in list(post_files_data.items())}
-    wrapped = {key: wrap(key, value) for key, value in get_lists(post_files_data)}
-    return wrapped
+    return {key: wrap(key, value) for key, value in get_lists(post_files_data)}
 
 
 class Message():
