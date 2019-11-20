@@ -870,10 +870,23 @@ class CommonDataElement(models.Model):
             abnormality_condition_lines = [rule.strip() for rule in self.abnormality_condition.splitlines() if
                                            rule.strip()]
 
-            return any([eval(line, {'x': value}) for line in abnormality_condition_lines])
+            try:
+                typed_value = self._get_typed_value(value)
+            except ValueError:
+                return True
+
+            return any([eval(line, {'x': typed_value}) for line in abnormality_condition_lines])
 
         # no abnormality condition
         return False
+
+    def _get_typed_value(self, value):
+        if self.datatype == "integer":
+            return int(value)
+
+        if self.datatype == "float":
+            return float(value)
+        return value
 
 
 def validate_abnormality_condition(abnormality_condition, datatype):
