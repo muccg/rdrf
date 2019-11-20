@@ -434,6 +434,7 @@ def wrap_uploaded_files(registry_code, post_files_data):
     from rdrf.forms.file_upload import FileUpload
 
     def wrap(key, value):
+        logger.debug("key = %s value = %s" % (key, value))
         if isinstance(value, UploadedFile):
             return FileUpload(
                 registry_code, key, {
@@ -441,7 +442,20 @@ def wrap_uploaded_files(registry_code, post_files_data):
         else:
             return value
 
-    return {key: wrap(key, value) for key, value in list(post_files_data.items())}
+    def get_lists(multivaluedict):
+        l = []
+        for k in multivaluedict:
+            v = multivaluedict.getlist(k)
+            logger.debug("key = %s value = %s" % (k, v))
+            if len(v) == 1:
+                l.append((k, v[0]))
+            else:
+                l.append((k, v))
+        return l
+
+    #wrapped = {key: wrap(key, value) for key, value in list(post_files_data.items())}
+    wrapped = {key: wrap(key, value) for key, value in get_lists(post_files_data)}
+    return wrapped
 
 
 class Message():
@@ -803,7 +817,8 @@ def is_authorised(user, patient_model):
     if common and not user.is_parent:
         return True
 
-    logger.warning("user %s is not authorised for patient %s" % (user.username, getattr(patient_model, settings.LOG_PATIENT_FIELDNAME)))
+    logger.warning("user %s is not authorised for patient %s" %
+                   (user.username, getattr(patient_model, settings.LOG_PATIENT_FIELDNAME)))
 
     return False
 
@@ -891,9 +906,11 @@ def check_suspicious_sql(sql_query, user):
     sql_query_lowercase = ' '.join(sql_query.lower().split())
     securityerrors = []
     if not sql_query_lowercase.startswith("select p.id"):
-        logger.warning(f"User {user} tries to write/validate a SQL request not starting by SELECT p.id: {sql_query_lowercase}")
+        logger.warning(
+            f"User {user} tries to write/validate a SQL request not starting by SELECT p.id: {sql_query_lowercase}")
         securityerrors.append("The SQL query must start with SELECT p.id")
     if any(sql_command in sql_query_lowercase for sql_command in ["drop", "delete", "update"]):
-        logger.warning(f"User {user} tries to write/validate a suspicious SQL request containing DROP, DELETE or UPDATE: {sql_query_lowercase}")
+        logger.warning(
+            f"User {user} tries to write/validate a suspicious SQL request containing DROP, DELETE or UPDATE: {sql_query_lowercase}")
         securityerrors.append("The SQL query must not contain any of these keywords: DROP, DELETE, UPDATE")
     return securityerrors
