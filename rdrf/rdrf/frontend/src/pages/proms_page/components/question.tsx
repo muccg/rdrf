@@ -31,6 +31,13 @@ class Question extends React.Component<QuestionInterface, object> {
         this.props.enterData(code, event.target.value);
     }
 
+    public handleInputKeyDown = (event) => {
+        // ignore Enter key.
+        if (event.key === 'Enter') {
+            event.preventDefault();
+        }
+    }
+
     public handleMultiChange(event) {
         const cdeCode = event.target.name;
         let values;
@@ -130,6 +137,11 @@ class Question extends React.Component<QuestionInterface, object> {
     }
 
     public renderInput(question: any) {
+        let defaultValue = ""
+        if (this.props.answers[question.cde]) {
+            defaultValue = this.props.answers[question.cde]
+        }
+
         return (
             <Form>
                 <FormGroup tag="fieldset">
@@ -141,7 +153,10 @@ class Question extends React.Component<QuestionInterface, object> {
                     <Col sm="12" md={{ size: 6, offset: 3 }}>
                         <Input type="text"
                             name={question.cde}
-                            onChange={this.handleInputChange} />
+                            onChange={this.handleInputChange}
+                            onKeyDown={this.handleInputKeyDown}
+                            value={defaultValue}
+                        />
                     </Col>
                 </FormGroup>
             </Form >
