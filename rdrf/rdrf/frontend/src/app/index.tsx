@@ -124,7 +124,7 @@ class App extends React.Component<AppInterface, object> {
 
         return (
             <div className="App" style={style}>
-                <Container style={style}>
+                <Container>
                     <div className="mb-4">
                         <Row>
                             <Col>
