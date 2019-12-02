@@ -5,6 +5,7 @@
 
 const watch = require('watch');
 const { exec } = require('child_process');
+const fs = require('fs')
 
 function run_yarn_build() {
     exec('yarn build', (err, stdout, stderr) => {
@@ -38,4 +39,20 @@ watch.watchTree('./src', function (f, curr, prev) {
         run_yarn_build()
     }
 })
+
+// do a first build if a file is missing.
+try {
+    if (fs.existsSync('../static/proms/js/main-bundle.min.js') &&
+        fs.existsSync('../static/proms/js/vendors-bundle.min.js') &&
+        fs.existsSync('../static/proms/js/runtime-bundle.min.js') &&
+        fs.existsSync('../static/proms/css/main.css') &&
+        fs.existsSync('../static/proms/css/vendors.css')) {
+        console.log('JS and CSS Proms files already build')
+    } else {
+        console.log('Building JS/CSS Proms files.')
+        run_yarn_build()
+    }
+} catch (err) {
+    console.log(err)
+}
 
