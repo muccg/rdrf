@@ -729,13 +729,13 @@ class CommonDataElement(models.Model):
     max_value = models.DecimalField(
         blank=True,
         null=True,
-        max_digits=10,
+        max_digits=12,
         decimal_places=2,
         help_text="Only used for numeric fields")
     min_value = models.DecimalField(
         blank=True,
         null=True,
-        max_digits=10,
+        max_digits=12,
         decimal_places=2,
         help_text="Only used for numeric fields")
     abnormality_condition = models.TextField(
