@@ -2006,3 +2006,25 @@ class FileStorage(models.Model):
     name = models.CharField(primary_key=True, max_length=255)
     data = models.BinaryField()
     size = models.IntegerField(default=0)
+
+
+class CustomAction(models.Model):
+    """
+    Represents actions with a button in the GUI - can be run
+    data associated with the action is parsed and the action executed
+    """
+    ACTION_TYPES = (("PR", "Patient Report"),)
+
+    registry = models.ForeignKey(Registry, on_delete=models.CASCADE)
+    groups_allowed = models.ManyToManyField(Group, blank=True)
+    code = models.CharField(max_length=80)
+    name = models.CharField(max_length=80, blank=True, null=True)
+    action_type = models.CharField(max_length=2, choices=ACTION_TYPES)
+    data = models.TextField(null=True)
+
+    def execute(self, registry, user, target):
+        if self.action_type == "PR":
+            from rdrf.services.io.actions import patient_report
+            return patient_report.execute(self, registry, user, target)
+        else:
+            raise NotImplementedError("Unknown action type: %s" % self.action_type)
