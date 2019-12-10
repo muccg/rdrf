@@ -134,7 +134,6 @@
                                 {% block formlinks %}
                                 {% endblock %}
 
-
                                 <li class="dropdown dropdown-menu-button">
                                     <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button"
                                         aria-expanded="false">
@@ -146,6 +145,11 @@
                                         {% endfor %}
                                         {% block extra_menu %}
                                         {% endblock %}
+			
+					{% for custom_action in custom_actions %}
+                                        <li><a href="{{custom_action.url}}">{% trans custom_action.text %}</a></li>
+					{% endfor %}
+					
                                     </ul>
                                 </li>
 

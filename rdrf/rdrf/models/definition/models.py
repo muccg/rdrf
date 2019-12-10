@@ -2022,9 +2022,30 @@ class CustomAction(models.Model):
     action_type = models.CharField(max_length=2, choices=ACTION_TYPES)
     data = models.TextField(null=True)
 
-    def execute(self, registry, user, target):
+    def execute(self, user, patient_model):
+        """
+        This should return a HttpResponse of some sort
+        """
+        logger.debug("executing action %s" % self.code)
+        if not self.check_security(user, patient_model):
+            logger.debug("security check failed")
+            raise PermissionDenied
         if self.action_type == "PR":
             from rdrf.services.io.actions import patient_report
-            return patient_report.execute(self, registry, user, target)
+            return patient_report.execute(self.registry, self.name, self.data, user, patient_model)
         else:
             raise NotImplementedError("Unknown action type: %s" % self.action_type)
+
+    @property
+    def text(self):
+        return "Patient Report"
+
+    def check_security(self, user, patient_model):
+        from django.core.exceptions import PermissionDenied
+        from rdrf.security.security_checks import security_check_user_patient
+        try:
+            security_check_user_patient(user, patient_model)
+        except PermissionDenied:
+            return False
+
+        return True

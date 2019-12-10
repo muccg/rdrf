@@ -54,6 +54,7 @@ from rdrf.forms.components import RDRFPatientInfoComponent
 from rdrf.security.security_checks import security_check_user_patient
 
 from rdrf.helpers.utils import annotate_form_with_verifications
+from rdrf.views.custom_actions import CustomActionWrapper
 
 import logging
 
@@ -351,6 +352,12 @@ class FormView(View):
                                  "see_patient"):
                 raise PermissionDenied
 
+        custom_actions = [CustomActionWrapper(self.registry,
+                                              self.user,
+                                              custom_action,
+                                              patient_model) for custom_action in
+                          self.user.custom_actions(self.registry)]
+
         self.rdrf_context_manager = RDRFContextManager(self.registry)
 
         try:
@@ -442,6 +449,7 @@ class FormView(View):
 
         context["my_contexts_url"] = patient_model.get_contexts_url(self.registry)
         context["context_id"] = rdrf_context_id
+        context["custom_actions"] = custom_actions
         return self._render_context(request, context)
 
     def _render_context(self, request, context):

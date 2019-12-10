@@ -261,6 +261,11 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
 
         return links
 
+    def custom_actions(self, registry_model):
+        # return all custom actions applicable
+        from rdrf.models.definition.models import CustomAction
+        return [action for action in CustomAction.objects.filter(registry=registry_model)]
+
 
 @receiver(user_registered)
 def user_registered_callback(sender, user, request, **kwargs):

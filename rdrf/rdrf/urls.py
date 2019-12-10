@@ -44,6 +44,7 @@ from rdrf.views.proms_views import PromsQRCodeImageView
 from rdrf.system_role import SystemRoles
 from rdrf.views.copyright_view import CopyrightView
 from rdrf.views.review_views import ReviewWizardLandingView
+from rdrf.views.custom_actions import CustomActionView
 
 from rdrf.views.actions import ActionExecutorView
 import logging
@@ -137,6 +138,8 @@ normalpatterns += [
     re_path(r'^translations/jsi18n/$', JavaScriptCatalog.as_view(), name='javascript-catalog'),
     re_path(r'^iprestrict/', include(('iprestrict.urls', 'iprestrict_urls'), namespace=None)),
     re_path(r'^useraudit/', include('useraudit.urls',)),
+    re_path(r'^customactions/(?P<action_id>\d+)/(?P<patient_id>\d+)/?$',
+            CustomActionView.as_view(), name='custom_action'),
 
     re_path(r'^api/v1/', include(('rdrf.services.rest.urls.api_urls', 'api_urls'), namespace='v1')),
     re_path(r'^api/proms/v1/', include(('rdrf.services.rest.urls.proms_api_urls', 'proms_api_urls'), namespace=None)),
