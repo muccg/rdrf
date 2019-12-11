@@ -2038,7 +2038,7 @@ class CustomAction(models.Model):
 
     @property
     def text(self):
-        return "Patient Report"
+        return self.name
 
     def check_security(self, user, patient_model):
         from django.core.exceptions import PermissionDenied
