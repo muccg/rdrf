@@ -513,6 +513,30 @@ def FHDeathAge_inputs():
 
 ################ END OF FHDeathAge ################################
 
+################ BEGINNING OF RLDRDeathAge ################################
+
+def RLDRDeathAge(patient, context):
+
+    context = fill_missing_input(context, 'RLDRDeathAge_inputs')
+
+    if not context["RLDRDeathDate"]:
+        return "NaN"
+
+    deathDate = validate_date(context["RLDRDeathDate"])
+    birthDate = patient["date_of_birth"]
+    deathAge = calculate_age(birthDate, deathDate)
+
+    if deathAge is None or deathAge == "":
+        return None
+
+    return str(deathAge)
+
+
+def RLDRDeathAge_inputs():
+    return ["RLDRDeathDate"]
+
+################ END OF RLDRDeathAge ################################
+
 ################ BEGINNING OF fhAgeAtConsent ################################
 
 

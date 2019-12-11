@@ -171,7 +171,7 @@ class FieldFactory(object):
         return False
 
     def _is_calculated_field(self):
-        return bool(self.cde.calculation)
+        return self.cde.datatype == 'calculated'
 
     def _is_complex(self):
         return self.complex_field_factory._is_complex()
