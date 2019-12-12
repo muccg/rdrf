@@ -720,6 +720,12 @@ class FormView(View):
 
         patient_info_component = RDRFPatientInfoComponent(registry, patient)
 
+        custom_actions = [CustomActionWrapper(registry,
+                                              request.user,
+                                              custom_action,
+                                              patient) for custom_action in
+                          request.user.custom_actions(registry)]
+
         context = {
             'CREATE_MODE': self.CREATE_MODE,
             'current_registry_name': registry.name,
@@ -755,6 +761,7 @@ class FormView(View):
             "context_launcher": context_launcher.html,
             "have_dynamic_data": all_sections_valid,
             'settings': settings,
+            'custom_actions': custom_actions,
         }
 
         if request.user.is_parent:
