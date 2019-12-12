@@ -59,20 +59,23 @@ def nice(func):
 
 
 def make_table(cde_model, range_dict, raw_values):
-    logger.debug("in make_table for %s" % cde_model.code)
-    logger.debug("range_dict = %s" % range_dict)
-    logger.debug("raw_values = %s" % raw_values)
-    section = cde_model.name + Markdown.LINE_BREAK
-    header = "%s|%s" % (cde_model.name, "Present") + Markdown.LINE_BREAK
     result = {}
+    names = []
+    newline = "\n"
     for d in range_dict["values"]:
         name = d["value"]
+        names.append(name)
         if d["code"] in raw_values:
             result[name] = "Yes"
         else:
             result[name] = "No"
 
-    return section + Markdown.TABLETOP + header + Markdown.LINE_BREAK.join("%s|%s" % (name, result[name]) for name in result)
+    header1 = "|" + cde_model.name + "|Answer|"
+    header2 = "----|----:|"
+    table_content = newline.join("|%s|%s|" % (name, result[name]) for name in names)
+    table = header1 + newline + header2 + newline + table_content + newline
+    logger.debug(table)
+    return table
 
 
 def human_value(cde_model, raw_value, is_list=False):
@@ -158,7 +161,7 @@ class ReportParser:
 
         content_type = "application/pdf"
         markdown_content = self.get_markdown()
-        html_content = markdown.markdown(markdown_content)
+        html_content = markdown.markdown(markdown_content, extensions=['tables'])
         response = HttpResponse(content_type="application/pdf")
         pisa_status = pisa.CreatePDF(html_content, dest=response)
         return response
@@ -166,12 +169,14 @@ class ReportParser:
     def _get_variable_value(self, variable):
         value = "TODO"
         if variable in DEMOGRAPHICS_VARIABLES:
+            logger.debug("%s is a demographic field" % variable)
             value = getattr(self.patient_model, variable)
         else:
             value = retrieve(self.registry_model,
                              variable,
                              self.patient_model,
                              self.clinical_data)
+        logger.debug("%s = %s" % (variable, value))
         return value
 
     def get_markdown(self):
