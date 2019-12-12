@@ -479,8 +479,7 @@ class CustomActionAdmin(admin.ModelAdmin):
     list_display = ("registry",
                     "code",
                     "name",
-                    "action_type",
-                    "data")
+                    "action_type")
 
 
 CDEPermittedValueAdmin = create_restricted_model_admin_class(

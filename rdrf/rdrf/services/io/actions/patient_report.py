@@ -21,6 +21,11 @@ class TemplateSetup:
     LOAD_STATEMENTS = "{% load report_filters %}"
 
 
+class Markdown:
+    LINE_BREAK = '\n'
+    TABLETOP = "|\n" + "--|--\n"
+
+
 def cleanup(s):
     return s.replace("&lt;", "<").replace("&gt;", ">")
 
@@ -57,7 +62,8 @@ def make_table(cde_model, range_dict, raw_values):
     logger.debug("in make_table for %s" % cde_model.code)
     logger.debug("range_dict = %s" % range_dict)
     logger.debug("raw_values = %s" % raw_values)
-    header = "%s|%s\n" % (cde_model.name, "")
+    section = cde_model.name + Markdown.LINE_BREAK
+    header = "%s|%s" % (cde_model.name, "Present") + Markdown.LINE_BREAK
     result = {}
     for d in range_dict["values"]:
         name = d["value"]
@@ -66,13 +72,14 @@ def make_table(cde_model, range_dict, raw_values):
         else:
             result[name] = "No"
 
-    return header + "/n".join("%s|%s" % (name, result[name]) for name in result)
+    return section + Markdown.TABLETOP + header + Markdown.LINE_BREAK.join("%s|%s" % (name, result[name]) for name in result)
 
 
 def human_value(cde_model, raw_value, is_list=False):
     if cde_model.pv_group:
         range_dict = cde_model.pv_group.as_dict()
         if is_list:
+            logger.debug("making a table for %s" % cde_model.code)
             return make_table(cde_model, range_dict, raw_value)
 
         for value_dict in range_dict["values"]:
@@ -85,6 +92,7 @@ def human_value(cde_model, raw_value, is_list=False):
 @nice
 def retrieve(registry_model, field, patient_model, clinical_data):
     if FieldSpec.PATH_DELIMITER not in field:
+        # e.g. {{ CDECODE }}
         for form_model in registry_model.forms:
             for section_model in form_model.section_models:
                 if not section_model.allow_multiple:
@@ -145,10 +153,15 @@ class ReportParser:
         raise Exception("can't load clinical data")
 
     def generate_report(self):
-        content_type = "text/plain"
-        content = self.get_content()
-        report = Report(content, content_type)
-        return report
+        import markdown
+        from xhtml2pdf import pisa
+
+        content_type = "application/pdf"
+        markdown_content = self.get_markdown()
+        html_content = markdown.markdown(markdown_content)
+        response = HttpResponse(content_type="application/pdf")
+        pisa_status = pisa.CreatePDF(html_content, dest=response)
+        return response
 
     def _get_variable_value(self, variable):
         value = "TODO"
@@ -161,7 +174,7 @@ class ReportParser:
                              self.clinical_data)
         return value
 
-    def get_content(self):
+    def get_markdown(self):
         from django.template import Context, Template
         #template_text = TemplateSetup.LOAD_STATEMENTS + "\n" + self.report_spec
         template_text = self.report_spec
@@ -187,6 +200,7 @@ def execute(registry_model, report_name, report_spec, user, patient_model):
     parser = ReportParser(registry_model, report_name, report_spec, user, patient_model)
     report = parser.generate_report()
     if report:
+        return report
         response = FileResponse(report.content, content_type=report.content_type)
     else:
         response = HttpResponse()
