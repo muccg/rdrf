@@ -578,6 +578,10 @@ class Importer(object):
             self._create_reviews(r)
             logger.info("imported reviews OK")
 
+        if "custom_actions" in self.data:
+            self._create_custom_actions(r)
+            logger.info("imported custom actions OK")
+
         logger.info("end of import registry objects!")
 
     def _create_consent_rules(self, registry_model):
@@ -719,6 +723,25 @@ class Importer(object):
                     review_item.section = section_model
 
                 review_item.save()
+
+    def _create_custom_actions(self, registry):
+        from rdrf.models.definition.models import CustomAction
+        CustomAction.objects.filter(registry=registry).delete()
+        for action_dict in self.data["custom_actions"]:
+            action = CustomAction(registry=registry)
+            action.code = action_dict["code"]
+            action.name = action_dict["name"]
+            action.action_type = action_dict["action_type"]
+            action.data = action_dict["data"]
+            action.save()
+
+            groups = []
+            for group_name in action_dict["groups_allowed"]:
+                group = Group.objects.get(name=group_name)
+                groups.append(group)
+
+            action.groups_allowed.set(groups)
+            action.save()
 
     def _create_email_notifications(self, registry):
         from rdrf.models.definition.models import EmailNotification

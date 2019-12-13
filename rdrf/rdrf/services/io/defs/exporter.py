@@ -197,6 +197,7 @@ class Exporter(object):
         data["consent_rules"] = self._get_consent_rules()
         data["surveys"] = self._get_surveys()
         data["reviews"] = self._get_reviews()
+        data["custom_actions"] = self._get_custom_actions()
 
         if self.registry.patient_data_section:
             data["patient_data_section"] = self._create_section_map(
@@ -588,6 +589,19 @@ class Exporter(object):
                 review_dict["items"].append(item_dict)
             review_dicts.append(review_dict)
         return review_dicts
+
+    def _get_custom_actions(self):
+        from rdrf.models.definition.models import CustomAction
+        actions = []
+        for action in CustomAction.objects.filter(registry=self.registry):
+            action_dict = {}
+            action_dict["code"] = action.code
+            action_dict["name"] = action.name
+            action_dict["action_type"] = action.action_type
+            action_dict["groups_allowed"] = [g.name for g in action.groups_allowed.all()]
+            action_dict["data"] = action.data
+            actions.append(action_dict)
+        return actions
 
 
 def str_presenter(dumper, data):

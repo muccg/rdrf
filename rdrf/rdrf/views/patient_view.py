@@ -31,6 +31,7 @@ from rdrf.forms.components import RDRFContextLauncherComponent
 from rdrf.forms.components import RDRFPatientInfoComponent
 from rdrf.forms.components import FamilyLinkagePanel
 from rdrf.db.contexts_api import RDRFContextManager
+from rdrf.views.custom_actions import CustomActionWrapper
 
 from rdrf.security.security_checks import security_check_user_patient
 from django.core.exceptions import PermissionDenied
@@ -66,6 +67,17 @@ class PatientFormMixin(PatientMixin):
         self.request = None   # set in post so RegistrySpecificFieldsHandler can process files
 
     # common methods
+
+    def load_custom_actions(self):
+        if self.user and self.patient_model and self.registry_model:
+            return [CustomActionWrapper(self.registry_model,
+                                        self.user,
+                                        custom_action,
+                                        self.patient_model) for custom_action in
+                    self.user.custom_actions(self.registry_model)]
+        else:
+            return []
+
     def _get_registry_specific_fields(self, user, registry_model):
         """
         :param user:
@@ -567,6 +579,16 @@ class PatientEditView(View):
 
         return section_blacklist
 
+    def load_custom_actions(self, registry_model, user, patient_model):
+        if user and patient_model and registry_model:
+            return [CustomActionWrapper(registry_model,
+                                        user,
+                                        custom_action,
+                                        patient_model) for custom_action in
+                    user.custom_actions(registry_model)]
+        else:
+            return []
+
     def get(self, request, registry_code, patient_id):
         if not request.user.is_authenticated:
             patient_edit_url = reverse('patient_edit', args=[registry_code, patient_id, ])
@@ -636,6 +658,8 @@ class PatientEditView(View):
                                                             registry_model,
                                                             form_sections)
         context["hidden_sectionlist"] = hidden_sectionlist
+
+        context['custom_actions'] = self.load_custom_actions(registry_model, request.user, patient)
 
         return render(request, 'rdrf_cdes/patient_edit.html', context)
 
@@ -826,6 +850,7 @@ class PatientEditView(View):
                                                             registry_model,
                                                             form_sections)
         context["hidden_sectionlist"] = hidden_sectionlist
+        context['custom_actions'] = self.load_custom_actions(registry_model, request.user, patient)
 
         if request.user.is_parent:
             context['parent'] = ParentGuardian.objects.get(user=request.user)
