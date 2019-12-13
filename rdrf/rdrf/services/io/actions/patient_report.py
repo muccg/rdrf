@@ -1,9 +1,12 @@
 from django.http import HttpResponse, FileResponse
-from registry.patients.models import Patient
 from rdrf.models.definition.models import Registry
 from rdrf.models.definition.models import RegistryForm
 from rdrf.models.definition.models import Section
 from rdrf.models.definition.models import CommonDataElement
+
+from rdrf.helpers.utils import format_date
+from datetime import datetime
+from datetime import date
 
 import logging
 logger = logging.getLogger(__name__)
@@ -28,6 +31,21 @@ class Markdown:
 
 def cleanup(s):
     return s.replace("&lt;", "<").replace("&gt;", ">")
+
+
+def get_country(country_code):
+    import pycountry
+    for country in pycountry.countries:
+        if country.alpha_2 == country_code:
+            return country.name
+    return ""
+
+
+def convert_american_date(american_date_string):
+    if not american_date_string:
+        return ""
+    year, month, day = american_date_string.split("-")
+    return "%s-%s-%s" % (day, month, year)
 
 
 DEMOGRAPHICS_VARIABLES = ['id', 'consent', 'consent_clinical_trials', 'consent_sent_information',
@@ -71,7 +89,7 @@ def make_table(cde_model, range_dict, raw_values):
             result[name] = "No"
 
     header1 = "|" + cde_model.name + "|Answer|"
-    header2 = "----|----:|"
+    header2 = ":----|----:|"
     table_content = newline.join("|%s|%s|" % (name, result[name]) for name in names)
     table = header1 + newline + header2 + newline + table_content + newline
     logger.debug(table)
@@ -89,7 +107,11 @@ def human_value(cde_model, raw_value, is_list=False):
             if raw_value == value_dict["code"]:
                 return cleanup(value_dict["value"])
     else:
-        return raw_value
+        if cde_model.datatype == "date":
+            if raw_value:
+                return convert_american_date(raw_value)
+
+    return raw_value
 
 
 @nice
@@ -171,6 +193,11 @@ class ReportParser:
         if variable in DEMOGRAPHICS_VARIABLES:
             logger.debug("%s is a demographic field" % variable)
             value = getattr(self.patient_model, variable)
+            if isinstance(value, datetime) or isinstance(value, date):
+                value = format_date(value)
+                logger.debug("updated value = %s" % value)
+            if variable == "country_of_birth":
+                value = get_country(value)
         else:
             value = retrieve(self.registry_model,
                              variable,
