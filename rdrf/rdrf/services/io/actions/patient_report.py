@@ -19,15 +19,6 @@ class FieldSpec:
     PATH_DELIMITER = "/"
 
 
-class TemplateSetup:
-    LOAD_STATEMENTS = "{% load report_filters %}"
-
-
-class Markdown:
-    LINE_BREAK = '\n'
-    TABLETOP = "|\n" + "--|--\n"
-
-
 def cleanup(s):
     return s.replace("&lt;", "<").replace("&gt;", ">")
 
@@ -213,7 +204,6 @@ class ReportParser:
 
     def get_markdown(self):
         from django.template import Context, Template
-        #template_text = TemplateSetup.LOAD_STATEMENTS + "\n" + self.report_spec
         template_text = self.report_spec
         markdown_template = Template(template_text)
         variables = self._get_variable_names(markdown_template)
