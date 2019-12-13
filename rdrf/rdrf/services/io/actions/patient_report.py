@@ -1,6 +1,5 @@
 from django.http import HttpResponse, FileResponse
 from rdrf.models.definition.models import Registry
-from rdrf.models.definition.models import RegistryForm
 from rdrf.models.definition.models import Section
 from rdrf.models.definition.models import CommonDataElement
 
