@@ -1,11 +1,11 @@
-from django.http import HttpResponse, FileResponse
-from rdrf.models.definition.models import Registry
-from rdrf.models.definition.models import Section
-from rdrf.models.definition.models import CommonDataElement
-
-from rdrf.helpers.utils import format_date
+from django.http import HttpResponse
 from datetime import datetime
 from datetime import date
+import pycountry
+from rdrf.models.definition.models import RegistryForm
+from rdrf.models.definition.models import Section
+from rdrf.models.definition.models import CommonDataElement
+from rdrf.helpers.utils import format_date
 
 import logging
 logger = logging.getLogger(__name__)
@@ -19,12 +19,11 @@ class FieldSpec:
     PATH_DELIMITER = "/"
 
 
-def cleanup(s):
-    return s.replace("&lt;", "<").replace("&gt;", ">")
+def cleanup(value):
+    return value.replace("&lt;", "<").replace("&gt;", ">")
 
 
 def get_country(country_code):
-    import pycountry
     for country in pycountry.countries:
         if country.alpha_2 == country_code:
             return country.name
@@ -39,13 +38,19 @@ def convert_american_date(american_date_string):
 
 
 DEMOGRAPHICS_VARIABLES = ['id', 'consent', 'consent_clinical_trials', 'consent_sent_information',
-                          'consent_provided_by_parent_guardian', 'family_name', 'given_names',
-                          'maiden_name', 'umrn', 'date_of_birth', 'date_of_death', 'place_of_birth',
+                          'consent_provided_by_parent_guardian',
+                          'family_name', 'given_names',
+                          'maiden_name', 'umrn', 'date_of_birth',
+                          'date_of_death', 'place_of_birth',
                           'date_of_migration', 'country_of_birth',
-                          'ethnic_origin', 'sex', 'home_phone', 'mobile_phone', 'work_phone', 'email',
-                          'next_of_kin_family_name', 'next_of_kin_given_names', 'next_of_kin_relationship',
-                          'next_of_kin_address', 'next_of_kin_suburb', 'next_of_kin_state', 'next_of_kin_postcode',
-                          'next_of_kin_home_phone', 'next_of_kin_mobile_phone', 'next_of_kin_work_phone',
+                          'ethnic_origin', 'sex', 'home_phone', 'mobile_phone',
+                          'work_phone', 'email',
+                          'next_of_kin_family_name',
+                          'next_of_kin_given_names', 'next_of_kin_relationship',
+                          'next_of_kin_address', 'next_of_kin_suburb',
+                          'next_of_kin_state', 'next_of_kin_postcode',
+                          'next_of_kin_home_phone', 'next_of_kin_mobile_phone',
+                          'next_of_kin_work_phone',
                           'next_of_kin_email', 'next_of_kin_parent_place_of_birth',
                           'next_of_kin_country', 'active', 'inactive_reason',
                           'clinician', 'living_status', 'patient_type']
@@ -125,8 +130,8 @@ def retrieve(registry_model, field, patient_model, clinical_data):
         return "ERROR"
 
     form, section, cde = field.split(FieldSpec.PATH_DELIMITER)
-    form_model = RegistryModel.objects.get(registry=registry_model,
-                                           name=form)
+    form_model = RegistryForm.objects.get(registry=registry_model,
+                                          name=form)
     section_model = Section.objects.get(code=section)
     cde_model = CommonDataElement.objects.get(code=cde)
 
@@ -228,7 +233,6 @@ def execute(registry_model, report_name, report_spec, user, patient_model):
     report = parser.generate_report()
     if report:
         return report
-        response = FileResponse(report.content, content_type=report.content_type)
     else:
         response = HttpResponse()
 
