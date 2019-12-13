@@ -163,6 +163,12 @@ class ReportParser:
         self.data = {}
         self.clinical_data = self._load()
 
+    @property
+    def filename(self):
+        return "%s-%s-%s.pdf" % (self.registry_model.code,
+                                 self.report_name,
+                                 self.patient_model.pk)
+
     def _load(self):
         if not self.registry_model.has_feature("contexts"):
             logger.debug("no contexts")
@@ -180,11 +186,11 @@ class ReportParser:
     def generate_report(self):
         import markdown
         from xhtml2pdf import pisa
-
         content_type = "application/pdf"
         markdown_content = self.get_markdown()
         html_content = markdown.markdown(markdown_content, extensions=['tables'])
         response = HttpResponse(content_type="application/pdf")
+        response['Content-Disposition'] = 'attachment; filename="%s"' % self.filename
         pisa_status = pisa.CreatePDF(html_content, dest=response)
         return response
 
