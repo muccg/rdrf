@@ -18,6 +18,7 @@ from django.db.models.signals import pre_delete
 from django.dispatch.dispatcher import receiver
 from django.forms.models import model_to_dict
 from django.utils.safestring import mark_safe
+from django.core.exceptions import PermissionDenied
 
 from rdrf.helpers.utils import check_calculation
 from rdrf.helpers.utils import format_date, parse_iso_datetime
@@ -2028,11 +2029,15 @@ class CustomAction(models.Model):
         """
         logger.debug("executing action %s" % self.code)
         if not self.check_security(user, patient_model):
-            logger.debug("security check failed")
             raise PermissionDenied
         if self.action_type == "PR":
             from rdrf.services.io.actions import patient_report
-            return patient_report.execute(self.registry, self.name, self.data, user, patient_model)
+            result = patient_report.execute(self.registry, self.name, self.data, user, patient_model)
+            logger.info("custom action %s/%s by user %s on patient %s" % (self.registry.code,
+                                                                          self.name,
+                                                                          user.username,
+                                                                          patient_model.pk))
+            return result
         else:
             raise NotImplementedError("Unknown action type: %s" % self.action_type)
 
@@ -2041,7 +2046,6 @@ class CustomAction(models.Model):
         return self.name
 
     def check_security(self, user, patient_model):
-        from django.core.exceptions import PermissionDenied
         from rdrf.security.security_checks import security_check_user_patient
         try:
             security_check_user_patient(user, patient_model)

@@ -87,7 +87,6 @@ def make_table(cde_model, range_dict, raw_values):
     header2 = ":----|----:|"
     table_content = newline.join("|%s|%s|" % (name, result[name]) for name in names)
     table = header1 + newline + header2 + newline + table_content + newline
-    logger.debug(table)
     return table
 
 
@@ -95,7 +94,6 @@ def human_value(cde_model, raw_value, is_list=False):
     if cde_model.pv_group:
         range_dict = cde_model.pv_group.as_dict()
         if is_list:
-            logger.debug("making a table for %s" % cde_model.code)
             return make_table(cde_model, range_dict, raw_value)
 
         for value_dict in range_dict["values"]:
@@ -123,7 +121,6 @@ def retrieve(registry_model, field, patient_model, clinical_data):
                                                                       section_model.code,
                                                                       cde_model.code,
                                                                       clinical_data=clinical_data)
-                            logger.debug("form_value = %s" % form_value)
                             if cde_model.allow_multiple and type(form_value) is list:
                                 return human_value(cde_model, form_value, is_list=True)
                             return human_value(cde_model, form_value)
@@ -166,13 +163,11 @@ class ReportParser:
 
     def _load(self):
         if not self.registry_model.has_feature("contexts"):
-            logger.debug("no contexts")
             return self.patient_model.get_dynamic_data(self.registry_model)
         else:
             for context_model in self.patient_model.context_models:
                 if context_model.context_form_group:
                     if context_model.context_form_group.is_default:
-                        logger.debug("found default context")
                         return self.patient_model.get_dynamic_data(self.registry_model,
                                                                    context_id=context_model.id,
                                                                    flattened=True)
@@ -181,22 +176,19 @@ class ReportParser:
     def generate_report(self):
         import markdown
         from xhtml2pdf import pisa
-        content_type = "application/pdf"
         markdown_content = self.get_markdown()
         html_content = markdown.markdown(markdown_content, extensions=['tables'])
         response = HttpResponse(content_type="application/pdf")
         response['Content-Disposition'] = 'attachment; filename="%s"' % self.filename
-        pisa_status = pisa.CreatePDF(html_content, dest=response)
+        _ = pisa.CreatePDF(html_content, dest=response)
         return response
 
     def _get_variable_value(self, variable):
         value = "TODO"
         if variable in DEMOGRAPHICS_VARIABLES:
-            logger.debug("%s is a demographic field" % variable)
             value = getattr(self.patient_model, variable)
             if isinstance(value, datetime) or isinstance(value, date):
                 value = format_date(value)
-                logger.debug("updated value = %s" % value)
             if variable == "country_of_birth":
                 value = get_country(value)
         else:
@@ -204,7 +196,6 @@ class ReportParser:
                              variable,
                              self.patient_model,
                              self.clinical_data)
-        logger.debug("%s = %s" % (variable, value))
         return value
 
     def get_markdown(self):
@@ -223,12 +214,10 @@ class ReportParser:
     def _get_variable_names(self, template_object):
         vars = [node.filter_expression.token for node in template_object.nodelist
                 if node.__class__.__name__ == 'VariableNode']
-        logger.debug("variables in template = %s" % vars)
         return vars
 
 
 def execute(registry_model, report_name, report_spec, user, patient_model):
-    logger.debug("creating patient report %s" % report_name)
     parser = ReportParser(registry_model, report_name, report_spec, user, patient_model)
     report = parser.generate_report()
     if report:
