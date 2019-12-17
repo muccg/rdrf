@@ -1,8 +1,10 @@
 from django.shortcuts import redirect
 from django.urls import reverse
 from django.db import transaction
-from django.shortcuts import render
+from django.http import Http404
+from django.shortcuts import render, get_object_or_404
 from registration.backends.default.views import RegistrationView
+from rdrf.models.definition.models import Registry
 from rdrf.workflows.registration import get_registration_workflow
 import logging
 
@@ -15,6 +17,11 @@ class RdrfRegistrationView(RegistrationView):
     registry_code = None
 
     def get(self, request, *args, **kwargs):
+        try:
+            get_object_or_404(Registry, code=kwargs['registry_code'])
+        except Registry.DoesNotExist:
+            raise Http404
+
         self.registry_code = kwargs['registry_code']
         workflow = None
         token = request.GET.get("t", None)
