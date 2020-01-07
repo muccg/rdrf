@@ -28,7 +28,7 @@ requirements = [
     "psycopg2==2.8.3",
     "pycountry==19.8.18",
     "pyinotify==0.9.6",
-    "pyodbc==4.0.26",
+    "pyodbc==4.0.27",
     "pyparsing==2.3.1",
     "python-dateutil==2.8.0",
     "python-memcached==1.59",
