@@ -45,7 +45,7 @@ requirements = [
     "phonenumberslite==8.11.1",
     "Pillow==5.4.1",
     "qrcode==6.1",
-    "django-reversion==3.0.3",
+    "django-reversion==3.0.5",
     "ua-parser==0.8.0",
     "user-agents==2.0",
     "django-user-agents==0.3.2",
