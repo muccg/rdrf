@@ -35,7 +35,7 @@ requirements = [
     "pyyaml==5.1",
     "setuptools",
     "setuptools_scm==3.2.0",
-    "six==1.12.0",
+    "six==1.13.0",
     "SQLAlchemy==1.3.1",
     "uwsgi==2.0.18",
     "django-formtools==2.1",
