@@ -22,7 +22,7 @@ requirements = [
     "django-useraudit==1.7.1",
     "django-uwsgi==0.2.2",
     "geoip2==2.9.0",
-    "jsonschema==3.0.1",
+    "jsonschema==3.2.0",
     "openpyxl==2.6.4",
     "polib==1.1.0",
     "psycopg2==2.8.3",
