@@ -32,7 +32,7 @@ requirements = [
     "pyparsing==2.3.1",
     "python-dateutil==2.8.0",
     "python-memcached==1.59",
-    "pyyaml==5.1",
+    "pyyaml==5.2",
     "setuptools",
     "setuptools_scm==3.2.0",
     "six==1.13.0",
