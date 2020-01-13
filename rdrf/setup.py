@@ -25,7 +25,7 @@ requirements = [
     "jsonschema==3.2.0",
     "openpyxl==2.6.4",
     "polib==1.1.0",
-    "psycopg2==2.8.3",
+    "psycopg2==2.8.4",
     "pycountry==19.8.18",
     "pyinotify==0.9.6",
     "pyodbc==4.0.27",
