@@ -29,7 +29,7 @@ requirements = [
     "pycountry==19.8.18",
     "pyinotify==0.9.6",
     "pyodbc==4.0.27",
-    "pyparsing==2.3.1",
+    "pyparsing==2.4.5",
     "python-dateutil==2.8.1",
     "python-memcached==1.59",
     "pyyaml==5.2",
