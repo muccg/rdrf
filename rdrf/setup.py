@@ -15,7 +15,7 @@ requirements = [
     "django-nose==1.4.6",
     "django-positions==0.6.0",
     "django-registration-redux==2.6",
-    "djangorestframework==3.9.2",
+    "djangorestframework==3.9.4",
     "django-storages==1.8",
     "django-templatetag-handlebars==1.3.1",
     "django-templatetag-sugar==1.0",
