@@ -34,7 +34,7 @@ requirements = [
     "python-memcached==1.59",
     "pyyaml==5.2",
     "setuptools",
-    "setuptools_scm==3.2.0",
+    "setuptools_scm==3.3.3",
     "six==1.13.0",
     "SQLAlchemy==1.3.12",
     "uwsgi==2.0.18",
