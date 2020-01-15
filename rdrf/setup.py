@@ -38,7 +38,7 @@ requirements = [
     "six==1.13.0",
     "SQLAlchemy==1.3.12",
     "uwsgi==2.0.18",
-    "django-formtools==2.1",
+    "django-formtools==2.2",
     "django-otp==0.7.4",
     "django-phonenumber-field==2.4.0",
     "django-two-factor-auth==1.10.0",
