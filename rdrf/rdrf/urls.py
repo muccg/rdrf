@@ -297,13 +297,6 @@ normalpatterns += [
     re_path(r'^admin/lookups/', include(('ajax_select.urls', 'ajax_select_urls'), namespace=None)),
     re_path(r'^questionnaireconfig/(?P<form_pk>\d+)/?$',
             form_view.QuestionnaireConfigurationView.as_view(), name='questionnaire_config'),
-    re_path(r'^designer/(?P<reg_pk>\d+)$',
-            form_view.RDRFDesigner.as_view(), name='rdrf_designer'),
-    re_path(r'^cdes', form_view.RDRFDesignerCDESEndPoint.as_view(),
-            name='rdrf_designer_cdes_endpoint'),
-    re_path(r'^registrystructure/(?P<reg_pk>\d+)$', form_view.RDRFDesignerRegistryStructureEndPoint.as_view(),
-            name='rdrf_designer_registry_structure_endpoint'),
-
     re_path(r'api/familylookup/(?P<reg_code>\w+)/?$', FamilyLookup.as_view(), name="family_lookup"),
     re_path(r'api/patientlookup/(?P<reg_code>\w+)/?$', PatientLookup.as_view(), name="patient_lookup"),
     # ---- Look-ups URLs -----------------------
