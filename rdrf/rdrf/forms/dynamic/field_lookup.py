@@ -436,7 +436,7 @@ class FieldFactory(object):
                     widget = None
             else:
                 if self.cde.datatype.lower() == 'date':
-                    from django.forms.extras.widgets import SelectDateWidget
+                    from django.forms import SelectDateWidget
                     years = [yr for yr in range(1920, 2012, 1)]
                     widget = SelectDateWidget(years=years)
 
