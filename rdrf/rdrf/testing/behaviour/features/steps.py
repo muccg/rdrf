@@ -16,6 +16,7 @@ import time
 
 logger = logging.getLogger(__name__)
 
+# comment
 # Clearing all the aloe step definitions before we register our own.
 STEP_REGISTRY.clear()
 
@@ -27,7 +28,8 @@ def try_to_login(step):
 
 @step('I should be logged in as an Angelman user called "([^"]+)"')
 def login_as_angelman_user(step, user_name):
-    world.expected_login_message = "Welcome {0} to the Angelman Registry".format(user_name)
+    world.expected_login_message = \
+        "Welcome {0} to the Angelman Registry".format(user_name)
 
 
 @step('I should be at the welcome page and see a message which says "([^"]+)"')
@@ -40,17 +42,20 @@ def angelman_user_logged_in(step, welcome_message):
 
 @step('the administrator manually activates the user')
 def try_to_manually_activate_new_user(step):
-    world.browser.get(world.site_url + "admin/registration/registrationprofile/")
+    world.browser.get(
+        world.site_url + "admin/registration/registrationprofile/")
     world.browser.find_element_by_id('action-toggle').send_keys(Keys.SPACE)
 
     world.browser.find_element_by_xpath(
         "//select[@name='action']/option[text()='Activate users']").click()
-    world.browser.find_element_by_xpath("//*[@title='Run the selected action']").click()
+    world.browser.find_element_by_xpath(
+        "//*[@title='Run the selected action']").click()
 
 
 @step('the user should be activated')
 def check_user_activated(step):
-    # Ensure that the user has been successfully activated by checking for the green tick icon
+    # Ensure that the user has been successfully activated by
+    # checking for the green tick icon
     assert not (world.browser.find_elements_by_css_selector(
         'img[src$="/static/admin/img/icon-yes.svg"].ng-hide'))
 
@@ -59,7 +64,8 @@ def check_user_activated(step):
 
 
 @step(
-    'I try to register as an "([^"]+)" user called "([^"]+)" using the email address "([^"]+)" and the password "([^"]+)"')
+    ('I try to register as an "([^"]+)" user called "([^"]+)"'
+     'using the email address "([^"]+)" and the password "([^"]+)"'))
 def try_to_register(step, registry, client_name, email_address, password):
     registry_code = ''
 
@@ -94,13 +100,16 @@ def try_to_register(step, registry, client_name, email_address, password):
 
     # Select the gender radio button
     # 1 - Male, 2 - Female, 3 - Indeterminate
-    world.browser.find_element_by_css_selector("input[type='radio'][value='1']").click()
+    world.browser.find_element_by_css_selector(
+        "input[type='radio'][value='1']").click()
 
     # Select the country and state dropdowns
     world.browser.find_element_by_xpath(
-        "//select[@name='parent_guardian_country']/option[text()='Australia']").click()
+        ("//select[@name='parent_guardian_country']/"
+         "option[text()='Australia']")).click()
     world.browser.find_element_by_xpath(
-        "//select[@name='parent_guardian_state']/option[text()='Western Australia']").click()
+        ("//select[@name='parent_guardian_state']"
+         "/option[text()='Western Australia']")).click()
 
     # Fill out the patient details
     world.browser.find_element_by_id('ui-id-2').click()
@@ -134,7 +143,9 @@ def try_to_register(step, registry, client_name, email_address, password):
     world.browser.find_element_by_id('registration-submit').click()
 
 
-@step('I should have successfully registered and would see a "([^"]+)" message')
+@step(
+    'I should have successfully registered and would see a "([^"]+)" message'
+)
 def registration_successful(step, expected_success_message):
     # Ensure that the registration has successfully completed
     actual_message = world.browser.find_element_by_tag_name('h3').text
@@ -175,18 +186,21 @@ def click_link(step, link_text):
 
 @step('should see a link to "(.*)"')
 def should_see_link_to(step, link_text):
-    return world.browser.find_element_by_xpath('//a[contains(., "%s")]' % link_text)
+    return world.browser.find_element_by_xpath(
+        '//a[contains(., "%s")]' % link_text)
 
 
 @step('should NOT see a link to "(.*)"')
 def should_not_see_link_to(step, link_text):
-    links = world.browser.find_elements_by_xpath('//a[contains(., "%s")]' % link_text)
+    links = world.browser.find_elements_by_xpath(
+        '//a[contains(., "%s")]' % link_text)
     assert_equal(len(links), 0)
 
 
 @step('press the "(.*)" button')
 def press_button(step, button_text):
-    button = world.browser.find_element_by_xpath('//button[contains(., "%s")]' % button_text)
+    button = world.browser.find_element_by_xpath(
+        '//button[contains(., "%s")]' % button_text)
     utils.click(button)
 
 
@@ -233,7 +247,8 @@ def enter_cde_on_form(step, cde_value, form, section, cde):
     label_expression = ".//label[contains(., '%s')]" % cde
 
     for label_element in section_div.find_elements_by_xpath(label_expression):
-        input_div = label_element.find_element_by_xpath(".//following-sibling::div")
+        input_div = label_element.find_element_by_xpath(
+            ".//following-sibling::div")
         try:
             input_element = input_div.find_element_by_xpath(".//input")
             input_element.send_keys(cde_value)
@@ -244,7 +259,10 @@ def enter_cde_on_form(step, cde_value, form, section, cde):
     raise Exception("could not find cde %s" % cde)
 
 
-@step(r'I enter value "(.*)" for form "(.*)" multisection "(.*)" cde "(.*)" in item (\d+)')
+@step(
+    ('I enter value "(.*)" for form "(.*)" multisection "(.*)" cde "(.*)"'
+     r'in item (\d+)')
+)
 def enter_cde_on_form_multisection(step, cde_value, form, section, cde, item):
     formset_number = int(item) - 1
     formset_string = "-%s-" % formset_number
@@ -263,7 +281,8 @@ def enter_cde_on_form_multisection(step, cde_value, form, section, cde, item):
     label_expression = ".//label[contains(., '%s')]" % cde
 
     for label_element in section_div.find_elements_by_xpath(label_expression):
-        input_div = label_element.find_element_by_xpath(".//following-sibling::div")
+        input_div = label_element.find_element_by_xpath(
+            ".//following-sibling::div")
         try:
             input_element = input_div.find_element_by_xpath(".//input")
             if not correct_item(input_element):
@@ -283,7 +302,8 @@ def enter_cde_on_form_multisection(step, cde_value, form, section, cde, item):
 @step('I click the "(.*)" button')
 def click_submit_button(step, value):
     """click submit button with given value
-    This enables us to click on button, input or a elements that look like buttons.
+    This enables us to click on button, input or elements
+    that look like buttons.
     """
     submit_element = world.browser.find_element_by_xpath(
         "//*[@id='submit-btn' and @value='{0}']".format(value))
@@ -292,16 +312,18 @@ def click_submit_button(step, value):
 
 @step('error message is "(.*)"')
 def error_message_is(step, error_message):
-    # <div class="alert alert-alert alert-danger">Patient Fred SMITH not saved due to validation errors</div>
+    # <div class="alert alert-alert alert-danger">Patient Fred SMITH not saved
+    # due to validation errors</div>
     world.browser.find_element_by_xpath(
-        '//div[@class="alert alert-alert alert-danger" and contains(text(), "%s")]' %
-        error_message)
+        ('//div[@class="alert alert-alert alert-danger" and '
+         'contains(text(), "%s")]' % error_message))
 
 
 @step('location is "(.*)"')
 def location_is(step, location_name):
     world.browser.find_element_by_xpath(
-        '//div[@class="banner"]').find_element_by_xpath('//h3[contains(., "%s")]' % location_name)
+        '//div[@class="banner"]').find_element_by_xpath(
+            '//h3[contains(., "%s")]' % location_name)
 
 
 @step('When I click Module "(.*)" for patient "(.*)" on patientlisting')
@@ -357,7 +379,8 @@ def select_from_list(step, option, dropdown_label_or_id):
 
 @step('option "(.*)" from "(.*)" should be selected')
 def option_should_be_selected(step, option, dropdown_label):
-    label = world.browser.find_element_by_xpath('//label[contains(., "%s")]' % dropdown_label)
+    label = world.browser.find_element_by_xpath(
+        '//label[contains(., "%s")]' % dropdown_label)
     option = world.browser.find_element_by_xpath(
         '//select[@id="%s"]/option[contains(., "%s")]' %
         (label.get_attribute('for'), option))
@@ -366,7 +389,8 @@ def option_should_be_selected(step, option, dropdown_label):
 
 @step('fill in "(.*)" with "(.*)"')
 def fill_in_textfield(step, textfield_label, text):
-    label = world.browser.find_element_by_xpath('//label[contains(., "%s")]' % textfield_label)
+    label = world.browser.find_element_by_xpath(
+        '//label[contains(., "%s")]' % textfield_label)
     textfield = world.browser.find_element_by_xpath(
         '//input[@id="%s"]' % label.get_attribute('for'))
     textfield.send_keys(text)
@@ -376,7 +400,9 @@ def fill_in_textfield(step, textfield_label, text):
 def fill_in_textfield2(step, label, keys, multi, index):
     multisection = multi + '-' + index
     label = world.browser.find_element_by_xpath(
-        '//label[contains(@for, "{0}") and contains(., "{1}")]'.format(multisection, label))
+        ('//label[contains(@for, "{0}") and '
+         'contains(., "{1}")]'.format(multisection, label))
+    )
     textfield = world.browser.find_element_by_xpath(
         '//input[@id="%s"]' % label.get_attribute('for'))
     textfield.send_keys(keys)
@@ -384,7 +410,8 @@ def fill_in_textfield2(step, label, keys, multi, index):
 
 @step('value of "(.*)" should be "(.*)"')
 def value_is(step, textfield_label, expected_value):
-    label = world.browser.find_element_by_xpath('//label[contains(., "%s")]' % textfield_label)
+    label = world.browser.find_element_by_xpath(
+        '//label[contains(., "%s")]' % textfield_label)
     textfield = world.browser.find_element_by_xpath(
         '//input[@id="%s"]' % label.get_attribute('for'))
     assert_equal(textfield.get_attribute('value'), expected_value)
@@ -398,14 +425,16 @@ def value_is2(step, section, cde, expected_value):
     section_div = section_div_heading.find_element_by_xpath("..")
     label_expression = ".//label[contains(., '%s')]" % cde
     label_element = section_div.find_element_by_xpath(label_expression)
-    input_div = label_element.find_element_by_xpath(".//following-sibling::div")
+    input_div = label_element.find_element_by_xpath(
+        ".//following-sibling::div")
     input_element = input_div.find_element_by_xpath(".//input")
     assert_equal(input_element.get_attribute('value'), expected_value)
 
 
 @step('check "(.*)"')
 def check_checkbox(step, checkbox_label):
-    label = world.browser.find_element_by_xpath('//label[contains(., "%s")]' % checkbox_label)
+    label = world.browser.find_element_by_xpath(
+        '//label[contains(., "%s")]' % checkbox_label)
     checkbox = world.browser.find_element_by_xpath(
         '//input[@id="%s"]' % label.get_attribute('for'))
     if not checkbox.is_selected():
@@ -414,7 +443,8 @@ def check_checkbox(step, checkbox_label):
 
 @step('the "(.*)" checkbox should be checked')
 def checkbox_should_be_checked(step, checkbox_label):
-    label = world.browser.find_element_by_xpath('//label[contains(., "%s")]' % checkbox_label)
+    label = world.browser.find_element_by_xpath(
+        '//label[contains(., "%s")]' % checkbox_label)
     checkbox = world.browser.find_element_by_xpath(
         '//input[@id="%s"]' % label.get_attribute('for'))
     assert_true(checkbox.is_selected())
@@ -443,7 +473,8 @@ def goto_patient(step):
 
 @step('the page header should be "(.*)"')
 def the_page_header_should_be(step, header):
-    header = world.browser.find_element_by_xpath('//h3[contains(., "%s")]' % header)
+    header = world.browser.find_element_by_xpath(
+        '//h3[contains(., "%s")]' % header)
 
 
 @step('I am logged in as (.*)')
@@ -458,9 +489,11 @@ def login_as_role(step, role):
 @step('log in as "(.*)" with "(.*)" password')
 def login_as_user(step, username, password):
     utils.click(world.browser.find_element_by_link_text("Log in"))
-    username_field = world.browser.find_element_by_xpath('.//input[@name="auth-username"]')
+    username_field = world.browser.find_element_by_xpath(
+        './/input[@name="auth-username"]')
     username_field.send_keys(username)
-    password_field = world.browser.find_element_by_xpath('.//input[@name="auth-password"]')
+    password_field = world.browser.find_element_by_xpath(
+        './/input[@name="auth-password"]')
     password_field.send_keys(password)
     password_field.submit()
 
@@ -476,8 +509,10 @@ def should_be_logged_in(step):
 def should_be_on_the_login_page(step):
     world.browser.find_element_by_xpath(
         './/div[@class="panel-heading"][text()[contains(.,"Login")]]')
-    world.browser.find_element_by_xpath('.//label[text()[contains(.,"Username")]]')
-    world.browser.find_element_by_xpath('.//label[text()[contains(.,"Password")]]')
+    world.browser.find_element_by_xpath(
+        './/label[text()[contains(.,"Username")]]')
+    world.browser.find_element_by_xpath(
+        './/label[text()[contains(.,"Password")]]')
 
 
 @step('click the User Dropdown Menu')
@@ -500,7 +535,8 @@ def go_home(step):
 @step('go to the registry "(.*)"')
 def go_to_registry(step, name):
     world.browser.get(world.site_url)
-    utils.click(world.browser.find_element_by_link_text('Registries on this site'))
+    utils.click(world.browser.find_element_by_link_text(
+        'Registries on this site'))
     utils.click(world.browser.find_element_by_partial_link_text(name))
 
 
@@ -555,16 +591,23 @@ def enter_value_for_named_element(step, value, name):
 
 @step('click radio button value "(.*)" for section "(.*)" cde "(.*)"')
 def click_radio_button(step, value, section, cde):
-    # NB. this is actually just clicking the first radio at the moment
-    # and ignores the value
-    section_div_heading = world.browser.find_element_by_xpath(
-        ".//div[@class='panel-heading'][contains(., '%s')]" % section)
-    section_div = section_div_heading.find_element_by_xpath("..")
-    label_expression = ".//label[contains(., '%s')]" % cde
-    label_element = section_div.find_element_by_xpath(label_expression)
-    input_div = label_element.find_element_by_xpath(".//following-sibling::div")
-    # must be getting first ??
-    input_element = input_div.find_element_by_xpath(".//input")
+    # Fixed by George, Monday 20th Jan (10:30am).
+    # Should now click the correct radio button value.
+    # Works on CICLC, might need more testing.
+    # Added accounting for ignoring section, Tuesday 21st Jan (12:55pm).
+    # Tested and appears to be working correctly.
+    if not section:
+        label_expression = "//label[contains(., '%s')]" % cde
+        label_element = world.browser.find_element_by_xpath(
+            label_expression)
+    else:
+        section_div_heading = world.browser.find_element_by_xpath(
+            ".//div[@class='panel-heading'][contains(., '%s')]" % section)
+        section_div = section_div_heading.find_element_by_xpath("..")
+        label_expression = ".//label[contains(., '%s')]" % cde
+        label_element = section_div.find_element_by_xpath(label_expression)
+    input_element = label_element.find_element_by_xpath(
+        './/following-sibling::div/label[contains(., "%s")]' % value)
     input_element.click()
 
 
@@ -593,7 +636,8 @@ def scroll_to_element(step, section, cde):
 def should_be_able_to_download(step, download_name):
     import re
     link_pattern = re.compile(r".*\/uploads\/\d+$")
-    download_link_element = world.browser.find_element_by_link_text(download_name)
+    download_link_element = \
+        world.browser.find_element_by_link_text(download_name)
     if not download_link_element:
         raise Exception("Could not locate download link %s" % download_name)
 
@@ -632,7 +676,8 @@ def check_history_popup(step, form, section, cde, history_values_csv):
     section_div = section_div_heading.find_element_by_xpath("..")
     label_expression = ".//label[contains(., '%s')]" % cde
     label_element = section_div.find_element_by_xpath(label_expression)
-    input_div = label_element.find_element_by_xpath(".//following-sibling::div")
+    input_div = label_element.find_element_by_xpath(
+        ".//following-sibling::div")
     input_element = input_div.find_element_by_xpath(".//input")
     history_widget = label_element.find_elements_by_xpath(
         ".//a[@onclick='rdrf_click_form_field_history(event, this)']")[0]
@@ -646,24 +691,29 @@ def check_history_popup(step, form, section, cde, history_values_csv):
     history_widget.click()
 
     WebDriverWait(world.browser, 60).until(
-        ec.visibility_of_element_located((By.XPATH, ".//a[@href='#cde-history-table']"))
+        ec.visibility_of_element_located((By.XPATH,
+                                          ".//a[@href='#cde-history-table']"))
     )
 
     def find_cell(historical_value):
         element = world.browser.find_element_by_xpath(
             '//td[@data-value="%s"]' % historical_value)
         if element is None:
-            raise Exception("Can't locate history value '%s'" % historical_value)
+            raise Exception("Can't locate history value '%s'"
+                            % historical_value)
 
     for historical_value in history_values:
         find_cell(historical_value)
 
 
-@step('check the clear checkbox for multisection "(.*)" cde "(.*)" file "(.*)"')
+@step(
+    'check the clear checkbox for multisection "(.*)" cde "(.*)" file "(.*)"'
+)
 def clear_file_upload(step, section, cde, download_name):
     # NB. the nots here! We avoid dummy empty forms and the hidden history
     import time
-    download_link_element = world.browser.find_element_by_link_text(download_name)
+    download_link_element = \
+        world.browser.find_element_by_link_text(download_name)
     clear_checkbox = download_link_element.find_element_by_xpath(
         ".//following-sibling::input[@type='checkbox']")
     y = int(utils.scroll_to(clear_checkbox))
@@ -678,7 +728,8 @@ def clear_file_upload(step, section, cde, download_name):
             succeeded = True
             break
         except BaseException:
-            print("clear checkbox could not be clicked on attempt %s" % attempts)
+            print("clear checkbox could not be clicked on attempt %s"
+                  % attempts)
             time.sleep(2)
             attempts += 1
         y = y + 10
@@ -689,12 +740,16 @@ def clear_file_upload(step, section, cde, download_name):
         raise Exception("Could not click the file clear checkbox")
 
 
-@step('when I scroll to section "(.*)"')
+@step('I scroll to section "(.*)"')
 def scroll_to_section(step, section):
     from selenium.webdriver.common.action_chains import ActionChains
     mover = ActionChains(world.browser)
     print("scrolling to section %s" % section)
-    section_xpath = ".//div[@class='panel panel-default' and contains(.,'%s') and not(contains(., '__prefix__')) and not(contains(.,'View previous values'))]" % section
+    section_xpath = (".//div[@class='panel panel-default' and "
+                     "contains(.,'%s') and "
+                     "not(contains(., '__prefix__')) and "
+                     "not(contains(.,'View previous values'))]"
+                     % section)
     section_element = world.browser.find_element_by_xpath(section_xpath)
     if not section_element:
         raise Exception("could not find section %s" % section)
@@ -705,7 +760,11 @@ def scroll_to_section(step, section):
 
 @step('I click the add button for multisection "(.*)"')
 def add_multisection_item(step, section):
-    xpath = ".//div[@class='panel-heading' and contains(.,'%s') and not(contains(., '__prefix__')) and not(contains(.,'View previous values'))]" % section
+    xpath = (".//div[@class='panel-heading' and "
+             "contains(.,'%s') and "
+             "not(contains(., '__prefix__')) and "
+             "not(contains(.,'View previous values'))]"
+             % section)
     div = world.browser.find_element_by_xpath(xpath)
     add_link_xpath = """.//a[starts-with(@onclick,"add_form('formset_")]"""
     add_link = div.find_element_by_xpath(add_link_xpath)
@@ -724,15 +783,19 @@ def wait_n_seconds(step, seconds):
 @step(r'I mark multisection "(.*)" item (\d+) for deletion')
 def mark_item_for_deletion(step, multisection, item):
     formset_string = "-%s-" % (int(item) - 1)
-    xpath = "//div[@class='panel-heading' and contains(., '%s')]" % multisection
-    default_panel = world.browser.find_element_by_xpath(xpath).find_element_by_xpath("..")
+    xpath = ("//div[@class='panel-heading' and contains(., '%s')]"
+             % multisection)
+    default_panel = \
+        world.browser.find_element_by_xpath(xpath).find_element_by_xpath("..")
     # now locate the delete checkbox for the item
-    checkbox_xpath = ".//input[@type='checkbox' and contains(@id, '-DELETE') and contains(@id, '%s')]" % formset_string
+    checkbox_xpath = (".//input[@type='checkbox' and "
+                      "contains(@id, '-DELETE') and contains(@id, '%s')]"
+                      % formset_string)
     delete_checkbox = default_panel.find_element_by_xpath(checkbox_xpath)
 
     if delete_checkbox:
-        print("found delete_checkbox for multisection %s item %s" % (multisection,
-                                                                     item))
+        print("found delete_checkbox for multisection %s item %s"
+              % (multisection, item))
     else:
         raise Exception(
             "Could not found delete checkbox for multisection %s item %s" %
@@ -748,7 +811,34 @@ def check_multisection_value(step, multisection, cde, item, expected_value):
     """
     input_element = utils.scroll_to_multisection_cde(multisection, cde, item)
     actual_value = input_element.get_attribute("value")
-    error_msg = "Multisection %s cde %s item %s expected value %s - actual value %s" % (
-        multisection, cde, item, expected_value, actual_value)
-
+    error_msg = ("Multisection %s cde %s item %s expected value %s - "
+                 "actual value %s"
+                 % (multisection, cde, item, expected_value, actual_value))
     assert actual_value == expected_value, error_msg
+
+
+@step('search for patient "([^"]+)"')
+def patient_search(step, patient_name):
+    # Can only search by surname, searching for both names
+    # doesn't find the patient.
+    # Seems it can't grab the whitespace between the names
+    # or something to that effect.
+    patient_surname = patient_name.strip()[0]
+    searchbox = world.browser.find_element_by_xpath("//input[@type='search']")
+    searchbox.send_keys(patient_surname)
+
+
+@step('should see a patient link for "([^"]+)"')
+def patient_link_find(step, patient_name):
+    plf_xpath = '//a[contains(., "%s")]' % patient_name
+    return world.browser.find_element_by_xpath(plf_xpath)
+
+
+@step('I scroll cde "(.*)" to the centre of my view')
+def scroll_to_centre(step, cde):
+    cde = world.browser.find_element_by_xpath(
+        "//label[contains(., \"%s\")]" % cde)
+    scroll_by = cde.size["height"] - \
+        (1 / 2) * world.browser.get_window_size()["height"]
+    world.browser.execute_script("arguments[0].scrollIntoView(true);", cde)
+    world.browser.execute_script("scrollBy(0, %s)" % scroll_by)
