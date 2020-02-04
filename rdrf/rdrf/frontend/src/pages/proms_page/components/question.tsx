@@ -30,18 +30,24 @@ class Question extends React.Component<QuestionInterface, object> {
         this.props.enterData(code, event.target.value);
     }
 
-    public transformSubstring = (mainString: string, words: string[], transformation: string) => {
-        var result = [];
+    public transformSubstring = (mainString: string, words: string[], transformation: string) : string[] => {
+        const result = [];
         switch(transformation) {
             case 'underline':
-                const mainArray = mainString.split(' ');
-                for (var i = 0; i < mainArray.length; i++) {
-                    var substring = mainArray[i]
+                let mainArray = mainString.split(' ');
+                for (const substring of mainArray) {
                     if (words.includes(substring)){
-                        result = result.concat( [ ' ', <u>{substring}</u>] )
+                        result.push(' ', <u>{substring}</u>);
                     } else {
-                        result = result.concat( [ ' ', substring ] )
+                        result.push(' ', substring);
                     }
+                }
+                return result;
+                break;
+            case 'none':
+                mainArray = mainString.split(' ');
+                for (const substring of mainArray) {
+                    result.push(' ', substring);
                 }
                 return result;
                 break;
@@ -217,22 +223,23 @@ class Question extends React.Component<QuestionInterface, object> {
             return this.renderMultiSelect(question);
         }
 
-        let transformed_instruction;
+        let transformedInstruction: string[];
         if (question.cde === 'EQ_Health_Rate') {
-            var words = ['best', 'worst']; // words to be transformed
-            transformed_instruction = this.transformSubstring(this.props.questions[this.props.stage].instructions,
-                                                              words,
-                                                              'underline')
+            transformedInstruction = this.transformSubstring(this.props.questions[this.props.stage].instructions,
+                                                              ['best', 'worst'], 'underline')
         } else {
-            transformed_instruction = this.props.questions[this.props.stage].instructions
+            transformedInstruction = this.transformSubstring(this.props.questions[this.props.stage].instructions,
+                                                              [], 'none')
         }
 
         return (
             <Form>
                 <FormGroup tag="fieldset">
-                    <h6><i>{this.props.questions[this.props.stage].survey_question_instruction}</i></h6>
-                    <h4>{this.props.questions[this.props.stage].title}</h4>
-                    <i>{transformed_instruction}</i>
+                    <Col sm="12" md={{ size: 6, offset: 3 }}>
+                        <h6><i>{this.props.questions[this.props.stage].survey_question_instruction}</i></h6>
+                        <h4>{this.props.questions[this.props.stage].title}</h4>
+                        <i>{transformedInstruction}</i>
+                    </Col>
                 </FormGroup>
                 {
                     (question.spec.tag === 'integer' ?
@@ -240,7 +247,7 @@ class Question extends React.Component<QuestionInterface, object> {
                             <div className="col">
                                 <div className="float-right" style={boxStyle}>
                                     <p className="text-center" style={pStyle}>
-                                        <p>YOUR HEALTH TODAY <br></br> <b>{defaultValue}</b></p>
+                                        <p>YOUR HEALTH TODAY <br /> <b>{defaultValue}</b></p>
                                     </p>
                                 </div>
                             </div>
