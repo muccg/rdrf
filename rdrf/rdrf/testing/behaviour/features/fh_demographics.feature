@@ -20,6 +20,7 @@ Feature: FH feature practice
   Scenario: Genetic Data save fails, then repaired and saves successfully
     When I am logged in as curator
     And I search for patient "SMITH John"
+    And I wait 2 seconds
     And I click "SMITH John" on patientlisting
     And I click "Genetic Data" in sidebar
     Then location is "Genetic Data"

@@ -260,8 +260,7 @@ def enter_cde_on_form(step, cde_value, form, section, cde):
 
 
 @step(
-    ('I enter value "(.*)" for form "(.*)" multisection "(.*)" cde "(.*)"'
-     r'in item (\d+)')
+    r'I enter value "(.*)" for form "(.*)" multisection "(.*)" cde "(.*)" in item (\d+)'
 )
 def enter_cde_on_form_multisection(step, cde_value, form, section, cde, item):
     formset_number = int(item) - 1
