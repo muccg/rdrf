@@ -32,22 +32,15 @@ class Question extends React.Component<QuestionInterface, object> {
 
     public transformSubstring = (mainString: string, words: string[], transformation: string) : string[] => {
         const result = [];
+        const mainArray = mainString.split(' ');
         switch(transformation) {
             case 'underline':
-                let mainArray = mainString.split(' ');
                 for (const substring of mainArray) {
                     if (words.includes(substring)){
                         result.push(' ', <u>{substring}</u>);
                     } else {
                         result.push(' ', substring);
                     }
-                }
-                return result;
-                break;
-            case 'none':
-                mainArray = mainString.split(' ');
-                for (const substring of mainArray) {
-                    result.push(' ', substring);
                 }
                 return result;
                 break;
@@ -223,13 +216,12 @@ class Question extends React.Component<QuestionInterface, object> {
             return this.renderMultiSelect(question);
         }
 
-        let transformedInstruction: string[];
+        let transformedInstruction: string[] | string;
         if (question.cde === 'EQ_Health_Rate') {
             transformedInstruction = this.transformSubstring(this.props.questions[this.props.stage].instructions,
                                                               ['best', 'worst'], 'underline')
         } else {
-            transformedInstruction = this.transformSubstring(this.props.questions[this.props.stage].instructions,
-                                                              [], 'none')
+            transformedInstruction = this.props.questions[this.props.stage].instructions;
         }
 
         return (
