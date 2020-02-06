@@ -8,9 +8,6 @@ export const goNext = createAction("PROMS_NEXT");
 export const submitAnswers = createAction("PROMS_SUBMIT");
 export const enterData = createAction("PROMS_ENTER_DATA");
 
-
-
-
 axios.defaults.xsrfHeaderName = "X-CSRFTOKEN";
 axios.defaults.xsrfCookieName = "csrftoken";
 
@@ -41,7 +38,6 @@ function isCond(state) {
     const stage = state.stage;
     return state.questions[stage].tag === 'cond';
 }
-
 
 function updateAnswers(action: any, state: any): any {
     // if data entered , update the answers object
