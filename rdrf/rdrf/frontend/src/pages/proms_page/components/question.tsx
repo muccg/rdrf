@@ -10,7 +10,6 @@ import { QuestionInterface } from './interfaces';
 import * as actions from '../reducers';
 
 
-
 class Question extends React.Component<QuestionInterface, object> {
     constructor(props) {
         super(props);
@@ -29,6 +28,23 @@ class Question extends React.Component<QuestionInterface, object> {
     public handleInputChange = (event) => {
         const code = this.props.questions[this.props.stage].cde;
         this.props.enterData(code, event.target.value);
+    }
+
+    public transformSubstring = (mainString: string, words: string[], transformation: string) : string[] => {
+        const result = [];
+        const mainArray = mainString.split(' ');
+        switch(transformation) {
+            case 'underline':
+                for (const substring of mainArray) {
+                    if (words.includes(substring)){
+                        result.push(' ', <u>{substring}</u>);
+                    } else {
+                        result.push(' ', substring);
+                    }
+                }
+                return result;
+                break;
+        }
     }
 
     public handleInputKeyDown = (event) => {
@@ -68,7 +84,12 @@ class Question extends React.Component<QuestionInterface, object> {
         const minValue = question.spec.min;
         const maxValue = question.spec.max;
         const marks = {
-            [minValue]: <strong>{minValue}</strong>,
+            [minValue]: {
+                style: {
+                    color: 'red', width: 'max-content'
+                },
+                label: <strong>{minValue} - The worst health you can imagine</strong>,
+            },
             10: '10',
             20: '20',
             30: '30',
@@ -80,14 +101,13 @@ class Question extends React.Component<QuestionInterface, object> {
             90: '90',
             [maxValue]: {
                 style: {
-                    color: 'red',
+                    color: 'green', width: 'max-content'
                 },
-                label: <strong>{maxValue}</strong>,
+                label: <strong>{maxValue} - The best health you can imagine</strong>,
             },
         };
 
         return marks;
-
     }
 
     public getSliderHandle = () => {
@@ -163,7 +183,6 @@ class Question extends React.Component<QuestionInterface, object> {
         );
     }
 
-
     public render() {
         const question = this.props.questions[this.props.stage];
         let defaultValue = 0;
@@ -174,7 +193,8 @@ class Question extends React.Component<QuestionInterface, object> {
                 this.onSliderChange(defaultValue);
             }
         }
-        const boxStyle = { width: "100px", height: "100px", backgroundColor: "black" };
+        const boxStyle = { width: "100px", height: "100px", backgroundColor: "#666",
+                           marginTop: "20vh", paddingTop: "3px", borderRadius: "8px" };
         const pStyle = { color: "white", align: "center" };
         const style = { width: "50%", height: "50vh", margin: "0 auto", leftPadding: "100px" };
         const isLast = (this.props.questions.length - 1) === this.props.stage;
@@ -196,19 +216,31 @@ class Question extends React.Component<QuestionInterface, object> {
             return this.renderMultiSelect(question);
         }
 
+        let transformedInstruction: string[] | string;
+        if (question.cde === 'EQ_Health_Rate') {
+            transformedInstruction = this.transformSubstring(this.props.questions[this.props.stage].instructions,
+                                                              ['best', 'worst'], 'underline')
+        } else {
+            transformedInstruction = this.props.questions[this.props.stage].instructions;
+        }
+
         return (
             <Form>
                 <FormGroup tag="fieldset">
-                    <h6><i>{this.props.questions[this.props.stage].survey_question_instruction}</i></h6>
-                    <h4>{this.props.questions[this.props.stage].title}</h4>
-                    <i>{this.props.questions[this.props.stage].instructions}</i>
+                    <Col sm="12" md={{ size: 6, offset: 3 }}>
+                        <h6><i>{this.props.questions[this.props.stage].survey_question_instruction}</i></h6>
+                        <h4>{this.props.questions[this.props.stage].title}</h4>
+                        <i>{transformedInstruction}</i>
+                    </Col>
                 </FormGroup>
                 {
                     (question.spec.tag === 'integer' ?
                         <div className='row'>
                             <div className="col">
                                 <div className="float-right" style={boxStyle}>
-                                    <p className="text-center" style={pStyle}>YOUR HEALTH RATE TODAY <b>{defaultValue}</b></p>
+                                    <p className="text-center" style={pStyle}>
+                                        <p>YOUR HEALTH TODAY <br /> <b>{defaultValue}</b></p>
+                                    </p>
                                 </div>
                             </div>
                             <div className="col" style={style}>
@@ -259,7 +291,6 @@ function mapStateToProps(state) {
     };
 }
 
-
 function mapPropsToDispatch(dispatch) {
     return ({
         enterData: (cdeCode: string, cdeValue: any) => dispatch(actions.enterData({ cde: cdeCode, value: cdeValue })),
@@ -267,6 +298,3 @@ function mapPropsToDispatch(dispatch) {
 }
 
 export default connect<{}, {}, QuestionInterface>(mapStateToProps, mapPropsToDispatch)(Question);
-
-
-
