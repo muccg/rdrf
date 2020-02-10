@@ -86,9 +86,9 @@ class Question extends React.Component<QuestionInterface, object> {
         const marks = {
             [minValue]: {
                 style: {
-                    color: 'red', width: 'max-content'
+                    color: 'red', width: 'max-content', textAlign: 'left', marginBottom: '-100%'
                 },
-                label: <strong>{minValue} - The worst health you can imagine</strong>,
+                label: <strong>{minValue} - The worst health<br />you can imagine</strong>,
             },
             10: '10',
             20: '20',
@@ -101,9 +101,9 @@ class Question extends React.Component<QuestionInterface, object> {
             90: '90',
             [maxValue]: {
                 style: {
-                    color: 'green', width: 'max-content'
+                    color: 'green', width: 'max-content', textAlign: 'left', marginBottom: '-100%'
                 },
-                label: <strong>{maxValue} - The best health you can imagine</strong>,
+                label: <strong>{maxValue} - The best health<br />you can imagine</strong>,
             },
         };
 
