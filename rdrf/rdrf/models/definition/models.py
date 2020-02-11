@@ -1865,7 +1865,8 @@ class CustomAction(models.Model):
     Represents actions with a button in the GUI - can be run
     data associated with the action is parsed and the action executed
     """
-    ACTION_TYPES = (("PR", "Patient Report"),)
+    ACTION_TYPES = (("PR", "Patient Report"),
+                    ("SR", "Patient Status Report"))
 
     registry = models.ForeignKey(Registry, on_delete=models.CASCADE)
     groups_allowed = models.ManyToManyField(Group, blank=True)
@@ -1878,7 +1879,7 @@ class CustomAction(models.Model):
         """
         This should return a HttpResponse of some sort
         """
-        logger.debug("executing action %s" % self.code)
+
         if not self.check_security(user, patient_model):
             raise PermissionDenied
         if self.action_type == "PR":
@@ -1889,6 +1890,12 @@ class CustomAction(models.Model):
                                                                           user.username,
                                                                           patient_model.pk))
             return result
+        elif self.action_type == "SR":
+            from rdrf.services.io.actions import status_report
+            result = status_report.execute(self.registry,
+
+
+            pass
         else:
             raise NotImplementedError("Unknown action type: %s" % self.action_type)
 
