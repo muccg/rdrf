@@ -1,4 +1,4 @@
-sure==1.2.12
+sure==1.4.11
 django-nose
 nose
 nose-timer
