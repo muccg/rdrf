@@ -12,6 +12,9 @@ class CustomActionView(View):
         logger.debug("in custom action view ...")
         user = request.user
         custom_action = get_object_or_404(CustomAction, id=action_id)
+        if custom_action.scope == "U":
+            # not applicable to a patient
+            return custom_action.execute(user)
         logger.debug("got custom action")
         patient_model = get_object_or_404(Patient, id=patient_id)
         logger.debug("got patient")

@@ -22,6 +22,7 @@ from django.core.exceptions import PermissionDenied
 
 from rdrf.helpers.utils import check_calculation
 from rdrf.helpers.utils import format_date, parse_iso_datetime
+from rdrf.helpers.utils import LinkWrapper
 from rdrf.events.events import EventType
 
 from rdrf.forms.fields.jsonb import DataField
@@ -1868,20 +1869,28 @@ class CustomAction(models.Model):
     ACTION_TYPES = (("PR", "Patient Report"),
                     ("SR", "Patient Status Report"))
 
+    SCOPES = (("U", "Universal"),
+              ("P", "Patient"))
+
     registry = models.ForeignKey(Registry, on_delete=models.CASCADE)
     groups_allowed = models.ManyToManyField(Group, blank=True)
     code = models.CharField(max_length=80)
     name = models.CharField(max_length=80, blank=True, null=True)
     action_type = models.CharField(max_length=2, choices=ACTION_TYPES)
     data = models.TextField(null=True)
+    scope = models.CharField(max_length=1, choices=SCOPES)  # controls where action appears
 
-    def execute(self, user, patient_model):
+    def execute(self, user, patient_model=None):
         """
         This should return a HttpResponse of some sort
         """
+        if self.scope == "P":
+            if not self.check_security(user, patient_model):
+                raise PermissionDenied
+        elif self.scope == "U":
+            if not user.in_registry(self.registry):
+                raise PermissionDenied
 
-        if not self.check_security(user, patient_model):
-            raise PermissionDenied
         if self.action_type == "PR":
             from rdrf.services.io.actions import patient_report
             result = patient_report.execute(self.registry, self.name, self.data, user, patient_model)
@@ -1891,17 +1900,31 @@ class CustomAction(models.Model):
                                                                           patient_model.pk))
             return result
         elif self.action_type == "SR":
-            from rdrf.services.io.actions import status_report
-            result = status_report.execute(self.registry,
+            from rdrf.services.io.actions import patient_status_report
+            return patients_status_report.execute(self.registry,
+                                                  self.name,
+                                                  self.data,
+                                                  user)
 
-
-            pass
         else:
             raise NotImplementedError("Unknown action type: %s" % self.action_type)
 
     @property
     def text(self):
         return self.name
+
+    @property
+    def url(self):
+        logger.debug("getting url of action %s" % self.name)
+        if self.scope == "U":
+            return reverse("customactions", args=(self.pk, 0))
+        else:
+            return ""
+
+    @property
+    def menu_link(self):
+        link = LinkWrapper(self.url, self.name)
+        return link
 
     def check_security(self, user, patient_model):
         from rdrf.security.security_checks import security_check_user_patient

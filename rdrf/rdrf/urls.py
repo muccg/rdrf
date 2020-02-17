@@ -140,7 +140,6 @@ normalpatterns += [
     re_path(r'^useraudit/', include('useraudit.urls',)),
     re_path(r'^customactions/(?P<action_id>\d+)/(?P<patient_id>\d+)/?$',
             CustomActionView.as_view(), name='custom_action'),
-
     re_path(r'^api/v1/', include(('rdrf.services.rest.urls.api_urls', 'api_urls'), namespace='v1')),
     re_path(r'^api/proms/v1/', include(('rdrf.services.rest.urls.proms_api_urls', 'proms_api_urls'), namespace=None)),
     re_path(r'^constructors/(?P<form_name>\w+)/?$',
