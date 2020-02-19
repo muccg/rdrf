@@ -53,7 +53,7 @@ class Question extends React.Component<QuestionInterface, object> {
               let line = [];
               for (const substringword of mainArray) {
                   let word = substringword + "";
-                  if (word.slice(-1) == '.') {
+                  if (word.slice(-1) === '.') {
                       line.push(word);
                       result.push(<li>{line}</li>);
                       line = [];
