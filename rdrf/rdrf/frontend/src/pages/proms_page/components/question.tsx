@@ -51,24 +51,16 @@ class Question extends React.Component<QuestionInterface, object> {
                 break;
             case 'bullet':
               let line = [];
-              let is_first = true;
               for (const substringword of mainArray) {
                   let word = substringword + "";
-                  if (word.indexOf('*') == 0) {
-                      if (is_first) {
-                          is_first = false;
-                          line.push(word.substring(1));
-                      }
-                      else{
-                          result.push(<li>{line}</li>);
-                          line = [];
-                          line.push(word.substring(1));
-                      }
+                  if (word.slice(-1) == '.') {
+                      line.push(word);
+                      result.push(<li>{line}</li>);
+                      line = [];
                   } else {
                       line.push(substringword);
                   }
               }
-              result.push(<li>{line}</li>);
               return result;
               break;
         }
