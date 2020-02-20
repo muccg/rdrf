@@ -52,7 +52,7 @@ class Question extends React.Component<QuestionInterface, object> {
             case 'bullet':
               let line = [];
               for (const substringword of mainArray) {
-                  let word = substringword + "";
+                  const word = substringword + "";
                   if (word.slice(-1) === '.') {
                       line.push(word);
                       result.push(<li>{line}</li>);
