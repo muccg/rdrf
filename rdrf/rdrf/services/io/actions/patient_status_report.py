@@ -71,13 +71,19 @@ class ReportGenerator:
             yield patient_model
 
     def _parse_spec(self):
-        if "form_names" in self.report_spec:
-            self.form_names = self.report_spec["form_names"]
+        if "columns" in self.report_spec:
+            self.columns = [self._parse_column(column_spec) for column_spec in self.report_spec["columns"]]
         else:
-            self.form_names = [form_model.name for form_model in self.registry_model.forms]
+            self.columns = []
 
-        if "start_date" in self.report_spec:
-            self.start_date = self.report_spec["start_date"]
+    def _parse_column(self, column_spec):
+        column_name = column_spec["name"]
+        column_type = column_spec["type"]
+        if column_type == "field":
+            field_location = column_spec["location"]
+            retriever = self._get_retriever(field_location)
+            return {"name": column_name,
+                    "retriever": retriever}
 
     def _security_check(self):
         if not self.user.in_registry(self.registry_model):
