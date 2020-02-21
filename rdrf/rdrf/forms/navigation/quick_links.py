@@ -426,7 +426,7 @@ class QuickLinks(object):
             RDRF_GROUPS.WORKING_GROUP_CURATOR: MenuConfig().working_group_curator,
             RDRF_GROUPS.SUPER_USER: MenuConfig().super_user,
         }
-        return switcher.get(group.lower(), [])
+        return switcher.get(group.lower(), {})
 
     def __init__(self, registries):
         self._registries = registries
