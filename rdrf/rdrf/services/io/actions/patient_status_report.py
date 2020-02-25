@@ -9,8 +9,13 @@ class SecurityException(Exception):
     pass
 
 
-class ColumnSource:
+class ReportParserException(Exception):
+    pass
+
+
+class ColumnType:
     DEMOGRAPHICS = "demographics"
+    CDE = "cde"
     COMPLETION = "completion"
 
 
@@ -40,12 +45,17 @@ class ReportGenerator:
             rows.append(row)
 
     def _get_column_value(self, patient_model, data, column):
-        if column["source"] == ColumnSource.DEMOGRAPHICS:
+        column_type = column["type"]
+        if column_type == ColumnType.DEMOGRAPHICS:
             column_name = column["name"]
             return self._get_demographics_column(patient_model, column_name)
-        elif column["source"] == ColumnSource.COMPLETION:
+        elif column_type == ColumnType.COMPLETION:
             form_name = column["name"]
             return self._completed(patient_model, form_name, data)
+        elif column_type == ColumnType.CDE:
+            pass
+        else:
+            raise ReportParserException("Unknown column type: %s" % column_type)
 
     def _get_demographics_column(self, patient_model, column_name):
         return getattr(patient_model, column_name)
