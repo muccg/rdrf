@@ -48,12 +48,35 @@
             state_id = obj.id.replace("country", "state");
             state_select = $('#' + state_id);
             state_select.find('option').remove();
+            state_select.append("<option value='-1'>---------</option>");
             $.get( "{% url 'v1:state_lookup' 'XX' %}".replace('XX', obj.value), function( data ) {
                 if (data) {
-                    state_select.append("<option value='-1'>---------</option>");
                     $.each(data, function(i, item) {
                         state_select.append("<option value=" + item.code +">"+ item.name +"</option>");
                     })
+                }
+            });
+        }
+
+        function get_state_choices(obj) {
+            country_id = obj.id.replace("state", "country");
+            country_select = $('#' + country_id);
+
+            state_select = $('#' + obj.id);
+            state = state_select.val();
+
+            state_select.find('option').remove();
+            state_select.append("<option value='-1'>---------</option>");
+            $.get( "{% url 'v1:state_lookup' 'XX' %}".replace('XX', country_select.val()), function( data ) {
+                if (data) {
+                    $.each(data, function(i, item) {
+                        if (state==item.code){
+                            state_select.append("<option selected=selected value=" + item.code +">" + item.name + "</option>");
+                        }
+                        else {
+                            state_select.append("<option value=" + item.code +">" + item.name + "</option>");
+                        }
+                    });
                 }
             });
         }

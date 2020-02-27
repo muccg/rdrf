@@ -43,12 +43,11 @@
             })
         }
 
-
-
         function select_country(obj) {
             state_id = obj.id.replace("country", "state");
             state_select = $('#' + state_id);
             state_select.find('option').remove();
+            state_select.append("<option value='-1'>---------</option>");
             $.get( "{% url 'v1:state_lookup' 'XX' %}".replace('XX', obj.value), function( data ) {
                 if (data) {
                     $.each(data, function(i, item) {
@@ -56,6 +55,13 @@
                     })
                 }
             });
+        }
+
+        function get_state_choices(obj) {
+            // the state select widget sets this function as listener for onfocus event of state field
+            // which is used only in "edit patient" for populating state select
+            // patient_edit.html has that implementation
+            // this dummy is here to avoid js error on "add patient" page
         }
 
         function add_form(prefix) {

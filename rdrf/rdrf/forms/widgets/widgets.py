@@ -244,9 +244,10 @@ class StateWidget(widgets.Select):
         final_attrs = self.build_attrs(attrs, {
             "name": name,
             "class": "form-control",
+            "onfocus": "get_state_choices(this)",
         })
         output = [format_html("<select{}>", flatatt(final_attrs))]
-        empty_option = "<option value=''>---------</option>"
+        empty_option = "<option value='-1'>---------</option>"
         output.append(empty_option)
         for state in country_states:
             if value == state.code:
