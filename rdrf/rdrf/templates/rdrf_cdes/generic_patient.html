@@ -47,7 +47,7 @@
             state_id = obj.id.replace("country", "state");
             state_select = $('#' + state_id);
             state_select.find('option').remove();
-            state_select.append("<option value='-1'>---------</option>");
+            state_select.append("<option value=' '>---------</option>");
             $.get( "{% url 'v1:state_lookup' 'XX' %}".replace('XX', obj.value), function( data ) {
                 if (data) {
                     $.each(data, function(i, item) {

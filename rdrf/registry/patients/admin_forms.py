@@ -1,4 +1,5 @@
 import logging
+import pycountry
 from django import forms
 from django.core.exceptions import ValidationError
 from django.forms.utils import ErrorDict
@@ -129,6 +130,20 @@ class PatientAddressForm(forms.ModelForm):
     state = forms.ChoiceField(required=True,
                               widget=StateWidget())
     address = forms.CharField(widget=forms.Textarea(attrs={'rows': 5}))
+
+    def clean_state(self):
+        if "state" in self.cleaned_data:
+            state = self.cleaned_data["state"]
+            if state != ' ':
+                return state
+            else:
+                if "country" in self.cleaned_data:
+                    country_code = self.cleaned_data["country"]
+                    states = pycountry.subdivisions.get(country_code=country_code)
+                    if len(states):
+                        raise forms.ValidationError("This field is required")
+                    else:
+                        return state
 
 
 class PatientConsentFileForm(forms.ModelForm):
