@@ -372,6 +372,60 @@ def fill_in_textfield(step, textfield_label, text):
     textfield.send_keys(text)
 
 
+@step('I click the add button in "(.*)" section')
+def click_add_for_inline(step, section):
+    section_div_heading = world.browser.find_element_by_xpath(
+        "//div[@class='panel-heading'][contains(., '%s')]" % section)
+    add_link_xpath = """//a[starts-with(@onclick,"add_form")]"""
+    add_link = section_div_heading.find_element_by_xpath(add_link_xpath)
+    utils.click(add_link)
+    wait_n_seconds(step, 5)
+
+
+@step('fill out "(.*)" textarea in "(.*)" section "(.*)" with "(.*)"')
+def fill_in_inline_textarea(step, textfield_label, section, index, text):
+    section_div_heading = world.browser.find_element_by_xpath(
+        ".//div[@class='panel-heading'][contains(., '%s')]" % section)
+    section_div = section_div_heading.find_element_by_xpath("..")
+
+    label = section_div.find_element_by_xpath(".//label[normalize-space()='%s']" % textfield_label)
+    css_id = label.get_attribute('for')
+    css_id = css_id.replace('__prefix__', str(int(index) - 1))
+    text_area = world.browser.find_element_by_xpath(
+        '//textarea[@id="%s"]' % css_id)
+    text_area.send_keys(text)
+
+
+@step('fill out "(.*)" in "(.*)" section "(.*)" with "(.*)"')
+def fill_in_inline_textfield(step, textfield_label, section, index, text):
+    section_div_heading = world.browser.find_element_by_xpath(
+        ".//div[@class='panel-heading'][contains(., '%s')]" % section)
+    section_div = section_div_heading.find_element_by_xpath("..")
+
+    label = section_div.find_element_by_xpath('.//label[contains(., "%s")]' % textfield_label)
+    css_id = label.get_attribute('for')
+    css_id = css_id.replace('__prefix__', str(int(index) - 1))
+    textfield = world.browser.find_element_by_xpath('//input[@id="%s"]' % css_id)
+    textfield.send_keys(text)
+
+
+@step('choose "(.*)" from "(.*)" in "(.*)" section "(.*)"')
+def select_from_inline_list(step, option, dropdown_label_or_id, section, index):
+    section_div_heading = world.browser.find_element_by_xpath(
+        ".//div[@class='panel-heading'][contains(., '%s')]" % section)
+    section_div = section_div_heading.find_element_by_xpath("..")
+
+    label = section_div.find_element_by_xpath(
+        './/label[contains(., "%s")]' %
+        dropdown_label_or_id)
+    select_id = label.get_attribute('for')
+    select_id = select_id.replace('__prefix__', str(int(index) - 1))
+    option = section_div.find_element_by_xpath(
+        '//select[@id="%s"]/option[contains(., "%s")]' %
+        (select_id, option))
+    utils.click(option)
+
+
 @step('fill "(.*)" with "(.*)" in MultiSection "(.*)" index "(.*)"')
 def fill_in_textfield2(step, label, keys, multi, index):
     multisection = multi + '-' + index
