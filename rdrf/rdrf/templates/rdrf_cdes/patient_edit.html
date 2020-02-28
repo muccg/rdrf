@@ -70,7 +70,7 @@
                     state_select = $(state_id);
                     state = state_select.val();
                     state_select.find('option').remove();
-                    state_select.append("<option value=' '>----" + counter + "-----</option>");
+                    state_select.append("<option value=' '>---------</option>");
                     $.ajax({
                         url: "{% url 'v1:state_lookup' 'XX' %}".replace('XX', country_select.val()),
                         success: function(data) {
