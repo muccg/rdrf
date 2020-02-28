@@ -246,7 +246,7 @@ class StateWidget(widgets.Select):
             "class": "form-control",
         })
         output = [format_html("<select{}>", flatatt(final_attrs))]
-        empty_option = "<option value=''>---------</option>"
+        empty_option = "<option value=' '>---------</option>"
         output.append(empty_option)
         for state in country_states:
             if value == state.code:
