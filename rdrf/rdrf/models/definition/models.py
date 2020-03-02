@@ -1901,10 +1901,10 @@ class CustomAction(models.Model):
             return result
         elif self.action_type == "SR":
             from rdrf.services.io.actions import patient_status_report
-            return patients_status_report.execute(self.registry,
-                                                  self.name,
-                                                  self.data,
-                                                  user)
+            return patient_status_report.execute(self.registry,
+                                                 self.name,
+                                                 self.data,
+                                                 user)
 
         else:
             raise NotImplementedError("Unknown action type: %s" % self.action_type)
@@ -1915,9 +1915,8 @@ class CustomAction(models.Model):
 
     @property
     def url(self):
-        logger.debug("getting url of action %s" % self.name)
         if self.scope == "U":
-            return reverse("customactions", args=(self.pk, 0))
+            return reverse("custom_action", args=(self.pk, 0))
         else:
             return ""
 

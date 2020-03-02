@@ -77,6 +77,7 @@ def handler_application_error(request):
 JavaScriptCatalog.domain = "django"  # The default domain didn't work for me
 
 normalpatterns = []
+
 if settings.DEBUG is True:
     normalpatterns += [
         re_path(r'^test404', handler404, name='test 404'),

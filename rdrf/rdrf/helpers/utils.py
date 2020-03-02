@@ -918,6 +918,9 @@ def cde_completed(registry_model, form_model, section_model, cde_model, patient_
     # is there a "real" value stored? in data ( assumes we've loaded first from a given context
     if not data:
         return False
+    if "forms" not in data:
+        return False
+
     for form_dict in data["forms"]:
         if form_dict["name"] == form_model.name:
             for section_dict in form_dict["sections"]:
