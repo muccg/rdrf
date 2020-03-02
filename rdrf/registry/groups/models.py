@@ -137,14 +137,6 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
 
     @property
     def is_parent(self):
-        # Check that the parent feature is available.
-        # This is currently a hardcoded angelman check.
-        # Checking import has a low performance impact.
-        # 50ms the is_parent() first call, 3ms the following calls.
-        try:
-            __import__('angelman.parent_view')
-        except ImportError:
-            return False
         return self.in_group(RDRF_GROUPS.PARENT)
 
     @property

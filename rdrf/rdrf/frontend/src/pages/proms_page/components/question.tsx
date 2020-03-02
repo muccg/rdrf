@@ -30,13 +30,18 @@ class Question extends React.Component<QuestionInterface, object> {
         this.props.enterData(code, event.target.value);
     }
 
-    public transformSubstring = (mainString: string, words: string[], transformation: string) : string[] => {
+    public transformSubstring = (mainString: string | string[], words: string[], transformation: string) : string[] => {
         const result = [];
-        const mainArray = mainString.split(' ');
+        let mainArray: string[];
+        if (typeof mainString === "string") {
+            mainArray = mainString.split(' ');
+        } else {
+            mainArray = mainString;
+        }
         switch(transformation) {
             case 'underline':
                 for (const substring of mainArray) {
-                    if (words.includes(substring)){
+                    if (words.includes(substring)) {
                         result.push(' ', <u>{substring}</u>);
                     } else {
                         result.push(' ', substring);
@@ -44,6 +49,20 @@ class Question extends React.Component<QuestionInterface, object> {
                 }
                 return result;
                 break;
+            case 'bullet':
+              let line = [];
+              for (const substringword of mainArray) {
+                  const word = substringword + "";
+                  if (word.slice(-1) === '.') {
+                      line.push(word);
+                      result.push(<li>{line}</li>);
+                      line = [];
+                  } else {
+                      line.push(substringword);
+                  }
+              }
+              return result;
+              break;
         }
     }
 
@@ -134,9 +153,9 @@ class Question extends React.Component<QuestionInterface, object> {
         return (
             <Form>
                 <FormGroup tag="fieldset">
-                    <h6><i>{question.survey_question_instruction}</i></h6>
+                    <h6>{question.survey_question_instruction}</h6>
                     <h4>{question.title}</h4>
-                    <i>{question.instructions}</i>
+                    <h6>{question.instructions}</h6>
                 </FormGroup>
                 <FormGroup>
                     <Col sm="12" md={{ size: 6, offset: 3 }}>
@@ -165,9 +184,9 @@ class Question extends React.Component<QuestionInterface, object> {
         return (
             <Form>
                 <FormGroup tag="fieldset">
-                    <h6><i>{question.survey_question_instruction}</i></h6>
+                    <h6>{question.survey_question_instruction}</h6>
                     <h4>{question.title}</h4>
-                    <i>{question.instructions}</i>
+                    <h6>{question.instructions}</h6>
                 </FormGroup>
                 <FormGroup>
                     <Col sm="12" md={{ size: 6, offset: 3 }}>
@@ -219,7 +238,8 @@ class Question extends React.Component<QuestionInterface, object> {
         let transformedInstruction: string[] | string;
         if (question.cde === 'EQ_Health_Rate') {
             transformedInstruction = this.transformSubstring(this.props.questions[this.props.stage].instructions,
-                                                              ['best', 'worst'], 'underline')
+                                                              ['best', 'worst'], 'underline');
+            transformedInstruction = this.transformSubstring(transformedInstruction, [], 'bullet');
         } else {
             transformedInstruction = this.props.questions[this.props.stage].instructions;
         }
@@ -228,9 +248,9 @@ class Question extends React.Component<QuestionInterface, object> {
             <Form>
                 <FormGroup tag="fieldset">
                     <Col sm="12" md={{ size: 6, offset: 3 }}>
-                        <h6><i>{this.props.questions[this.props.stage].survey_question_instruction}</i></h6>
+                        <h6>{this.props.questions[this.props.stage].survey_question_instruction}</h6>
                         <h4>{this.props.questions[this.props.stage].title}</h4>
-                        <i>{transformedInstruction}</i>
+                        <h6>{transformedInstruction}</h6>
                     </Col>
                 </FormGroup>
                 {
