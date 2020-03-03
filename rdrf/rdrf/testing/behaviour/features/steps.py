@@ -364,6 +364,12 @@ def option_should_be_selected(step, option, dropdown_label):
     assert_true(option.get_attribute('selected'))
 
 
+@step('search for "(.*)"')
+def search_for_text(step, text):
+    search = world.browser.find_element_by_xpath('//input[@type="search"]')
+    search.send_keys(text)
+
+
 @step('fill in "(.*)" with "(.*)"')
 def fill_in_textfield(step, textfield_label, text):
     label = world.browser.find_element_by_xpath('//label[contains(., "%s")]' % textfield_label)
@@ -414,7 +420,7 @@ def select_from_inline_list(step, option, dropdown_label_or_id, section, index):
     section_div_heading = world.browser.find_element_by_xpath(
         ".//div[@class='panel-heading'][contains(., '%s')]" % section)
     section_div = section_div_heading.find_element_by_xpath("..")
-
+    utils.scroll_to(section_div)
     label = section_div.find_element_by_xpath(
         './/label[contains(., "%s")]' %
         dropdown_label_or_id)
@@ -612,14 +618,14 @@ def click_radio_button(step, value, section, cde):
     # NB. this is actually just clicking the first radio at the moment
     # and ignores the value
     section_div_heading = world.browser.find_element_by_xpath(
-        ".//div[@class='panel-heading'][contains(., '%s')]" % section)
+        "//div[@class='panel-heading'][contains(., '%s')]" % section)
     section_div = section_div_heading.find_element_by_xpath("..")
     label_expression = ".//label[contains(., '%s')]" % cde
     label_element = section_div.find_element_by_xpath(label_expression)
     input_div = label_element.find_element_by_xpath(".//following-sibling::div")
     # must be getting first ??
     input_element = input_div.find_element_by_xpath(".//input")
-    input_element.click()
+    utils.click(input_element)
 
 
 @step(r'upload file "(.*)" for multisection "(.*)" cde "(.*)" in item (\d+)')
@@ -682,7 +688,7 @@ def check_history_popup(step, form, section, cde, history_values_csv):
     history_values = history_values_csv.split(",")
     form_block = world.browser.find_element_by_id("main-form")
     section_div_heading = form_block.find_element_by_xpath(
-        ".//div[@class='panel-heading'][contains(., '%s')]" % section)
+        "//div[@class='panel-heading'][contains(., '%s')]" % section)
     section_div = section_div_heading.find_element_by_xpath("..")
     label_expression = ".//label[contains(., '%s')]" % cde
     label_element = section_div.find_element_by_xpath(label_expression)
@@ -694,10 +700,8 @@ def check_history_popup(step, form, section, cde, history_values_csv):
     utils.scroll_to(input_element)
 
     # this causes the history component to become visible/clickable
-    mover = ActionChains(world.browser)
-    mover.move_to_element(input_element).perform()
-
-    history_widget.click()
+    utils.click(input_element)
+    utils.click(history_widget)
 
     WebDriverWait(world.browser, 60).until(
         ec.visibility_of_element_located((By.XPATH, ".//a[@href='#cde-history-table']"))
