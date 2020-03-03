@@ -680,7 +680,6 @@ def should_not_be_able_download(step, download_name):
 
 @step('History for form "(.*)" section "(.*)" cde "(.*)" shows "(.*)"')
 def check_history_popup(step, form, section, cde, history_values_csv):
-    from selenium.webdriver.common.action_chains import ActionChains
     from selenium.webdriver.common.by import By
     from selenium.webdriver.support import expected_conditions as ec
     from selenium.webdriver.support.ui import WebDriverWait
