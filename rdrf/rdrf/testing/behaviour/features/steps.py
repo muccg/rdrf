@@ -64,7 +64,8 @@ def check_user_activated(step):
 
 
 @step(
-    'I try to register as an "([^"]+)" user called "([^"]+)" using the email address "([^"]+)" and the password "([^"]+)"'
+    ('I try to register as an "([^"]+)" user called "([^"]+)" using '
+     'the email address "([^"]+)" and the password "([^"]+)"')
 )
 def try_to_register(step, registry, client_name, email_address, password):
     registry_code = ''
@@ -260,7 +261,8 @@ def enter_cde_on_form(step, cde_value, form, section, cde):
 
 
 @step(
-    r'I enter value "(.*)" for form "(.*)" multisection "(.*)" cde "(.*)" in item (\d+)'
+    (r'I enter value "(.*)" for form "(.*)" multisection "(.*)" cde "(.*)" '
+     r'in item (\d+)')
 )
 def enter_cde_on_form_multisection(step, cde_value, form, section, cde, item):
     formset_number = int(item) - 1
@@ -847,10 +849,10 @@ def patient_link_not_find(step, patient_name):
 def scroll_to_centre(step, cde):
     cde = world.browser.find_element_by_xpath(
         "//label[contains(., \"%s\")]" % cde
-        )
+    )
     y = cde.location["y"]
     off = world.browser.get_window_size()["height"]
-    move = y - (1/2)*off
+    move = y - (1 / 2) * off
     world.browser.execute_script("scrollTo(0, %s)" % move)
 
 
