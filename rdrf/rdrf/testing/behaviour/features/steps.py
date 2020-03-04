@@ -833,6 +833,16 @@ def patient_link_find(step, patient_name):
     return world.browser.find_element_by_xpath(plf_xpath)
 
 
+@step('should NOT see a patient link for "([^"]+)"')
+def patient_link_not_find(step, patient_name):
+    # Asserts that the full patient name is not present,
+    # because searching for patient uses only surname.
+    # Couldn't get the lack of finding a patient link to work.
+    # TODO
+    assert patient_name not in world.browser.page_source,\
+        "Patient link for %s found, but should not exist" % patient_name
+
+
 @step('I scroll cde "(.*)" to the centre of my view')
 def scroll_to_centre(step, cde):
     cde = world.browser.find_element_by_xpath(
@@ -842,3 +852,9 @@ def scroll_to_centre(step, cde):
     off = world.browser.get_window_size()["height"]
     move = y - (1/2)*off
     world.browser.execute_script("scrollTo(0, %s)" % move)
+
+
+@step("I clear the search bar")
+def clear_searchbar(step):
+    searchbox = world.browser.find_element_by_xpath("//input[@type='search']")
+    searchbox.clear()

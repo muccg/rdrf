@@ -6,9 +6,10 @@ Feature: FH feature practice
     Given export "fh.zip"
     Given a registry named "FH Registry"
 
-  Scenario: User can edit Clinical Data page but not save with incomplete data
+  Scenario: Curator edits Clinical Data page but cannot save with incomplete data entry
     When I am logged in as curator
     And I search for patient "SMITH John"
+    And I wait 2 seconds
     Then I should see a patient link for "SMITH John"
     Then I click "SMITH John" on patientlisting
     Then I click "Clinical Data" in sidebar
@@ -17,7 +18,7 @@ Feature: FH feature practice
     And I click the "Save" button
     Then error message is "Patient John SMITH not saved due to validation errors"
 
-  Scenario: Genetic Data save fails, then repaired and saves successfully
+  Scenario: Curator does not completely fill required data on Genetic Data page, save fails, then fills missing data and saves
     When I am logged in as curator
     And I search for patient "SMITH John"
     And I wait 2 seconds
@@ -33,9 +34,10 @@ Feature: FH feature practice
     And I press the "Save" button
     Then I should see "Patient John SMITH saved successfully"
 
-  Scenario: All required data in clinical data, with no post checks
+  Scenario: Curator fills all required data for DLCNS on Clinical Data page
     When I am logged in as curator
     And I search for patient "SMITH John"
+    And I wait 2 seconds
     Then I should see a patient link for "SMITH John"
     Then I click "SMITH John" on patientlisting
     Then I click "Clinical Data" in sidebar
@@ -54,7 +56,7 @@ Feature: FH feature practice
     And I press the "Save" button
     Then I should see "Patient John SMITH saved successfully"
 
-  Scenario: Entering Medications data, including checkboxes
+  Scenario: Curator fills Medications data, including checkboxes
     When I am logged in as curator
     When I click Module "Main/Medications" for patient "SMITH John" on patientlisting
     Then location is "Medications"
@@ -73,3 +75,9 @@ Feature: FH feature practice
     And the "ARBs" checkbox should be checked
     And the "Other" checkbox should be checked
     And the form value of section "Hypertensive Medication" cde "If other, enter medication name(s)" should be "Yes, more cake"
+
+  Scenario: Curator searches for a patient that does not exist, and does not see a link for the patient
+    When I am logged in as curator
+    And I search for patient "NETTLEBANK Scrimshaw"
+    And I wait 2 seconds
+    Then I should NOT see a patient link for "NETTLEBANK Scrimshaw"
