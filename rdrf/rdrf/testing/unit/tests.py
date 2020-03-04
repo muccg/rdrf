@@ -68,13 +68,13 @@ class CalculatedFunctionsTestCase(TestCase):
             calculated_functions.CDEfhDutchLipidClinicNetwork(
                 self.patient_values, self.form_values),
             '18'
-            )
+        )
 
     def test_cdefhdutchlipidclinicnetwork_2(self):
         self.patient_values = {
             'date_of_birth': datetime.strptime('1990-01-01', '%Y-%m-%d'),
             'sex': 2
-            }
+        }
         self.form_values = {'CDE00001': 'y',
                             'CDE00002': 'y',
                             'CDE00003': 'fh2_n',
@@ -92,14 +92,14 @@ class CalculatedFunctionsTestCase(TestCase):
             calculated_functions.CDEfhDutchLipidClinicNetwork(
                 self.patient_values, self.form_values),
             '11'
-            )
+        )
 
     def test_cdefhdutchlipidclinicnetwork_3(self):
         self.patient_values = {
             'date_of_birth': datetime.strptime(
                 '2000-10-01', '%Y-%m-%d'),
             'sex': 1
-            }
+        }
         self.form_values = {'CDE00001': 'n',
                             'CDE00002': 'n',
                             'CDE00003': 'fh2_y',
@@ -117,7 +117,7 @@ class CalculatedFunctionsTestCase(TestCase):
             calculated_functions.CDEfhDutchLipidClinicNetwork(
                 self.patient_values, self.form_values),
             ''
-            )
+        )
 
     def test_cde00024(self):
         self.form_values = {'CDE00003': 'fh2_y',
@@ -133,18 +133,18 @@ class CalculatedFunctionsTestCase(TestCase):
             calculated_functions.CDE00024(
                 self.patient_values, self.form_values),
             'Definite'
-            )
+        )
 
     def test_ldlcholesteroladjtreatment(self):
         self.form_values = {
             'CDE00019': 10.0,
             'PlasmaLipidTreatment': 'FAEzetimibe/atorvastatin20'
-            }
+        }
         self.assertEqual(
             calculated_functions.LDLCholesterolAdjTreatment(
                 self.patient_values, self.form_values),
             '21.74'
-            )
+        )
 
     def test_cdebmi(self):
         hgt_vec = ["",
@@ -172,16 +172,16 @@ class CalculatedFunctionsTestCase(TestCase):
                      "Height:\t %s \t m \n"
                      "BMI:\t %s \t kg/(m^2)")
                     % (wgt_vec[i], hgt_vec[i], res_vec[i])
-                    )
+                )
                 self.form_values = {
                     'CDEHeight': hgt_vec[i],
                     'CDEWeight': wgt_vec[i]
-                    }
+                }
                 self.assertEqual(
                     calculated_functions.CDEBMI(
                         self.patient_values, self.form_values),
                     str(res_vec[i])
-                    )
+                )
 
     def test_fhdeathage(self):
         age_vec = ["",
@@ -206,13 +206,13 @@ class CalculatedFunctionsTestCase(TestCase):
                     ("\nDate of death:\t%s\n"
                      "Age at death:\t%s"
                      % (age_vec[i], res_vec[i]))
-                    )
+                )
                 self.form_values = {'FHDeathDate': age_vec[i]}
                 self.assertEqual(
                     calculated_functions.FHDeathAge(
                         self.patient_values, self.form_values),
                     str(res_vec[i])
-                    )
+                )
 
     def test_ddageatdiagnosis(self):
         age_vec = ["",
@@ -235,7 +235,7 @@ class CalculatedFunctionsTestCase(TestCase):
                     calculated_functions.DDAgeAtDiagnosis(
                         self.patient_values, self.form_values),
                     str(res_vec[i])
-                    )
+                )
 
     def test_poemscore(self):
         self.form_values = {
@@ -250,7 +250,7 @@ class CalculatedFunctionsTestCase(TestCase):
             calculated_functions.poemScore(
                 self.patient_values, self.form_values),
             'UNSCORED'
-            )
+        )
         self.form_values = {
             'poemQ1': "",
             'poemQ2': "",
@@ -263,7 +263,7 @@ class CalculatedFunctionsTestCase(TestCase):
             calculated_functions.poemScore(
                 self.patient_values, self.form_values),
             'UNSCORED'
-            )
+        )
         self.form_values = {
             'poemQ1': "",
             'poemQ2': "NoDays",
@@ -276,7 +276,7 @@ class CalculatedFunctionsTestCase(TestCase):
             calculated_functions.poemScore(
                 self.patient_values, self.form_values),
             '0 ( Clear or almost clear )'
-            )
+        )
         self.form_values = {
             'poemQ1': "NoDays",
             'poemQ2': "NoDays",
@@ -289,7 +289,7 @@ class CalculatedFunctionsTestCase(TestCase):
             calculated_functions.poemScore(
                 self.patient_values, self.form_values),
             '0 ( Clear or almost clear )'
-            )
+        )
         self.form_values = {
             'poemQ1': "NoDays",
             'poemQ2': "1to2Days",
@@ -302,7 +302,7 @@ class CalculatedFunctionsTestCase(TestCase):
             calculated_functions.poemScore(
                 self.patient_values, self.form_values),
             '6 ( Mild eczema )'
-            )
+        )
         self.form_values = {
             'poemQ1': "EveryDay",
             'poemQ2': "EveryDay",
@@ -315,7 +315,7 @@ class CalculatedFunctionsTestCase(TestCase):
             calculated_functions.poemScore(
                 self.patient_values, self.form_values),
             '28 ( Very severe eczema )'
-            )
+        )
 
 
 class AbnormalityRulesTestCase(TestCase):
