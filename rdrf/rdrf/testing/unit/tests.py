@@ -13,8 +13,10 @@ from django.test import TestCase, RequestFactory
 from rdrf.services.io.defs.exporter import Exporter, ExportType
 from rdrf.services.io.defs.importer import Importer, ImportState
 from rdrf.models.definition.models import Registry, RegistryForm, Section
-from rdrf.models.definition.models import CDEPermittedValueGroup, CDEPermittedValue
-from rdrf.models.definition.models import CommonDataElement, InvalidAbnormalityConditionError, ValidationError
+from rdrf.models.definition.models import CDEPermittedValueGroup,\
+    CDEPermittedValue
+from rdrf.models.definition.models import CommonDataElement,\
+    InvalidAbnormalityConditionError, ValidationError
 from rdrf.models.definition.models import ClinicalData
 from rdrf.views.form_view import FormView
 from registry.patients.models import Patient
@@ -30,7 +32,8 @@ from rdrf.models.definition.models import EmailNotificationHistory
 from django.core.management import call_command
 import json
 
-from rdrf.helpers.transform_cd_dict import get_cd_form, get_section, transform_cd_dict
+from rdrf.helpers.transform_cd_dict import get_cd_form, get_section,\
+    transform_cd_dict
 from rdrf.forms.fields import calculated_functions
 
 logger = logging.getLogger(__name__)
@@ -41,8 +44,11 @@ class CalculatedFunctionsTestCase(TestCase):
     def setUp(self):
         # Note that we convert the string date as a date django date
         patient_date_of_birth = '2000-05-17'
-        self.patient_values = {'date_of_birth': datetime.strptime(patient_date_of_birth, '%Y-%m-%d'),
-                               'sex': 1}
+        self.patient_values = {
+            'date_of_birth': datetime.strptime(
+                patient_date_of_birth, '%Y-%m-%d'),
+            'sex': 1
+        }
 
     def test_cdefhdutchlipidclinicnetwork_all_cap_reached(self):
         self.form_values = {'CDE00001': 'y',
@@ -58,11 +64,17 @@ class CalculatedFunctionsTestCase(TestCase):
                             'FHFamilyHistoryChild': 'fh_n',
                             'FHPersHistCerebralVD': 'fh2_y',
                             'LDLCholesterolAdjTreatment': '21.74'}
-        self.assertEqual(calculated_functions.CDEfhDutchLipidClinicNetwork(self.patient_values, self.form_values), '18')
+        self.assertEqual(
+            calculated_functions.CDEfhDutchLipidClinicNetwork(
+                self.patient_values, self.form_values),
+            '18'
+            )
 
     def test_cdefhdutchlipidclinicnetwork_2(self):
-        self.patient_values = {'date_of_birth': datetime.strptime('1990-01-01', '%Y-%m-%d'),
-                               'sex': 2}
+        self.patient_values = {
+            'date_of_birth': datetime.strptime('1990-01-01', '%Y-%m-%d'),
+            'sex': 2
+            }
         self.form_values = {'CDE00001': 'y',
                             'CDE00002': 'y',
                             'CDE00003': 'fh2_n',
@@ -76,11 +88,18 @@ class CalculatedFunctionsTestCase(TestCase):
                             'FHFamilyHistoryChild': 'fh_n',
                             'FHPersHistCerebralVD': 'fh2_y',
                             'LDLCholesterolAdjTreatment': '6'}
-        self.assertEqual(calculated_functions.CDEfhDutchLipidClinicNetwork(self.patient_values, self.form_values), '11')
+        self.assertEqual(
+            calculated_functions.CDEfhDutchLipidClinicNetwork(
+                self.patient_values, self.form_values),
+            '11'
+            )
 
     def test_cdefhdutchlipidclinicnetwork_3(self):
-        self.patient_values = {'date_of_birth': datetime.strptime('2000-10-01', '%Y-%m-%d'),
-                               'sex': 1}
+        self.patient_values = {
+            'date_of_birth': datetime.strptime(
+                '2000-10-01', '%Y-%m-%d'),
+            'sex': 1
+            }
         self.form_values = {'CDE00001': 'n',
                             'CDE00002': 'n',
                             'CDE00003': 'fh2_y',
@@ -94,7 +113,11 @@ class CalculatedFunctionsTestCase(TestCase):
                             'FHFamilyHistoryChild': 'fh_y',
                             'FHPersHistCerebralVD': 'fh2_y',
                             'LDLCholesterolAdjTreatment': None}
-        self.assertEqual(calculated_functions.CDEfhDutchLipidClinicNetwork(self.patient_values, self.form_values), '')
+        self.assertEqual(
+            calculated_functions.CDEfhDutchLipidClinicNetwork(
+                self.patient_values, self.form_values),
+            ''
+            )
 
     def test_cde00024(self):
         self.form_values = {'CDE00003': 'fh2_y',
@@ -106,56 +129,193 @@ class CalculatedFunctionsTestCase(TestCase):
                             'FHFamHistArcusCornealis': 'fh2_y',
                             'FHFamHistTendonXanthoma': 'fh2_y',
                             'LDLCholesterolAdjTreatment': '21.74'}
-        self.assertEqual(calculated_functions.CDE00024(self.patient_values, self.form_values), 'Definite')
+        self.assertEqual(
+            calculated_functions.CDE00024(
+                self.patient_values, self.form_values),
+            'Definite'
+            )
 
     def test_ldlcholesteroladjtreatment(self):
-        self.form_values = {'CDE00019': 10.0,
-                            'PlasmaLipidTreatment': 'FAEzetimibe/atorvastatin20'}
-        self.assertEqual(calculated_functions.LDLCholesterolAdjTreatment(
-            self.patient_values, self.form_values), '21.74')
+        self.form_values = {
+            'CDE00019': 10.0,
+            'PlasmaLipidTreatment': 'FAEzetimibe/atorvastatin20'
+            }
+        self.assertEqual(
+            calculated_functions.LDLCholesterolAdjTreatment(
+                self.patient_values, self.form_values),
+            '21.74'
+            )
 
     def test_cdebmi(self):
-        self.form_values = {'CDEHeight': "",
-                            'CDEWeight': ""}
-        self.assertEqual(calculated_functions.CDEBMI(self.patient_values, self.form_values), 'NaN')
-        self.form_values = {'CDEHeight': 1.82,
-                            'CDEWeight': 86.0}
-        self.assertEqual(calculated_functions.CDEBMI(self.patient_values, self.form_values), '25.96')
+        hgt_vec = ["",
+                   1.82,
+                   2.10,
+                   1.30,
+                   1.10,
+                   2.10]
+        wgt_vec = ["",
+                   86.0,
+                   110.0,
+                   50.0,
+                   130.0,
+                   60.0]
+        res_vec = ["NaN",
+                   25.96,
+                   24.94,
+                   29.59,
+                   107.44,
+                   13.61]
+        for i in range(0, len(res_vec)):
+            with self.subTest(i=i):
+                print(
+                    ("\nWeight:\t %s \t kg \n"
+                     "Height:\t %s \t m \n"
+                     "BMI:\t %s \t kg/(m^2)")
+                    % (wgt_vec[i], hgt_vec[i], res_vec[i])
+                    )
+                self.form_values = {
+                    'CDEHeight': hgt_vec[i],
+                    'CDEWeight': wgt_vec[i]
+                    }
+                self.assertEqual(
+                    calculated_functions.CDEBMI(
+                        self.patient_values, self.form_values),
+                    str(res_vec[i])
+                    )
 
     def test_fhdeathage(self):
-        self.form_values = {'FHDeathDate': ""}
-        self.assertEqual(calculated_functions.FHDeathAge(self.patient_values, self.form_values), 'NaN')
-        self.form_values = {'FHDeathDate': '2019-05-11'}
-        self.assertEqual(calculated_functions.FHDeathAge(self.patient_values, self.form_values), '18')
+        age_vec = ["",
+                   "2019-05-11",
+                   "2019-05-16",
+                   "2019-05-17",
+                   "2019-05-18",
+                   "2019-09-18",
+                   "2200-01-06",
+                   "2200-06-14"]
+        res_vec = ["NaN",
+                   18,
+                   18,
+                   19,
+                   19,
+                   19,
+                   199,
+                   200]
+        for i in range(0, len(age_vec)):
+            with self.subTest(i=i):
+                print(
+                    ("\nDate of death:\t%s\n"
+                     "Age at death:\t%s"
+                     % (age_vec[i], res_vec[i]))
+                    )
+                self.form_values = {'FHDeathDate': age_vec[i]}
+                self.assertEqual(
+                    calculated_functions.FHDeathAge(
+                        self.patient_values, self.form_values),
+                    str(res_vec[i])
+                    )
 
     def test_ddageatdiagnosis(self):
-        self.form_values = {'DateOfDiagnosis': ""}
-        self.assertEqual(calculated_functions.DDAgeAtDiagnosis(self.patient_values, self.form_values), 'NaN')
-        self.form_values = {'DateOfDiagnosis': '2019-05-01'}
-        self.assertEqual(calculated_functions.DDAgeAtDiagnosis(self.patient_values, self.form_values), '18')
+        age_vec = ["",
+                   "2019-05-01",
+                   "2019-05-16",
+                   "2019-05-17",
+                   "2201-09-14"]
+        res_vec = ["NaN",
+                   18,
+                   18,
+                   19,
+                   201]
+        for i in range(0, len(res_vec)):
+            with self.subTest(i=i):
+                print(("\nDate of diagnosis:\t%s\n"
+                       "Age at diagnosis:\t%s"
+                       % (age_vec[i], res_vec[i])))
+                self.form_values = {'DateOfDiagnosis': age_vec[i]}
+                self.assertEqual(
+                    calculated_functions.DDAgeAtDiagnosis(
+                        self.patient_values, self.form_values),
+                    str(res_vec[i])
+                    )
 
     def test_poemscore(self):
-        self.form_values = {'poemQ1': "", 'poemQ2': "", 'poemQ3': "", 'poemQ4': "", 'poemQ5': "", 'poemQ6': "",
-                            'poemQ7': ""}
-        self.assertEqual(calculated_functions.poemScore(self.patient_values, self.form_values), 'UNSCORED')
-        self.form_values = {'poemQ1': "", 'poemQ2': "", 'poemQ3': "1to2Days", 'poemQ4': "1to2Days",
-                            'poemQ5': "1to2Days", 'poemQ6': "1to2Days", 'poemQ7': "1to2Days"}
-        self.assertEqual(calculated_functions.poemScore(self.patient_values, self.form_values), 'UNSCORED')
-        self.form_values = {'poemQ1': "", 'poemQ2': "NoDays", 'poemQ3': "NoDays", 'poemQ4': "NoDays",
-                            'poemQ5': "NoDays", 'poemQ6': "NoDays", 'poemQ7': "NoDays"}
-        self.assertEqual(calculated_functions.poemScore(self.patient_values, self.form_values),
-                         '0 ( Clear or almost clear )')
-        self.form_values = {'poemQ1': "NoDays", 'poemQ2': "NoDays", 'poemQ3': "NoDays", 'poemQ4': "NoDays",
-                            'poemQ5': "NoDays", 'poemQ6': "NoDays", 'poemQ7': "NoDays"}
-        self.assertEqual(calculated_functions.poemScore(self.patient_values, self.form_values),
-                         '0 ( Clear or almost clear )')
-        self.form_values = {'poemQ1': "NoDays", 'poemQ2': "1to2Days", 'poemQ3': "1to2Days", 'poemQ4': "1to2Days",
-                            'poemQ5': "1to2Days", 'poemQ6': "1to2Days", 'poemQ7': "1to2Days"}
-        self.assertEqual(calculated_functions.poemScore(self.patient_values, self.form_values), '6 ( Mild eczema )')
-        self.form_values = {'poemQ1': "EveryDay", 'poemQ2': "EveryDay", 'poemQ3': "EveryDay", 'poemQ4': "EveryDay",
-                            'poemQ5': "EveryDay", 'poemQ6': "EveryDay", 'poemQ7': "EveryDay"}
-        self.assertEqual(calculated_functions.poemScore(
-            self.patient_values, self.form_values), '28 ( Very severe eczema )')
+        self.form_values = {
+            'poemQ1': "",
+            'poemQ2': "",
+            'poemQ3': "",
+            'poemQ4': "",
+            'poemQ5': "",
+            'poemQ6': "",
+            'poemQ7': ""}
+        self.assertEqual(
+            calculated_functions.poemScore(
+                self.patient_values, self.form_values),
+            'UNSCORED'
+            )
+        self.form_values = {
+            'poemQ1': "",
+            'poemQ2': "",
+            'poemQ3': "1to2Days",
+            'poemQ4': "1to2Days",
+            'poemQ5': "1to2Days",
+            'poemQ6': "1to2Days",
+            'poemQ7': "1to2Days"}
+        self.assertEqual(
+            calculated_functions.poemScore(
+                self.patient_values, self.form_values),
+            'UNSCORED'
+            )
+        self.form_values = {
+            'poemQ1': "",
+            'poemQ2': "NoDays",
+            'poemQ3': "NoDays",
+            'poemQ4': "NoDays",
+            'poemQ5': "NoDays",
+            'poemQ6': "NoDays",
+            'poemQ7': "NoDays"}
+        self.assertEqual(
+            calculated_functions.poemScore(
+                self.patient_values, self.form_values),
+            '0 ( Clear or almost clear )'
+            )
+        self.form_values = {
+            'poemQ1': "NoDays",
+            'poemQ2': "NoDays",
+            'poemQ3': "NoDays",
+            'poemQ4': "NoDays",
+            'poemQ5': "NoDays",
+            'poemQ6': "NoDays",
+            'poemQ7': "NoDays"}
+        self.assertEqual(
+            calculated_functions.poemScore(
+                self.patient_values, self.form_values),
+            '0 ( Clear or almost clear )'
+            )
+        self.form_values = {
+            'poemQ1': "NoDays",
+            'poemQ2': "1to2Days",
+            'poemQ3': "1to2Days",
+            'poemQ4': "1to2Days",
+            'poemQ5': "1to2Days",
+            'poemQ6': "1to2Days",
+            'poemQ7': "1to2Days"}
+        self.assertEqual(
+            calculated_functions.poemScore(
+                self.patient_values, self.form_values),
+            '6 ( Mild eczema )'
+            )
+        self.form_values = {
+            'poemQ1': "EveryDay",
+            'poemQ2': "EveryDay",
+            'poemQ3': "EveryDay",
+            'poemQ4': "EveryDay",
+            'poemQ5': "EveryDay",
+            'poemQ6': "EveryDay",
+            'poemQ7': "EveryDay"}
+        self.assertEqual(
+            calculated_functions.poemScore(
+                self.patient_values, self.form_values),
+            '28 ( Very severe eczema )'
+            )
 
 
 class AbnormalityRulesTestCase(TestCase):
@@ -190,25 +350,30 @@ class AbnormalityRulesTestCase(TestCase):
 
     def test_assignment_rule(self):
         self.cde.abnormality_condition = "x = 10"
-        self.assertRaises(InvalidAbnormalityConditionError, self.cde.is_abnormal, value=9)
+        self.assertRaises(
+            InvalidAbnormalityConditionError, self.cde.is_abnormal, value=9)
 
     def test_multiple_rules_same_line(self):
         self.cde.abnormality_condition = "x < 2   x > 100"
-        self.assertRaises(InvalidAbnormalityConditionError, self.cde.is_abnormal, value=9)
+        self.assertRaises(
+            InvalidAbnormalityConditionError, self.cde.is_abnormal, value=9)
 
     def test_integer_range(self):
         self.cde.abnormality_condition = "2 < x < 10"
-        self.assertRaises(InvalidAbnormalityConditionError, self.cde.is_abnormal, value=9)
+        self.assertRaises(
+            InvalidAbnormalityConditionError, self.cde.is_abnormal, value=9)
 
     def test_float_range(self):
         self.cde.datatype = "float"
         self.cde.abnormality_condition = "2.0 < x <= 10.0"
-        self.assertRaises(InvalidAbnormalityConditionError, self.cde.is_abnormal, value=9)
+        self.assertRaises(
+            InvalidAbnormalityConditionError, self.cde.is_abnormal, value=9)
 
     def test_unsupported_datatype(self):
         self.cde.datatype = "boolean"
         self.cde.abnormality_condition = "x == 1"
-        self.assertRaises(ValidationError, self.cde.is_abnormal, value=9)
+        self.assertRaises(
+            ValidationError, self.cde.is_abnormal, value=9)
 
     def test_number_equality(self):
         self.cde.abnormality_condition = "x == 10"
@@ -236,17 +401,20 @@ class AbnormalityRulesTestCase(TestCase):
     def test_bad_float(self):
         self.cde.datatype = "float"
         self.cde.abnormality_condition = "x == 10."
-        self.assertRaises(InvalidAbnormalityConditionError, self.cde.is_abnormal, value=9)
+        self.assertRaises(
+            InvalidAbnormalityConditionError, self.cde.is_abnormal, value=9)
 
     def test_second_bad_float(self):
         self.cde.datatype = "float"
         self.cde.abnormality_condition = "x == 10.1."
-        self.assertRaises(InvalidAbnormalityConditionError, self.cde.is_abnormal, value=9)
+        self.assertRaises(
+            InvalidAbnormalityConditionError, self.cde.is_abnormal, value=9)
 
     def test_third_bad_float(self):
         self.cde.datatype = "float"
         self.cde.abnormality_condition = "x == 10.1.2"
-        self.assertRaises(InvalidAbnormalityConditionError, self.cde.is_abnormal, value=9)
+        self.assertRaises(
+            InvalidAbnormalityConditionError, self.cde.is_abnormal, value=9)
 
     def test_string_equality(self):
         self.cde.datatype = "range"
@@ -314,11 +482,232 @@ class MigrateCDESTestCase(TestCase):
 
     def setUp(self):
         # source section with multi-value
-        self.input_data = {'forms': [{'name': 'ClinicalData', 'sections': [{'cdes': [{'code': 'CDEIndexOrRelative', 'value': 'fh_is_index'}, {'code': 'FHconsentDate', 'value': None}, {'code': 'DateOfAssessment', 'value': '2018-07-02'}, {'code': 'fhAgeAtConsent', 'value': 'NaN'}, {'code': 'fhAgeAtAssessment', 'value': '0'}], 'code': 'fhDateSection', 'allow_multiple': False}, {'cdes': [{'code': 'CDEfhDutchLipidClinicNetwork', 'value': ''}, {'code': 'CDE00024', 'value': ''}], 'code': 'SEC0007', 'allow_multiple': False}, {'cdes': [{'code': 'CDE00003', 'value': 'fh2_n'}, {'code': 'FHFamilyHistoryChild', 'value': 'fh_n'}, {'code': 'CDE00004', 'value': 'fh2_n'}, {'code': 'FHFamHistTendonXanthoma', 'value': 'fh2_n'}, {'code': 'FHFamHistArcusCornealis', 'value': 'fh2_n'}], 'code': 'SEC0002', 'allow_multiple': False}, {'cdes': [{'code': 'CDE00011', 'value': 'fhpremcvd_no'}, {'code': 'FHMyocardialInfarction', 'value': ''}, {'code': 'FHAgeAtMI', 'value': None}, {'code': 'FHCoronaryRevasc', 'value': ''}, {'code': 'FHAgeAtCV', 'value': None}, {'code': 'FHPersHistCerebralVD', 'value': 'fh2_n'}, {'code': 'FHAorticValveDisease', 'value': ''}, {'code': 'FHSupravalvularDisease', 'value': ''}, {'code': 'FHPremNonCoronary', 'value': ''}], 'code': 'SEC0004', 'allow_multiple': False}, {'cdes': [{'code': 'CDE00001', 'value': 'n_'}, {'code': 'CDE00002', 'value': 'n_'}, {'code': 'FHXanthelasma', 'value': ''}], 'code': 'SEC0001', 'allow_multiple': False}, {'cdes': [{'code': 'CDE00013', 'value': None}, {'code': 'CDE00019', 'value': None}, {'code': 'PlasmaLipidTreatment', 'value': ''}, {'code': 'LDLCholesterolAdjTreatment', 'value': 'NaN'}], 'code': 'FHLDLforFHScore', 'allow_multiple': False}, {'cdes': [[{'code': 'FHLipidProfileUntreatedDate', 'value': '2018-07-02'}, {'code': 'CDE00012', 'value': 2.0}, {'code': 'FHLLDLconc', 'value': 2.0}, {'code': 'CDE00014', 'value': 2.0}, {'code': 'CDE00015', 'value': 2.0}, {'code': 'FHApoB', 'value': 2.0}, {'code': 'CDE00016', 'value': 2.0}, {'code': 'FHAST', 'value': 2}, {'code': 'FHALT', 'value': 2}, {'code': 'FHCK', 'value': 2}, {'code': 'FHCreatinine', 'value': 2}, {'code': 'FHCRP', 'value': 2.0}, {
-            'code': 'PlasmaLipidTreatmentNone', 'value': 'Fluvastatin40'}, {'code': 'CDEfhOtherIntolerantDrug', 'value': ''}, {'code': 'FHCompliance', 'value': ''}], [{'code': 'FHLipidProfileUntreatedDate', 'value': '2018-07-02'}, {'code': 'CDE00012', 'value': 2.5}, {'code': 'FHLLDLconc', 'value': 2.5}, {'code': 'CDE00014', 'value': 2.5}, {'code': 'CDE00015', 'value': 2.5}, {'code': 'FHApoB', 'value': 2.5}, {'code': 'CDE00016', 'value': 2.5}, {'code': 'FHAST', 'value': 2}, {'code': 'FHALT', 'value': 2}, {'code': 'FHCK', 'value': 2}, {'code': 'FHCreatinine', 'value': 2}, {'code': 'FHCRP', 'value': 2.0}, {'code': 'PlasmaLipidTreatmentNone', 'value': 'Fluvastatin/Ezetimibe20'}, {'code': 'CDEfhOtherIntolerantDrug', 'value': ''}, {'code': 'FHCompliance', 'value': ''}]], 'code': 'SEC0005', 'allow_multiple': True}, {'cdes': [{'code': 'CDE00005', 'value': ''}, {'code': 'FHPackYears', 'value': None}, {'code': 'FHAlcohol', 'value': ''}, {'code': 'FHHypertriglycerd', 'value': ''}, {'code': 'CDE00006', 'value': ''}, {'code': 'CDE00008', 'value': None}, {'code': 'CDE00009', 'value': None}, {'code': 'FHHeartRate', 'value': None}, {'code': 'CDE00007', 'value': ''}, {'code': 'CDE00010', 'value': None}, {'code': 'HbA1c', 'value': None}, {'code': 'ChronicKidneyDisease', 'value': ''}, {'code': 'FHeGFR', 'value': ''}, {'code': 'FHHypothyroidism', 'value': ''}, {'code': 'FHTSH', 'value': None}, {'code': 'FHHepaticSteatosis', 'value': ''}, {'code': 'FHObesity', 'value': ''}, {'code': 'CDEHeight', 'value': None}, {'code': 'CDEWeight', 'value': None}, {'code': 'CDEBMI', 'value': 'NaN'}, {'code': 'FHWaistCirc', 'value': None}, {'code': 'FHCVDOther', 'value': 'test2 ddddddddd'}], 'code': 'SEC0003', 'allow_multiple': False}, {'cdes': [[{'code': 'FHClinicalTrialName', 'value': ''}, {'code': 'FHTrialLength', 'value': None}, {'code': 'FHTrialSTartDate', 'value': None}, {'code': 'FHTrialStatus', 'value': ''}]], 'code': 'FHClinicalTrials', 'allow_multiple': True}]}], 'django_id': 3, 'timestamp': '2018-07-19T15:14:04.887064', 'context_id': 3, 'django_model': 'Patient', 'ClinicalData_timestamp': '2018-07-19T15:14:04.887064'}
+        self.input_data = {
+            'forms': [
+                {'name': 'ClinicalData',
+                 'sections': [
+                     {'cdes': [
+                         {'code': 'CDEIndexOrRelative',
+                          'value': 'fh_is_index'},
+                         {'code': 'FHconsentDate',
+                          'value': None},
+                         {'code': 'DateOfAssessment',
+                          'value': '2018-07-02'},
+                         {'code': 'fhAgeAtConsent',
+                          'value': 'NaN'},
+                         {'code': 'fhAgeAtAssessment',
+                          'value': '0'}
+                     ],
+                         'code': 'fhDateSection',
+                         'allow_multiple': False},
+                     {'cdes': [
+                         {'code': 'CDEfhDutchLipidClinicNetwork',
+                          'value': ''},
+                         {'code': 'CDE00024',
+                          'value': ''}
+                     ],
+                         'code': 'SEC0007',
+                         'allow_multiple': False},
+                     {'cdes': [
+                         {'code': 'CDE00003',
+                          'value': 'fh2_n'},
+                         {'code': 'FHFamilyHistoryChild',
+                          'value': 'fh_n'},
+                         {'code': 'CDE00004',
+                          'value': 'fh2_n'},
+                         {'code': 'FHFamHistTendonXanthoma',
+                          'value': 'fh2_n'},
+                         {'code': 'FHFamHistArcusCornealis',
+                          'value': 'fh2_n'}
+                     ],
+                         'code': 'SEC0002',
+                         'allow_multiple': False},
+                     {'cdes': [
+                         {'code': 'CDE00011',
+                          'value': 'fhpremcvd_no'},
+                         {'code': 'FHMyocardialInfarction',
+                          'value': ''},
+                         {'code': 'FHAgeAtMI',
+                          'value': None},
+                         {'code': 'FHCoronaryRevasc',
+                          'value': ''},
+                         {'code': 'FHAgeAtCV',
+                          'value': None},
+                         {'code': 'FHPersHistCerebralVD',
+                          'value': 'fh2_n'},
+                         {'code': 'FHAorticValveDisease',
+                          'value': ''},
+                         {'code': 'FHSupravalvularDisease',
+                          'value': ''},
+                         {'code': 'FHPremNonCoronary',
+                          'value': ''}
+                     ],
+                         'code': 'SEC0004',
+                         'allow_multiple': False},
+                     {'cdes': [
+                         {'code': 'CDE00001',
+                          'value': 'n_'},
+                         {'code': 'CDE00002',
+                          'value': 'n_'},
+                         {'code': 'FHXanthelasma',
+                          'value': ''}
+                     ],
+                         'code': 'SEC0001',
+                         'allow_multiple': False},
+                     {'cdes': [
+                         {'code': 'CDE00013',
+                          'value': None},
+                         {'code': 'CDE00019',
+                          'value': None},
+                         {'code': 'PlasmaLipidTreatment',
+                          'value': ''},
+                         {'code': 'LDLCholesterolAdjTreatment',
+                          'value': 'NaN'}
+                     ],
+                         'code': 'FHLDLforFHScore',
+                         'allow_multiple': False},
+                     {'cdes': [
+                         [
+                             {'code': 'FHLipidProfileUntreatedDate',
+                              'value': '2018-07-02'},
+                             {'code': 'CDE00012',
+                              'value': 2.0},
+                             {'code': 'FHLLDLconc',
+                              'value': 2.0},
+                             {'code': 'CDE00014',
+                              'value': 2.0},
+                             {'code': 'CDE00015',
+                              'value': 2.0},
+                             {'code': 'FHApoB',
+                              'value': 2.0},
+                             {'code': 'CDE00016',
+                              'value': 2.0},
+                             {'code': 'FHAST',
+                              'value': 2},
+                             {'code': 'FHALT',
+                              'value': 2},
+                             {'code': 'FHCK',
+                              'value': 2},
+                             {'code': 'FHCreatinine',
+                              'value': 2},
+                             {'code': 'FHCRP',
+                              'value': 2.0},
+                             {'code': 'PlasmaLipidTreatmentNone',
+                              'value': 'Fluvastatin40'},
+                             {'code': 'CDEfhOtherIntolerantDrug',
+                              'value': ''},
+                             {'code': 'FHCompliance',
+                              'value': ''}
+                         ],
+                         [
+                             {'code': 'FHLipidProfileUntreatedDate',
+                              'value': '2018-07-02'},
+                             {'code': 'CDE00012',
+                              'value': 2.5},
+                             {'code': 'FHLLDLconc',
+                              'value': 2.5},
+                             {'code': 'CDE00014',
+                              'value': 2.5},
+                             {'code': 'CDE00015',
+                              'value': 2.5},
+                             {'code': 'FHApoB',
+                              'value': 2.5},
+                             {'code': 'CDE00016',
+                              'value': 2.5},
+                             {'code': 'FHAST',
+                              'value': 2},
+                             {'code': 'FHALT',
+                              'value': 2},
+                             {'code': 'FHCK',
+                              'value': 2},
+                             {'code': 'FHCreatinine',
+                              'value': 2},
+                             {'code': 'FHCRP',
+                              'value': 2.0},
+                             {'code': 'PlasmaLipidTreatmentNone',
+                              'value': 'Fluvastatin/Ezetimibe20'},
+                             {'code': 'CDEfhOtherIntolerantDrug',
+                              'value': ''},
+                             {'code': 'FHCompliance',
+                              'value': ''}
+                         ]
+                     ],
+                         'code': 'SEC0005',
+                         'allow_multiple': True},
+                     {'cdes': [
+                         {'code': 'CDE00005',
+                          'value': ''},
+                         {'code': 'FHPackYears',
+                          'value': None},
+                         {'code': 'FHAlcohol',
+                          'value': ''},
+                         {'code': 'FHHypertriglycerd',
+                          'value': ''},
+                         {'code': 'CDE00006',
+                          'value': ''},
+                         {'code': 'CDE00008',
+                          'value': None},
+                         {'code': 'CDE00009',
+                          'value': None},
+                         {'code': 'FHHeartRate',
+                          'value': None},
+                         {'code': 'CDE00007',
+                          'value': ''},
+                         {'code': 'CDE00010',
+                          'value': None},
+                         {'code': 'HbA1c',
+                          'value': None},
+                         {'code': 'ChronicKidneyDisease',
+                          'value': ''},
+                         {'code': 'FHeGFR',
+                          'value': ''},
+                         {'code': 'FHHypothyroidism',
+                          'value': ''},
+                         {'code': 'FHTSH',
+                          'value': None},
+                         {'code': 'FHHepaticSteatosis',
+                          'value': ''},
+                         {'code': 'FHObesity',
+                          'value': ''},
+                         {'code': 'CDEHeight',
+                          'value': None},
+                         {'code': 'CDEWeight',
+                          'value': None},
+                         {'code': 'CDEBMI',
+                          'value': 'NaN'},
+                         {'code': 'FHWaistCirc',
+                          'value': None},
+                         {'code': 'FHCVDOther',
+                          'value': 'test2 ddddddddd'}
+                     ],
+                         'code': 'SEC0003',
+                         'allow_multiple': False},
+                     {'cdes': [
+                         [
+                             {'code': 'FHClinicalTrialName',
+                              'value': ''},
+                             {'code': 'FHTrialLength',
+                              'value': None},
+                             {'code': 'FHTrialSTartDate',
+                              'value': None},
+                             {'code': 'FHTrialStatus',
+                              'value': ''}
+                         ]
+                     ],
+                         'code': 'FHClinicalTrials',
+                         'allow_multiple': True}
+                 ]
+                 }
+            ],
+            'django_id': 3,
+            'timestamp': '2018-07-19T15:14:04.887064',
+            'context_id': 3, 'django_model': 'Patient',
+            'ClinicalData_timestamp': '2018-07-19T15:14:04.887064'
+        }
 
     def test_migrate_cdes_clinicaldata(self):
-        out_data = transform_cd_dict(["CDE00016", "FHCRP"], "SEC0005", "SEC0003", self.input_data)
+        out_data = transform_cd_dict(
+            ["CDE00016", "FHCRP"], "SEC0005", "SEC0003", self.input_data)
         cd_form = get_cd_form(out_data)
         s_section = get_section("SEC0005", cd_form)
         t_section = get_section("SEC0003", cd_form)
@@ -336,13 +725,18 @@ class MigrateCDESTestCase(TestCase):
                     if cde_dict_item['code'] == cde_code:
                         return True
 
-        assert not check_cde_in_section("CDE00016", s_section), "CDE00016 is still in source section"
-        assert check_cde_in_section("CDE00016", t_section), "CDE00016 is not in target section found"
+        assert not check_cde_in_section("CDE00016", s_section),\
+            "CDE00016 is still in source section"
+        assert check_cde_in_section("CDE00016", t_section),\
+            "CDE00016 is not in target section found"
 
-        assert not check_cde_in_section("FHCRP", s_section), "FHCRP is still in source section"
-        assert check_cde_in_section("FHCRP", t_section), "FHCRP is not in target section found"
+        assert not check_cde_in_section("FHCRP", s_section),\
+            "FHCRP is still in source section"
+        assert check_cde_in_section("FHCRP", t_section),\
+            "FHCRP is not in target section found"
 
-        assert check_cde_in_section("FHCompliance", s_section), "FHCompliance has been moved."
+        assert check_cde_in_section("FHCompliance", s_section),\
+            "FHCompliance has been moved."
 
 
 def mock_messages():
@@ -350,11 +744,13 @@ def mock_messages():
     This switches off messaging, which requires request middleware
     which doesn't exist in RequestFactory requests.
     """
+
     def mock_add_message(request, level, msg, *args, **kwargs):
         logger.info("Django %s Message: %s" % (level, msg))
 
     def mock_error(request, msg, *args, **kwargs):
         logger.info("Django Error Message: %s" % msg)
+
     messages.add_message = mock_add_message
     messages.error = mock_error
 
@@ -381,7 +777,9 @@ class FormFiller(object):
         self.data = {}
 
     def add_data(self, section, cde_code, value):
-        key = settings.FORM_SECTION_DELIMITER.join([self.form.name, section.code, cde_code])
+        key = settings.FORM_SECTION_DELIMITER.join(
+            [self.form.name, section.code, cde_code]
+        )
         self.data.update({key: value})
 
     def __getattr__(self, item):
@@ -402,7 +800,9 @@ class TestFormPermissions(RDRFTestCase):
         fh = Registry.objects.get(code='fh')
 
         for form in fh.forms:
-            assert form.open, "%s has no group restriction so should be open but is not" % form.name
+            assert form.open,\
+                ("%s has no group restriction so should be open but is not"
+                 % form.name)
             for user in CustomUser.objects.all():
                 user.registry.add(fh)
                 user.save()
@@ -413,11 +813,12 @@ class TestFormPermissions(RDRFTestCase):
         from django.contrib.auth.models import Group
         fh = Registry.objects.get(code='fh')
         genetic_user = CustomUser.objects.get(username='genetic')
-        genetic_group, created = Group.objects.get_or_create(name="Genetic Staff")
+        genetic_group, created = Group.objects.get_or_create(
+            name="Genetic Staff")
         if created:
             genetic_group.save()
-
-        clinical_group, created = Group.objects.get_or_create(name="Clinical Staff")
+        clinical_group, created = Group.objects.get_or_create(
+            name="Clinical Staff")
         if created:
             clinical_group.save()
         f = fh.forms[0]
@@ -455,9 +856,11 @@ class ExporterTestCase(RDRFTestCase):
         self.registry = Registry.objects.get(code='fh')
         self.exporter = Exporter(self.registry)
         yaml_data, errors = self.exporter.export_yaml()
-        assert isinstance(errors, list), "Expected errors list in exporter export_yaml"
+        assert isinstance(errors, list),\
+            "Expected errors list in exporter export_yaml"
         assert len(errors) == 0, "Expected zero errors instead got:%s" % errors
-        assert isinstance(yaml_data, str), "Expected yaml_data is  string:%s" % type(yaml_data)
+        assert isinstance(yaml_data, str),\
+            "Expected yaml_data is  string:%s" % type(yaml_data)
         with open("/tmp/test.yaml", "w") as f:
             f.write(yaml_data)
 
@@ -484,26 +887,38 @@ class ExporterTestCase(RDRFTestCase):
         dummy_cde = CommonDataElement.objects.create()
         cde_fields = list(model_to_dict(dummy_cde).keys())
         for cde_map in data['cdes']:
-            assert isinstance(
-                cde_map, dict), "Expected cdes list should contain cde dictionaries: actual %s" % cde_map
+            assert isinstance(cde_map, dict),\
+                ("Expected cdes list should contain cde dictionaries: ",
+                 "actual %s" % cde_map)
             for cde_field in cde_fields:
-                assert cde_field in cde_map, "Expected export of cde to contain field %s - it doesn't" % cde_field
+                assert cde_field in cde_map,\
+                    ("Expected export of cde to contain field ",
+                     "%s - it doesn't" % cde_field)
 
         for pvg_map in data["pvgs"]:
-            assert "code" in pvg_map, "Expected group has code key: %s" % pvg_map
-            assert "values" in pvg_map, "Expected group has values key: %s" % pvg_map
+            assert "code" in pvg_map,\
+                "Expected group has code key: %s" % pvg_map
+            assert "values" in pvg_map,\
+                "Expected group has values key: %s" % pvg_map
             for value_map in pvg_map["values"]:
-                assert "code" in value_map, "Expected value map to have code key %s" % value_map
-                assert "value" in value_map, "Expected value map to have value key %s" % value_map
-                assert "desc" in value_map, "Expected value map to have desc key %s" % value_map
+                assert "code" in value_map,\
+                    "Expected value map to have code key %s" % value_map
+                assert "value" in value_map,\
+                    "Expected value map to have value key %s" % value_map
+                assert "desc" in value_map,\
+                    "Expected value map to have desc key %s" % value_map
 
         # consistency check
-        set_of_cde_codes_in_cdes = set([cde_map["code"] for cde_map in data["cdes"]])
-        set__of_cdes_in_forms = self._get_cde_codes_from_registry_export_data(data)
+        set_of_cde_codes_in_cdes = set(
+            [cde_map["code"] for cde_map in data["cdes"]])
+        set__of_cdes_in_forms =\
+            self._get_cde_codes_from_registry_export_data(data)
         generic_cdes = set(self.registry.generic_cdes)
 
         assert set__of_cdes_in_forms == (
-            set_of_cde_codes_in_cdes - generic_cdes), "Consistency check failed:\n%s" % self._report_cde_diff(set_of_cde_codes_in_cdes, set__of_cdes_in_forms)
+            set_of_cde_codes_in_cdes - generic_cdes),\
+            "Consistency check failed:\n%s" % self._report_cde_diff(
+                set_of_cde_codes_in_cdes, set__of_cdes_in_forms)
 
         # consistency of values in groups - whats exported is whats there
 
@@ -513,8 +928,11 @@ class ExporterTestCase(RDRFTestCase):
                 values_in_export.add(value_map["code"])
 
             values_in_db = self._get_values_for_group(pvg_map["code"])
-            msg = "%s:export %s\ndb: %s" % (pvg_map["code"], values_in_export, values_in_db)
-            assert values_in_export == values_in_db, "Values in export for group %s don't match what's in db: %s" % msg
+            msg = "%s:export %s\ndb: %s" % (
+                pvg_map["code"], values_in_export, values_in_db)
+            assert values_in_export == values_in_db,\
+                ("Values in export for group %s don't match what's in db: %s"
+                 % msg)
 
     def _get_values_for_group(self, group_code):
         values = set([])
@@ -529,7 +947,11 @@ class ImporterTestCase(TestCase):
     def _get_yaml_file(self):
         this_dir = os.path.dirname(__file__)
         logger.info("tests.py  dir = %s" % this_dir)
-        test_yaml = os.path.abspath(os.path.join(this_dir, "..", "..", "fixtures", "exported_fh_registry.yaml"))
+        test_yaml = os.path.abspath(
+            os.path.join(
+                this_dir, "..", "..", "fixtures", "exported_fh_registry.yaml"
+            )
+        )
         logger.info("full path to test yaml = %s" % test_yaml)
         return test_yaml
 
@@ -548,8 +970,9 @@ class FormTestCase(RDRFTestCase):
     def setUp(self):
         super(FormTestCase, self).setUp()
         self.registry = Registry.objects.get(code='fh')
-        self.wg, created = WorkingGroup.objects.get_or_create(name="testgroup",
-                                                              registry=self.registry)
+        self.wg, created = WorkingGroup.objects.get_or_create(
+            name="testgroup",
+            registry=self.registry)
 
         if created:
             self.wg.save()
@@ -565,7 +988,8 @@ class FormTestCase(RDRFTestCase):
 
         self.state.save()
         self.create_sections()
-        self.working_group, created = WorkingGroup.objects.get_or_create(name="WA")
+        self.working_group, created =\
+            WorkingGroup.objects.get_or_create(name="WA")
         self.working_group.save()
         self.create_forms()
 
@@ -576,7 +1000,9 @@ class FormTestCase(RDRFTestCase):
         self.address_type, created = AddressType.objects.get_or_create(pk=1)
 
         self.patient_address, created = PatientAddress.objects.get_or_create(
-            address='1 Line St', address_type=self.address_type, suburb='Neverland', state=self.state.short_name, postcode='1111', patient=self.patient)
+            address='1 Line St', address_type=self.address_type,
+            suburb='Neverland', state=self.state.short_name, postcode='1111',
+            patient=self.patient)
         self.patient_address.save()
 
         self.request_factory = RequestFactory()
@@ -598,7 +1024,9 @@ class FormTestCase(RDRFTestCase):
 
         return p
 
-    def create_section(self, code, display_name, elements, allow_multiple=False, extra=1):
+    def create_section(
+        self, code, display_name, elements, allow_multiple=False, extra=1
+    ):
         section, created = Section.objects.get_or_create(code=code)
         section.display_name = display_name
         section.elements = ",".join(elements)
@@ -609,8 +1037,9 @@ class FormTestCase(RDRFTestCase):
 
     def create_form(self, name, sections, is_questionnnaire=False):
         sections = ",".join([section.code for section in sections])
-        form, created = RegistryForm.objects.get_or_create(name=name, registry=self.registry,
-                                                           defaults={'sections': sections})
+        form, created = RegistryForm.objects.get_or_create(
+            name=name, registry=self.registry,
+            defaults={'sections': sections})
         if not created:
             form.sections = sections
         form.name = name
@@ -621,7 +1050,8 @@ class FormTestCase(RDRFTestCase):
         return form
 
     def create_forms(self):
-        self.simple_form = self.create_form("simple", [self.sectionA, self.sectionB])
+        self.simple_form = self.create_form(
+            "simple", [self.sectionA, self.sectionB])
         self.multi_form = self.create_form("multi", [self.sectionC])
         # TODO file forms, questionnaire forms
 
@@ -629,7 +1059,8 @@ class FormTestCase(RDRFTestCase):
         # return a dictionary representing what is sent from filled in form
         # form data looks like:
         # { "
-        url = "/%s/forms/%s/%s" % (form_obj.registry.code, form_obj.pk, self.patient.pk)
+        url = "/%s/forms/%s/%s" % (
+            form_obj.registry.code, form_obj.pk, self.patient.pk)
 
         request = self.request_factory.post(url, form_data)
         request.user = get_user_model().objects.get(username="curator")
@@ -638,17 +1069,27 @@ class FormTestCase(RDRFTestCase):
     def create_sections(self):
         # "simple" sections ( no files or multi-allowed sections
         self.sectionA = self.create_section(
-            "sectionA", "Simple Section A", ["CDEName", "CDEAge"])
+            "sectionA",
+            "Simple Section A",
+            ["CDEName", "CDEAge"])
         self.sectionB = self.create_section(
-            "sectionB", "Simple Section B", ["CDEHeight", "CDEWeight", "CDEBMI"])
+            "sectionB",
+            "Simple Section B",
+            ["CDEHeight", "CDEWeight", "CDEBMI"])
         # A multi allowed section with no file cdes
         self.sectionC = self.create_section(
-            "sectionC", "MultiSection No Files Section C", ["CDEName", "CDEAge"], True)
+            "sectionC",
+            "MultiSection No Files Section C",
+            ["CDEName", "CDEAge"], True)
         # A multi allowed section with a file CDE
-        # self.sectionD = self.create_section("sectionD", "MultiSection With Files D", ["CDEName", ""])
+        # self.sectionD = self.create_section(
+        #     "sectionD",
+        #     "MultiSection With Files D",
+        #     ["CDEName", ""])
 
     def _create_form_key(self, form, section, cde_code):
-        return settings.FORM_SECTION_DELIMITER.join([form.name, section.code, cde_code])
+        return settings.FORM_SECTION_DELIMITER.join(
+            [form.name, section.code, cde_code])
 
     def test_patient_archiving(self):
         from registry.patients.models import Patient
@@ -679,7 +1120,8 @@ class FormTestCase(RDRFTestCase):
             Patient.objects.really_all().get(id=my_id)
 
         # test can archive prop on CustomUser
-        # by default genetic user can't delete as they don't have patient delete permission
+        # by default genetic user can't delete as they don't have
+        # patient delete permission
 
         genetic_user = CustomUser.objects.get(username='genetic')
         self.assertFalse(genetic_user.can_archive)
@@ -721,7 +1163,8 @@ class FormTestCase(RDRFTestCase):
             self.patient.pk,
             self.default_context.pk)
 
-        collection = ClinicalData.objects.collection(self.registry.code, "cdes")
+        collection = ClinicalData.objects.collection(
+            self.registry.code, "cdes")
         context_id = self.patient.default_context(self.registry).id
         mongo_record = collection.find(self.patient, context_id).data().first()
 
@@ -734,15 +1177,18 @@ class FormTestCase(RDRFTestCase):
         the_form = mongo_record['forms'][0]
         assert isinstance(the_form, dict), "form data should be a dictionary"
         assert "sections" in the_form, "A form should have a sections key"
-        assert isinstance(the_form["sections"], list), "Sections should be in a list"
+        assert isinstance(the_form["sections"], list),\
+            "Sections should be in a list"
         # we've only written data for 2 sections
-        assert len(the_form["sections"]) == 2, "expected 2 sections got %s" % len(
-            the_form["sections"])
+        assert len(the_form["sections"]) == 2,\
+            "expected 2 sections got %s" % len(the_form["sections"])
 
         for section_dict in the_form["sections"]:
-            assert isinstance(section_dict, dict), "sections should be dictioanaries"
+            assert isinstance(section_dict, dict),\
+                "sections should be dictionaries"
             assert "cdes" in section_dict, "sections should have a cdes key"
-            assert isinstance(section_dict["cdes"], list), "sections cdes key should be a list"
+            assert isinstance(section_dict["cdes"], list),\
+                "sections cdes key should be a list"
             for cde in section_dict["cdes"]:
                 assert isinstance(cde, dict), "cde should be a dict"
                 assert "code" in cde, "cde dictionary should have a code key"
@@ -784,8 +1230,9 @@ class LongitudinalTestCase(FormTestCase):
                           "Each snapshot should have a record field")
             self.assertIn("timestamp", snapshot,
                           "Each snapshot should have a timestamp field")
-            self.assertIn("forms", snapshot["record"],
-                          "Each  snapshot should record dict contain a forms field")
+            self.assertIn(
+                "forms", snapshot["record"],
+                "Each  snapshot should record dict contain a forms field")
 
 
 class DeCamelcaseTestCase(TestCase):
@@ -839,7 +1286,7 @@ class JavascriptCheckTestCase(TestCase):
         self.assertEqual(err, "")
 
     def test_nonascii(self):
-        err = check_calculation("context.result = '💩';")
+        err = check_calculation("context.result = '🦆';")
         self.assertEqual(err, "")
 
 
@@ -853,35 +1300,65 @@ class FakeClinicalData(object):
 
 
 class TimeStripperTestCase(TestCase):
+
     def setUp(self):
         super(TimeStripperTestCase, self).setUp()
 
-        self.data_with_date_cdes = {'django_model': 'Patient',
-                                    'ClinicalData_timestamp': '2017-02-14T10:23:10.601182',
-                                    'context_id': 4,
-                                    'django_id': 3,
-                                    'forms': [{'name': 'ClinicalData',
-                                               'sections': [{'code': 'fhDateSection', 'allow_multiple': False,
-                                                             'cdes': [{'value': 'fh_is_index', 'code': 'CDEIndexOrRelative'},
-                                                                      {'value': '1972-06-15T00:00:00.00',
-                                                                          'code': 'DateOfAssessment'},
-                                                                      {'value': '2015-01-05T10:23:10.601182', 'code': 'FHconsentDate'}]},
-                                                            {'code': 'SEC0007', 'allow_multiple': False,
-                                                             'cdes': [{'value': '', 'code': 'CDE00024'},
-                                                                      {'value': '', 'code': 'CDEfhDutchLipidClinicNetwork'}]}]}]}
+        self.data_with_date_cdes = {
+            'django_model': 'Patient',
+            'ClinicalData_timestamp': '2017-02-14T10:23:10.601182',
+            'context_id': 4,
+            'django_id': 3,
+            'forms': [
+                {'name': 'ClinicalData',
+                 'sections': [
+                     {'code': 'fhDateSection',
+                      'allow_multiple': False,
+                      'cdes': [
+                          {'value': 'fh_is_index',
+                           'code': 'CDEIndexOrRelative'},
+                          {'value': '1972-06-15T00:00:00.00',
+                           'code': 'DateOfAssessment'},
+                          {'value': '2015-01-05T10:23:10.601182',
+                           'code': 'FHconsentDate'}
+                      ]},
+                     {'code': 'SEC0007',
+                      'allow_multiple': False,
+                      'cdes': [
+                          {'value': '',
+                           'code': 'CDE00024'},
+                          {'value': '',
+                           'code': 'CDEfhDutchLipidClinicNetwork'}
+                      ]}
+                 ]}
+            ]}
 
         self.copy_of_initial_data = deepcopy(self.data_with_date_cdes)
 
-        self.data_without_date_cdes = {'django_model': 'Patient',
-                                       'ClinicalData_timestamp': '2017-02-14T10:23:10.601182',
-                                       'context_id': 40,
-                                       'django_id': 300,
-                                       'forms': [{'name': 'ClinicalData',
-                                                  'sections': [{'code': 'fhDateSection', 'allow_multiple': False,
-                                                                 'cdes': [{'value': 'fh_is_index', 'code': 'CDEIndexOrRelative'}]},
-                                                               {'code': 'SEC0007', 'allow_multiple': False,
-                                                                'cdes': [{'value': '', 'code': 'CDE00024'},
-                                                                         {'value': '', 'code': 'CDEfhDutchLipidClinicNetwork'}]}]}]}
+        self.data_without_date_cdes = {
+            'django_model': 'Patient',
+            'ClinicalData_timestamp': '2017-02-14T10:23:10.601182',
+            'context_id': 40,
+            'django_id': 300,
+            'forms': [
+                {'name': 'ClinicalData',
+                 'sections': [
+                     {'code': 'fhDateSection',
+                      'allow_multiple': False,
+                      'cdes': [
+                          {'value': 'fh_is_index',
+                           'code': 'CDEIndexOrRelative'}
+                      ]},
+                     {'code': 'SEC0007',
+                      'allow_multiple': False,
+                      'cdes': [
+                          {'value': '',
+                           'code': 'CDE00024'},
+                          {'value': '',
+                           'code': 'CDEfhDutchLipidClinicNetwork'}
+                      ]}
+                 ]}
+            ]}
 
         self.m1 = FakeClinicalData(1, self.data_with_date_cdes)
         self.m2 = FakeClinicalData(2, self.data_without_date_cdes)
@@ -894,25 +1371,38 @@ class TimeStripperTestCase(TestCase):
         expected_date_of_assessment = "1972-06-15"
         expected_fh_consent_date = "2015-01-05"
         expected = [expected_date_of_assessment, expected_fh_consent_date]
-        clinicaldata_timestamp_before = self.data_with_date_cdes["ClinicalData_timestamp"]
-        fh_index_before = self.data_with_date_cdes["forms"][0]["sections"][0]["cdes"][0]["value"]
+        clinicaldata_timestamp_before =\
+            self.data_with_date_cdes["ClinicalData_timestamp"]
+        fh_index_before =\
+            self.data_with_date_cdes[
+                "forms"][0]["sections"][0]["cdes"][0]["value"]
 
         self.ts.forward()
-        clinicaldata_timestamp_after = self.data_with_date_cdes["ClinicalData_timestamp"]
-        fh_index_after = self.data_with_date_cdes["forms"][0]["sections"][0]["cdes"][0]["value"]
+        clinicaldata_timestamp_after =\
+            self.data_with_date_cdes["ClinicalData_timestamp"]
+        fh_index_after =\
+            self.data_with_date_cdes[
+                "forms"][0]["sections"][0]["cdes"][0]["value"]
 
-        self.assertTrue(self.ts.converted_date_cdes == expected,
-                        "Expected %s Actual %s" % (expected, self.ts.converted_date_cdes))
+        self.assertTrue(
+            self.ts.converted_date_cdes == expected,
+            "Expected %s Actual %s" % (expected, self.ts.converted_date_cdes))
 
-        value1 = self.data_with_date_cdes["forms"][0]["sections"][0]["cdes"][1]["value"]
+        value1 =\
+            self.data_with_date_cdes[
+                "forms"][0]["sections"][0]["cdes"][1]["value"]
         self.assertTrue(value1 == expected_date_of_assessment,
                         "DateOfAssessment value not modified by TimeStripper")
-        value2 = self.data_with_date_cdes["forms"][0]["sections"][0]["cdes"][2]["value"]
+        value2 =\
+            self.data_with_date_cdes[
+                "forms"][0]["sections"][0]["cdes"][2]["value"]
         self.assertTrue(value2 == expected_fh_consent_date,
                         "FHConsentdate value not modified by TimeStripper")
 
-        self.assertTrue(clinicaldata_timestamp_after == clinicaldata_timestamp_before,
-                        "Timestamps which are not date cdes should not be affected by TimeStripper")
+        self.assertTrue(
+            clinicaldata_timestamp_after == clinicaldata_timestamp_before,
+            ("Timestamps which are not date cdes should not be ",
+             "affected by TimeStripper"))
         self.assertTrue(fh_index_before == fh_index_after,
                         "Non date cdes should not be affected by TimeStripper")
 
@@ -944,11 +1434,14 @@ class TimeStripperTestCase(TestCase):
 
         ts.forward()
 
-        self.assertTrue(ts.converted_date_cdes == ["2017-02-14", "2018-03-26"],
-                        "Multisection timestrip failed: actual = %s" % ts.converted_date_cdes)
+        self.assertTrue(
+            ts.converted_date_cdes == ["2017-02-14", "2018-03-26"],
+            ("Multisection timestrip failed: actual = %s"
+             % ts.converted_date_cdes))
 
         expected_value1 = "2017-02-14"
-        actual_value1 = m.data["forms"][0]["sections"][0]["cdes"][0][1]["value"]
+        actual_value1 =\
+            m.data["forms"][0]["sections"][0]["cdes"][0][1]["value"]
         self.assertEqual(
             expected_value1,
             actual_value1,
@@ -956,7 +1449,8 @@ class TimeStripperTestCase(TestCase):
             actual_value1)
 
         expected_value2 = "2018-03-26"
-        actual_value2 = m.data["forms"][0]["sections"][0]["cdes"][1][1]["value"]
+        actual_value2 =\
+            m.data["forms"][0]["sections"][0]["cdes"][1][1]["value"]
         self.assertEqual(
             expected_value2,
             actual_value2,
@@ -964,7 +1458,8 @@ class TimeStripperTestCase(TestCase):
             actual_value2)
 
         expected_value3 = "2011-11-05"  # n shouldn't have changed
-        actual_value3 = m.data["forms"][0]["sections"][0]["cdes"][2][1]["value"]
+        actual_value3 =\
+            m.data["forms"][0]["sections"][0]["cdes"][2][1]["value"]
         self.assertEqual(
             expected_value3,
             actual_value3,
@@ -973,360 +1468,203 @@ class TimeStripperTestCase(TestCase):
 
     def test_history_munging(self):
         from rdrf.helpers.utils import HistoryTimeStripper
-        history_modjgo_data = {"django_id": 1,
-                               "record": {
-                                   "django_id": 1,
-                                   "timestamp": "2017-02-13T12:28:49.355839",
-                                   "forms": [
-                                       {
-                                           "sections": [
-                                                {
-                                                    "allow_multiple": False,
-                                                    "cdes": [
-                                                        {
-                                                            "value": "fh_is_index",
-                                                            "code": "CDEIndexOrRelative"
-                                                        },
-                                                        {
-                                                            "value": "2017-02-15",
-                                                            "code": "DateOfAssessment"
-                                                        },
-                                                        {
-                                                            "value": "2017-02-14T00:00:00.000",
-                                                            "code": "FHconsentDate"
-                                                        }
-                                                    ],
-                                                    "code": "fhDateSection"
-                                                },
-                                               {
-                                                    "allow_multiple": False,
-                                                    "cdes": [
-                                                        {
-                                                            "value": "",
-                                                            "code": "CDE00024"
-                                                        },
-                                                        {
-                                                            "value": "",
-                                                            "code": "CDEfhDutchLipidClinicNetwork"
-                                                        }
-                                                    ],
-                                                    "code": "SEC0007"
-                                                },
-                                               {
-                                                    "allow_multiple": False,
-                                                    "cdes": [
-                                                        {
-                                                            "value": "fh2_y",
-                                                            "code": "CDE00004"
-                                                        },
-                                                        {
-                                                            "value": "fh2_n",
-                                                            "code": "FHFamHistTendonXanthoma"
-                                                        },
-                                                        {
-                                                            "value": "fh2_n",
-                                                            "code": "FHFamHistArcusCornealis"
-                                                        },
-                                                        {
-                                                            "value": "fh2_y",
-                                                            "code": "CDE00003"
-                                                        },
-                                                        {
-                                                            "value": "y_childunder18",
-                                                            "code": "FHFamilyHistoryChild"
-                                                        }
-                                                    ],
-                                                    "code": "SEC0002"
-                                                },
-                                               {
-                                                    "allow_multiple": False,
-                                                    "cdes": [
-                                                        {
-                                                            "value": "",
-                                                            "code": "FHSupravalvularDisease"
-                                                        },
-                                                        {
-                                                            "value": None,
-                                                            "code": "FHAgeAtMI"
-                                                        },
-                                                        {
-                                                            "value": None,
-                                                            "code": "FHAgeAtCV"
-                                                        },
-                                                        {
-                                                            "value": "",
-                                                            "code": "FHPremNonCoronary"
-                                                        },
-                                                        {
-                                                            "value": "",
-                                                            "code": "FHAorticValveDisease"
-                                                        },
-                                                        {
-                                                            "value": "fh2_n",
-                                                            "code": "FHPersHistCerebralVD"
-                                                        },
-                                                        {
-                                                            "value": "fhpremcvd_unknown",
-                                                            "code": "CDE00011"
-                                                        },
-                                                        {
-                                                            "value": "",
-                                                            "code": "FHCoronaryRevasc"
-                                                        },
-                                                        {
-                                                            "value": "",
-                                                            "code": "FHMyocardialInfarction"
-                                                        }
-                                                    ],
-                                                    "code": "SEC0004"
-                                                },
-                                               {
-                                                    "allow_multiple": False,
-                                                    "cdes": [
-                                                        {
-                                                            "value": "u_",
-                                                            "code": "CDE00002"
-                                                        },
-                                                        {
-                                                            "value": "",
-                                                            "code": "FHXanthelasma"
-                                                        },
-                                                        {
-                                                            "value": "y",
-                                                            "code": "CDE00001"
-                                                        }
-                                                    ],
-                                                    "code": "SEC0001"
-                                                },
-                                               {
-                                                    "allow_multiple": False,
-                                                    "cdes": [
-                                                        {
-                                                            "value": "",
-                                                            "code": "PlasmaLipidTreatment"
-                                                        },
-                                                        {
-                                                            "value": None,
-                                                            "code": "CDE00019"
-                                                        },
-                                                        {
-                                                            "value": "NaN",
-                                                            "code": "LDLCholesterolAdjTreatment"
-                                                        },
-                                                        {
-                                                            "value": None,
-                                                            "code": "CDE00013"
-                                                        }
-                                                    ],
-                                                    "code": "FHLDLforFHScore"
-                                                },
-                                               {
-                                                    "allow_multiple": True,
-                                                    "cdes": [
-                                                        [
-                                                            {
-                                                                "value": None,
-                                                                "code": "CDE00014"
-                                                            },
-                                                            {
-                                                                "value": None,
-                                                                "code": "FHLipidProfileUntreatedDate"
-                                                            },
-                                                            {
-                                                                "value": None,
-                                                                "code": "FHAlbum"
-                                                            },
-                                                            {
-                                                                "value": None,
-                                                                "code": "CDE00012"
-                                                            },
-                                                            {
-                                                                "value": None,
-                                                                "code": "FHCK"
-                                                            },
-                                                            {
-                                                                "value": None,
-                                                                "code": "FHA1"
-                                                            },
-                                                            {
-                                                                "value": "",
-                                                                "code": "PlasmaLipidTreatmentNone"
-                                                            },
-                                                            {
-                                                                "value": None,
-                                                                "code": "FHAST"
-                                                            },
-                                                            {
-                                                                "value": None,
-                                                                "code": "CDE00015"
-                                                            },
-                                                            {
-                                                                "value": None,
-                                                                "code": "FHApoB"
-                                                            },
-                                                            {
-                                                                "value": None,
-                                                                "code": "FHALT"
-                                                            },
-                                                            {
-                                                                "value": None,
-                                                                "code": "FHLLDLconc"
-                                                            },
-                                                            {
-                                                                "value": None,
-                                                                "code": "FHCreatinine"
-                                                            },
-                                                            {
-                                                                "value": "",
-                                                                "code": "FHCompliance"
-                                                            },
-                                                            {
-                                                                "value": "",
-                                                                "code": "CDEfhOtherIntolerantDrug"
-                                                            },
-                                                            {
-                                                                "value": None,
-                                                                "code": "CDE00016"
-                                                            },
-                                                            {
-                                                                "value": None,
-                                                                "code": "FHCRP"
-                                                            }
-                                                        ]
-                                                    ],
-                                                    "code": "SEC0005"
-                                                },
-                                               {
-                                                    "allow_multiple": False,
-                                                    "cdes": [
-                                                        {
-                                                            "value": "NaN",
-                                                            "code": "CDEBMI"
-                                                        },
-                                                        {
-                                                            "value": "",
-                                                            "code": "FHHypertriglycerd"
-                                                        },
-                                                        {
-                                                            "value": None,
-                                                            "code": "HbA1c"
-                                                        },
-                                                        {
-                                                            "value": "",
-                                                            "code": "FHHypothyroidism"
-                                                        },
-                                                        {
-                                                            "value": None,
-                                                            "code": "CDE00009"
-                                                        },
-                                                        {
-                                                            "value": None,
-                                                            "code": "FHHeartRate"
-                                                        },
-                                                        {
-                                                            "value": None,
-                                                            "code": "CDE00010"
-                                                        },
-                                                        {
-                                                            "value": None,
-                                                            "code": "FHWaistCirc"
-                                                        },
-                                                        {
-                                                            "value": "",
-                                                            "code": "FHObesity"
-                                                        },
-                                                        {
-                                                            "value": None,
-                                                            "code": "CDE00008"
-                                                        },
-                                                        {
-                                                            "value": None,
-                                                            "code": "CDEWeight"
-                                                        },
-                                                        {
-                                                            "value": None,
-                                                            "code": "FHPackYears"
-                                                        },
-                                                        {
-                                                            "value": None,
-                                                            "code": "CDEHeight"
-                                                        },
-                                                        {
-                                                            "value": "",
-                                                            "code": "CDE00007"
-                                                        },
-                                                        {
-                                                            "value": "",
-                                                            "code": "FHAlcohol"
-                                                        },
-                                                        {
-                                                            "value": "",
-                                                            "code": "CDE00005"
-                                                        },
-                                                        {
-                                                            "value": "",
-                                                            "code": "CDE00006"
-                                                        },
-                                                        {
-                                                            "value": "",
-                                                            "code": "FHCVDOther"
-                                                        },
-                                                        {
-                                                            "value": None,
-                                                            "code": "FHeGFR"
-                                                        },
-                                                        {
-                                                            "value": "",
-                                                            "code": "ChronicKidneyDisease"
-                                                        },
-                                                        {
-                                                            "value": "",
-                                                            "code": "FHHepaticSteatosis"
-                                                        },
-                                                        {
-                                                            "value": None,
-                                                            "code": "FHTSH"
-                                                        }
-                                                    ],
-                                                    "code": "SEC0003"
-                                                },
-                                               {
-                                                    "allow_multiple": True,
-                                                    "cdes": [
-                                                        [{
-                                                            "value": "",
-                                                            "code": "FHTrialStatus"
-                                                        },
-                                                            {
-                                                            "value": None,
-                                                            "code": "FHTrialSTartDate"
-                                                        },
-                                                            {
-                                                            "value": "",
-                                                            "code": "FHClinicalTrialName"
-                                                        },
-                                                            {
-                                                            "value": None,
-                                                            "code": "FHTrialLength"
-                                                        }
-                                                        ]
-                                                    ],
-                                                    "code": "FHClinicalTrials"
-                                                }
-                                           ],
-                                           "name": "ClinicalData"
-                                       }
-                                   ],
-                                   "context_id": 1,
-                                   "ClinicalData_timestamp": "2017-02-13T12:28:49.355839",
-                                   "django_model": "Patient"
-                               },
-                               "record_type": "snapshot",
-                               "timestamp": "2017-02-13 12:28:49.665333",
-                               "registry_code": "fh",
-                               "context_id": 1,
-                               "django_model": "Patient"
-                               }
+        history_modjgo_data = {
+            "django_id": 1,
+            "record": {
+                "django_id": 1,
+                "timestamp": "2017-02-13T12:28:49.355839",
+                "forms": [
+                    {"sections": [
+                        {"allow_multiple": False,
+                         "cdes": [
+                             {"value": "fh_is_index",
+                              "code": "CDEIndexOrRelative"},
+                             {"value": "2017-02-15",
+                              "code": "DateOfAssessment"},
+                             {"value": "2017-02-14T00:00:00.000",
+                              "code": "FHconsentDate"}
+                         ],
+                         "code": "fhDateSection"
+                         },
+                        {"allow_multiple": False,
+                         "cdes": [
+                             {"value": "",
+                              "code": "CDE00024"},
+                             {"value": "",
+                              "code": "CDEfhDutchLipidClinicNetwork"}
+                         ],
+                         "code": "SEC0007"},
+                        {"allow_multiple": False,
+                         "cdes": [
+                             {"value": "fh2_y",
+                              "code": "CDE00004"},
+                             {"value": "fh2_n",
+                              "code": "FHFamHistTendonXanthoma"},
+                             {"value": "fh2_n",
+                              "code": "FHFamHistArcusCornealis"},
+                             {"value": "fh2_y",
+                              "code": "CDE00003"},
+                             {"value": "y_childunder18",
+                              "code": "FHFamilyHistoryChild"}
+                         ],
+                         "code": "SEC0002"},
+                        {"allow_multiple": False,
+                         "cdes": [
+                             {"value": "",
+                              "code": "FHSupravalvularDisease"},
+                             {"value": None,
+                              "code": "FHAgeAtMI"},
+                             {"value": None,
+                              "code": "FHAgeAtCV"},
+                             {"value": "",
+                              "code": "FHPremNonCoronary"},
+                             {"value": "",
+                              "code": "FHAorticValveDisease"},
+                             {"value": "fh2_n",
+                              "code": "FHPersHistCerebralVD"},
+                             {"value": "fhpremcvd_unknown",
+                              "code": "CDE00011"},
+                             {"value": "",
+                              "code": "FHCoronaryRevasc"},
+                             {"value": "",
+                              "code": "FHMyocardialInfarction"}
+                         ],
+                         "code": "SEC0004"},
+                        {"allow_multiple": False,
+                         "cdes": [
+                             {"value": "u_",
+                              "code": "CDE00002"},
+                             {"value": "",
+                              "code": "FHXanthelasma"},
+                             {"value": "y",
+                              "code": "CDE00001"}
+                         ],
+                         "code": "SEC0001"},
+                        {"allow_multiple": False,
+                         "cdes": [
+                             {"value": "",
+                              "code": "PlasmaLipidTreatment"},
+                             {"value": None,
+                              "code": "CDE00019"},
+                             {"value": "NaN",
+                              "code": "LDLCholesterolAdjTreatment"},
+                             {"value": None,
+                              "code": "CDE00013"}
+                         ],
+                         "code": "FHLDLforFHScore"},
+                        {"allow_multiple": True,
+                         "cdes": [
+                             [
+                                 {"value": None,
+                                  "code": "CDE00014"},
+                                 {"value": None,
+                                  "code": "FHLipidProfileUntreatedDate"},
+                                 {"value": None,
+                                  "code": "FHAlbum"},
+                                 {"value": None,
+                                  "code": "CDE00012"},
+                                 {"value": None,
+                                  "code": "FHCK"},
+                                 {"value": None,
+                                  "code": "FHA1"},
+                                 {"value": "",
+                                  "code": "PlasmaLipidTreatmentNone"},
+                                 {"value": None,
+                                  "code": "FHAST"},
+                                 {"value": None,
+                                  "code": "CDE00015"},
+                                 {"value": None,
+                                  "code": "FHApoB"},
+                                 {"value": None,
+                                  "code": "FHALT"},
+                                 {"value": None,
+                                  "code": "FHLLDLconc"},
+                                 {"value": None,
+                                  "code": "FHCreatinine"},
+                                 {"value": "",
+                                  "code": "FHCompliance"},
+                                 {"value": "",
+                                  "code": "CDEfhOtherIntolerantDrug"},
+                                 {"value": None,
+                                  "code": "CDE00016"},
+                                 {"value": None,
+                                  "code": "FHCRP"}
+                             ]
+                         ],
+                         "code": "SEC0005"},
+                        {"allow_multiple": False,
+                         "cdes": [
+                             {"value": "NaN",
+                              "code": "CDEBMI"},
+                             {"value": "",
+                              "code": "FHHypertriglycerd"},
+                             {"value": None,
+                              "code": "HbA1c"},
+                             {"value": "",
+                              "code": "FHHypothyroidism"},
+                             {"value": None,
+                              "code": "CDE00009"},
+                             {"value": None,
+                              "code": "FHHeartRate"},
+                             {"value": None,
+                              "code": "CDE00010"},
+                             {"value": None,
+                              "code": "FHWaistCirc"},
+                             {"value": "",
+                              "code": "FHObesity"},
+                             {"value": None,
+                              "code": "CDE00008"},
+                             {"value": None,
+                              "code": "CDEWeight"},
+                             {"value": None,
+                              "code": "FHPackYears"},
+                             {"value": None,
+                              "code": "CDEHeight"},
+                             {"value": "",
+                              "code": "CDE00007"},
+                             {"value": "",
+                              "code": "FHAlcohol"},
+                             {"value": "",
+                              "code": "CDE00005"},
+                             {"value": "",
+                              "code": "CDE00006"},
+                             {"value": "",
+                              "code": "FHCVDOther"},
+                             {"value": None,
+                              "code": "FHeGFR"},
+                             {"value": "",
+                              "code": "ChronicKidneyDisease"},
+                             {"value": "",
+                              "code": "FHHepaticSteatosis"},
+                             {"value": None,
+                              "code": "FHTSH"}
+                         ],
+                         "code": "SEC0003"},
+                        {"allow_multiple": True,
+                         "cdes": [
+                             [
+                                 {"value": "",
+                                  "code": "FHTrialStatus"},
+                                 {"value": None,
+                                  "code": "FHTrialSTartDate"},
+                                 {"value": "",
+                                  "code": "FHClinicalTrialName"},
+                                 {"value": None,
+                                  "code": "FHTrialLength"}
+                             ]
+                         ],
+                         "code": "FHClinicalTrials"}
+                    ],
+                        "name": "ClinicalData"}
+                ],
+                "context_id": 1,
+                "ClinicalData_timestamp": "2017-02-13T12:28:49.355839",
+                "django_model": "Patient"},
+            "record_type": "snapshot",
+            "timestamp": "2017-02-13 12:28:49.665333",
+            "registry_code": "fh",
+            "context_id": 1,
+            "django_model": "Patient"}
 
         expected_dates = ['2017-02-14']
         history_record = FakeClinicalData(73, history_modjgo_data)
@@ -1334,7 +1672,6 @@ class TimeStripperTestCase(TestCase):
         ts.test_mode = True
         ts.date_cde_codes = ['FHconsentDate']
         ts.forward()
-
         self.assertTrue(ts.converted_date_cdes == expected_dates,
                         "Expected: %s, Actual: %s" % (expected_dates,
                                                       ts.converted_date_cdes))
@@ -1362,7 +1699,8 @@ class StructureChecker(TestCase):
         import io
         out_stream = io.StringIO("")
         # test_mode means the command does not issue sys.exit(1)
-        management.call_command('check_structure', *args, stdout=out_stream, **kwargs)
+        management.call_command(
+            'check_structure', *args, stdout=out_stream, **kwargs)
         return out_stream.getvalue()
 
     def clear_modjgo_objects(self):
@@ -1384,42 +1722,54 @@ class StructureChecker(TestCase):
         # Some examples of possible mangled records
         # [ (desc,collectionname,example), ...]
         # we expect non-blank output/failure for each example
-        bad = [("bad id", "cdes", {"django_id": "fred",
-                                   "django_model": "Patient",
-                                   "timestamp": "2018-03-10T04:03:21",
-                                   "forms": []}),
-
-               ("missing id", "cdes", {"django_model": "Patient",
-                                       "timestamp": "2018-03-10T04:03:21",
-                                       "forms": []}),
-
-               ("bad model", "cdes", {"django_id": 100,
-                                      "django_model": "Tomato",
-                                      "timestamp": "2018-03-10T04:03:21",
-                                      "forms": []}),
-
-
-               ("missing_model", "cdes", {"django_id": 23,
-                                          "timestamp": "2018-03-10T04:03:21",
-                                          "forms": []}),
-               ("bad_forms", "cdes", {"django_id": 23,
-                                      "django_model": "Patient",
-                                      "timestamp": "2018-03-10T04:03:21",
-                                      "forms": 999}),
-               ("bad_old_format", "cdes", {"django_id": 23,
-                                           "django_model": "Patient",
-                                           "timestamp": "2018-03-10T04:03:21",
-                                           "formname____sectioncode____cdecode": 99,
-                                           "forms": []})
-               ]
+        bad = [
+            ("bad id",
+             "cdes",
+             {"django_id": "fred",
+              "django_model": "Patient",
+              "timestamp": "2018-03-10T04:03:21",
+              "forms": []}),
+            ("missing id",
+             "cdes",
+             {"django_model": "Patient",
+              "timestamp": "2018-03-10T04:03:21",
+              "forms": []}),
+            ("bad model",
+             "cdes",
+             {"django_id": 100,
+              "django_model": "Tomato",
+              "timestamp": "2018-03-10T04:03:21",
+              "forms": []}),
+            ("missing_model",
+             "cdes",
+             {"django_id": 23,
+              "timestamp": "2018-03-10T04:03:21",
+              "forms": []}),
+            ("bad_forms",
+             "cdes",
+             {"django_id": 23,
+              "django_model": "Patient",
+              "timestamp": "2018-03-10T04:03:21",
+              "forms": 999}),
+            ("bad_old_format",
+             "cdes",
+             {"django_id": 23,
+              "django_model": "Patient",
+              "timestamp": "2018-03-10T04:03:21",
+              "formname____sectioncode____cdecode": 99,
+              "forms": []})
+        ]
 
         for bad_example, collection, data in bad:
             self.clear_modjgo_objects()
             m = self.make_modjgo(collection, data)
             with self.assertRaises(SystemExit) as cm:
-                output = self._run_command(registry_code="foobar", collection=collection)
+                output = self._run_command(
+                    registry_code="foobar", collection=collection)
                 print("output = [%s]" % output)
-                assert output != "", "check_structure management command failed: Expected schema error for %s" % bad_example
+                assert output != "",\
+                    ("check_structure management command failed: ",
+                     "Expected schema error for %s" % bad_example)
                 parts = output.split(";")
                 bad_pk = int(parts[0])
                 self.assertEqual(m.pk, bad_pk)
@@ -1435,28 +1785,34 @@ class StructureChecker(TestCase):
         m = self.make_modjgo("cdes", good)
         output = self._run_command(registry_code="foobar", collection="cdes")
         print("output = [%s]" % output)
-        assert output == "", "check_structure test of good data should output nothing"
+        assert output == "",\
+            "check_structure test of good data should output nothing"
 
     def test_history(self):
         foobar = Registry()
         foobar.code = "foobar"
         foobar.save()
-        bad_history = {"id": 6,
-                       "registry_code": "foobar",
-                       "collection": "history",
-                       "data": {"record": {"django_id": 1,
-                                           "timestamp": "2017-07-10T14:45:36.760123",
-                                           "context_id": 1,
-                                           "django_model": "Patient",
-                                           "oldstyleform____section____cde": 23,
-                                           "Diagnosis_timestamp": "2017-07-10T14:45:36.760123"}
-                                },
-                       "django_id": 1,
-                       "timestamp": "2017-07-10 14:45:37.012962",
-                       "context_id": 1,
-                       "record_type": "snapshot",
-                       "django_model": "Patient",
-                       "registry_code": "foobar"}
+        bad_history = {
+            "id": 6,
+            "registry_code": "foobar",
+            "collection": "history",
+            "data": {
+                "record": {
+                    "django_id": 1,
+                    "timestamp": "2017-07-10T14:45:36.760123",
+                    "context_id": 1,
+                    "django_model": "Patient",
+                    "oldstyleform____section____cde": 23,
+                    "Diagnosis_timestamp": "2017-07-10T14:45:36.760123"
+                }
+            },
+            "django_id": 1,
+            "timestamp": "2017-07-10 14:45:37.012962",
+            "context_id": 1,
+            "record_type": "snapshot",
+            "django_model": "Patient",
+            "registry_code": "foobar"
+        }
 
         self.clear_modjgo_objects()
         self.make_modjgo("history", bad_history)
@@ -1534,13 +1890,16 @@ class RemindersTestCase(TestCase):
         enh.date_stamp = date_stamp
         enh.language = "en"
         enh.email_notification = self.email_notification
-        enh.template_data = json.dumps({"user": {"id": self.user.id,
-                                                 "model": "CustomUser",
-                                                 "app": "groups"},
-                                        "registry": {"id": self.registry.id,
-                                                     "app": "rdrf",
-                                                     "model": "Registry"}})
-
+        enh.template_data = json.dumps({
+            "user": {
+                "id": self.user.id,
+                "model": "CustomUser",
+                "app": "groups"},
+            "registry": {
+                "id": self.registry.id,
+                "app": "rdrf",
+                "model": "Registry"}
+        })
         enh.save()
         enh.date_stamp = date_stamp
         enh.save()
@@ -1564,7 +1923,8 @@ class RemindersTestCase(TestCase):
         self._setup_user("testuser", Time.LONG_AGO)
         result = self._run_command(registry_code="foobar", days=365)
         lines = result.split("\n")
-        assert "testuser" in lines, "Expected to see testuser in output: instead [%s]" % result
+        assert "testuser" in lines,\
+            "Expected to see testuser in output: instead [%s]" % result
 
         # patient user logged in inside threshhold
         self._setup_user("testuser", Time.RECENTLY)
@@ -1574,7 +1934,8 @@ class RemindersTestCase(TestCase):
         # patient on edge is detected
         self._setup_user("testuser", Time.ONE_YEAR_AGO)
         result = self._run_command(registry_code="foobar", days=365)
-        assert result == "testuser\n", "Expected testuser instead got [%s]" % result
+        assert result == "testuser\n",\
+            "Expected testuser instead got [%s]" % result
 
         # parents are detected
         parent_feature = True
@@ -1586,7 +1947,8 @@ class RemindersTestCase(TestCase):
         if parent_feature:
             self._setup_user("testuser", Time.LONG_AGO, group="parents")
             result = self._run_command(registry_code="foobar", days=365)
-            assert result == "testuser\n", "Expected testuser instead got [%s]" % result
+            assert result == "testuser\n",\
+                "Expected testuser instead got [%s]" % result
 
         # but not other types of users
         self._setup_user("testuser", Time.LONG_AGO, group="curators")
@@ -1603,10 +1965,11 @@ class RemindersTestCase(TestCase):
 
         lines = result.split("\n")
 
-        assert "dummy send reg_code=foobar description=reminder" in lines[0], "send-reminders failed?"
+        assert "dummy send reg_code=foobar description=reminder" in lines[0],\
+            "send-reminders failed?"
 
-        # create some dummy email notification history models to simulate previous
-        # reminders being sent
+        # create some dummy email notification history models to simulate
+        # previous reminders being sent
 
         self._setup_notification()
         self._create_dummy_history(Time.RECENTLY)
@@ -1618,7 +1981,8 @@ class RemindersTestCase(TestCase):
 
         lines = result.split("\n")
 
-        assert "not sent" in lines, "Expected reminder NOT to be sent if one already sent"
+        assert "not sent" in lines,\
+            "Expected reminder NOT to be sent if one already sent"
 
         # 2nd one allowed
         self._clear_notifications()
@@ -1633,7 +1997,8 @@ class RemindersTestCase(TestCase):
 
         lines = result.split("\n")
         print(lines)
-        assert "dummy send reg_code=foobar description=reminder" in lines[0], "send-reminders failed?"
+        assert "dummy send reg_code=foobar description=reminder" in lines[0],\
+            "send-reminders failed?"
 
         self._clear_notifications()
         self._setup_user("testuser", Time.LONG_AGO)
@@ -1648,7 +2013,8 @@ class RemindersTestCase(TestCase):
 
         lines = result.split("\n")
         print(lines)
-        assert "not sent" in lines, "Expected reminder NOT to be sent if two or more already sent"
+        assert "not sent" in lines,\
+            "Expected reminder NOT to be sent if two or more already sent"
 
 
 class ClinicalDataTestCase(RDRFTestCase):
@@ -1722,7 +2088,8 @@ class ClinicalDataTestCase(RDRFTestCase):
             Patient.objects.really_all().get(id=patient_id)
 
         with self.assertRaises(ClinicalData.DoesNotExist):
-            ClinicalData.objects.get(django_id=patient_id, django_model='Patient')
+            ClinicalData.objects.get(
+                django_id=patient_id, django_model='Patient')
 
     def test_hard_delete_patient_and_clinicaldata_sanity_check(self):
         patient_model1 = self.create_new_patient()
@@ -1741,7 +2108,8 @@ class ClinicalDataTestCase(RDRFTestCase):
             Patient.objects.really_all().get(id=patient_id1)
 
         with self.assertRaises(ClinicalData.DoesNotExist):
-            ClinicalData.objects.get(django_id=patient_id1, django_model='Patient')
+            ClinicalData.objects.get(
+                django_id=patient_id1, django_model='Patient')
 
         self.assertEqual(patient_model2.active, True)
         self.assertEqual(clinicaldata_model2.active, True)
@@ -1763,8 +2131,10 @@ class UpdateCalculatedFieldsTestCase(FormTestCase):
                                     return cde["value"]
         self.form_value = form_value
 
-        from rdrf.management.commands.update_calculated_fields import context_ids_for_patient_and_form
-        context_ids = context_ids_for_patient_and_form(self.patient, self.simple_form.name, self.registry)
+        from rdrf.management.commands.update_calculated_fields import\
+            context_ids_for_patient_and_form
+        context_ids = context_ids_for_patient_and_form(
+            self.patient, self.simple_form.name, self.registry)
         self.context_id = context_ids[0]
 
         ff = FormFiller(self.simple_form)
@@ -1787,8 +2157,10 @@ class UpdateCalculatedFieldsTestCase(FormTestCase):
 
     def test_save_new_calculation(self):
         # Check the CDE value is correctly setup.
-        collection = ClinicalData.objects.collection(self.registry.code, "cdes")
-        db_record = collection.find(self.patient, self.context_id).data().first()
+        collection = ClinicalData.objects.collection(
+            self.registry.code, "cdes")
+        db_record = collection.find(
+            self.patient, self.context_id).data().first()
         assert self.form_value(
             self.simple_form.name,
             self.sectionA.code,
@@ -1796,13 +2168,21 @@ class UpdateCalculatedFieldsTestCase(FormTestCase):
             db_record) == 20
 
         # Change the CDE value and save it.
-        changed_calculated_cdes = {"CDEAge": {"old_value": 20, "new_value": 21, "section_code": "sectionA"}}
-        from rdrf.management.commands.update_calculated_fields import save_new_calculation
-        save_new_calculation(changed_calculated_cdes, self.context_id,
-                             self.simple_form.name, self.patient, self.registry)
+        changed_calculated_cdes = {
+            "CDEAge": {
+                "old_value": 20,
+                "new_value": 21,
+                "section_code": "sectionA"}
+        }
+        from rdrf.management.commands.update_calculated_fields import\
+            save_new_calculation
+        save_new_calculation(
+            changed_calculated_cdes, self.context_id,
+            self.simple_form.name, self.patient, self.registry)
 
         # Check that the CDE value has been updated.
-        db_record = collection.find(self.patient, self.context_id).data().first()
+        db_record = collection.find(
+            self.patient, self.context_id).data().first()
 
         cdeage_value = self.form_value(
             self.simple_form.name,
@@ -1814,8 +2194,10 @@ class UpdateCalculatedFieldsTestCase(FormTestCase):
     def test_update_calculated_fields_command(self):
 
         # Check the CDE value is correctly setup.
-        collection = ClinicalData.objects.collection(self.registry.code, "cdes")
-        db_record = collection.find(self.patient, self.context_id).data().first()
+        collection = ClinicalData.objects.collection(
+            self.registry.code, "cdes")
+        db_record = collection.find(
+            self.patient, self.context_id).data().first()
         cdebmi_value = self.form_value(
             self.simple_form.name,
             self.sectionB.code,
@@ -1823,9 +2205,13 @@ class UpdateCalculatedFieldsTestCase(FormTestCase):
             db_record)
         self.assertEqual(cdebmi_value, "38")
 
-        call_command('update_calculated_fields', registry_code=self.registry.code, patient_id=[self.patient.id])
+        call_command(
+            'update_calculated_fields',
+            registry_code=self.registry.code,
+            patient_id=[self.patient.id])
 
-        db_record = collection.find(self.patient, self.context_id).data().first()
+        db_record = collection.find(
+            self.patient, self.context_id).data().first()
         cdebmi_value = self.form_value(
             self.simple_form.name,
             self.sectionB.code,

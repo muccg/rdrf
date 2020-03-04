@@ -21,7 +21,8 @@ Feature: FH feature practice
     When I am logged in as curator
     And I search for patient "SMITH John"
     And I wait 2 seconds
-    And I click "SMITH John" on patientlisting
+    Then I should see a patient link for "SMITH John"
+    Then I click "SMITH John" on patientlisting
     And I click "Genetic Data" in sidebar
     Then location is "Genetic Data"
     When I fill in "Genetic test date" with "02-01-2013"

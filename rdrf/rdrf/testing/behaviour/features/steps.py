@@ -64,8 +64,8 @@ def check_user_activated(step):
 
 
 @step(
-    ('I try to register as an "([^"]+)" user called "([^"]+)"'
-     'using the email address "([^"]+)" and the password "([^"]+)"'))
+    'I try to register as an "([^"]+)" user called "([^"]+)" using the email address "([^"]+)" and the password "([^"]+)"'
+)
 def try_to_register(step, registry, client_name, email_address, password):
     registry_code = ''
 
@@ -836,8 +836,9 @@ def patient_link_find(step, patient_name):
 @step('I scroll cde "(.*)" to the centre of my view')
 def scroll_to_centre(step, cde):
     cde = world.browser.find_element_by_xpath(
-        "//label[contains(., \"%s\")]" % cde)
-    scroll_by = cde.size["height"] - \
-        (1 / 2) * world.browser.get_window_size()["height"]
-    world.browser.execute_script("arguments[0].scrollIntoView(true);", cde)
-    world.browser.execute_script("scrollBy(0, %s)" % scroll_by)
+        "//label[contains(., \"%s\")]" % cde
+        )
+    y = cde.location["y"]
+    off = world.browser.get_window_size()["height"]
+    move = y - (1/2)*off
+    world.browser.execute_script("scrollTo(0, %s)" % move)
