@@ -356,6 +356,14 @@ def timed(func):
     return wrapper
 
 
+def get_cde_value2(form_name, section_code, cde_code, patient_record):
+    from rdrf.models.definition.models import RegistryForm, Section, CommonDataElement
+    form_model = RegistryForm.objects.get(name=form_name)
+    section_model = Section.objects.get(code=section_code)
+    cde_model = CommonDataElement.objects.get(code=cde_code)
+    return get_cde_value(form_model, section_model, cde_model, patient_record)
+
+
 def get_cde_value(form_model, section_model, cde_model, patient_record):
     # should refactor code everywhere to use this func
     if patient_record is None:

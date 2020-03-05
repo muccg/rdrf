@@ -17,6 +17,7 @@ from rdrf.models.definition.models import Registry, Section, ConsentQuestion
 from rdrf.models.definition.models import ClinicalData
 from rdrf.models.workflow_models import ClinicianSignupRequest
 from rdrf.helpers.utils import get_cde_value
+from rdrf.helpers.utils import get_cde_value2
 
 import registry.groups.models
 from registry.utils import get_working_groups, get_registries, stripspaces
@@ -492,7 +493,7 @@ class Patient(models.Model):
                 if flattened:
                     return data[key]
                 else:
-                    return get_cde_value(form_name, section_code, data_element_code, data)
+                    return get_cde_value2(form_name, section_code, data_element_code, data)
 
     def update_field_expressions(self, registry_model, field_expressions, context_model=None):
         from rdrf.db.dynamic_data import DynamicDataWrapper

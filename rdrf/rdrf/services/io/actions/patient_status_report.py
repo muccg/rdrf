@@ -10,6 +10,7 @@ from registry.patients.models import Patient
 from registry.groups.models import WorkingGroup
 import logging
 from django.http import HttpResponse
+import csv
 
 logger = logging.getLogger(__name__)
 
@@ -26,6 +27,7 @@ class ColumnType:
     DEMOGRAPHICS = "demographics"
     CDE = "cde"
     COMPLETION = "completion"
+    COMPLETION_PERCENTAGE = "%"
 
 
 class ReportGenerator:
@@ -40,6 +42,12 @@ class ReportGenerator:
         self.finish_date = None
         self.data = self._get_all_data()
         self.context_form_group = self._get_context_form_group()
+        self.report = None
+
+    def dump_csv(self, stream):
+        writer = csv.writer(stream)
+        writer.writerows(self.report)
+        return stream
 
     def _get_context(self, patient_model):
         # get the fixed context associated with the context
@@ -91,8 +99,7 @@ class ReportGenerator:
                 row.append(column_value)
             rows.append(row)
             logger.debug("***********************************")
-        logger.debug(rows)
-        return HttpResponse(str(rows))
+        self.report = rows
 
     def _get_header(self):
         def h(col):
@@ -110,6 +117,9 @@ class ReportGenerator:
         if column_type == ColumnType.COMPLETION:
             form_name = column["name"]
             return self._completed(patient_model, form_name, data)
+        if column_type == ColumnType.COMPLETION_PERCENTAGE:
+            form_name = column["name"]
+            return self._completed(patient_model, form_name, data, percentage=True)
         if column_type == ColumnType.CDE:
             cde_path = column["name"]
             try:
@@ -142,19 +152,21 @@ class ReportGenerator:
                                                  clinical_data=data,
                                                  flattened=False)
         logger.debug("raw_value = %s" % raw_value)
-        display_value = cde_model.get_display_value(raw_value)
+        if isinstance(raw_value, list):
+            display_value = "|".join([cde_model.get_display_value(x) for x in raw_value])
+        else:
+            display_value = cde_model.get_display_value(raw_value)
         logger.debug("display_value = %s" % display_value)
         return display_value
 
     def _find_cde(self, cde_code):
         for form_model in self.registry_model.forms:
             for section_model in form_model.section_models:
-                if not section_model.allow_multiple:
-                    for cde_model in section_model.cde_models:
-                        if cde_model.code == cde_code:
-                            return form_model, section_model, cde_model
+                for cde_model in section_model.cde_models:
+                    if cde_model.code == cde_code:
+                        return form_model, section_model, cde_model
 
-        raise ReportParserException("Report cde %s not found or not unique in registry" % cde_code)
+        raise ReportParserException("Report cde %s not found" % cde_code)
 
     def _get_demographics_column(self, patient_model, column_name):
         return getattr(patient_model, column_name)
@@ -163,15 +175,37 @@ class ReportGenerator:
         return patient_model.get_dynamic_data(self.registry_model,
                                               context_id=context_id)
 
-    def _completed(self, patient_model, form_name, data):
+    def _completed(self, patient_model, form_name, data, percentage=False):
         form_model = RegistryForm.objects.get(name=form_name,
                                               registry=self.registry_model)
+        if not percentage:
+            for section_model in form_model.section_models:
+                if not section_model.allow_multiple:
+                    for cde_model in section_model.cde_models:
+                        if not cde_completed(self.registry_model,
+                                             form_model,
+                                             section_model,
+                                             cde_model,
+                                             patient_model,
+                                             data):
+                            return False
+            return True
+        # percentage
+        num_cdes = 0.0
+        num_completed = 0.0
         for section_model in form_model.section_models:
             if not section_model.allow_multiple:
                 for cde_model in section_model.cde_models:
-                    if not cde_completed(self.registry_model, form_model, section_model, cde_model, patient_model, data):
-                        return False
-        return True
+                    num_cdes += 1.0
+                    if cde_completed(self.registry_model,
+                                     form_model,
+                                     section_model,
+                                     cde_model,
+                                     patient_model,
+                                     data):
+                        num_completed += 1.0
+        value = 100.0 * num_completed / num_cdes
+        return round(value, 0)
 
     def _get_patients(self):
         user_working_groups = self.user.working_groups.all()
@@ -187,10 +221,7 @@ class ReportGenerator:
 
 def execute(registry_model, report_name,  report_spec, user):
     parser = ReportGenerator(registry_model, report_name, report_spec, user)
-    report = parser.generate_report()
-    if report:
-        return report
-    else:
-        response = HttpResponse()
-
-    return response
+    parser.generate_report()
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = 'attachment; filename="Completion Report.csv"'
+    return parser.dump_csv(response)
