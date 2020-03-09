@@ -39,6 +39,11 @@ class Question extends React.Component<QuestionInterface, object> {
             mainArray = mainString;
         }
         switch(transformation) {
+            case 'italic':
+                for (const substring of mainArray) {
+                    result.push(' ', <i>{substring}</i>);
+                }
+                return result;
             case 'underline':
                 for (const substring of mainArray) {
                     if (words.includes(substring)) {
@@ -48,7 +53,6 @@ class Question extends React.Component<QuestionInterface, object> {
                     }
                 }
                 return result;
-                break;
             case 'bullet':
               let line = [];
               for (const substringword of mainArray) {
@@ -62,7 +66,6 @@ class Question extends React.Component<QuestionInterface, object> {
                   }
               }
               return result;
-              break;
         }
     }
 
@@ -241,7 +244,12 @@ class Question extends React.Component<QuestionInterface, object> {
                                                               ['best', 'worst'], 'underline');
             transformedInstruction = this.transformSubstring(transformedInstruction, [], 'bullet');
         } else {
-            transformedInstruction = this.props.questions[this.props.stage].instructions;
+            if (question.cde === 'EQ_UsualActivities') {
+                transformedInstruction = this.transformSubstring(this.props.questions[this.props.stage].instructions,
+                                                                  [], 'italic');
+            } else {
+                transformedInstruction = this.props.questions[this.props.stage].instructions;
+            }
         }
 
         return (
