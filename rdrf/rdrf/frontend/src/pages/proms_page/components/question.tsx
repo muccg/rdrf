@@ -77,7 +77,6 @@ class Question extends React.Component<QuestionInterface, object> {
                             firstWord = false;
                         }
                         line.push(substringword);
-                        console.log('-'+word+'-');
                         if (word !== ' ' && word !== ''){
                             // element after a word ending in a '.' (period) is ' ' (blank) in the array
                             // if there is a newline after '.' then the array will have '' for that
