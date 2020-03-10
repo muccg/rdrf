@@ -48,14 +48,49 @@
             state_id = obj.id.replace("country", "state");
             state_select = $('#' + state_id);
             state_select.find('option').remove();
+            state_select.append("<option value=' '>---------</option>");
             $.get( "{% url 'v1:state_lookup' 'XX' %}".replace('XX', obj.value), function( data ) {
                 if (data) {
-                    state_select.append("<option value='-1'>---------</option>");
                     $.each(data, function(i, item) {
                         state_select.append("<option value=" + item.code +">"+ item.name +"</option>");
                     })
                 }
             });
+        }
+
+        function get_state_choices() {
+            counter = -1;
+            found = true;
+            do {
+                counter = counter + 1;
+                country_id = '#id_patient_address-' + counter + '-country'
+                country_select = $(country_id);
+                if (country_select.length > 0) {
+                    state_id = country_id.replace("country", "state");
+                    state_select = $(state_id);
+                    state = state_select.val();
+                    state_select.find('option').remove();
+                    state_select.append("<option value=' '>---------</option>");
+                    $.ajax({
+                        url: "{% url 'v1:state_lookup' 'XX' %}".replace('XX', country_select.val()),
+                        success: function(data) {
+                            if (data) {
+                                $.each(data, function(i, item) {
+                                    if (state==item.code){
+                                        state_select.append("<option selected=selected value=" + item.code +">" + item.name + "</option>");
+                                    }
+                                    else {
+                                        state_select.append("<option value=" + item.code +">" + item.name + "</option>");
+                                    }
+                                });
+                            }
+                        },
+                        async: false
+                    });
+                } else {
+                    found = false;
+                }
+            } while (found)
         }
 
         function add_form(prefix) {
@@ -102,6 +137,8 @@
         }
 
         $(document).ready(function(){
+            get_state_choices();
+
             setupPatientRelativeForm();
 
             $("input[id*='date']").each(function () {

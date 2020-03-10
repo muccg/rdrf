@@ -315,11 +315,23 @@ EMAIL_SUBJECT_PREFIX = env.get("email_subject_prefix", "DEV {0}".format(SCRIPT_N
 # NB. This initialises the email notification form
 DEFAULT_FROM_EMAIL = env.get('default_from_email', 'No Reply <no-reply@mg.ccgapps.com.au>')
 SERVER_EMAIL = env.get('server_email', DEFAULT_FROM_EMAIL)
-EMAIL_BACKEND = 'anymail.backends.mailgun.EmailBackend'
+EMAIL_BACKEND = env.get('EMAIL_BACKEND', 'anymail.backends.mailgun.EmailBackend')
 
-ANYMAIL = {
-    'MAILGUN_API_KEY': env.get('DJANGO_MAILGUN_API_KEY', ''),
-}
+if EMAIL_BACKEND == 'smtp':
+    EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+    EMAIL_HOST = env.get('EMAIL_HOST', 'localhost')
+    EMAIL_PORT = env.get('EMAIL_PORT', '25')
+    EMAIL_HOST_USER = env.get('EMAIL_HOST_USER', '')
+    EMAIL_HOST_PASSWORD = env.get('EMAIL_HOST_PASSWORD', '')
+    EMAIL_USE_SSL = env.get('EMAIL_USE_SSL', False)
+    if EMAIL_USE_SSL:
+        EMAIL_SSL_KEYFILE = env.get('EMAIL_SSL_KEYFILE', None)
+        EMAIL_SSL_CERTFILE = env.get('EMAIL_SSL_CERTFILE', None)
+    EMAIL_USE_TLS = env.get('EMAIL_USE_TLS', False)
+else:
+    ANYMAIL = {
+        'MAILGUN_API_KEY': env.get('DJANGO_MAILGUN_API_KEY', ''),
+    }
 
 # default emailsn
 ADMINS = [
