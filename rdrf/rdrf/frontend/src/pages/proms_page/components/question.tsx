@@ -54,6 +54,7 @@ class Question extends React.Component<QuestionInterface, object> {
                 }
                 return result;
             case 'bullet':
+              const ul = []
               let line = [];
               let noBullet = false;
               let firstWord = true;
@@ -73,17 +74,21 @@ class Question extends React.Component<QuestionInterface, object> {
                         if (firstWord === true && word === '0'){
                             // if the first non-blank word is '0', no bullet
                             noBullet = true;
+                            firstWord = false;
                         }
                         line.push(substringword);
-                        if (word !== ' '){
+                        console.log('-'+word+'-');
+                        if (word !== ' ' && word !== ''){
                             // element after a word ending in a '.' (period) is ' ' (blank) in the array
+                            // if there is a newline after '.' then the array will have '' for that
                             // so if the current element is one such, it is not treated as first word
-                            // the first non-blank word is counted as first word
+                            // the first substring having characters is counted as first word
                             firstWord = false;
                         }
                   }
               }
-              return result;
+              ul.push(<ul>{result}</ul>);
+              return ul;
         }
     }
 
