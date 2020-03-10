@@ -563,10 +563,21 @@ class CDEPermittedValue(models.Model):
 
 
 class CommonDataElement(models.Model):
+    DATA_TYPES = (
+        ('string', 'String'),
+        ('integer', 'Integer'),
+        ('float', 'Decimal'),
+        ('alphanumeric', 'Alpha Numeric'),
+        ('date', 'Date'),
+        ('boolean', 'Boolean'),
+        ('range', 'Range (Set of allowed values)'),
+        ('calculated', 'Calculated (Derived data element)'),
+        ('file', 'File'),
+    )
     code = models.CharField(max_length=30, primary_key=True)
     name = models.CharField(max_length=250, blank=False, help_text="Label for field in form")
     desc = models.TextField(blank=True, help_text="origin of field")
-    datatype = models.CharField(max_length=50, help_text="type of field")
+    datatype = models.CharField(max_length=50, help_text="Type of field", choices=DATA_TYPES)
     instructions = models.TextField(
         blank=True, help_text="Used to indicate help text for field")
     pv_group = models.ForeignKey(

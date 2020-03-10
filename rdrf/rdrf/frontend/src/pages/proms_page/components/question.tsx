@@ -39,6 +39,11 @@ class Question extends React.Component<QuestionInterface, object> {
             mainArray = mainString;
         }
         switch(transformation) {
+            case 'italic':
+                for (const substring of mainArray) {
+                    result.push(' ', <i>{substring}</i>);
+                }
+                return result;
             case 'underline':
                 for (const substring of mainArray) {
                     if (words.includes(substring)) {
@@ -48,21 +53,37 @@ class Question extends React.Component<QuestionInterface, object> {
                     }
                 }
                 return result;
-                break;
             case 'bullet':
               let line = [];
+              let noBullet = false;
+              let firstWord = true;
               for (const substringword of mainArray) {
                   const word = substringword + "";
                   if (word.slice(-1) === '.') {
                       line.push(word);
-                      result.push(<li>{line}</li>);
+                      if (noBullet === true) {  // if the sentence starts with 0, no bullet
+                        result.push(<div>{line}</div>);
+                      }else {
+                        result.push(<li>{line}</li>);
+                      }
                       line = [];
+                      noBullet = false;
+                      firstWord = true;
                   } else {
-                      line.push(substringword);
+                        if (firstWord === true && word === '0'){
+                            // if the first non-blank word is '0', no bullet
+                            noBullet = true;
+                        }
+                        line.push(substringword);
+                        if (word !== ' '){
+                            // element after a word ending in a '.' (period) is ' ' (blank) in the array
+                            // so if the current element is one such, it is not treated as first word
+                            // the first non-blank word is counted as first word
+                            firstWord = false;
+                        }
                   }
               }
               return result;
-              break;
         }
     }
 
@@ -241,7 +262,12 @@ class Question extends React.Component<QuestionInterface, object> {
                                                               ['best', 'worst'], 'underline');
             transformedInstruction = this.transformSubstring(transformedInstruction, [], 'bullet');
         } else {
-            transformedInstruction = this.props.questions[this.props.stage].instructions;
+            if (question.cde === 'EQ_UsualActivities') {
+                transformedInstruction = this.transformSubstring(this.props.questions[this.props.stage].instructions,
+                                                                  [], 'italic');
+            } else {
+                transformedInstruction = this.props.questions[this.props.stage].instructions;
+            }
         }
 
         return (
