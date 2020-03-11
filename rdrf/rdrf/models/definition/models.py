@@ -22,6 +22,7 @@ from django.core.exceptions import PermissionDenied
 
 from rdrf.helpers.utils import check_calculation
 from rdrf.helpers.utils import format_date, parse_iso_datetime
+from rdrf.helpers.utils import LinkWrapper
 from rdrf.events.events import EventType
 
 from rdrf.forms.fields.jsonb import DataField
@@ -562,10 +563,21 @@ class CDEPermittedValue(models.Model):
 
 
 class CommonDataElement(models.Model):
+    DATA_TYPES = (
+        ('string', 'String'),
+        ('integer', 'Integer'),
+        ('float', 'Decimal'),
+        ('alphanumeric', 'Alpha Numeric'),
+        ('date', 'Date'),
+        ('boolean', 'Boolean'),
+        ('range', 'Range (Set of allowed values)'),
+        ('calculated', 'Calculated (Derived data element)'),
+        ('file', 'File'),
+    )
     code = models.CharField(max_length=30, primary_key=True)
     name = models.CharField(max_length=250, blank=False, help_text="Label for field in form")
     desc = models.TextField(blank=True, help_text="origin of field")
-    datatype = models.CharField(max_length=50, help_text="type of field")
+    datatype = models.CharField(max_length=50, help_text="Type of field", choices=DATA_TYPES)
     instructions = models.TextField(
         blank=True, help_text="Used to indicate help text for field")
     pv_group = models.ForeignKey(
@@ -643,12 +655,14 @@ class CommonDataElement(models.Model):
         return stored_value
 
     def get_display_value(self, stored_value):
+        logger.debug("stored value = %s" % stored_value)
         if stored_value is None:
             return ""
         elif stored_value == "NaN":
             # the DataTable was not escaping this value and interpreting it as NaN
             return ":NaN"
         elif self.pv_group:
+            logger.debug("is a range")
             # if a range, return the display value
             try:
                 values_dict = self.pv_group.as_dict()
@@ -671,6 +685,7 @@ class CommonDataElement(models.Model):
             # the DataTable was not escaping this value and interpreting it as NaN
             return ":NaN"
 
+        logger.debug("returning raw %s" % stored_value)
         return stored_value
 
     def clean(self):
@@ -1865,7 +1880,11 @@ class CustomAction(models.Model):
     Represents actions with a button in the GUI - can be run
     data associated with the action is parsed and the action executed
     """
-    ACTION_TYPES = (("PR", "Patient Report"),)
+    ACTION_TYPES = (("PR", "Patient Report"),
+                    ("SR", "Patient Status Report"))
+
+    SCOPES = (("U", "Universal"),
+              ("P", "Patient"))
 
     registry = models.ForeignKey(Registry, on_delete=models.CASCADE)
     groups_allowed = models.ManyToManyField(Group, blank=True)
@@ -1873,14 +1892,19 @@ class CustomAction(models.Model):
     name = models.CharField(max_length=80, blank=True, null=True)
     action_type = models.CharField(max_length=2, choices=ACTION_TYPES)
     data = models.TextField(null=True)
+    scope = models.CharField(max_length=1, choices=SCOPES)  # controls where action appears
 
-    def execute(self, user, patient_model):
+    def execute(self, user, patient_model=None):
         """
         This should return a HttpResponse of some sort
         """
-        logger.debug("executing action %s" % self.code)
-        if not self.check_security(user, patient_model):
-            raise PermissionDenied
+        if self.scope == "P":
+            if not self.check_security(user, patient_model):
+                raise PermissionDenied
+        elif self.scope == "U":
+            if not user.in_registry(self.registry):
+                raise PermissionDenied
+
         if self.action_type == "PR":
             from rdrf.services.io.actions import patient_report
             result = patient_report.execute(self.registry, self.name, self.data, user, patient_model)
@@ -1889,12 +1913,31 @@ class CustomAction(models.Model):
                                                                           user.username,
                                                                           patient_model.pk))
             return result
+        elif self.action_type == "SR":
+            from rdrf.services.io.actions import patient_status_report
+            return patient_status_report.execute(self.registry,
+                                                 self.name,
+                                                 self.data,
+                                                 user)
+
         else:
             raise NotImplementedError("Unknown action type: %s" % self.action_type)
 
     @property
     def text(self):
         return self.name
+
+    @property
+    def url(self):
+        if self.scope == "U":
+            return reverse("custom_action", args=(self.pk, 0))
+        else:
+            return ""
+
+    @property
+    def menu_link(self):
+        link = LinkWrapper(self.url, self.name)
+        return link
 
     def check_security(self, user, patient_model):
         from rdrf.security.security_checks import security_check_user_patient

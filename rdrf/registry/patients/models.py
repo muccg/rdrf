@@ -16,11 +16,12 @@ from rdrf.db.dynamic_data import DynamicDataWrapper
 from rdrf.models.definition.models import Registry, Section, ConsentQuestion
 from rdrf.models.definition.models import ClinicalData
 from rdrf.models.workflow_models import ClinicianSignupRequest
+from rdrf.helpers.utils import get_cde_value2
+
 import registry.groups.models
 from registry.utils import get_working_groups, get_registries, stripspaces
 from registry.groups.models import CustomUser
 from django.utils.translation import ugettext_lazy as _
-
 
 import logging
 logger = logging.getLogger(__name__)
@@ -459,11 +460,11 @@ class Patient(models.Model):
             data_element_code,
             multisection=False,
             context_id=None,
-            clinical_data=None):
+            clinical_data=None,
+            flattened=True):
 
         # if clinical_data is supplied don't reload
         # ( allows faster retrieval of multiple values
-        from rdrf.db.dynamic_data import DynamicDataWrapper
         from rdrf.helpers.utils import mongo_key
 
         if clinical_data is None:
@@ -486,10 +487,12 @@ class Patient(models.Model):
                         values.append(section[key])
                 return values
             else:
-                return data[key]
+                if flattened:
+                    return data[key]
+                else:
+                    return get_cde_value2(form_name, section_code, data_element_code, data)
 
     def update_field_expressions(self, registry_model, field_expressions, context_model=None):
-        from rdrf.db.dynamic_data import DynamicDataWrapper
         from rdrf.db.generalised_field_expressions import GeneralisedFieldExpressionParser
         if registry_model.has_feature("contexts") and context_model is None:
             raise Exception("No context model set")
@@ -600,7 +603,6 @@ class Patient(models.Model):
             user=None,
             skip_bad_key=False):
 
-        from rdrf.db.dynamic_data import DynamicDataWrapper
         from rdrf.helpers.utils import mongo_key
         from rdrf.forms.progress.form_progress import FormProgress
         from rdrf.models.definition.models import RegistryForm, Registry
@@ -1079,13 +1081,13 @@ class Patient(models.Model):
             raise Exception("no default context")
 
     def get_dynamic_data(self, registry_model, collection="cdes", context_id=None, flattened=False):
-        from rdrf.db.dynamic_data import DynamicDataWrapper
         if context_id is None:
             default_context = self.default_context(registry_model)
             if default_context is not None:
                 context_id = default_context.pk
             else:
-                raise Exception("need context id to get dynamic data for patient %s" % getattr(self, settings.LOG_PATIENT_FIELDNAME))
+                raise Exception("need context id to get dynamic data for patient %s" %
+                                getattr(self, settings.LOG_PATIENT_FIELDNAME))
 
         wrapper = DynamicDataWrapper(self, rdrf_context_id=context_id)
 

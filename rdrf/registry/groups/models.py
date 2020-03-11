@@ -229,6 +229,11 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
         else:
             links = qlinks.menu_links([group.name for group in self.groups.all()])
 
+        for registry_model in self.get_registries():
+            for custom_action in self.custom_actions(registry_model):
+                if custom_action.scope == "U":
+                    links.append(custom_action.menu_link)
+
         return links
 
     @property

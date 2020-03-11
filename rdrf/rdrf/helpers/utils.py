@@ -356,6 +356,14 @@ def timed(func):
     return wrapper
 
 
+def get_cde_value2(form_name, section_code, cde_code, patient_record):
+    from rdrf.models.definition.models import RegistryForm, Section, CommonDataElement
+    form_model = RegistryForm.objects.get(name=form_name)
+    section_model = Section.objects.get(code=section_code)
+    cde_model = CommonDataElement.objects.get(code=cde_code)
+    return get_cde_value(form_model, section_model, cde_model, patient_record)
+
+
 def get_cde_value(form_model, section_model, cde_model, patient_record):
     # should refactor code everywhere to use this func
     if patient_record is None:
@@ -912,3 +920,30 @@ def check_suspicious_sql(sql_query, user):
             f"User {user} tries to write/validate a suspicious SQL request containing DROP, DELETE or UPDATE: {sql_query_lowercase}")
         securityerrors.append("The SQL query must not contain any of these keywords: DROP, DELETE, UPDATE")
     return securityerrors
+
+
+def cde_completed(registry_model, form_model, section_model, cde_model, patient_model, data):
+    # is there a "real" value stored? in data ( assumes we've loaded first from a given context
+    if not data:
+        return False
+    if "forms" not in data:
+        return False
+
+    for form_dict in data["forms"]:
+        if form_dict["name"] == form_model.name:
+            for section_dict in form_dict["sections"]:
+                if section_dict["code"] == section_model.code:
+                    if not section_dict["allow_multiple"]:
+                        for cde_dict in section_dict["cdes"]:
+                            if cde_dict["code"] == cde_model.code:
+                                value = cde_dict["value"]
+                                if value is None:
+                                    return False
+                                else:
+                                    return True
+
+
+class LinkWrapper:
+    def __init__(self, url, text):
+        self.url = url
+        self.text = text

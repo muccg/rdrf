@@ -521,7 +521,7 @@ class QuickLinks(object):
             return {}
         for group in groups:
             links = {**links, **self._group_links(group.lower())}
-        return OrderedDict(sorted(links.items())).values()
+        return list(OrderedDict(sorted(links.items())).values())
 
     def settings_links(self):
         # get links for the 'settings' menu
