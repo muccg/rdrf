@@ -209,7 +209,7 @@ class ReportGenerator:
             raise SecurityException()
 
 
-def execute(registry_model, report_name,  report_spec, user):
+def execute(registry_model, report_name, report_spec, user):
     parser = ReportGenerator(registry_model, report_name, report_spec, user)
     parser.generate_report()
     response = HttpResponse(content_type='text/csv')
