@@ -922,12 +922,44 @@ def check_suspicious_sql(sql_query, user):
     return securityerrors
 
 
+def is_filled(cde_model, value):
+    if value is None:
+        return False
+    if cde_model.datatype == "range":
+        if value:
+            return True
+        else:
+            return False
+    elif cde_model.datatype == "integer":
+        return isinstance(value, int)
+    elif cde_model.datatype == "float":
+        return isinstance(value, float)
+    elif cde_model.datatype == "string":
+        if value != "":
+            return True
+    else:
+        if value:
+            return True
+
+
 def cde_completed(registry_model, form_model, section_model, cde_model, patient_model, data):
     # is there a "real" value stored? in data ( assumes we've loaded first from a given context
     if not data:
         return False
     if "forms" not in data:
         return False
+
+    def msg(filled, value):
+        moniker = "%s %s %s %s" % (form_model.name,
+                                   section_model.code,
+                                   cde_model.code,
+                                   cde_model.datatype)
+        if filled:
+            logger.debug("%s is filled: [%s]" % (moniker,
+                                                 value))
+        else:
+            logger.debug("%s is NOT filled: [%s]" % (moniker,
+                                                     value))
 
     for form_dict in data["forms"]:
         if form_dict["name"] == form_model.name:
@@ -937,10 +969,9 @@ def cde_completed(registry_model, form_model, section_model, cde_model, patient_
                         for cde_dict in section_dict["cdes"]:
                             if cde_dict["code"] == cde_model.code:
                                 value = cde_dict["value"]
-                                if value is None:
-                                    return False
-                                else:
-                                    return True
+                                f = is_filled(cde_model, value)
+                                msg(f, value)
+                                return f
 
 
 class LinkWrapper:

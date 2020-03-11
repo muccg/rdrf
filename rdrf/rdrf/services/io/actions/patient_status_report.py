@@ -30,6 +30,10 @@ class ColumnType:
     COMPLETION_PERCENTAGE = "%"
 
 
+demographics_transform_map = {"sex": {"1": "Male", "2": "Female", "3": "Indeterminate"},
+                              }
+
+
 class ReportGenerator:
     def __init__(self, registry_model, report_name, report_spec, user):
         import json
@@ -153,7 +157,7 @@ class ReportGenerator:
                                                  flattened=False)
         logger.debug("raw_value = %s" % raw_value)
         if isinstance(raw_value, list):
-            display_value = "|".join([cde_model.get_display_value(x) for x in raw_value])
+            display_value = "|".join([str(cde_model.get_display_value(x)) for x in raw_value])
         else:
             display_value = cde_model.get_display_value(raw_value)
         logger.debug("display_value = %s" % display_value)
@@ -169,7 +173,14 @@ class ReportGenerator:
         raise ReportParserException("Report cde %s not found" % cde_code)
 
     def _get_demographics_column(self, patient_model, column_name):
-        return getattr(patient_model, column_name)
+        transform = demographics_transform_map.get(column_name, None)
+        raw_value = getattr(patient_model, column_name)
+        if transform is None:
+            return raw_value
+        else:
+            if isinstance(transform, dict):
+                return transform[raw_value]
+            return transform(raw_value)
 
     def _load_patient_data(self, patient_model, context_id):
         return patient_model.get_dynamic_data(self.registry_model,
@@ -204,7 +215,7 @@ class ReportGenerator:
                                      patient_model,
                                      data):
                         num_completed += 1.0
-        value = 100.0 * num_completed / num_cdes
+        value = 100.0 * (num_completed / num_cdes)
         return round(value, 0)
 
     def _get_patients(self):
