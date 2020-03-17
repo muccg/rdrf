@@ -2,12 +2,15 @@ from rdrf.models.definition.models import CustomAction
 from registry.patients.models import Patient
 from django.shortcuts import get_object_or_404
 from django.views.generic.base import View
+from django.utils.decorators import method_decorator
+from django.contrib.auth.decorators import login_required
 import logging
 
 logger = logging.getLogger(__name__)
 
 
 class CustomActionView(View):
+    @method_decorator(login_required)
     def get(self, request, action_id, patient_id):
         logger.debug("in custom action view ...")
         user = request.user

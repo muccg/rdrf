@@ -1570,6 +1570,7 @@ class QuestionnaireConfigurationView(View):
 
 class RPCHandler(View):
 
+    @method_decorator(login_required)
     def post(self, request):
         action_dict = json.loads(request.body.decode("utf-8"))
         action_executor = ActionExecutor(request, action_dict)
@@ -1587,7 +1588,7 @@ class Colours(object):
 
 
 class ConstructorFormView(View):
-
+    @method_decorator(login_required)
     def get(self, request, form_name):
         return render(request, 'rdrf_cdes/%s.html' % form_name)
 

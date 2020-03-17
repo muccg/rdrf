@@ -35,6 +35,8 @@ from rdrf.views.custom_actions import CustomActionWrapper
 
 from rdrf.security.security_checks import security_check_user_patient
 from django.core.exceptions import PermissionDenied
+from django.utils.decorators import method_decorator
+from django.contrib.auth.decorators import login_required
 
 
 import logging
@@ -489,6 +491,7 @@ class AddPatientView(PatientFormMixin, CreateView):
         self._set_user(request)
         return super(AddPatientView, self).get(request, registry_code)
 
+    @method_decorator(login_required)
     def post(self, request, registry_code):
         self.request = request
         self._set_user(request)
