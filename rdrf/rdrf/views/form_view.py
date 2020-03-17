@@ -1588,7 +1588,7 @@ class Colours(object):
 
 
 class ConstructorFormView(View):
-
+    @method_decorator(login_required)
     def get(self, request, form_name):
         return render(request, 'rdrf_cdes/%s.html' % form_name)
 
