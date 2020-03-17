@@ -19,6 +19,9 @@ from django.http import JsonResponse
 from django.conf import settings
 import json
 import qrcode
+from django.utils.decorators import method_decorator
+from django.contrib.auth.decorators import login_required
+from rdrf.security.security_checks import security_check_user_patient
 
 
 import logging
@@ -155,10 +158,11 @@ class PromsClinicalView(View):
     """
     What the clinical system sees
     """
-
+    @method_decorator(login_required)
     def get(self, request, registry_code, patient_id):
         registry_model = Registry.objects.get(code=registry_code)
         patient_model = Patient.objects.get(id=patient_id)
+        security_check_user_patient(request.user, patient_model)
 
         context = self._build_context(request.user,
                                       registry_model,
@@ -208,6 +212,7 @@ class PromsClinicalView(View):
         return SurveyRequest.objects.filter(registry=registry_model,
                                             patient=patient_model).order_by("-created").all()
 
+    @method_decorator(login_required)
     def post(self, request, registry_code, patient_id):
         survey_name = request.POST.get("survey_name")
         patient_id = request.POST.get("patient")
@@ -216,6 +221,7 @@ class PromsClinicalView(View):
         user = request.POST.get("user")
         registry_model = Registry.objects.get(id=registry_id)
         patient_model = Patient.objects.get(id=patient_id)
+        security_check_user_patient(request.user, patient_model)
         communication_type = request.POST.get("communication_type")
 
         survey_request = SurveyRequest(survey_name=survey_name,
@@ -234,6 +240,7 @@ class PromsClinicalView(View):
 
 
 class PromsQRCodeImageView(View):
+    @method_decorator(login_required)
     def get(self, request, patient_token):
         from django.http import HttpResponse
         try:

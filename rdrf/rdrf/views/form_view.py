@@ -1570,6 +1570,7 @@ class QuestionnaireConfigurationView(View):
 
 class RPCHandler(View):
 
+    @method_decorator(login_required)
     def post(self, request):
         action_dict = json.loads(request.body.decode("utf-8"))
         action_executor = ActionExecutor(request, action_dict)
