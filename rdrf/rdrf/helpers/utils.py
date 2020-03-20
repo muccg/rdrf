@@ -1,5 +1,6 @@
 from django.conf import settings
 from django.contrib.auth.models import Permission
+from django.contrib.auth.decorators import user_passes_test, REDIRECT_FIELD_NAME
 from django.contrib.contenttypes.models import ContentType
 from django.core.files.uploadedfile import InMemoryUploadedFile, TemporaryUploadedFile
 from django.urls import reverse
@@ -276,7 +277,7 @@ def get_form_links(user, patient_id, registry_model, context_model=None, current
                 selected=(
                     form.name == current_form_name),
                 context_model=context_model) for form in container_model.forms
-            if not form.is_questionnaire and user.can_view(form) and form.applicable_to(patient_model)]
+            if not form.is_questionnaire and not user.is_anonymous and user.can_view(form) and form.applicable_to(patient_model)]
     else:
         return []
 
@@ -947,3 +948,18 @@ class LinkWrapper:
     def __init__(self, url, text):
         self.url = url
         self.text = text
+
+
+def anonymous_not_allowed(function=None, redirect_field_name=REDIRECT_FIELD_NAME, login_url=None):
+    """
+    Decorator for views, that checks if the user is anonymous,
+    redirecting to the log-in page if necessary.
+    """
+    actual_decorator = user_passes_test(
+        lambda u: not u.is_anonymous,
+        login_url=login_url,
+        redirect_field_name=redirect_field_name
+    )
+    if function:
+        return actual_decorator(function)
+    return actual_decorator
