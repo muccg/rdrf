@@ -413,9 +413,6 @@ class FormView(View):
         context["registry_has_locking"] = self.registry.has_feature("form_locking")
         context["metadata_locking"] = metadata_locking
         context["can_lock"] = self.user and self.user.has_perm("rdrf.form_%s_can_lock" % self.registry_form.name)
-        logger.debug("rdrf.form_%s_can_lock" % self.registry_form.name)
-        logger.debug(f"CANLOCK: {context['can_lock']}")
-        logger.debug(f"USER: {self.user}")
         patient_info_component = RDRFPatientInfoComponent(self.registry, patient_model)
 
         if not self.CREATE_MODE:

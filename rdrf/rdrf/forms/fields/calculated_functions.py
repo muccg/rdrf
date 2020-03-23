@@ -794,3 +794,17 @@ def number_of_days(datestring1, datestring2):
         return None
     delta = date2 - date1
     return delta.days
+
+
+def INITREVINTERVLC(patient, context):
+    logger.debug("running INITREVINTERVLC")
+    logger.debug("patient = %s" % patient)
+    logger.debug("context = %s" % context)
+    context = fill_missing_input(context, 'INITREVINTERVLC_inputs')
+    first_seenlc = context["FIRSTSEENLC"]
+    refdatelc = context["REFDATELC"]
+    return str(number_of_days(first_seenlc, refdatelc))
+
+
+def INITREVINTERVLC_inputs():
+    return ['FIRSTSEENLC', 'REFDATELC']
