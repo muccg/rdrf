@@ -677,6 +677,7 @@ def poemScore_inputs():
 
 ################ BEGINNING OF ANGCurrentPatientAge ################################
 
+
 def ANGCurrentPatientAge(patient, context):
 
     if not patient["date_of_birth"]:
@@ -691,12 +692,14 @@ def ANGCurrentPatientAge(patient, context):
 
     return str(currentPatientAge)
 
+
 def ANGCurrentPatientAge_inputs():
     return []
 
 ################ END OF ANGCurrentPatientAge ################################
 
 ################ BEGINNING OF ANGBMImetric ################################
+
 
 def ANGBMImetric(patient, context):
 
@@ -756,10 +759,12 @@ def ANGBMIimperial(patient, context):
     trimmed_ANGimperialBMI = ANGimperialBMI.rstrip('0').rstrip('.') if '.' in ANGimperialBMI else ANGimperialBMI
     return trimmed_ANGimperialBMI
 
+
 def ANGBMIimperial_inputs():
     return ["ANGObesityHeightft", "ANGHeightIn", "ANGObesityWeightlb"]
 
 ################ END OF ANGBMIimperial ################################
+
 
 def validate_date(date):
     try:
@@ -767,8 +772,25 @@ def validate_date(date):
     except ValueError:
         raise ParseError(detail="Bad date format")
 
+
 def validate_float(tocast):
     try:
         return float(tocast)
     except ValueError:
         raise ParseError(detail="Not a float")
+
+
+def number_of_days(datestring1, datestring2):
+    """
+    return number of days between date1 < date2
+    """
+    try:
+        date1 = validate_date(datestring1)
+    except ParseError:
+        return None
+    try:
+        date2 = validate_date(datestring2)
+    except ParseError:
+        return None
+    delta = date2 - date1
+    return delta.days
