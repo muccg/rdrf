@@ -67,6 +67,8 @@
 
             patient_date_of_birth = options.patient_date_of_birth;
             patient_sex = options.patient_sex;
+	    patient_id = options.patient_id;
+	    registry_code = options.registry_code;
             wsurl =options.wsurl;
 
             calculated_cde_inputs[options.observer] = options.cde_inputs;

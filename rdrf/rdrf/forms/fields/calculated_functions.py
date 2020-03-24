@@ -24,12 +24,66 @@ logger = logging.getLogger(__name__)
 # get_form_value do not return them.
 
 
-def fill_missing_input(context, input_func_name):
+class AcrossFormsError(Exception):
+    pass
+
+
+class AcrossFormsInfo:
+    def __init__(self,
+                 registry_model,
+                 patient_model):
+        self.registry_model = registry_model
+        self.patient_model = patient_model
+
+    def _get_location(self, cde_code):
+        for form_model in self.registry_model.forms:
+            for section_model in form_model.section_models:
+                for cde_model in section_model.cde_models:
+                    if cde_model.code == cde_code:
+                        return form_model, section_model
+        return None, None
+
+    def _get_main_context(self):
+        context_model = self.patient_model.default_context(self.registry_model)
+        return context_model
+
+    def get_cde_value(self, cde_code):
+        context_model = self._get_main_context()
+        form_model, section_model = self._get_location(cde_code)
+        if form_model is None or section_model is None:
+            raise AcrossFormsError("Cannot locate %s" % cde_code)
+        return self.patient_model.get_form_value(self.registry_model.code,
+                                                 form_model.name,
+                                                 section_model.code,
+                                                 cde_code,
+                                                 multisection=False,
+                                                 context_id=context_model.id)
+
+
+def fill_missing_input(context, input_func_name, across_forms_info=None):
+    logger.debug("in fill_missing_input for %s" % input_func_name)
+    logger.debug("missing input context = %s" % context)
     mod = __import__('rdrf.forms.fields.calculated_functions', fromlist=['object'])
     func = getattr(mod, input_func_name)
-    for cde_code in func():
+    if across_forms_info is not None:
+        logger.debug("input function %s is across forms" % input_func_name)
+        for cde_code in func():
+            logger.debug("input cde code = %s" % cde_code)
         if cde_code not in context.keys():
-            context[cde_code] = ""
+            cde_value = across_forms_info.get_cde_value(cde_code)
+            logger.debug("across forms value of %s is: %s" % (cde_code,
+                                                              cde_value))
+            context[cde_code] = cde_value
+        else:
+            logger.debug("%s is in context and has value %s" % (cde_code,
+                                                                context[cde_code]))
+    else:
+        for cde_code in func():
+            logger.debug("input cde code = %s" % cde_code)
+            if cde_code not in context.keys():
+                context[cde_code] = ""
+
+    logger.debug("filled in context = %s" % context)
     return context
 
 
@@ -797,10 +851,19 @@ def number_of_days(datestring1, datestring2):
 
 
 def INITREVINTERVLC(patient, context):
+    from registry.patients.models import Patient
+    from rdrf.models.definition.models import Registry
     logger.debug("running INITREVINTERVLC")
     logger.debug("patient = %s" % patient)
     logger.debug("context = %s" % context)
-    context = fill_missing_input(context, 'INITREVINTERVLC_inputs')
+    patient_id = patient["patient_id"]
+    registry_code = patient["registry_code"]
+    patient_model = Patient.objects.get(id=patient_id)
+    registry_model = Registry.objects.get(code=registry_code)
+    across_forms_info = AcrossFormsInfo(registry_model,
+                                        patient_model)
+
+    context = fill_missing_input(context, 'INITREVINTERVLC_inputs', across_forms_info)
     first_seenlc = context["FIRSTSEENLC"]
     refdatelc = context["REFDATELC"]
     return str(number_of_days(first_seenlc, refdatelc))
