@@ -855,11 +855,12 @@ def number_of_days(datestring1, datestring2):
 
 
 def INITREVINTERVLC(patient, context):
+    """
+    This calculation involves cdes on other forms, hence
+    the AcrossFormsInfo helper object
+    """
     from registry.patients.models import Patient
     from rdrf.models.definition.models import Registry
-    logger.debug("running INITREVINTERVLC")
-    logger.debug("patient = %s" % patient)
-    logger.debug("context = %s" % context)
     patient_id = patient["patient_id"]
     registry_code = patient["registry_code"]
     patient_model = Patient.objects.get(id=patient_id)
