@@ -45,11 +45,15 @@ class AcrossFormsInfo:
 
     def _get_main_context(self):
         context_model = self.patient_model.default_context(self.registry_model)
+        logger.debug("main context id = %s" % context_model.id)
         return context_model
 
     def get_cde_value(self, cde_code):
+        logger.debug("getting cde code %s" % cde_code)
         context_model = self._get_main_context()
         form_model, section_model = self._get_location(cde_code)
+        logger.debug("location = %s %s" % (form_model,
+                                           section_model))
         if form_model is None or section_model is None:
             raise AcrossFormsError("Cannot locate %s" % cde_code)
         return self.patient_model.get_form_value(self.registry_model.code,
@@ -66,17 +70,17 @@ def fill_missing_input(context, input_func_name, across_forms_info=None):
     mod = __import__('rdrf.forms.fields.calculated_functions', fromlist=['object'])
     func = getattr(mod, input_func_name)
     if across_forms_info is not None:
+        # the input cdes are on another form
         logger.debug("input function %s is across forms" % input_func_name)
         for cde_code in func():
-            logger.debug("input cde code = %s" % cde_code)
-        if cde_code not in context.keys():
-            cde_value = across_forms_info.get_cde_value(cde_code)
-            logger.debug("across forms value of %s is: %s" % (cde_code,
-                                                              cde_value))
-            context[cde_code] = cde_value
-        else:
-            logger.debug("%s is in context and has value %s" % (cde_code,
-                                                                context[cde_code]))
+            if cde_code not in context.keys():
+                cde_value = across_forms_info.get_cde_value(cde_code)
+                logger.debug("across forms value of %s is: %s" % (cde_code,
+                                                                  cde_value))
+                context[cde_code] = cde_value
+            else:
+                logger.debug("%s is in context and has value %s" % (cde_code,
+                                                                    context[cde_code]))
     else:
         for cde_code in func():
             logger.debug("input cde code = %s" % cde_code)
@@ -866,7 +870,7 @@ def INITREVINTERVLC(patient, context):
     context = fill_missing_input(context, 'INITREVINTERVLC_inputs', across_forms_info)
     first_seenlc = context["FIRSTSEENLC"]
     refdatelc = context["REFDATELC"]
-    return str(number_of_days(first_seenlc, refdatelc))
+    return str(number_of_days(refdatelc, first_seenlc))
 
 
 def INITREVINTERVLC_inputs():

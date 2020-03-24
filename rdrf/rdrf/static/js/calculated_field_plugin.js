@@ -33,6 +33,7 @@ function _arrayWithoutHoles(arr) {
   var patient_id = "";
   var patient_date_of_birth = "";
   var patient_sex = "";
+  var registry_code = "";
   var wsurl = "";
  
 
@@ -60,6 +61,7 @@ function _arrayWithoutHoles(arr) {
         patient_date_of_birth: patient_date_of_birth,
         patient_sex: patient_sex,
 	patient_id: patient_id,
+	registry_code: registry_code,
         form_values: calculated_cde_inputs_json_values
       };
       fetch(wsurl, {

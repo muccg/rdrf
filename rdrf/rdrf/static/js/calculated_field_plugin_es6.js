@@ -4,6 +4,8 @@
         let calculated_cde_inputs = {}
         let patient_date_of_birth = '';
         let patient_sex = '';
+        let patient_id = '',
+        let registry_code = '';
         let wsurl = '';
 
         const update_function = function (calculated_cdes) {
