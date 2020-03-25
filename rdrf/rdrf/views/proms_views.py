@@ -22,6 +22,7 @@ import qrcode
 from django.utils.decorators import method_decorator
 from django.contrib.auth.decorators import login_required
 from rdrf.security.security_checks import security_check_user_patient
+from rdrf.helpers.utils import anonymous_not_allowed
 
 
 import logging
@@ -158,6 +159,7 @@ class PromsClinicalView(View):
     """
     What the clinical system sees
     """
+    @method_decorator(anonymous_not_allowed)
     @method_decorator(login_required)
     def get(self, request, registry_code, patient_id):
         registry_model = Registry.objects.get(code=registry_code)

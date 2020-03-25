@@ -834,6 +834,15 @@ class JavascriptCheckTestCase(TestCase):
         """)
         self.assertTrue(err)
 
+    def test_number_of_days_function(self):
+        from rdrf.forms.fields.calculated_functions import number_of_days
+        r1 = number_of_days("2020-03-23", "2020-03-25")
+        r2 = number_of_days("", "2020-03-25")
+        r3 = number_of_days("hello", "2020-03-25")
+        self.assertEqual(r1, 2)
+        self.assertEqual(r2, None)
+        self.assertEqual(r3, None)
+
     def test_date(self):
         err = check_calculation("context.result = new Date();")
         self.assertEqual(err, "")

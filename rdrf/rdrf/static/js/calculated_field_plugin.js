@@ -30,9 +30,12 @@ function _arrayWithoutHoles(arr) {
 (function($) {
   var required_cde_inputs = {};
   var calculated_cde_inputs = {};
+  var patient_id = "";
   var patient_date_of_birth = "";
   var patient_sex = "";
+  var registry_code = "";
   var wsurl = "";
+ 
 
   var update_function = function update_function(calculated_cdes) {
     calculated_cdes.forEach(function(cde_code) {
@@ -57,6 +60,8 @@ function _arrayWithoutHoles(arr) {
         cde_code: cde_code,
         patient_date_of_birth: patient_date_of_birth,
         patient_sex: patient_sex,
+	patient_id: patient_id,
+	registry_code: registry_code,
         form_values: calculated_cde_inputs_json_values
       };
       fetch(wsurl, {
@@ -90,6 +95,8 @@ function _arrayWithoutHoles(arr) {
 
   $.fn.add_calculation = function(options) {
     patient_date_of_birth = options.patient_date_of_birth;
+    patient_id = options.patient_id;
+    registry_code = options.registry_code;
     patient_sex = options.patient_sex;
     wsurl = options.wsurl;
     calculated_cde_inputs[options.observer] = options.cde_inputs;

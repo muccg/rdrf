@@ -24,6 +24,7 @@ class CalculatedFieldScriptCreator(object):
         self.registry_form = registry_form
         self.section = section
         self.cde = cde
+        self.registry = registry
         self.observer = self.cde.code
         self.script = None
         self.injected_model_id = injected_model_id
@@ -32,6 +33,7 @@ class CalculatedFieldScriptCreator(object):
         prefix = self.registry_form.name + settings.FORM_SECTION_DELIMITER + \
             self.section.code + settings.FORM_SECTION_DELIMITER
         observer_code = self.cde.code
+        logger.debug("generating script for %s" % observer_code)
 
         mod = __import__('rdrf.forms.fields.calculated_functions', fromlist=['object'])
         func = getattr(mod, f"{self.cde.code}_inputs")
@@ -42,6 +44,7 @@ class CalculatedFieldScriptCreator(object):
             raise Exception(f"Trying to call an unknown calculated cde inputs function {self.cde.code}_inputs()")
 
         patient_model = Patient.objects.get(id=self.injected_model_id)
+        registry_model = self.registry
         patient_date_of_birth = patient_model.date_of_birth.__format__("%Y-%m-%d")
         wsurl = reverse("v1:calculatedcde-list")
         javascript = """
@@ -51,6 +54,8 @@ class CalculatedFieldScriptCreator(object):
 
                  $(inputid).add_calculation({
                     cde_inputs: %s,
+                    patient_id: %s,
+                    registry_code: '%s',
                     patient_sex: %s,
                     patient_date_of_birth: '%s',
                     observer: "%s",
@@ -58,6 +63,6 @@ class CalculatedFieldScriptCreator(object):
                     });
                 });
 
-            </script>""" % (prefix, observer_code, cde_inputs, patient_model.sex, patient_date_of_birth, observer_code, wsurl)
+            </script>""" % (prefix, observer_code, cde_inputs, patient_model.id, registry_model.code, patient_model.sex, patient_date_of_birth, observer_code, wsurl)
 
         return javascript
