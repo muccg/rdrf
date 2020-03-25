@@ -45,15 +45,11 @@ class AcrossFormsInfo:
 
     def _get_main_context(self):
         context_model = self.patient_model.default_context(self.registry_model)
-        logger.debug("main context id = %s" % context_model.id)
         return context_model
 
     def get_cde_value(self, cde_code):
-        logger.debug("getting cde code %s" % cde_code)
         context_model = self._get_main_context()
         form_model, section_model = self._get_location(cde_code)
-        logger.debug("location = %s %s" % (form_model,
-                                           section_model))
         if form_model is None or section_model is None:
             raise AcrossFormsError("Cannot locate %s" % cde_code)
         return self.patient_model.get_form_value(self.registry_model.code,
@@ -65,29 +61,19 @@ class AcrossFormsInfo:
 
 
 def fill_missing_input(context, input_func_name, across_forms_info=None):
-    logger.debug("in fill_missing_input for %s" % input_func_name)
-    logger.debug("missing input context = %s" % context)
     mod = __import__('rdrf.forms.fields.calculated_functions', fromlist=['object'])
     func = getattr(mod, input_func_name)
     if across_forms_info is not None:
         # the input cdes are on another form
-        logger.debug("input function %s is across forms" % input_func_name)
         for cde_code in func():
             if cde_code not in context.keys():
                 cde_value = across_forms_info.get_cde_value(cde_code)
-                logger.debug("across forms value of %s is: %s" % (cde_code,
-                                                                  cde_value))
                 context[cde_code] = cde_value
-            else:
-                logger.debug("%s is in context and has value %s" % (cde_code,
-                                                                    context[cde_code]))
     else:
         for cde_code in func():
-            logger.debug("input cde code = %s" % cde_code)
             if cde_code not in context.keys():
                 context[cde_code] = ""
 
-    logger.debug("filled in context = %s" % context)
     return context
 
 
@@ -854,6 +840,24 @@ def number_of_days(datestring1, datestring2):
     return delta.days
 
 
+def date_diff_helper(patient, context, input_func_name, later_cde_code, earlier_cde_code):
+    """
+    return number of days between two date cdes in registry
+    """
+    from registry.patients.models import Patient
+    from rdrf.models.definition.models import Registry
+    patient_id = patient["patient_id"]
+    registry_code = patient["registry_code"]
+    patient_model = Patient.objects.get(id=patient_id)
+    registry_model = Registry.objects.get(code=registry_code)
+    across_forms_info = AcrossFormsInfo(registry_model,
+                                        patient_model)
+    context = fill_missing_input(context, input_func_name, across_forms_info)
+    later_date_string = context[later_cde_code]
+    earlier_date_string = context[earlier_cde_code]
+    return str(number_of_days(earlier_date_string, later_date_string))
+
+
 def INITREVINTERVLC(patient, context):
     """
     This calculation involves cdes on other forms, hence
@@ -876,3 +880,48 @@ def INITREVINTERVLC(patient, context):
 
 def INITREVINTERVLC_inputs():
     return ['FIRSTSEENLC', 'REFDATELC']
+
+
+def DXINTERVALLC(patient, context):
+    """
+    DXINTERVALLC = INCIDENDATELC – FIRSTSEENLC
+    """
+    return date_diff_helper(patient,
+                            context,
+                            'DXINTERVALLC_inputs',
+                            'INCIDENDATELC',
+                            'FIRSTSEENLC')
+
+
+def DXINTERVALLC_inputs():
+    return ['INCIDENDATELC', 'FIRSTSEENLC']
+
+
+def MXINTERVAL2LC(patient, context):
+    """
+    MXINTERVAL2LC = MXDATELC – INCIDENDATELC
+    """
+    return date_diff_helper(patient,
+                            context,
+                            'MXINTERVAL2LC_inputs',
+                            'MXDATELC',
+                            'INCIDENDATELC')
+
+
+def MXINTERVAL2LC_inputs():
+    return ['INCIDENDATELC', 'MXDATELC']
+
+
+def MXINTERVAL1LC(patient, context):
+    """
+    MXINTERVAL1LC = MXDATELC – REFDATELC
+    """
+    return date_diff_helper(patient,
+                            context,
+                            'MXINTERVAL1LC_inputs',
+                            'MXDATELC',
+                            'REFDATELC')
+
+
+def MXINTERVAL1LC_inputs():
+    return ['REFDATELC', 'MXDATELC']
