@@ -27,6 +27,7 @@ from rdrf.models.definition.models import RDRFContext
 
 from rdrf.forms.consent_forms import CustomConsentFormGenerator
 from rdrf.helpers.utils import consent_status_for_patient
+from rdrf.helpers.utils import anonymous_not_allowed
 
 from rdrf.db.contexts_api import RDRFContextManager
 from rdrf.db.contexts_api import RDRFContextError
@@ -189,6 +190,7 @@ class SectionInfo(object):
 
 
 class FormSwitchLockingView(View):
+    @method_decorator(anonymous_not_allowed)
     @login_required_method
     def get(self, request, registry_code, form_id, patient_id, context_id=None):
 
@@ -317,6 +319,7 @@ class FormView(View):
 
         self.CREATE_MODE = True
 
+    @method_decorator(anonymous_not_allowed)
     @login_required_method
     def get(self, request, registry_code, form_id, patient_id, context_id=None):
         # RDR-1398 enable a Create View which context_id of 'add' is provided
@@ -463,6 +466,7 @@ class FormView(View):
         # the ids of each cde on the form
         return ",".join(form_class().fields.keys())
 
+    @method_decorator(anonymous_not_allowed)
     @login_required_method
     def post(self, request, registry_code, form_id, patient_id, context_id=None):
         if context_id is None:
@@ -1021,6 +1025,7 @@ class FormPrintView(FormView):
 class FormFieldHistoryView(TemplateView):
     template_name = "rdrf_cdes/form_field_history.html"
 
+    @method_decorator(anonymous_not_allowed)
     @login_required_method
     def get(self, request, **kwargs):
         if request.user.is_working_group_staff:
@@ -1438,7 +1443,7 @@ class QuestionnaireView(FormView):
 
 
 class QuestionnaireHandlingView(View):
-
+    @method_decorator(anonymous_not_allowed)
     @method_decorator(login_required)
     def get(self, request, registry_code, questionnaire_response_id):
         from rdrf.workflows.questionnaires.questionnaires import Questionnaire
@@ -1457,7 +1462,7 @@ class QuestionnaireHandlingView(View):
 
 
 class FileUploadView(View):
-
+    @method_decorator(anonymous_not_allowed)
     @login_required_method
     def get(self, request, registry_code, file_id):
         data, filename = filestorage.get_file(file_id)
@@ -1498,6 +1503,7 @@ class QuestionnaireConfigurationView(View):
     """
     TEMPLATE = "rdrf_cdes/questionnaire_config.html"
 
+    @method_decorator(anonymous_not_allowed)
     @login_required_method
     def get(self, request, form_pk):
         registry_form = RegistryForm.objects.get(pk=form_pk)
@@ -1566,7 +1572,7 @@ class QuestionnaireConfigurationView(View):
 
 
 class RPCHandler(View):
-
+    @method_decorator(anonymous_not_allowed)
     @method_decorator(login_required)
     def post(self, request):
         action_dict = json.loads(request.body.decode("utf-8"))
@@ -1585,6 +1591,7 @@ class Colours(object):
 
 
 class ConstructorFormView(View):
+    @method_decorator(anonymous_not_allowed)
     @method_decorator(login_required)
     def get(self, request, form_name):
         return render(request, 'rdrf_cdes/%s.html' % form_name)
