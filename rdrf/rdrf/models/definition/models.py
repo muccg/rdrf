@@ -108,6 +108,7 @@ class Section(models.Model):
         model_info = (self._meta.app_label, self._meta.model_name)
         return reverse('admin:%s_%s_change' % model_info, args=(self.pk,))
 
+
 class RegistryManager(models.Manager):
 
     def get_by_natural_key(self, code):
