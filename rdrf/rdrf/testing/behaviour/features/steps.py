@@ -811,14 +811,13 @@ def check_multisection_value(step, multisection, cde, item, expected_value):
     assert actual_value == expected_value, error_msg
 
 
+def find(xp):
+    element = world.browser.find_element_by_xpath(xp)
+    return element
+
+
 @step('I add patient name "(.*)" sex "(.*)" birthdate "(.*)"')
 def add_new_patient(step, name, sex, birthdate):
-
-    import time
-
-    def find(xp):
-        element = world.browser.find_element_by_xpath(xp)
-        return(element)
 
     def scroll_to_centre(xp):
         y = find(xp).location["y"]
@@ -836,7 +835,6 @@ def add_new_patient(step, name, sex, birthdate):
     find("//input[@name='family_name']").send_keys(surname)
     find("//input[@name='given_names']").send_keys(firstname)
     find("//input[@name='date_of_birth']").send_keys(birthdate, Keys.ESCAPE)
-    time.sleep(0.15)
     scroll_to_centre("//select[@name='sex']")
     find("//select[@name='sex']").click()
     find("//select[@name='sex']/option[text()='%s']" % sex).click()
@@ -847,11 +845,6 @@ def add_new_patient(step, name, sex, birthdate):
 
 @step('I return to patientlisting')
 def return_to_patientlisting(step):
-
-    def find(xp):
-        element = world.browser.find_element_by_xpath(xp)
-        return(element)
-
     world.browser.get(
         find("//a[text()='Patient List']").get_attribute("href")
     )
