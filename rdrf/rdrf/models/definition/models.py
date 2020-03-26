@@ -104,6 +104,9 @@ class Section(models.Model):
         if errors:
             raise ValidationError(errors)
 
+    def get_admin_url(self):
+        model_info = (self._meta.app_label, self._meta.model_name)
+        return reverse('admin:%s_%s_change' % model_info, args=(self.pk,))
 
 class RegistryManager(models.Manager):
 
@@ -751,6 +754,11 @@ class CommonDataElement(models.Model):
         if self.datatype == "float":
             return float(value)
         return value
+
+    def get_usage(self):
+        sections = Section.objects.filter(elements__contains=self.code)
+        section_link = '<a href="%s" target="_blank">%s</a> '
+        return "".join([section_link % (section.get_admin_url(), section.code) for section in sections])
 
 
 def validate_abnormality_condition(abnormality_condition, datatype):

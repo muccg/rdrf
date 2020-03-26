@@ -1,0 +1,5 @@
+{% extends "admin/change_form.html" %}
+
+{% block usage %}
+    <p class="lead">This CDE is used in: {{ original.get_usage|safe }}</p>
+{% endblock %}
