@@ -809,3 +809,42 @@ def check_multisection_value(step, multisection, cde, item, expected_value):
         multisection, cde, item, expected_value, actual_value)
 
     assert actual_value == expected_value, error_msg
+
+
+def find(xp):
+    element = world.browser.find_element_by_xpath(xp)
+    return element
+
+
+@step('I add patient name "(.*)" sex "(.*)" birthdate "(.*)"')
+def add_new_patient(step, name, sex, birthdate):
+
+    def scroll_to_centre(xp):
+        y = find(xp).location["y"]
+        off = world.browser.get_window_size()["height"]
+        move = y - (1 / 2) * off
+        world.browser.execute_script("scrollTo(0, %s)" % move)
+
+    surname, firstname = name.split()
+    world.browser.get(
+        world.site_url + "patientslisting"
+    )
+    find("//button[@id='add_patient']").click()
+    find("//option[contains(., 'ICHOM Colorectal Cancer')]").click()
+    find("//option[contains(., 'ICHOMCRC SJOG')]").click()
+    find("//input[@name='family_name']").send_keys(surname)
+    find("//input[@name='given_names']").send_keys(firstname)
+    find("//input[@name='date_of_birth']").send_keys(birthdate, Keys.ESCAPE)
+    scroll_to_centre("//select[@name='sex']")
+    find("//select[@name='sex']").click()
+    find("//select[@name='sex']/option[text()='%s']" % sex).click()
+    find("//button[@id='submit-btn']").click()
+    assert "Patient added successfully" in world.browser.page_source,\
+        "Patient add success message not present"
+
+
+@step('I return to patientlisting')
+def return_to_patientlisting(step):
+    world.browser.get(
+        find("//a[text()='Patient List']").get_attribute("href")
+    )
