@@ -757,9 +757,15 @@ class CommonDataElement(models.Model):
         return value
 
     def get_usage(self):
-        sections = Section.objects.filter(elements__contains=self.code)
+        sections = Section.objects.all().values('pk', 'code', 'elements')
+        model_info = (Section._meta.app_label, Section._meta.model_name)
         section_link = '<a href="%s" target="_blank">%s</a> '
-        return "".join([section_link % (section.get_admin_url(), section.code) for section in sections])
+        section_links = ""
+        for section in sections:
+            if self.code in [element.strip() for element in section['elements'].split(',')]:
+                section_links += section_link % (reverse('admin:%s_%s_change' % model_info, args=(section['pk'],)),
+                                                 section['code'])
+        return section_links
 
 
 def validate_abnormality_condition(abnormality_condition, datatype):
