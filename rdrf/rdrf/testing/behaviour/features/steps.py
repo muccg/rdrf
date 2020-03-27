@@ -894,4 +894,3 @@ def check_proms_lists(step):
         "Available PROMS types not BaselinePROMS and FollowUpPROMS"
     assert comms_type_list == ["qrcode", "email"],\
         "Available communications types not qrcode and email"
-
