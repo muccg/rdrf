@@ -16,7 +16,6 @@ from rdrf.db.dynamic_data import DynamicDataWrapper
 from rdrf.models.definition.models import Registry, Section, ConsentQuestion
 from rdrf.models.definition.models import ClinicalData
 from rdrf.models.workflow_models import ClinicianSignupRequest
-from rdrf.helpers.utils import get_cde_value
 from rdrf.helpers.utils import get_cde_value2
 
 import registry.groups.models
@@ -466,7 +465,6 @@ class Patient(models.Model):
 
         # if clinical_data is supplied don't reload
         # ( allows faster retrieval of multiple values
-        from rdrf.db.dynamic_data import DynamicDataWrapper
         from rdrf.helpers.utils import mongo_key
 
         if clinical_data is None:
@@ -476,7 +474,6 @@ class Patient(models.Model):
             data = clinical_data
 
         key = mongo_key(form_name, section_code, data_element_code)
-        logger.debug("key = %s" % key)
 
         if data is None:
             # no clinical data
@@ -496,7 +493,6 @@ class Patient(models.Model):
                     return get_cde_value2(form_name, section_code, data_element_code, data)
 
     def update_field_expressions(self, registry_model, field_expressions, context_model=None):
-        from rdrf.db.dynamic_data import DynamicDataWrapper
         from rdrf.db.generalised_field_expressions import GeneralisedFieldExpressionParser
         if registry_model.has_feature("contexts") and context_model is None:
             raise Exception("No context model set")
@@ -607,7 +603,6 @@ class Patient(models.Model):
             user=None,
             skip_bad_key=False):
 
-        from rdrf.db.dynamic_data import DynamicDataWrapper
         from rdrf.helpers.utils import mongo_key
         from rdrf.forms.progress.form_progress import FormProgress
         from rdrf.models.definition.models import RegistryForm, Registry
@@ -1086,7 +1081,6 @@ class Patient(models.Model):
             raise Exception("no default context")
 
     def get_dynamic_data(self, registry_model, collection="cdes", context_id=None, flattened=False):
-        from rdrf.db.dynamic_data import DynamicDataWrapper
         if context_id is None:
             default_context = self.default_context(registry_model)
             if default_context is not None:

@@ -7,6 +7,8 @@ from django.urls import reverse
 from django.apps import apps
 from django.contrib import messages
 from django.utils import timezone
+from django.utils.decorators import method_decorator
+from django.contrib.auth.decorators import login_required
 
 from rdrf.services.io.notifications.email_notification import RdrfEmail
 from rdrf.events.events import EventType
@@ -22,6 +24,7 @@ class ResendEmail(View):
 
     # TODO most of this code probably belongs on an EmailNotificationHistoryManager method
     # To be done as part of EmailNotificationHistory redesign #447
+    @method_decorator(login_required)
     def get(self, request, notification_history_id):
         self.notification_history_id = notification_history_id
         history = EmailNotificationHistory.objects.get(pk=notification_history_id)

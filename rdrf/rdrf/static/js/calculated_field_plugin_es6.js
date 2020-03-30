@@ -4,6 +4,8 @@
         let calculated_cde_inputs = {}
         let patient_date_of_birth = '';
         let patient_sex = '';
+        let patient_id = '',
+        let registry_code = '';
         let wsurl = '';
 
         const update_function = function (calculated_cdes) {
@@ -67,6 +69,8 @@
 
             patient_date_of_birth = options.patient_date_of_birth;
             patient_sex = options.patient_sex;
+	    patient_id = options.patient_id;
+	    registry_code = options.registry_code;
             wsurl =options.wsurl;
 
             calculated_cde_inputs[options.observer] = options.cde_inputs;

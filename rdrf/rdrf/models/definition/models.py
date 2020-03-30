@@ -655,14 +655,12 @@ class CommonDataElement(models.Model):
         return stored_value
 
     def get_display_value(self, stored_value):
-        logger.debug("stored value = %s" % stored_value)
         if stored_value is None:
             return ""
         elif stored_value == "NaN":
             # the DataTable was not escaping this value and interpreting it as NaN
             return ":NaN"
         elif self.pv_group:
-            logger.debug("is a range")
             # if a range, return the display value
             try:
                 values_dict = self.pv_group.as_dict()
@@ -685,7 +683,6 @@ class CommonDataElement(models.Model):
             # the DataTable was not escaping this value and interpreting it as NaN
             return ":NaN"
 
-        logger.debug("returning raw %s" % stored_value)
         return stored_value
 
     def clean(self):
@@ -1774,8 +1771,6 @@ class ClinicalData(models.Model):
             else:
                 # Some metadata existed for other forms, but not for this form_name.
                 metadata["forms"] = {form_name: {'locking': True}}
-
-        logger.debug(f"Switching to {form_name} locking to: {metadata['forms'][form_name]['locking']}")
 
         self.metadata = json.dumps(metadata)
         self.save()

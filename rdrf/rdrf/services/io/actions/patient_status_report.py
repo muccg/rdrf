@@ -1,15 +1,12 @@
-from rdrf.models.definition.models import Registry
+from django.http import HttpResponse
 from rdrf.models.definition.models import RegistryForm
 from rdrf.models.definition.models import Section
 from rdrf.models.definition.models import CommonDataElement
-from rdrf.models.definition.models import ClinicalData
 from rdrf.models.definition.models import ContextFormGroup
 from rdrf.models.definition.models import RDRFContext
 from rdrf.helpers.utils import cde_completed
 from registry.patients.models import Patient
-from registry.groups.models import WorkingGroup
 import logging
-from django.http import HttpResponse
 import csv
 
 logger = logging.getLogger(__name__)
@@ -60,16 +57,12 @@ class ReportGenerator:
         context_models = RDRFContext.objects.filter(registry=self.registry_model,
                                                     object_id=patient_model.id,
                                                     context_form_group=self.context_form_group)
-        l = len(context_models)
-        logger.debug("num contexts found = %s" % l)
-        if l == 1:
+        num_contexts = len(context_models)
+        if num_contexts == 1:
             logger.debug("found context - the context id is %s" % context_models[0].id)
             return context_models[0]
 
-        logger.debug("context not found ( will use default )")
-
     def _get_context_form_group(self):
-        # return None to indicate no group
         if "context_form_group" in self.report_spec:
             form_group_name = self.report_spec["context_form_group"]
             cfg = ContextFormGroup.objects.get(name=form_group_name,
@@ -77,8 +70,6 @@ class ReportGenerator:
                                                context_type="F")
             logger.debug("found context form group")
             return cfg
-
-        logger.debug("no context form group")
 
     def _get_all_data(self):
         return []
@@ -106,12 +97,11 @@ class ReportGenerator:
         self.report = rows
 
     def _get_header(self):
-        def h(col):
+        def header(col):
             if "label" in col:
                 return col["label"]
-            else:
-                return col["name"]
-        return [h(col) for col in self.report_spec["columns"]]
+            return col["name"]
+        return [header(col) for col in self.report_spec["columns"]]
 
     def _get_column_value(self, patient_model, data, column):
         column_type = column["type"]
@@ -230,7 +220,7 @@ class ReportGenerator:
             raise SecurityException()
 
 
-def execute(registry_model, report_name,  report_spec, user):
+def execute(registry_model, report_name, report_spec, user):
     parser = ReportGenerator(registry_model, report_name, report_spec, user)
     parser.generate_report()
     response = HttpResponse(content_type='text/csv')
