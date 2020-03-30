@@ -104,9 +104,29 @@ class Section(models.Model):
         if errors:
             raise ValidationError(errors)
 
+    def cdes_presence(self):
+        # returns a dict showing if elements are present or not
+        codes = self.get_elements()
+        return {code: CommonDataElement.objects.filter(code=code).exists() for code in codes}
+
+    def existing_cde_models(self):
+        codes = self.get_elements()
+        exisiting_cdes = CommonDataElement.objects.filter(code__in=codes)
+        # returns a dict of cdes, with False value if a code is not existing
+        cdes = dict(self.cdes_presence(), **{cde.code: cde for cde in exisiting_cdes})
+        return cdes
+
     def get_admin_url(self):
-        model_info = (self._meta.app_label, self._meta.model_name)
-        return reverse('admin:%s_%s_change' % model_info, args=(self.pk,))
+        return reverse('admin:{0}_{1}_change'.format(self._meta.app_label, self._meta.model_name),
+                       args=(self.pk,))
+
+    def get_admin_link(self):
+        return '<a href="{0}" target="_blank">{1}</a>'.format(self.get_admin_url(), self.code)
+
+    def get_cde_links(self):
+        existing = self.existing_cde_models()
+        return  ", ".join([existing[code].get_admin_link() if existing[code]
+                           else "<span class='alert-danger'>{0}</span>".format(code) for code in existing])
 
 
 class RegistryManager(models.Manager):
@@ -757,15 +777,15 @@ class CommonDataElement(models.Model):
         return value
 
     def get_usage(self):
-        sections = Section.objects.all().values('pk', 'code', 'elements')
-        model_info = (Section._meta.app_label, Section._meta.model_name)
-        section_link = '<a href="%s" target="_blank">%s</a> '
-        section_links = ""
-        for section in sections:
-            if self.code in [element.strip() for element in section['elements'].split(',')]:
-                section_links += section_link % (reverse('admin:%s_%s_change' % model_info, args=(section['pk'],)),
-                                                 section['code'])
-        return section_links
+        sections = Section.objects.filter(elements__icontains=self.code)
+        return ", ".join([link for link in [section.get_admin_link() if self.code in section.get_elements() else ""
+                                         for section in sections]])
+
+    def get_admin_url(self):
+        return reverse('admin:{0}_{1}_change'.format(self._meta.app_label, self._meta.model_name), args=(self.pk,))
+
+    def get_admin_link(self):
+        return '<a href="{0}" target="_blank">{1}</a>'.format(self.get_admin_url(), self.code)
 
 
 def validate_abnormality_condition(abnormality_condition, datatype):
@@ -1051,6 +1071,29 @@ class RegistryForm(models.Model):
             return False
 
         return is_applicable
+
+    def sections_presence(self):
+        # returns a dict showing if sections are present or not
+        codes = self.get_sections()
+        return {code: Section.objects.filter(code=code).exists() for code in codes}
+
+    def existing_section_models(self):
+        codes = self.get_sections()
+        exisiting_sections = Section.objects.filter(code__in=codes)
+        # returns a dict of sections, with False value if a code is not existing
+        cdes = dict(self.sections_presence(), **{cde.code: cde for cde in exisiting_sections})
+        return cdes
+
+    def get_admin_url(self):
+        return reverse('admin:{0}_{1}_change'.format(self._meta.app_label, self._meta.model_name), args=(self.pk,))
+
+    def get_admin_link(self):
+        return '<a href="{0}" target="_blank">{1}</a>'.format(self.get_admin_url(), self.code)
+
+    def get_section_links(self):
+        existing = self.existing_section_models()
+        return  ", ".join([existing[code].get_admin_link() if existing[code]
+                           else "<span class='alert-danger'>{0}</span>".format(code) for code in existing])
 
 
 class Wizard(models.Model):
