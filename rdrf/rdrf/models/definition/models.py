@@ -126,7 +126,7 @@ class Section(models.Model):
     def get_cde_links(self):
         existing = self.existing_cde_models()
         return ", ".join([existing[code].get_admin_link() if existing[code]
-                           else "<span class='alert-danger'>{0}</span>".format(code) for code in existing])
+                          else "<span class='alert-danger'>{0}</span>".format(code) for code in existing])
 
 
 class RegistryManager(models.Manager):
@@ -1093,7 +1093,7 @@ class RegistryForm(models.Model):
     def get_section_links(self):
         existing = self.existing_section_models()
         return ", ".join([existing[code].get_admin_link() if existing[code]
-                           else "<span class='alert-danger'>{0}</span>".format(code) for code in existing])
+                          else "<span class='alert-danger'>{0}</span>".format(code) for code in existing])
 
 
 class Wizard(models.Model):
