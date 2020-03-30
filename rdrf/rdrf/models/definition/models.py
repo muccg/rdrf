@@ -125,7 +125,7 @@ class Section(models.Model):
 
     def get_cde_links(self):
         existing = self.existing_cde_models()
-        return  ", ".join([existing[code].get_admin_link() if existing[code]
+        return ", ".join([existing[code].get_admin_link() if existing[code]
                            else "<span class='alert-danger'>{0}</span>".format(code) for code in existing])
 
 
@@ -778,8 +778,8 @@ class CommonDataElement(models.Model):
 
     def get_usage(self):
         sections = Section.objects.filter(elements__icontains=self.code)
-        return ", ".join([link for link in [section.get_admin_link() if self.code in section.get_elements() else ""
-                                         for section in sections]])
+        return ", ".join([link for link in [section.get_admin_link() if self.code in section.get_elements()
+                                            else "" for section in sections]])
 
     def get_admin_url(self):
         return reverse('admin:{0}_{1}_change'.format(self._meta.app_label, self._meta.model_name), args=(self.pk,))
@@ -1092,7 +1092,7 @@ class RegistryForm(models.Model):
 
     def get_section_links(self):
         existing = self.existing_section_models()
-        return  ", ".join([existing[code].get_admin_link() if existing[code]
+        return ", ".join([existing[code].get_admin_link() if existing[code]
                            else "<span class='alert-danger'>{0}</span>".format(code) for code in existing])
 
 
