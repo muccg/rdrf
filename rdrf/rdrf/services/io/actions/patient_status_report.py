@@ -6,6 +6,7 @@ from rdrf.models.definition.models import ContextFormGroup
 from rdrf.models.definition.models import RDRFContext
 from rdrf.helpers.utils import cde_completed
 from registry.patients.models import Patient
+from registry.patients.models import ConsentValue
 import logging
 import csv
 
@@ -25,10 +26,23 @@ class ColumnType:
     CDE = "cde"
     COMPLETION = "completion"
     COMPLETION_PERCENTAGE = "%"
+    CONSENT = "consent"
+    CONSENT_DATE = "consent_date"
+    FOLLOWUP_DATE = "followup_date"
 
 
 demographics_transform_map = {"sex": {"1": "Male", "2": "Female", "3": "Indeterminate"},
                               }
+
+
+def get_timestamp(clinical_data):
+    from rdrf.helpers.utils import parse_iso_datetime
+    if not clinical_data:
+        return None
+    if not clinical_data.data:
+        return None
+
+    return parse_iso_datetime(clinical_data.data.get("timestamp", None))
 
 
 class ReportGenerator:
@@ -120,8 +134,83 @@ class ReportGenerator:
                 return self._get_cde(patient_model, cde_path, data)
             except KeyError:
                 return "[Not Entered]"
+        if column_type == ColumnType.CONSENT:
+            consent_section_code, consent_code = column["name"].split("/")
+            return self._get_consent(patient_model,
+                                     consent_section_code,
+                                     consent_code)
+        if column_type == ColumnType.CONSENT_DATE:
+            consent_section_code, consent_code = column["name"].split("/")
+            return self._get_consent(patient_model,
+                                     consent_section_code,
+                                     consent_code,
+                                     get_date=True)
+        if column_type == ColumnType.FOLLOWUP_DATE:
+            context_form_group_name = column["context_form_group"]
+            form_name = column["name"]
+            return self._get_followup_date(patient_model,
+                                           context_form_group_name,
+                                           form_name)
         else:
             raise ReportParserException("Unknown column type: %s" % column_type)
+
+    def _get_followup_date(self,
+                           patient_model,
+                           context_form_group_name,
+                           form_name):
+        from rdrf.models.definition.models import ContextFormGroup
+        from datetime import datetime, timedelta
+        ages_ago = datetime.now() - timedelta(days=36500)
+        cfg = ContextFormGroup.objects.get(registry=self.registry_model,
+                                           name=context_form_group_name)
+        # find the last/latest context containing the form
+        context_models = [c for c in patient_model.context_models
+                          if c.registry.pk == self.registry_model.pk
+                          and c.context_form_group
+                          and c.context_form_group.pk == cfg.pk]
+        if not context_models:
+            return ""
+        latest_date = None
+        for context_model in context_models:
+            # get the associated clinical data and check the timestamp
+            try:
+                clinical_data = ClinicalData.objects.get(context_id=context_model,
+                                                         django_model="Patient",
+                                                         django_id=patient_model.pk)
+                timestamp = get_timestamp(clinical_data)
+                if latest_date is None or timestamp > latest_date:
+                    latest_date = timestamp
+        if latest_date is None:
+            return ""
+        else:
+            return latest_date
+
+    def _get_consent(self,
+                     patient_model,
+                     consent_section_code,
+                     consent_code,
+                     get_date=False):
+        for consent_section in self.registry_model.consent_sections.all():
+            if consent_section.code == consent_section_code:
+                for consent_question in consent_section.questions.all():
+                    if consent_question.code == consent_code:
+                        try:
+                            consent_value = ConsentValue.objects.get(patient=patient_model,
+                                                                     consent_question=consent_question)
+                            if get_date:
+                                first_save = consent_value.first_save
+                                last_update = consent_value.last_update
+                                if not last_update:
+                                    return first_save
+                                return last_update
+                            return "True" if consent_value else "False"
+                        except ConsentValue.DoesNotExist:
+                            if get_date:
+                                return ""
+                            return "False"
+        if get_date:
+            return ""
+        return "False"
 
     def _get_cde(self, patient_model, cde_path, data):
         if "/" in cde_path:
