@@ -518,7 +518,7 @@ class QuickLinks(object):
         # get links for the 'menu' menu
         links = {}
         if settings.SYSTEM_ROLE == SystemRoles.CIC_PROMS:
-            return {}
+            return []
         for group in groups:
             links = {**links, **self._group_links(group.lower())}
         return list(OrderedDict(sorted(links.items())).values())

@@ -1,0 +1,5 @@
+{% extends "admin/change_form.html" %}
+
+{% block usage %}
+    The CDEs used in this section: {{ original.get_cde_links|safe }}
+{% endblock %}

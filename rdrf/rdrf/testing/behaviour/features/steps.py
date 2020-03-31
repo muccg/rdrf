@@ -809,3 +809,88 @@ def check_multisection_value(step, multisection, cde, item, expected_value):
         multisection, cde, item, expected_value, actual_value)
 
     assert actual_value == expected_value, error_msg
+
+
+def find(xp):
+    element = world.browser.find_element_by_xpath(xp)
+    return element
+
+
+def scroll_to_centre(xp):
+    y = find(xp).location["y"]
+    off = world.browser.get_window_size()["height"]
+    move = y - (1 / 2) * off
+    world.browser.execute_script("scrollTo(0, %s)" % move)
+
+
+@step('I add patient name "(.*)" sex "(.*)" birthdate "(.*)"')
+def add_new_patient(step, name, sex, birthdate):
+    surname, firstname = name.split()
+    world.browser.get(
+        world.site_url + "patientslisting"
+    )
+    find("//button[@id='add_patient']").click()
+    find("//option[contains(., 'ICHOM Colorectal Cancer')]").click()
+    find("//option[contains(., 'ICHOMCRC SJOG')]").click()
+    find("//input[@name='family_name']").send_keys(surname)
+    find("//input[@name='given_names']").send_keys(firstname)
+    find("//input[@name='date_of_birth']").send_keys(birthdate, Keys.ESCAPE)
+    scroll_to_centre("//select[@name='sex']")
+    find("//select[@name='sex']").click()
+    find("//select[@name='sex']/option[text()='%s']" % sex).click()
+    find("//button[@id='submit-btn']").click()
+    assert "Patient added successfully" in world.browser.page_source,\
+        "Patient add success message not present"
+
+
+@step('I return to patientlisting')
+def return_to_patientlisting(step):
+    world.browser.get(
+        find("//a[text()='Patient List']").get_attribute("href")
+    )
+
+
+def find_multiple(xp):
+    """
+    Helper function to find multiple items with the same xpath.
+    Initially created so that a list of elements could be iterated over,
+    and a particular attribute extracted for each item.
+    """
+    element_list = world.browser.find_elements_by_xpath(xp)
+    return element_list
+
+
+@step('I check the available survey options')
+def check_proms_lists(step):
+    """
+    Check that the lists of options for surveys
+    and communication methods are correct.
+    """
+    # First check if on the PROMS page;
+    assert world.browser.current_url.endswith("/clinicalproms"),\
+        "Not on PROMS request page!"
+    # Create empty objects;
+    request_type_list = []
+    comms_type_list = []
+    # Press the add button and check if fades in;
+    find("//a[contains(@class, 'btn btn-info')]").click()
+    time.sleep(0.5)
+    fade1 = find("//div[contains(@class, 'modal fade')]").get_attribute("style")
+    assert not fade1.startswith("display: none"),\
+        "Seems fade-in has not appeared"
+    # Populate lists;
+    for element in find_multiple("//select[@name='survey_name']/option"):
+        request_type_list.append(element.get_attribute("value"))
+    for element in find_multiple("//select[@name='communication_type']/option"):
+        comms_type_list.append(element.get_attribute("value"))
+    # Cancel out and check for fadeout;
+    find("//button[@id='close_button']").click()
+    time.sleep(0.5)
+    fade2 = find("//div[contains(@class, 'modal fade')]").get_attribute("style")
+    assert not fade2.startswith("display: block"),\
+        "Seems fade-in has not disappeared"
+    # Assertions to finish;
+    assert request_type_list == ["BaselinePROMS", "FollowUpPROMS"],\
+        "Available PROMS types not BaselinePROMS and FollowUpPROMS"
+    assert comms_type_list == ["qrcode", "email"],\
+        "Available communications types not qrcode and email"
