@@ -121,12 +121,16 @@ class Section(models.Model):
                        args=(self.pk,))
 
     def get_admin_link(self):
-        return '<a href="{0}" target="_blank">{1}</a>'.format(self.get_admin_url(), self.code)
+        return '<a href="{0}" target="_blank">{1}</a>'.format(self.get_admin_url(), self)
 
     def get_cde_links(self):
         existing = self.existing_cde_models()
         return ", ".join([existing[code].get_admin_link() if existing[code]
                           else "<span class='alert-danger'>{0}</span>".format(code) for code in existing])
+
+    def get_form_links(self):
+        forms = RegistryForm.objects.filter(sections__icontains=self.code)
+        return ", ".join([form.get_admin_link() if self.code in form.get_sections() else "" for form in forms])
 
 
 class RegistryManager(models.Manager):
@@ -778,14 +782,17 @@ class CommonDataElement(models.Model):
 
     def get_usage(self):
         sections = Section.objects.filter(elements__icontains=self.code)
-        return ", ".join([link for link in [section.get_admin_link() if self.code in section.get_elements()
-                                            else "" for section in sections]])
+        section_links = ", ".join([link for link in [section.get_admin_link() if self.code in section.get_elements()
+                                                     else "" for section in sections]])
+        form_links = "<br>".join([link for link in [section.get_form_links() if self.code in section.get_elements()
+                                                    else "" for section in sections]])
+        return "<br>Sections:<br>{0}<br>Forms:<br>{1}".format(section_links, form_links)
 
     def get_admin_url(self):
         return reverse('admin:{0}_{1}_change'.format(self._meta.app_label, self._meta.model_name), args=(self.pk,))
 
     def get_admin_link(self):
-        return '<a href="{0}" target="_blank">{1}</a>'.format(self.get_admin_url(), self.code)
+        return '<a href="{0}" target="_blank">{1}</a>'.format(self.get_admin_url(), self)
 
 
 def validate_abnormality_condition(abnormality_condition, datatype):
@@ -1088,7 +1095,7 @@ class RegistryForm(models.Model):
         return reverse('admin:{0}_{1}_change'.format(self._meta.app_label, self._meta.model_name), args=(self.pk,))
 
     def get_admin_link(self):
-        return '<a href="{0}" target="_blank">{1}</a>'.format(self.get_admin_url(), self.code)
+        return '<a href="{0}" target="_blank">{1}</a> of Registry:{2}'.format(self.get_admin_url(), self, self.registry)
 
     def get_section_links(self):
         existing = self.existing_section_models()
