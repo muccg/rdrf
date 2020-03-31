@@ -164,14 +164,11 @@ class ReportGenerator:
                            context_form_group_name,
                            form_name):
         from rdrf.models.definition.models import ContextFormGroup
-        from datetime import datetime, timedelta
         cfg = ContextFormGroup.objects.get(registry=self.registry_model,
                                            name=context_form_group_name)
         # find the last/latest context containing the form
         context_models = [c for c in patient_model.context_models
-                          if c.registry.pk == self.registry_model.pk
-                          and c.context_form_group
-                          and c.context_form_group.pk == cfg.pk]
+                          if c.registry.pk == self.registry_model.pk and c.context_form_group and c.context_form_group.pk == cfg.pk]
         if not context_models:
             return ""
         latest_date = None
