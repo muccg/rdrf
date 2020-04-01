@@ -78,12 +78,14 @@ class ReportGenerator:
         # get the fixed context associated with the context
         # form group specified in the report spec.
         # there should only be one for each patient
-        context_models = RDRFContext.objects.filter(registry=self.registry_model,
-                                                    object_id=patient_model.id,
-                                                    context_form_group=self.context_form_group)
-        num_contexts = len(context_models)
-        if num_contexts == 1:
-            return context_models[0]
+        context_models = patient_model.context_models
+        return self._get_fixed_context(context_models)
+
+    def _get_fixed_context(self, context_models):
+        for context_model in context_models:
+            if context_model.context_form_group:
+                if context_model.context_form_group.pk == self.context_form_group.pk:
+                    return context_model
 
     def _get_context_form_group(self):
         if "context_form_group" in self.report_spec:
@@ -104,15 +106,28 @@ class ReportGenerator:
         rows = []
         rows.append(self._get_header())
         for patient_model in self._get_patients():
-            # the context needs to be determined by the report spec
-            # as it contains the context_form_group name
-            context_model = self._get_context(patient_model)
-            data = self._load_patient_data(patient_model, context_model.id)
-            row = []
-            for column in self.report_spec["columns"]:
-                column_value = self._get_column_value(patient_model, data, column)
-                row.append(column_value)
-            rows.append(row)
+            try:
+                logger.info("getting data for patient %s" % patient_model.pk)
+                # the context needs to be determined by the report spec
+                # as it contains the context_form_group name
+                context_model = self._get_context(patient_model)
+                if not context_model:
+                    logger.info("no context - skipping")
+                    continue
+                logger.info("context id = %s" % context_model.id)
+                data = self._load_patient_data(patient_model, context_model.id)
+                if not data:
+                    logger.info("no data")
+                else:
+                    logger.info("data exists")
+                    row = []
+                    for column in self.report_spec["columns"]:
+                        column_value = "" if not data else self._get_column_value(patient_model, data, column)
+                        row.append(column_value)
+                    rows.append(row)
+            except Exception as ex:
+                logger.error("Completion report error pid %s: %s" % (patient_model.pk,
+                                                                     ex))
         self.report = rows
 
     def _get_header(self):
