@@ -8,6 +8,7 @@ from nose.tools import assert_true, assert_equal
 
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.alert import Alert
+from selenium.common.exceptions import NoSuchElementException as Nse
 
 from . import utils
 
@@ -812,11 +813,29 @@ def check_multisection_value(step, multisection, cde, item, expected_value):
 
 
 def find(xp):
-    element = world.browser.find_element_by_xpath(xp)
-    return element
+    """
+    Helper function to find an element via xpath.
+    """
+    return world.browser.find_element_by_xpath(xp)
+
+
+def find_multiple(xp):
+    """
+    Helper function to find multiple items with the same xpath.
+    Initially created so that a list of elements could be iterated over,
+    and a particular attribute extracted for each item.
+    Slow (5s) if the element does not exist, but returns an empty vector
+    rather than a NoSuchElementException.
+    """
+    return world.browser.find_elements_by_xpath(xp)
 
 
 def scroll_to_centre(xp):
+    """
+    Helper function to scroll an element to the centre of the viewport.
+    Should stop Selenium's ElementClickInterceptedException, which previously
+    would occur due to the banners at the top and bottom of the viewport.
+    """
     y = find(xp).location["y"]
     off = world.browser.get_window_size()["height"]
     move = y - (1 / 2) * off
@@ -825,6 +844,8 @@ def scroll_to_centre(xp):
 
 @step('I add patient name "(.*)" sex "(.*)" birthdate "(.*)"')
 def add_new_patient(step, name, sex, birthdate):
+    # Woud like to make this a bit more smooth in future,
+    # to avoid repeated calls to find.
     surname, firstname = name.split()
     world.browser.get(
         world.site_url + "patientslisting"
@@ -848,16 +869,6 @@ def return_to_patientlisting(step):
     world.browser.get(
         find("//a[text()='Patient List']").get_attribute("href")
     )
-
-
-def find_multiple(xp):
-    """
-    Helper function to find multiple items with the same xpath.
-    Initially created so that a list of elements could be iterated over,
-    and a particular attribute extracted for each item.
-    """
-    element_list = world.browser.find_elements_by_xpath(xp)
-    return element_list
 
 
 @step('I check the available survey options')
@@ -894,3 +905,42 @@ def check_proms_lists(step):
         "Available PROMS types not BaselinePROMS and FollowUpPROMS"
     assert comms_type_list == ["qrcode", "email"],\
         "Available communications types not qrcode and email"
+
+
+@step('sidebar contains a section named "(.*)"')
+def sidebar_contains_section(step, name):
+    try:
+        find(
+            (
+                "//div[@class='well']"
+                "//div[@class='panel-heading' and contains(., '%s')]"
+                % name
+            )
+        )
+    except Nse:
+        raise Exception("Could not find sidebar section named %s" % name)
+
+
+@step('sidebar contains a link to "(.*)"')
+def sidebar_contains_link(step, name):
+    try:
+        find("//div[@class='well']//a[contains(., '%s')]" % name)
+    except Nse:
+        raise Exception("Could not find a sidebar link to %s" % name)
+
+
+@step('sidebar contains a link in section "(.*)" to "(.*)"')
+def sidebar_contains_link_in_section(step, sec, name):
+    try:
+        find(
+            (
+                "//div[@class='panel-heading' and contains(., '%s')]"
+                "/following-sibling::div//a[contains(., '%s')]"
+                % (sec, name)
+            )
+        )
+    except Nse:
+        raise Exception(
+            "Could not find a link to %s in section %s in sidebar"
+            % (name, sec)
+        )
