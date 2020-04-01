@@ -3,7 +3,6 @@ from rdrf.models.definition.models import RegistryForm
 from rdrf.models.definition.models import Section
 from rdrf.models.definition.models import CommonDataElement
 from rdrf.models.definition.models import ContextFormGroup
-from rdrf.models.definition.models import RDRFContext
 from rdrf.models.definition.models import ClinicalData
 from rdrf.helpers.utils import cde_completed
 from rdrf.helpers.utils import format_date
