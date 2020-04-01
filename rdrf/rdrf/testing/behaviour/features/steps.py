@@ -8,7 +8,7 @@ from nose.tools import assert_true, assert_equal
 
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.alert import Alert
-from selenium.common.exceptions import NoSuchElementException as NSE
+from selenium.common.exceptions import NoSuchElementException as Nse
 
 from . import utils
 
@@ -816,8 +816,7 @@ def find(xp):
     """
     Helper function to find an element via xpath.
     """
-    element = world.browser.find_element_by_xpath(xp)
-    return element
+    return world.browser.find_element_by_xpath(xp)
 
 
 def find_multiple(xp):
@@ -828,8 +827,7 @@ def find_multiple(xp):
     Slow (5s) if the element does not exist, but returns an empty vector
     rather than a NoSuchElementException.
     """
-    element_list = world.browser.find_elements_by_xpath(xp)
-    return element_list
+    return world.browser.find_elements_by_xpath(xp)
 
 
 def scroll_to_centre(xp):
@@ -919,7 +917,7 @@ def sidebar_contains_section(step, name):
                 % name
             )
         )
-    except NSE:
+    except Nse:
         raise Exception("Could not find sidebar section named %s" % name)
 
 
@@ -927,7 +925,7 @@ def sidebar_contains_section(step, name):
 def sidebar_contains_link(step, name):
     try:
         find("//div[@class='well']//a[contains(., '%s')]" % name)
-    except NSE:
+    except Nse:
         raise Exception("Could not find a sidebar link to %s" % name)
 
 
@@ -941,7 +939,7 @@ def sidebar_contains_link_in_section(step, sec, name):
                 % (sec, name)
             )
         )
-    except NSE:
+    except Nse:
         raise Exception(
             "Could not find a link to %s in section %s in sidebar"
             % (name, sec)
