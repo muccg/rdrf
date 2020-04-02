@@ -809,6 +809,30 @@ def ANGBMIimperial_inputs():
 
 ################ END OF ANGBMIimperial ################################
 
+################ BEGINNING OF FHDeathAge ################################
+
+def APMATPlasmicRisk(patient, context):
+    context = fill_missing_input(context, 'APMATPlasmicRisk_inputs')
+
+    YES = "fh_yes_no_yes"
+    yes_selected = lambda value: value == YES
+
+    score = 0
+    score += 1 if yes_selected(context["APMATPlateletCountLessThan30"]) else 0
+    score += 1 if yes_selected(context["APMATHaemolysisVariable"]) else 0
+    score += 1 if yes_selected(context["APMATNoActiveCancer"]) else 0
+    score += 1 if yes_selected(context["APMATNoTransplant"]) else 0
+    score += 1 if yes_selected(context["APMATMCVLessThan90"]) else 0
+    score += 1 if yes_selected(context["APMATINRLessThan1Dot5"]) else 0
+    score += 1 if yes_selected(context["APMATCreatinineLessThan2"]) else 0
+
+    return "low" if score < 5 else "intermediate" if score == 5 else "high"
+
+def APMATPlasmicRisk_inputs():
+    return ["APMATPlateletCountLessThan30", "APMATHaemolysisVariable", "APMATActiveCancer", "APMATTransplant",
+            "APMATMCVLessThan90", "APMATINRLessThan1Dot5", "APMATCreatinineLessThan2"]
+
+################ END OF FHDeathAge ################################
 
 def validate_date(date):
     try:
