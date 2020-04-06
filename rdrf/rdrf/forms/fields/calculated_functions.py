@@ -829,7 +829,7 @@ def APMATPlasmicRisk(patient, context):
     return "low risk" if score < 5 else "intermediate risk" if score == 5 else "high risk"
 
 def APMATPlasmicRisk_inputs():
-    return ["APMATPlateletCountLessThan30", "APMATHaemolysisVariable", "APMATActiveCancer", "APMATTransplant",
+    return ["APMATPlateletCountLessThan30", "APMATHaemolysisVariable", "APMATNoActiveCancer", "APMATNoTransplant",
             "APMATMCVLessThan90", "APMATINRLessThan1Dot5", "APMATCreatinineLessThan2"]
 
 ################ END OF FHDeathAge ################################
