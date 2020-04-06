@@ -826,7 +826,7 @@ def APMATPlasmicRisk(patient, context):
     score += 1 if yes_selected(context["APMATINRLessThan1Dot5"]) else 0
     score += 1 if yes_selected(context["APMATCreatinineLessThan2"]) else 0
 
-    return "low" if score < 5 else "intermediate" if score == 5 else "high"
+    return "low risk" if score < 5 else "intermediate risk" if score == 5 else "high risk"
 
 def APMATPlasmicRisk_inputs():
     return ["APMATPlateletCountLessThan30", "APMATHaemolysisVariable", "APMATActiveCancer", "APMATTransplant",
