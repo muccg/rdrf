@@ -714,6 +714,8 @@ class CommonDataElement(models.Model):
         return stored_value
 
     def clean(self):
+        """
+        TO BE DELETED 
         # this was causing issues with form progress completion cdes record
         # todo update the way form progress completion cdes are recorded to
         # only use code not cde.name!
@@ -722,6 +724,7 @@ class CommonDataElement(models.Model):
             raise ValidationError(
                 "CDE %s  name error '%s' has dots - this causes problems please remove" %
                 (self.code, self.name))
+        """
 
         if " " in self.code:
             raise ValidationError(
