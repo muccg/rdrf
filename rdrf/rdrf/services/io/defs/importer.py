@@ -731,6 +731,7 @@ class Importer(object):
             action = CustomAction(registry=registry)
             action.code = action_dict["code"]
             action.name = action_dict["name"]
+            action.scope = action_dict["scope"]
             action.action_type = action_dict["action_type"]
             action.data = action_dict["data"]
             action.save()

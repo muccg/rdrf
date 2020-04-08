@@ -9,6 +9,7 @@ from django.http import HttpResponseRedirect
 from rdrf.models.definition.models import Registry
 from rdrf.models.definition.models import CdePolicy
 from rdrf.helpers.utils import consent_status_for_patient
+from rdrf.helpers.utils import anonymous_not_allowed
 
 from django.forms.models import inlineformset_factory
 from django.utils.html import strip_tags
@@ -481,6 +482,8 @@ class AddPatientView(PatientFormMixin, CreateView):
     form_class = PatientForm
     template_name = 'rdrf_cdes/generic_patient.html'
 
+    @method_decorator(anonymous_not_allowed)
+    @method_decorator(login_required)
     def get(self, request, registry_code):
         if not request.user.is_authenticated:
             patient_add_url = reverse('patient_add', args=[registry_code])
@@ -491,6 +494,7 @@ class AddPatientView(PatientFormMixin, CreateView):
         self._set_user(request)
         return super(AddPatientView, self).get(request, registry_code)
 
+    @method_decorator(anonymous_not_allowed)
     @method_decorator(login_required)
     def post(self, request, registry_code):
         self.request = request
@@ -592,6 +596,8 @@ class PatientEditView(View):
         else:
             return []
 
+    @method_decorator(anonymous_not_allowed)
+    @method_decorator(login_required)
     def get(self, request, registry_code, patient_id):
         if not request.user.is_authenticated:
             patient_edit_url = reverse('patient_edit', args=[registry_code, patient_id, ])
@@ -671,6 +677,8 @@ class PatientEditView(View):
             return None
         return "todo"
 
+    @method_decorator(anonymous_not_allowed)
+    @method_decorator(login_required)
     def post(self, request, registry_code, patient_id):
         user = request.user
         patient = Patient.objects.get(id=patient_id)
