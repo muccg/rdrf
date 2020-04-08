@@ -397,29 +397,6 @@ def report_function(func):
     return func
 
 
-def check_calculation(calculation):
-    """
-    Run a calculation javascript fragment through ADsafe to see
-    whether it's suitable for running in users' browsers.
-    Returns the empty string on success, otherwise an error message.
-    """
-    script = os.path.abspath(os.path.join(os.path.dirname(__file__),
-                                          "..",
-                                          "scripts",
-                                          "check-calculation.js"))
-    try:
-        p = subprocess.Popen([script], stdin=subprocess.PIPE,
-                             stdout=subprocess.PIPE,
-                             stderr=subprocess.STDOUT)
-        output, _ = p.communicate(smart_bytes(calculation))
-        if p.returncode != 0:
-            return output.decode("utf-8", errors="replace")
-    except OSError as e:
-        logger.exception("Can't execute check-calculation.js")
-        return "Couldn't execute %s: %s" % (script, e)
-    return ""
-
-
 def format_date(value):
     """
     Formats a date in Australian order, separated by hyphens, without
