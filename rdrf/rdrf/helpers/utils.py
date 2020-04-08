@@ -7,15 +7,12 @@ from django.urls import reverse
 from django.db import IntegrityError
 from django.db import transaction
 from django.utils.html import strip_tags
-from django.utils.encoding import smart_bytes
 from functools import total_ordering
 
 import datetime
 import dateutil.parser
 import logging
 import re
-import os.path
-import subprocess
 import uuid
 
 logger = logging.getLogger(__name__)
