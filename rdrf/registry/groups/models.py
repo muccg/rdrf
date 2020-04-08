@@ -6,12 +6,14 @@ from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
 from django.db import models
 from django.dispatch import receiver
+from django.conf import settings
 
 from registration.signals import user_activated
 from registration.signals import user_registered
 
 from rdrf.models.definition.models import Registry
 from registry.groups import GROUPS as RDRF_GROUPS
+
 
 import logging
 logger = logging.getLogger(__name__)
@@ -229,10 +231,11 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
         else:
             links = qlinks.menu_links([group.name for group in self.groups.all()])
 
-        for registry_model in self.get_registries():
-            for custom_action in self.custom_actions(registry_model):
-                if custom_action.scope == "U":
-                    links.append(custom_action.menu_link)
+        if settings.SYSTEM_ROLE != "CIC_PROMS":
+            for registry_model in self.get_registries():
+                for custom_action in self.custom_actions(registry_model):
+                    if custom_action.scope == "U":
+                        links.append(custom_action.menu_link)
 
         return links
 
