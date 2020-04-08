@@ -97,6 +97,8 @@ two_factor_auth_urls = [
 ]
 
 proms_patterns = [
+    re_path(r'^customactions/(?P<action_id>\d+)/(?P<patient_id>\d+)/?$',
+            CustomActionView.as_view(), name='custom_action'),
     re_path(r'^promslanding/?$', PromsLandingPageView.as_view(), name="proms_landing_page"),
     re_path(r'^proms/?$', PromsView.as_view(), name="proms"),
     re_path(r'^promsqrcode/(?P<patient_token>[0-9A-Za-z_\-]+)/?$', PromsQRCodeImageView.as_view(), name="promsqrcode"),

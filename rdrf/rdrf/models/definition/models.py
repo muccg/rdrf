@@ -20,7 +20,6 @@ from django.forms.models import model_to_dict
 from django.utils.safestring import mark_safe
 from django.core.exceptions import PermissionDenied
 
-from rdrf.helpers.utils import check_calculation
 from rdrf.helpers.utils import format_date, parse_iso_datetime
 from rdrf.helpers.utils import LinkWrapper
 from rdrf.events.events import EventType
@@ -714,6 +713,8 @@ class CommonDataElement(models.Model):
         return stored_value
 
     def clean(self):
+        """
+        TO BE DELETED
         # this was causing issues with form progress completion cdes record
         # todo update the way form progress completion cdes are recorded to
         # only use code not cde.name!
@@ -722,6 +723,7 @@ class CommonDataElement(models.Model):
             raise ValidationError(
                 "CDE %s  name error '%s' has dots - this causes problems please remove" %
                 (self.code, self.name))
+        """
 
         if " " in self.code:
             raise ValidationError(
@@ -733,14 +735,6 @@ class CommonDataElement(models.Model):
                 f"""The abnormality condition is incorrect. It should something like
                      x in ("code_1", "code_2"), or x <= 10
                     """)
-
-        # check javascript calculation for naughty code
-        if self.calculation.strip():
-            err = check_calculation(self.calculation).strip()
-            if err:
-                raise ValidationError({
-                    "calculation": [ValidationError(e) for e in err.split("\n")]
-                })
 
     def is_abnormal(self, value):
         if self.abnormality_condition:

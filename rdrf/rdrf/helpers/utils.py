@@ -7,15 +7,12 @@ from django.urls import reverse
 from django.db import IntegrityError
 from django.db import transaction
 from django.utils.html import strip_tags
-from django.utils.encoding import smart_bytes
 from functools import total_ordering
 
 import datetime
 import dateutil.parser
 import logging
 import re
-import os.path
-import subprocess
 import uuid
 
 logger = logging.getLogger(__name__)
@@ -395,29 +392,6 @@ def report_function(func):
     """
     func.report_function = True
     return func
-
-
-def check_calculation(calculation):
-    """
-    Run a calculation javascript fragment through ADsafe to see
-    whether it's suitable for running in users' browsers.
-    Returns the empty string on success, otherwise an error message.
-    """
-    script = os.path.abspath(os.path.join(os.path.dirname(__file__),
-                                          "..",
-                                          "scripts",
-                                          "check-calculation.js"))
-    try:
-        p = subprocess.Popen([script], stdin=subprocess.PIPE,
-                             stdout=subprocess.PIPE,
-                             stderr=subprocess.STDOUT)
-        output, _ = p.communicate(smart_bytes(calculation))
-        if p.returncode != 0:
-            return output.decode("utf-8", errors="replace")
-    except OSError as e:
-        logger.exception("Can't execute check-calculation.js")
-        return "Couldn't execute %s: %s" % (script, e)
-    return ""
 
 
 def format_date(value):
