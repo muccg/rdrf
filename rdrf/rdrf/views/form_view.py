@@ -1599,6 +1599,8 @@ class ConstructorFormView(View):
 
 class CustomConsentFormView(View):
 
+    @method_decorator(anonymous_not_allowed)
+    @method_decorator(login_required)
     def get(self, request, registry_code, patient_id, context_id=None):
         if not request.user.is_authenticated:
             consent_form_url = reverse('consent_form_view', args=[registry_code, patient_id])
@@ -1713,6 +1715,8 @@ class CustomConsentFormView(View):
         return reverse("consent_form_view", args=[registry_model.code,
                                                   patient_model.pk])
 
+    @method_decorator(anonymous_not_allowed)
+    @method_decorator(login_required)
     def post(self, request, registry_code, patient_id, context_id=None):
         if not request.user.is_authenticated:
             consent_form_url = reverse(
