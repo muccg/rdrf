@@ -844,22 +844,43 @@ def scroll_to_centre(xp):
 
 @step('I add patient name "(.*)" sex "(.*)" birthdate "(.*)"')
 def add_new_patient(step, name, sex, birthdate):
-    # Woud like to make this a bit more smooth in future,
-    # to avoid repeated calls to find.
+    # Refactored 20200414 to avoid writing "find" multiple times in succession.
+    # Prepare name, page, and lists;
     surname, firstname = name.split()
     world.browser.get(
         world.site_url + "patientslisting"
     )
-    find("//button[@id='add_patient']").click()
-    find("//option[contains(., 'ICHOM Colorectal Cancer')]").click()
-    find("//option[contains(., 'ICHOMCRC SJOG')]").click()
-    find("//input[@name='family_name']").send_keys(surname)
-    find("//input[@name='given_names']").send_keys(firstname)
-    find("//input[@name='date_of_birth']").send_keys(birthdate, Keys.ESCAPE)
-    scroll_to_centre("//select[@name='sex']")
-    find("//select[@name='sex']").click()
-    find("//select[@name='sex']/option[text()='%s']" % sex).click()
-    find("//button[@id='submit-btn']").click()
+    xp_list = [
+        "//button[@id='add_patient']",
+        "//option[contains(., 'ICHOM Colorectal Cancer')]",
+        "//option[contains(., 'ICHOMCRC SJOG')]",
+        "//input[@name='family_name']",
+        "//input[@name='given_names']",
+        "//input[@name='date_of_birth']",
+        "//select[@name='sex']",
+        "//select[@name='sex']/option[text()='%s']" % sex,
+        "//button[@id='submit-btn']"
+    ]
+    keys_list = [
+        surname,
+        firstname,
+        [
+            birthdate,
+            Keys.ESCAPE
+        ]
+    ]
+    # Operations;
+    for i in range(0, len(xp_list)):
+        # If sex, scroll into view;
+        if i == 6:
+            scroll_to_centre(xp_list[i])
+        # Outside indices 3-5 are clicks only;
+        if i not in range(3, 6):
+            find(xp_list[i]).click()
+        # else send key commands from list;
+        else:
+            find(xp_list[i]).send_keys(keys_list[i - 3])
+    # Check success;
     assert "Patient added successfully" in world.browser.page_source,\
         "Patient add success message not present"
 
@@ -944,3 +965,32 @@ def sidebar_contains_link_in_section(step, sec, name):
             "Could not find a link to %s in section %s in sidebar"
             % (name, sec)
         )
+
+
+@step('the menu "([^\"]*[^\"])" (contains|DOES NOT contain) "([^\"]*[^\"])"')
+def menu_contains_yn_general(step, menu, check, item):
+    xp = (
+        "//a[contains(.,'%s')]/following-sibling::ul/li/a[contains(.,'%s')]"
+        % (menu, item)
+    )
+    if check == "contains":
+        try:
+            find(xp)
+        except Nse:
+            raise Exception(
+                "Could not find menu \"%s\" item \"%s\"\n"
+                "xpath:  %s"
+                % (menu, item, xp)
+            )
+    elif check == "DOES NOT contain":
+        try:
+            find(xp)
+            raise Exception(
+                "Found menu \"%s\" item \"%s\", but should not exist.\n"
+                "xpath:  %s"
+                % (menu, item, xp)
+            )
+        except Nse:
+            pass
+    else:
+        raise Exception("Do not recognise check type:  %s" % check)
