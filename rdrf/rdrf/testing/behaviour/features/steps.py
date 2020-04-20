@@ -934,5 +934,5 @@ def proms_checks(step, which, option):
     if not find_option(label=which.capitalize(), option=option):
         raise Exception(
             "Unable to find %s option %s"
-            % (which, name)
+            % (which, option)
         )
