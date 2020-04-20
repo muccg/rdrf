@@ -15,7 +15,10 @@ Feature: Navigate CIC Clinical (ICHOMCRC).
     And location is "Consents"
     Then I click "Proms" in sidebar
     And location is "Patient Reported Outcomes"
-    And I check the available survey options
+    And I should see survey name option "Baseline PROMS"
+    And I should see survey name option "FollowUp PROMS"
+    And I should see communication type option "QRCode"
+    And I should see communication type option "Email"
     Then I click "Patient Information" in sidebar  
     And location is "Modules/Patient Information"
     Then I click "Baseline PROMS" in sidebar
@@ -40,7 +43,10 @@ Feature: Navigate CIC Clinical (ICHOMCRC).
     And location is "Consents"
     Then I click "Proms" in sidebar
     And location is "Patient Reported Outcomes"
-    And I check the available survey options
+    And I should see survey name option "Baseline PROMS"
+    And I should see survey name option "FollowUp PROMS"
+    And I should see communication type option "QRCode"
+    And I should see communication type option "Email"
     Then I click "Patient Information" in sidebar  
     And location is "Modules/Patient Information"
     Then I click "Baseline PROMS" in sidebar
