@@ -75,14 +75,13 @@ services:
       - WAIT_FOR_REPORTING_DB=1
       - WAIT_FOR_CACHE=1
       - DJANGO_MAILGUN_API_KEY=${DJANGO_MAILGUN_API_KEY}
-      - SYSTEM_ROLE=CIC_DEV
 
   celeryworker:
     image: muccg/rdrf-dev
     command: celery_worker
     environment:
       - WAIT_FOR_DB=1
-      - WAIT_FOR_CACHE=1
+      - WAIT_FOR_REDIS_CACHE=1
 
   uwsgi:
     image: muccg/rdrf-dev

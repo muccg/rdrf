@@ -54,6 +54,9 @@ function wait_for_services {
     if [[ "$WAIT_FOR_CACHE" ]] ; then
         dockerwait "$CACHESERVER" "$CACHEPORT"
     fi
+    if [[ "$WAIT_FOR_REDIS_CACHE" ]] ; then
+        dockerwait "$REDISCACHESERVER" "$REDISCACHEPORT"
+    fi
     if [[ "$WAIT_FOR_RUNSERVER" ]] ; then
         dockerwait "$RUNSERVER" "$RUNSERVERPORT"
     fi
@@ -96,6 +99,9 @@ function defaults {
     : "${CACHESERVER:=cache}"
     : "${CACHEPORT:=11211}"
     : "${MEMCACHE:=${CACHESERVER}:${CACHEPORT}}"
+    : "${REDISCACHESERVER:=rediscache}"
+    : "${REDISCACHEPORT:=6379}"
+    : "${REDISCACHE:=${REDISCACHESERVER}:${REDISCACHEPORT}}"
 
     # variables to control where tests will look for the app (aloe via selenium hub)
     : "${TEST_APP_SCHEME:=http}"
@@ -110,7 +116,7 @@ function defaults {
 
     : "${DJANGO_FIXTURES:=none}"
 
-    export DBSERVER DBPORT DBUSER DBNAME DBPASS MEMCACHE DOCKER_ROUTE
+    export DBSERVER DBPORT DBUSER DBNAME DBPASS MEMCACHE REDISCACHE DOCKER_ROUTE
     export CLINICAL_DBSERVER CLINICAL_DBPORT CLINICAL_DBUSER CLINICAL_DBNAME CLINICAL_DBPASS
     export REPORTING_DBSERVER REPORTING_DBPORT REPORTING_DBUSER REPORTING_DBNAME REPORTING_DBPASS
     export TEST_APP_URL TEST_APP_SCHEME TEST_APP_HOST TEST_APP_PORT TEST_APP_PATH TEST_BROWSER TEST_WAIT TEST_SELENIUM_HUB
@@ -250,7 +256,7 @@ fi
 if [ "$1" = 'celery_worker' ]; then
     info "[Run] Starting celery_worker"
     set -x
-    exec 'celery' '-A' 'rdrf' 'worker' '-l' 'INFO'
+    exec celery -A rdrf worker -l INFO
 fi
 
 # grdr entrypoint

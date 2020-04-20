@@ -676,7 +676,6 @@ ENABLE_PWD_CHANGE = env.get("enable_pwd_change", True)
 REGISTRATION_ENABLED = env.get("registration_enabled", True)
 
 # Celery
-
 CACHES['redis'] = {
     "BACKEND": "django_redis.cache.RedisCache",
     "LOCATION": env.getlist("cache", ["redis://rediscache:6379/1"]),
@@ -693,6 +692,6 @@ CELERY_ACCEPT_CONTENT = ['json']
 CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_SERIALIZER = 'json'
 CELERY_TIMEZONE = TIME_ZONE
-# End Celery
 
 CACHES['search_results'] = CACHES['redis']
+# End Celery
