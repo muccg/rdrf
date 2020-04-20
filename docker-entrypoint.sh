@@ -246,6 +246,13 @@ if [ "$1" = 'runserver_plus' ]; then
     _runserver
 fi
 
+# celery_worker entrypoint
+if [ "$1" = 'celery_worker' ]; then
+    info "[Run] Starting celery_worker"
+    set -x
+    exec 'celery' '-A' 'rdrf' 'worker' '-l' 'INFO'
+fi
+
 # grdr entrypoint
 if [ "$1" = 'grdr' ]; then
     info "[Run] Starting runserver_plus with GRDR data elements"

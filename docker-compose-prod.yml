@@ -50,6 +50,16 @@ services:
         aliases:
           - nginxtest
 
+    celeryworker:
+      extends:
+        file: docker-compose-common.yml
+        service: celeryworker
+      volumes:
+        - uwsgi-prod-data:/data
+      depends_on:
+        - dbprod
+        - cacheprod
+
   uwsgiprod:
     image: muccg/rdrf:${BUILD_VERSION}
     command: uwsgi_local

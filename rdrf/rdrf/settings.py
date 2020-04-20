@@ -674,3 +674,25 @@ if SESSION_SECURITY_ENABLE:
 # Enable user password change
 ENABLE_PWD_CHANGE = env.get("enable_pwd_change", True)
 REGISTRATION_ENABLED = env.get("registration_enabled", True)
+
+# Celery
+
+CACHES['redis'] = {
+    "BACKEND": "django_redis.cache.RedisCache",
+    "LOCATION": env.getlist("cache", ["redis://rediscache:6379/1"]),
+    "TIMEOUT": 3600,
+    "OPTIONS": {
+        "CLIENT_CLASS": "django_redis.client.DefaultClient"
+    },
+    "KEY_PREFIX": "celery_cache_"
+}
+
+CELERY_BROKER_URL = env.get('CELERY_BROKER_URL', 'redis://rediscache')
+CELERY_RESULT_BACKEND = CELERY_BROKER_URL
+CELERY_ACCEPT_CONTENT = ['json']
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_RESULT_SERIALIZER = 'json'
+CELERY_TIMEZONE = TIME_ZONE
+# End Celery
+
+CACHES['search_results'] = CACHES['redis']
