@@ -910,21 +910,28 @@ def sidebar_contains_link_in_section(step, sec, name):
         )
 
 
-@step('should see (survey name|communication type) option "(.*)"')
-def proms_checks(step, which, name):
-    assert world.browser.current_url.endswith("/clinicalproms"),\
-        "Not on PROMS request page!"
+def find_option(label, option):
+    """
+    Helper function for finding an option in a list.
+    Returns None if the object isn't found.
+    """
     xp = (
-        "//label[@for='id_%s']/following-sibling::select"
-        "/option[text()='%s']"
-        % (
-            "_".join(which.split()),
-            name
-        )
+        "//label[contains(.,\"%s\")]/following-sibling::*"
+        "//option[contains(.,\"%s\")]"
+        % (label, option)
     )
     try:
-        find(xp)
+        item = find(xp)
     except Nse:
+        item = None
+    return item
+
+
+@step('should see (survey name|communication type) option "(.*)"')
+def proms_checks(step, which, option):
+    assert world.browser.current_url.endswith("/clinicalproms"),\
+        "Not on PROMS request page!"
+    if not find_option(label=which.capitalize(), option=option):
         raise Exception(
             "Unable to find %s option %s"
             % (which, name)
