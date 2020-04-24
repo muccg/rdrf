@@ -892,42 +892,6 @@ def return_to_patientlisting(step):
     )
 
 
-@step('I check the available survey options')
-def check_proms_lists(step):
-    """
-    Check that the lists of options for surveys
-    and communication methods are correct.
-    """
-    # First check if on the PROMS page;
-    assert world.browser.current_url.endswith("/clinicalproms"),\
-        "Not on PROMS request page!"
-    # Create empty objects;
-    request_type_list = []
-    comms_type_list = []
-    # Press the add button and check if fades in;
-    find("//a[contains(@class, 'btn btn-info')]").click()
-    time.sleep(0.5)
-    fade1 = find("//div[contains(@class, 'modal fade')]").get_attribute("style")
-    assert not fade1.startswith("display: none"),\
-        "Seems fade-in has not appeared"
-    # Populate lists;
-    for element in find_multiple("//select[@name='survey_name']/option"):
-        request_type_list.append(element.get_attribute("value"))
-    for element in find_multiple("//select[@name='communication_type']/option"):
-        comms_type_list.append(element.get_attribute("value"))
-    # Cancel out and check for fadeout;
-    find("//button[@id='close_button']").click()
-    time.sleep(0.5)
-    fade2 = find("//div[contains(@class, 'modal fade')]").get_attribute("style")
-    assert not fade2.startswith("display: block"),\
-        "Seems fade-in has not disappeared"
-    # Assertions to finish;
-    assert request_type_list == ["BaselinePROMS", "FollowUpPROMS"],\
-        "Available PROMS types not BaselinePROMS and FollowUpPROMS"
-    assert comms_type_list == ["qrcode", "email"],\
-        "Available communications types not qrcode and email"
-
-
 @step('sidebar contains a section named "(.*)"')
 def sidebar_contains_section(step, name):
     try:
@@ -964,6 +928,34 @@ def sidebar_contains_link_in_section(step, sec, name):
         raise Exception(
             "Could not find a link to %s in section %s in sidebar"
             % (name, sec)
+        )
+
+
+def find_option(label, option):
+    """
+    Helper function for finding an option in a list.
+    Returns None if the object isn't found.
+    """
+    xp = (
+        "//label[contains(.,\"%s\")]/following-sibling::*"
+        "//option[contains(.,\"%s\")]"
+        % (label, option)
+    )
+    try:
+        item = find(xp)
+    except Nse:
+        item = None
+    return item
+
+
+@step('should see (survey name|communication type) option "(.*)"')
+def proms_checks(step, which, option):
+    assert world.browser.current_url.endswith("/clinicalproms"),\
+        "Not on PROMS request page!"
+    if not find_option(label=which.capitalize(), option=option):
+        raise Exception(
+            "Unable to find %s option %s"
+            % (which, option)
         )
 
 

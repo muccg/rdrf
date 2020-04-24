@@ -20,3 +20,9 @@ def cic_system_role(request):
                                                     SystemRoles.CIC_PROMS
                                                     ),
     }
+
+
+def is_proms_system(request):
+    return {
+        'is_proms_system': settings.SYSTEM_ROLE == SystemRoles.CIC_PROMS
+    }
