@@ -23,4 +23,7 @@ Feature: General functionality of CIC Clinical (ICHOMCRC).
     And the sidebar contains a link in section "Modules" to "BCCA - Bi-national Colorectal Cancer Audit"
     Then I click "Proms" in sidebar
     And the sidebar contains a link to "Demographics"
-    And I check the available survey options
+    And I should see survey name option "Baseline PROMS"
+    And I should see survey name option "FollowUp PROMS"
+    And I should see communication type option "QRCode"
+    And I should see communication type option "Email"

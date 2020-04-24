@@ -132,6 +132,7 @@ TEMPLATES = [
                 "rdrf.context_processors.context_processors.production",
                 "rdrf.context_processors.context_processors.common_settings",
                 "rdrf.context_processors.context_processors.cic_system_role",
+                "rdrf.context_processors.context_processors.is_proms_system",
 
             ],
             "debug": DEBUG,
