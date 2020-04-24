@@ -74,6 +74,7 @@ _REGISTRY_DEF_GROUP = GroupDefinition(
         'explorer.Query',
         'rdrf.ContextFormGroup',
         'rdrf.ContextFormGroupItem',
+        'rdrf.CustomAction',
     ))
 
 
