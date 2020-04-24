@@ -8,7 +8,11 @@
         {% elif request.user.is_patient %}
             <a href="{% url 'patient_page' request.user.registry_code %}" class="btn btn-link pull-right">{% trans "Cancel" %}</a>
         {% else %}
-            <a href="{% url 'patientslisting' %}" class="btn btn-link pull-right">{% trans "Cancel" %}</a>
+            {% if is_proms_system %}
+                <a href="{% url 'logout' %}" class="btn btn-link pull-right">{% trans "Cancel" %}</a>
+            {% else %}
+                <a href="{% url 'patientslisting' %}" class="btn btn-link pull-right">{% trans "Cancel" %}</a>
+            {% endif %}
         {% endif %}
     {% elif cancel_url %}
         <a href="{{ cancel_url }}" class="btn btn-link pull-right">{% trans "Cancel" %}</a>
