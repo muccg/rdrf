@@ -959,7 +959,7 @@ def proms_checks(step, which, option):
         )
 
 
-@step('the menu "([^\"]*[^\"])" (contains|DOES NOT contain) "([^\"]*[^\"])"')
+@step('the menu "([^\"]+)" (contains|DOES NOT contain) "([^\"]+)"')
 def menu_contains_yn_general(step, menu, check, item):
     xp = (
         "//a[contains(.,'%s')]/following-sibling::ul/li/a[contains(.,'%s')]"

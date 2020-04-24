@@ -30,15 +30,3 @@ Feature: Menu options in CIC Clinical (ICHOMCRC).
     And the menu "clinical" contains "Change Password"
     And the menu "clinical" contains "Enable two-factor auth"
     And the menu "clinical" contains "Logout"
-
-  # Scenario: Deliberate failure 1
-  #   When I am logged in as clinical
-  #   And I click "SMITH John" on patientlisting
-  #   And location is "Demographics"
-  #   Then the menu "Menu" DOES NOT contain "Patient List"
-
-  # Scenario: Deliberate failure 2
-  #   When I am logged in as clinical
-  #   And I click "SMITH John" on patientlisting
-  #   And location is "Demographics"
-  #   Then the menu "Menu" contains "Interpretability"
