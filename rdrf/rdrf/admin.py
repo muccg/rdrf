@@ -407,6 +407,8 @@ class SurveyAssignmentAdmin(admin.ModelAdmin):
 
 class ContextFormGroupItemAdmin(admin.StackedInline):
     model = ContextFormGroupItem
+    extra = 0
+    max_num = 1
 
 
 class ContextFormGroupAdmin(admin.ModelAdmin):
