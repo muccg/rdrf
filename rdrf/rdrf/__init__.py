@@ -1,7 +1,7 @@
 from .celery import app as celery_app
 # Ensures db router system check is registered
 
-VERSION = "6.1.13"
+VERSION = "6.1.14"
 __version__ = VERSION
 
 
