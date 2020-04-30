@@ -1948,6 +1948,69 @@ class CustomAction(models.Model):
     data = models.TextField(null=True)
     scope = models.CharField(max_length=1, choices=SCOPES)  # controls where action appears
 
+    def _get_data(self):
+        import json
+        if not self.data:
+            return {}
+        try:
+            return json.loads(self.data)
+        except ValueError as verr:
+            logger.error("can't load json data for custom action: %s" % verr)
+            raise
+
+    @property
+    def asynchronous(self):
+        config = self._get_data()
+        return "async" in config and config["async"].lower() == "true"
+
+    @property
+    def requires_input(self):
+        config = self._get_data()
+        return "inputs" in config and len(config["inputs"]) > 0
+
+    @property
+    def inputs(self):
+        config = self._get_data()
+        if "inputs" in config:
+            return config["inputs"]
+        else:
+            return []
+
+    def parse_inputs(self):
+        # return a django form?
+        if self.requires_input:
+            return self._generate_input_form(self.inputs)
+        else:
+            return None
+
+    def _generate_input_form(self, inputs):
+        import django.forms as forms
+
+        def create_field(input_spec):
+            field_type = input_spec["type"]
+            label = input_spec["label"]
+            name = input_spec["name"]
+
+        klass = forms.BaseForm
+        fields = []
+        behaviours = {}
+        for input_spec in inputs:
+            behaviour = input_spec["behaviour"]
+            behaviours[input_spec["name"]] = behaviour
+            django_field = create_field(input_spec)
+            field_label = input_spec["label"]
+            fields.append([field_label, django_field])
+
+        def patient_filter(myself):
+            # create a django query to filter patients by
+            # based on the input spec behaviours
+            from rdrf.registry.patients.models import Patient
+            qry = Patient.objects.all()
+            for field in behaviours:
+                if behaviour[field] == "patient_filter":
+                    qry = qry.filter(field=myself.cleaned_data['my_form_field_name']
+
+
     def execute(self, user, patient_model=None):
         """
         This should return a HttpResponse of some sort
@@ -1961,7 +2024,7 @@ class CustomAction(models.Model):
 
         if self.action_type == "PR":
             from rdrf.services.io.actions import patient_report
-            result = patient_report.execute(self.registry, self.name, self.data, user, patient_model)
+            result=patient_report.execute(self.registry, self.name, self.data, user, patient_model)
             logger.info("custom action %s/%s by user %s on patient %s" % (self.registry.code,
                                                                           self.name,
                                                                           user.username,
@@ -1990,7 +2053,7 @@ class CustomAction(models.Model):
 
     @property
     def menu_link(self):
-        link = LinkWrapper(self.url, self.name)
+        link=LinkWrapper(self.url, self.name)
         return link
 
     def check_security(self, user, patient_model):
