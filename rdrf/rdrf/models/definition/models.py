@@ -2008,7 +2008,7 @@ class CustomAction(models.Model):
             qry = Patient.objects.all()
             for field in behaviours:
                 if behaviour[field] == "patient_filter":
-                    qry = qry.filter(field=myself.cleaned_data['my_form_field_name']
+                    qry = qry.filter(field=myself.cleaned_data['my_form_field_name``']
 
 
     def execute(self, user, patient_model=None):
@@ -2024,7 +2024,13 @@ class CustomAction(models.Model):
 
         if self.action_type == "PR":
             from rdrf.services.io.actions import patient_report
-            result=patient_report.execute(self.registry, self.name, self.data, user, patient_model)
+            result=patient_report.execute(self.registry,
+                                          self.name,
+                                          self.data,
+                                          user,
+                                          patient_model,
+                                          async=self.asynchronous)
+
             logger.info("custom action %s/%s by user %s on patient %s" % (self.registry.code,
                                                                           self.name,
                                                                           user.username,
@@ -2035,7 +2041,8 @@ class CustomAction(models.Model):
             return patient_status_report.execute(self.registry,
                                                  self.name,
                                                  self.data,
-                                                 user)
+                                                 user,
+                                                 async=self.asynchronous)
 
         else:
             raise NotImplementedError("Unknown action type: %s" % self.action_type)
