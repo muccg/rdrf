@@ -961,11 +961,11 @@ def proms_checks(step, which, option):
 
 @step('the menu "([^\"]+)" (contains|DOES NOT contain) "([^\"]+)"')
 def menu_contains_yn_general(step, menu, check, item):
-    xp = (
-        "//a[contains(.,'%s')]/following-sibling::ul/li/a[contains(.,'%s')]"
-        % (menu, item)
-    )
     if check == "contains":
+        xp = (
+            "//a[contains(.,'%s')]/following-sibling::ul/li/a[contains(.,'%s')]"
+            % (menu, item)
+        )
         try:
             find(xp)
         except Nse:
@@ -975,14 +975,20 @@ def menu_contains_yn_general(step, menu, check, item):
                 % (menu, item, xp)
             )
     elif check == "DOES NOT contain":
-        try:
-            find(xp)
+        xp = (
+            "//a[contains(.,'%s')]/following-sibling::ul/li"
+            % (menu)
+        )
+        ls1 = find_multiple(xp)
+        ls2 = []
+        for obj in ls1:
+            ls2.append(obj.get_attribute("text"))
+        if item in ls2:
             raise Exception(
                 "Found menu \"%s\" item \"%s\", but should not exist.\n"
-                "xpath:  %s"
-                % (menu, item, xp)
+                % (menu, item)
             )
-        except Nse:
+        else:
             pass
     else:
         raise Exception("Do not recognise check type:  %s" % check)
