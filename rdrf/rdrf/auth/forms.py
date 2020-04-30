@@ -114,7 +114,7 @@ class RDRFLoginAssistanceForm(PasswordResetForm):
             context.update({
                 'email': user.email,
                 'user': user,
-                'uid': urlsafe_base64_encode(force_bytes(user.pk)),
+                'uid': str(urlsafe_base64_encode(force_bytes(user.pk)), 'utf8'),
                 'token': token_generator.make_token(user),
             })
 

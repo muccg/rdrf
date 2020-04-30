@@ -113,14 +113,13 @@ proms_patterns = [
     re_path(r'^password_change/?$', ChangePasswordView.as_view(), name='password_change'),
     re_path(r'^password_change/done/?$', auth_views.PasswordChangeDoneView.as_view(), name='password_change_done'),
 
-    re_path(r'^login_assistance/?$', auth_views.PasswordResetView.as_view(),
-            kwargs={
-            'password_reset_form': RDRFLoginAssistanceForm,
-            'template_name': 'registration/login_assistance_form.html',
-            'subject_template_name': 'registration/login_assistance_subject.txt',
-            'email_template_name': 'registration/login_assistance_email.html',
-            'post_reset_redirect': 'login_assistance_email_sent',
-            },
+    re_path(r'^login_assistance/?$', auth_views.PasswordResetView.as_view(
+            form_class=RDRFLoginAssistanceForm,
+            template_name='registration/login_assistance_form.html',
+            subject_template_name='registration/login_assistance_subject.txt',
+            email_template_name='registration/login_assistance_email.html',
+            success_url='login_assistance_email_sent'
+            ),
             name='login_assistance'),
 
     re_path(r"^copyright/?$", CopyrightView.as_view(), name="copyright"),
@@ -161,34 +160,35 @@ normalpatterns += [
     re_path(r'^logout/?$', auth_views.LogoutView.as_view(), name='logout'),
     re_path(r'^password_change/?$', ChangePasswordView.as_view(), name='password_change'),
     re_path(r'^password_change/done/?$', auth_views.PasswordChangeDoneView.as_view(), name='password_change_done'),
-    re_path(r'^password_reset/?$', auth_views.PasswordResetView.as_view(),
-            kwargs={'password_reset_form': RDRFPasswordResetForm}, name='password_reset'),
-    re_path(r'^password_reset/done/?$', auth_views.PasswordResetDoneView.as_view(), name='password_reset_done'),
+    re_path(r'^password_reset/?$', auth_views.PasswordResetView.as_view(form_class=RDRFPasswordResetForm),
+            name='password_reset'),
+    re_path(r'^password_reset/done/?$', auth_views.PasswordResetDoneView.as_view(
+            template_name='registration/login_assistance_sent.html'),
+            name='password_reset_done'),
     re_path(r'^reset/(?P<uidb64>[0-9A-Za-z_\-]+)/(?P<token>[0-9A-Za-z]{1,13}-[0-9A-Za-z]{1,20})/?$',
-            auth_views.PasswordResetConfirmView.as_view(),
-            kwargs={'set_password_form': RDRFSetPasswordForm},
+            auth_views.PasswordResetConfirmView.as_view(form_class=RDRFSetPasswordForm),
             name='password_reset_confirm'),
     re_path(r'^reset/done/?$', auth_views.PasswordResetCompleteView.as_view(), name='password_reset_complete'),
 
     # Login trouble self assistance URLs
-    re_path(r'^login_assistance/?$', auth_views.PasswordResetView.as_view(),
-            kwargs={
-            'password_reset_form': RDRFLoginAssistanceForm,
-            'template_name': 'registration/login_assistance_form.html',
-            'subject_template_name': 'registration/login_assistance_subject.txt',
-            'email_template_name': 'registration/login_assistance_email.html',
-            'post_reset_redirect': 'login_assistance_email_sent',
-            },
+
+    re_path(r'^login_assistance/?$', auth_views.PasswordResetView.as_view(
+            form_class=RDRFLoginAssistanceForm,
+            template_name='registration/login_assistance_form.html',
+            subject_template_name='registration/login_assistance_subject.txt',
+            email_template_name='registration/login_assistance_email.html',
+            success_url='login_assistance_email_sent'
+            ),
             name='login_assistance'),
-    re_path(r'^login_assistance/sent/?$', auth_views.PasswordResetDoneView.as_view(),
-            kwargs={'template_name': 'registration/login_assistance_sent.html',
-                    'extra_context': {'title': _('Login Assitance Email Sent')}},
+    re_path(r'^login_assistance/sent/?$', auth_views.PasswordResetDoneView.as_view(
+            template_name='registration/login_assistance_sent.html',
+            extra_context={'title': _('Login Assitance Email Sent')}),
             name='login_assistance_email_sent'),
     re_path(r'^login_assistance_confirm/(?P<uidb64>[0-9A-Za-z_\-]+)/(?P<token>[0-9A-Za-z]{1,13}-[0-9A-Za-z]{1,20})/?$',
             login_assistance_confirm,
             name='login_assistance_confirm'),
-    re_path(r'^login_assistance/complete/?$', auth_views.PasswordResetCompleteView.as_view(),
-            kwargs={'template_name': 'registration/login_assistance_complete.html'},
+    re_path(r'^login_assistance/complete/?$', auth_views.PasswordResetCompleteView.as_view(
+            template_name='registration/login_assistance_complete.html'),
             name='login_assistance_complete'),
 
     re_path(r'^promslanding/?$', PromsLandingPageView.as_view(), name="proms_landing_page"),
