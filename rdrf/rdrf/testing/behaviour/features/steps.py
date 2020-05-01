@@ -842,28 +842,6 @@ def scroll_to_centre(xp):
     world.browser.execute_script("scrollTo(0, %s)" % move)
 
 
-@step('I add patient name "(.*)" sex "(.*)" birthdate "(.*)"')
-def add_new_patient(step, name, sex, birthdate):
-    # Woud like to make this a bit more smooth in future,
-    # to avoid repeated calls to find.
-    surname, firstname = name.split()
-    world.browser.get(
-        world.site_url + "patientslisting"
-    )
-    find("//button[@id='add_patient']").click()
-    find("//option[contains(., 'ICHOM Colorectal Cancer')]").click()
-    find("//option[contains(., 'ICHOMCRC SJOG')]").click()
-    find("//input[@name='family_name']").send_keys(surname)
-    find("//input[@name='given_names']").send_keys(firstname)
-    find("//input[@name='date_of_birth']").send_keys(birthdate, Keys.ESCAPE)
-    scroll_to_centre("//select[@name='sex']")
-    find("//select[@name='sex']").click()
-    find("//select[@name='sex']/option[text()='%s']" % sex).click()
-    find("//button[@id='submit-btn']").click()
-    assert "Patient added successfully" in world.browser.page_source,\
-        "Patient add success message not present"
-
-
 @step('I return to patientlisting')
 def return_to_patientlisting(step):
     world.browser.get(
@@ -936,3 +914,74 @@ def proms_checks(step, which, option):
             "Unable to find %s option %s"
             % (which, option)
         )
+
+
+@step('the menu "([^\"]+)" (contains|DOES NOT contain) "([^\"]+)"')
+def menu_contains_yn_general(step, menu, check, item):
+    if check == "contains":
+        xp = (
+            "//a[contains(.,'%s')]/following-sibling::ul/li/a[contains(.,'%s')]"
+            % (menu, item)
+        )
+        try:
+            find(xp)
+        except Nse:
+            raise Exception(
+                "Could not find menu \"%s\" item \"%s\"\n"
+                "xpath:  %s"
+                % (menu, item, xp)
+            )
+    elif check == "DOES NOT contain":
+        xp = (
+            "//a[contains(.,'%s')]/following-sibling::ul/li"
+            % (menu)
+        )
+        ls1 = find_multiple(xp)
+        ls2 = []
+        for obj in ls1:
+            ls2.append(obj.get_attribute("text"))
+        if item in ls2:
+            raise Exception(
+                "Found menu \"%s\" item \"%s\", but should not exist.\n"
+                % (menu, item)
+            )
+        else:
+            pass
+    else:
+        raise Exception("Do not recognise check type:  %s" % check)
+
+
+class Xpath:
+    ADD_PATIENT_BUTTON = "//button[@id='add_patient']"
+    REGISTRY_OPTION = "//option[contains(., 'ICHOM Colorectal Cancer')]"
+    CENTRE_OPTION_SJOG = "//option[contains(., 'ICHOMCRC SJOG')]"
+    SURNAME_FIELD = "//input[@name='family_name']"
+    FIRSTNAME_FIELD = "//input[@name='given_names']"
+    DOB_FIELD = "//input[@name='date_of_birth']"
+    SEX_LIST = "//select[@name='sex']"
+    SEX_OPTION_MALE = "//select[@name='sex']/option[text()='Male']"
+    SEX_OPTION_FEMALE = "//select[@name='sex']/option[text()='Female']"
+    SUBMIT_BUTTON = "//button[@id='submit-btn']"
+
+
+@step('I add patient name "(.*)" sex "(.*)" birthdate "(.*)"')
+def add_new_patient(step, name, sex, birthdate):
+    surname, firstname = name.split()
+    world.browser.get(
+        world.site_url + "patientslisting"
+    )
+    find(Xpath.ADD_PATIENT_BUTTON).click()
+    find(Xpath.REGISTRY_OPTION).click()
+    find(Xpath.CENTRE_OPTION_SJOG).click()
+    find(Xpath.SURNAME_FIELD).send_keys(surname)
+    find(Xpath.FIRSTNAME_FIELD).send_keys(firstname)
+    find(Xpath.DOB_FIELD).send_keys(birthdate, Keys.ESCAPE)
+    scroll_to_centre(Xpath.SEX_LIST)
+    find(Xpath.SEX_LIST).click()
+    if sex == "Male":
+        find(Xpath.SEX_OPTION_MALE).click()
+    else:
+        find(Xpath.SEX_OPTION_FEMALE).click()
+    find(Xpath.SUBMIT_BUTTON).click()
+    assert "Patient added successfully" in world.browser.page_source,\
+        "Patient add success message not present"
