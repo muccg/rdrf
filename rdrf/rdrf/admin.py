@@ -408,6 +408,18 @@ class SurveyAssignmentAdmin(admin.ModelAdmin):
 class ContextFormGroupItemAdmin(admin.StackedInline):
     model = ContextFormGroupItem
 
+    def get_max_num(self, request, obj=None, **kwargs):
+        max_num = None
+        if obj and obj.context_type == "M":
+            max_num = 1
+        return max_num
+
+    def get_extra(self, request, obj=None, **kwargs):
+        extra = 3
+        if obj and obj.context_type == "M":
+            extra = 0
+        return extra
+
 
 class ContextFormGroupAdmin(admin.ModelAdmin):
     model = ContextFormGroup
