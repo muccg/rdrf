@@ -842,49 +842,6 @@ def scroll_to_centre(xp):
     world.browser.execute_script("scrollTo(0, %s)" % move)
 
 
-@step('I add patient name "(.*)" sex "(.*)" birthdate "(.*)"')
-def add_new_patient(step, name, sex, birthdate):
-    # Refactored 20200414 to avoid writing "find" multiple times in succession.
-    # Prepare name, page, and lists;
-    surname, firstname = name.split()
-    world.browser.get(
-        world.site_url + "patientslisting"
-    )
-    xp_list = [
-        "//button[@id='add_patient']",
-        "//option[contains(., 'ICHOM Colorectal Cancer')]",
-        "//option[contains(., 'ICHOMCRC SJOG')]",
-        "//input[@name='family_name']",
-        "//input[@name='given_names']",
-        "//input[@name='date_of_birth']",
-        "//select[@name='sex']",
-        "//select[@name='sex']/option[text()='%s']" % sex,
-        "//button[@id='submit-btn']"
-    ]
-    keys_list = [
-        surname,
-        firstname,
-        [
-            birthdate,
-            Keys.ESCAPE
-        ]
-    ]
-    # Operations;
-    for i in range(0, len(xp_list)):
-        # If sex, scroll into view;
-        if i == 6:
-            scroll_to_centre(xp_list[i])
-        # Outside indices 3-5 are clicks only;
-        if i not in range(3, 6):
-            find(xp_list[i]).click()
-        # else send key commands from list;
-        else:
-            find(xp_list[i]).send_keys(keys_list[i - 3])
-    # Check success;
-    assert "Patient added successfully" in world.browser.page_source,\
-        "Patient add success message not present"
-
-
 @step('I return to patientlisting')
 def return_to_patientlisting(step):
     world.browser.get(
@@ -992,3 +949,39 @@ def menu_contains_yn_general(step, menu, check, item):
             pass
     else:
         raise Exception("Do not recognise check type:  %s" % check)
+
+
+class Xpath:
+    ADD_PATIENT_BUTTON = "//button[@id='add_patient']"
+    REGISTRY_OPTION = "//option[contains(., 'ICHOM Colorectal Cancer')]"
+    CENTRE_OPTION_SJOG = "//option[contains(., 'ICHOMCRC SJOG')]"
+    SURNAME_FIELD = "//input[@name='family_name']"
+    FIRSTNAME_FIELD = "//input[@name='given_names']"
+    DOB_FIELD = "//input[@name='date_of_birth']"
+    SEX_LIST = "//select[@name='sex']"
+    SEX_OPTION_MALE = "//select[@name='sex']/option[text()='Male']"
+    SEX_OPTION_FEMALE = "//select[@name='sex']/option[text()='Female']"
+    SUBMIT_BUTTON = "//button[@id='submit-btn']"
+
+
+@step('I add patient name "(.*)" sex "(.*)" birthdate "(.*)"')
+def add_new_patient(step, name, sex, birthdate):
+    surname, firstname = name.split()
+    world.browser.get(
+        world.site_url + "patientslisting"
+    )
+    find(Xpath.ADD_PATIENT_BUTTON).click()
+    find(Xpath.REGISTRY_OPTION).click()
+    find(Xpath.CENTRE_OPTION_SJOG).click()
+    find(Xpath.SURNAME_FIELD).send_keys(surname)
+    find(Xpath.FIRSTNAME_FIELD).send_keys(firstname)
+    find(Xpath.DOB_FIELD).send_keys(birthdate, Keys.ESCAPE)
+    scroll_to_centre(Xpath.SEX_LIST)
+    find(Xpath.SEX_LIST).click()
+    if sex == "Male":
+        find(Xpath.SEX_OPTION_MALE).click()
+    else:
+        find(Xpath.SEX_OPTION_FEMALE).click()
+    find(Xpath.SUBMIT_BUTTON).click()
+    assert "Patient added successfully" in world.browser.page_source,\
+        "Patient add success message not present"
