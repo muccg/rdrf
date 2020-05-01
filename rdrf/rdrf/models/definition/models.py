@@ -2008,8 +2008,7 @@ class CustomAction(models.Model):
             qry = Patient.objects.all()
             for field in behaviours:
                 if behaviour[field] == "patient_filter":
-                    qry = qry.filter(field=myself.cleaned_data['my_form_field_name``']
-
+                    pass
 
     def execute(self, user, patient_model=None):
         """
@@ -2024,12 +2023,12 @@ class CustomAction(models.Model):
 
         if self.action_type == "PR":
             from rdrf.services.io.actions import patient_report
-            result=patient_report.execute(self.registry,
-                                          self.name,
-                                          self.data,
-                                          user,
-                                          patient_model,
-                                          async=self.asynchronous)
+            result = patient_report.execute(self.registry,
+                                            self.name,
+                                            self.data,
+                                            user,
+                                            patient_model,
+                                            run_async=self.asynchronous)
 
             logger.info("custom action %s/%s by user %s on patient %s" % (self.registry.code,
                                                                           self.name,
@@ -2042,7 +2041,7 @@ class CustomAction(models.Model):
                                                  self.name,
                                                  self.data,
                                                  user,
-                                                 async=self.asynchronous)
+                                                 run_async=self.asynchronous)
 
         else:
             raise NotImplementedError("Unknown action type: %s" % self.action_type)
@@ -2060,7 +2059,7 @@ class CustomAction(models.Model):
 
     @property
     def menu_link(self):
-        link=LinkWrapper(self.url, self.name)
+        link = LinkWrapper(self.url, self.name)
         return link
 
     def check_security(self, user, patient_model):
