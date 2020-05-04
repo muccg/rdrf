@@ -1984,32 +1984,30 @@ class CustomAction(models.Model):
         else:
             return None
 
-    def _generate_input_form(self, inputs):
+    def _generate_input_form_class(self, inputs):
         import django.forms as forms
+        from collections import OrderedDict
+        base_fields = OrderedDict()
 
         def create_field(input_spec):
             field_type = input_spec["field_type"]
             label = input_spec["label"]
-            name = input_spec["name"]
+            if field_type == "date":
+                klass = forms.DateField
+            else:
+                raise NotImplementedError("don't support yet")
+            return klass(label=label)
 
-        klass = forms.BaseForm
+        form_klass = forms.BaseForm
         fields = []
-        behaviours = {}
         for input_spec in inputs:
-            behaviour = input_spec["behaviour"]
-            behaviours[input_spec["name"]] = behaviour
             django_field = create_field(input_spec)
-            field_label = input_spec["label"]
-            fields.append([field_label, django_field])
+            field_name = input_spec["name"]
+            base_fields[field_name] = django_field
 
-        def patient_filter(myself):
-            # create a django query to filter patients by
-            # based on the input spec behaviours
-            from rdrf.registry.patients.models import Patient
-            qry = Patient.objects.all()
-            for field in behaviours:
-                if behaviour[field] == "patient_filter":
-                    pass
+        form_dict = {"base_fields": base_fields}
+        form_klass = type("CustomActionInputForm", (forms.BaseForm,), form_dict)
+        return form_class
 
     def execute(self, user, patient_model=None):
         """
