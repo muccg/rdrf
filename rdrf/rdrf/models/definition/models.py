@@ -1947,32 +1947,33 @@ class CustomAction(models.Model):
     action_type = models.CharField(max_length=2, choices=ACTION_TYPES)
     data = models.TextField(null=True)
     scope = models.CharField(max_length=1, choices=SCOPES)  # controls where action appears
+    runtime_spec = models.TextField(blank=True, null=True)  # json field to describe how the action is run
 
-    def _get_data(self):
+    def _get_spec(self):
         import json
-        if not self.data:
+        if not self.runtime_spec:
             return {}
         try:
-            return json.loads(self.data)
+            return json.loads(self.runtime_spec)
         except ValueError as verr:
-            logger.error("can't load json data for custom action: %s" % verr)
+            logger.error("can't load runtime spec json data for custom action: %s" % verr)
             raise
 
     @property
     def asynchronous(self):
-        config = self._get_data()
-        return "async" in config and config["async"].lower() == "true"
+        spec = self._get_spec()
+        return "async" in spec and spec["async"]
 
     @property
     def requires_input(self):
-        config = self._get_data()
-        return "inputs" in config and len(config["inputs"]) > 0
+        spec = self._get_spec()
+        return "inputs" in spec and len(spec["inputs"]) > 0
 
     @property
     def inputs(self):
-        config = self._get_data()
-        if "inputs" in config:
-            return config["inputs"]
+        spec = self._get_spec()
+        if "inputs" in spec:
+            return spec["inputs"]
         else:
             return []
 
@@ -1987,7 +1988,7 @@ class CustomAction(models.Model):
         import django.forms as forms
 
         def create_field(input_spec):
-            field_type = input_spec["type"]
+            field_type = input_spec["field_type"]
             label = input_spec["label"]
             name = input_spec["name"]
 
