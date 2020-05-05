@@ -1977,10 +1977,11 @@ class CustomAction(models.Model):
         else:
             return []
 
-    def parse_inputs(self):
+    @property
+    def input_form_class(self):
         # return a django form?
         if self.requires_input:
-            return self._generate_input_form(self.inputs)
+            return self._generate_input_form_class(self.inputs)
         else:
             return None
 
@@ -1998,7 +1999,7 @@ class CustomAction(models.Model):
                 raise NotImplementedError("don't support yet")
             return klass(label=label)
 
-        form_klass = forms.BaseForm
+        form_class = forms.BaseForm
         fields = []
         for input_spec in inputs:
             django_field = create_field(input_spec)
@@ -2006,10 +2007,10 @@ class CustomAction(models.Model):
             base_fields[field_name] = django_field
 
         form_dict = {"base_fields": base_fields}
-        form_klass = type("CustomActionInputForm", (forms.BaseForm,), form_dict)
+        form_class = type("CustomActionInputForm", (forms.BaseForm,), form_dict)
         return form_class
 
-    def execute(self, user, patient_model=None):
+    def execute(self, user, patient_model=None, input_data=None):
         """
         This should return a HttpResponse of some sort
         """
@@ -2039,8 +2040,7 @@ class CustomAction(models.Model):
             return patient_status_report.execute(self.registry,
                                                  self.name,
                                                  self.data,
-                                                 user,
-                                                 run_async=self.asynchronous)
+                                                 user)
 
         else:
             raise NotImplementedError("Unknown action type: %s" % self.action_type)

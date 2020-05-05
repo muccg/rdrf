@@ -1,3 +1,6 @@
+import logging
+import csv
+import json
 from django.http import HttpResponse
 from rdrf.models.definition.models import RegistryForm
 from rdrf.models.definition.models import Section
@@ -8,8 +11,6 @@ from rdrf.helpers.utils import cde_completed
 from rdrf.helpers.utils import format_date
 from registry.patients.models import Patient
 from registry.patients.models import ConsentValue
-import logging
-import csv
 
 logger = logging.getLogger(__name__)
 
@@ -55,12 +56,12 @@ def get_timestamp(clinical_data):
 
 
 class ReportGenerator:
-    def __init__(self, registry_model, report_name, report_spec, user):
-        import json
+    def __init__(self, registry_model, report_name, report_spec, user, input_data):
         self.registry_model = registry_model
         self.report_name = report_name
         self.report_spec = json.loads(report_spec)
         self.user = user
+        self.input_data = input_data  # this filters the data
         self.form_names = None
         self.start_date = None
         self.finish_date = None
@@ -325,10 +326,10 @@ class ReportGenerator:
             raise SecurityException()
 
 
-def execute(registry_model, report_name, report_spec, user):
+def execute(registry_model, report_name, report_spec, user, input_data=None):
     logger.info("running custom action report %s for %s" % (report_name,
                                                             user.username))
-    parser = ReportGenerator(registry_model, report_name, report_spec, user)
+    parser = ReportGenerator(registry_model, report_name, report_spec, user, input_data)
     parser.generate_report()
     response = HttpResponse(content_type='text/csv')
     response['Content-Disposition'] = 'attachment; filename="Completion Report.csv"'
