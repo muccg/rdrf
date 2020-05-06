@@ -2037,10 +2037,12 @@ class CustomAction(models.Model):
             return result
         elif self.action_type == "SR":
             from rdrf.services.io.actions import patient_status_report
-            return patient_status_report.execute(self.registry,
+            return patient_status_report.execute(self,
+                                                 self.registry,
                                                  self.name,
                                                  self.data,
-                                                 user)
+                                                 user,
+                                                 input_data)
 
         else:
             raise NotImplementedError("Unknown action type: %s" % self.action_type)

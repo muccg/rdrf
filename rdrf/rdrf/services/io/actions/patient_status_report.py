@@ -9,6 +9,8 @@ from rdrf.models.definition.models import ContextFormGroup
 from rdrf.models.definition.models import ClinicalData
 from rdrf.helpers.utils import cde_completed
 from rdrf.helpers.utils import format_date
+from rdrf.helpers.utils import parse_iso_datetime
+from rdrf.helpers.utils import parse_iso_date
 from registry.patients.models import Patient
 from registry.patients.models import ConsentValue
 
@@ -56,7 +58,9 @@ def get_timestamp(clinical_data):
 
 
 class ReportGenerator:
-    def __init__(self, registry_model, report_name, report_spec, user, input_data):
+    def __init__(self, custom_action, registry_model, report_name, report_spec, user, input_data):
+        logger.debug("input_data = %s" % input_data)
+        self.custom_action = custom_action
         self.registry_model = registry_model
         self.report_name = report_name
         self.report_spec = json.loads(report_spec)
@@ -68,6 +72,13 @@ class ReportGenerator:
         self.data = self._get_all_data()
         self.context_form_group = self._get_context_form_group()
         self.report = None
+        self.start_date = None
+        self.end_date = None
+        self._setup_inputs()
+
+    def _setup_inputs(self):
+        self.start_date = self.input_data.get("start_date", None)
+        self.end_date = self.input_data.get("end_date", None)
 
     def dump_csv(self, stream):
         writer = csv.writer(stream)
@@ -319,17 +330,73 @@ class ReportGenerator:
 
         for patient_model in Patient.objects.filter(rdrf_registry__code__in=[self.registry_model.code],
                                                     working_groups__in=user_working_groups):
-            yield patient_model
+
+            if self._include_patient(patient_model):
+                yield patient_model
+
+    def _include_patient(self, patient_model):
+        if self.start_date and self.end_date:
+            consent_date, reason = self._get_consent_date_and_reason(patient_model)
+            logger.info("consent date = %s (reason %s)" % (consent_date, reason))
+            return consent_date >= self.start_date and consent_date <= self.end_date
+        else:
+            return True
+
+    def _get_consent_date_and_reason(self, patient_model):
+        # This seems overly complex ...
+        # get clinical data objects for follow ups
+        followup_cds = patient_model.get_clinical_data_for_form_group("Followup")
+        logger.debug("follow ups = %s" % followup_cds)
+        if len(followup_cds) == 0:
+            # No Follow up proms returned
+            # check the Baseline proms
+            baseline_cds = patient_model.get_clinical_data_for_form_group("Modules")
+            if baseline_cds:
+                assert len(baseline_cds) == 1, "There should only be one fixed form group"
+                baseline_cd = baseline_cds[0]
+                return self._get_consent_date_baseline(baseline_cd), "baseline"
+            else:
+                # no data at all?
+                return None, "no data at all"
+        else:
+            # patient has filled in followup proms which are after baseline
+            latest_date = None
+            for cd in followup_cds:
+                if cd.data:
+                    try:
+                        timestamp = cd.data["FollowUpProms_timestamp"]
+                        followup_date = parse_iso_datetime(timestamp).date()
+                    except KeyError:
+                        followup_date = None
+                    if latest_date is None:
+                        latest_date = followup_date
+                    else:
+                        if followup_date:
+                            if followup_date > latest_date:
+                                latest_date = followup_date
+            return latest_date, "follow up"
+
+    def _get_consent_date_baseline(self, baseline_cd):
+        if baseline_cd.data:
+            forms = baseline_cd.data["forms"]
+            for form_dict in forms:
+                if form_dict["name"] == "BaselineClinicalForm":
+                    for section_dict in form_dict["sections"]:
+                        if section_dict["code"] == "BASELINECLINICALCRC":
+                            for cde_dict in section_dict["cdes"]:
+                                if cde_dict["code"] == "First_Consult_Date":
+                                    value = cde_dict["value"]
+                                    return parse_iso_date(value)
 
     def _security_check(self):
         if not self.user.in_registry(self.registry_model):
             raise SecurityException()
 
 
-def execute(registry_model, report_name, report_spec, user, input_data=None):
+def execute(custom_action, registry_model, report_name, report_spec, user, input_data=None):
     logger.info("running custom action report %s for %s" % (report_name,
                                                             user.username))
-    parser = ReportGenerator(registry_model, report_name, report_spec, user, input_data)
+    parser = ReportGenerator(custom_action, registry_model, report_name, report_spec, user, input_data)
     parser.generate_report()
     response = HttpResponse(content_type='text/csv')
     response['Content-Disposition'] = 'attachment; filename="Completion Report.csv"'
