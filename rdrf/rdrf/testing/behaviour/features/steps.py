@@ -985,3 +985,75 @@ def add_new_patient(step, name, sex, birthdate):
     find(Xpath.SUBMIT_BUTTON).click()
     assert "Patient added successfully" in world.browser.page_source,\
         "Patient add success message not present"
+
+
+@step('I select radio value "([^\"]+)" for cde "([^\"]+)"')
+def radio_select(step, value, cde):
+    xp = (
+        "//label[contains(.,'%s')]/following-sibling::div"
+        "/label[contains(.,'%s')]"
+        % (cde, value)
+    )
+    try:
+        scroll_to_centre(xp)
+        find(xp).click()
+    except Nse:
+        raise Exception(
+            "Cannot find value \"%s\" for CDE \"%s\"\n"
+            "xpath:  %s"
+            % (value, cde, xp)
+        )
+
+
+@step('radio value "([^\"]+)" for cde "([^\"]+)" should (NOT )?be selected')
+def check_radio_selected(step, value, cde, no):
+    xp = (
+        "//label[contains(.,'%s')]/following-sibling::div"
+        "/label[contains(.,'%s')]"
+        % (cde, value)
+    )
+    innerHTML = find(xp).get_attribute("innerHTML")
+    if no:
+        assert "checked=\"\"" not in innerHTML,\
+            (
+                "Option \"%s\" for CDE \"%s\" selected, but should not be.\n"
+                "innerHTML:  %s"
+                % (value, cde, innerHTML)
+            )
+    else:
+        assert "checked=\"\"" in innerHTML,\
+            (
+                "Option \"%s\" for CDE \"%s\" not selected, but should be.\n"
+                "innerHTML:  %s"
+                % (value, cde, innerHTML)
+            )
+
+
+@step('the cde "([^\"]+)" is (NOT )?marked as (abnormal|important|required)')
+def is_marked_as(step, cde, no, mark):
+    xp = "//label[contains(.,'%s')]" % cde
+    try:
+        outerhtml = find(xp).get_attribute("outerHTML")
+    except Nse:
+        raise Exception(
+            "Cannot find cde label \"%s\"\n"
+            "xpath:  %s"
+            % (cde, xp)
+        )
+    seek = {
+        "abnormal": "glyphicon glyphicon-warning-sign",
+        "important": (
+            "class=\"glyphicon glyphicon-asterisk\" "
+            "style=\"color: green;\""
+        ),
+        "required": (
+            "class=\"glyphicon glyphicon-asterisk\" "
+            "style=\"color: red;\""
+        )
+    }
+    if no:
+        assert seek[mark] not in outerhtml,\
+            "Found mark for cde marked as %s, but should not be present" % mark
+    else:
+        assert seek[mark] in outerhtml,\
+            "Could not find mark for cde marked as %s" % mark
