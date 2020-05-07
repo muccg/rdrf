@@ -15,24 +15,46 @@ Feature: CDE marks in CIC Clinical (ICHOMCRC).
     Then I click "Baseline PROMS" in sidebar
     And location is "Modules/Baseline PROMS"
     Then the cde "Do you have any trouble taking a long walk?" is NOT marked as abnormal
+    And the cde "Have you had pain?" is NOT marked as abnormal
     And the cde "How would you rate your overall health during the past week?" is NOT marked as abnormal
+    And the cde "How would you rate your overall quality of life during the past week?" is NOT marked as abnormal
     And I select radio value "Very much" for cde "Do you have any trouble taking a long walk?"
+    And I select radio value "Very much" for cde "Have you had pain?"
     And I select "1" from "How would you rate your overall health during the past week?"
+    And I select "1" from "How would you rate your overall quality of life during the past week?"
     And I press the "Save" button
     Then radio value "Very much" for cde "Do you have any trouble taking a long walk?" should be selected
+    And radio value "Very much" for cde "Have you had pain?" should be selected
     And the cde "Do you have any trouble taking a long walk?" is marked as abnormal
+    And the cde "Have you had pain?" is marked as abnormal
     And the cde "How would you rate your overall health during the past week?" is marked as abnormal
+    And the cde "How would you rate your overall quality of life during the past week?" is marked as abnormal
     Then I select radio value "Quite a bit" for cde "Do you have any trouble taking a long walk?"
+    And I select radio value "Quite a bit" for cde "Have you had pain?"
     And I select "2" from "How would you rate your overall health during the past week?"
+    And I select "2" from "How would you rate your overall quality of life during the past week?"
     And I press the "Save" button
     Then radio value "Quite a bit" for cde "Do you have any trouble taking a long walk?" should be selected
+    And radio value "Quite a bit" for cde "Have you had pain?" should be selected
     And the cde "Do you have any trouble taking a long walk?" is marked as abnormal
+    And the cde "Have you had pain?" is marked as abnormal
+    And the cde "How would you rate your overall health during the past week?" is marked as abnormal
+    And the cde "How would you rate your overall quality of life during the past week?" is marked as abnormal
     Then I select radio value "A little" for cde "Do you have any trouble taking a long walk?"
+    And I select radio value "A little" for cde "Have you had pain?"
     And I select "3" from "How would you rate your overall health during the past week?"
+    And I select "3" from "How would you rate your overall quality of life during the past week?"
     And I press the "Save" button
     Then radio value "A little" for cde "Do you have any trouble taking a long walk?" should be selected
+    And radio value "A little" for cde "Have you had pain?" should be selected
     And the cde "Do you have any trouble taking a long walk?" is NOT marked as abnormal
+    And the cde "Have you had pain?" is NOT marked as abnormal
     And the cde "How would you rate your overall health during the past week?" is NOT marked as abnormal
+    And the cde "How would you rate your overall quality of life during the past week?" is NOT marked as abnormal
+    And the cde "What is your current employment status?" is NOT marked as important
+    And the cde "Have you had pain?" is NOT marked as important
+    And the cde "Have you had difficulty remembering things?" is NOT marked as important
+    And the cde "USUAL ACTIVITIES" is NOT marked as important
 
   Scenario: Required fields on Demographics
     When I am logged in as clinical

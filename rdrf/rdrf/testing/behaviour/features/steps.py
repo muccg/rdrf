@@ -1012,20 +1012,20 @@ def check_radio_selected(step, value, cde, no):
         "/label[contains(.,'%s')]"
         % (cde, value)
     )
-    innerHTML = find(xp).get_attribute("innerHTML")
+    innerhtml = find(xp).get_attribute("innerHTML")
     if no:
-        assert "checked=\"\"" not in innerHTML,\
+        assert "checked=\"\"" not in innerhtml,\
             (
                 "Option \"%s\" for CDE \"%s\" selected, but should not be.\n"
                 "innerHTML:  %s"
-                % (value, cde, innerHTML)
+                % (value, cde, innerhtml)
             )
     else:
-        assert "checked=\"\"" in innerHTML,\
+        assert "checked=\"\"" in innerhtml,\
             (
                 "Option \"%s\" for CDE \"%s\" not selected, but should be.\n"
                 "innerHTML:  %s"
-                % (value, cde, innerHTML)
+                % (value, cde, innerhtml)
             )
 
 
@@ -1040,7 +1040,7 @@ def is_marked_as(step, cde, no, mark):
             "xpath:  %s"
             % (cde, xp)
         )
-    seek = {
+    html_map = {
         "abnormal": "glyphicon glyphicon-warning-sign",
         "important": (
             "class=\"glyphicon glyphicon-asterisk\" "
@@ -1052,8 +1052,8 @@ def is_marked_as(step, cde, no, mark):
         )
     }
     if no:
-        assert seek[mark] not in outerhtml,\
+        assert html_map[mark] not in outerhtml,\
             "Found mark for cde marked as %s, but should not be present" % mark
     else:
-        assert seek[mark] in outerhtml,\
+        assert html_map[mark] in outerhtml,\
             "Could not find mark for cde marked as %s" % mark
