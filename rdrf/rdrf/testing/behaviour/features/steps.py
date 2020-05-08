@@ -1039,18 +1039,18 @@ def is_marked_as(step, cde, no, mark):
     '(radio|dropdown) value "([^\"]+)" for cde "([^\"]+)" '
     'should (NOT )?be selected'
 )
-def check_rd_selected(step, ft, value, cde, no):
+def check_rd_selected(step, field, value, cde, no):
     xpf = "//label[contains(.,'%s')]/following-sibling::div" % cde
-    if ft == "dropdown":
+    if field == "dropdown":
         xp = xpf + "/select/option[contains(.,'%s')]" % value
         flag = "selected"
-    elif ft == "radio":
+    elif field == "radio":
         xp = xpf + "/label[contains(.,'%s')]" % value
         flag = "checked"
     else:
         raise Exception(
             "Field type not recognised.\n"
-            "Type:  %s" % ft
+            "Type:  %s" % field
         )
     try:
         innerhtml = find(xp).get_attribute("innerHTML")
