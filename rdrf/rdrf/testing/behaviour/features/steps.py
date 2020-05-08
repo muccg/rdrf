@@ -1039,13 +1039,13 @@ def is_marked_as(step, cde, no, mark):
     '(radio|dropdown) value "([^\"]+)" for cde "([^\"]+)" '
     'should (NOT )?be selected'
 )
-def check_rd_selected(step, field, value, cde, no):
-    xpf = "//label[contains(.,'%s')]/following-sibling::div" % cde
+def check_radio_or_dropdown_value(step, field, value, cde, no):
+    xp_part = "//label[contains(.,'%s')]/following-sibling::div" % cde
     if field == "dropdown":
-        xp = xpf + "/select/option[contains(.,'%s')]" % value
+        xp = xp_part + "/select/option[contains(.,'%s')]" % value
         flag = "selected"
     elif field == "radio":
-        xp = xpf + "/label[contains(.,'%s')]" % value
+        xp = xp_part + "/label[contains(.,'%s')]" % value
         flag = "checked"
     else:
         raise Exception(
