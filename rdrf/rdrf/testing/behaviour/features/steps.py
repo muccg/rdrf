@@ -1005,30 +1005,6 @@ def radio_select(step, value, cde):
         )
 
 
-@step('radio value "([^\"]+)" for cde "([^\"]+)" should (NOT )?be selected')
-def check_radio_selected(step, value, cde, no):
-    xp = (
-        "//label[contains(.,'%s')]/following-sibling::div"
-        "/label[contains(.,'%s')]"
-        % (cde, value)
-    )
-    innerhtml = find(xp).get_attribute("innerHTML")
-    if no:
-        assert "checked=\"\"" not in innerhtml,\
-            (
-                "Option \"%s\" for CDE \"%s\" selected, but should not be.\n"
-                "innerHTML:  %s"
-                % (value, cde, innerhtml)
-            )
-    else:
-        assert "checked=\"\"" in innerhtml,\
-            (
-                "Option \"%s\" for CDE \"%s\" not selected, but should be.\n"
-                "innerHTML:  %s"
-                % (value, cde, innerhtml)
-            )
-
-
 @step('the cde "([^\"]+)" is (NOT )?marked as (abnormal|important|required)')
 def is_marked_as(step, cde, no, mark):
     xp = "//label[contains(.,'%s')]" % cde
@@ -1057,3 +1033,44 @@ def is_marked_as(step, cde, no, mark):
     else:
         assert html_map[mark] in outerhtml,\
             "Could not find mark for cde marked as %s" % mark
+
+
+@step(
+    '(radio|dropdown) value "([^\"]+)" for cde "([^\"]+)" '
+    'should (NOT )?be selected'
+)
+def check_rd_selected(step, ft, value, cde, no):
+    xpf = "//label[contains(.,'%s')]/following-sibling::div" % cde
+    if ft == "dropdown":
+        xp = xpf + "/select/option[contains(.,'%s')]" % value
+        flag = "selected"
+    elif ft == "radio":
+        xp = xpf + "/label[contains(.,'%s')]" % value
+        flag = "checked"
+    else:
+        raise Exception(
+            "Field type not recognised.\n"
+            "Type:  %s" % ft
+        )
+    try:
+        innerhtml = find(xp).get_attribute("innerHTML")
+    except Nse:
+        raise Exception(
+            "Cannot find cde label \"%s\"\n"
+            "xpath:  %s"
+            % (cde, xp)
+        )
+    if no:
+        assert flag not in innerhtml,\
+            (
+                "Option \"%s\" for CDE \"%s\" selected, but should not be.\n"
+                "innerHTML:  %s"
+                % (value, cde, innerhtml)
+            )
+    else:
+        assert flag in innerhtml,\
+            (
+                "Option \"%s\" for CDE \"%s\" not selected, but should be.\n"
+                "innerHTML:  %s"
+                % (value, cde, innerhtml)
+            )
