@@ -1031,23 +1031,20 @@ class Patient(models.Model):
         """
         from rdrf.models.definition.models import ContextFormGroup
         from rdrf.models.definition.models import ClinicalData
-        logger.debug("AAAA")
-        logger.debug(context_form_group_name)
         patient_registries = [r for r in self.rdrf_registry.all()]
         # this is defacto true in all our environmments but our modelling needs
         # to change
         assert len(patient_registries) == 1, "Patient must belong to one registry"
         registry_model = patient_registries[0]
-        logger.debug(registry_model.code)
-        context_form_group = ContextFormGroup.objects.get(registry=registry_model,
-                                                          name=context_form_group_name)
-
-        logger.debug("patient.context_models = %s" % self.context_models)
+        try:
+            context_form_group = ContextFormGroup.objects.get(registry=registry_model,
+                                                              name=context_form_group_name)
+        except ContextFormGroup.DoesNotExist:
+            raise Exception("supplied context form group not in registry")
 
         context_ids = [context.id for context in self.context_models
                        if context.context_form_group and
                        context.context_form_group.name == context_form_group_name]
-        logger.debug("context ids = %s" % context_ids)
 
         return [cd for cd in ClinicalData.objects.filter(collection="cdes",
                                                          registry_code=registry_model.code,

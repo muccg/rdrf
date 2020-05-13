@@ -83,6 +83,13 @@ class Section(models.Model):
         cdes = {cde.code: cde for cde in qs}
         return [cdes[code] for code in codes]
 
+    def get_cde(self, code):
+        for cde_model in self.cde_models:
+            if cde_model.code == code:
+                return cde_model
+        raise KeyError("cde %s is not in section %s" % (code,
+                                                        self.code))
+
     def clean(self):
         errors = {}
         codes = set(self.get_elements())
@@ -959,6 +966,12 @@ class RegistryForm(models.Model):
             except Section.DoesNotExist:
                 pass
         return models
+
+    def get_section_model(self, code):
+        for section_model in self.section_models:
+            if section_model.code == code:
+                return section_model
+        raise KeyError("section %s not found in this form" % code)
 
     def in_questionnaire(self, section_code, cde_code):
         questionnaire_code = "%s.%s" % (section_code, cde_code)
@@ -1967,15 +1980,25 @@ class CustomAction(models.Model):
     @property
     def requires_input(self):
         spec = self._get_spec()
-        return "inputs" in spec and len(spec["inputs"]) > 0
+        try:
+            filter_spec = spec["filter_spec"]
+            inputs = filter_spec["inputs"]
+            return len(inputs) > 0
+        except KeyError:
+            return False
+
+    @property
+    def spec(self):
+        return self._get_spec()
 
     @property
     def inputs(self):
         spec = self._get_spec()
-        if "inputs" in spec:
-            return spec["inputs"]
-        else:
-            return []
+        if "filter_spec" in spec:
+            filter_spec = spec["filter_spec"]
+            if "inputs" in filter_spec:
+                return spec["filter_spec"]["inputs"]
+        return []
 
     @property
     def input_form_class(self):
@@ -2028,7 +2051,8 @@ class CustomAction(models.Model):
                                             self.data,
                                             user,
                                             patient_model,
-                                            run_async=self.asynchronous)
+                                            run_async=self.asynchronous,
+                                            runtime_spec=rt_spec)
 
             logger.info("custom action %s/%s by user %s on patient %s" % (self.registry.code,
                                                                           self.name,

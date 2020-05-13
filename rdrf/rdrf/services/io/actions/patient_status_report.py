@@ -1,6 +1,7 @@
 import logging
 import csv
 import json
+from datetime import date
 from django.http import HttpResponse
 from rdrf.models.definition.models import RegistryForm
 from rdrf.models.definition.models import Section
@@ -15,6 +16,11 @@ from registry.patients.models import Patient
 from registry.patients.models import ConsentValue
 
 logger = logging.getLogger(__name__)
+
+
+class Dates:
+    FAR_FUTURE = date(2100, 1, 1)
+    DISTANT_PAST = date(1900, 1, 1)
 
 
 class SecurityException(Exception):
@@ -59,26 +65,61 @@ def get_timestamp(clinical_data):
 
 class ReportGenerator:
     def __init__(self, custom_action, registry_model, report_name, report_spec, user, input_data):
-        logger.debug("input_data = %s" % input_data)
         self.custom_action = custom_action
+        self.runtime_spec = custom_action.spec
         self.registry_model = registry_model
+        # filter models to use to restrict query (models)
+        # The context form group model must be fixed if used
+        # If None the default contexts will be used
+        self.filter_context_form_group = None
+        self.filter_form = None
+        self.filter_section = None
+        self.filter_cde = None
         self.report_name = report_name
         self.report_spec = json.loads(report_spec)
+        self._parse_filter_spec(self.runtime_spec)
         self.user = user
         self.input_data = input_data  # this filters the data
         self.form_names = None
-        self.start_date = None
-        self.finish_date = None
+        self.start_value = None
+        self.finish_value = None
         self.data = self._get_all_data()
         self.context_form_group = self._get_context_form_group()
         self.report = None
-        self.start_date = None
-        self.end_date = None
         self._setup_inputs()
 
     def _setup_inputs(self):
-        self.start_date = self.input_data.get("start_date", None)
-        self.end_date = self.input_data.get("end_date", None)
+        # todo allow different data types
+        self.start_value = self.input_data.get("start_value", Dates.DISTANT_PAST)
+        self.end_value = self.input_data.get("end_value", Dates.FAR_FUTURE)
+
+    def _parse_filter_spec(self, runtime_spec_dict):
+        logger.debug("in parse_filter_spec")
+        if "filter_spec" in runtime_spec_dict:
+            filter_spec = runtime_spec_dict["filter_spec"]
+            logger.debug("got filter_spec")
+            if "filter_field" in filter_spec:
+                filter_field = filter_spec["filter_field"]
+                logger.debug("got filter_field")
+                cfg_name = filter_field.get("context_form_group", None)
+                logger.debug("cfg_name = %s" % cfg_name)
+                if cfg_name is not None:
+                    self.filter_context_form_group = ContextFormGroup.objects.get(registry=self.registry_model,
+                                                                                  name=cfg_name)
+                    if not self.filter_context_form_group.context_type == "F":
+                        raise ValueError("filter context form group context type must be fixed")
+                    logger.debug("got context form group")
+
+                form_name = filter_field["form"]
+                self.filter_form = RegistryForm.objects.get(registry=self.registry_model,
+                                                            name=form_name)
+                logger.debug("got filter form = %s" % self.filter_form)
+                section_code = filter_field["section"]
+                self.filter_section = self.filter_form.get_section_model(section_code)
+                logger.debug("got filter_section")
+                cde_code = filter_field["cde"]
+                self.filter_cde = self.filter_section.get_cde(cde_code)
+                logger.debug("got filter cde")
 
     def dump_csv(self, stream):
         writer = csv.writer(stream)
@@ -335,57 +376,38 @@ class ReportGenerator:
                 yield patient_model
 
     def _include_patient(self, patient_model):
-        if self.start_date and self.end_date:
-            consent_date, reason = self._get_consent_date_and_reason(patient_model)
-            logger.info("consent date = %s (reason %s)" % (consent_date, reason))
-            return consent_date >= self.start_date and consent_date <= self.end_date
+        if self.start_value and self.end_value:
+            filter_value = self._get_filter_value(patient_model)
+            if filter_value is None:
+                return False
+            return filter_value >= self.start_value and filter_value <= self.end_value
         else:
             return True
 
-    def _get_consent_date_and_reason(self, patient_model):
-        # This seems overly complex ...
-        # get clinical data objects for follow ups
-        followup_cds = patient_model.get_clinical_data_for_form_group("Followup")
-        logger.debug("follow ups = %s" % followup_cds)
-        if len(followup_cds) == 0:
-            # No Follow up proms returned
-            # check the Baseline proms
-            baseline_cds = patient_model.get_clinical_data_for_form_group("Modules")
-            if baseline_cds:
-                assert len(baseline_cds) == 1, "There should only be one fixed form group"
-                baseline_cd = baseline_cds[0]
-                return self._get_consent_date_baseline(baseline_cd), "baseline"
-            else:
-                # no data at all?
-                return None, "no data at all"
+    def _get_filter_value(self, patient_model):
+        cds = patient_model.get_clinical_data_for_form_group(self.context_form_group.name)
+        if cds:
+            if len(cds) > 1:
+                raise ValueError("There should only be one clinical data object")
+            clinical_data = cds[0]
+            logger.debug("getting filter field value from clinical data")
+            return self._get_filter_field_value(clinical_data)
         else:
-            # patient has filled in followup proms which are after baseline
-            latest_date = None
-            for cd in followup_cds:
-                if cd.data:
-                    try:
-                        timestamp = cd.data["FollowUpProms_timestamp"]
-                        followup_date = parse_iso_datetime(timestamp).date()
-                    except KeyError:
-                        followup_date = None
-                    if latest_date is None:
-                        latest_date = followup_date
-                    else:
-                        if followup_date:
-                            if followup_date > latest_date:
-                                latest_date = followup_date
-            return latest_date, "follow up"
+            # No data saved at all for any of forms in this form group
+            return None
 
-    def _get_consent_date_baseline(self, baseline_cd):
-        if baseline_cd.data:
-            forms = baseline_cd.data["forms"]
+    def _get_filter_field_value(self, clinical_data):
+        assert self.filter_form is not None, "Filter form is None"
+        if clinical_data.data:
+            forms = clinical_data.data["forms"]
             for form_dict in forms:
-                if form_dict["name"] == "BaselineClinicalForm":
+                if form_dict["name"] == self.filter_form.name:
                     for section_dict in form_dict["sections"]:
-                        if section_dict["code"] == "BASELINECLINICALCRC":
+                        if section_dict["code"] == self.filter_section.code:
                             for cde_dict in section_dict["cdes"]:
-                                if cde_dict["code"] == "First_Consult_Date":
+                                if cde_dict["code"] == self.filter_cde.code:
                                     value = cde_dict["value"]
+                                    logger.debug("found value = %s" % value)
                                     return parse_iso_date(value)
 
     def _security_check(self):
@@ -393,7 +415,7 @@ class ReportGenerator:
             raise SecurityException()
 
 
-def execute(custom_action, registry_model, report_name, report_spec, user, input_data=None):
+def execute(custom_action, registry_model, report_name, report_spec, user, input_data=None, runtime_spec={}):
     logger.info("running custom action report %s for %s" % (report_name,
                                                             user.username))
     parser = ReportGenerator(custom_action, registry_model, report_name, report_spec, user, input_data)

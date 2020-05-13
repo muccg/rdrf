@@ -1,5 +1,8 @@
+{% extends "rdrf_cdes/base-1-col.html" %}
+{% block content %}
 <h2>{{custom_action.name}}</h2>
 <form method="post">{% csrf_token %}
 {{ input_form }}
 <input type="submit">
 </form>
+{% endblock %}
