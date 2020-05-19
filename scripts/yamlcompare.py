@@ -3,8 +3,8 @@ import sys
 import os
 
 """
-Looks for differences in 
-    Common Data Elements and 
+Looks for differences in
+    Common Data Elements and
     Survey Questions
 in two registry definition yaml files.
 """
@@ -47,19 +47,19 @@ out_file = os.path.join(out_path, "differences.csv")
 with open(yaml_file_1) as yf1, open(yaml_file_2) as yf2, open(out_file, 'w+') as result_file:
     data1 = yaml.load(yf1, yaml.SafeLoader)
     data2 = yaml.load(yf2, yaml.SafeLoader)
-    
+
     result_file.write("files: %s %s\n" % (yaml_file_1, yaml_file_2))
     result_file.write("registry definition: %s\n" % (data1["code"]))
     result_file.write("versions: %s %s\n" % (data1["REGISTRY_VERSION"], data2["REGISTRY_VERSION"]))
 
-    ### Compare CDEs ############################################################
+    # Compare CDEs ############################################################
     result_file.write("\nCommon Data Elements::\n")
 
     dict1 = get_dict_of_items(data1, "cdes", "code")
     dict2 = get_dict_of_items(data2, "cdes", "code")
     compare_dicts(dict1, dict2, result_file)
 
-    ### Compare Survey Questions ##################################################
+    # Compare Survey Questions ##################################################
     result_file.write("\nSurvey Questions::\n")
 
     surveys1 = data1["surveys"]
