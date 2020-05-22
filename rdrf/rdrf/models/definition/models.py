@@ -2023,7 +2023,6 @@ class CustomAction(models.Model):
             return klass(label=label)
 
         form_class = forms.BaseForm
-        fields = []
         for input_spec in inputs:
             django_field = create_field(input_spec)
             field_name = input_spec["name"]
@@ -2033,7 +2032,7 @@ class CustomAction(models.Model):
         form_class = type("CustomActionInputForm", (forms.BaseForm,), form_dict)
         return form_class
 
-    def execute(self, user, patient_model=None, input_data=None):
+    def execute(self, user, patient_model=None, input_data=None, rt_spec=None):
         """
         This should return a HttpResponse of some sort
         """

@@ -10,8 +10,8 @@ from rdrf.models.definition.models import ContextFormGroup
 from rdrf.models.definition.models import ClinicalData
 from rdrf.helpers.utils import cde_completed
 from rdrf.helpers.utils import format_date
-from rdrf.helpers.utils import parse_iso_datetime
 from rdrf.helpers.utils import parse_iso_date
+from rdrf.helpers.utils import parse_iso_datetime
 from registry.patients.models import Patient
 from registry.patients.models import ConsentValue
 
@@ -54,7 +54,6 @@ def aus_date(american_date):
 
 
 def get_timestamp(clinical_data):
-    from rdrf.helpers.utils import parse_iso_datetime
     if not clinical_data:
         return None
     if not clinical_data.data:

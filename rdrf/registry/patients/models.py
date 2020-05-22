@@ -1037,14 +1037,13 @@ class Patient(models.Model):
         assert len(patient_registries) == 1, "Patient must belong to one registry"
         registry_model = patient_registries[0]
         try:
-            context_form_group = ContextFormGroup.objects.get(registry=registry_model,
-                                                              name=context_form_group_name)
+            ContextFormGroup.objects.get(registry=registry_model,
+                                         name=context_form_group_name)
         except ContextFormGroup.DoesNotExist:
             raise Exception("supplied context form group not in registry")
 
-        context_ids = [context.id for context in self.context_models
-                       if context.context_form_group and
-                       context.context_form_group.name == context_form_group_name]
+        context_ids = [
+            context.id for context in self.context_models if context.context_form_group and context.context_form_group.name == context_form_group_name]
 
         return [cd for cd in ClinicalData.objects.filter(collection="cdes",
                                                          registry_code=registry_model.code,
