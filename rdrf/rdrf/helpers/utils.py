@@ -945,7 +945,6 @@ def cde_completed(registry_model, form_model, section_model, cde_model, patient_
                             if cde_dict["code"] == cde_model.code:
                                 value = cde_dict["value"]
                                 f = is_filled(cde_model, value)
-                                msg(f, value)
                                 return f
 
 

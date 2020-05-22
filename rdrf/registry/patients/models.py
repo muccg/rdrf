@@ -1019,6 +1019,38 @@ class Patient(models.Model):
 
         return sorted(contexts, key=key_func, reverse=True)
 
+    def get_clinical_data_for_form_group(self, context_form_group_name):
+        """
+        Return those clinical data objects for a patient
+        associated with contexts belonging to a given
+        context form group
+        e.g. follow_ups in CIC
+        is patient_model.get_clinical_data_for_form_group("FollowUp")
+        Fixed form groups should return a single element list or []
+        Multiple form group may return many items or []
+        """
+        from rdrf.models.definition.models import ContextFormGroup
+        from rdrf.models.definition.models import ClinicalData
+        patient_registries = [r for r in self.rdrf_registry.all()]
+        # this is defacto true in all our environmments but our modelling needs
+        # to change
+        assert len(patient_registries) == 1, "Patient must belong to one registry"
+        registry_model = patient_registries[0]
+        try:
+            ContextFormGroup.objects.get(registry=registry_model,
+                                         name=context_form_group_name)
+        except ContextFormGroup.DoesNotExist:
+            raise Exception("supplied context form group not in registry")
+
+        context_ids = [
+            context.id for context in self.context_models if context.context_form_group and context.context_form_group.name == context_form_group_name]
+
+        return [cd for cd in ClinicalData.objects.filter(collection="cdes",
+                                                         registry_code=registry_model.code,
+                                                         django_model="Patient",
+                                                         context_id__in=context_ids,
+                                                         django_id=self.id)]
+
     def get_forms_by_group(self, context_form_group):
         """
         Return links (pair of url and text)

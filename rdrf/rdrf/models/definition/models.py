@@ -83,6 +83,13 @@ class Section(models.Model):
         cdes = {cde.code: cde for cde in qs}
         return [cdes[code] for code in codes]
 
+    def get_cde(self, code):
+        for cde_model in self.cde_models:
+            if cde_model.code == code:
+                return cde_model
+        raise KeyError("cde %s is not in section %s" % (code,
+                                                        self.code))
+
     def clean(self):
         errors = {}
         codes = set(self.get_elements())
@@ -959,6 +966,12 @@ class RegistryForm(models.Model):
             except Section.DoesNotExist:
                 pass
         return models
+
+    def get_section_model(self, code):
+        for section_model in self.section_models:
+            if section_model.code == code:
+                return section_model
+        raise KeyError("section %s not found in this form" % code)
 
     def in_questionnaire(self, section_code, cde_code):
         questionnaire_code = "%s.%s" % (section_code, cde_code)
@@ -1947,8 +1960,79 @@ class CustomAction(models.Model):
     action_type = models.CharField(max_length=2, choices=ACTION_TYPES)
     data = models.TextField(null=True)
     scope = models.CharField(max_length=1, choices=SCOPES)  # controls where action appears
+    runtime_spec = models.TextField(blank=True, null=True)  # json field to describe how the action is run
 
-    def execute(self, user, patient_model=None):
+    def _get_spec(self):
+        import json
+        if not self.runtime_spec:
+            return {}
+        try:
+            return json.loads(self.runtime_spec)
+        except ValueError as verr:
+            logger.error("can't load runtime spec json data for custom action: %s" % verr)
+            raise
+
+    @property
+    def asynchronous(self):
+        spec = self._get_spec()
+        return "async" in spec and spec["async"]
+
+    @property
+    def requires_input(self):
+        spec = self._get_spec()
+        try:
+            filter_spec = spec["filter_spec"]
+            inputs = filter_spec["inputs"]
+            return len(inputs) > 0
+        except KeyError:
+            return False
+
+    @property
+    def spec(self):
+        return self._get_spec()
+
+    @property
+    def inputs(self):
+        spec = self._get_spec()
+        if "filter_spec" in spec:
+            filter_spec = spec["filter_spec"]
+            if "inputs" in filter_spec:
+                return spec["filter_spec"]["inputs"]
+        return []
+
+    @property
+    def input_form_class(self):
+        # return a django form?
+        if self.requires_input:
+            return self._generate_input_form_class(self.inputs)
+        else:
+            return None
+
+    def _generate_input_form_class(self, inputs):
+        import django.forms as forms
+        from collections import OrderedDict
+        base_fields = OrderedDict()
+
+        def create_field(input_spec):
+            field_type = input_spec["field_type"]
+            label = input_spec["label"]
+            if field_type == "date":
+                klass = forms.DateField
+            else:
+                raise NotImplementedError("don't support yet")
+            return klass(label=label)
+
+        form_class = forms.BaseForm
+        for input_spec in inputs:
+            django_field = create_field(input_spec)
+            field_name = input_spec["name"]
+            base_fields[field_name] = django_field
+
+        form_dict = {"base_fields": base_fields}
+        form_class = type("CustomActionInputForm", (forms.BaseForm,), form_dict)
+        return form_class
+
+    def execute(self, user, patient_model=None, input_data=None, rt_spec=None):
         """
         This should return a HttpResponse of some sort
         """
@@ -1961,7 +2045,14 @@ class CustomAction(models.Model):
 
         if self.action_type == "PR":
             from rdrf.services.io.actions import patient_report
-            result = patient_report.execute(self.registry, self.name, self.data, user, patient_model)
+            result = patient_report.execute(self.registry,
+                                            self.name,
+                                            self.data,
+                                            user,
+                                            patient_model,
+                                            run_async=self.asynchronous,
+                                            runtime_spec=rt_spec)
+
             logger.info("custom action %s/%s by user %s on patient %s" % (self.registry.code,
                                                                           self.name,
                                                                           user.username,
@@ -1969,10 +2060,12 @@ class CustomAction(models.Model):
             return result
         elif self.action_type == "SR":
             from rdrf.services.io.actions import patient_status_report
-            return patient_status_report.execute(self.registry,
+            return patient_status_report.execute(self,
+                                                 self.registry,
                                                  self.name,
                                                  self.data,
-                                                 user)
+                                                 user,
+                                                 input_data)
 
         else:
             raise NotImplementedError("Unknown action type: %s" % self.action_type)

@@ -22,6 +22,11 @@ services:
       file: docker-compose-common.yml
       service: db
 
+  rediscache:
+    extends:
+      file: docker-compose-common.yml
+      service: rediscache
+
   cache:
     extends:
       file: docker-compose-common.yml
@@ -80,6 +85,16 @@ services:
       - clinicaldb
       - reportingdb
       - cache
+
+  celeryworker:
+    extends:
+      file: docker-compose-common.yml
+      service: celeryworker
+    volumes_from:
+      - datadev
+    depends_on:
+      - db
+      - rediscache
 
   # ldap:
   #   container_name: ldap
