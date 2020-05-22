@@ -1,3 +1,7 @@
+import logging
+import csv
+import json
+from datetime import date
 from django.http import HttpResponse
 from rdrf.models.definition.models import RegistryForm
 from rdrf.models.definition.models import Section
@@ -6,12 +10,17 @@ from rdrf.models.definition.models import ContextFormGroup
 from rdrf.models.definition.models import ClinicalData
 from rdrf.helpers.utils import cde_completed
 from rdrf.helpers.utils import format_date
+from rdrf.helpers.utils import parse_iso_date
+from rdrf.helpers.utils import parse_iso_datetime
 from registry.patients.models import Patient
 from registry.patients.models import ConsentValue
-import logging
-import csv
 
 logger = logging.getLogger(__name__)
+
+
+class Dates:
+    FAR_FUTURE = date(2100, 1, 1)
+    DISTANT_PAST = date(1900, 1, 1)
 
 
 class SecurityException(Exception):
@@ -45,7 +54,6 @@ def aus_date(american_date):
 
 
 def get_timestamp(clinical_data):
-    from rdrf.helpers.utils import parse_iso_datetime
     if not clinical_data:
         return None
     if not clinical_data.data:
@@ -55,18 +63,62 @@ def get_timestamp(clinical_data):
 
 
 class ReportGenerator:
-    def __init__(self, registry_model, report_name, report_spec, user):
-        import json
+    def __init__(self, custom_action, registry_model, report_name, report_spec, user, input_data):
+        self.custom_action = custom_action
+        self.runtime_spec = custom_action.spec
         self.registry_model = registry_model
+        # filter models to use to restrict query (models)
+        # The context form group model must be fixed if used
+        # If None the default contexts will be used
+        self.filter_context_form_group = None
+        self.filter_form = None
+        self.filter_section = None
+        self.filter_cde = None
         self.report_name = report_name
         self.report_spec = json.loads(report_spec)
+        self._parse_filter_spec(self.runtime_spec)
         self.user = user
+        self.input_data = input_data  # this filters the data
         self.form_names = None
-        self.start_date = None
-        self.finish_date = None
+        self.start_value = None
+        self.finish_value = None
         self.data = self._get_all_data()
         self.context_form_group = self._get_context_form_group()
         self.report = None
+        self._setup_inputs()
+
+    def _setup_inputs(self):
+        # todo allow different data types
+        self.start_value = self.input_data.get("start_value", Dates.DISTANT_PAST)
+        self.end_value = self.input_data.get("end_value", Dates.FAR_FUTURE)
+
+    def _parse_filter_spec(self, runtime_spec_dict):
+        logger.debug("in parse_filter_spec")
+        if "filter_spec" in runtime_spec_dict:
+            filter_spec = runtime_spec_dict["filter_spec"]
+            logger.debug("got filter_spec")
+            if "filter_field" in filter_spec:
+                filter_field = filter_spec["filter_field"]
+                logger.debug("got filter_field")
+                cfg_name = filter_field.get("context_form_group", None)
+                logger.debug("cfg_name = %s" % cfg_name)
+                if cfg_name is not None:
+                    self.filter_context_form_group = ContextFormGroup.objects.get(registry=self.registry_model,
+                                                                                  name=cfg_name)
+                    if not self.filter_context_form_group.context_type == "F":
+                        raise ValueError("filter context form group context type must be fixed")
+                    logger.debug("got context form group")
+
+                form_name = filter_field["form"]
+                self.filter_form = RegistryForm.objects.get(registry=self.registry_model,
+                                                            name=form_name)
+                logger.debug("got filter form = %s" % self.filter_form)
+                section_code = filter_field["section"]
+                self.filter_section = self.filter_form.get_section_model(section_code)
+                logger.debug("got filter_section")
+                cde_code = filter_field["cde"]
+                self.filter_cde = self.filter_section.get_cde(cde_code)
+                logger.debug("got filter cde")
 
     def dump_csv(self, stream):
         writer = csv.writer(stream)
@@ -318,17 +370,54 @@ class ReportGenerator:
 
         for patient_model in Patient.objects.filter(rdrf_registry__code__in=[self.registry_model.code],
                                                     working_groups__in=user_working_groups):
-            yield patient_model
+
+            if self._include_patient(patient_model):
+                yield patient_model
+
+    def _include_patient(self, patient_model):
+        if self.start_value and self.end_value:
+            filter_value = self._get_filter_value(patient_model)
+            if filter_value is None:
+                return False
+            return filter_value >= self.start_value and filter_value <= self.end_value
+        else:
+            return True
+
+    def _get_filter_value(self, patient_model):
+        cds = patient_model.get_clinical_data_for_form_group(self.context_form_group.name)
+        if cds:
+            if len(cds) > 1:
+                raise ValueError("There should only be one clinical data object")
+            clinical_data = cds[0]
+            logger.debug("getting filter field value from clinical data")
+            return self._get_filter_field_value(clinical_data)
+        else:
+            # No data saved at all for any of forms in this form group
+            return None
+
+    def _get_filter_field_value(self, clinical_data):
+        assert self.filter_form is not None, "Filter form is None"
+        if clinical_data.data:
+            forms = clinical_data.data["forms"]
+            for form_dict in forms:
+                if form_dict["name"] == self.filter_form.name:
+                    for section_dict in form_dict["sections"]:
+                        if section_dict["code"] == self.filter_section.code:
+                            for cde_dict in section_dict["cdes"]:
+                                if cde_dict["code"] == self.filter_cde.code:
+                                    value = cde_dict["value"]
+                                    logger.debug("found value = %s" % value)
+                                    return parse_iso_date(value)
 
     def _security_check(self):
         if not self.user.in_registry(self.registry_model):
             raise SecurityException()
 
 
-def execute(registry_model, report_name, report_spec, user):
+def execute(custom_action, registry_model, report_name, report_spec, user, input_data=None, runtime_spec={}):
     logger.info("running custom action report %s for %s" % (report_name,
                                                             user.username))
-    parser = ReportGenerator(registry_model, report_name, report_spec, user)
+    parser = ReportGenerator(custom_action, registry_model, report_name, report_spec, user, input_data)
     parser.generate_report()
     response = HttpResponse(content_type='text/csv')
     response['Content-Disposition'] = 'attachment; filename="Completion Report.csv"'

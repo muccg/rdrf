@@ -47,6 +47,9 @@ services:
     ports:
       - "5432"
 
+  rediscache:
+    image: redis:3-alpine
+
   cache:
     image: memcached:1.4
 
@@ -72,6 +75,13 @@ services:
       - WAIT_FOR_REPORTING_DB=1
       - WAIT_FOR_CACHE=1
       - DJANGO_MAILGUN_API_KEY=${DJANGO_MAILGUN_API_KEY}
+
+  celeryworker:
+    image: muccg/rdrf-dev
+    command: celery_worker
+    environment:
+      - WAIT_FOR_DB=1
+      - WAIT_FOR_REDIS_CACHE=1
 
   uwsgi:
     image: muccg/rdrf-dev

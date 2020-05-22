@@ -734,6 +734,7 @@ class Importer(object):
             action.scope = action_dict["scope"]
             action.action_type = action_dict["action_type"]
             action.data = action_dict["data"]
+            action.runtime_spec = action_dict.get("runtime_spec", "")
             action.save()
 
             groups = []

@@ -601,6 +601,7 @@ class Exporter(object):
             action_dict["action_type"] = action.action_type
             action_dict["groups_allowed"] = [g.name for g in action.groups_allowed.all()]
             action_dict["data"] = action.data
+            action_dict["runtime_spec"] = action.runtime_spec
             actions.append(action_dict)
         return actions
 

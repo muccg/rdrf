@@ -30,6 +30,15 @@ services:
         aliases:
           - dbreportingtest
 
+  rediscacheprod:
+    extends:
+      file: docker-compose-common.yml
+      service: rediscache
+    networks:
+      default:
+        aliases:
+          - rediscachetest
+
   cacheprod:
     extends:
       file: docker-compose-common.yml
@@ -49,6 +58,16 @@ services:
       default:
         aliases:
           - nginxtest
+
+  celeryworker:
+    extends:
+      file: docker-compose-common.yml
+      service: celeryworker
+    volumes:
+      - uwsgi-prod-data:/data
+    depends_on:
+      - dbprod
+      - rediscacheprod
 
   uwsgiprod:
     image: muccg/rdrf:${BUILD_VERSION}
