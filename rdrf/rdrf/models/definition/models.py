@@ -2032,6 +2032,9 @@ class CustomAction(models.Model):
         form_class = type("CustomActionInputForm", (forms.BaseForm,), form_dict)
         return form_class
 
+    def run_async(self, user, patient_model, input_data):
+        return "dummy-task-id"
+
     def execute(self, user, patient_model=None, input_data=None, rt_spec=None):
         """
         This should return a HttpResponse of some sort

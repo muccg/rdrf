@@ -4,6 +4,7 @@ from django.views.generic.base import View
 from django.template.context_processors import csrf
 from django.http import Http404
 from django.utils.decorators import method_decorator
+from django.urls import reverse
 from django.contrib.auth.decorators import login_required
 from rdrf.models.definition.models import CustomAction
 from registry.patients.models import Patient
@@ -12,24 +13,33 @@ import logging
 logger = logging.getLogger(__name__)
 
 
+def task_check(user, task_id):
+    # todo fix this
+    return True
+
+
 class CustomActionView(View):
     @method_decorator(login_required)
     def get(self, request, action_id, patient_id):
+        logger.debug("CustomActionView get: patient_id = %s" % patient_id)
         user = request.user
         custom_action = get_object_or_404(CustomAction, id=action_id)
-        requires_patient = custom_action.scope != "U"
+        requires_patient = custom_action.scope == "P"
         requires_gui = custom_action.requires_input
         is_asynchronous = custom_action.asynchronous
 
         if requires_patient:
+            logger.debug("action requires patient")
             patient_model = get_object_or_404(Patient, id=patient_id)
         else:
+            logger.debug("action does not require patient")
             patient_model = None
 
         if requires_gui:
             return self._generate_gui(request, custom_action)
         elif is_asynchronous:
-            return self._polling_view(user,
+            return self._polling_view(request,
+                                      user,
                                       custom_action,
                                       patient_model)
         else:
@@ -50,12 +60,13 @@ class CustomActionView(View):
     @method_decorator(login_required)
     def post(self, request, action_id, patient_id):
         logger.debug("received post of action")
+
         user = request.user
         custom_action = get_object_or_404(CustomAction, id=action_id)
         if not custom_action.requires_input:
             raise Http404
 
-        if patient_id != "":
+        if custom_action.scope == "P":
             patient_model = get_object_or_404(Patient, id=patient_id)
         else:
             patient_model = None
@@ -68,14 +79,36 @@ class CustomActionView(View):
 
         # execute async
         if custom_action.asynchronous:
+            logger.debug("running async task ...")
             task_id = custom_action.run_async(user, patient_model, input_data)
-            return self._polling_view(user,
+            logger.debug("task id = %s" % task_id)
+            return self._polling_view(request,
+                                      user,
                                       custom_action,
                                       task_id,
                                       patient_model)
 
         else:
             return custom_action.execute(user, patient_model, input_data)
+
+    def _polling_view(self, request, user, custom_action, task_id, patient_model=None):
+        logger.debug("constructing polling page ...")
+        if not task_check(user, task_id):
+            raise Http404
+
+        logger.debug("task check passed ...")
+
+        template = "rdrf_cdes/custom_action_polling.html"
+        task_api_url = reverse("task_api", args=[task_id])
+
+        template_context = {"task_api_url": task_api_url,
+                            "user": user}
+
+        logger.debug("template context = %s" % template_context)
+
+        template_context.update(csrf(request))
+        logger.debug("rendering the polling template ...")
+        return render(request, template, template_context)
 
 
 class CustomActionWrapper:

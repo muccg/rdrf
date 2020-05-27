@@ -1,0 +1,44 @@
+{% extends "rdrf_cdes/base-1-col.html" %}
+{% block content %}
+<h2>Waiting for {{custom_action.name}}</h2>
+
+<div id="statusdiv">
+</div>
+
+<script>
+  var messages = {
+      waiting: "<p>Waiting for task to complete</p>",
+      finished: "<p>Task completed - download result here: </p>",
+      error: "<p>There was an error checking the result</p>"
+  }
+
+  function checkTaskApi() {
+      var url = "{{task_api_url}}"; 
+      return $.getJSON(url);
+  }
+  
+  function createLink(result) {
+      return "<a href='http://www.smh.com.au'>Download result</a>"
+  }
+  function checkTask() {
+      var promise = new Promise(checkTaskApi);
+      promise.done(function(result) {
+	  if (result.status == "completed") {
+	      $('#status').append(messages.finished + createLink(result));
+	  }
+	  else {
+	      $("#status").append(messages.waiting);
+	  }
+      });
+
+      promise.fail(function() {
+	  $("#status").append(messages.error);
+      });
+      setTimeout(checkTask, 30000);
+  }
+
+  $(document).on("ready", checkTask);
+  
+</script>
+
+{% endblock %}

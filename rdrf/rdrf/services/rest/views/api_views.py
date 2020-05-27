@@ -15,6 +15,7 @@ from registry.patients.models import Patient, Registry, Doctor, NextOfKinRelatio
 from registry.groups.models import CustomUser, WorkingGroup
 from rdrf.services.rest.serializers import PatientSerializer, RegistrySerializer, WorkingGroupSerializer, CustomUserSerializer, DoctorSerializer, NextOfKinRelationshipSerializer
 from datetime import datetime
+from celery.result import AsyncResult
 
 import logging
 logger = logging.getLogger(__name__)
@@ -318,3 +319,34 @@ class CalculatedCdeValue(APIView):
             return Response(func(patient_values, form_values))
         else:
             raise Exception(f"Trying to call unknown calculated function {request.data['cde_code']}()")
+
+
+class TaskInfoView(APIView):
+    """
+    View to get task execution info
+    * Requires token authentication.
+    """
+    #authentication_classes = [authentication.TokenAuthentication]
+    #permission_classes = [permissions.IsAdminUser]
+
+    def get(self, request, format=None):
+        """
+        Return a list of all users.
+        """
+        task_id = request.GET.get("task_id", None)
+        if task_id is None:
+            result = {"status": "error",
+                      "message": "Task id not provided"}
+        else:
+            result = {}
+            res = AsyncResult(task_id)
+            if res.ready():
+                task_result = res.value
+                download_url = self._get_download_link(task_result)
+            else:
+                result = {"status": "waiting"}
+
+        return Response(usernames)
+
+    def _get_download_link(self, task_result):
+        return "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf"
