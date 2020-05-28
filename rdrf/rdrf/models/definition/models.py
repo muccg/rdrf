@@ -19,6 +19,7 @@ from django.dispatch.dispatcher import receiver
 from django.forms.models import model_to_dict
 from django.utils.safestring import mark_safe
 from django.core.exceptions import PermissionDenied
+from celery import shared_task
 
 from rdrf.helpers.utils import format_date, parse_iso_datetime
 from rdrf.helpers.utils import LinkWrapper
@@ -2033,7 +2034,30 @@ class CustomAction(models.Model):
         return form_class
 
     def run_async(self, user, patient_model, input_data):
-        return "dummy-task-id"
+        if patient_model is None:
+            patient_id = 0
+        else:
+            patient_id = patient_model.id
+        user_id = user.id
+        custom_action_id = self.id
+        from rdrf.services.tasks import run_custom_action
+        async_tuple = run_custom_action.delay(self.id,
+                                              user.id,
+                                              patient_id,
+                                              input_data),
+
+        task_id = async_tuple[0].task_id
+
+        return task_id
+
+    @shared_task
+    def execute_by_id(self, user_id, patient_id, input_data):
+        user_model = CustomUser.objects.get(id=user_id)
+        if patient_id == 0:
+            patient_model = None
+        else:
+            patient_model = Patient.objects.get(id=patient_id)
+        self.execute(user, patient_model, input_data)
 
     def execute(self, user, patient_model=None, input_data=None, rt_spec=None):
         """

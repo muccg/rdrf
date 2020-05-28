@@ -16,6 +16,7 @@ from registry.groups.models import CustomUser, WorkingGroup
 from rdrf.services.rest.serializers import PatientSerializer, RegistrySerializer, WorkingGroupSerializer, CustomUserSerializer, DoctorSerializer, NextOfKinRelationshipSerializer
 from datetime import datetime
 from celery.result import AsyncResult
+from django.views.generic.base import View
 
 import logging
 logger = logging.getLogger(__name__)
@@ -324,16 +325,14 @@ class CalculatedCdeValue(APIView):
 class TaskInfoView(APIView):
     """
     View to get task execution info
-    * Requires token authentication.
     """
-    #authentication_classes = [authentication.TokenAuthentication]
-    #permission_classes = [permissions.IsAdminUser]
+    permission_classes = (IsAuthenticated,)
 
-    def get(self, request, format=None):
+    def get(self, request, task_id):
         """
         Return a list of all users.
         """
-        task_id = request.GET.get("task_id", None)
+        logger.debug("checking task %s" % task_id)
         if task_id is None:
             result = {"status": "error",
                       "message": "Task id not provided"}
@@ -341,12 +340,15 @@ class TaskInfoView(APIView):
             result = {}
             res = AsyncResult(task_id)
             if res.ready():
-                task_result = res.value
+                logger.debug("task is finished!")
+                task_result = res.result()
+                logger.debug("task result = %s" % task_result)
                 download_url = self._get_download_link(task_result)
+                logger.debug("download_url = %s" % download_url)
             else:
                 result = {"status": "waiting"}
 
-        return Response(usernames)
+        return Response(result)
 
     def _get_download_link(self, task_result):
         return "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf"

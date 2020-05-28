@@ -99,7 +99,7 @@ class CustomActionView(View):
         logger.debug("task check passed ...")
 
         template = "rdrf_cdes/custom_action_polling.html"
-        task_api_url = reverse("task_api", args=[task_id])
+        task_api_url = reverse("v1:task-list", args=[task_id])
 
         template_context = {"task_api_url": task_api_url,
                             "user": user}
