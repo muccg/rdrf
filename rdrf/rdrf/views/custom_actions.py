@@ -102,6 +102,9 @@ class CustomActionView(View):
         task_api_url = reverse("v1:task-list", args=[task_id])
 
         template_context = {"task_api_url": task_api_url,
+                            "task_id": task_id,
+                            "patient_model": patient_model,
+                            "custom_action": custom_action,
                             "user": user}
 
         logger.debug("template context = %s" % template_context)

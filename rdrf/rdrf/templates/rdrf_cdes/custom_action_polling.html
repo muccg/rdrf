@@ -1,6 +1,10 @@
 {% extends "rdrf_cdes/base-1-col.html" %}
 {% block content %}
 <h2>Waiting for {{custom_action.name}}</h2>
+{% if patient_model %}
+<h3>for {{patient_model}}</h3>
+{% endif %}
+<h4>Task ID: {{task_id}}</h4>
 
 <div id="statusdiv">
 </div>
@@ -12,29 +16,31 @@
       error: "<p>There was an error checking the result</p>"
   }
 
-  function checkTaskApi() {
-      var url = "{{task_api_url}}"; 
-      return $.getJSON(url);
-  }
+  var taskFinished = false;
   
+
   function createLink(result) {
-      return "<a href='http://www.smh.com.au'>Download result</a>"
+      return "<a href='" + result.download_link + "'>Download result</a>"
   }
   function checkTask() {
-      var promise = new Promise(checkTaskApi);
-      promise.done(function(result) {
+      console.log("checking task ...");
+      const url = "{{task_api_url}}"; 
+      $.getJSON(url, function(result) {
 	  if (result.status == "completed") {
-	      $('#status').append(messages.finished + createLink(result));
+	      console.log("task completed");
+	      taskFinished = true;
+	      $("#statusdiv").empty().append(messages.finished + createLink(result));
+	  }
+	  else if (result.status == "error") {
+	      taskFinished = true;
+	      $("#statusdiv").empty().append("<b>The task failed</b>");
 	  }
 	  else {
-	      $("#status").append(messages.waiting);
+	      $("#statusdiv").empty().append(messages.waiting).fadeOut(10000);
 	  }
       });
 
-      promise.fail(function() {
-	  $("#status").append(messages.error);
-      });
-      setTimeout(checkTask, 30000);
+      setTimeout(checkTask, 15000);
   }
 
   $(document).on("ready", checkTask);

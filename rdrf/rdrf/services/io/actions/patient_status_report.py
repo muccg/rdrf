@@ -53,6 +53,11 @@ def aus_date(american_date):
     return "%s-%s-%s" % (day, month, year)
 
 
+def get_date(datetime_string):
+    dt = parse_iso_datetime(datetime_string)
+    return dt.date()
+
+
 def get_timestamp(clinical_data):
     if not clinical_data:
         return None
@@ -91,6 +96,10 @@ class ReportGenerator:
         # todo allow different data types
         self.start_value = self.input_data.get("start_value", Dates.DISTANT_PAST)
         self.end_value = self.input_data.get("end_value", Dates.FAR_FUTURE)
+        if isinstance(self.start_value, str):
+            self.start_value = get_date(self.start_value)
+        if isinstance(self.end_value, str):
+            self.end_value = get_date(self.end_value)
 
     def _parse_filter_spec(self, runtime_spec_dict):
         logger.debug("in parse_filter_spec")
@@ -376,6 +385,9 @@ class ReportGenerator:
 
     def _include_patient(self, patient_model):
         if self.start_value and self.end_value:
+            logger.debug("start value = %s" % self.start_value)
+            logger.debug("end value = %s" % self.end_value)
+
             filter_value = self._get_filter_value(patient_model)
             if filter_value is None:
                 return False

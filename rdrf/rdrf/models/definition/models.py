@@ -2063,11 +2063,12 @@ class CustomAction(models.Model):
         """
         This should return a HttpResponse of some sort
         """
+        logger.debug("custom action %s executing ..." % self.id)
         if self.scope == "P":
             if not self.check_security(user, patient_model):
                 raise PermissionDenied
         elif self.scope == "U":
-            if not user.in_registry(self.registry):
+            if not user.is_superuser and not user.in_registry(self.registry):
                 raise PermissionDenied
 
         if self.action_type == "PR":

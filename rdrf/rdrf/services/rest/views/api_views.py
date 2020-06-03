@@ -337,14 +337,24 @@ class TaskInfoView(APIView):
             result = {"status": "error",
                       "message": "Task id not provided"}
         else:
-            result = {}
             res = AsyncResult(task_id)
             if res.ready():
                 logger.debug("task is finished!")
-                task_result = res.result()
-                logger.debug("task result = %s" % task_result)
-                download_url = self._get_download_link(task_result)
-                logger.debug("download_url = %s" % download_url)
+                status = res.status
+                logger.debug("task status = %s" % status)
+                if res.failed():
+                    result = {"status": "error",
+                              "message": "Task failed"}
+                elif res.successful():
+                    task_result = res.result
+                    logger.debug("task result = %s" % task_result)
+                    download_link = self._get_download_link(task_result)
+                    logger.debug("download_link = %s" % download_link)
+                    result = {"status": "completed",
+                              "download_link": download_link}
+                else:
+                    result = {"status": "error",
+                              "message": status}
             else:
                 result = {"status": "waiting"}
 
