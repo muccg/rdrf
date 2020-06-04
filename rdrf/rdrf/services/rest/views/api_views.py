@@ -1,3 +1,4 @@
+import os
 import pycountry
 
 from django.db.models import Q
@@ -17,6 +18,8 @@ from rdrf.services.rest.serializers import PatientSerializer, RegistrySerializer
 from datetime import datetime
 from celery.result import AsyncResult
 from django.views.generic.base import View
+from django.http import HttpResponse
+from django.http import Http404
 
 import logging
 logger = logging.getLogger(__name__)
@@ -329,9 +332,7 @@ class TaskInfoView(APIView):
     permission_classes = (IsAuthenticated,)
 
     def get(self, request, task_id):
-        """
-        Return a list of all users.
-        """
+
         logger.debug("checking task %s" % task_id)
         if task_id is None:
             result = {"status": "error",
@@ -348,7 +349,7 @@ class TaskInfoView(APIView):
                 elif res.successful():
                     task_result = res.result
                     logger.debug("task result = %s" % task_result)
-                    download_link = self._get_download_link(task_result)
+                    download_link = self._get_download_link(task_id)
                     logger.debug("download_link = %s" % download_link)
                     result = {"status": "completed",
                               "download_link": download_link}
@@ -360,5 +361,29 @@ class TaskInfoView(APIView):
 
         return Response(result)
 
-    def _get_download_link(self, task_result):
-        return "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf"
+    def _get_download_link(self, task_id):
+        return reverse("v1:download-list", args=[task_id])
+
+
+class TaskResultDownloadView(APIView):
+    permission_classes = (IsAuthenticated,)
+
+    def get(self, request, task_id):
+        try:
+            res = AsyncResult(task_id)
+            if res.ready() and res.successful():
+                task_result = res.result
+                filepath = task_result.get("filepath", None)
+                filename = task_result.get("filename", "download")
+                content_type = task_result.get("content_type", None)
+                if filepath is not None:
+                    if os.path.exists(filepath):
+                        with open(filepath, 'rb') as fh:
+                            response = HttpResponse(fh.read(),
+                                                    content_type=content_type)
+                            response['Content-Disposition'] = "inline; filename=%s" % filename
+                            return response
+            return Http404
+        except Exception as ex:
+            logger.error("Error getting task download: %s" % ex)
+            raise Exception("Server Error getting download")

@@ -137,8 +137,10 @@ class ReportGenerator:
 
     @property
     def task_result(self):
+        from rdrf.helpers.utils import generate_token
         logger.info("getting the task result")
-        filepath = "/tmp/testfile"
+        filename = generate_token()
+        filepath = "/data/static/tasks/%s" % filename
         logger.debug("filepath = %s" % filepath)
         with open(filepath, "w") as f:
             logger.info("writing csv ...")
@@ -148,7 +150,7 @@ class ReportGenerator:
                   "content_type": "text/csv",
                   "username": self.user.username,
                   "user_id": self.user.id,
-                  "filename": "Completion Report",
+                  "filename": "Completion Report.csv",
                   }
         logger.info("result dict = %s" % result)
         return result
