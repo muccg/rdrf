@@ -4,7 +4,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-@app.task
+@app.task(name="rdrf.services.tasks.run_custom_action")
 def run_custom_action(custom_action_id, user_id, patient_id, input_data):
     logger.debug("running custom action %s async" % custom_action_id)
     logger.debug("user_id = %s" % user_id)
@@ -26,4 +26,4 @@ def run_custom_action(custom_action_id, user_id, patient_id, input_data):
     custom_action = CustomAction.objects.get(id=custom_action_id)
 
     logger.debug("running custom action execute")
-    custom_action.execute(user, patient_model, input_data)
+    return custom_action.execute(user, patient_model, input_data)

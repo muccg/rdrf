@@ -2093,7 +2093,8 @@ class CustomAction(models.Model):
                                                  self.name,
                                                  self.data,
                                                  user,
-                                                 input_data)
+                                                 input_data,
+                                                 run_async=self.asynchronous)
 
         else:
             raise NotImplementedError("Unknown action type: %s" % self.action_type)

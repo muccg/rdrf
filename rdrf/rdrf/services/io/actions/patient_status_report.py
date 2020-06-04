@@ -68,7 +68,8 @@ def get_timestamp(clinical_data):
 
 
 class ReportGenerator:
-    def __init__(self, custom_action, registry_model, report_name, report_spec, user, input_data):
+    def __init__(self, custom_action, registry_model, report_name, report_spec, user, input_data, run_async=False):
+        self.run_async = run_async
         self.custom_action = custom_action
         self.runtime_spec = custom_action.spec
         self.registry_model = registry_model
@@ -133,6 +134,24 @@ class ReportGenerator:
         writer = csv.writer(stream)
         writer.writerows(self.report)
         return stream
+
+    @property
+    def task_result(self):
+        logger.info("getting the task result")
+        filepath = "/tmp/testfile"
+        logger.debug("filepath = %s" % filepath)
+        with open(filepath, "w") as f:
+            logger.info("writing csv ...")
+            self.dump_csv(f)
+            logger.info("wrote csv ok")
+        result = {"filepath": filepath,
+                  "content_type": "text/csv",
+                  "username": self.user.username,
+                  "user_id": self.user.id,
+                  "filename": "Completion Report",
+                  }
+        logger.info("result dict = %s" % result)
+        return result
 
     def _get_context(self, patient_model):
         # get the fixed context associated with the context
@@ -426,11 +445,14 @@ class ReportGenerator:
             raise SecurityException()
 
 
-def execute(custom_action, registry_model, report_name, report_spec, user, input_data=None, runtime_spec={}):
+def execute(custom_action, registry_model, report_name, report_spec, user, input_data=None, runtime_spec={}, run_async=False):
     logger.info("running custom action report %s for %s" % (report_name,
                                                             user.username))
-    parser = ReportGenerator(custom_action, registry_model, report_name, report_spec, user, input_data)
+    parser = ReportGenerator(custom_action, registry_model, report_name, report_spec, user, input_data, run_async)
     parser.generate_report()
-    response = HttpResponse(content_type='text/csv')
-    response['Content-Disposition'] = 'attachment; filename="Completion Report.csv"'
-    return parser.dump_csv(response)
+    if not run_async:
+        response = HttpResponse(content_type='text/csv')
+        response['Content-Disposition'] = 'attachment; filename="Completion Report.csv"'
+        return parser.dump_csv(response)
+    else:
+        return parser.task_result
