@@ -159,8 +159,8 @@ class SurveyQuestion(models.Model):
                 "allow_multiple": self.cde.allow_multiple,  # allow for multiselect options
             }
         elif self.cde.datatype == 'integer':
-            min = int(self.cde.min_value) or 0
-            max = int(self.cde.max_value) or min + 100
+            min = int(self.cde.min_value or 0)
+            max = int(self.cde.max_value or min + 100)
             return {
                 "tag": "integer",
                 "max": max,
