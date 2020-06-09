@@ -2003,7 +2003,6 @@ class CustomAction(models.Model):
 
     @property
     def input_form_class(self):
-        # return a django form?
         if self.requires_input:
             return self._generate_input_form_class(self.inputs)
         else:
@@ -2017,11 +2016,20 @@ class CustomAction(models.Model):
         def create_field(input_spec):
             field_type = input_spec["field_type"]
             label = input_spec["label"]
+            kwargs = {}
+            widget = None
             if field_type == "date":
-                klass = forms.DateField
+                from django import forms
+                from rdrf.forms.dynamic.fields import IsoDateField
+                klass = IsoDateField
+                widget = forms.DateInput(attrs={'class': 'datepicker'},
+                                         format='%dd-%mm-%YY')
+                kwargs["widget"] = widget
+                kwargs["input_formats"] = ["%d-%m-%Y"]
             else:
-                raise NotImplementedError("don't support yet")
-            return klass(label=label)
+                raise NotImplementedError("don't non date fields yet")
+
+            return klass(**kwargs)
 
         form_class = forms.BaseForm
         for input_spec in inputs:
