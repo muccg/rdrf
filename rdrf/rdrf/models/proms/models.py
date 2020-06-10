@@ -1,4 +1,5 @@
 from rest_framework import status
+import json
 import logging
 import requests
 from django.db import models
@@ -99,6 +100,9 @@ class SurveyQuestion(models.Model):
     instruction = models.TextField(blank=True, null=True)
     copyright_text = models.TextField(blank=True, null=True)
     source = models.TextField(blank=True, null=True)
+    widget_config = models.TextField(blank=True, null=True,
+                                     help_text='Eg: {"max_label": "High", "min_label": "Low", "box_label": "Height"}'
+                                    )  # json field for holding widget parameters
 
     @property
     def name(self):
@@ -106,6 +110,11 @@ class SurveyQuestion(models.Model):
 
     def _clean_instructions(self, instructions):
         return instructions.replace("\n", " ").replace("\r", " ")
+
+    def _get_widget_spec(self):
+        if self.widget_config is not None and self.widget_config != "":
+            return json.loads(self.widget_config)
+        return None
 
     @property
     def client_rep(self):
@@ -119,6 +128,7 @@ class SurveyQuestion(models.Model):
                     "survey_question_instruction": clean(self.instruction),
                     "copyright_text": self.copyright_text,
                     "source": self.source,
+                    "widget_spec": self._get_widget_spec(),
                     "spec": self._get_cde_specification()}
 
         else:
@@ -138,6 +148,7 @@ class SurveyQuestion(models.Model):
                     "cde": self.cde.code,
                     "instructions": self._clean_instructions(self.cde.instructions),
                     "title": clean(self.cde.name),
+                    "widget_spec": self._get_widget_spec(),
                     "spec": self._get_cde_specification(),
                     "survey_question_instruction": clean(self.instruction),
                     "copyright_text": self.copyright_text,

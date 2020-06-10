@@ -127,31 +127,32 @@ class Question extends React.Component<QuestionInterface, object> {
     public getMarks = (question) => {
         const minValue = question.spec.min;
         const maxValue = question.spec.max;
-        const marks = {
+
+        const minMark = {
             [minValue]: {
                 style: {
                     color: 'red', width: 'max-content', textAlign: 'left', marginBottom: '-100%'
                 },
-                label: <strong>{minValue} - The worst health<br />you can imagine</strong>,
-            },
-            10: '10',
-            20: '20',
-            30: '30',
-            40: '40',
-            50: '50',
-            60: '60',
-            70: '70',
-            80: '80',
-            90: '90',
+                label: <strong>{minValue} - {question.widget_spec.min_label}</strong>,
+            }
+        };
+
+        const midMarks = {}
+        const diff = ((maxValue - minValue)>10) ? (maxValue - minValue) / 10 : 1;
+        for(var mark = minValue+diff; mark<maxValue; mark+=diff) {
+           midMarks[mark] = mark + "";
+        }
+
+        const maxMark = {
             [maxValue]: {
                 style: {
                     color: 'green', width: 'max-content', textAlign: 'left', marginBottom: '-100%'
                 },
-                label: <strong>{maxValue} - The best health<br />you can imagine</strong>,
-            },
+                label: <strong>{maxValue} - {question.widget_spec.max_label}</strong>,
+            }
         };
 
-        return marks;
+        return Object.assign({}, minMark, midMarks, maxMark);
     }
 
     public getSliderHandle = () => {
@@ -256,6 +257,10 @@ class Question extends React.Component<QuestionInterface, object> {
             return this.renderInput(question);
         }
 
+        if (question.datatype === "integer" && question.widget_spec == null) {
+                return this.renderInput(question);
+        }
+
         if (isMultiSelect) {
             return this.renderMultiSelect(question);
         }
@@ -289,7 +294,7 @@ class Question extends React.Component<QuestionInterface, object> {
                             <div className="col">
                                 <div className="float-right" style={boxStyle}>
                                     <p className="text-center" style={pStyle}>
-                                        <p>YOUR HEALTH TODAY <br /> <b>{defaultValue}</b></p>
+                                        <p>{question.widget_spec.box_label} <br /> <b>{defaultValue}</b></p>
                                     </p>
                                 </div>
                             </div>
