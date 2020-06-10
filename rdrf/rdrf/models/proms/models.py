@@ -102,7 +102,7 @@ class SurveyQuestion(models.Model):
     source = models.TextField(blank=True, null=True)
     widget_config = models.TextField(blank=True, null=True,
                                      help_text='Eg: {"max_label": "High", "min_label": "Low", "box_label": "Height"}'
-                                    )  # json field for holding widget parameters
+                                     )  # json field for holding widget parameters
 
     @property
     def name(self):
