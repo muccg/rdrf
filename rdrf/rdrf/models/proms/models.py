@@ -190,7 +190,7 @@ class SurveyQuestion(models.Model):
                 self.validate_one_and_only_one_cde_exists()
 
     def validate_min_max(self):
-        if not self.cde.min_value or not self.cde.max_value or self.cde.max_value < self.cde.min_value:
+        if self.cde.min_value is None or self.cde.max_value is None:
             raise ValidationError(
                 f"[{self.cde.code}] The min and max values are not properly set in CDE")
 
