@@ -1,5 +1,6 @@
 import os
 import pycountry
+from subprocess import Popen
 
 from django.db.models import Q
 from rest_framework import generics
@@ -379,11 +380,22 @@ class TaskResultDownloadView(APIView):
                 if filepath is not None:
                     if os.path.exists(filepath):
                         with open(filepath, 'rb') as fh:
-                            response = HttpResponse(fh.read(),
-                                                    content_type=content_type)
-                            response['Content-Disposition'] = "inline; filename=%s" % filename
-                            return response
-            return Http404
+                            file_data = fh.read()
+
+                        p = Popen("rm %s" % filepath, shell=True)
+
+                        response = HttpResponse(file_data,
+                                                content_type=content_type)
+                        response['Content-Disposition'] = "inline; filename=%s" % filename
+                        return response
+                    else:
+                        # file has already been downloaded
+                        message = "The file has already been downloaded"
+                        response = HttpResponse(message,
+                                                content_type="application/text")
+                        response['Content-Disposition'] = "inline; filename=%s" % "error.txt"
+                        return response
+
         except Exception as ex:
             logger.error("Error getting task download: %s" % ex)
             raise Exception("Server Error getting download")
