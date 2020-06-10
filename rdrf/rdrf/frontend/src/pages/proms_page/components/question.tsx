@@ -139,7 +139,7 @@ class Question extends React.Component<QuestionInterface, object> {
 
         const midMarks = {}
         const diff = ((maxValue - minValue)>10) ? (maxValue - minValue) / 10 : 1;
-        for(var mark = minValue+diff; mark<maxValue; mark+=diff) {
+        for(let mark = minValue+diff; mark<maxValue; mark+=diff) {
            midMarks[mark] = mark + "";
         }
 
