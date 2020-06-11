@@ -173,6 +173,9 @@ class SurveyQuestion(models.Model):
             return self.cde.name + "  if " + self.precondition.cde.name + " = " + self.precondition.value
 
     def clean(self):
+        if self.cde.datatype == "integer":
+            self.validate_min_max()
+
         if self.cde.code not in ("PROMSConsent", "PromsGender"):
             if self.cde_path:
                 # Check that the cde_path is well formatted.
@@ -185,6 +188,11 @@ class SurveyQuestion(models.Model):
                 # Check the cde exists in the selected form.
                 # Check the cde is in one section only in the selected form.
                 self.validate_one_and_only_one_cde_exists()
+
+    def validate_min_max(self):
+        if self.cde.min_value is None or self.cde.max_value is None:
+            raise ValidationError(
+                f"[{self.cde.code}] The min and max values are not properly set in CDE")
 
     def validate_cde_path(self):
         # Extract form and section code from /FROM_NAME/SECTION_CODE/.
