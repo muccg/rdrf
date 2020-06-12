@@ -97,6 +97,8 @@ class Links:
         PatientReviews = QuickLink(reverse("admin:rdrf_patientreview_changelist"), _("Patient Reviews"))
         Verifications = QuickLink(reverse("admin:rdrf_verification_changelist"), _("Verifications"))
         Custom_Actions = QuickLink(reverse("admin:rdrf_customaction_changelist"), _("Custom Actions"))
+        Custom_Action_Executions = QuickLink(
+            reverse("admin:rdrf_customactionexecution_changelist"), _("Custom Action Executions"))
 
     if settings.SYSTEM_ROLE in (SystemRoles.CIC_DEV, SystemRoles.CIC_PROMS, SystemRoles.CIC_CLINICAL):
         Surveys = QuickLink(reverse("admin:rdrf_survey_changelist"), _("Surveys"))
@@ -172,6 +174,7 @@ class Links:
                 PatientReviews.text: PatientReviews,
                 Verifications.text: Verifications,
                 Custom_Actions.text: Custom_Actions,
+                Custom_Action_Executions.text: Custom_Action_Executions,
             }
         else:
             OTHER = {
@@ -186,6 +189,7 @@ class Links:
                 PatientReviews.text: PatientReviews,
                 Verifications.text: Verifications,
                 Custom_Actions.text: Custom_Actions,
+                Custom_Action_Executions.text: Custom_Action_Executions,
             }
         EXPLORER = {
             Explorer.text: Explorer,
@@ -440,6 +444,7 @@ class QuickLinks(object):
         self._registration_links()
         self._verification_links()
         self._custom_action_links()
+        self._custom_action_execution_links()
         self._build_menu()
 
     def _per_registry_links(self, label, url, feature=None):
@@ -501,6 +506,11 @@ class QuickLinks(object):
         Links.CUSTOM_ACTIONS = self._per_registry_links('Custom Actions',
                                                         'customactions_list',
                                                         'custom_actions')
+
+    def _custom_action_execution_links(self):
+        Links.CUSTOM_ACTION_EXECUTION_LINKS = self._per_registry_links('Custom Action Executions',
+                                                                       'customactionexecutions_list',
+                                                                       'custom_actionexecutions')
 
     def _permission_matrix_links(self):
         if settings.SYSTEM_ROLE == SystemRoles.CIC_PROMS:

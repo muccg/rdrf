@@ -19,3 +19,4 @@ class RDRFConfig(AppConfig):
         import rdrf.models.proms.models
         import rdrf.models.definition.review_models
         import rdrf.models.definition.verification_models
+        import rdrf.models.task_models

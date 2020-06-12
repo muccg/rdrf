@@ -21,9 +21,19 @@ def task_check(user, task_id):
 class CustomActionView(View):
     @method_decorator(login_required)
     def get(self, request, action_id, patient_id):
+        # user has clicked on a custom action link
+        from rdrf.models.task_models import CustomActionExecution
         logger.debug("CustomActionView get: patient_id = %s" % patient_id)
         user = request.user
         custom_action = get_object_or_404(CustomAction, id=action_id)
+
+        # this model acts as an audit trail
+        cae = CustomActionExecution()
+        cae.user = user
+        cae.custom_action = custom_action
+        cae.name = custom_action.name
+        cae.status = "started"
+
         requires_patient = custom_action.scope == "P"
         requires_gui = custom_action.requires_input
         is_asynchronous = custom_action.asynchronous
@@ -35,21 +45,31 @@ class CustomActionView(View):
             logger.debug("action does not require patient")
             patient_model = None
 
+        cae.patient = patient_model
+        cae.save()
+
         if requires_gui:
-            return self._generate_gui(request, custom_action)
+            cae.status = "awaiting input"
+            cae.save()
+            return self._generate_gui(request, custom_action, cae)
         elif is_asynchronous:
+            cae.status = "polling"
+            cae.save()
             return self._polling_view(request,
                                       user,
                                       custom_action,
-                                      patient_model)
+                                      patient_model,
+                                      cae)
         else:
             return custom_action.execute(user, patient_model)
 
     def _generate_gui(self,
                       request,
-                      custom_action):
+                      custom_action,
+                      cae):
         input_form = custom_action.input_form_class()
         template_context = {
+            "cae": cae,
             "custom_action": custom_action,
             "input_form": input_form,
         }
@@ -91,7 +111,13 @@ class CustomActionView(View):
         else:
             return custom_action.execute(user, patient_model, input_data)
 
-    def _polling_view(self, request, user, custom_action, task_id, patient_model=None):
+    def _polling_view(self,
+                      request,
+                      user,
+                      custom_action,
+                      task_id,
+                      patient_model=None,
+                      cae=None):
         logger.debug("constructing polling page ...")
         if not task_check(user, task_id):
             raise Http404
@@ -102,6 +128,7 @@ class CustomActionView(View):
         task_api_url = reverse("v1:task-list", args=[task_id])
 
         template_context = {"task_api_url": task_api_url,
+                            "cae": cae,
                             "task_id": task_id,
                             "patient_model": patient_model,
                             "custom_action": custom_action,

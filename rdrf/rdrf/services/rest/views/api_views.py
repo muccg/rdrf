@@ -1,6 +1,6 @@
 import os
 import pycountry
-from subprocess import Popen
+import subprocess
 
 from django.db.models import Q
 from rest_framework import generics
@@ -369,6 +369,36 @@ class TaskInfoView(APIView):
 class TaskResultDownloadView(APIView):
     permission_classes = (IsAuthenticated,)
 
+    def _safe_to_delete(self, filepath, filename):
+        """
+        Avoid any risk of being hacked somehow
+        """
+
+        import os.path
+        from django.conf import TASK_FILE_DIRECTORY
+        dir_ok = filepath.startswith(TASK_FILE_DIRECTORY)
+        file_exists = os.path.exists(filepath)
+        is_file = os.path.isfile(filepath)
+        file_basename = os.path.basename(filepath)
+        file_ok = file_basename == filename
+        no_star = "*" not in filepath
+        no_dot = "." not in filepath
+        no_dollar = "$" not in filepath
+        no_semicolon = ";" not in filepath
+        no_redirect_input = "<" in filepath
+        no_redirect_output = ">" in filepath
+        return all([dir_ok,
+                    file_ok,
+                    no_star,
+                    no_dot,
+                    file_exists,
+                    is_file,
+                    dir_ok,
+                    no_semicolon,
+                    no_redirect_input,
+                    no_redirect_output,
+                    no_dollar])
+
     def get(self, request, task_id):
         try:
             res = AsyncResult(task_id)
@@ -381,9 +411,10 @@ class TaskResultDownloadView(APIView):
                     if os.path.exists(filepath):
                         with open(filepath, 'rb') as fh:
                             file_data = fh.read()
-
-                        p = Popen("rm %s" % filepath, shell=True)
-
+                        if self._safe_to_delete(filepath, filename):
+                            subprocess.run(["rm", filepath], check=True)
+                        else:
+                            raise Exception("bad filepath")
                         response = HttpResponse(file_data,
                                                 content_type=content_type)
                         response['Content-Disposition'] = "inline; filename=%s" % filename

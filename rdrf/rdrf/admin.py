@@ -37,6 +37,7 @@ from rdrf.models.definition.verification_models import Verification
 from rdrf.system_role import SystemRoles
 
 from rdrf.models.definition.models import CustomAction
+from rdrf.models.task_models import CustomActionExecution
 
 
 from reversion.admin import VersionAdmin
@@ -483,6 +484,18 @@ class CustomActionAdmin(admin.ModelAdmin):
                     "action_type")
 
 
+class CustomActionExecutionAdmin(admin.ModelAdmin):
+    model = CustomActionExecution
+    list_display = ("registry",
+                    "name",
+                    "created",
+                    "updated",
+                    "status",
+                    "user",
+                    "patient",
+                    "runtime")
+
+
 CDEPermittedValueAdmin = create_restricted_model_admin_class(
     CDEPermittedValue,
     ordering=['code'],
@@ -543,6 +556,7 @@ NORMAL_MODE_ADMIN_COMPONENTS = [
     (PatientReview, PatientReviewAdmin),
     (Verification, VerificationAdmin),
     (CustomAction, CustomActionAdmin),
+    (CustomActionExecution, CustomActionExecutionAdmin),
 ]
 
 ADMIN_COMPONENTS = []

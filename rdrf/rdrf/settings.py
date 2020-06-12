@@ -697,3 +697,6 @@ CELERY_IMPORTS = ('rdrf.celery', 'rdrf.services.tasks',)
 
 CACHES['search_results'] = CACHES['redis']
 # End Celery
+
+# Downloadable files from custom actions
+TASK_FILE_DIRECTORY = env.get("task_file_directory", "/data/static/tasks")

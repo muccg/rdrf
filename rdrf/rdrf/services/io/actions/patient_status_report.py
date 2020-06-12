@@ -137,10 +137,12 @@ class ReportGenerator:
 
     @property
     def task_result(self):
+        import os.path
         from rdrf.helpers.utils import generate_token
-        logger.info("getting the task result")
+        from django.conf import settings
+        task_dir = settings.TASK_FILE_DIRECTORY
         filename = generate_token()
-        filepath = "/data/static/tasks/%s" % filename
+        filepath = os.path.join(task_dir, filename)
         logger.debug("filepath = %s" % filepath)
         with open(filepath, "w") as f:
             logger.info("writing csv ...")
