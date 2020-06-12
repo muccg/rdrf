@@ -7,6 +7,7 @@ from django.utils.decorators import method_decorator
 from django.urls import reverse
 from django.contrib.auth.decorators import login_required
 from rdrf.models.definition.models import CustomAction
+from rdrf.models.task_models import CustomActionExecution
 from registry.patients.models import Patient
 import logging
 
@@ -67,9 +68,8 @@ class CustomActionView(View):
                       request,
                       custom_action,
                       cae):
-        input_form = custom_action.input_form_class()
+        input_form = custom_action.input_form_class(initial={"cae": cae.id})
         template_context = {
-            "cae": cae,
             "custom_action": custom_action,
             "input_form": input_form,
         }
@@ -80,6 +80,10 @@ class CustomActionView(View):
     @method_decorator(login_required)
     def post(self, request, action_id, patient_id):
         logger.debug("received post of action")
+        cae = CustomActionExecution.objects.get(id=int(request.POST["cae"]))
+        logger.debug("tracking cae = %s" % cae.id)
+        cae.status = "received input"
+        cae.save()
 
         user = request.user
         custom_action = get_object_or_404(CustomAction, id=action_id)
@@ -101,6 +105,9 @@ class CustomActionView(View):
         if custom_action.asynchronous:
             logger.debug("running async task ...")
             task_id = custom_action.run_async(user, patient_model, input_data)
+            cae.task_id = task_id
+            cae.status = "started task"
+            cae.save()
             logger.debug("task id = %s" % task_id)
             return self._polling_view(request,
                                       user,
@@ -109,6 +116,8 @@ class CustomActionView(View):
                                       patient_model)
 
         else:
+            cae.status = "start sync"
+            cae.save()
             return custom_action.execute(user, patient_model, input_data)
 
     def _polling_view(self,

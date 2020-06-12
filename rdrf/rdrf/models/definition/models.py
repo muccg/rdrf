@@ -2037,6 +2037,10 @@ class CustomAction(models.Model):
             field_name = input_spec["name"]
             base_fields[field_name] = django_field
 
+        # we need to add a hidden field with the custom action execution id
+        # so we can track the progress of the execution when posted
+        base_fields["cae"] = forms.IntegerField(widget=forms.HiddenInput())
+
         form_dict = {"base_fields": base_fields}
         form_class = type("CustomActionInputForm", (forms.BaseForm,), form_dict)
         return form_class

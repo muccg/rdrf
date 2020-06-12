@@ -1,6 +1,8 @@
 import os
 import pycountry
 import subprocess
+from datetime import datetime
+import json
 
 from django.db.models import Q
 from rest_framework import generics
@@ -21,6 +23,7 @@ from celery.result import AsyncResult
 from django.views.generic.base import View
 from django.http import HttpResponse
 from django.http import Http404
+from rdrf.models.task_models import CustomActionExecution
 
 import logging
 logger = logging.getLogger(__name__)
@@ -335,20 +338,28 @@ class TaskInfoView(APIView):
     def get(self, request, task_id):
 
         logger.debug("checking task %s" % task_id)
+        cae = None
         if task_id is None:
             result = {"status": "error",
                       "message": "Task id not provided"}
         else:
             res = AsyncResult(task_id)
             if res.ready():
+                cae = CustomActionExecution.objects.get(task_id=task_id)
+                cae.status = "task finished"
+                runtime_delta = datetime.now() - cae.created
+                cae.runtime = runtime_delta.seconds
                 logger.debug("task is finished!")
                 status = res.status
                 logger.debug("task status = %s" % status)
                 if res.failed():
                     result = {"status": "error",
                               "message": "Task failed"}
+                    cae.status = "task failed"
                 elif res.successful():
+                    cae.status = "task succeeded"
                     task_result = res.result
+                    cae.task_result = json.dumps(task_result)
                     logger.debug("task result = %s" % task_result)
                     download_link = self._get_download_link(task_id)
                     logger.debug("download_link = %s" % download_link)
@@ -360,6 +371,8 @@ class TaskInfoView(APIView):
             else:
                 result = {"status": "waiting"}
 
+        if cae:
+            cae.save()
         return Response(result)
 
     def _get_download_link(self, task_id):
@@ -369,31 +382,36 @@ class TaskInfoView(APIView):
 class TaskResultDownloadView(APIView):
     permission_classes = (IsAuthenticated,)
 
-    def _safe_to_delete(self, filepath, filename):
+    def _safe_to_delete(self, filepath):
         """
         Avoid any risk of being hacked somehow
         """
-
         import os.path
-        from django.conf import TASK_FILE_DIRECTORY
-        dir_ok = filepath.startswith(TASK_FILE_DIRECTORY)
+        from django.conf import settings
+        logger.debug("safe to delete filepath: %s" % filepath)
+        dir_ok = filepath.startswith(settings.TASK_FILE_DIRECTORY)
+        logger.debug("dir_ok = %s" % dir_ok)
         file_exists = os.path.exists(filepath)
+        logger.debug("file_exists = %s" % file_exists)
         is_file = os.path.isfile(filepath)
-        file_basename = os.path.basename(filepath)
-        file_ok = file_basename == filename
+        logger.debug("is_file = %s" % is_file)
         no_star = "*" not in filepath
+        logger.debug("no_star = %s" % no_star)
         no_dot = "." not in filepath
+        logger.debug("no_dot = %s" % no_dot)
         no_dollar = "$" not in filepath
+        logger.debug("no_dollar = %s" % no_dollar)
         no_semicolon = ";" not in filepath
-        no_redirect_input = "<" in filepath
-        no_redirect_output = ">" in filepath
+        logger.debug("no_semicolon = %s" % no_semicolon)
+        no_redirect_input = "<" not in filepath
+        logger.debug("no_redirect_input= %s" % no_redirect_input)
+        no_redirect_output = ">" not in filepath
+        logger.debug("no_redirect_output = %s" % no_redirect_output)
         return all([dir_ok,
-                    file_ok,
                     no_star,
                     no_dot,
                     file_exists,
                     is_file,
-                    dir_ok,
                     no_semicolon,
                     no_redirect_input,
                     no_redirect_output,
@@ -402,22 +420,37 @@ class TaskResultDownloadView(APIView):
     def get(self, request, task_id):
         try:
             res = AsyncResult(task_id)
+            cae = CustomActionExecution.objects.get(task_id=task_id)
+            cae.status = "predownload"
+            cae.save()
             if res.ready() and res.successful():
+                import json
                 task_result = res.result
+                cae.status = "task finished"
+                cae.task_result = json.dumps(task_result)
+                logger.debug("task_result = %s" % task_result)
                 filepath = task_result.get("filepath", None)
+                cae.download_filepath = filepath
+                cae.save()
                 filename = task_result.get("filename", "download")
                 content_type = task_result.get("content_type", None)
                 if filepath is not None:
                     if os.path.exists(filepath):
                         with open(filepath, 'rb') as fh:
                             file_data = fh.read()
-                        if self._safe_to_delete(filepath, filename):
+
+                        if self._safe_to_delete(filepath):
                             subprocess.run(["rm", filepath], check=True)
                         else:
+                            cae.status = "bad download filepath"
+                            cae.save()
                             raise Exception("bad filepath")
                         response = HttpResponse(file_data,
                                                 content_type=content_type)
                         response['Content-Disposition'] = "inline; filename=%s" % filename
+                        cae.status = "downloaded"
+                        cae.downloaded_time = datetime.now()
+                        cae.save()
                         return response
                     else:
                         # file has already been downloaded

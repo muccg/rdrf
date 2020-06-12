@@ -486,7 +486,7 @@ class CustomActionAdmin(admin.ModelAdmin):
 
 class CustomActionExecutionAdmin(admin.ModelAdmin):
     model = CustomActionExecution
-    list_display = ("registry",
+    list_display = ("custom_action",
                     "name",
                     "created",
                     "updated",
