@@ -2027,7 +2027,7 @@ class CustomAction(models.Model):
                 kwargs["widget"] = widget
                 kwargs["input_formats"] = ["%d-%m-%Y"]
             else:
-                raise NotImplementedError("don't non date fields yet")
+                raise NotImplementedError("don't support non-date fields yet")
 
             return klass(**kwargs)
 
