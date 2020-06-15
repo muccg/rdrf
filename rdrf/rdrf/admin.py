@@ -495,6 +495,9 @@ class CustomActionExecutionAdmin(admin.ModelAdmin):
                     "patient",
                     "runtime")
 
+    def get_readonly_fields(self, request, obj=None):
+        return [field.name for field in obj.__class__._meta.fields]
+
 
 CDEPermittedValueAdmin = create_restricted_model_admin_class(
     CDEPermittedValue,
