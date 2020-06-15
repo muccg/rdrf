@@ -5,6 +5,7 @@ import Tooltip from "rc-tooltip";
 import * as React from 'react';
 import { connect } from 'react-redux';
 import { Col, Form, FormGroup, Input, Label } from 'reactstrap';
+import { InputType } from 'reactstrap/lib';
 import { QuestionInterface } from './interfaces';
 
 import * as actions from '../reducers';
@@ -201,7 +202,7 @@ class Question extends React.Component<QuestionInterface, object> {
         );
     }
 
-    public renderInput(question: any) {
+    public renderInput(question: any, type: InputType) {
         let defaultValue = ""
         if (this.props.answers[question.cde]) {
             defaultValue = this.props.answers[question.cde]
@@ -216,7 +217,7 @@ class Question extends React.Component<QuestionInterface, object> {
                 </FormGroup>
                 <FormGroup>
                     <Col sm="12" md={{ size: 6, offset: 3 }}>
-                        <Input type="text"
+                        <Input type={type}
                             name={question.cde}
                             onChange={this.handleInputChange}
                             onKeyDown={this.handleInputKeyDown}
@@ -254,11 +255,11 @@ class Question extends React.Component<QuestionInterface, object> {
         const isMultiSelect = (question.spec && question.spec.tag === 'range') && question.spec.allow_multiple;
 
         if ((question.tag === "cond" && question.spec == null) || question.datatype === "string") {
-            return this.renderInput(question);
+            return this.renderInput(question, "text");
         }
 
         if (question.datatype === "integer" && question.widget_spec == null) {
-                return this.renderInput(question);
+                return this.renderInput(question, "number");
         }
 
         if (isMultiSelect) {
