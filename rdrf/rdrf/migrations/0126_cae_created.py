@@ -7,7 +7,7 @@ import django.utils.timezone
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('rdrf', '0124_customactionexecution'),
+        ('rdrf', '0125_surveyquestion_widget_config'),
     ]
 
     operations = [

@@ -6,7 +6,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('rdrf', '0124_surveyquestion_widget_config'),
+        ('rdrf', '0128_cae_input_date'),
     ]
 
     operations = [
