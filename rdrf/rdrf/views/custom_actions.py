@@ -1,8 +1,10 @@
+from datetime import datetime
 from django.shortcuts import get_object_or_404
 from django.shortcuts import render
 from django.views.generic.base import View
 from django.template.context_processors import csrf
 from django.http import Http404
+from django.http import HttpResponseNotFound
 from django.utils.decorators import method_decorator
 from django.urls import reverse
 from django.contrib.auth.decorators import login_required
@@ -23,8 +25,6 @@ class CustomActionView(View):
     @method_decorator(login_required)
     def get(self, request, action_id, patient_id):
         # user has clicked on a custom action link
-        from rdrf.models.task_models import CustomActionExecution
-        logger.debug("CustomActionView get: patient_id = %s" % patient_id)
         user = request.user
         custom_action = get_object_or_404(CustomAction, id=action_id)
 
@@ -62,7 +62,25 @@ class CustomActionView(View):
                                       patient_model,
                                       cae)
         else:
-            return custom_action.execute(user, patient_model)
+            cae.status = "running sync"
+            cae.save()
+            start_time = datetime.now()
+            try:
+                response = custom_action.execute(user, patient_model)
+            except Exception as ex:
+                cae.error_string = str(ex)
+                cae.status = "error"
+                cae.save()
+                logger.error("Error custom action cae %s: %s" % (cae.id,
+                                                                 ex))
+                raise
+
+            finish_time = datetime.now()
+            seconds = (finish_time - start_time).seconds
+            cae.runtime = seconds
+            cae.status = "finished"
+            cae.save()
+            return response
 
     def _generate_gui(self,
                       request,
@@ -79,7 +97,6 @@ class CustomActionView(View):
 
     @method_decorator(login_required)
     def post(self, request, action_id, patient_id):
-        logger.debug("received post of action")
         cae = CustomActionExecution.objects.get(id=int(request.POST["cae"]))
         logger.debug("tracking cae = %s" % cae.id)
         cae.status = "received input"
@@ -97,9 +114,12 @@ class CustomActionView(View):
 
         input_form = custom_action.input_form_class(request.POST)
         if not input_form.is_valid():
+            cae.status = "invalid input"
+            cae.save()
             raise Exception("not valid")
         input_data = input_form.cleaned_data
-        logger.debug("input data = %s" % input_data)
+        cae.input_data = str(input_data)
+        cae.save()
 
         # execute async
         if custom_action.asynchronous:
@@ -118,7 +138,32 @@ class CustomActionView(View):
         else:
             cae.status = "start sync"
             cae.save()
-            return custom_action.execute(user, patient_model, input_data)
+            try:
+                start_time = datetime.now()
+                try:
+                    response = custom_action.execute(user, patient_model, input_data)
+                except Exception as ex:
+                    cae.status = "error"
+                    cae.error_string = str(ex)
+                    cae.save()
+                    logger.error("Error running cae %s: %s" % (cae.id,
+                                                               ex))
+                    raise
+
+                finish_time = datetime.now()
+                seconds = (finish_time - start_time).seconds
+                cae.runtime = seconds
+                cae.status = "finished"
+                cae.save()
+                return response
+
+            except Exception as ex:
+                cae.status = "error"
+                cae.error_string = str(ex)
+                cae.save()
+                logger.error("Error running cae %s: %s" % (cae.id,
+                                                           ex))
+                raise
 
     def _polling_view(self,
                       request,

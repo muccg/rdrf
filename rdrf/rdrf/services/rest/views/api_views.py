@@ -320,7 +320,6 @@ class CalculatedCdeValue(APIView):
                           'registry_code': request.data["registry_code"],
                           'sex': str(request.data["patient_sex"])}
         form_values = request.data["form_values"]
-        logger.debug("form_values = %s" % form_values)
         mod = __import__('rdrf.forms.fields.calculated_functions', fromlist=['object'])
         func = getattr(mod, request.data["cde_code"])
         if func:
@@ -336,8 +335,6 @@ class TaskInfoView(APIView):
     permission_classes = (IsAuthenticated,)
 
     def get(self, request, task_id):
-
-        logger.debug("checking task %s" % task_id)
         cae = None
         if task_id is None:
             result = {"status": "error",
@@ -349,9 +346,7 @@ class TaskInfoView(APIView):
                 cae.status = "task finished"
                 runtime_delta = datetime.now() - cae.created
                 cae.runtime = runtime_delta.seconds
-                logger.debug("task is finished!")
                 status = res.status
-                logger.debug("task status = %s" % status)
                 if res.failed():
                     result = {"status": "error",
                               "message": "Task failed"}
@@ -360,9 +355,7 @@ class TaskInfoView(APIView):
                     cae.status = "task succeeded"
                     task_result = res.result
                     cae.task_result = json.dumps(task_result)
-                    logger.debug("task result = %s" % task_result)
                     download_link = self._get_download_link(task_id)
-                    logger.debug("download_link = %s" % download_link)
                     result = {"status": "completed",
                               "download_link": download_link}
                 else:
@@ -388,25 +381,15 @@ class TaskResultDownloadView(APIView):
         """
         import os.path
         from django.conf import settings
-        logger.debug("safe to delete filepath: %s" % filepath)
         dir_ok = filepath.startswith(settings.TASK_FILE_DIRECTORY)
-        logger.debug("dir_ok = %s" % dir_ok)
         file_exists = os.path.exists(filepath)
-        logger.debug("file_exists = %s" % file_exists)
         is_file = os.path.isfile(filepath)
-        logger.debug("is_file = %s" % is_file)
         no_star = "*" not in filepath
-        logger.debug("no_star = %s" % no_star)
         no_dot = "." not in filepath
-        logger.debug("no_dot = %s" % no_dot)
         no_dollar = "$" not in filepath
-        logger.debug("no_dollar = %s" % no_dollar)
         no_semicolon = ";" not in filepath
-        logger.debug("no_semicolon = %s" % no_semicolon)
         no_redirect_input = "<" not in filepath
-        logger.debug("no_redirect_input= %s" % no_redirect_input)
         no_redirect_output = ">" not in filepath
-        logger.debug("no_redirect_output = %s" % no_redirect_output)
         return all([dir_ok,
                     no_star,
                     no_dot,
@@ -428,7 +411,6 @@ class TaskResultDownloadView(APIView):
                 task_result = res.result
                 cae.status = "task finished"
                 cae.task_result = json.dumps(task_result)
-                logger.debug("task_result = %s" % task_result)
                 filepath = task_result.get("filepath", None)
                 cae.download_filepath = filepath
                 cae.save()

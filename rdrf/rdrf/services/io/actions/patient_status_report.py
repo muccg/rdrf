@@ -103,32 +103,24 @@ class ReportGenerator:
             self.end_value = get_date(self.end_value)
 
     def _parse_filter_spec(self, runtime_spec_dict):
-        logger.debug("in parse_filter_spec")
         if "filter_spec" in runtime_spec_dict:
             filter_spec = runtime_spec_dict["filter_spec"]
-            logger.debug("got filter_spec")
             if "filter_field" in filter_spec:
                 filter_field = filter_spec["filter_field"]
-                logger.debug("got filter_field")
                 cfg_name = filter_field.get("context_form_group", None)
-                logger.debug("cfg_name = %s" % cfg_name)
                 if cfg_name is not None:
                     self.filter_context_form_group = ContextFormGroup.objects.get(registry=self.registry_model,
                                                                                   name=cfg_name)
                     if not self.filter_context_form_group.context_type == "F":
                         raise ValueError("filter context form group context type must be fixed")
-                    logger.debug("got context form group")
 
                 form_name = filter_field["form"]
                 self.filter_form = RegistryForm.objects.get(registry=self.registry_model,
                                                             name=form_name)
-                logger.debug("got filter form = %s" % self.filter_form)
                 section_code = filter_field["section"]
                 self.filter_section = self.filter_form.get_section_model(section_code)
-                logger.debug("got filter_section")
                 cde_code = filter_field["cde"]
                 self.filter_cde = self.filter_section.get_cde(cde_code)
-                logger.debug("got filter cde")
 
     def dump_csv(self, stream):
         writer = csv.writer(stream)
@@ -143,7 +135,6 @@ class ReportGenerator:
         task_dir = settings.TASK_FILE_DIRECTORY
         filename = generate_token()
         filepath = os.path.join(task_dir, filename)
-        logger.debug("filepath = %s" % filepath)
         with open(filepath, "w") as f:
             logger.info("writing csv ...")
             self.dump_csv(f)
@@ -408,9 +399,6 @@ class ReportGenerator:
 
     def _include_patient(self, patient_model):
         if self.start_value and self.end_value:
-            logger.debug("start value = %s" % self.start_value)
-            logger.debug("end value = %s" % self.end_value)
-
             filter_value = self._get_filter_value(patient_model)
             if filter_value is None:
                 return False
@@ -424,7 +412,6 @@ class ReportGenerator:
             if len(cds) > 1:
                 raise ValueError("There should only be one clinical data object")
             clinical_data = cds[0]
-            logger.debug("getting filter field value from clinical data")
             return self._get_filter_field_value(clinical_data)
         else:
             # No data saved at all for any of forms in this form group
@@ -441,7 +428,6 @@ class ReportGenerator:
                             for cde_dict in section_dict["cdes"]:
                                 if cde_dict["code"] == self.filter_cde.code:
                                     value = cde_dict["value"]
-                                    logger.debug("found value = %s" % value)
                                     return parse_iso_date(value)
 
     def _security_check(self):

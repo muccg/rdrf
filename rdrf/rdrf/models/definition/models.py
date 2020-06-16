@@ -2062,20 +2062,10 @@ class CustomAction(models.Model):
 
         return task_id
 
-    @shared_task
-    def execute_by_id(self, user_id, patient_id, input_data):
-        user_model = CustomUser.objects.get(id=user_id)
-        if patient_id == 0:
-            patient_model = None
-        else:
-            patient_model = Patient.objects.get(id=patient_id)
-        self.execute(user, patient_model, input_data)
-
     def execute(self, user, patient_model=None, input_data=None, rt_spec=None):
         """
         This should return a HttpResponse of some sort
         """
-        logger.debug("custom action %s executing ..." % self.id)
         if self.scope == "P":
             if not self.check_security(user, patient_model):
                 raise PermissionDenied
@@ -2128,6 +2118,8 @@ class CustomAction(models.Model):
         return link
 
     def check_security(self, user, patient_model):
+        if user.is_superuser:
+            return True
         from rdrf.security.security_checks import security_check_user_patient
         try:
             security_check_user_patient(user, patient_model)

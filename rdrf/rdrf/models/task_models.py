@@ -24,4 +24,6 @@ class CustomActionExecution(models.Model):
     downloaded = models.BooleanField(default=False)
     downloaded_time = models.DateTimeField(null=True)
     task_result = models.TextField(blank=True)
+    error_string = models.TextField(blank=True)
+    input_data = models.TextField(blank=True)
     runtime = models.IntegerField(null=True, help_text="Runtime in seconds")
