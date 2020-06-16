@@ -1,5 +1,29 @@
 {% extends "rdrf_cdes/base-1-col.html" %}
+{% load static from staticfiles %}
+{% block extrastyle %}
+<link rel="stylesheet" href="{% static 'css/jquery-1.11.4/themes/smoothness/jquery-ui.min.css' %}">
+{% endblock %}
 {% block content %}
+<script>
+  $(document).ready(function(){
+      $(document).find( ".datepicker" ).each(function() {
+           $(this).on("mouseover", function() {
+           $(this).datepicker({
+               changeMonth: true,
+               changeYear: true,
+               dateFormat: 'dd-mm-yy',
+               yearRange: '-100:+0',
+               buttonImage: "{% static 'images/calendar.gif' %}",
+               buttonImageOnly: true,
+               "dayNamesShort": $.datepicker.regional['{{request.LANGUAGE_CODE.lower}}' ].dayNamesShort,
+               "dayNames": $.datepicker.regional['{{request.LANGUAGE_CODE.lower}}' ].dayNames,
+               "monthNamesShort": $.datepicker.regional['{{request.LANGUAGE_CODE.lower}}'].monthNamesShort,
+               "monthNames": $.datepicker.regional[ '{{request.LANGUAGE_CODE.lower}}' ].monthNames
+                });
+            });
+      });
+  });
+</script>
 <h2>{{custom_action.name}}</h2>
 <form method="post">{% csrf_token %}
 {{ input_form }}
