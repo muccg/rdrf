@@ -27,8 +27,10 @@ class Question extends React.Component<QuestionInterface, object> {
     }
 
     public handleInputChange = (event) => {
-        const code = this.props.questions[this.props.stage].cde;
-        this.props.enterData(code, event.target.value);
+        if (event.target.checkValidity()){
+            const code = this.props.questions[this.props.stage].cde;
+            this.props.enterData(code, event.target.value);
+       }
     }
 
     public transformSubstring = (mainString: string | string[], words: string[], transformation: string) : string[] => {
@@ -207,7 +209,10 @@ class Question extends React.Component<QuestionInterface, object> {
         if (this.props.answers[question.cde]) {
             defaultValue = this.props.answers[question.cde]
         }
-
+        let pattern = ".*";
+        if (type === "number"){
+            pattern = "-?[0-9]*";
+        }
         return (
             <Form>
                 <FormGroup tag="fieldset">
@@ -217,11 +222,12 @@ class Question extends React.Component<QuestionInterface, object> {
                 </FormGroup>
                 <FormGroup>
                     <Col sm="12" md={{ size: 6, offset: 3 }}>
-                        <Input type={type}
+                        <Input
                             name={question.cde}
                             onChange={this.handleInputChange}
                             onKeyDown={this.handleInputKeyDown}
                             value={defaultValue}
+                            pattern = {pattern}
                         />
                     </Col>
                 </FormGroup>
