@@ -1,5 +1,4 @@
 from django.db import models
-from rdrf.models.definition.models import Registry
 from rdrf.models.definition.models import CustomAction
 from registry.groups.models import CustomUser
 from registry.patients.models import Patient
@@ -8,9 +7,8 @@ from registry.patients.models import Patient
 class CustomActionExecution(models.Model):
     """
     Record info about a custom action being run.
-    Custom actions may be asynchronous in which case we 
+    Custom actions may be asynchronous in which case we
     store some task related info
-
     """
     custom_action = models.ForeignKey(CustomAction, on_delete=models.PROTECT)
     task_id = models.CharField(max_length=80, blank=True, null=True)

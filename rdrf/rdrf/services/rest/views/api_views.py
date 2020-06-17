@@ -18,11 +18,8 @@ from registry.genetic.models import Gene, Laboratory
 from registry.patients.models import Patient, Registry, Doctor, NextOfKinRelationship
 from registry.groups.models import CustomUser, WorkingGroup
 from rdrf.services.rest.serializers import PatientSerializer, RegistrySerializer, WorkingGroupSerializer, CustomUserSerializer, DoctorSerializer, NextOfKinRelationshipSerializer
-from datetime import datetime
 from celery.result import AsyncResult
-from django.views.generic.base import View
 from django.http import HttpResponse
-from django.http import Http404
 from rdrf.models.task_models import CustomActionExecution
 
 import logging

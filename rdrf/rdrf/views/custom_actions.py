@@ -4,7 +4,6 @@ from django.shortcuts import render
 from django.views.generic.base import View
 from django.template.context_processors import csrf
 from django.http import Http404
-from django.http import HttpResponseNotFound
 from django.utils.decorators import method_decorator
 from django.urls import reverse
 from django.contrib.auth.decorators import login_required

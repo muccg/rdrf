@@ -19,7 +19,6 @@ from django.dispatch.dispatcher import receiver
 from django.forms.models import model_to_dict
 from django.utils.safestring import mark_safe
 from django.core.exceptions import PermissionDenied
-from celery import shared_task
 
 from rdrf.helpers.utils import format_date, parse_iso_datetime
 from rdrf.helpers.utils import LinkWrapper
@@ -2023,6 +2022,7 @@ class CustomAction(models.Model):
                 from rdrf.forms.dynamic.fields import IsoDateField
                 klass = IsoDateField
                 widget = forms.DateInput(attrs={'class': 'datepicker'},
+                                         label=label,
                                          format='%dd-%mm-%YY')
                 kwargs["widget"] = widget
                 kwargs["input_formats"] = ["%d-%m-%Y"]
@@ -2050,8 +2050,6 @@ class CustomAction(models.Model):
             patient_id = 0
         else:
             patient_id = patient_model.id
-        user_id = user.id
-        custom_action_id = self.id
         from rdrf.services.tasks import run_custom_action
         async_tuple = run_custom_action.delay(self.id,
                                               user.id,
