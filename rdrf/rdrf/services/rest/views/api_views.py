@@ -1,4 +1,8 @@
+import os
 import pycountry
+import subprocess
+from datetime import datetime
+import json
 
 from django.db.models import Q
 from rest_framework import generics
@@ -14,7 +18,9 @@ from registry.genetic.models import Gene, Laboratory
 from registry.patients.models import Patient, Registry, Doctor, NextOfKinRelationship
 from registry.groups.models import CustomUser, WorkingGroup
 from rdrf.services.rest.serializers import PatientSerializer, RegistrySerializer, WorkingGroupSerializer, CustomUserSerializer, DoctorSerializer, NextOfKinRelationshipSerializer
-from datetime import datetime
+from celery.result import AsyncResult
+from django.http import HttpResponse
+from rdrf.models.task_models import CustomActionExecution
 
 import logging
 logger = logging.getLogger(__name__)
@@ -311,10 +317,128 @@ class CalculatedCdeValue(APIView):
                           'registry_code': request.data["registry_code"],
                           'sex': str(request.data["patient_sex"])}
         form_values = request.data["form_values"]
-        logger.debug("form_values = %s" % form_values)
         mod = __import__('rdrf.forms.fields.calculated_functions', fromlist=['object'])
         func = getattr(mod, request.data["cde_code"])
         if func:
             return Response(func(patient_values, form_values))
         else:
             raise Exception(f"Trying to call unknown calculated function {request.data['cde_code']}()")
+
+
+class TaskInfoView(APIView):
+    """
+    View to get task execution info
+    """
+    permission_classes = (IsAuthenticated,)
+
+    def get(self, request, task_id):
+        cae = None
+        if task_id is None:
+            result = {"status": "error",
+                      "message": "Task id not provided"}
+        else:
+            res = AsyncResult(task_id)
+            if res.ready():
+                cae = CustomActionExecution.objects.get(task_id=task_id)
+                cae.status = "task finished"
+                runtime_delta = datetime.now() - cae.created
+                cae.runtime = runtime_delta.seconds
+                status = res.status
+                if res.failed():
+                    result = {"status": "error",
+                              "message": "Task failed"}
+                    cae.status = "task failed"
+                elif res.successful():
+                    cae.status = "task succeeded"
+                    task_result = res.result
+                    cae.task_result = json.dumps(task_result)
+                    download_link = self._get_download_link(task_id)
+                    result = {"status": "completed",
+                              "download_link": download_link}
+                else:
+                    result = {"status": "error",
+                              "message": status}
+            else:
+                result = {"status": "waiting"}
+
+        if cae:
+            cae.save()
+        return Response(result)
+
+    def _get_download_link(self, task_id):
+        return reverse("v1:download-list", args=[task_id])
+
+
+class TaskResultDownloadView(APIView):
+    permission_classes = (IsAuthenticated,)
+
+    def _safe_to_delete(self, filepath):
+        """
+        Avoid any risk of being hacked somehow
+        """
+        import os.path
+        from django.conf import settings
+        dir_ok = filepath.startswith(settings.TASK_FILE_DIRECTORY)
+        file_exists = os.path.exists(filepath)
+        is_file = os.path.isfile(filepath)
+        no_star = "*" not in filepath
+        no_dot = "." not in filepath
+        no_dollar = "$" not in filepath
+        no_semicolon = ";" not in filepath
+        no_redirect_input = "<" not in filepath
+        no_redirect_output = ">" not in filepath
+        return all([dir_ok,
+                    no_star,
+                    no_dot,
+                    file_exists,
+                    is_file,
+                    no_semicolon,
+                    no_redirect_input,
+                    no_redirect_output,
+                    no_dollar])
+
+    def get(self, request, task_id):
+        try:
+            res = AsyncResult(task_id)
+            cae = CustomActionExecution.objects.get(task_id=task_id)
+            cae.status = "predownload"
+            cae.save()
+            if res.ready() and res.successful():
+                import json
+                task_result = res.result
+                cae.status = "task finished"
+                cae.task_result = json.dumps(task_result)
+                filepath = task_result.get("filepath", None)
+                cae.download_filepath = filepath
+                cae.save()
+                filename = task_result.get("filename", "download")
+                content_type = task_result.get("content_type", None)
+                if filepath is not None:
+                    if os.path.exists(filepath):
+                        with open(filepath, 'rb') as fh:
+                            file_data = fh.read()
+
+                        if self._safe_to_delete(filepath):
+                            subprocess.run(["rm", filepath], check=True)
+                        else:
+                            cae.status = "bad download filepath"
+                            cae.save()
+                            raise Exception("bad filepath")
+                        response = HttpResponse(file_data,
+                                                content_type=content_type)
+                        response['Content-Disposition'] = "inline; filename=%s" % filename
+                        cae.status = "downloaded"
+                        cae.downloaded_time = datetime.now()
+                        cae.save()
+                        return response
+                    else:
+                        # file has already been downloaded
+                        message = "The file has already been downloaded"
+                        response = HttpResponse(message,
+                                                content_type="application/text")
+                        response['Content-Disposition'] = "inline; filename=%s" % "error.txt"
+                        return response
+
+        except Exception as ex:
+            logger.error("Error getting task download: %s" % ex)
+            raise Exception("Server Error getting download")

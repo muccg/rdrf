@@ -1,4 +1,5 @@
 from rest_framework import status
+import json
 import logging
 import requests
 from django.db import models
@@ -99,6 +100,9 @@ class SurveyQuestion(models.Model):
     instruction = models.TextField(blank=True, null=True)
     copyright_text = models.TextField(blank=True, null=True)
     source = models.TextField(blank=True, null=True)
+    widget_config = models.TextField(blank=True, null=True,
+                                     help_text='Eg: {"max_label": "High", "min_label": "Low", "box_label": "Height"}'
+                                     )  # json field for holding widget parameters
 
     @property
     def name(self):
@@ -106,6 +110,11 @@ class SurveyQuestion(models.Model):
 
     def _clean_instructions(self, instructions):
         return instructions.replace("\n", " ").replace("\r", " ")
+
+    def _get_widget_spec(self):
+        if self.widget_config is not None and self.widget_config != "":
+            return json.loads(self.widget_config)
+        return None
 
     @property
     def client_rep(self):
@@ -119,6 +128,7 @@ class SurveyQuestion(models.Model):
                     "survey_question_instruction": clean(self.instruction),
                     "copyright_text": self.copyright_text,
                     "source": self.source,
+                    "widget_spec": self._get_widget_spec(),
                     "spec": self._get_cde_specification()}
 
         else:
@@ -138,6 +148,7 @@ class SurveyQuestion(models.Model):
                     "cde": self.cde.code,
                     "instructions": self._clean_instructions(self.cde.instructions),
                     "title": clean(self.cde.name),
+                    "widget_spec": self._get_widget_spec(),
                     "spec": self._get_cde_specification(),
                     "survey_question_instruction": clean(self.instruction),
                     "copyright_text": self.copyright_text,
@@ -173,6 +184,9 @@ class SurveyQuestion(models.Model):
             return self.cde.name + "  if " + self.precondition.cde.name + " = " + self.precondition.value
 
     def clean(self):
+        if self.cde.datatype == "integer":
+            self.validate_min_max()
+
         if self.cde.code not in ("PROMSConsent", "PromsGender"):
             if self.cde_path:
                 # Check that the cde_path is well formatted.
@@ -185,6 +199,11 @@ class SurveyQuestion(models.Model):
                 # Check the cde exists in the selected form.
                 # Check the cde is in one section only in the selected form.
                 self.validate_one_and_only_one_cde_exists()
+
+    def validate_min_max(self):
+        if self.cde.min_value is None or self.cde.max_value is None:
+            raise ValidationError(
+                f"[{self.cde.code}] The min and max values are not properly set in CDE")
 
     def validate_cde_path(self):
         # Extract form and section code from /FROM_NAME/SECTION_CODE/.

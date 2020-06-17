@@ -2002,7 +2002,6 @@ class CustomAction(models.Model):
 
     @property
     def input_form_class(self):
-        # return a django form?
         if self.requires_input:
             return self._generate_input_form_class(self.inputs)
         else:
@@ -2015,12 +2014,20 @@ class CustomAction(models.Model):
 
         def create_field(input_spec):
             field_type = input_spec["field_type"]
-            label = input_spec["label"]
+            kwargs = {}
+            widget = None
             if field_type == "date":
-                klass = forms.DateField
+                from django import forms
+                from rdrf.forms.dynamic.fields import IsoDateField
+                klass = IsoDateField
+                widget = forms.DateInput(attrs={'class': 'datepicker'},
+                                         format='%dd-%mm-%YY')
+                kwargs["widget"] = widget
+                kwargs["input_formats"] = ["%d-%m-%Y"]
             else:
-                raise NotImplementedError("don't support yet")
-            return klass(label=label)
+                raise NotImplementedError("don't support non-date fields yet")
+
+            return klass(**kwargs)
 
         form_class = forms.BaseForm
         for input_spec in inputs:
@@ -2028,9 +2035,28 @@ class CustomAction(models.Model):
             field_name = input_spec["name"]
             base_fields[field_name] = django_field
 
+        # we need to add a hidden field with the custom action execution id
+        # so we can track the progress of the execution when posted
+        base_fields["cae"] = forms.IntegerField(widget=forms.HiddenInput())
+
         form_dict = {"base_fields": base_fields}
         form_class = type("CustomActionInputForm", (forms.BaseForm,), form_dict)
         return form_class
+
+    def run_async(self, user, patient_model, input_data):
+        if patient_model is None:
+            patient_id = 0
+        else:
+            patient_id = patient_model.id
+        from rdrf.services.tasks import run_custom_action
+        async_tuple = run_custom_action.delay(self.id,
+                                              user.id,
+                                              patient_id,
+                                              input_data),
+
+        task_id = async_tuple[0].task_id
+
+        return task_id
 
     def execute(self, user, patient_model=None, input_data=None, rt_spec=None):
         """
@@ -2040,7 +2066,7 @@ class CustomAction(models.Model):
             if not self.check_security(user, patient_model):
                 raise PermissionDenied
         elif self.scope == "U":
-            if not user.in_registry(self.registry):
+            if not user.is_superuser and not user.in_registry(self.registry):
                 raise PermissionDenied
 
         if self.action_type == "PR":
@@ -2065,7 +2091,8 @@ class CustomAction(models.Model):
                                                  self.name,
                                                  self.data,
                                                  user,
-                                                 input_data)
+                                                 input_data,
+                                                 run_async=self.asynchronous)
 
         else:
             raise NotImplementedError("Unknown action type: %s" % self.action_type)
@@ -2087,6 +2114,8 @@ class CustomAction(models.Model):
         return link
 
     def check_security(self, user, patient_model):
+        if user.is_superuser:
+            return True
         from rdrf.security.security_checks import security_check_user_patient
         try:
             security_check_user_patient(user, patient_model)

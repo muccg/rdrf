@@ -34,6 +34,14 @@ interface IntegerDatatype {
     min: number,
 }
 
+
+interface IntegerWidget {
+    widget_name: string,
+    min_label: string,
+    max_label: string,
+    box_label: string,
+}
+
 type Datatype = RangeDatatype | IntegerDatatype;
 
 interface UnconditionalElement {
@@ -41,6 +49,7 @@ interface UnconditionalElement {
     cde: string,
     title: string,
     instructions: string,
+    widget_spec: IntegerWidget,
     spec: Datatype,
     survey_question_instruction: string,
     copyright_text: string,
@@ -54,6 +63,7 @@ interface ConditionalElement {
     cde: string,
     title: string,
     instructions: string,
+    widget_spec: IntegerWidget,
     spec: Datatype,
     survey_question_instruction: string,
     copyright_text: string,

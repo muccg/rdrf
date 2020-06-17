@@ -86,6 +86,7 @@ class RDRFLoginAssistanceForm(PasswordResetForm):
             domain_override=None,
             subject_template_name='registration/login_assistance_subject.txt',
             email_template_name='registration/login_assistance_email.html',
+            password_reset_email_template_name='registration/password_reset_email.html',
             account_unlocked_email_template_name='registration/login_assistance_account_not_locked_email.html',
             can_not_self_unlock_email_template_name='registration/login_assistance_can_not_self_unlock_email.html',
             use_https=False,
@@ -105,6 +106,8 @@ class RDRFLoginAssistanceForm(PasswordResetForm):
         def _choose_template(user):
             if user.is_active:
                 return subject_template_name, account_unlocked_email_template_name
+            if user.is_curator:
+                return subject_template_name, password_reset_email_template_name
             if not can_user_self_unlock(user):
                 return subject_template_name, can_not_self_unlock_email_template_name
 

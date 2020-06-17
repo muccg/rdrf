@@ -17,6 +17,9 @@ router.register(r'registries/(?P<registry_code>\w+)/indices',
 router.register(r'registries/(?P<registry_code>\w+)/clinicians',
                 api_views.ListClinicians, base_name='clinician')
 router.register(r'calculatedcdes', api_views.CalculatedCdeValue, base_name='calculatedcde')
+router.register(r'tasks/(?P<task_id>[0-9a-z_\-]+)', api_views.TaskInfoView, base_name='task')
+router.register(r'taskdownloads/(?P<task_id>[0-9a-z_\-]+)',
+                api_views.TaskResultDownloadView, base_name='download')
 
 urlpatterns = [
     re_path(r'registries/(?P<code>\w+)/$', api_views.RegistryDetail.as_view(), name='registry-detail'),
