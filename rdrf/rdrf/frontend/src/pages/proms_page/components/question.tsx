@@ -209,10 +209,6 @@ class Question extends React.Component<QuestionInterface, object> {
         if (this.props.answers[question.cde]) {
             defaultValue = this.props.answers[question.cde]
         }
-        let pattern = ".*";
-        if (type === "number"){
-            pattern = "-?[0-9]*";
-        }
         return (
             <Form>
                 <FormGroup tag="fieldset">
@@ -222,12 +218,11 @@ class Question extends React.Component<QuestionInterface, object> {
                 </FormGroup>
                 <FormGroup>
                     <Col sm="12" md={{ size: 6, offset: 3 }}>
-                        <Input
+                        <Input type={type}
                             name={question.cde}
                             onChange={this.handleInputChange}
                             onKeyDown={this.handleInputKeyDown}
                             value={defaultValue}
-                            pattern = {pattern}
                         />
                     </Col>
                 </FormGroup>
@@ -265,7 +260,7 @@ class Question extends React.Component<QuestionInterface, object> {
         }
 
         if (question.datatype === "integer" && question.widget_spec == null) {
-                return this.renderInput(question, "number");
+            return this.renderInput(question, "number");
         }
 
         if (isMultiSelect) {
