@@ -175,6 +175,10 @@ class SurveyQuestion(models.Model):
                 "max": int(self.cde.max_value),
                 "min": int(self.cde.min_value),
             }
+        elif self.cde.datatype == 'date':
+            return {
+                "tag": "date",
+            }
 
     @property
     def expression(self):

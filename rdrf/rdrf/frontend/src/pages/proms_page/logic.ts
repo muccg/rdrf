@@ -34,6 +34,9 @@ interface IntegerDatatype {
     min: number,
 }
 
+interface DateDatatype {
+    tag: 'date'
+}
 
 interface IntegerWidget {
     widget_name: string,
@@ -42,7 +45,7 @@ interface IntegerWidget {
     box_label: string,
 }
 
-type Datatype = RangeDatatype | IntegerDatatype;
+type Datatype = RangeDatatype | IntegerDatatype | DateDatatype;
 
 interface UnconditionalElement {
     tag: 'cde',
