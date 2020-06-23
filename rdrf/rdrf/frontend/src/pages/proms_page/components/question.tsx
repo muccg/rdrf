@@ -126,15 +126,15 @@ class Question extends React.Component<QuestionInterface, object> {
     }
 
     public getMarks = (question) => {
-        const minValue = question.spec.min;
-        const maxValue = question.spec.max;
+        const minValue = question.spec.params.min;
+        const maxValue = question.spec.params.max;
 
         const minMark = {
             [minValue]: {
                 style: {
                     color: 'red', width: 'max-content', textAlign: 'left', marginBottom: '-100%'
                 },
-                label: <strong>{minValue} - {question.widget_spec.min_label}</strong>,
+                label: <strong>{minValue} - {question.spec.widget_spec.min_label}</strong>,
             }
         };
 
@@ -149,7 +149,7 @@ class Question extends React.Component<QuestionInterface, object> {
                 style: {
                     color: 'green', width: 'max-content', textAlign: 'left', marginBottom: '-100%'
                 },
-                label: <strong>{maxValue} - {question.widget_spec.max_label}</strong>,
+                label: <strong>{maxValue} - {question.spec.widget_spec.max_label}</strong>,
             }
         };
 
@@ -176,13 +176,44 @@ class Question extends React.Component<QuestionInterface, object> {
         return handle;
     }
 
-    public renderMultiSelect(question: any) {
+    public renderOptions(question: any) {
+        return _.map(question.spec.options, (option, index) => (
+                <FormGroup check={true}>
+                    <Col sm="12" md={{ size: 6, offset: 3 }}>
+                        <Label check={true}>
+                            <Input type="radio" name={this.props.questions[this.props.stage].cde} value={option.code}
+                                onChange={this.handleChange}
+                                checked={option.code === this.props.answers[question.cde]} />{option.text}
+                        </Label>
+                    </Col>
+                </FormGroup>
+            ));
+    }
+
+    public renderRange(question: any) {
         return (
             <Form>
                 <FormGroup tag="fieldset">
-                    <h6>{question.survey_question_instruction}</h6>
-                    <h4>{question.title}</h4>
-                    <h6>{question.instructions}</h6>
+                    <Col sm="12" md={{ size: 6, offset: 3 }}>
+                        <h6>{question.survey_question_instruction}</h6>
+                        <h4>{question.title}</h4>
+                        <h6>{question.instructions}</h6>
+                    </Col>
+                </FormGroup>
+                {this.renderOptions(question)}
+            </Form>
+        );
+    }
+
+    public renderMultiselect(question: any) {
+        return (
+            <Form>
+                <FormGroup tag="fieldset">
+                    <Col sm="12" md={{ size: 6, offset: 3 }}>
+                        <h6>{question.survey_question_instruction}</h6>
+                        <h4>{question.title}</h4>
+                        <h6>{question.instructions}</h6>
+                    </Col>
                 </FormGroup>
                 <FormGroup>
                     <Col sm="12" md={{ size: 6, offset: 3 }}>
@@ -202,22 +233,24 @@ class Question extends React.Component<QuestionInterface, object> {
         );
     }
 
-    public renderInput(question: any, type: InputType) {
-        let defaultValue = ""
-        if (this.props.answers[question.cde]) {
-            defaultValue = this.props.answers[question.cde]
+    public renderInteger(question: any) {
+        let defaultValue = 0;
+        if (this.props.answers[question.cde] !== undefined) {
+            defaultValue = this.props.answers[question.cde];
         }
-
         return (
             <Form>
                 <FormGroup tag="fieldset">
-                    <h6>{question.survey_question_instruction}</h6>
-                    <h4>{question.title}</h4>
-                    <h6>{question.instructions}</h6>
+                    <Col sm="12" md={{ size: 6, offset: 3 }}>
+                        <h6>{question.survey_question_instruction}</h6>
+                        <h4>{question.title}</h4>
+                        <h6>{question.instructions}</h6>
+                    </Col>
                 </FormGroup>
                 <FormGroup>
                     <Col sm="12" md={{ size: 6, offset: 3 }}>
-                        <Input type={type}
+                        <Input type="number"
+                            {...question.spec.params}
                             name={question.cde}
                             onChange={this.handleInputChange}
                             onKeyDown={this.handleInputKeyDown}
@@ -225,50 +258,15 @@ class Question extends React.Component<QuestionInterface, object> {
                         />
                     </Col>
                 </FormGroup>
-            </Form >
+            </Form>
         );
     }
 
-    public render() {
-        const question = this.props.questions[this.props.stage];
-        let defaultValue = 0;
-        if (question.spec && question.spec.tag === 'integer') {
-            if (this.props.answers[question.cde] !== undefined) {
-                defaultValue = this.props.answers[question.cde];
-            } else {
-                this.onSliderChange(defaultValue);
-            }
-        }
+    public renderSlider(question: any) {
         const boxStyle = { width: "100px", height: "100px", backgroundColor: "#666",
                            marginTop: "20vh", paddingTop: "3px", borderRadius: "8px" };
         const pStyle = { color: "white", align: "center" };
         const style = { width: "50%", height: "50vh", margin: "0 auto", leftPadding: "100px" };
-        const isLast = (this.props.questions.length - 1) === this.props.stage;
-
-        const isConsent = question.cde === "PROMSConsent";
-        const consentText = <div>By ticking this box you:
-                                <ul>
-                <li>Give consent for the information you provide to be used for the CIC Cancer project; and </li>
-                <li>Will receive a reminder when the next survey is due.</li>
-            </ul>
-        </div>;
-        const isMultiSelect = (question.spec && question.spec.tag === 'range') && question.spec.allow_multiple;
-
-        if ((question.tag === "cond" && question.spec == null) || question.datatype === "string") {
-            return this.renderInput(question, "text");
-        }
-
-        if (question.datatype === "integer" && question.widget_spec == null) {
-                return this.renderInput(question, "text");
-        }
-
-        if (question.spec.tag === "date") {
-            return this.renderInput(question, "date");
-        }
-
-        if (isMultiSelect) {
-            return this.renderMultiSelect(question);
-        }
 
         let transformedInstruction: string[] | string;
         if (question.cde === 'EQ_Health_Rate') {
@@ -284,6 +282,13 @@ class Question extends React.Component<QuestionInterface, object> {
             }
         }
 
+        let defaultValue = 0;
+        if (this.props.answers[question.cde] !== undefined) {
+            defaultValue = this.props.answers[question.cde];
+        } else {
+            this.onSliderChange(defaultValue);
+        }
+
         return (
             <Form>
                 <FormGroup tag="fieldset">
@@ -293,53 +298,142 @@ class Question extends React.Component<QuestionInterface, object> {
                         <h6>{transformedInstruction}</h6>
                     </Col>
                 </FormGroup>
-                {
-                    (question.spec.tag === 'integer' ?
-                        <div className='row'>
-                            <div className="col">
-                                <div className="float-right" style={boxStyle}>
-                                    <p className="text-center" style={pStyle}>
-                                        <p>{question.widget_spec.box_label} <br /> <b>{defaultValue}</b></p>
-                                    </p>
-                                </div>
-                            </div>
-                            <div className="col" style={style}>
-                                <Slider vertical={true} min={question.spec.min}
-                                    max={question.spec.max}
-                                    defaultValue={defaultValue}
-                                    marks={this.getMarks(question)}
-                                    handle={this.getSliderHandle()}
-                                    onChange={this.onSliderChange}
-                                />
+                <FormGroup>
+                    <div className='row'>
+                        <div className="col">
+                            <div className="float-right" style={boxStyle}>
+                                <p className="text-center" style={pStyle}>
+                                    <p>{question.spec.widget_spec.box_label} <br /> <b>{defaultValue}</b></p>
+                                </p>
                             </div>
                         </div>
+                        <div className="col" style={style}>
+                            <Slider vertical={true} min={question.spec.min}
+                                max={question.spec.max}
+                                defaultValue={defaultValue}
+                                marks={this.getMarks(question)}
+                                handle={this.getSliderHandle()}
+                                onChange={this.onSliderChange}
+                            />
+                        </div>
+                    </div>
+                </FormGroup>
+            </Form>
+        );
+    }
 
-                        :
+    public renderText(question: any) {
+        return (
+            <Form>
+                <FormGroup tag="fieldset">
+                    <Col sm="12" md={{ size: 6, offset: 3 }}>
+                        <h6>{question.survey_question_instruction}</h6>
+                        <h4>{question.title}</h4>
+                        <h6>{question.instructions}</h6>
+                    </Col>
+                </FormGroup>
+                <FormGroup>
+                    <Col sm="12" md={{ size: 6, offset: 3 }}>
+                        <Input type="text"
+                            name={question.cde}
+                            onChange={this.handleInputChange}
+                            onKeyDown={this.handleInputKeyDown}
+                        />
+                    </Col>
+                </FormGroup>
+            </Form>
+        );
+    }
 
-                        isConsent ?
-                            <FormGroup check={true}>
-                                <Label check={true}>
-                                    <Input type="checkbox" name={this.props.questions[this.props.stage].cde}
-                                        onChange={this.handleConsent}
-                                        checked={this.props.answers[question.cde]} />
-                                    {consentText}
-                                </Label>
-                            </FormGroup>
-                            :
-                            _.map(question.spec.tag === 'range' ? question.spec.options : [], (option, index) => (
-                                <FormGroup check={true}>
-                                    <Col sm="12" md={{ size: 6, offset: 3 }}>
-                                        <Label check={true}>
-                                            <Input type="radio" name={this.props.questions[this.props.stage].cde} value={option.code}
-                                                onChange={this.handleChange}
-                                                checked={option.code === this.props.answers[question.cde]} />{option.text}
-                                        </Label>
-                                    </Col>
-                                </FormGroup>
-                            ))
-                    )
-                }
-            </Form>);
+    public renderFloat(question: any) {
+        return (
+            <Form>
+                <FormGroup tag="fieldset">
+                    <Col sm="12" md={{ size: 6, offset: 3 }}>
+                        <h6>{question.survey_question_instruction}</h6>
+                        <h4>{question.title}</h4>
+                        <h6>{question.instructions}</h6>
+                    </Col>
+                </FormGroup>
+                <FormGroup>
+                    <Col sm="12" md={{ size: 6, offset: 3 }}>
+                        <Input type="text"
+                            pattern="-?\d+(\.\d+)?"
+                            name={question.cde}
+                            onChange={this.handleInputChange}
+                            onKeyDown={this.handleInputKeyDown}
+                        />
+                    </Col>
+                </FormGroup>
+            </Form>
+        );
+    }
+
+    public renderDate(question: any) {
+        return (
+            <Form>
+                <FormGroup tag="fieldset">
+                    <Col sm="12" md={{ size: 6, offset: 3 }}>
+                        <h6>{question.survey_question_instruction}</h6>
+                        <h4>{question.title}</h4>
+                        <h6>{question.instructions}</h6>
+                    </Col>
+                </FormGroup>
+                <FormGroup>
+                    <Col sm="12" md={{ size: 6, offset: 3 }}>
+                        <Input type="date"
+                            {...question.spec.params}
+                            name={question.cde}
+                            onChange={this.handleInputChange}
+                            onKeyDown={this.handleInputKeyDown}
+                        />
+                    </Col>
+                </FormGroup>
+            </Form>
+        );
+    }
+
+    private renderConsent(question) {
+        const consentText = <div>By ticking this box you:
+            <ul>
+                <li>Give consent for the information you provide to be used for the CIC Cancer project; and </li>
+                <li>Will receive a reminder when the next survey is due.</li>
+            </ul>
+        </div>;
+        return (
+            <Form>
+                <FormGroup tag="fieldset">
+                    <Col sm="12" md={{ size: 6, offset: 3 }}>
+                        <h6>{question.survey_question_instruction}</h6>
+                        <h4>{question.title}</h4>
+                        <h6>{question.instructions}</h6>
+                    </Col>
+                </FormGroup>
+                <FormGroup check={true}>
+                    <Label check={true}>
+                        <Input type="checkbox" name={this.props.questions[this.props.stage].cde}
+                            onChange={this.handleConsent}
+                            checked={this.props.answers[question.cde]} />
+                        {consentText}
+                    </Label>
+                </FormGroup>
+            </Form>
+        );
+    }
+
+    public render() {
+        const question = this.props.questions[this.props.stage];
+        console.log(question.spec)
+        switch (question.spec.ui) {
+            case "integer-normal": return this.renderInteger(question);
+            case "integer-slider": return this.renderSlider(question);
+            case "float": return this.renderFloat(question);
+            case "text": return this.renderText(question);
+            case "date": return this.renderDate(question)
+            case "range": return this.renderRange(question);
+            case "multi_select": return this.renderMultiselect(question);
+            case "consent": return this.renderConsent(question);
+        };
     }
 }
 
