@@ -205,9 +205,11 @@ class SurveyQuestion(models.Model):
                 self.validate_one_and_only_one_cde_exists()
 
     def validate_min_max(self):
-        if self.cde.min_value is None or self.cde.max_value is None:
-            raise ValidationError(
-                f"[{self.cde.code}] The min and max values are not properly set in CDE")
+        # the slider widget used (in surveys) for integer CDEs require min and max values
+        if self.widget_config is not None and self.widget_config.strip() != "":
+            if self.cde.min_value is None or self.cde.max_value is None:
+                raise ValidationError(
+                    f"[{self.cde.code}] The min and max values are not properly set in CDE")
 
     def validate_cde_path(self):
         # Extract form and section code from /FROM_NAME/SECTION_CODE/.
