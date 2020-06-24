@@ -62,6 +62,8 @@ class Survey(models.Model):
         return "%s Survey: %s" % (self.registry.code, self.name)
 
     def clean(self):
+        if self.display_name is None:
+            raise ValidationError("The display name has to be entered.")
         # Check the context group form is selected if the registry support context.
         if self.registry.has_feature("contexts") and self.context_form_group is None:
             raise ValidationError("You forgot to select the context form group.")
