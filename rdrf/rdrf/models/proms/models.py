@@ -125,7 +125,7 @@ class SurveyQuestion(models.Model):
                     "datatype": self.cde.datatype,
                     "instructions": self._clean_instructions(self.cde.instructions),
                     "title": clean(self.cde.name),
-                    "survey_question_instruction": clean(self.instruction),
+                    "survey_question_instruction": self._clean_instructions(clean(self.instruction)),
                     "copyright_text": self.copyright_text,
                     "source": self.source,
 
@@ -150,7 +150,7 @@ class SurveyQuestion(models.Model):
                     "title": clean(self.cde.name),
 
                     "spec": self._get_cde_specification(),
-                    "survey_question_instruction": clean(self.instruction),
+                    "survey_question_instruction": self._clean_instructions(clean(self.instruction)),
                     "copyright_text": self.copyright_text,
                     "source": self.source,
                     "cond": cond_block,
