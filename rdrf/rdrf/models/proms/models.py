@@ -128,7 +128,7 @@ class SurveyQuestion(models.Model):
                     "survey_question_instruction": clean(self.instruction),
                     "copyright_text": self.copyright_text,
                     "source": self.source,
-                    "widget_spec": self._get_widget_spec(),
+
                     "spec": self._get_cde_specification()}
 
         else:
@@ -148,12 +148,13 @@ class SurveyQuestion(models.Model):
                     "cde": self.cde.code,
                     "instructions": self._clean_instructions(self.cde.instructions),
                     "title": clean(self.cde.name),
-                    "widget_spec": self._get_widget_spec(),
+
                     "spec": self._get_cde_specification(),
                     "survey_question_instruction": clean(self.instruction),
                     "copyright_text": self.copyright_text,
                     "source": self.source,
                     "cond": cond_block,
+                    "spec": {"tag": "text",}
                     }
 
     def _get_options(self):
@@ -163,21 +164,42 @@ class SurveyQuestion(models.Model):
             return []
 
     def _get_cde_specification(self):
-        if self.cde.datatype == 'range':
+        if self.cde.code == "PROMSConsent":
             return {
-                "tag": "range",
+                "ui": "consent",
+            }
+        elif self.cde.datatype == "range":
+            ui = "range"  # select single
+            if self.cde.allow_multiple:
+                ui = "multi_select"  # select multiple
+            return {
+                "ui": ui,
                 "options": self._get_options(),
-                "allow_multiple": self.cde.allow_multiple,  # allow for multiselect options
             }
-        elif self.cde.datatype == 'integer':
+        elif self.cde.datatype == "integer":
+            widget_spec = self._get_widget_spec()
+            ui = "integer-normal"
+            if widget_spec:
+                ui = "integer-slider"
             return {
-                "tag": "integer",
-                "max": int(self.cde.max_value),
-                "min": int(self.cde.min_value),
+                "ui": ui,
+                "params": {
+                    "type": "number",
+                    "max": int(self.cde.max_value),
+                    "min": int(self.cde.min_value),
+                },
+                "widget_spec": widget_spec,
             }
-        elif self.cde.datatype == 'date':
+        elif self.cde.datatype == "string":
             return {
-                "tag": "date",
+                "ui": "text",
+                "params": {
+                    "type": "text",
+                }
+            }
+        elif self.cde.datatype in ["date", "float"]:
+            return {
+                "ui": self.cde.datatype,
             }
 
     @property
