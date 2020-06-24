@@ -103,7 +103,8 @@ class SurveyQuestion(models.Model):
     copyright_text = models.TextField(blank=True, null=True)
     source = models.TextField(blank=True, null=True)
     widget_config = models.TextField(blank=True, null=True,
-                                     help_text='Eg: {"max_label": "High", "min_label": "Low", "box_label": "Height"}'
+                                     help_text='Eg: {"widget_name": "slider", "max_label": "High", \
+                                               "min_label": "Low", "box_label": "Height"}'
                                      )  # json field for holding widget parameters
 
     @property
@@ -229,9 +230,12 @@ class SurveyQuestion(models.Model):
                 self.validate_one_and_only_one_cde_exists()
 
     def validate_min_max(self):
-        if self.cde.min_value is None or self.cde.max_value is None:
-            raise ValidationError(
-                f"[{self.cde.code}] The min and max values are not properly set in CDE")
+        if getattr(self, "widget_config"):
+            widget_config = json.loads(self.widget_config)
+            widget_name = widget_config.get("widget_name", "")
+            if widget_name == "slider" and (self.cde.min_value is None or self.cde.max_value is None):
+                raise ValidationError(
+                    f"[{self.cde.code}] The slider requires min and max values set in CDE")
 
     def validate_cde_path(self):
         # Extract form and section code from /FROM_NAME/SECTION_CODE/.
