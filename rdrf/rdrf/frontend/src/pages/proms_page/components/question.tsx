@@ -423,7 +423,6 @@ class Question extends React.Component<QuestionInterface, object> {
 
     public render() {
         const question = this.props.questions[this.props.stage];
-        console.log(question.spec)
         switch (question.spec.ui) {
             case "integer-normal": return this.renderInteger(question);
             case "integer-slider": return this.renderSlider(question);
