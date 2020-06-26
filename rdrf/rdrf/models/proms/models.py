@@ -62,6 +62,8 @@ class Survey(models.Model):
         return "%s Survey: %s" % (self.registry.code, self.name)
 
     def clean(self):
+        if self.display_name is None:
+            raise ValidationError("The display name has to be entered.")
         # Check the context group form is selected if the registry support context.
         if self.registry.has_feature("contexts") and self.context_form_group is None:
             raise ValidationError("You forgot to select the context form group.")
@@ -101,7 +103,8 @@ class SurveyQuestion(models.Model):
     copyright_text = models.TextField(blank=True, null=True)
     source = models.TextField(blank=True, null=True)
     widget_config = models.TextField(blank=True, null=True,
-                                     help_text='Eg: {"max_label": "High", "min_label": "Low", "box_label": "Height"}'
+                                     help_text='Eg: {"widget_name": "slider", "max_label": "High", \
+                                               "min_label": "Low", "box_label": "Height"}'
                                      )  # json field for holding widget parameters
 
     @property
@@ -125,10 +128,10 @@ class SurveyQuestion(models.Model):
                     "datatype": self.cde.datatype,
                     "instructions": self._clean_instructions(self.cde.instructions),
                     "title": clean(self.cde.name),
-                    "survey_question_instruction": clean(self.instruction),
+                    "survey_question_instruction": self._clean_instructions(clean(self.instruction)),
                     "copyright_text": self.copyright_text,
                     "source": self.source,
-                    "widget_spec": self._get_widget_spec(),
+
                     "spec": self._get_cde_specification()}
 
         else:
@@ -148,12 +151,13 @@ class SurveyQuestion(models.Model):
                     "cde": self.cde.code,
                     "instructions": self._clean_instructions(self.cde.instructions),
                     "title": clean(self.cde.name),
-                    "widget_spec": self._get_widget_spec(),
+
                     "spec": self._get_cde_specification(),
-                    "survey_question_instruction": clean(self.instruction),
+                    "survey_question_instruction": self._clean_instructions(clean(self.instruction)),
                     "copyright_text": self.copyright_text,
                     "source": self.source,
                     "cond": cond_block,
+                    "spec": {"tag": "text",}
                     }
 
     def _get_options(self):
@@ -163,17 +167,42 @@ class SurveyQuestion(models.Model):
             return []
 
     def _get_cde_specification(self):
-        if self.cde.datatype == 'range':
+        if self.cde.code == "PROMSConsent":
             return {
-                "tag": "range",
-                "options": self._get_options(),
-                "allow_multiple": self.cde.allow_multiple,  # allow for multiselect options
+                "ui": "consent",
             }
-        elif self.cde.datatype == 'integer':
+        elif self.cde.datatype == "range":
+            ui = "range"  # select single
+            if self.cde.allow_multiple:
+                ui = "multi_select"  # select multiple
             return {
-                "tag": "integer",
-                "max": int(self.cde.max_value),
-                "min": int(self.cde.min_value),
+                "ui": ui,
+                "options": self._get_options(),
+            }
+        elif self.cde.datatype == "integer":
+            widget_spec = self._get_widget_spec()
+            ui = "integer-normal"
+            if widget_spec:
+                ui = "integer-slider"
+            return {
+                "ui": ui,
+                "params": {
+                    "type": "number",
+                    "max": int(self.cde.max_value),
+                    "min": int(self.cde.min_value),
+                },
+                "widget_spec": widget_spec,
+            }
+        elif self.cde.datatype == "string":
+            return {
+                "ui": "text",
+                "params": {
+                    "type": "text",
+                }
+            }
+        elif self.cde.datatype in ["date", "float"]:
+            return {
+                "ui": self.cde.datatype,
             }
 
     @property
@@ -201,9 +230,12 @@ class SurveyQuestion(models.Model):
                 self.validate_one_and_only_one_cde_exists()
 
     def validate_min_max(self):
-        if self.cde.min_value is None or self.cde.max_value is None:
-            raise ValidationError(
-                f"[{self.cde.code}] The min and max values are not properly set in CDE")
+        if getattr(self, "widget_config"):
+            widget_config = json.loads(self.widget_config)
+            widget_name = widget_config.get("widget_name", "")
+            if widget_name == "slider" and (self.cde.min_value is None or self.cde.max_value is None):
+                raise ValidationError(
+                    f"[{self.cde.code}] The slider requires min and max values set in CDE")
 
     def validate_cde_path(self):
         # Extract form and section code from /FROM_NAME/SECTION_CODE/.

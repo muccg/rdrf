@@ -22,34 +22,70 @@ interface Option {
     text: string,
 }
 
-interface RangeDatatype {
-    tag: 'range',
-    options: [Option],
-    allow_multiple: boolean,
-}
-
-interface IntegerDatatype {
-    tag: 'integer',
-    max: number,
-    min: number,
-}
-
-
-interface IntegerWidget {
+interface SliderWidget {
     widget_name: string,
     min_label: string,
     max_label: string,
     box_label: string,
 }
 
-type Datatype = RangeDatatype | IntegerDatatype;
+interface NoWidget {
+    widget_name: null
+}
+
+type WidgetSpec = SliderWidget | NoWidget
+
+interface IntegerDatatype {
+    ui: 'integer-normal',
+    params: {
+        type: string,
+        max: string,
+        min: string,
+    },
+}
+
+interface SliderDatatype {
+    ui: 'integer-slider',
+    params: {
+        max: string,
+        min: string,
+    },
+    widget_spec: WidgetSpec,
+}
+
+interface FloatDatatype {
+    ui: 'float'
+}
+
+interface TextDatatype {
+    ui: 'text'
+}
+
+interface DateDatatype {
+    ui: 'date'
+}
+
+interface RangeDatatype {
+    ui: 'range',
+    options: [Option],
+    allow_multiple: boolean,
+}
+
+interface MultiselectDatatype {
+    ui: 'multi_select'
+}
+
+interface ConsentDatatype {
+    ui: 'consent'
+}
+
+type Datatype = IntegerDatatype | SliderDatatype | FloatDatatype | TextDatatype | DateDatatype | RangeDatatype | MultiselectDatatype | ConsentDatatype;
 
 interface UnconditionalElement {
     tag: 'cde',
     cde: string,
     title: string,
     instructions: string,
-    widget_spec: IntegerWidget,
     spec: Datatype,
     survey_question_instruction: string,
     copyright_text: string,
@@ -63,7 +99,6 @@ interface ConditionalElement {
     cde: string,
     title: string,
     instructions: string,
-    widget_spec: IntegerWidget,
     spec: Datatype,
     survey_question_instruction: string,
     copyright_text: string,
