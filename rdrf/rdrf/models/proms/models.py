@@ -131,7 +131,6 @@ class SurveyQuestion(models.Model):
                     "survey_question_instruction": self._clean_instructions(clean(self.instruction)),
                     "copyright_text": self.copyright_text,
                     "source": self.source,
-
                     "spec": self._get_cde_specification()}
 
         else:
