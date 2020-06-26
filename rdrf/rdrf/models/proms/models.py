@@ -151,13 +151,11 @@ class SurveyQuestion(models.Model):
                     "cde": self.cde.code,
                     "instructions": self._clean_instructions(self.cde.instructions),
                     "title": clean(self.cde.name),
-
                     "spec": self._get_cde_specification(),
                     "survey_question_instruction": self._clean_instructions(clean(self.instruction)),
                     "copyright_text": self.copyright_text,
                     "source": self.source,
                     "cond": cond_block,
-                    "spec": {"tag": "text",}
                     }
 
     def _get_options(self):
