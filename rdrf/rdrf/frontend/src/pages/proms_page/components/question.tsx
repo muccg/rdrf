@@ -234,7 +234,8 @@ class Question extends React.Component<QuestionInterface, object> {
     }
 
     public renderInteger(question: any) {
-        let defaultValue = 0;
+        
+        let defaultValue = null;
         if (this.props.answers[question.cde] !== undefined) {
             defaultValue = this.props.answers[question.cde];
         }
@@ -282,7 +283,7 @@ class Question extends React.Component<QuestionInterface, object> {
             }
         }
 
-        let defaultValue = 0;
+        let defaultValue = null;
         if (this.props.answers[question.cde] !== undefined) {
             defaultValue = this.props.answers[question.cde];
         } else {
