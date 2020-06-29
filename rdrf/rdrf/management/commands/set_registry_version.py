@@ -6,10 +6,14 @@ class Command(BaseCommand):
     help = "Set the registry version"
 
     def handle(self, *args, **options):
-        print("\nATTENTION: You are about to change the version of Registry")
-        for registry in Registry.objects.all():
-            current_version = registry.version or "Not set"
-            print(f"\nCurrent version of {registry.name} is: {current_version}")
-            new_version = input("Enter new version: ")
-            registry.version = new_version
-            registry.save()
+        print("\nThe current registry versions:\n")
+
+        registries = Registry.objects.all().values("name", "code", "version").order_by("code")
+        for registry in registries:
+            print(f"{registry['name']} [{registry['code']}]: {registry['version']}")
+
+        code = input("\nEnter the registry code (press ENTER to exit): ")
+        if code:
+            version = input("\nEnter the new version (press ENTER to exit): ")
+            if version:
+                Registry.objects.filter(code=code).update(version=version)
