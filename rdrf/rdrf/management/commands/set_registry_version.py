@@ -5,15 +5,19 @@ from rdrf.models.definition.models import Registry
 class Command(BaseCommand):
     help = "Set the registry version"
 
+    def add_arguments(self, parser):
+        parser.add_argument('--code',
+                            action='store',
+                            dest='code',
+                            default=None,
+                            help='The registry code')
+        parser.add_argument('--ver',
+                            action='store',
+                            dest='version',
+                            default=None,
+                            help='The new registry version to be set')
+
     def handle(self, *args, **options):
-        print("\nThe current registry versions:\n")
-
-        registries = Registry.objects.all().values("name", "code", "version").order_by("code")
-        for registry in registries:
-            print(f"{registry['name']} [{registry['code']}]: {registry['version']}")
-
-        code = input("\nEnter the registry code (press ENTER to exit): ")
-        if code:
-            version = input("\nEnter the new version (press ENTER to exit): ")
-            if version:
-                Registry.objects.filter(code=code).update(version=version)
+        code = options.get("code")
+        version = options.get("version")
+        Registry.objects.filter(code=code).update(version=version)
