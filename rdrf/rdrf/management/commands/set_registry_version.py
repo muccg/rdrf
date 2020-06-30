@@ -6,7 +6,8 @@ class Command(BaseCommand):
     help = "Set the registry version"
 
     def add_arguments(self, parser):
-        parser.add_argument('--code',
+        parser.add_argument('-c',
+                            '--code',
                             action='store',
                             dest='code',
                             default=None,
