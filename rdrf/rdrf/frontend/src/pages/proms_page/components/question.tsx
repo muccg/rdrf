@@ -233,8 +233,16 @@ class Question extends React.Component<QuestionInterface, object> {
         );
     }
 
+    public handleIntegerChange = (event) => {
+        event.target.value = event.target.value.replace(/\./g, '')  // remove . period
+        if (!(/^[-]?[0-9]+$/.test(event.target.value))) {  // if not a valid positive or negative integer eg: -52-13
+            event.target.value = event.target.value.replace(/[^0-9-]/g, '').replace(/(?!^)-/g, '');
+        }
+        const code = this.props.questions[this.props.stage].cde;
+        this.props.enterData(code, event.target.value);
+    }
+
     public renderInteger(question: any) {
-        
         let defaultValue = null;
         if (this.props.answers[question.cde] !== undefined) {
             defaultValue = this.props.answers[question.cde];
@@ -250,10 +258,10 @@ class Question extends React.Component<QuestionInterface, object> {
                 </FormGroup>
                 <FormGroup>
                     <Col sm="12" md={{ size: 6, offset: 3 }}>
-                        <Input type="number"
+                        <Input
                             {...question.spec.params}
                             name={question.cde}
-                            onChange={this.handleInputChange}
+                            onChange={this.handleIntegerChange}
                             onKeyDown={this.handleInputKeyDown}
                             value={defaultValue}
                         />
