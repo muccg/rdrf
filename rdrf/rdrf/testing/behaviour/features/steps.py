@@ -602,16 +602,18 @@ def reload_iprestrict(step):
     utils.django_reloadrules()
 
 
-@step('enter value "(.*)" for "(.*)"')
-def enter_value_for_named_element(step, value, name):
-    # try to find place holders, labels etc
-    for element_type in ['placeholder']:
-        xpath_expression = '//input[@placeholder="{0}"]'.format(name)
-        input_element = world.browser.find_element_by_xpath(xpath_expression)
-        if input_element:
-            input_element.send_keys(value)
-            return
-    raise Exception("can't find element '%s'" % name)
+# The following may be a bit of draft code.
+# Checking this by running through travis-build
+# @step('enter value "(.*)" for "(.*)"')
+# def enter_value_for_named_element(step, value, name):
+#     # try to find place holders, labels etc
+#     for element_type in ['placeholder']:
+#         xpath_expression = '//input[@placeholder="{0}"]'.format(name)
+#         input_element = world.browser.find_element_by_xpath(xpath_expression)
+#         if input_element:
+#             input_element.send_keys(value)
+#             return
+#     raise Exception("can't find element '%s'" % name)
 
 
 @step('click radio button value "(.*)" for section "(.*)" cde "(.*)"')
@@ -953,8 +955,10 @@ def menu_contains_yn_general(step, menu, check, item):
 
 class Xpath:
     ADD_PATIENT_BUTTON = "//button[@id='add_patient']"
-    REGISTRY_OPTION = "//option[contains(., 'ICHOM Colorectal Cancer')]"
-    CENTRE_OPTION_SJOG = "//option[contains(., 'ICHOMCRC SJOG')]"
+    REGISTRY_OPTION_CRC = "//option[contains(., 'ICHOM Colorectal Cancer')]"
+    REGISTRY_OPTION_BC = '//option[contains(., "ICHOM Breast Cancer")]'
+    CENTRE_OPTION_CRC_SJOG = "//option[contains(., 'ICHOMCRC SJOG')]"
+    CENTRE_OPTION_BC_WA = '//option[contains(., "ICHOMBC WA")]'
     SURNAME_FIELD = "//input[@name='family_name']"
     FIRSTNAME_FIELD = "//input[@name='given_names']"
     DOB_FIELD = "//input[@name='date_of_birth']"
@@ -966,25 +970,34 @@ class Xpath:
 
 @step('I add patient name "(.*)" sex "(.*)" birthdate "(.*)"')
 def add_new_patient(step, name, sex, birthdate):
-    surname, firstname = name.split()
+    surname, firstname = name.split(' ')
     world.browser.get(
         world.site_url + "patientslisting"
     )
     find(Xpath.ADD_PATIENT_BUTTON).click()
-    find(Xpath.REGISTRY_OPTION).click()
-    find(Xpath.CENTRE_OPTION_SJOG).click()
+    if 'ICHOMCRC' in world.browser.current_url:
+        find(Xpath.REGISTRY_OPTION_CRC).click()
+        find(Xpath.CENTRE_OPTION_CRC_SJOG).click()
+    elif 'ICHOMBC' in world.browser.current_url:
+        find(Xpath.REGISTRY_OPTION_BC).click()
+        find(Xpath.CENTRE_OPTION_BC_WA).click()
+    else:
+        raise Exception(
+            'Cannot identify current registry from URL\n'
+            'URL:  {0}'.format(world.browser.current_url)
+        )
     find(Xpath.SURNAME_FIELD).send_keys(surname)
     find(Xpath.FIRSTNAME_FIELD).send_keys(firstname)
     find(Xpath.DOB_FIELD).send_keys(birthdate, Keys.ESCAPE)
     scroll_to_centre(Xpath.SEX_LIST)
     find(Xpath.SEX_LIST).click()
-    if sex == "Male":
+    if sex.capitalize() == "Male":
         find(Xpath.SEX_OPTION_MALE).click()
     else:
         find(Xpath.SEX_OPTION_FEMALE).click()
     find(Xpath.SUBMIT_BUTTON).click()
     assert "Patient added successfully" in world.browser.page_source,\
-        "Patient add success message not present"
+        "Patient add success message not found"
 
 
 @step('I select radio value "([^\"]+)" for cde "([^\"]+)"')
