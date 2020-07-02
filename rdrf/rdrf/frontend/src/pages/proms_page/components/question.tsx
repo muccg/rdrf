@@ -346,6 +346,14 @@ class Question extends React.Component<QuestionInterface, object> {
         );
     }
 
+    public handleFloatChange = (event) => {
+        if (!(/^([-]?[0-9]+(\.[0-9]+)?)?$/.test(event.target.value))) {
+            event.target.value = event.target.value.replace(/[^0-9\.-]/g, '').replace('.', 'x').replace(/\./g,'').replace('x','.').replace(/(?!^)-/g, '');
+        }
+        const code = this.props.questions[this.props.stage].cde;
+        this.props.enterData(code, event.target.value);
+    }
+
     public renderFloat(question: any) {
         return (
             <Form>
@@ -359,9 +367,8 @@ class Question extends React.Component<QuestionInterface, object> {
                 <FormGroup>
                     <Col sm="12" md={{ size: 6, offset: 3 }}>
                         <Input type="text"
-                            pattern="-?\d+(\.\d+)?"
                             name={question.cde}
-                            onChange={this.handleInputChange}
+                            onChange={this.handleFloatChange}
                             onKeyDown={this.handleInputKeyDown}
                         />
                     </Col>
