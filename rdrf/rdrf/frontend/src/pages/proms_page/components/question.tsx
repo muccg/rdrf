@@ -23,12 +23,12 @@ class Question extends React.Component<QuestionInterface, object> {
     public handleChange(event) {
         const cdeValue = event.target.value;
         const cdeCode = event.target.name;
-        this.props.enterData(cdeCode, cdeValue);
+        this.props.enterData(cdeCode, cdeValue, true);
     }
 
     public handleInputChange = (event) => {
         const code = this.props.questions[this.props.stage].cde;
-        this.props.enterData(code, event.target.value);
+        this.props.enterData(code, event.target.value, true);
     }
 
     public transformSubstring = (mainString: string | string[], words: string[], transformation: string) : string[] => {
@@ -111,18 +111,18 @@ class Question extends React.Component<QuestionInterface, object> {
             }
         });
 
-        this.props.enterData(cdeCode, values);
+        this.props.enterData(cdeCode, values, true);
     }
 
     public handleConsent(event) {
         const isConsentChecked = event.target.checked;
         const cdeCode = event.target.name;
-        this.props.enterData(cdeCode, isConsentChecked);
+        this.props.enterData(cdeCode, isConsentChecked, true);
     }
 
     public onSliderChange = (value) => {
         const code = this.props.questions[this.props.stage].cde;
-        this.props.enterData(code, value);
+        this.props.enterData(code, value, true);
     }
 
     public getMarks = (question) => {
@@ -347,11 +347,14 @@ class Question extends React.Component<QuestionInterface, object> {
     }
 
     public handleFloatChange = (event) => {
-        if (!(/^([-]?[0-9]+(\.[0-9]+)?)?$/.test(event.target.value))) {
-            event.target.value = event.target.value.replace(/[^0-9\.-]/g, '').replace('.', 'x').replace(/\./g,'').replace('x','.').replace(/(?!^)-/g, '');
+        if ((/^([-]?[0-9]+(\.[0-9]+)?)?$/.test(event.target.value)) && !(/^-$/.test(event.target.value))) {
+            event.target.classList.remove('is-invalid');
+            const code = this.props.questions[this.props.stage].cde;
+            this.props.enterData(code, event.target.value, true);
+        } else {
+            event.target.classList.add('is-invalid');
+            this.props.enterData("", "", false);
         }
-        const code = this.props.questions[this.props.stage].cde;
-        this.props.enterData(code, event.target.value);
     }
 
     public renderFloat(question: any) {
@@ -454,7 +457,7 @@ function mapStateToProps(state) {
 
 function mapPropsToDispatch(dispatch) {
     return ({
-        enterData: (cdeCode: string, cdeValue: any) => dispatch(actions.enterData({ cde: cdeCode, value: cdeValue })),
+        enterData: (cdeCode: string, cdeValue: any, isValidValue: boolean ) => dispatch(actions.enterData({ cde: cdeCode, value: cdeValue, isValid: isValidValue })),
     });
 }
 
