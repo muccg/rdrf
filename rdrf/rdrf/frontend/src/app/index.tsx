@@ -77,7 +77,7 @@ class App extends React.Component<AppInterface, object> {
 
         if (this.props.isValid === false) {
             disabled = true;
-            color = 'dark'
+            color = 'dark';
         }
 
         if (this.atEnd()) {
@@ -96,8 +96,11 @@ class App extends React.Component<AppInterface, object> {
             nextButton = !isMobile ?
                 (<Col sm={{ size: 2 }} style={{ display: 'flex', justifyContent: 'flex-end' }}>
                     <Button onClick={this.moveNext} disabled={disabled} size="sm" color={color} style={{ minWidth: '90px' }}>Next</Button>
-                </Col>) :
-                (<i onClick={this.moveNext}> <GoChevronRight style={{ fontSize: '56px' }} /> </i>)
+                </Col>) : (this.props.isValid === true ?
+                           <i onClick={this.moveNext}> <GoChevronRight style={{ fontSize: '56px' }} /> </i>
+                           :
+                           <i style={{ visibility: 'hidden' }} onClick={this.moveNext}> <GoChevronRight style={{ fontSize: '56px' }} /> </i>
+                          )
         }
 
         if (this.atBeginning()) {
@@ -108,8 +111,12 @@ class App extends React.Component<AppInterface, object> {
         } else {
             backButton = !isMobile ?
                 (<Col sm={{ size: 2 }} style={{ display: 'flex' }}>
-                    <Button onClick={this.movePrevious} color="info" size="sm" style={{ minWidth: '90px' }}>Previous</Button>
-                </Col>) : (<i onClick={this.movePrevious}> <GoChevronLeft style={{ fontSize: '56px' }} /> </i>)
+                    <Button onClick={this.movePrevious} disabled={disabled} size="sm" color={color} style={{ minWidth: '90px' }}>Previous</Button>
+                </Col>) : (this.props.isValid === true ?
+                           <i onClick={this.movePrevious}> <GoChevronLeft style={{ fontSize: '56px' }} /> </i>
+                           :
+                           <i style={{ visibility: 'hidden' }} onClick={this.movePrevious}> <GoChevronLeft style={{ fontSize: '56px' }} /> </i>
+                          )
         }
 
         if (!this.atEnd()) {
