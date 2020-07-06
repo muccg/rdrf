@@ -17,6 +17,8 @@ class Question extends React.Component<QuestionInterface, object> {
         this.onSliderChange = this.onSliderChange.bind(this);
         this.handleConsent = this.handleConsent.bind(this);
         this.handleChange = this.handleChange.bind(this);
+        this.handleIntegerChange = this.handleIntegerChange.bind(this);
+        this.handleFloatChange = this.handleFloatChange.bind(this);
         this.handleMultiChange = this.handleMultiChange.bind(this);
     }
 
@@ -233,8 +235,25 @@ class Question extends React.Component<QuestionInterface, object> {
         );
     }
 
-    public handleIntegerChange = (event) => {
-        if (/^([-]?[0-9]+)?$/.test(event.target.value) && !(/^-$/.test(event.target.value))) {
+    public valueWithinLimits(value, min, max) {
+        let mn = parseInt(min);
+        let mx = parseInt(max);
+        let vl = parseInt(value);
+        if (!isNaN(mn) && !isNaN(mx)) {  // if min and max are specified
+            if (mn <= vl && vl <= mx) {
+                return true;
+            } else {
+                return false;
+            }
+        } else {
+            return true;
+        }
+    }
+
+    public handleIntegerChange(event) {
+        let valOk = this.valueWithinLimits(event.target.value, event.target.min, event.target.max);
+        console.log(valOk);
+        if ((/^([-]?[0-9]+)?$/.test(event.target.value)) && valOk) {
             event.target.classList.remove('is-invalid');
             const code = this.props.questions[this.props.stage].cde;
             this.props.enterData(code, event.target.value, true);  // set state to true
@@ -261,6 +280,7 @@ class Question extends React.Component<QuestionInterface, object> {
                 <FormGroup>
                     <Col sm="12" md={{ size: 6, offset: 3 }}>
                         <Input type="text"
+                            {...question.spec.params}
                             name={question.cde}
                             onChange={this.handleIntegerChange}
                             onKeyDown={this.handleInputKeyDown}
