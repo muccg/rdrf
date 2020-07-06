@@ -182,7 +182,7 @@ class SurveyQuestion(models.Model):
             if widget_spec:
                 ui = "integer-slider"
             params = {"type": "text"}
-            if self.cde.min_value and self.cde.max_value:
+            if self.cde.min_value is not None and self.cde.max_value is not None:
                 params.update({"max": int(self.cde.max_value), "min": int(self.cde.min_value)})
             return {
                 "ui": ui,
