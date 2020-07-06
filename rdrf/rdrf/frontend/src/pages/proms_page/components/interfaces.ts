@@ -6,6 +6,6 @@ export interface QuestionInterface {
     answers?: any,
     stage: number,
     enterData?: any;
-   
+    isValid: boolean,
 }
 
