@@ -236,11 +236,11 @@ class Question extends React.Component<QuestionInterface, object> {
     }
 
     public valueWithinLimits(value, min, max) {
-        let mn = parseInt(min);
-        let mx = parseInt(max);
-        let vl = parseInt(value);
-        if (!isNaN(mn) && !isNaN(mx)) {  // if min and max are specified
-            if (mn <= vl && vl <= mx) {
+        const minValue = parseInt(min, 10);
+        const maxValue = parseInt(max, 10);
+        const inputValue = parseInt(value, 10);
+        if (!isNaN(minValue) && !isNaN(maxValue)) {  // if min and max are specified
+            if (minValue <= inputValue && inputValue <= maxValue) {
                 return true;
             } else {
                 return false;
@@ -251,9 +251,8 @@ class Question extends React.Component<QuestionInterface, object> {
     }
 
     public handleIntegerChange(event) {
-        let valOk = this.valueWithinLimits(event.target.value, event.target.min, event.target.max);
-        console.log(valOk);
-        if ((/^([-]?[0-9]+)?$/.test(event.target.value)) && valOk) {
+        const valueWithinRange = this.valueWithinLimits(event.target.value, event.target.min, event.target.max);
+        if ((/^([-]?[0-9]+)?$/.test(event.target.value)) && valueWithinRange) {
             event.target.classList.remove('is-invalid');
             const code = this.props.questions[this.props.stage].cde;
             this.props.enterData(code, event.target.value, true);  // set state to true
