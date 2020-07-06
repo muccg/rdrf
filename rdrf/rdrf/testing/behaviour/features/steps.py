@@ -602,20 +602,6 @@ def reload_iprestrict(step):
     utils.django_reloadrules()
 
 
-# The following may be a bit of draft code.
-# Checking this by running through travis-build
-# @step('enter value "(.*)" for "(.*)"')
-# def enter_value_for_named_element(step, value, name):
-#     # try to find place holders, labels etc
-#     for element_type in ['placeholder']:
-#         xpath_expression = '//input[@placeholder="{0}"]'.format(name)
-#         input_element = world.browser.find_element_by_xpath(xpath_expression)
-#         if input_element:
-#             input_element.send_keys(value)
-#             return
-#     raise Exception("can't find element '%s'" % name)
-
-
 @step('click radio button value "(.*)" for section "(.*)" cde "(.*)"')
 def click_radio_button(step, value, section, cde):
     # NB. this is actually just clicking the first radio at the moment
@@ -1087,3 +1073,121 @@ def check_radio_or_dropdown_value(step, field, value, cde, no):
                 "innerHTML:  %s"
                 % (value, cde, innerhtml)
             )
+
+
+def s_find(xp):
+    scroll_to_centre(xp)
+    return(find(xp))
+    pass
+
+
+@step('enter "([^\"]*)" for cde "([^\"]+)" of type "([^\"]+)"')
+def enter_data_generic(step, value, cde_label, cde_type):
+    # Note the asterisk in the value cap group. If the cde type is checkbox,
+    # it is necessary to enter "" in the feature file.
+    # i.e. And I enter "" for cde "I consent" of type "checkbox"
+    # Hence, explicitly ignoring a field now requires an additional check;
+    if cde_type != 'checkbox' and value == '':
+        return
+    xp_label = (
+        '//label[contains(., "{0}")]/following-sibling::div'.format(cde_label)
+    )
+    xp_input_type = '{0}/input'.format(xp_label)
+    def click_type(x):
+        return('s_find(xp_group["{0}"]).click()'.format(x))
+    xp_group = {
+        'checkbox': xp_input_type,
+        'date': xp_input_type,
+        'multiple': (
+            '{0}//label[contains(., "{1}")]/input[@type="checkbox"]'
+            ''.format(xp_label, value)
+        ),
+        'radio': (
+            '{0}/label[contains(., "{1}")]/input'.format(xp_label, value)
+        ),
+        'select': (
+            '{0}/select/option[contains(., "{1}")]'.format(xp_label, value)
+        ),
+        'text': xp_input_type
+    }
+    ops_group = {
+        'checkbox': click_type('checkbox'),
+        'date': 's_find(xp_group["text"]).send_keys([value, Keys.ESCAPE])',
+        'multiple': click_type('multiple'),
+        'radio': click_type('radio'),
+        'select': click_type('select'),
+        'text': 's_find(xp_group["text"]).send_keys(value)'
+    }
+    try:
+        eval(ops_group[cde_type])
+    except Nse:
+        raise Exception(
+            'Unable to complete operation:  {0}'.format(ops_group[cde_type])
+        )
+    pass
+
+
+@step('should (NOT )?see "([^\"]*)" in cde "([^\"]*)"')
+def postcheck_save_text(step, is_not, value, cde_label):
+    # Remember that saving the date strips the preceding zeroes.
+    # i.e. '03-01-2020' --> '3-1-2020'
+    # Beware of this when writing features.
+    if is_not is None:
+        is_not = ""
+    xp = (
+        '//label[contains(., "{0}")]/following-sibling::div/input'
+        ''.format(cde_label)
+    )
+    is_true = (
+        '"{0}" {1}in find(xp).get_attribute("value")'
+        ''.format(value, is_not.lower())
+    )
+    assert eval(is_true),\
+        'Data check failed!\nTried:  {0}\n'.format(is_true)
+    pass
+
+
+@step(
+    'option "([^\"]*)" for cde "([^\"]+)" of type "([^\"]+)" '
+    'should (NOT )?be (selected|checked)'
+)
+def postcheck_save_check(step, value, cde_label, cde_type, is_not, s_or_c):
+    # Same as for data entry, still need to put 'option "" for cde....'
+    # if testing a checkbox.
+    if cde_type in ['select']:
+        s_or_c = 'selected'
+    elif cde_type in ['checkbox', 'multiple', 'radio']:
+        s_or_c = 'checked'
+    else:
+        raise Exception(
+            'CDE type not recognised:  {0}'.format(cde_type)
+        )
+    if is_not is None:
+        is_not = ""
+
+    def get_outerhtml(x):
+        return('find(xp_group["{0}"]).get_attribute("outerHTML")'.format(x))
+
+    xp_label = (
+        '//label[contains(., "{0}")]/following-sibling::div'.format(cde_label)
+    )
+    xp_group = {
+        'checkbox': '{0}/input'.format(xp_label),
+        'multiple': (
+            '{0}//label[contains(., "{1}")]/input[@type="checkbox"]'
+            ''.format(xp_label, value)
+        ),
+        'radio': (
+            '{0}/label[contains(., "{1}")]/input'.format(xp_label, value)
+        ),
+        'select': (
+            '{0}/select/option[contains(., "{1}")]'.format(xp_label, value)
+        )
+    }
+    is_true = (
+        '"{0}" {1}in find(xp_group[cde_type]).get_attribute("outerHTML")'
+        ''.format(s_or_c, is_not.lower())
+    )
+    assert eval(is_true),\
+        'Data check failed!\nTried:  {0}\n'.format(is_true)
+    pass
