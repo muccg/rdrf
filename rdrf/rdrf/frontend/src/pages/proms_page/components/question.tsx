@@ -354,7 +354,7 @@ class Question extends React.Component<QuestionInterface, object> {
             </Form>
         );
     }
-    //jith
+
     public handleFloatChange = (event) => {
         if ((/^([-]?[0-9]+(\.[0-9]+)?)?$/.test(event.target.value)) && !(/^-$/.test(event.target.value))) {
             event.target.classList.remove('is-invalid');

@@ -163,7 +163,6 @@ class SurveyQuestion(models.Model):
         else:
             return []
 
-
     def _get_cde_specification(self):
         if self.cde.code == "PROMSConsent":
             return {
