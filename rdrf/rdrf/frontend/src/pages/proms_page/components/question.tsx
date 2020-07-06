@@ -233,8 +233,18 @@ class Question extends React.Component<QuestionInterface, object> {
         );
     }
 
+    public handleIntegerChange = (event) => {
+        if (/^([-]?[0-9]+)?$/.test(event.target.value) && !(/^-$/.test(event.target.value))) {
+            event.target.classList.remove('is-invalid');
+            const code = this.props.questions[this.props.stage].cde;
+            this.props.enterData(code, event.target.value, true);  // set state to true
+        } else {
+            event.target.classList.add('is-invalid');
+            this.props.enterData("", "", false);  // set state to false
+        }
+    }
+
     public renderInteger(question: any) {
-        
         let defaultValue = null;
         if (this.props.answers[question.cde] !== undefined) {
             defaultValue = this.props.answers[question.cde];
@@ -250,10 +260,9 @@ class Question extends React.Component<QuestionInterface, object> {
                 </FormGroup>
                 <FormGroup>
                     <Col sm="12" md={{ size: 6, offset: 3 }}>
-                        <Input type="number"
-                            {...question.spec.params}
+                        <Input type="text"
                             name={question.cde}
-                            onChange={this.handleInputChange}
+                            onChange={this.handleIntegerChange}
                             onKeyDown={this.handleInputKeyDown}
                             value={defaultValue}
                         />
@@ -345,7 +354,7 @@ class Question extends React.Component<QuestionInterface, object> {
             </Form>
         );
     }
-
+    //jith
     public handleFloatChange = (event) => {
         if ((/^([-]?[0-9]+(\.[0-9]+)?)?$/.test(event.target.value)) && !(/^-$/.test(event.target.value))) {
             event.target.classList.remove('is-invalid');
