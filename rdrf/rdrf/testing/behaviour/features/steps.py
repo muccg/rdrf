@@ -1093,8 +1093,10 @@ def enter_data_generic(step, value, cde_label, cde_type):
         '//label[contains(., "{0}")]/following-sibling::div'.format(cde_label)
     )
     xp_input_type = '{0}/input'.format(xp_label)
+
     def click_type(x):
         return('s_find(xp_group["{0}"]).click()'.format(x))
+
     xp_group = {
         'checkbox': xp_input_type,
         'date': xp_input_type,
@@ -1112,11 +1114,14 @@ def enter_data_generic(step, value, cde_label, cde_type):
     }
     ops_group = {
         'checkbox': click_type('checkbox'),
-        'date': 's_find(xp_group["text"]).send_keys([value, Keys.ESCAPE])',
+        'date': (
+            's_find("{0}").send_keys([value, Keys.ESCAPE])'
+            ''.format(xp_group['text'])
+        ),
         'multiple': click_type('multiple'),
         'radio': click_type('radio'),
         'select': click_type('select'),
-        'text': 's_find(xp_group["text"]).send_keys(value)'
+        'text': 's_find("{0}").send_keys(value)'.format(xp_group['text'])
     }
     try:
         eval(ops_group[cde_type])
@@ -1138,9 +1143,10 @@ def postcheck_save_text(step, is_not, value, cde_label):
         '//label[contains(., "{0}")]/following-sibling::div/input'
         ''.format(cde_label)
     )
+    get_value = find(xp).get_attribute("value")
     is_true = (
-        '"{0}" {1}in find(xp).get_attribute("value")'
-        ''.format(value, is_not.lower())
+        '"{0}" {1}in {2}'
+        ''.format(value, is_not.lower(), get_value)
     )
     assert eval(is_true),\
         'Data check failed!\nTried:  {0}\n'.format(is_true)
@@ -1184,9 +1190,10 @@ def postcheck_save_check(step, value, cde_label, cde_type, is_not, s_or_c):
             '{0}/select/option[contains(., "{1}")]'.format(xp_label, value)
         )
     }
+    outer_html = find(xp_group[cde_type]).get_attribute("outerHTML")
     is_true = (
-        '"{0}" {1}in find(xp_group[cde_type]).get_attribute("outerHTML")'
-        ''.format(s_or_c, is_not.lower())
+        '"{0}" {1}in {2}'
+        ''.format(s_or_c, is_not.lower(), outer_html)
     )
     assert eval(is_true),\
         'Data check failed!\nTried:  {0}\n'.format(is_true)
