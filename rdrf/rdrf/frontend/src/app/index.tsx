@@ -21,6 +21,7 @@ interface AppInterface {
     goNext: any,
     goPrevious: any,
     submitAnswers: any,
+    isValid: boolean,
 }
 
 
@@ -39,7 +40,6 @@ class App extends React.Component<AppInterface, object> {
     public atBeginning() {
         return this.props.stage === 0;
     }
-
 
     public getProgress(): number {
         let numQuestions: number = this.props.questions.length;
@@ -60,7 +60,7 @@ class App extends React.Component<AppInterface, object> {
     }
 
     public moveNext() {
-        if (!this.atEnd()) {
+        if (!this.atEnd() && this.props.isValid ) {
             this.props.goNext();
         }
     }
@@ -71,7 +71,14 @@ class App extends React.Component<AppInterface, object> {
         let submitButton;
         let progressBar;
         let source;
+        let disabled = false;
+        let color = 'info';
         const style = { height: "100%" };
+
+        if (this.props.isValid === false) {
+            disabled = true;
+            color = 'dark';
+        }
 
         if (this.atEnd()) {
             !isMobile ?
@@ -88,9 +95,12 @@ class App extends React.Component<AppInterface, object> {
         else {
             nextButton = !isMobile ?
                 (<Col sm={{ size: 2 }} style={{ display: 'flex', justifyContent: 'flex-end' }}>
-                    <Button onClick={this.moveNext} size="sm" color="info" style={{ minWidth: '90px' }}>Next</Button>
-                </Col>) :
-                (<i onClick={this.moveNext}> <GoChevronRight style={{ fontSize: '56px' }} /> </i>)
+                    <Button onClick={this.moveNext} disabled={disabled} size="sm" color={color} style={{ minWidth: '90px' }}>Next</Button>
+                </Col>) : (this.props.isValid === true ?
+                           <i onClick={this.moveNext}> <GoChevronRight style={{ fontSize: '56px' }} /> </i>
+                           :
+                           <i style={{ visibility: 'hidden' }} onClick={this.moveNext}> <GoChevronRight style={{ fontSize: '56px' }} /> </i>
+                          )
         }
 
         if (this.atBeginning()) {
@@ -101,8 +111,12 @@ class App extends React.Component<AppInterface, object> {
         } else {
             backButton = !isMobile ?
                 (<Col sm={{ size: 2 }} style={{ display: 'flex' }}>
-                    <Button onClick={this.movePrevious} color="info" size="sm" style={{ minWidth: '90px' }}>Previous</Button>
-                </Col>) : (<i onClick={this.movePrevious}> <GoChevronLeft style={{ fontSize: '56px' }} /> </i>)
+                    <Button onClick={this.movePrevious} disabled={disabled} size="sm" color={color} style={{ minWidth: '90px' }}>Previous</Button>
+                </Col>) : (this.props.isValid === true ?
+                           <i onClick={this.movePrevious}> <GoChevronLeft style={{ fontSize: '56px' }} /> </i>
+                           :
+                           <i style={{ visibility: 'hidden' }} onClick={this.movePrevious}> <GoChevronLeft style={{ fontSize: '56px' }} /> </i>
+                          )
         }
 
         if (!this.atEnd()) {
@@ -134,7 +148,7 @@ class App extends React.Component<AppInterface, object> {
 
                         <Row>
                             <Col>
-                                <Question title={this.props.title} stage={this.props.stage} questions={this.props.questions} />
+                                <Question title={this.props.title} stage={this.props.stage} questions={this.props.questions} isValid={this.props.isValid} />
                             </Col>
                         </Row>
                     </div>
@@ -164,7 +178,8 @@ function mapStateToProps(state) {
         stage: state.stage,
         title: state.title,
         answers: state.answers,
-        questions: state.questions
+        questions: state.questions,
+        isValid: state.isValid,
     }
 }
 

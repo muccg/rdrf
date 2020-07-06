@@ -163,6 +163,7 @@ class SurveyQuestion(models.Model):
         else:
             return []
 
+
     def _get_cde_specification(self):
         if self.cde.code == "PROMSConsent":
             return {
@@ -184,7 +185,7 @@ class SurveyQuestion(models.Model):
             return {
                 "ui": ui,
                 "params": {
-                    "type": "number",
+                    "type": "text",
                     "max": int(self.cde.max_value),
                     "min": int(self.cde.min_value),
                 },
