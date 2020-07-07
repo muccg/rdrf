@@ -32,13 +32,9 @@ class Question extends React.Component<QuestionInterface, object> {
     }
     
     public handleDateInputChange = (event) => {
-        console.log("handling Date input change");
         const code = this.props.questions[this.props.stage].cde;
-	console.log("cde = " + code);
-	console.log("value = " + event.target.value.toString());
-	const americanDatePattern = /^\d\d\d\d\/\d\d/\d\d$/;
-	const isValid = americanDatePattern.test(event.target.value);
-	console.log("valid = " + isValid.toString());
+        const americanDatePattern = /^\d\d\d\d-\d\d-\d\d$/
+        const isValid = americanDatePattern.test(event.target.value);
         this.props.enterData(code, event.target.value, isValid);
     }
 
