@@ -23,12 +23,12 @@ class Question extends React.Component<QuestionInterface, object> {
     public handleChange(event) {
         const cdeValue = event.target.value;
         const cdeCode = event.target.name;
-        this.props.enterData(cdeCode, cdeValue);
+        this.props.enterData(cdeCode, cdeValue, true);
     }
 
     public handleInputChange = (event) => {
         const code = this.props.questions[this.props.stage].cde;
-        this.props.enterData(code, event.target.value);
+        this.props.enterData(code, event.target.value, true);
     }
 
     public transformSubstring = (mainString: string | string[], words: string[], transformation: string) : string[] => {
@@ -111,18 +111,18 @@ class Question extends React.Component<QuestionInterface, object> {
             }
         });
 
-        this.props.enterData(cdeCode, values);
+        this.props.enterData(cdeCode, values, true);
     }
 
     public handleConsent(event) {
         const isConsentChecked = event.target.checked;
         const cdeCode = event.target.name;
-        this.props.enterData(cdeCode, isConsentChecked);
+        this.props.enterData(cdeCode, isConsentChecked, true);
     }
 
     public onSliderChange = (value) => {
         const code = this.props.questions[this.props.stage].cde;
-        this.props.enterData(code, value);
+        this.props.enterData(code, value, true);
     }
 
     public getMarks = (question) => {
@@ -233,11 +233,22 @@ class Question extends React.Component<QuestionInterface, object> {
         );
     }
 
+    public handleIntegerChange = (event) => {
+        if (/^([-]?[0-9]+)?$/.test(event.target.value) && !(/^-$/.test(event.target.value))) {
+            event.target.classList.remove('is-invalid');
+            const code = this.props.questions[this.props.stage].cde;
+            this.props.enterData(code, event.target.value, true);  // set state to true
+        } else {
+            event.target.classList.add('is-invalid');
+            const code = this.props.questions[this.props.stage].cde;
+            this.props.enterData(code, event.target.value, false);  // set state to false
+        }
+    }
+
     public renderInteger(question: any) {
-        
-        let defaultValue = null;
+        let currentValue = "";
         if (this.props.answers[question.cde] !== undefined) {
-            defaultValue = this.props.answers[question.cde];
+            currentValue = this.props.answers[question.cde];
         }
         return (
             <Form>
@@ -250,12 +261,11 @@ class Question extends React.Component<QuestionInterface, object> {
                 </FormGroup>
                 <FormGroup>
                     <Col sm="12" md={{ size: 6, offset: 3 }}>
-                        <Input type="number"
-                            {...question.spec.params}
+                        <Input type="text"
                             name={question.cde}
-                            onChange={this.handleInputChange}
+                            onChange={this.handleIntegerChange}
                             onKeyDown={this.handleInputKeyDown}
-                            value={defaultValue}
+                            value={currentValue}
                         />
                     </Col>
                 </FormGroup>
@@ -346,7 +356,23 @@ class Question extends React.Component<QuestionInterface, object> {
         );
     }
 
+    public handleFloatChange = (event) => {
+        if ((/^([-]?[0-9]+(\.[0-9]+)?)?$/.test(event.target.value)) && !(/^-$/.test(event.target.value))) {
+            event.target.classList.remove('is-invalid');
+            const code = this.props.questions[this.props.stage].cde;
+            this.props.enterData(code, event.target.value, true);
+        } else {
+            event.target.classList.add('is-invalid');
+            const code = this.props.questions[this.props.stage].cde;
+            this.props.enterData(code, event.target.value, false);
+        }
+    }
+
     public renderFloat(question: any) {
+        let currentValue = "";
+        if (this.props.answers[question.cde] !== undefined) {
+            currentValue = this.props.answers[question.cde];
+        }
         return (
             <Form>
                 <FormGroup tag="fieldset">
@@ -359,10 +385,10 @@ class Question extends React.Component<QuestionInterface, object> {
                 <FormGroup>
                     <Col sm="12" md={{ size: 6, offset: 3 }}>
                         <Input type="text"
-                            pattern="-?\d+(\.\d+)?"
                             name={question.cde}
-                            onChange={this.handleInputChange}
+                            onChange={this.handleFloatChange}
                             onKeyDown={this.handleInputKeyDown}
+                            value={currentValue}
                         />
                     </Col>
                 </FormGroup>
@@ -371,6 +397,10 @@ class Question extends React.Component<QuestionInterface, object> {
     }
 
     public renderDate(question: any) {
+        let currentValue = null;
+        if (this.props.answers[question.cde] !== undefined) {
+            currentValue = this.props.answers[question.cde];
+        }
         return (
             <Form>
                 <FormGroup tag="fieldset">
@@ -387,6 +417,7 @@ class Question extends React.Component<QuestionInterface, object> {
                             name={question.cde}
                             onChange={this.handleInputChange}
                             onKeyDown={this.handleInputKeyDown}
+                            value={currentValue}
                         />
                     </Col>
                 </FormGroup>
@@ -447,7 +478,7 @@ function mapStateToProps(state) {
 
 function mapPropsToDispatch(dispatch) {
     return ({
-        enterData: (cdeCode: string, cdeValue: any) => dispatch(actions.enterData({ cde: cdeCode, value: cdeValue })),
+        enterData: (cdeCode: string, cdeValue: any, isValidValue: boolean ) => dispatch(actions.enterData({ cde: cdeCode, value: cdeValue, isValid: isValidValue })),
     });
 }
 

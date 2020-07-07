@@ -32,6 +32,7 @@ const initialState = {
     answers: {},
     questions: evalElements(window.proms_config.questions, { answers: {} }),
     title: '',
+    isValid: true,
 }
 
 function isCond(state) {
@@ -43,6 +44,7 @@ function updateAnswers(action: any, state: any): any {
     // if data entered , update the answers object
     const cdeCode = action.payload.cde;
     const newValue = action.payload.value;
+    const isValid = action.payload.isValid;
     const oldAnswers = state.answers;
     const newAnswers = { ...oldAnswers };
     newAnswers[cdeCode] = newValue;
@@ -77,7 +79,6 @@ export const promsPageReducer = handleActions({
     [goPrevious as any]:
         (state, action: any) => ({
             ...state,
-            answers: clearAnswerOnSwipeBack(state),
             stage: state.stage - 1,
         }),
     [goNext as any]:
@@ -99,6 +100,7 @@ export const promsPageReducer = handleActions({
             const updatedAnswers = updateAnswers(action, state)
             const newState = {
                 ...state,
+                isValid: action.payload.isValid,
                 answers: updateAnswers(action, state),
                 questions: evalElements(window.proms_config.questions, { answers: updatedAnswers }),
             };
