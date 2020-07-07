@@ -240,14 +240,15 @@ class Question extends React.Component<QuestionInterface, object> {
             this.props.enterData(code, event.target.value, true);  // set state to true
         } else {
             event.target.classList.add('is-invalid');
-            this.props.enterData("", "", false);  // set state to false
+            const code = this.props.questions[this.props.stage].cde;
+            this.props.enterData(code, event.target.value, false);  // set state to false
         }
     }
 
     public renderInteger(question: any) {
-        let defaultValue = null;
+        let currentValue = "";
         if (this.props.answers[question.cde] !== undefined) {
-            defaultValue = this.props.answers[question.cde];
+            currentValue = this.props.answers[question.cde];
         }
         return (
             <Form>
@@ -264,7 +265,7 @@ class Question extends React.Component<QuestionInterface, object> {
                             name={question.cde}
                             onChange={this.handleIntegerChange}
                             onKeyDown={this.handleInputKeyDown}
-                            value={defaultValue}
+                            value={currentValue}
                         />
                     </Col>
                 </FormGroup>
@@ -362,11 +363,16 @@ class Question extends React.Component<QuestionInterface, object> {
             this.props.enterData(code, event.target.value, true);
         } else {
             event.target.classList.add('is-invalid');
-            this.props.enterData("", "", false);
+            const code = this.props.questions[this.props.stage].cde;
+            this.props.enterData(code, event.target.value, false);
         }
     }
 
     public renderFloat(question: any) {
+        let currentValue = "";
+        if (this.props.answers[question.cde] !== undefined) {
+            currentValue = this.props.answers[question.cde];
+        }
         return (
             <Form>
                 <FormGroup tag="fieldset">
@@ -382,6 +388,7 @@ class Question extends React.Component<QuestionInterface, object> {
                             name={question.cde}
                             onChange={this.handleFloatChange}
                             onKeyDown={this.handleInputKeyDown}
+                            value={currentValue}
                         />
                     </Col>
                 </FormGroup>
@@ -390,6 +397,10 @@ class Question extends React.Component<QuestionInterface, object> {
     }
 
     public renderDate(question: any) {
+        let currentValue = null;
+        if (this.props.answers[question.cde] !== undefined) {
+            currentValue = this.props.answers[question.cde];
+        }
         return (
             <Form>
                 <FormGroup tag="fieldset">
@@ -406,6 +417,7 @@ class Question extends React.Component<QuestionInterface, object> {
                             name={question.cde}
                             onChange={this.handleInputChange}
                             onKeyDown={this.handleInputKeyDown}
+                            value={currentValue}
                         />
                     </Col>
                 </FormGroup>
