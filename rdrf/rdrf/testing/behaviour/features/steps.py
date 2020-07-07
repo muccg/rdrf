@@ -801,10 +801,11 @@ def check_multisection_value(step, multisection, cde, item, expected_value):
 
 
 def find(xp):
-    """
-    Helper function to find an element via xpath.
-    """
-    return world.browser.find_element_by_xpath(xp)
+    try:
+        return world.browser.find_element_by_xpath(xp)
+    except Nse:
+        raise Exception('Unable to find element by xpath:  {0}'.format(xp))
+    pass
 
 
 def find_multiple(xp):
@@ -1077,124 +1078,197 @@ def check_radio_or_dropdown_value(step, field, value, cde, no):
 
 def s_find(xp):
     scroll_to_centre(xp)
-    return(find(xp))
-    pass
+    return find(xp)
 
 
-@step('enter "([^\"]*)" for cde "([^\"]+)" of type "([^\"]+)"')
-def enter_data_generic(step, value, cde_label, cde_type):
-    # Note the asterisk in the value cap group. If the cde type is checkbox,
-    # it is necessary to enter "" in the feature file.
-    # i.e. And I enter "" for cde "I consent" of type "checkbox"
-    # Hence, explicitly ignoring a field now requires an additional check;
-    if cde_type != 'checkbox' and value == '':
-        return
-    xp_label = (
-        '//label[contains(., "{0}")]/following-sibling::div'.format(cde_label)
-    )
-    xp_input_type = '{0}/input'.format(xp_label)
-
-    def click_type(x):
-        return('s_find(xp_group["{0}"]).click()'.format(x))
-
-    xp_group = {
-        'checkbox': xp_input_type,
-        'date': xp_input_type,
-        'multiple': (
-            '{0}//label[contains(., "{1}")]/input[@type="checkbox"]'
-            ''.format(xp_label, value)
-        ),
-        'radio': (
-            '{0}/label[contains(., "{1}")]/input'.format(xp_label, value)
-        ),
-        'select': (
-            '{0}/select/option[contains(., "{1}")]'.format(xp_label, value)
-        ),
-        'text': xp_input_type
-    }
-    ops_group = {
-        'checkbox': click_type('checkbox'),
-        'date': (
-            's_find("{0}").send_keys([value, Keys.ESCAPE])'
-            ''.format(xp_group['text'])
-        ),
-        'multiple': click_type('multiple'),
-        'radio': click_type('radio'),
-        'select': click_type('select'),
-        'text': 's_find("{0}").send_keys(value)'.format(xp_group['text'])
-    }
-    try:
-        eval(ops_group[cde_type])
-    except Nse:
-        raise Exception(
-            'Unable to complete operation:  {0}'.format(ops_group[cde_type])
-        )
-    pass
-
-
-@step('should (NOT )?see "([^\"]*)" in cde "([^\"]*)"')
-def postcheck_save_text(step, is_not, value, cde_label):
-    # Remember that saving the date strips the preceding zeroes.
-    # i.e. '03-01-2020' --> '3-1-2020'
-    # Beware of this when writing features.
-    if is_not is None:
-        is_not = ""
+@step('click the checkbox for cde "([^\"]+)"')
+def click_checkbox(step, cde_label):
     xp = (
-        '//label[contains(., "{0}")]/following-sibling::div/input'
-        ''.format(cde_label)
+        '//label[contains(., "{0}")]/following-sibling::div'
+        '/input'.format(cde_label)
     )
-    get_value = find(xp).get_attribute("value")
-    is_true = (
-        '"{0}" {1}in {2}'
-        ''.format(value, is_not.lower(), get_value)
+    s_find(xp).click()
+    pass
+
+
+@step('enter "([^\"]*)" for cde "([^\"]+)" of type date')
+def enter_date(step, entry, cde_label):
+    xp = (
+        '//label[contains(., "{0}")]/following-sibling::div'
+        '/input'.format(cde_label)
     )
-    assert eval(is_true),\
-        'Data check failed!\nTried:  {0}\n'.format(is_true)
+    s_find(xp).send_keys([entry, Keys.ESCAPE])
+    pass
+
+
+@step('click "([^\"]+)" for cde "([^\"]+)" of type multiple')
+def click_of_multiple(step, entry, cde_label):
+    xp = (
+        '//label[contains(., "{0}")]/following-sibling::div'
+        '/ul/li/label[contains(., "{1}")]'.format(cde_label, entry)
+    )
+    s_find(xp).click()
+    pass
+
+
+@step('click "([^\"]+)" for cde "([^\"]+)" of type radio')
+def click_radio(step, entry, cde_label):
+    xp = (
+        '//label[contains(., "{0}")]/following-sibling::div'
+        '/label[contains(., "{1}")]/input'.format(cde_label, entry)
+    )
+    s_find(xp).click()
+    pass
+
+
+@step('select "([^\"]*)" for cde "([^\"]+)" of type select')
+def click_select(step, entry, cde_label):
+    xp = (
+        '//label[contains(., "{0}")]/following-sibling::div'
+        '/select/option[contains(., "{1}")]'.format(cde_label, entry)
+    )
+    s_find(xp).click()
+    pass
+
+
+@step('enter "([^\"]*)" for cde "([^\"]+)" of type text')
+def enter_text(step, entry, cde_label):
+    xp = (
+        '//label[contains(., "{0}")]/following-sibling::div'
+        '/input'.format(cde_label)
+    )
+    s_find(xp).send_keys(entry)
+    pass
+
+
+@step('should see "([^\"]*)" in cde "([^\"]+)"')
+def postcheck_text(step, entry, cde_label):
+    xp = (
+        '//label[contains(., "{0}")]/following-sibling::div'
+        '/input'.format(cde_label)
+    )
+    assert entry in find(xp).get_attribute('value'),\
+        'Value "{0}" not found in cde "{1}".'.format(entry, cde_label)
+    pass
+
+
+@step('should NOT see "([^\"]*)" in cde "([^\"]+)"')
+def postcheck_text_not(step, entry, cde_label):
+    xp = (
+        '//label[contains(., "{0}")]/following-sibling::div'
+        '/input'.format(cde_label)
+    )
+    assert entry not in find(xp).get_attribute('value'),\
+        (
+            'Value "{0}" found in cde "{1}", but should not be present.'
+            ''.format(entry, cde_label)
+        )
     pass
 
 
 @step(
-    'option "([^\"]*)" for cde "([^\"]+)" of type "([^\"]+)" '
-    'should (NOT )?be (selected|checked)'
+    'option "([^\"]+)" for cde "([^\"]+)" of type multiple '
+    'should be selected'
 )
-def postcheck_save_check(step, value, cde_label, cde_type, is_not, s_or_c):
-    # Same as for data entry, still need to put 'option "" for cde....'
-    # if testing a checkbox.
-    if cde_type in ['select']:
-        s_or_c = 'selected'
-    elif cde_type in ['checkbox', 'multiple', 'radio']:
-        s_or_c = 'checked'
-    else:
-        raise Exception(
-            'CDE type not recognised:  {0}'.format(cde_type)
-        )
-    if is_not is None:
-        is_not = ""
-
-    def get_outerhtml(x):
-        return('find(xp_group["{0}"]).get_attribute("outerHTML")'.format(x))
-
-    xp_label = (
-        '//label[contains(., "{0}")]/following-sibling::div'.format(cde_label)
+def postcheck_multiple(step, entry, cde_label):
+    xp = (
+        '//label[contains(., "{0}")]/following-sibling::div'
+        '/ul/li/label[contains(., "{1}")]/input'.format(cde_label, entry)
     )
-    xp_group = {
-        'checkbox': '{0}/input'.format(xp_label),
-        'multiple': (
-            '{0}//label[contains(., "{1}")]/input[@type="checkbox"]'
-            ''.format(xp_label, value)
-        ),
-        'radio': (
-            '{0}/label[contains(., "{1}")]/input'.format(xp_label, value)
-        ),
-        'select': (
-            '{0}/select/option[contains(., "{1}")]'.format(xp_label, value)
+    outer_html = find(xp).get_attribute('outerHTML')
+    assert 'checked' in outer_html,\
+        (
+            'Option "{0}" for cde "{1}" is not selected, but should be.'
+            ''.format(entry, cde_label)
         )
-    }
-    outer_html = find(xp_group[cde_type]).get_attribute("outerHTML")
-    is_true = (
-        '"{0}" {1}in {2}'
-        ''.format(s_or_c, is_not.lower(), outer_html)
+    pass
+
+
+@step(
+    'option "([^\"]+)" for cde "([^\"]+)" of type multiple '
+    'should NOT be selected'
+)
+def postcheck_multiple_not(step, entry, cde_label):
+    xp = (
+        '//label[contains(., "{0}")]/following-sibling::div'
+        '/ul/li/label[contains(., "{1}")]/input'.format(cde_label, entry)
     )
-    assert eval(is_true),\
-        'Data check failed!\nTried:  {0}\n'.format(is_true)
+    outer_html = find(xp).get_attribute('outerHTML')
+    assert 'checked' not in outer_html,\
+        (
+            'Option "{0}" for cde "{1}" is selected, but should not be.'
+            ''.format(entry, cde_label)
+        )
+    pass
+
+
+@step(
+    'option "([^\"]+)" for cde "([^\"]+)" of type radio '
+    'should be selected'
+)
+def postcheck_radio(step, entry, cde_label):
+    xp = (
+        '//label[contains(., "{0}")]/following-sibling::div'
+        '/label[contains(., "{1}")]/input'.format(cde_label, entry)
+    )
+    outer_html = find(xp).get_attribute('outerHTML')
+    assert 'checked' in outer_html,\
+        (
+            'Option "{0}" for cde "{1}" is not selected, but should be.'
+            ''.format(entry, cde_label)
+        )
+    pass
+
+
+@step(
+    'option "([^\"]+)" for cde "([^\"]+)" of type radio '
+    'should NOT be selected'
+)
+def postcheck_radio_not(step, entry, cde_label):
+    xp = (
+        '//label[contains(., "{0}")]/following-sibling::div'
+        '/label[contains(., "{1}")]/input'.format(cde_label, entry)
+    )
+    outer_html = find(xp).get_attribute('outerHTML')
+    assert 'checked' not in outer_html,\
+        (
+            'Option "{0}" for cde "{1}" is selected, but should not be.'
+            ''.format(entry, cde_label)
+        )
+    pass
+
+
+@step(
+    'option "([^\"]+)" for cde "([^\"]+)" of type select '
+    'should be selected'
+)
+def postcheck_select(step, entry, cde_label):
+    xp = (
+        '//label[contains(., "{0}")]/following-sibling::div'
+        '/select/option[contains(., "{1}")]/input'.format(cde_label, entry)
+    )
+    outer_html = find(xp).get_attribute('outerHTML')
+    assert 'selected' in outer_html,\
+        (
+            'Option "{0}" for cde "{1}" is not selected, but should be.'
+            ''.format(entry, cde_label)
+        )
+    pass
+
+
+@step(
+    'option "([^\"]+)" for cde "([^\"]+)" of type select '
+    'should NOT be selected'
+)
+def postcheck_select_not(step, entry, cde_label):
+    xp = (
+        '//label[contains(., "{0}")]/following-sibling::div'
+        '/select/option[contains(., "{1}")]/input'.format(cde_label, entry)
+    )
+    outer_html = find(xp).get_attribute('outerHTML')
+    assert 'selected' not in outer_html,\
+        (
+            'Option "{0}" for cde "{1}" is selected, but should not be.'
+            ''.format(entry, cde_label)
+        )
     pass
