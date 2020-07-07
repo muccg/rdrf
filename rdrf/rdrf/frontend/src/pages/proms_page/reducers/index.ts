@@ -46,13 +46,9 @@ function updateAnswers(action: any, state: any): any {
     const newValue = action.payload.value;
     const isValid = action.payload.isValid;
     const oldAnswers = state.answers;
-    if (isValid) {
-        const newAnswers = { ...oldAnswers };
-        newAnswers[cdeCode] = newValue;
-        return newAnswers;
-    } else {
-        return oldAnswers;
-    }
+    const newAnswers = { ...oldAnswers };
+    newAnswers[cdeCode] = newValue;
+    return newAnswers;
 }
 
 function clearAnswerOnSwipeBack(state: any): any {
@@ -83,7 +79,6 @@ export const promsPageReducer = handleActions({
     [goPrevious as any]:
         (state, action: any) => ({
             ...state,
-            answers: clearAnswerOnSwipeBack(state),
             stage: state.stage - 1,
         }),
     [goNext as any]:
