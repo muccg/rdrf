@@ -30,6 +30,17 @@ class Question extends React.Component<QuestionInterface, object> {
         const code = this.props.questions[this.props.stage].cde;
         this.props.enterData(code, event.target.value, true);
     }
+    
+    public handleDateInputChange = (event) => {
+        console.log("handling Date input change");
+        const code = this.props.questions[this.props.stage].cde;
+	console.log("cde = " + code);
+	console.log("value = " + event.target.value.toString());
+	const americanDatePattern = /^\d\d\d\d\/\d\d/\d\d$/;
+	const isValid = americanDatePattern.test(event.target.value);
+	console.log("valid = " + isValid.toString());
+        this.props.enterData(code, event.target.value, isValid);
+    }
 
     public transformSubstring = (mainString: string | string[], words: string[], transformation: string) : string[] => {
         const result = [];
@@ -404,7 +415,7 @@ class Question extends React.Component<QuestionInterface, object> {
                         <Input type="date"
                             {...question.spec.params}
                             name={question.cde}
-                            onChange={this.handleInputChange}
+                            onChange={this.handleDateInputChange}
                             onKeyDown={this.handleInputKeyDown}
                         />
                     </Col>
