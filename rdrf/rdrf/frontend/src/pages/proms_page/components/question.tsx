@@ -30,6 +30,13 @@ class Question extends React.Component<QuestionInterface, object> {
         const code = this.props.questions[this.props.stage].cde;
         this.props.enterData(code, event.target.value, true);
     }
+    
+    public handleDateInputChange = (event) => {
+        const code = this.props.questions[this.props.stage].cde;
+        const americanDatePattern = /^\d\d\d\d-\d\d-\d\d$/
+        const isValid = americanDatePattern.test(event.target.value);
+        this.props.enterData(code, event.target.value, isValid);
+    }
 
     public transformSubstring = (mainString: string | string[], words: string[], transformation: string) : string[] => {
         const result = [];
@@ -415,7 +422,7 @@ class Question extends React.Component<QuestionInterface, object> {
                         <Input type="date"
                             {...question.spec.params}
                             name={question.cde}
-                            onChange={this.handleInputChange}
+                            onChange={this.handleDateInputChange}
                             onKeyDown={this.handleInputKeyDown}
                             value={currentValue}
                         />
