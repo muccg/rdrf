@@ -1,5 +1,4 @@
 import sys
-import json
 from django.core.management import BaseCommand
 from django.db import transaction
 from rdrf.models.definition.models import Registry, CommonDataElement, CDEPermittedValueGroup, CDEPermittedValue
