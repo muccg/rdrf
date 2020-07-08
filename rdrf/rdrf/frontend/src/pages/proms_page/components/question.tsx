@@ -246,11 +246,7 @@ class Question extends React.Component<QuestionInterface, object> {
         const maxValue = parseInt(max, 10);
         const inputValue = parseInt(value, 10);
         if (!isNaN(minValue) && !isNaN(maxValue)) {  // if min and max are specified
-            if (minValue <= inputValue && inputValue <= maxValue) {
-                return true;
-            } else {
-                return false;
-            }
+            return minValue <= inputValue && inputValue <= maxValue;
         } else {
             return true;
         }
