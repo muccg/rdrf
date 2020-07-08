@@ -240,8 +240,25 @@ class Question extends React.Component<QuestionInterface, object> {
         );
     }
 
+    public valueWithinLimits(value, min, max) {
+        if (value === "") return true;  // allow to skip
+        const minValue = parseInt(min, 10);
+        const maxValue = parseInt(max, 10);
+        const inputValue = parseInt(value, 10);
+        if (!isNaN(minValue) && !isNaN(maxValue)) {  // if min and max are specified
+            if (minValue <= inputValue && inputValue <= maxValue) {
+                return true;
+            } else {
+                return false;
+            }
+        } else {
+            return true;
+        }
+    }
+
     public handleIntegerChange = (event) => {
-        if (/^([-]?[0-9]+)?$/.test(event.target.value) && !(/^-$/.test(event.target.value))) {
+        const valueWithinRange = this.valueWithinLimits(event.target.value, event.target.min, event.target.max);
+        if (/^([-]?[0-9]+)?$/.test(event.target.value) && !(/^-$/.test(event.target.value)) && valueWithinRange) {
             event.target.classList.remove('is-invalid');
             const code = this.props.questions[this.props.stage].cde;
             this.props.enterData(code, event.target.value, true);  // set state to true
@@ -269,6 +286,7 @@ class Question extends React.Component<QuestionInterface, object> {
                 <FormGroup>
                     <Col sm="12" md={{ size: 6, offset: 3 }}>
                         <Input type="text"
+                            {...question.spec.params}
                             name={question.cde}
                             onChange={this.handleIntegerChange}
                             onKeyDown={this.handleInputKeyDown}
