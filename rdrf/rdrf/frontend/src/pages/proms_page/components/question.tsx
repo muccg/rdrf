@@ -213,11 +213,9 @@ class Question extends React.Component<QuestionInterface, object> {
     }
 
     public renderMultiselect(question: any) {
+	let defaultValue:string = ""; 
         if (this.props.answers[question.cde] !== undefined) {
-	    var defaultValue:string = this.props.answers[question.cde].toString().replace("[","").replace("]","");
-	}
-	else {
-	    var defaultValue:string = "";
+	    defaultValue = this.props.answers[question.cde].toString().replace("[","").replace("]","");
 	}
 	    
         return (
