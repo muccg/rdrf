@@ -213,6 +213,13 @@ class Question extends React.Component<QuestionInterface, object> {
     }
 
     public renderMultiselect(question: any) {
+        if (this.props.answers[question.cde] !== undefined) {
+	    var defaultValue:string = this.props.answers[question.cde].toString().replace("[","").replace("]","");
+	}
+	else {
+	    var defaultValue:string = "";
+	}
+	    
         return (
             <Form>
                 <FormGroup tag="fieldset">
@@ -226,6 +233,7 @@ class Question extends React.Component<QuestionInterface, object> {
                     <Col sm="12" md={{ size: 6, offset: 3 }}>
                         <Input type="select"
                             name={question.cde}
+	                    defaultValue={defaultValue}
                             onChange={this.handleMultiChange} multiple={true} >
                             {_.map(question.spec.options, (option, index) => (
                                 <option key={option.code} value={option.code}>
