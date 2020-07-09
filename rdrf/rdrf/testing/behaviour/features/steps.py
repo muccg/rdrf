@@ -1081,37 +1081,85 @@ def s_find(xp):
     return find(xp)
 
 
-@step('click the checkbox for cde "([^\"]+)"')
+@step('check the checkbox for cde "([^\"]+)"')
 def click_checkbox(step, cde_label):
     xp = (
         '//label[contains(., "{0}")]/following-sibling::div'
         '/input'.format(cde_label)
     )
-    s_find(xp).click()
+    box = s_find(xp)
+    if 'checked' in box.get_attribute('outerHTML'):
+        raise Exception(
+            'Checkbox already checked.\n'
+            'CDE:     {0}\n'.format(cde_label)
+        )
+    box.click()
     pass
 
 
-@step('enter "([^\"]*)" for cde "([^\"]+)" of type date')
+@step('uncheck the checkbox for cde "([^\"]+)"')
+def click_checkbox(step, cde_label):
+    xp = (
+        '//label[contains(., "{0}")]/following-sibling::div'
+        '/input'.format(cde_label)
+    )
+    box = s_find(xp)
+    if 'checked' not in box.get_attribute('outerHTML'):
+        raise Exception(
+            'Checkbox not already checked.\n'
+            'CDE:     {0}\n'.format(cde_label)
+        )
+    box.click()
+    pass
+
+
+@step('enter "([^\"]*)" for date cde "([^\"]+)"')
 def enter_date(step, entry, cde_label):
     xp = (
         '//label[contains(., "{0}")]/following-sibling::div'
         '/input'.format(cde_label)
     )
-    s_find(xp).send_keys([entry, Keys.ESCAPE])
+    date_box = s_find(xp)
+    date_box.clear()
+    date_box.send_keys([entry, Keys.ESCAPE])
     pass
 
 
-@step('click "([^\"]+)" for cde "([^\"]+)" of type multiple')
-def click_of_multiple(step, entry, cde_label):
+@step('check "([^\"]+)" for multiple cde "([^\"]+)"')
+def click_multiple(step, entry, cde_label):
     xp = (
         '//label[contains(., "{0}")]/following-sibling::div'
         '/ul/li/label[contains(., "{1}")]'.format(cde_label, entry)
     )
-    s_find(xp).click()
+    option = s_find(xp)
+    # Looks to see if the box is already checked, because it will be
+    # unchecked by a click if already checked.
+    if 'checked' in option.get_attribute('outerHTML'):
+        raise Exception(
+            'Multiple CDE option already checked.\n'
+            'CDE:     {0}\nOption:  {1}'.format(cde_label, entry)
+        )
+    option.click()
     pass
 
 
-@step('click "([^\"]+)" for cde "([^\"]+)" of type radio')
+@step('uncheck "([^\"]+)" for multiple cde "([^\"]+)"')
+def uncheck_multiple(step, entry, cde_label):
+    xp = (
+        '//label[contains(., "{0}")]/following-sibling::div'
+        '/ul/li/label[contains(., "{1}")]'.format(cde_label, entry)
+    )
+    option = s_find(xp)
+    if 'checked' not in option.get_attribute('outerHTML'):
+        raise Exception(
+            'Multiple CDE option not already checked.\n'
+            'CDE:     {0}\nOption:  {1}'.format(cde_label, entry)
+        )
+    option.click()
+    pass
+
+
+@step('check "([^\"]+)" for radio cde "([^\"]+)"')
 def click_radio(step, entry, cde_label):
     xp = (
         '//label[contains(., "{0}")]/following-sibling::div'
@@ -1121,7 +1169,7 @@ def click_radio(step, entry, cde_label):
     pass
 
 
-@step('select "([^\"]*)" for cde "([^\"]+)" of type select')
+@step('click "([^\"]*)" for select cde "([^\"]+)"')
 def click_select(step, entry, cde_label):
     xp = (
         '//label[contains(., "{0}")]/following-sibling::div'
@@ -1131,13 +1179,15 @@ def click_select(step, entry, cde_label):
     pass
 
 
-@step('enter "([^\"]*)" for cde "([^\"]+)" of type text')
+@step('enter "([^\"]*)" for text cde "([^\"]+)"')
 def enter_text(step, entry, cde_label):
     xp = (
         '//label[contains(., "{0}")]/following-sibling::div'
         '/input'.format(cde_label)
     )
-    s_find(xp).send_keys(entry)
+    text_box = s_find(xp)
+    text_box.clear()
+    text_box.send_keys(entry)
     pass
 
 
@@ -1158,7 +1208,8 @@ def postcheck_text_not(step, entry, cde_label):
         '//label[contains(., "{0}")]/following-sibling::div'
         '/input'.format(cde_label)
     )
-    assert entry not in find(xp).get_attribute('value'),\
+    value = find(xp).get_attribute('value')
+    assert entry not in value,\
         (
             'Value "{0}" found in cde "{1}", but should not be present.'
             ''.format(entry, cde_label)
@@ -1166,10 +1217,7 @@ def postcheck_text_not(step, entry, cde_label):
     pass
 
 
-@step(
-    'option "([^\"]+)" for cde "([^\"]+)" of type multiple '
-    'should be selected'
-)
+@step('option "([^\"]+)" for multiple cde "([^\"]+)" should be checked')
 def postcheck_multiple(step, entry, cde_label):
     xp = (
         '//label[contains(., "{0}")]/following-sibling::div'
@@ -1178,16 +1226,13 @@ def postcheck_multiple(step, entry, cde_label):
     outer_html = find(xp).get_attribute('outerHTML')
     assert 'checked' in outer_html,\
         (
-            'Option "{0}" for cde "{1}" is not selected, but should be.'
+            'Option "{0}" for cde "{1}" is not checked, but should be.'
             ''.format(entry, cde_label)
         )
     pass
 
 
-@step(
-    'option "([^\"]+)" for cde "([^\"]+)" of type multiple '
-    'should NOT be selected'
-)
+@step('option "([^\"]+)" for multiple cde "([^\"]+)" should NOT be checked')
 def postcheck_multiple_not(step, entry, cde_label):
     xp = (
         '//label[contains(., "{0}")]/following-sibling::div'
@@ -1196,16 +1241,13 @@ def postcheck_multiple_not(step, entry, cde_label):
     outer_html = find(xp).get_attribute('outerHTML')
     assert 'checked' not in outer_html,\
         (
-            'Option "{0}" for cde "{1}" is selected, but should not be.'
+            'Option "{0}" for cde "{1}" is checked, but should not be.'
             ''.format(entry, cde_label)
         )
     pass
 
 
-@step(
-    'option "([^\"]+)" for cde "([^\"]+)" of type radio '
-    'should be selected'
-)
+@step('option "([^\"]+)" for radio cde "([^\"]+)" should be checked')
 def postcheck_radio(step, entry, cde_label):
     xp = (
         '//label[contains(., "{0}")]/following-sibling::div'
@@ -1214,16 +1256,13 @@ def postcheck_radio(step, entry, cde_label):
     outer_html = find(xp).get_attribute('outerHTML')
     assert 'checked' in outer_html,\
         (
-            'Option "{0}" for cde "{1}" is not selected, but should be.'
+            'Option "{0}" for cde "{1}" is not checked, but should be.'
             ''.format(entry, cde_label)
         )
     pass
 
 
-@step(
-    'option "([^\"]+)" for cde "([^\"]+)" of type radio '
-    'should NOT be selected'
-)
+@step('option "([^\"]+)" for radio cde "([^\"]+)" should NOT be checked')
 def postcheck_radio_not(step, entry, cde_label):
     xp = (
         '//label[contains(., "{0}")]/following-sibling::div'
@@ -1232,16 +1271,13 @@ def postcheck_radio_not(step, entry, cde_label):
     outer_html = find(xp).get_attribute('outerHTML')
     assert 'checked' not in outer_html,\
         (
-            'Option "{0}" for cde "{1}" is selected, but should not be.'
+            'Option "{0}" for cde "{1}" is checked, but should not be.'
             ''.format(entry, cde_label)
         )
     pass
 
 
-@step(
-    'option "([^\"]+)" for cde "([^\"]+)" of type select '
-    'should be selected'
-)
+@step('option "([^\"]+)" for select cde "([^\"]+)" should be selected')
 def postcheck_select(step, entry, cde_label):
     xp = (
         '//label[contains(., "{0}")]/following-sibling::div'
@@ -1256,10 +1292,7 @@ def postcheck_select(step, entry, cde_label):
     pass
 
 
-@step(
-    'option "([^\"]+)" for cde "([^\"]+)" of type select '
-    'should NOT be selected'
-)
+@step('option "([^\"]+)" for select cde "([^\"]+)" should NOT be selected')
 def postcheck_select_not(step, entry, cde_label):
     xp = (
         '//label[contains(., "{0}")]/following-sibling::div'
@@ -1271,4 +1304,16 @@ def postcheck_select_not(step, entry, cde_label):
             'Option "{0}" for cde "{1}" is selected, but should not be.'
             ''.format(entry, cde_label)
         )
+    pass
+
+
+@step('should see validation error message "([^\"]+)"')
+def see_validation_error_message(step, message):
+    xp = (
+        '//span[@class="label label-danger" and contains(., "{0}")]'
+        ''.format(message)
+    )
+    # Because find raises an exception if the element cannot be found,
+    # this is equivalent to passing if found, and failing if not found.
+    find(xp)
     pass
