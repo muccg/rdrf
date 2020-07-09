@@ -53,8 +53,24 @@ class Command(BaseCommand):
                 for klass in klasses:
                     klass.objects.all().delete()
 
-                importer.create_registry()
+                try:
+                    importer.create_registry()
+                except Exception as e:
+                    self.stderr.write("Exception %s" % e)
+                    raise e
+                else:
+                    self.stdout.write("No exception was caught in the importer")
+
+                self.stdout.write("Importer state: %s" % importer.state)
+                self.stdout.write("Importer errors: %s" % importer.errors)
 
                 if override_metadata == 'N' and current_metadata is not None:
                     registry.metadata_json = current_metadata
+
+                try:
                     registry.save()
+                except Exception as e:
+                    self.stderr.write("Exception while saving registry: %s" % e)
+                    raise e
+                else:
+                    self.stdout.write("No exception was caught while saving the registry.")

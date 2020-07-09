@@ -453,12 +453,12 @@ class Question extends React.Component<QuestionInterface, object> {
     }
 
     private renderConsent(question) {
-        const consentText = <div>By ticking this box you:
-            <ul>
-                <li>Give consent for the information you provide to be used for the CIC Cancer project; and </li>
-                <li>Will receive a reminder when the next survey is due.</li>
-            </ul>
-        </div>;
+        const consentText = <span>By ticking this box you:
+                                <ul>
+                                    <li>Give consent for the information you provide to be used for the CIC Cancer project; and </li>
+                                    <li>Will receive a reminder when the next survey is due.</li>
+                                </ul>
+                            </span>;
         return (
             <Form>
                 <FormGroup tag="fieldset">
@@ -468,13 +468,13 @@ class Question extends React.Component<QuestionInterface, object> {
                         <h6>{question.instructions}</h6>
                     </Col>
                 </FormGroup>
-                <FormGroup check={true}>
-                    <Label check={true}>
-                        <Input type="checkbox" name={this.props.questions[this.props.stage].cde}
+                <FormGroup tag="fieldset">
+                    <Col sm="12" md={{ size: 6, offset: 3 }} className="form-check">
+                        <Input type="checkbox" className="form-check-inline" name={this.props.questions[this.props.stage].cde}
                             onChange={this.handleConsent}
                             checked={this.props.answers[question.cde]} />
                         {consentText}
-                    </Label>
+                    </Col>
                 </FormGroup>
             </Form>
         );
