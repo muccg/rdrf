@@ -942,6 +942,14 @@ def menu_contains_yn_general(step, menu, check, item):
 
 class Xpath:
     ADD_PATIENT_BUTTON = "//button[@id='add_patient']"
+    REGISTRY_OPTION_FIRST = (
+        '//label[contains(., "Rdrf Registry")]/following-sibling::div'
+        '/select/option'
+    )
+    CENTRE_OPTION_FIRST = (
+        '//label[contains(., "Centre")]/following-sibling::div'
+        '/select/option'
+    )
     REGISTRY_OPTION_CRC = "//option[contains(., 'ICHOM Colorectal Cancer')]"
     REGISTRY_OPTION_BC = '//option[contains(., "ICHOM Breast Cancer")]'
     CENTRE_OPTION_CRC_SJOG = "//option[contains(., 'ICHOMCRC SJOG')]"
@@ -962,17 +970,8 @@ def add_new_patient(step, name, sex, birthdate):
         world.site_url + "patientslisting"
     )
     find(Xpath.ADD_PATIENT_BUTTON).click()
-    if 'ICHOMCRC' in world.browser.current_url:
-        find(Xpath.REGISTRY_OPTION_CRC).click()
-        find(Xpath.CENTRE_OPTION_CRC_SJOG).click()
-    elif 'ICHOMBC' in world.browser.current_url:
-        find(Xpath.REGISTRY_OPTION_BC).click()
-        find(Xpath.CENTRE_OPTION_BC_WA).click()
-    else:
-        raise Exception(
-            'Cannot identify current registry from URL\n'
-            'URL:  {0}'.format(world.browser.current_url)
-        )
+    find(Xpath.REGISTRY_OPTION_FIRST).click()
+    find(Xpath.CENTRE_OPTION_FIRST).click()
     find(Xpath.SURNAME_FIELD).send_keys(surname)
     find(Xpath.FIRSTNAME_FIELD).send_keys(firstname)
     find(Xpath.DOB_FIELD).send_keys(birthdate, Keys.ESCAPE)
