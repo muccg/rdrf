@@ -213,6 +213,11 @@ class Question extends React.Component<QuestionInterface, object> {
     }
 
     public renderMultiselect(question: any) {
+	let defaultValue:string = ""; 
+        if (this.props.answers[question.cde] !== undefined) {
+	    defaultValue = this.props.answers[question.cde].toString().replace("[","").replace("]","");
+	}
+	    
         return (
             <Form>
                 <FormGroup tag="fieldset">
@@ -226,6 +231,7 @@ class Question extends React.Component<QuestionInterface, object> {
                     <Col sm="12" md={{ size: 6, offset: 3 }}>
                         <Input type="select"
                             name={question.cde}
+	                    defaultValue={defaultValue}
                             onChange={this.handleMultiChange} multiple={true} >
                             {_.map(question.spec.options, (option, index) => (
                                 <option key={option.code} value={option.code}>
@@ -240,8 +246,21 @@ class Question extends React.Component<QuestionInterface, object> {
         );
     }
 
+    public valueWithinLimits(value, min, max) {
+        if (value === "") return true;  // allow to skip
+        const minValue = parseInt(min, 10);
+        const maxValue = parseInt(max, 10);
+        const inputValue = parseInt(value, 10);
+        if (!isNaN(minValue) && !isNaN(maxValue)) {  // if min and max are specified
+            return minValue <= inputValue && inputValue <= maxValue;
+        } else {
+            return true;
+        }
+    }
+
     public handleIntegerChange = (event) => {
-        if (/^([-]?[0-9]+)?$/.test(event.target.value) && !(/^-$/.test(event.target.value))) {
+        const valueWithinRange = this.valueWithinLimits(event.target.value, event.target.min, event.target.max);
+        if (/^([-]?[0-9]+)?$/.test(event.target.value) && !(/^-$/.test(event.target.value)) && valueWithinRange) {
             event.target.classList.remove('is-invalid');
             const code = this.props.questions[this.props.stage].cde;
             this.props.enterData(code, event.target.value, true);  // set state to true
@@ -269,6 +288,7 @@ class Question extends React.Component<QuestionInterface, object> {
                 <FormGroup>
                     <Col sm="12" md={{ size: 6, offset: 3 }}>
                         <Input type="text"
+                            {...question.spec.params}
                             name={question.cde}
                             onChange={this.handleIntegerChange}
                             onKeyDown={this.handleInputKeyDown}
