@@ -67,4 +67,10 @@ class Command(BaseCommand):
                 if override_metadata == 'N' and current_metadata is not None:
                     registry.metadata_json = current_metadata
 
-                registry.save()
+                try:
+                    registry.save()
+                except Exception as e:
+                    self.stderr.write("Exception while saving registry: %s" % e)
+                    raise e
+                else:
+                    self.stdout.write("No exception was caught while saving the registry.")
