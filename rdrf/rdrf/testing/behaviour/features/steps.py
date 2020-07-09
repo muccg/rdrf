@@ -1082,7 +1082,7 @@ def s_find(xp):
 
 
 @step('check the checkbox for cde "([^\"]+)"')
-def click_checkbox(step, cde_label):
+def check_checkbox_new(step, cde_label):
     xp = (
         '//label[contains(., "{0}")]/following-sibling::div'
         '/input'.format(cde_label)
@@ -1098,7 +1098,7 @@ def click_checkbox(step, cde_label):
 
 
 @step('uncheck the checkbox for cde "([^\"]+)"')
-def click_checkbox(step, cde_label):
+def uncheck_checkbox_new(step, cde_label):
     xp = (
         '//label[contains(., "{0}")]/following-sibling::div'
         '/input'.format(cde_label)
@@ -1126,7 +1126,7 @@ def enter_date(step, entry, cde_label):
 
 
 @step('check "([^\"]+)" for multiple cde "([^\"]+)"')
-def click_multiple(step, entry, cde_label):
+def check_multiple(step, entry, cde_label):
     xp = (
         '//label[contains(., "{0}")]/following-sibling::div'
         '/ul/li/label[contains(., "{1}")]'.format(cde_label, entry)
