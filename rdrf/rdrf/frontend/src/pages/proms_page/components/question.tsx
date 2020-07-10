@@ -30,6 +30,13 @@ class Question extends React.Component<QuestionInterface, object> {
         const code = this.props.questions[this.props.stage].cde;
         this.props.enterData(code, event.target.value, true);
     }
+    
+    public handleDateInputChange = (event) => {
+        const code = this.props.questions[this.props.stage].cde;
+        const americanDatePattern = /^\d\d\d\d-\d\d-\d\d$/
+        const isValid = americanDatePattern.test(event.target.value);
+        this.props.enterData(code, event.target.value, isValid);
+    }
 
     public transformSubstring = (mainString: string | string[], words: string[], transformation: string) : string[] => {
         const result = [];
@@ -206,6 +213,11 @@ class Question extends React.Component<QuestionInterface, object> {
     }
 
     public renderMultiselect(question: any) {
+	let defaultValue:string = ""; 
+        if (this.props.answers[question.cde] !== undefined) {
+	    defaultValue = this.props.answers[question.cde].toString().replace("[","").replace("]","");
+	}
+	    
         return (
             <Form>
                 <FormGroup tag="fieldset">
@@ -219,6 +231,7 @@ class Question extends React.Component<QuestionInterface, object> {
                     <Col sm="12" md={{ size: 6, offset: 3 }}>
                         <Input type="select"
                             name={question.cde}
+	                    defaultValue={defaultValue}
                             onChange={this.handleMultiChange} multiple={true} >
                             {_.map(question.spec.options, (option, index) => (
                                 <option key={option.code} value={option.code}>
@@ -233,8 +246,21 @@ class Question extends React.Component<QuestionInterface, object> {
         );
     }
 
+    public valueWithinLimits(value, min, max) {
+        if (value === "") return true;  // allow to skip
+        const minValue = parseInt(min, 10);
+        const maxValue = parseInt(max, 10);
+        const inputValue = parseInt(value, 10);
+        if (!isNaN(minValue) && !isNaN(maxValue)) {  // if min and max are specified
+            return minValue <= inputValue && inputValue <= maxValue;
+        } else {
+            return true;
+        }
+    }
+
     public handleIntegerChange = (event) => {
-        if (/^([-]?[0-9]+)?$/.test(event.target.value) && !(/^-$/.test(event.target.value))) {
+        const valueWithinRange = this.valueWithinLimits(event.target.value, event.target.min, event.target.max);
+        if (/^([-]?[0-9]+)?$/.test(event.target.value) && !(/^-$/.test(event.target.value)) && valueWithinRange) {
             event.target.classList.remove('is-invalid');
             const code = this.props.questions[this.props.stage].cde;
             this.props.enterData(code, event.target.value, true);  // set state to true
@@ -262,6 +288,7 @@ class Question extends React.Component<QuestionInterface, object> {
                 <FormGroup>
                     <Col sm="12" md={{ size: 6, offset: 3 }}>
                         <Input type="text"
+                            {...question.spec.params}
                             name={question.cde}
                             onChange={this.handleIntegerChange}
                             onKeyDown={this.handleInputKeyDown}
@@ -415,7 +442,7 @@ class Question extends React.Component<QuestionInterface, object> {
                         <Input type="date"
                             {...question.spec.params}
                             name={question.cde}
-                            onChange={this.handleInputChange}
+                            onChange={this.handleDateInputChange}
                             onKeyDown={this.handleInputKeyDown}
                             value={currentValue}
                         />
@@ -426,12 +453,12 @@ class Question extends React.Component<QuestionInterface, object> {
     }
 
     private renderConsent(question) {
-        const consentText = <div>By ticking this box you:
-            <ul>
-                <li>Give consent for the information you provide to be used for the CIC Cancer project; and </li>
-                <li>Will receive a reminder when the next survey is due.</li>
-            </ul>
-        </div>;
+        const consentText = <span>By ticking this box you:
+                                <ul>
+                                    <li>Give consent for the information you provide to be used for the CIC Cancer project; and </li>
+                                    <li>Will receive a reminder when the next survey is due.</li>
+                                </ul>
+                            </span>;
         return (
             <Form>
                 <FormGroup tag="fieldset">
@@ -441,13 +468,13 @@ class Question extends React.Component<QuestionInterface, object> {
                         <h6>{question.instructions}</h6>
                     </Col>
                 </FormGroup>
-                <FormGroup check={true}>
-                    <Label check={true}>
-                        <Input type="checkbox" name={this.props.questions[this.props.stage].cde}
+                <FormGroup tag="fieldset">
+                    <Col sm="12" md={{ size: 6, offset: 3 }} className="form-check">
+                        <Input type="checkbox" className="form-check-inline" name={this.props.questions[this.props.stage].cde}
                             onChange={this.handleConsent}
                             checked={this.props.answers[question.cde]} />
                         {consentText}
-                    </Label>
+                    </Col>
                 </FormGroup>
             </Form>
         );

@@ -49,10 +49,10 @@ startup
 node_modules
 yarn-error.log
 rdrf/rdrf/frontend/dist
-#rdrf/rdrf/static/js/*-bundle*.js
-#rdrf/rdrf/static/proms/js/*-bundle*.js
-#rdrf/rdrf/static/proms/js/main-bundle.js
-#rdrf/rdrf/static/proms/js/runtime-bundle.js
+rdrf/rdrf/static/js/*-bundle*.js
+rdrf/rdrf/static/proms/js/*-bundle*.js
+rdrf/rdrf/static/proms/js/main-bundle.js
+rdrf/rdrf/static/proms/js/runtime-bundle.js
 
 yarn_cache/
 yarn-error.log
