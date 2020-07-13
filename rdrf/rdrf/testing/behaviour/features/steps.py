@@ -950,10 +950,6 @@ class Xpath:
         '//label[contains(., "Centre")]/following-sibling::div'
         '/select/option'
     )
-    REGISTRY_OPTION_CRC = "//option[contains(., 'ICHOM Colorectal Cancer')]"
-    REGISTRY_OPTION_BC = '//option[contains(., "ICHOM Breast Cancer")]'
-    CENTRE_OPTION_CRC_SJOG = "//option[contains(., 'ICHOMCRC SJOG')]"
-    CENTRE_OPTION_BC_WA = '//option[contains(., "ICHOMBC WA")]'
     SURNAME_FIELD = "//input[@name='family_name']"
     FIRSTNAME_FIELD = "//input[@name='given_names']"
     DOB_FIELD = "//input[@name='date_of_birth']"
@@ -961,6 +957,7 @@ class Xpath:
     SEX_OPTION_MALE = "//select[@name='sex']/option[text()='Male']"
     SEX_OPTION_FEMALE = "//select[@name='sex']/option[text()='Female']"
     SUBMIT_BUTTON = "//button[@id='submit-btn']"
+    pass
 
 
 @step('I add patient name "(.*)" sex "(.*)" birthdate "(.*)"')
