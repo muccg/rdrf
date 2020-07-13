@@ -16,6 +16,13 @@ Feature: General functionality of CIC Breast (ICHOMBC)
     And the menu "clinical" contains "Logout"
     When I click "SMITH Jane" on patientlisting
     Then location is "Demographics"
+    And the cde "Rdrf Registry" is marked as required
+    And the cde "Centre" is marked as required
+    And the cde "Family Name" is marked as required
+    And the cde "Given Names" is marked as required
+    And the cde "Date of birth" is marked as required
+    And the cde "Sex" is marked as required
+    And the cde "Living status" is marked as required
     And the sidebar contains a link to "Consents"
     And the sidebar contains a link to "Proms"
     And the sidebar contains a link in section "Main" to "Baseline PROMS"
