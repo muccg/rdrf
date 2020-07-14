@@ -108,16 +108,13 @@ class Question extends React.Component<QuestionInterface, object> {
 
     public handleMultiChange(event) {
         const cdeCode = event.target.name;
-        let values;
-        let options;
-        options = event.target.options;
-        values = [];
+        const values = [];
+        const options = event.target.options;
         _.each(event.target.options, (option: HTMLOptionElement) => {
             if (option.selected) {
                 values.push(option.value);
             }
         });
-
         this.props.enterData(cdeCode, values, true);
     }
 
@@ -213,11 +210,11 @@ class Question extends React.Component<QuestionInterface, object> {
     }
 
     public renderMultiselect(question: any) {
-	let defaultValue:string = ""; 
+    	let defaultValue = "";
         if (this.props.answers[question.cde] !== undefined) {
-	    defaultValue = this.props.answers[question.cde].toString().replace("[","").replace("]","");
-	}
-	    
+            defaultValue = this.props.answers[question.cde].toString().replace("[","").replace("]","");
+        }
+
         return (
             <Form>
                 <FormGroup tag="fieldset">
@@ -231,7 +228,7 @@ class Question extends React.Component<QuestionInterface, object> {
                     <Col sm="12" md={{ size: 6, offset: 3 }}>
                         <Input type="select"
                             name={question.cde}
-	                    defaultValue={defaultValue}
+	                        value={defaultValue}
                             onChange={this.handleMultiChange} multiple={true} >
                             {_.map(question.spec.options, (option, index) => (
                                 <option key={option.code} value={option.code}>
