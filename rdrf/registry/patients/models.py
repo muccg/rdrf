@@ -176,6 +176,9 @@ class Patient(models.Model):
     LIVING_STATES = (('Alive', _('Living')), ('Deceased', _('Deceased')))
 
     objects = PatientManager()
+    cic_id = models.CharField(max_length=80,
+                              blank=True,
+                              null=True)
     rdrf_registry = models.ManyToManyField(
         Registry,
         related_name='patients',
