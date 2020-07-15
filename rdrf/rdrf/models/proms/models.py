@@ -145,6 +145,8 @@ class SurveyQuestion(models.Model):
                 cond_block = {"op": "=",
                               "cde": self.precondition.cde.code,
                               "value": self.precondition.value}
+                if self.precondition.cde.allow_multiple:
+                    cond_block["op"] = "contains"
 
             return {"tag": "cond",
                     "cde": self.cde.code,
