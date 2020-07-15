@@ -108,16 +108,17 @@ class Question extends React.Component<QuestionInterface, object> {
 
     public handleMultiChange(event) {
         const cdeCode = event.target.name;
-        let values;
-        let options;
-        options = event.target.options;
-        values = [];
-        _.each(event.target.options, (option: HTMLOptionElement) => {
-            if (option.selected) {
-                values.push(option.value);
+        let values = this.props.answers[cdeCode];
+        const value = event.target.value;
+        if (event.target.checked) {
+            if (values !== undefined){
+                values = [...values, value];
+            } else {
+                values = [value];
             }
-        });
-
+        } else {
+            values = values.filter(v => v !== value);
+        }
         this.props.enterData(cdeCode, values, true);
     }
 
@@ -212,12 +213,32 @@ class Question extends React.Component<QuestionInterface, object> {
         );
     }
 
+    public renderCheckbox(question, code, text, checkedOptions) {
+        let isChecked = false;
+        if (checkedOptions.includes(code)) {
+            isChecked = true;
+        }
+        return (
+            <FormGroup>
+                <Input type="checkbox"
+                    id={question.cde+"_"+code}
+                    name={question.cde}
+                    key={code}
+                    value={code}
+                    checked={isChecked}
+                    onChange={this.handleMultiChange}
+                />
+                <Label for={question.cde+"_"+code}>{text}</Label>
+            </FormGroup>
+        );
+    }
+
     public renderMultiselect(question: any) {
-	let defaultValue:string = ""; 
+        let checkedOptions = [];
         if (this.props.answers[question.cde] !== undefined) {
-	    defaultValue = this.props.answers[question.cde].toString().replace("[","").replace("]","");
-	}
-	    
+            checkedOptions = this.props.answers[question.cde];
+        }
+
         return (
             <Form>
                 <FormGroup tag="fieldset">
@@ -229,17 +250,9 @@ class Question extends React.Component<QuestionInterface, object> {
                 </FormGroup>
                 <FormGroup>
                     <Col sm="12" md={{ size: 6, offset: 3 }}>
-                        <Input type="select"
-                            name={question.cde}
-	                    defaultValue={defaultValue}
-                            onChange={this.handleMultiChange} multiple={true} >
-                            {_.map(question.spec.options, (option, index) => (
-                                <option key={option.code} value={option.code}>
-                                    {option.text}
-                                </option>
-                            ))
-                            }
-                        </Input>
+                        {_.map(question.spec.options, (option, index) => (
+                            this.renderCheckbox(question, option.code, option.text, checkedOptions)
+                        ))}
                     </Col>
                 </FormGroup>
             </Form>
