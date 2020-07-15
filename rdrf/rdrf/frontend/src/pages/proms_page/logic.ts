@@ -12,8 +12,15 @@ interface OrCondition {
     value: any,
 }
 
+interface ContainsCondition {
+    op: 'contains',
+    cde: string,
+    value: any,
+}
+
+
 // maybe this is enough
-type Condition = EqualsCondition | OrCondition;
+type Condition = EqualsCondition | OrCondition | ContainsCondition
 
 // Elements of workflow
 // I tried to make UnconditionalElement just a string but got type errors
@@ -121,6 +128,9 @@ function evalCondition(cond: Condition, state: any): boolean {
                 return answer === cond.value;
 	    case 'or':
 		return cond.value.indexOf(answer) > -1;
+	    case 'contains':
+		const result:boolean = answer.includes(cond.value);
+		return result;
             default:
                 return false; // extend this later
         }
