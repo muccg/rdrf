@@ -109,7 +109,7 @@ class Question extends React.Component<QuestionInterface, object> {
     public handleMultiChange(event) {
         const cdeCode = event.target.name;
         let values = this.props.answers[cdeCode];
-        let value = event.target.value;
+        const value = event.target.value;
         if (event.target.checked) {
             if (values !== undefined){
                 values = [...values, value];
