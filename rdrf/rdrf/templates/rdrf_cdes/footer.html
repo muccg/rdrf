@@ -1,11 +1,12 @@
 {% load version_number %}
+{% load site_info %}
 {% load i18n %}
 
 <div class="footer-wrap">
   <div class="row">
     <div class="col-md-4 version">
       <div>
-          <i class="icon-wrench"></i> {% trans "Version" %} {% version_number %}
+        <i class="icon-wrench"></i> {% trans "Version" %} {% version_number %} {% trans "Registry " %} {% site_info %}
       </div>
     </div>
     <div class="col-md-4 disclaimer">
@@ -24,7 +25,7 @@
     
     <div class="col-md-4 authorised">  
       <div>
-          {% trans "Authorised by" %}: <a href="mailto:mbellgard@ccg.murdoch.edu.au"> Prof. Matthew Bellgard</a>;<br> {% trans 'Director' %}, <a href="http://ccg.murdoch.edu.au/">CCG</a><br>
+          {% trans "Created by" %}: <a href="http://ccg.murdoch.edu.au/">CCG</a><br>
       </div>
     </div>
   </div>
