@@ -6,6 +6,10 @@ register = template.Library()
 
 @register.simple_tag
 def site_info():
+    """
+    Provide info about which registry is installed
+    Only makes sense when one and only one installed
+    """
     try:
         registry_model = Registry.objects.get()
         return registry_model.version
