@@ -17,6 +17,8 @@ from rdrf.models.definition.models import Registry, Section, ConsentQuestion
 from rdrf.models.definition.models import ClinicalData
 from rdrf.models.workflow_models import ClinicianSignupRequest
 from rdrf.helpers.utils import get_cde_value2
+from rdrf.helpers.utils import supports_deidentification_workflow
+from rdrf.helpers.utils import generate_deidentified_id
 
 import registry.groups.models
 from registry.utils import get_working_groups, get_registries, stripspaces
@@ -825,6 +827,10 @@ class Patient(models.Model):
 
         if not self.pk:
             self.active = True
+
+        if not self.deident:
+            if supports_deidentification_workflow():
+                self.deident = generate_deidentified_id()
 
         super(Patient, self).save(*args, **kwargs)
 
