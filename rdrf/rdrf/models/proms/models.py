@@ -138,7 +138,11 @@ class SurveyQuestion(models.Model):
                 def vals(s):
                     return [x.strip() for x in s.split(",")]
 
-                cond_block = {"op": "or",
+                op = "or"
+                if self.precondition.cde.allow_multiple:
+                    op = "intersection"
+
+                cond_block = {"op": op,
                               "cde": self.precondition.cde.code,
                               "value": vals(self.precondition.value)}
             else:
