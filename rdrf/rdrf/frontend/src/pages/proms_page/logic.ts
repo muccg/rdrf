@@ -18,9 +18,14 @@ interface ContainsCondition {
     value: any,
 }
 
+interface IntersectionCondition {
+    op: 'intersection',
+    cde: any,
+    value: any,
+}
 
 // maybe this is enough
-type Condition = EqualsCondition | OrCondition | ContainsCondition
+type Condition = EqualsCondition | OrCondition | ContainsCondition | IntersectionCondition
 
 // Elements of workflow
 // I tried to make UnconditionalElement just a string but got type errors
@@ -126,16 +131,18 @@ function evalCondition(cond: Condition, state: any): boolean {
         switch (cond.op) {
             case '=':
                 return answer === cond.value;
-	    case 'or':
-		return cond.value.indexOf(answer) > -1;
-	    case 'contains':
-		const result:boolean = answer.includes(cond.value);
-		return result;
+            case 'or':
+                return cond.value.indexOf(answer) > -1;
+            case 'contains':
+                const result:boolean = answer.includes(cond.value);
+                return result;
+            case 'intersection':
+                // is there an intersection between answe list and precondition value list
+                return _.intersection(answer, cond.value).length > 0;
             default:
                 return false; // extend this later
         }
-    }
-    else {
+    } else {
         return false;
     }
 }
