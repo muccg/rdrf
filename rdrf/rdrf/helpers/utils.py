@@ -976,7 +976,7 @@ def generate_deidentified_id():
     """
     if settings.DEIDENTIFIED_SITE_ID:
         prefix = settings.DEIDENTIFIED_SITE_ID
-        guid = uuid.uuid1()
+        guid = str(uuid.uuid1())
         return prefix + "-" + guid
     else:
         raise Exception("DEIDENTIFIED_SITE_ID needs to set in the settings.py")
