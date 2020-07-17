@@ -95,7 +95,7 @@ class ReportGenerator:
 
     def _setup_inputs(self):
         # todo allow different data types
-        if self.input_data not None:
+        if self.input_data is not None:
             self.start_value = self.input_data.get("start_value", Dates.DISTANT_PAST)
             self.end_value = self.input_data.get("end_value", Dates.FAR_FUTURE)
             if isinstance(self.start_value, str):
@@ -201,8 +201,7 @@ class ReportGenerator:
                         row.append(column_value)
                     rows.append(row)
             except Exception as ex:
-                logger.error("%s report error pid %s: %s" % (self.report_name, patient_model.pk,
-                                                                     ex))
+                logger.error("%s report error pid %s: %s" % (self.report_name, patient_model.pk, ex))
         self.report = rows
 
     def _get_header(self):
