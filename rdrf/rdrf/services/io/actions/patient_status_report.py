@@ -95,12 +95,13 @@ class ReportGenerator:
 
     def _setup_inputs(self):
         # todo allow different data types
-        self.start_value = self.input_data.get("start_value", Dates.DISTANT_PAST)
-        self.end_value = self.input_data.get("end_value", Dates.FAR_FUTURE)
-        if isinstance(self.start_value, str):
-            self.start_value = get_date(self.start_value)
-        if isinstance(self.end_value, str):
-            self.end_value = get_date(self.end_value)
+        if self.input_data not None:
+            self.start_value = self.input_data.get("start_value", Dates.DISTANT_PAST)
+            self.end_value = self.input_data.get("end_value", Dates.FAR_FUTURE)
+            if isinstance(self.start_value, str):
+                self.start_value = get_date(self.start_value)
+            if isinstance(self.end_value, str):
+                self.end_value = get_date(self.end_value)
 
     def _parse_filter_spec(self, runtime_spec_dict):
         if "filter_spec" in runtime_spec_dict:
@@ -143,7 +144,7 @@ class ReportGenerator:
                   "content_type": "text/csv",
                   "username": self.user.username,
                   "user_id": self.user.id,
-                  "filename": "Completion Report.csv",
+                  "filename": f"{self.report_name}.csv",
                   }
         logger.info("result dict = %s" % result)
         return result
@@ -200,7 +201,7 @@ class ReportGenerator:
                         row.append(column_value)
                     rows.append(row)
             except Exception as ex:
-                logger.error("Completion report error pid %s: %s" % (patient_model.pk,
+                logger.error("%s report error pid %s: %s" % (self.report_name, patient_model.pk,
                                                                      ex))
         self.report = rows
 
@@ -442,7 +443,7 @@ def execute(custom_action, registry_model, report_name, report_spec, user, input
     parser.generate_report()
     if not run_async:
         response = HttpResponse(content_type='text/csv')
-        response['Content-Disposition'] = 'attachment; filename="Completion Report.csv"'
+        response['Content-Disposition'] = f'attachment; filename="{report_name}.csv"'
         return parser.dump_csv(response)
     else:
         return parser.task_result
