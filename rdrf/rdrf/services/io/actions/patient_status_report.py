@@ -82,7 +82,7 @@ class ReportGenerator:
         self.filter_cde = None
         self.report_name = report_name
         self.report_spec = json.loads(report_spec)
-        self.has_no_filter = False
+        self.has_filter = True
         self._parse_filter_spec(self.runtime_spec)
         self.user = user
         self.input_data = input_data  # this filters the data
@@ -124,7 +124,7 @@ class ReportGenerator:
                 cde_code = filter_field["cde"]
                 self.filter_cde = self.filter_section.get_cde(cde_code)
         else:
-            self.has_no_filter = True
+            self.has_filter = False
 
     def dump_csv(self, stream):
         writer = csv.writer(stream)
@@ -393,12 +393,16 @@ class ReportGenerator:
 
     def _get_patients(self):
         user_working_groups = self.user.working_groups.all()
-
-        for patient_model in Patient.objects.filter(rdrf_registry__code__in=[self.registry_model.code],
-                                                    working_groups__in=user_working_groups):
-
-            if self.has_no_filter or self._include_patient(patient_model):
-                yield patient_model
+        if not self.has_filter:
+            return Patient.objects.filter(rdrf_registry__code__in=[self.registry_model.code],
+                                          working_groups__in=user_working_groups).iterator()
+        else:
+            def patient_iterator():
+                for patient_model in Patient.objects.filter(rdrf_registry__code__in=[self.registry_model.code],
+                                                            working_groups__in=user_working_groups):
+                    if self._include_patient(patient_model):
+                        yield patient_model
+            return patient_iterator()
 
     def _include_patient(self, patient_model):
         if self.start_value and self.end_value:
