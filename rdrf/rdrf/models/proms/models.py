@@ -2,17 +2,19 @@ from rest_framework import status
 import json
 import logging
 import requests
+
 from django.db import models
 from django.urls import reverse
+from django.forms import ValidationError
+from django.utils.encoding import escape_uri_path
 
 from rdrf.models.definition.models import Registry, RegistryForm, Section
 from rdrf.models.definition.models import CommonDataElement
 from rdrf.models.definition.models import ContextFormGroup
-from registry.patients.models import Patient
 from rdrf.helpers.utils import generate_token
-from django.forms import ValidationError
 from rdrf.events.events import EventType
 from rdrf.services.io.notifications.email_notification import process_notification
+from registry.patients.models import Patient
 
 
 def clean(s):
@@ -138,7 +140,11 @@ class SurveyQuestion(models.Model):
                 def vals(s):
                     return [x.strip() for x in s.split(",")]
 
-                cond_block = {"op": "or",
+                op = "or"
+                if self.precondition.cde.allow_multiple:
+                    op = "intersection"
+
+                cond_block = {"op": op,
                               "cde": self.precondition.cde.code,
                               "value": vals(self.precondition.value)}
             else:
@@ -440,9 +446,10 @@ class SurveyRequest(models.Model):
 
         landing_page = "/promslanding?t=%s&r=%s&s=%s" % (self.patient_token,
                                                          self.registry.code,
-                                                         self.survey_name)
+                                                         escape_uri_path(self.survey_name))
 
-        return proms_system_url + landing_page
+        full_url = proms_system_url + landing_page
+        return full_url
 
     @property
     def name(self):
