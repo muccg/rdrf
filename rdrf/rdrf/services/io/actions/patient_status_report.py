@@ -92,6 +92,7 @@ class ReportGenerator:
         self.data = self._get_all_data()
         self.context_form_group = self._get_context_form_group()
         self.report = None
+        self.has_valid_filter = False
         self._setup_inputs()
 
     def _setup_inputs(self):
@@ -103,6 +104,8 @@ class ReportGenerator:
                 self.start_value = get_date(self.start_value)
             if isinstance(self.end_value, str):
                 self.end_value = get_date(self.end_value)
+            if self.start_value and self.end_value:
+                self.has_valid_filter = True
 
     def _parse_filter_spec(self, runtime_spec_dict):
         if "filter_spec" in runtime_spec_dict:
@@ -393,9 +396,9 @@ class ReportGenerator:
 
     def _get_patients(self):
         user_working_groups = self.user.working_groups.all()
-        if not self.has_filter:
+        if not self.has_filter or not self.has_valid_filter:
             return Patient.objects.filter(rdrf_registry__code__in=[self.registry_model.code],
-                                          working_groups__in=user_working_groups).iterator()
+                                          working_groups__in=user_working_groups)
         else:
             def patient_iterator():
                 for patient_model in Patient.objects.filter(rdrf_registry__code__in=[self.registry_model.code],
@@ -405,13 +408,10 @@ class ReportGenerator:
             return patient_iterator()
 
     def _include_patient(self, patient_model):
-        if self.start_value and self.end_value:
-            filter_value = self._get_filter_value(patient_model)
-            if filter_value is None:
-                return False
-            return filter_value >= self.start_value and filter_value <= self.end_value
-        else:
-            return True
+        filter_value = self._get_filter_value(patient_model)
+        if filter_value is None:
+            return False
+        return filter_value >= self.start_value and filter_value <= self.end_value
 
     def _get_filter_value(self, patient_model):
         cds = patient_model.get_clinical_data_for_form_group(self.context_form_group.name)
