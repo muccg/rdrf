@@ -1,5 +1,4 @@
 from datetime import datetime
-from datetime import datetime
 import json
 import zipfile
 from zipfile import ZipFile
@@ -55,7 +54,7 @@ class PipeLine:
         return d
 
 
-def extract_data(custom_action):
+def extract_data():
     p = PipeLine()
     p.deidentify()
     return p.data
@@ -65,7 +64,7 @@ def execute(custom_action, user):
     a = datetime.now()
     timestamp = datetime.timestamp(a)
     guid = str(uuid.uuid1())
-    results = extract_data(custom_action)
+    results = extract_data()
     data = {}
     data["manifest"] = {"site": settings.DEIDENTIFIED_SITE_ID,
                         "timestamp": timestamp,
@@ -79,6 +78,5 @@ def execute(custom_action, user):
     zip_name = name + ".zip"
     json_name = name + ".json"
     zf.writestr(json_name, json_data)
-    response['Content-Disposition'] = f'attachment; filename=%s' % zip_name
-
+    response['Content-Disposition'] = 'attachment; filename=%s' % zip_name
     return response
