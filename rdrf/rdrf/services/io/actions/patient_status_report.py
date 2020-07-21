@@ -1,6 +1,7 @@
 import logging
 import csv
 import json
+from time import time
 from datetime import date
 from django.http import HttpResponse
 from rdrf.models.definition.models import RegistryForm
@@ -44,6 +45,16 @@ class ColumnType:
 demographics_transform_map = {"sex": {"1": "Male", "2": "Female", "3": "Indeterminate"},
                               "date_of_birth": format_date,
                               }
+
+
+def log_time_taken(f):
+    def wrapper(*args, **kw):
+        start_time = time()
+        result = f(*args, **kw)
+        finish_time = time()
+        logger.info(f'The report: {args[2]} was generated in: {(finish_time - start_time):.2f} sec')
+        return result
+    return wrapper
 
 
 def aus_date(american_date):
@@ -442,6 +453,7 @@ class ReportGenerator:
             raise SecurityException()
 
 
+@log_time_taken
 def execute(custom_action, registry_model, report_name, report_spec, user, input_data=None, runtime_spec={}, run_async=False):
     logger.info("running custom action report %s for %s" % (report_name,
                                                             user.username))
