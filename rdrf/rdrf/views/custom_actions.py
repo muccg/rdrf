@@ -55,9 +55,15 @@ class CustomActionView(View):
         elif is_asynchronous:
             cae.status = "polling"
             cae.save()
+            task_id = custom_action.run_async(user, patient_model, {})
+            cae.task_id = task_id
+            cae.status = "started task"
+            cae.save()
+            logger.debug("task id = %s" % task_id)
             return self._polling_view(request,
                                       user,
                                       custom_action,
+                                      task_id,
                                       patient_model,
                                       cae)
         else:

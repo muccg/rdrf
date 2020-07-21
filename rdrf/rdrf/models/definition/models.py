@@ -1948,7 +1948,8 @@ class CustomAction(models.Model):
     data associated with the action is parsed and the action executed
     """
     ACTION_TYPES = (("PR", "Patient Report"),
-                    ("SR", "Patient Status Report"))
+                    ("SR", "Patient Status Report"),
+                    ("DE", "Deidentified Data Extract"))
 
     SCOPES = (("U", "Universal"),
               ("P", "Patient"))
@@ -2093,6 +2094,9 @@ class CustomAction(models.Model):
                                                  user,
                                                  input_data,
                                                  run_async=self.asynchronous)
+        elif self.action_type == "DE":
+            from rdrf.services.io.actions import deidentified_data_extract
+            return deidentified_data_extract.execute(self, user)
 
         else:
             raise NotImplementedError("Unknown action type: %s" % self.action_type)

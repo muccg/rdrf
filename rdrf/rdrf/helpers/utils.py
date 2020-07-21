@@ -967,3 +967,26 @@ def anonymous_not_allowed(function=None, redirect_field_name=REDIRECT_FIELD_NAME
     if function:
         return actual_decorator(function)
     return actual_decorator
+
+
+def generate_deidentified_id():
+    """
+    ID to use for de-identified
+    data extraction.
+    """
+    if settings.DEIDENTIFIED_SITE_ID:
+        prefix = settings.DEIDENTIFIED_SITE_ID
+        guid = str(uuid.uuid1())
+        return prefix + "-" + guid
+    else:
+        raise Exception("DEIDENTIFIED_SITE_ID needs to set in the settings.py")
+
+
+def supports_deidentification_workflow():
+    """
+    If a site supports deidentification
+    an site id is required.
+    """
+    if settings.DEIDENTIFIED_SITE_ID:
+        return True
+    return False

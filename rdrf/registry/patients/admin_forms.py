@@ -172,6 +172,7 @@ class PatientForm(forms.ModelForm):
                                             widget=CountryWidget(attrs={'onChange': 'select_country(this);'}))
     next_of_kin_state = forms.ChoiceField(required=False, widget=StateWidget())
     country_of_birth = forms.ChoiceField(required=False, widget=CountryWidget())
+    cic_id = forms.CharField(required=False, widget=forms.HiddenInput())
 
     def __init__(self, *args, **kwargs):
         clinicians = CustomUser.objects.all()
@@ -240,6 +241,7 @@ class PatientForm(forms.ModelForm):
                 working_groups = user.groups.all()
 
                 for field in self.fields:
+                    logger.debug("field = %s" % field)
                     hidden = False
                     readonly = False
                     for wg in working_groups:
@@ -252,7 +254,8 @@ class PatientForm(forms.ModelForm):
 
                     if hidden:
                         if field in ["date_of_birth", "date_of_death", "date_of_migration"]:
-                            self.fields[field].widget = forms.DateInput(attrs={'class': 'datepicker', 'style': 'display:none;'}, format='%d-%m-%Y')
+                            self.fields[field].widget = forms.DateInput(
+                                attrs={'class': 'datepicker', 'style': 'display:none;'}, format='%d-%m-%Y')
                             self.fields[field].label = ""
                             self.fields[field].help_text = ""
                         else:
@@ -261,7 +264,8 @@ class PatientForm(forms.ModelForm):
 
                     if readonly and not hidden:
                         if field in ["date_of_birth", "date_of_death", "date_of_migration"]:
-                            self.fields[field].widget = forms.DateInput(attrs={'readonly': 'readonly', 'datepicker': 'true'}, format='%d-%m-%Y')
+                            self.fields[field].widget = forms.DateInput(
+                                attrs={'readonly': 'readonly', 'datepicker': 'true'}, format='%d-%m-%Y')
                         else:
                             self.fields[field].widget = forms.TextInput(attrs={'readonly': 'readonly'})
 

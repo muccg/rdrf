@@ -1,6 +1,7 @@
 import logging
 import csv
 import json
+from time import time
 from datetime import date
 from django.http import HttpResponse
 from rdrf.models.definition.models import RegistryForm
@@ -46,6 +47,16 @@ demographics_transform_map = {"sex": {"1": "Male", "2": "Female", "3": "Indeterm
                               }
 
 
+def log_time_taken(f):
+    def wrapper(*args, **kw):
+        start_time = time()
+        result = f(*args, **kw)
+        finish_time = time()
+        logger.info(f'The report: {args[2]} was generated in: {(finish_time - start_time):.2f} sec')
+        return result
+    return wrapper
+
+
 def aus_date(american_date):
     if not american_date:
         return ""
@@ -82,6 +93,7 @@ class ReportGenerator:
         self.filter_cde = None
         self.report_name = report_name
         self.report_spec = json.loads(report_spec)
+        self.has_filter = True
         self._parse_filter_spec(self.runtime_spec)
         self.user = user
         self.input_data = input_data  # this filters the data
@@ -91,16 +103,20 @@ class ReportGenerator:
         self.data = self._get_all_data()
         self.context_form_group = self._get_context_form_group()
         self.report = None
+        self.has_valid_filter = False
         self._setup_inputs()
 
     def _setup_inputs(self):
         # todo allow different data types
-        self.start_value = self.input_data.get("start_value", Dates.DISTANT_PAST)
-        self.end_value = self.input_data.get("end_value", Dates.FAR_FUTURE)
-        if isinstance(self.start_value, str):
-            self.start_value = get_date(self.start_value)
-        if isinstance(self.end_value, str):
-            self.end_value = get_date(self.end_value)
+        if self.input_data is not None:
+            self.start_value = self.input_data.get("start_value", Dates.DISTANT_PAST)
+            self.end_value = self.input_data.get("end_value", Dates.FAR_FUTURE)
+            if isinstance(self.start_value, str):
+                self.start_value = get_date(self.start_value)
+            if isinstance(self.end_value, str):
+                self.end_value = get_date(self.end_value)
+            if self.start_value and self.end_value:
+                self.has_valid_filter = True
 
     def _parse_filter_spec(self, runtime_spec_dict):
         if "filter_spec" in runtime_spec_dict:
@@ -121,6 +137,8 @@ class ReportGenerator:
                 self.filter_section = self.filter_form.get_section_model(section_code)
                 cde_code = filter_field["cde"]
                 self.filter_cde = self.filter_section.get_cde(cde_code)
+        else:
+            self.has_filter = False
 
     def dump_csv(self, stream):
         writer = csv.writer(stream)
@@ -143,7 +161,7 @@ class ReportGenerator:
                   "content_type": "text/csv",
                   "username": self.user.username,
                   "user_id": self.user.id,
-                  "filename": "Completion Report.csv",
+                  "filename": f"{self.report_name}.csv",
                   }
         logger.info("result dict = %s" % result)
         return result
@@ -200,8 +218,7 @@ class ReportGenerator:
                         row.append(column_value)
                     rows.append(row)
             except Exception as ex:
-                logger.error("Completion report error pid %s: %s" % (patient_model.pk,
-                                                                     ex))
+                logger.error("%s report error pid %s: %s" % (self.report_name, patient_model.pk, ex))
         self.report = rows
 
     def _get_header(self):
@@ -390,21 +407,22 @@ class ReportGenerator:
 
     def _get_patients(self):
         user_working_groups = self.user.working_groups.all()
-
-        for patient_model in Patient.objects.filter(rdrf_registry__code__in=[self.registry_model.code],
-                                                    working_groups__in=user_working_groups):
-
-            if self._include_patient(patient_model):
-                yield patient_model
+        if not self.has_filter or not self.has_valid_filter:
+            return Patient.objects.filter(rdrf_registry__code__in=[self.registry_model.code],
+                                          working_groups__in=user_working_groups)
+        else:
+            def patient_iterator():
+                for patient_model in Patient.objects.filter(rdrf_registry__code__in=[self.registry_model.code],
+                                                            working_groups__in=user_working_groups):
+                    if self._include_patient(patient_model):
+                        yield patient_model
+            return patient_iterator()
 
     def _include_patient(self, patient_model):
-        if self.start_value and self.end_value:
-            filter_value = self._get_filter_value(patient_model)
-            if filter_value is None:
-                return False
-            return filter_value >= self.start_value and filter_value <= self.end_value
-        else:
-            return True
+        filter_value = self._get_filter_value(patient_model)
+        if filter_value is None:
+            return False
+        return filter_value >= self.start_value and filter_value <= self.end_value
 
     def _get_filter_value(self, patient_model):
         cds = patient_model.get_clinical_data_for_form_group(self.context_form_group.name)
@@ -435,6 +453,7 @@ class ReportGenerator:
             raise SecurityException()
 
 
+@log_time_taken
 def execute(custom_action, registry_model, report_name, report_spec, user, input_data=None, runtime_spec={}, run_async=False):
     logger.info("running custom action report %s for %s" % (report_name,
                                                             user.username))
@@ -442,7 +461,7 @@ def execute(custom_action, registry_model, report_name, report_spec, user, input
     parser.generate_report()
     if not run_async:
         response = HttpResponse(content_type='text/csv')
-        response['Content-Disposition'] = 'attachment; filename="Completion Report.csv"'
+        response['Content-Disposition'] = f'attachment; filename="{report_name}.csv"'
         return parser.dump_csv(response)
     else:
         return parser.task_result
