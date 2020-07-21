@@ -17,6 +17,8 @@ from rdrf.models.definition.models import Registry, Section, ConsentQuestion
 from rdrf.models.definition.models import ClinicalData
 from rdrf.models.workflow_models import ClinicianSignupRequest
 from rdrf.helpers.utils import get_cde_value2
+from rdrf.helpers.utils import supports_deidentification_workflow
+from rdrf.helpers.utils import generate_deidentified_id
 
 import registry.groups.models
 from registry.utils import get_working_groups, get_registries, stripspaces
@@ -176,6 +178,9 @@ class Patient(models.Model):
     LIVING_STATES = (('Alive', _('Living')), ('Deceased', _('Deceased')))
 
     objects = PatientManager()
+    deident = models.CharField(max_length=80,
+                               blank=True,
+                               null=True)
     rdrf_registry = models.ManyToManyField(
         Registry,
         related_name='patients',
@@ -348,6 +353,13 @@ class Patient(models.Model):
             return "%s %s" % (self.family_name, self.given_names)
         else:
             return "%s %s (Archived)" % (self.family_name, self.given_names)
+
+    @property
+    def name_with_deident(self):
+        if self.deident:
+            return self.display_name + " (" + self.deident + ")"
+        else:
+            return self.display_name
 
     @property
     def age(self):
@@ -822,6 +834,10 @@ class Patient(models.Model):
 
         if not self.pk:
             self.active = True
+
+        if not self.deident:
+            if supports_deidentification_workflow():
+                self.deident = generate_deidentified_id()
 
         super(Patient, self).save(*args, **kwargs)
 

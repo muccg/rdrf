@@ -113,6 +113,8 @@ DATABASES["reporting"] = {
 
 DATABASE_ROUTERS = ["rdrf.db.db.RegistryRouter"]
 
+DEIDENTIFIED_SITE_ID = env.get("deidentified_site_id", "")
+
 
 TEMPLATES = [
     {
