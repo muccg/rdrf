@@ -296,10 +296,11 @@ class PatientsListingView(View):
 
     def apply_search_filter(self):
         if self.search_term:
-            self.patients = self.patients.filter(
-                Q(given_names__icontains=self.search_term) |
-                Q(family_name__icontains=self.search_term) |
-                Q(deident__icontains=self.search_term))
+            q1 = Q(given_names__icontains=self.search_term)
+            q2 = Q(family_name__icontains=self.search_term)
+            q3 = Q(deident__icontains=self.search_term)
+            qry = q1 | q2 | q3
+            self.patients = self.patients.filter(qry)
 
     def filter_by_user_group(self):
         if not self.user.is_superuser:
