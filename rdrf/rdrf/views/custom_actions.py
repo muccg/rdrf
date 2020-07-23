@@ -30,7 +30,7 @@ class CustomActionView(View):
         # this model acts as an audit trail
         cae = CustomActionExecution()
         cae.user = user
-        cae.custom_action = custom_action
+        cae.custom_action_code = custom_action.code
         cae.name = custom_action.name
         cae.status = "started"
 
