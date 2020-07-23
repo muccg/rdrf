@@ -486,7 +486,7 @@ class CustomActionAdmin(admin.ModelAdmin):
 
 class CustomActionExecutionAdmin(admin.ModelAdmin):
     model = CustomActionExecution
-    list_display = ("custom_action",
+    list_display = ("custom_action_code",
                     "name",
                     "created",
                     "updated",
