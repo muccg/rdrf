@@ -74,4 +74,4 @@ class Command(BaseCommand):
                         self.stderr.write("Exception while saving registry: %s" % e)
                         raise e
                     else:
-                        self.stdout.write("No exception was caught while saving the registry.")
+                        self.stdout.write("No exception was caught while saving the registry..")
