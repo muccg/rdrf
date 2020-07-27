@@ -93,6 +93,7 @@ class ReportGenerator:
         self.filter_cde = None
         self.report_name = report_name
         self.report_spec = json.loads(report_spec)
+        self._setup_spec()
         self.date_format = None
         self.has_filter = True
         self._parse_filter_spec(self.runtime_spec)
@@ -107,6 +108,16 @@ class ReportGenerator:
         self.has_valid_filter = False
         self._setup_inputs()
         self._set_formats()
+
+    def _setup_spec(self):
+        if self.custom_action.include_all:
+            rfs = RegistryForm.objects.all()
+            columns = []
+            for rf in rfs:
+                for sec in rf.section_models:
+                    for cde in sec.cde_models:
+                        columns.append({'name': f'{rf.name}/{sec.code}/{cde.code}', 'type': 'cde', 'label': cde.code})
+            self.report_spec = {"columns": columns, "context_form_group": "Modules"}
 
     def _set_formats(self):
         if "formats" in self.report_spec:
