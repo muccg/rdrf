@@ -328,7 +328,7 @@ class ReportGenerator:
             return ""
         return "False"
 
-    def get_formatted_date(value, date_format="%d-%m-%Y"):
+    def get_formatted_date(self, value, date_format="%d-%m-%Y"):
         """
         Returns the date string in the format supplied
         """
@@ -360,9 +360,9 @@ class ReportGenerator:
                 if not display_value:
                     return ""
                 if self.date_format is not None:
-                    return get_formatted_date(display_value, date_format=self.date_format)
+                    return self.get_formatted_date(display_value, date_format=self.date_format)
                 else:
-                    return get_formatted_date(display_value)
+                    return self.get_formatted_date(display_value)
         return display_value
 
     def _find_cde(self, cde_code):
