@@ -4,6 +4,7 @@ j = django.jQuery;
 
 function show_hide_data() {
     if (j("#id_include_all").is(":checked")){
+        j("#id_data").val("{}");
         j("#id_data").parent().children().hide();
     } else {
         j("#id_data").parent().children().show();
