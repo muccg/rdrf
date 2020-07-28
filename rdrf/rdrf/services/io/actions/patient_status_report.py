@@ -328,6 +328,12 @@ class ReportGenerator:
             return ""
         return "False"
 
+    def get_formatted_date(value, date_format="%d-%m-%Y"):
+        """
+        Returns the date string in the format supplied
+        """
+        return value.strftime(date_format)
+
     def _get_cde(self, patient_model, cde_path, data):
         if "/" in cde_path:
             form_name, section_code, cde_code = cde_path.split("/")
@@ -354,9 +360,9 @@ class ReportGenerator:
                 if not display_value:
                     return ""
                 if self.date_format is not None:
-                    return format_date(display_value, date_format=self.date_format)
+                    return get_formatted_date(display_value, date_format=self.date_format)
                 else:
-                    return format_date(display_value)
+                    return get_formatted_date(display_value)
         return display_value
 
     def _find_cde(self, cde_code):

@@ -394,12 +394,12 @@ def report_function(func):
     return func
 
 
-def format_date(value, date_format="%d-%m-%Y"):
+def format_date(value):
     """
     Formats a date in Australian order, separated by hyphens, without
     leading zeroes.
     """
-    return value.strftime(date_format)
+    return "{d.day}-{d.month}-{d.year}".format(d=value)
 
 
 def parse_iso_date(s):
