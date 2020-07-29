@@ -93,6 +93,5 @@ class RDRFMultipleChoiceField(MultipleChoiceField):
         if not value:
             return []
         elif not isinstance(value, (list, tuple)):
-            # raise ValidationError(self.error_messages['invalid_list'], code='invalid_list')
             return [value]
         return [str(val) for val in value]
