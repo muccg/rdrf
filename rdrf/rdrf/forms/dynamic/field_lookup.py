@@ -1,6 +1,6 @@
 import re
 import django.forms
-from django.forms import MultiValueField, MultiWidget, MultipleChoiceField, FileField
+from django.forms import MultiValueField, MultiWidget, FileField
 from django.forms.widgets import CheckboxSelectMultiple
 from django.utils.safestring import mark_safe
 from django.urls import reverse
@@ -361,7 +361,7 @@ class FieldFactory(object):
 
                     options['choices'] = [
                         choice_pair for choice_pair in options['choices'] if choice_pair[1] != '---']
-                    return MultipleChoiceField(**options)
+                    return fields.RDRFMultipleChoiceField(**options)
                 else:
                     if widget:
                         options['widget'] = widget
