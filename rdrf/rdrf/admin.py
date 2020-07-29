@@ -483,6 +483,9 @@ class CustomActionAdmin(admin.ModelAdmin):
                     "name",
                     "action_type")
 
+    class Media:
+        js = ("js/custom_action.js",)
+
 
 class CustomActionExecutionAdmin(admin.ModelAdmin):
     model = CustomActionExecution
