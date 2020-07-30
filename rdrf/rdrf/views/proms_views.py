@@ -188,7 +188,7 @@ class PromsClinicalView(View):
                                               user,
                                               custom_action,
                                               patient_model) for custom_action in
-                          user.custom_actions_by_scope(registry_model)]
+                          user.get_custom_actions_by_scope(registry_model)]
 
         context = {
             'custom_actions': custom_actions,

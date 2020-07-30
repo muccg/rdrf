@@ -359,7 +359,7 @@ class FormView(View):
                                               self.user,
                                               custom_action,
                                               patient_model) for custom_action in
-                          self.user.custom_actions_by_scope(self.registry)]
+                          self.user.get_custom_actions_by_scope(self.registry)]
 
         self.rdrf_context_manager = RDRFContextManager(self.registry)
 
@@ -725,7 +725,7 @@ class FormView(View):
                                               request.user,
                                               custom_action,
                                               patient) for custom_action in
-                          request.user.custom_actions_by_scope(registry)]
+                          request.user.get_custom_actions_by_scope(registry)]
 
         context = {
             'CREATE_MODE': self.CREATE_MODE,
@@ -1639,7 +1639,7 @@ class CustomConsentFormView(View):
                                               request.user,
                                               custom_action,
                                               patient_model) for custom_action in
-                          request.user.custom_actions_by_scope(registry_model)]
+                          request.user.get_custom_actions_by_scope(registry_model)]
 
         context = {
             "location": "Consents",

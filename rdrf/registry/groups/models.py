@@ -266,7 +266,7 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
         from rdrf.models.definition.models import CustomAction
         return [action for action in CustomAction.objects.filter(registry=registry_model)]
 
-    def custom_actions_by_scope(self, registry_model, scope="P"):
+    def get_custom_actions_by_scope(self, registry_model, scope="P"):
         from rdrf.models.definition.models import CustomAction
         return [action for action in CustomAction.objects.filter(registry=registry_model, scope=scope)]
 
