@@ -17,7 +17,7 @@ def security_check(custom_action, user):
 
 class SQL:
     clinical_data_query = "SELECT django_id as pid, data FROM rdrf_clinicaldata WHERE collection='cdes'"
-    id_query = "SELECT id, deident from patients_patient"
+    id_query = "SELECT id, deident from patients_patient WHERE deident IS NOT NULL AND active IS NOT FALSE"
 
 
 class PipeLine:
@@ -40,7 +40,8 @@ class PipeLine:
 
     def deidentify(self):
         self.data = [self._deidentify_row(row) for row in
-                     self._raw_sql(self.conn_clin, SQL.clinical_data_query)]
+                     self._raw_sql(self.conn_clin, SQL.clinical_data_query)
+                     if row[0] in self.id_map]
 
     def _deidentify_row(self, row):
         d = {}
