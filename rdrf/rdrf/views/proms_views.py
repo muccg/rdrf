@@ -23,7 +23,7 @@ from django.utils.decorators import method_decorator
 from django.contrib.auth.decorators import login_required
 from rdrf.security.security_checks import security_check_user_patient
 from rdrf.helpers.utils import anonymous_not_allowed
-
+from rdrf.views.custom_actions import CustomActionWrapper
 
 import logging
 logger = logging.getLogger(__name__)
@@ -184,7 +184,14 @@ class PromsClinicalView(View):
                                                               patient_model,
                                                               user)
 
+        custom_actions = [CustomActionWrapper(registry_model,
+                                              user,
+                                              custom_action,
+                                              patient_model) for custom_action in
+                          user.scope_custom_actions(registry_model)]
+
         context = {
+            'custom_actions': custom_actions,
             "context_launcher": context_launcher.html,
             "location": "Patient Reported Outcomes",
                         "patient": patient_model,

@@ -359,7 +359,7 @@ class FormView(View):
                                               self.user,
                                               custom_action,
                                               patient_model) for custom_action in
-                          self.user.custom_actions(self.registry)]
+                          self.user.scope_custom_actions(self.registry)]
 
         self.rdrf_context_manager = RDRFContextManager(self.registry)
 
@@ -725,7 +725,7 @@ class FormView(View):
                                               request.user,
                                               custom_action,
                                               patient) for custom_action in
-                          request.user.custom_actions(registry)]
+                          request.user.scope_custom_actions(registry)]
 
         context = {
             'CREATE_MODE': self.CREATE_MODE,
@@ -1635,6 +1635,12 @@ class CustomConsentFormView(View):
         patient_info = RDRFPatientInfoComponent(registry_model,
                                                 patient_model)
 
+        custom_actions = [CustomActionWrapper(registry_model,
+                                              request.user,
+                                              custom_action,
+                                              patient_model) for custom_action in
+                          request.user.scope_custom_actions(registry_model)]
+
         context = {
             "location": "Consents",
             "forms": form_sections,
@@ -1654,6 +1660,7 @@ class CustomConsentFormView(View):
             "parent": parent,
             "consent": consent_status_for_patient(registry_code, patient_model),
             "show_print_button": True,
+            'custom_actions': custom_actions,
         }
 
         return render(request, "rdrf_cdes/custom_consent_form.html", context)

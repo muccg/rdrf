@@ -592,7 +592,7 @@ class PatientEditView(View):
                                         user,
                                         custom_action,
                                         patient_model) for custom_action in
-                    user.custom_actions(registry_model)]
+                    user.scope_custom_actions(registry_model)]
         else:
             return []
 
