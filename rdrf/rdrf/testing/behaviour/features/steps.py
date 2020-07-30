@@ -1313,3 +1313,9 @@ def see_validation_error_message(step, message):
     # this is equivalent to passing if found, and failing if not found.
     find(xp)
     pass
+
+
+@step('the number of validation error messages should be ([^\"]+)')
+def count_validation_error_messages(step, count):
+    messages = world.browser.find_elements_by_xpath('//span[@class="label label-danger"]')
+    assert_equal(len(messages), int(count))

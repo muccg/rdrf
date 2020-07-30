@@ -93,6 +93,7 @@ class ReportGenerator:
         self.filter_cde = None
         self.report_name = report_name
         self.report_spec = json.loads(report_spec)
+        self.date_format = None
         self.has_filter = True
         self._parse_filter_spec(self.runtime_spec)
         self.user = user
@@ -105,6 +106,12 @@ class ReportGenerator:
         self.report = None
         self.has_valid_filter = False
         self._setup_inputs()
+        self._set_formats()
+
+    def _set_formats(self):
+        if "formats" in self.report_spec:
+            if "date" in self.report_spec["formats"]:
+                self.date_format = self.report_spec["formats"]["date"]
 
     def _setup_inputs(self):
         # todo allow different data types
@@ -321,6 +328,12 @@ class ReportGenerator:
             return ""
         return "False"
 
+    def get_formatted_date(self, value, date_format="%d-%m-%Y"):
+        """
+        Returns the date string in the format supplied
+        """
+        return value.strftime(date_format)
+
     def _get_cde(self, patient_model, cde_path, data):
         if "/" in cde_path:
             form_name, section_code, cde_code = cde_path.split("/")
@@ -346,8 +359,10 @@ class ReportGenerator:
             if cde_model.datatype == "date":
                 if not display_value:
                     return ""
-                return format_date(display_value)
-
+                if self.date_format is not None:
+                    return self.get_formatted_date(display_value, date_format=self.date_format)
+                else:
+                    return self.get_formatted_date(display_value)
         return display_value
 
     def _find_cde(self, cde_code):

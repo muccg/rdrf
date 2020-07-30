@@ -6,6 +6,7 @@ from django.forms import ChoiceField
 from django.forms import FileField
 from django.forms import URLField
 from django.forms import DateField
+from django.forms import MultipleChoiceField
 from rdrf.forms.widgets.widgets import MultipleFileInput
 from django.core.exceptions import ValidationError
 
@@ -81,3 +82,16 @@ class IsoDateField(DateField):
         if isinstance(value, datetime.date):
             return value.isoformat()
         return value
+
+
+class RDRFMultipleChoiceField(MultipleChoiceField):
+    """
+    A custom multiple choice field that does not raise an error,
+    if the value is not a list, instead, it returns a list with that value
+    """
+    def to_python(self, value):
+        if not value:
+            return []
+        elif not isinstance(value, (list, tuple)):
+            return [value]
+        return [str(val) for val in value]

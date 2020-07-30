@@ -217,7 +217,7 @@ class ReportParser:
         return vars
 
 
-def execute(registry_model, report_name, report_spec, user, patient_model):
+def execute(registry_model, report_name, report_spec, user, patient_model, run_async=False, runtime_spec={}):
     parser = ReportParser(registry_model, report_name, report_spec, user, patient_model)
     report = parser.generate_report()
     if report:
