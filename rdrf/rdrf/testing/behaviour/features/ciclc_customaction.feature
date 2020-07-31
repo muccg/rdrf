@@ -11,7 +11,7 @@ Feature: CIC LC Custom Action menu check
     When I am logged in as clinical
     And location is "Patient List"
     Then the menu "Menu" DOES NOT contain "Patient Report"
-    Then I click "SMITH John" on patientslisting
+    When I click "SMITH John" on patientslisting
     And location is "Demographics"
     Then the menu "Menu" contains "Patient Report"
 
