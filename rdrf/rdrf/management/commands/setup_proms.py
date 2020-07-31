@@ -57,13 +57,13 @@ class Command(BaseCommand):
                 try:
                     importer.create_registry()
                 except Exception as e:
-                     self.stderr.write("Exception %s" % e)
-                     raise e
-                 else:
-                     self.stdout.write("No exception was caught in the importer")
+                    self.stderr.write("Exception %s" % e)
+                    raise e
+                else:
+                    self.stdout.write("No exception was caught in the importer")
 
-                 self.stdout.write("Importer state: %s" % importer.state)
-                 self.stdout.write("Importer errors: %s" % importer.errors)
+                self.stdout.write("Importer state: %s" % importer.state)
+                self.stdout.write("Importer errors: %s" % importer.errors)
 
                 if not override_metadata and current_metadata is not None:  # restore metadata
                     target_registry = Registry.objects.get(code=importer.data['code'])
