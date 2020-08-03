@@ -1959,6 +1959,12 @@ class CustomAction(models.Model):
     code = models.CharField(max_length=80)
     name = models.CharField(max_length=80, blank=True, null=True)
     action_type = models.CharField(max_length=2, choices=ACTION_TYPES)
+    include_all = models.BooleanField(default=False, help_text="For Patient Status Report: Select this to include all "
+                                                               "data for the patients.<br>If this is not selected, "
+                                                               "then the Data field below should be filled in with "
+                                                               "the required report spec.<br>If this is selected, "
+                                                               "Data field should contain {}."
+                                      )
     data = models.TextField(null=True)
     scope = models.CharField(max_length=1, choices=SCOPES)  # controls where action appears
     runtime_spec = models.TextField(blank=True, null=True)  # json field to describe how the action is run
