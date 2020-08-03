@@ -599,6 +599,7 @@ class Exporter(object):
             action_dict["code"] = action.code
             action_dict["name"] = action.name
             action_dict["scope"] = action.scope
+            action_dict["include_all"] = action.include_all
             action_dict["action_type"] = action.action_type
             action_dict["groups_allowed"] = [g.name for g in action.groups_allowed.all()]
             action_dict["data"] = action.data
