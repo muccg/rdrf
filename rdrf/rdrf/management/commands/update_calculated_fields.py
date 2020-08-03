@@ -107,7 +107,7 @@ class Command(BaseCommand):
                                             if calculated_cde_model.code in context_var.keys() and calculated_cde_model.code in \
                                                     cde_models_tree[registry_model.code][form_name][section_code].keys():
 
-                                                new_calculated_cde_value = calculate_cde(patient_model, form_cde_values, calculated_cde_model)
+                                                new_calculated_cde_value = calculate_cde(patient_model, registry_model.code, form_cde_values, calculated_cde_model)
 
                                                 # if the result is a new value, then store in a temp var so we can update the form at its context level.
                                                 if context_var[calculated_cde_model.code] != new_calculated_cde_value:
@@ -145,8 +145,10 @@ class Command(BaseCommand):
                              f"We stopped this patient calculated field update.")
 
 
-def calculate_cde(patient_model, form_cde_values, calculated_cde_model):
+def calculate_cde(patient_model, registry_code, form_cde_values, calculated_cde_model):
     patient_values = {'date_of_birth': patient_model.date_of_birth,
+                      'patient_id': patient_model.id,
+                      'registry_code': registry_code,
                       'sex': patient_model.sex}
     form_values = {}
     for section in form_cde_values["sections"]:
