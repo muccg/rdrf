@@ -182,16 +182,13 @@ class ReportGenerator:
         filename = generate_token()
         filepath = os.path.join(task_dir, filename)
         with open(filepath, "w") as f:
-            logger.info("writing csv ...")
             self.dump_csv(f)
-            logger.info("wrote csv ok")
         result = {"filepath": filepath,
                   "content_type": "text/csv",
                   "username": self.user.username,
                   "user_id": self.user.id,
                   "filename": f"{self.report_name}.csv",
                   }
-        logger.info("result dict = %s" % result)
         return result
 
     def _get_context(self, patient_model):
@@ -227,19 +224,15 @@ class ReportGenerator:
         rows.append(self._get_header())
         for patient_model in self._get_patients():
             try:
-                logger.info("getting data for patient %s" % patient_model.pk)
                 # the context needs to be determined by the report spec
                 # as it contains the context_form_group name
                 context_model = self._get_context(patient_model)
                 if not context_model:
-                    logger.info("no context - skipping")
                     continue
-                logger.info("context id = %s" % context_model.id)
                 data = self._load_patient_data(patient_model, context_model.id)
                 if not data:
-                    logger.info("no data")
+                    pass
                 else:
-                    logger.info("data exists")
                     row = []
                     for column in self.report_spec["columns"]:
                         column_value = "" if not data else self._get_column_value(patient_model, data, column)
