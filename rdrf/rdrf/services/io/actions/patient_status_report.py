@@ -112,7 +112,17 @@ class ReportGenerator:
     def _setup_spec(self):
         if self.custom_action.include_all:
             rfs = RegistryForm.objects.all()
-            columns = []
+            columns = [
+                {"type": "demographics",
+                 "label": "Given Names",
+                 "name": "given_names"},
+                {"type": "demographics",
+                 "label": "Family Name",
+                 "name": "family_name"},
+                {"type": "demographics",
+                 "label": "DOB",
+                 "name": "date_of_birth"}
+            ]
             for rf in rfs:
                 for sec in rf.section_models:
                     for cde in sec.cde_models:
