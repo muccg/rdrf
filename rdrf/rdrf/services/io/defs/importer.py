@@ -733,7 +733,7 @@ class Importer(object):
             action.code = action_dict["code"]
             action.name = action_dict["name"]
             action.scope = action_dict["scope"]
-            action.include_all = action_dict["include_all"]
+            action.include_all = action_dict.get("include_all", False)
             action.action_type = action_dict["action_type"]
             action.data = action_dict["data"]
             action.runtime_spec = action_dict.get("runtime_spec", "")

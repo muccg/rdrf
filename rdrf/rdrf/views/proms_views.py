@@ -162,6 +162,9 @@ class PromsClinicalView(View):
     @method_decorator(anonymous_not_allowed)
     @method_decorator(login_required)
     def get(self, request, registry_code, patient_id):
+        logger.info("PROMSCLINICAL %s %s %s" % (request.user,
+                                                registry_code,
+                                                patient_id))
         registry_model = Registry.objects.get(code=registry_code)
         patient_model = Patient.objects.get(id=patient_id)
         security_check_user_patient(request.user, patient_model)

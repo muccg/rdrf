@@ -485,6 +485,8 @@ class AddPatientView(PatientFormMixin, CreateView):
     @method_decorator(anonymous_not_allowed)
     @method_decorator(login_required)
     def get(self, request, registry_code):
+        logger.info("PATIENTADD %s %s" % (request.user,
+                                          registry_code))
         if not request.user.is_authenticated:
             patient_add_url = reverse('patient_add', args=[registry_code])
             login_url = reverse('two_factor:login')
@@ -599,6 +601,9 @@ class PatientEditView(View):
     @method_decorator(anonymous_not_allowed)
     @method_decorator(login_required)
     def get(self, request, registry_code, patient_id):
+        logger.info("DEMOGRAPHICSGET %s %s %s" % (request.user,
+                                                  registry_code,
+                                                  patient_id))
         if not request.user.is_authenticated:
             patient_edit_url = reverse('patient_edit', args=[registry_code, patient_id, ])
             login_url = reverse('two_factor:login')
@@ -680,6 +685,10 @@ class PatientEditView(View):
     @method_decorator(anonymous_not_allowed)
     @method_decorator(login_required)
     def post(self, request, registry_code, patient_id):
+        logger.info("DEMOGRAPHICSPOST %s %s %s" % (request.user,
+                                                   registry_code,
+                                                   patient_id))
+
         user = request.user
         patient = Patient.objects.get(id=patient_id)
         patient_type = patient.patient_type
