@@ -322,6 +322,11 @@ class FormView(View):
     @method_decorator(anonymous_not_allowed)
     @login_required_method
     def get(self, request, registry_code, form_id, patient_id, context_id=None):
+        logger.info("FORMGET %s %s %s %s %s" % (request.user,
+                                                registry_code,
+                                                form_id,
+                                                patient_id,
+                                                context_id))
         # RDR-1398 enable a Create View which context_id of 'add' is provided
         if context_id is None:
             raise Http404
@@ -469,6 +474,11 @@ class FormView(View):
     @method_decorator(anonymous_not_allowed)
     @login_required_method
     def post(self, request, registry_code, form_id, patient_id, context_id=None):
+        logger.info("FORMPOST %s %s %s %s %s" % (request.user,
+                                                 registry_code,
+                                                 form_id,
+                                                 patient_id,
+                                                 context_id))
         if context_id is None:
             raise Http404
         all_errors = []
@@ -1604,6 +1614,10 @@ class CustomConsentFormView(View):
     @method_decorator(anonymous_not_allowed)
     @method_decorator(login_required)
     def get(self, request, registry_code, patient_id, context_id=None):
+        logger.info("CONSENTGET %s %s %s %s" % (request.user,
+                                                registry_code,
+                                                patient_id,
+                                                context_id))
         if not request.user.is_authenticated:
             consent_form_url = reverse('consent_form_view', args=[registry_code, patient_id])
             login_url = reverse('two_factor:login')
@@ -1727,6 +1741,10 @@ class CustomConsentFormView(View):
     @method_decorator(anonymous_not_allowed)
     @method_decorator(login_required)
     def post(self, request, registry_code, patient_id, context_id=None):
+        logger.info("CONSENTPOST %s %s %s %s" % (request.user,
+                                                 registry_code,
+                                                 patient_id,
+                                                 context_id))
         if not request.user.is_authenticated:
             consent_form_url = reverse(
                 'consent_form_view', args=[

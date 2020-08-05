@@ -17,7 +17,7 @@
     "axios": "^0.19.2",
     "bootstrap": "^4.4.1",
     "child_process": "^1.0.2",
-    "lodash": "^4.17.15",
+    "lodash": "^4.17.19",
     "rc-slider": "^9.2.2",
     "rc-tooltip": "^4.0.1",
     "react": "^16.13.0",

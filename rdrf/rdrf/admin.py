@@ -116,7 +116,8 @@ def export_registry_action(modeladmin, request, registry_models_selected):
     def export_registry(registry, request):
         from rdrf.services.io.defs.exporter import Exporter
         exporter = Exporter(registry)
-        logger.info("Exporting Registry %s" % registry.name)
+        logger.info("EXPORTYAML %s %s" % (request.user,
+                                          registry.code))
         try:
             yaml_data, errors = exporter.export_yaml()
             if errors:

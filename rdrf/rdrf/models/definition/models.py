@@ -2086,13 +2086,15 @@ class CustomAction(models.Model):
                                             run_async=self.asynchronous,
                                             runtime_spec=rt_spec)
 
-            logger.info("custom action %s/%s by user %s on patient %s" % (self.registry.code,
-                                                                          self.name,
-                                                                          user.username,
-                                                                          patient_model.pk))
+            logger.info("CUSTOMACTION %s %s by user %s on patient %s" % (self.registry.code,
+                                                                         self.name,
+                                                                         user.username,
+                                                                         patient_model.pk))
             return result
         elif self.action_type == "SR":
             from rdrf.services.io.actions import patient_status_report
+            logger.info("CUSTOMACTION SR %s %s" % (self.registry.code,
+                                                   user.username))
             return patient_status_report.execute(self,
                                                  self.registry,
                                                  self.name,
@@ -2102,6 +2104,8 @@ class CustomAction(models.Model):
                                                  run_async=self.asynchronous)
         elif self.action_type == "DE":
             from rdrf.services.io.actions import deidentified_data_extract
+            logger.info("CUSTOMACTION DE %s %s" % (self.registry.code,
+                                                   user.username))
             return deidentified_data_extract.execute(self, user)
 
         else:

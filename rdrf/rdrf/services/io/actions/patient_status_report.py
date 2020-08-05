@@ -112,7 +112,17 @@ class ReportGenerator:
     def _setup_spec(self):
         if self.custom_action.include_all:
             rfs = RegistryForm.objects.all()
-            columns = []
+            columns = [
+                {"type": "demographics",
+                 "label": "Given Names",
+                 "name": "given_names"},
+                {"type": "demographics",
+                 "label": "Family Name",
+                 "name": "family_name"},
+                {"type": "demographics",
+                 "label": "DOB",
+                 "name": "date_of_birth"}
+            ]
             for rf in rfs:
                 for sec in rf.section_models:
                     for cde in sec.cde_models:
@@ -172,16 +182,13 @@ class ReportGenerator:
         filename = generate_token()
         filepath = os.path.join(task_dir, filename)
         with open(filepath, "w") as f:
-            logger.info("writing csv ...")
             self.dump_csv(f)
-            logger.info("wrote csv ok")
         result = {"filepath": filepath,
                   "content_type": "text/csv",
                   "username": self.user.username,
                   "user_id": self.user.id,
                   "filename": f"{self.report_name}.csv",
                   }
-        logger.info("result dict = %s" % result)
         return result
 
     def _get_context(self, patient_model):
@@ -217,19 +224,15 @@ class ReportGenerator:
         rows.append(self._get_header())
         for patient_model in self._get_patients():
             try:
-                logger.info("getting data for patient %s" % patient_model.pk)
                 # the context needs to be determined by the report spec
                 # as it contains the context_form_group name
                 context_model = self._get_context(patient_model)
                 if not context_model:
-                    logger.info("no context - skipping")
                     continue
-                logger.info("context id = %s" % context_model.id)
                 data = self._load_patient_data(patient_model, context_model.id)
                 if not data:
-                    logger.info("no data")
+                    pass
                 else:
-                    logger.info("data exists")
                     row = []
                     for column in self.report_spec["columns"]:
                         column_value = "" if not data else self._get_column_value(patient_model, data, column)
