@@ -1,4 +1,5 @@
 # -*- encoding: utf-8 -*-
+import hashlib
 import logging
 import os
 import yaml
@@ -12,7 +13,7 @@ from django.test import TestCase, RequestFactory
 
 from rdrf.services.io.defs.exporter import Exporter, ExportType
 from rdrf.services.io.defs.importer import Importer, ImportState
-from rdrf.models.definition.models import Registry, RegistryForm, Section
+from rdrf.models.definition.models import Registry, RegistryForm, Section, CommonDataElement, CDEPermittedValueGroup
 from rdrf.models.definition.models import CDEPermittedValueGroup, CDEPermittedValue
 from rdrf.models.definition.models import CommonDataElement, InvalidAbnormalityConditionError, ValidationError
 from rdrf.models.definition.models import ClinicalData
@@ -462,7 +463,7 @@ class ExporterTestCase(RDRFTestCase):
             f.write(yaml_data)
 
         with open("/tmp/test.yaml") as f:
-            data = yaml.load(f)
+            data = yaml.load(f, Loader=yaml.FullLoader)
 
         test_key('EXPORT_TYPE', data)
         test_key('RDRF_VERSION', data)
@@ -1802,3 +1803,69 @@ class UpdateCalculatedFieldsTestCase(FormTestCase):
             "CDEBMI",
             db_record)
         self.assertEqual(cdebmi_value, "25.96")
+
+class CICImporterTestCase(TestCase):
+
+    def setUp(self):
+        self.yaml_file = self._get_yaml_file()
+
+        with open(self.yaml_file) as yf:
+            self.yaml_data = yaml.load(yf, Loader=yaml.FullLoader)
+
+        importer = Importer()
+        importer.load_yaml(self.yaml_file)
+        importer.create_registry()
+        # self.registry = Registry.objects.get(code=yaml_data["code"])
+
+    def _get_yaml_file(self):
+        this_dir = os.path.dirname(__file__)
+        test_yaml = os.path.abspath(os.path.join(this_dir, "..", "..", "fixtures", "exported_ciccrc_registry.yaml"))
+        return test_yaml
+
+    def hash_the_list(self, string_list):
+        return hashlib.md5(','.join(string_list).encode('utf-8')).hexdigest()
+
+    def test_cdes(self):
+        cdes_yaml = [cde["code"] for cde in self.yaml_data["cdes"]]
+        cde_hash_yaml = self.hash_the_list(cdes_yaml)
+
+        cdes_db = sorted(list(CommonDataElement.objects.values_list("code", flat=True)))
+        cde_hash_db = self.hash_the_list(cdes_db)
+
+        self.assertEqual(cde_hash_yaml, cde_hash_db)
+
+        # for CDEs - class._meta.fields
+        # helper to get the fields
+        # only non relational ones
+        # and compare
+
+        # surveys
+        # survey questions
+        # pre conditions
+
+    def test_registry_version(self):
+        version_yaml = self.yaml_data["REGISTRY_VERSION"]
+        version_db = Registry.objects.get().version
+        self.assertEqual(version_yaml, version_db)
+
+    def get_position(self, pv):
+        # some PVs can have None for position
+        position = pv['position'] if pv['position'] is not None else -9999
+        return position
+
+    def test_pvgs(self):
+        pvgs_yaml = self.yaml_data["pvgs"]
+        pvg_list_yaml = [f"{pvg['code']}, {value['code']}, {value['value']}" for pvg in pvgs_yaml for value in sorted(pvg["values"], key=self.get_position)]
+        print("pvg_list_yaml---------------------------------------------")
+        print(pvg_list_yaml)
+        pvg_hash_yaml = self.hash_the_list(pvg_list_yaml)
+
+        pvgs_db = CDEPermittedValueGroup.objects.all()
+        # options property of PVG returns the PVs ordered by position
+        pvg_list_db = [f"{pvg.code}, {value['code']}, {value['text']}" for pvg in pvgs_db for value in pvg.options]
+        print("pvg_list_db-------------------------------------")
+        print(pvg_list_db)
+        pvg_hash_db = self.hash_the_list(pvg_list_db)
+
+        self.assertEqual(pvg_hash_yaml, pvg_hash_db)
+
