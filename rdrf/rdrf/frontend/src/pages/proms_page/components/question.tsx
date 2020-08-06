@@ -219,16 +219,18 @@ class Question extends React.Component<QuestionInterface, object> {
             isChecked = true;
         }
         return (
-            <FormGroup>
-                <Input type="checkbox"
-                    id={question.cde+"_"+code}
-                    name={question.cde}
-                    key={code}
-                    value={code}
-                    checked={isChecked}
-                    onChange={this.handleMultiChange}
-                />
-                <Label for={question.cde+"_"+code}>{text}</Label>
+             <FormGroup check={true}>
+                <Col sm="12" md={{ size: 6, offset: 3 }}>
+                    <Label check={true}>
+                        <Input type="checkbox"
+                            name={question.cde}
+                            key={code}
+                            value={code}
+                            checked={isChecked}
+                            onChange={this.handleMultiChange}
+                        />{text}
+                    </Label>
+                </Col>
             </FormGroup>
         );
     }
@@ -247,13 +249,9 @@ class Question extends React.Component<QuestionInterface, object> {
                         <h4>{question.title}</h4>
                         <h6>{question.instructions}</h6>
                     </Col>
-                </FormGroup>
-                <FormGroup>
-                    <Col sm="12" md={{ size: 6, offset: 3 }}>
-                        {_.map(question.spec.options, (option, index) => (
-                            this.renderCheckbox(question, option.code, option.text, checkedOptions)
-                        ))}
-                    </Col>
+                    {_.map(question.spec.options, (option, index) => (
+                        this.renderCheckbox(question, option.code, option.text, checkedOptions)
+                    ))}
                 </FormGroup>
             </Form>
         );
