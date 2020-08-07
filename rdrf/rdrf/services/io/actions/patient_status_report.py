@@ -238,7 +238,8 @@ class ReportGenerator:
                     for column in self.report_spec["columns"]:
                         column_value = "" if not data else self._get_column_value(patient_model, data, column)
                         row.append(column_value)
-                    rows.append(row)
+                    if any(row):
+                        rows.append(row)
             except Exception as ex:
                 logger.error("%s report error pid %s: %s" % (self.report_name, patient_model.pk, ex))
         self.report = rows
