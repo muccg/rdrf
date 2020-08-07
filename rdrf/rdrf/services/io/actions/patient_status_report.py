@@ -111,7 +111,8 @@ class ReportGenerator:
 
     def _setup_spec(self):
         if self.custom_action.include_all:
-            rfs = RegistryForm.objects.filter(registry=self.custom_action.registry)
+            fixed_cfg = ContextFormGroup.objects.get(registry=self.custom_action.registry, context_type='F')
+            rfs = fixed_cfg.forms
             columns = [
                 {"type": "demographics",
                  "label": "Given Names",
@@ -126,9 +127,8 @@ class ReportGenerator:
             for rf in rfs:
                 for sec in rf.section_models:
                     for cde in sec.cde_models:
-                        columns.append({'name': f'{rf.name}/{sec.code}/{cde.code}', 'type': 'cde', 'label': cde.code})
-            fixed_cfg_name = ContextFormGroup.objects.get(registry=self.custom_action.registry, context_type='F').name
-            self.report_spec = {"columns": columns, "context_form_group": fixed_cfg_name}
+                        columns.append({'name': f'{rf.name}/{sec.code}/{cde.code}', 'type': 'cde', 'label': f'{rf.name}/{sec.code}/{cde.code}'})
+            self.report_spec = {"columns": columns, "context_form_group": fixed_cfg.name}
 
     def _set_formats(self):
         if "formats" in self.report_spec:
@@ -238,7 +238,8 @@ class ReportGenerator:
                     for column in self.report_spec["columns"]:
                         column_value = "" if not data else self._get_column_value(patient_model, data, column)
                         row.append(column_value)
-                    rows.append(row)
+                    if any(row):
+                        rows.append(row)
             except Exception as ex:
                 logger.error("%s report error pid %s: %s" % (self.report_name, patient_model.pk, ex))
         self.report = rows

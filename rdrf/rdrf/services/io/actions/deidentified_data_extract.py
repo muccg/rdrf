@@ -16,7 +16,7 @@ def security_check(custom_action, user):
 
 
 class SQL:
-    clinical_data_query = "SELECT django_id as pid, data FROM rdrf_clinicaldata WHERE collection='cdes'"
+    clinical_data_query = "SELECT django_id as pid, data, context_id, collection FROM rdrf_clinicaldata WHERE collection='cdes' or collection='history'"
     id_query = "SELECT id, deident from patients_patient WHERE deident IS NOT NULL AND active IS NOT FALSE"
 
 
