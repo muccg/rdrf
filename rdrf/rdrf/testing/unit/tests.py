@@ -1804,68 +1804,46 @@ class UpdateCalculatedFieldsTestCase(FormTestCase):
             db_record)
         self.assertEqual(cdebmi_value, "25.96")
 
+
 class CICImporterTestCase(TestCase):
-
-    def setUp(self):
-        self.yaml_file = self._get_yaml_file()
-
-        with open(self.yaml_file) as yf:
-            self.yaml_data = yaml.load(yf, Loader=yaml.FullLoader)
-
-        importer = Importer()
-        importer.load_yaml(self.yaml_file)
-        importer.create_registry()
-        # self.registry = Registry.objects.get(code=yaml_data["code"])
 
     def _get_yaml_file(self):
         this_dir = os.path.dirname(__file__)
         test_yaml = os.path.abspath(os.path.join(this_dir, "..", "..", "fixtures", "exported_ciccrc_registry.yaml"))
         return test_yaml
 
-    def hash_the_list(self, string_list):
-        return hashlib.md5(','.join(string_list).encode('utf-8')).hexdigest()
+    def setUp(self):
+        self.maxDiff = None
+        self.yaml_file = self._get_yaml_file()
+        with open(self.yaml_file) as yf:
+            self.yaml_data = yaml.load(yf, Loader=yaml.FullLoader)
+
+        importer = Importer()
+        importer.load_yaml(self.yaml_file)
+        importer.create_registry()
+        self.registry = Registry.objects.get(code=self.yaml_data["code"])
+
+    def to_json(self, model, instance, fields):
+        data = {}
+        for f in sorted(fields.keys()):
+            field_object = model._meta.get_field(f)
+            field_value = field_object.value_from_object(instance)
+            data[f] = field_value
+            if fields[f] == "DecimalField":
+                if field_value is not None:
+                    data[f] = str(field_value)
+                else:
+                    data[f] = None
+        return json.dumps(data)
 
     def test_cdes(self):
-        cdes_yaml = [cde["code"] for cde in self.yaml_data["cdes"]]
-        cde_hash_yaml = self.hash_the_list(cdes_yaml)
+        fields = {f.name: f.get_internal_type() for f in CommonDataElement._meta.fields}
+        id = "code"
+        cdes_in_yaml = self.yaml_data["cdes"]
 
-        cdes_db = sorted(list(CommonDataElement.objects.values_list("code", flat=True)))
-        cde_hash_db = self.hash_the_list(cdes_db)
+        for cde_in_yaml in cdes_in_yaml:
+            cde_in_db = CommonDataElement.objects.get(code=cde_in_yaml[id])
+            cde_in_db = self.to_json(CommonDataElement, cde_in_db, fields)
+            cde_json = json.dumps(cde_in_yaml)
 
-        self.assertEqual(cde_hash_yaml, cde_hash_db)
-
-        # for CDEs - class._meta.fields
-        # helper to get the fields
-        # only non relational ones
-        # and compare
-
-        # surveys
-        # survey questions
-        # pre conditions
-
-    def test_registry_version(self):
-        version_yaml = self.yaml_data["REGISTRY_VERSION"]
-        version_db = Registry.objects.get().version
-        self.assertEqual(version_yaml, version_db)
-
-    def get_position(self, pv):
-        # some PVs can have None for position
-        position = pv['position'] if pv['position'] is not None else -9999
-        return position
-
-    def test_pvgs(self):
-        pvgs_yaml = self.yaml_data["pvgs"]
-        pvg_list_yaml = [f"{pvg['code']}, {value['code']}, {value['value']}" for pvg in pvgs_yaml for value in sorted(pvg["values"], key=self.get_position)]
-        print("pvg_list_yaml---------------------------------------------")
-        print(pvg_list_yaml)
-        pvg_hash_yaml = self.hash_the_list(pvg_list_yaml)
-
-        pvgs_db = CDEPermittedValueGroup.objects.all()
-        # options property of PVG returns the PVs ordered by position
-        pvg_list_db = [f"{pvg.code}, {value['code']}, {value['text']}" for pvg in pvgs_db for value in pvg.options]
-        print("pvg_list_db-------------------------------------")
-        print(pvg_list_db)
-        pvg_hash_db = self.hash_the_list(pvg_list_db)
-
-        self.assertEqual(pvg_hash_yaml, pvg_hash_db)
-
+            self.assertEqual(cde_json, cde_in_db)
