@@ -13,7 +13,7 @@ from django.test import TestCase, RequestFactory
 
 from rdrf.services.io.defs.exporter import Exporter, ExportType
 from rdrf.services.io.defs.importer import Importer, ImportState
-from rdrf.models.definition.models import Registry, RegistryForm, Section, CommonDataElement, CDEPermittedValueGroup
+from rdrf.models.definition.models import Registry, RegistryForm, Section, CommonDataElement
 from rdrf.models.definition.models import CDEPermittedValueGroup, CDEPermittedValue
 from rdrf.models.definition.models import CommonDataElement, InvalidAbnormalityConditionError, ValidationError
 from rdrf.models.definition.models import ClinicalData
@@ -1859,3 +1859,18 @@ class CICImporterTestCase(TestCase):
                 cde_in_yaml = json.dumps(cde_from_yaml)
 
                 self.assertEqual(cde_in_yaml, cde_in_db)
+
+    def test_pvgs(self):
+        fields = {f.name: f.get_internal_type() for f in CDEPermittedValueGroup._meta.fields}
+        id = "code"
+        pvgs_in_yaml = self.yaml_data["pvgs"]
+
+        pvgs_in_db = CDEPermittedValueGroup.objects.all()
+
+        for pvg_from_yaml in pvgs_in_yaml:
+            if pvg_from_yaml[id] in pvgs_in_db:
+                pvg_instance = CDEPermittedValueGroup.get(code=pvg_from_yaml[id])
+                pvg_in_db = self.model_to_json_string(CDEPermittedValueGroup, pvg_instance, fields)
+                pvg_in_yaml = json.dumps(pvg_from_yaml)
+
+                self.assertEqual(pvg_in_yaml, pvg_in_db)
