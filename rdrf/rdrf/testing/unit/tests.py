@@ -1832,7 +1832,7 @@ class CICImporterTestCase(TestCase):
                 cdes += section_cdes
         return cdes
 
-    def to_json(self, model, instance, fields):
+    def model_to_json_string(self, model, instance, fields):
         data = {}
         for f in sorted(fields.keys()):
             field_object = model._meta.get_field(f)
@@ -1852,10 +1852,10 @@ class CICImporterTestCase(TestCase):
 
         cdes_in_db = self._get_cdes()
 
-        for cde_in_yaml in cdes_in_yaml:
-            if cde_in_yaml[id] in cdes_in_db:
-                cde_in_db = CommonDataElement.objects.get(code=cde_in_yaml[id])
-                cde_in_db = self.to_json(CommonDataElement, cde_in_db, fields)
-                cde_json = json.dumps(cde_in_yaml)
+        for cde_from_yaml in cdes_in_yaml:
+            if cde_from_yaml[id] in cdes_in_db:
+                cde_instance = CommonDataElement.objects.get(code=cde_from_yaml[id])
+                cde_in_db = self.model_to_json_string(CommonDataElement, cde_instance, fields)
+                cde_in_yaml = json.dumps(cde_from_yaml)
 
-                self.assertEqual(cde_json, cde_in_db)
+                self.assertEqual(cde_in_yaml, cde_in_db)
