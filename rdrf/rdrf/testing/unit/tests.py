@@ -1822,6 +1822,15 @@ class CICImporterTestCase(TestCase):
         importer.load_yaml(self.yaml_file)
         importer.create_registry()
         self.registry = Registry.objects.get(code=self.yaml_data["code"])
+        self.forms = self.registry.forms
+
+    def _get_cdes(self):
+        cdes = []
+        for form in self.forms:
+            for section in form.section_models:
+                section_cdes = section.elements
+                cdes += section_cdes
+        return cdes
 
     def to_json(self, model, instance, fields):
         data = {}
@@ -1841,9 +1850,12 @@ class CICImporterTestCase(TestCase):
         id = "code"
         cdes_in_yaml = self.yaml_data["cdes"]
 
-        for cde_in_yaml in cdes_in_yaml:
-            cde_in_db = CommonDataElement.objects.get(code=cde_in_yaml[id])
-            cde_in_db = self.to_json(CommonDataElement, cde_in_db, fields)
-            cde_json = json.dumps(cde_in_yaml)
+        cdes_in_db = self._get_cdes()
 
-            self.assertEqual(cde_json, cde_in_db)
+        for cde_in_yaml in cdes_in_yaml:
+            if cde_in_yaml[id] in cdes_in_db:
+                cde_in_db = CommonDataElement.objects.get(code=cde_in_yaml[id])
+                cde_in_db = self.to_json(CommonDataElement, cde_in_db, fields)
+                cde_json = json.dumps(cde_in_yaml)
+
+                self.assertEqual(cde_json, cde_in_db)
