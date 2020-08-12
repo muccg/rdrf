@@ -1,5 +1,4 @@
 # -*- encoding: utf-8 -*-
-import hashlib
 import logging
 import os
 import yaml
@@ -13,7 +12,7 @@ from django.test import TestCase, RequestFactory
 
 from rdrf.services.io.defs.exporter import Exporter, ExportType
 from rdrf.services.io.defs.importer import Importer, ImportState
-from rdrf.models.definition.models import Registry, RegistryForm, Section, CommonDataElement
+from rdrf.models.definition.models import Registry, RegistryForm, Section
 from rdrf.models.definition.models import CDEPermittedValueGroup, CDEPermittedValue
 from rdrf.models.definition.models import CommonDataElement, InvalidAbnormalityConditionError, ValidationError
 from rdrf.models.definition.models import ClinicalData
@@ -1806,25 +1805,19 @@ class UpdateCalculatedFieldsTestCase(FormTestCase):
 
 
 class CICImporterTestCase(TestCase):
-
-    def _get_yaml_file(self):
+    """
+    Tests for the definition importer
+    """
+    def _get_yaml_file(self, suffix='original'):
         this_dir = os.path.dirname(__file__)
-        test_yaml = os.path.abspath(os.path.join(this_dir, "..", "..", "fixtures", "exported_ciccrc_registry.yaml"))
+        test_yaml = os.path.abspath(os.path.join(this_dir, "..", "..", "fixtures", f"cic_crc_{suffix}.yaml"))
         return test_yaml
 
-    def setUp(self):
-        self.maxDiff = None
-        self.yaml_file = self._get_yaml_file()
-        with open(self.yaml_file) as yf:
-            self.yaml_data = yaml.load(yf, Loader=yaml.FullLoader)
-
-        importer = Importer()
-        importer.load_yaml(self.yaml_file)
-        importer.create_registry()
-        self.registry = Registry.objects.get(code=self.yaml_data["code"])
-        self.forms = self.registry.forms
-
-    def _get_cdes(self):
+    def _get_cde_codes(self):
+        """
+        returns a list of CDE codes that are used in the form sections of the imported registry
+        :return: list of CDE codes
+        """
         cdes = []
         for form in self.forms:
             for section in form.section_models:
@@ -1832,7 +1825,56 @@ class CICImporterTestCase(TestCase):
                 cdes += section_cdes
         return cdes
 
+    def _get_pvg_codes(self):
+        return list(CDEPermittedValueGroup.objects.all().values_list("code", flat=True))
+
+    def _get_state_pvs(self):
+        """
+        Returns a dict of State PV codes and positions
+        """
+        pv_group = CDEPermittedValueGroup.objects.get(code="State")
+        return {pv.code: pv.position for pv in CDEPermittedValue.objects.filter(pv_group=pv_group).order_by('code')}
+
+    def setUp(self):
+        self.maxDiff = None
+        self.models = {
+            CommonDataElement: {"id": "code", "objects_in_yaml": "cdes", "db_objects_getter": self._get_cde_codes},
+            CDEPermittedValueGroup: {"id": "code", "objects_in_yaml": "pvgs", "db_objects_getter": self._get_pvg_codes}
+        }
+
+        importer = Importer()
+        importer.load_yaml(self._get_yaml_file())
+        importer.create_registry()  # using the original yaml file
+        self.state_pvs_original = self._get_state_pvs()
+
+        self.yaml_file = self._get_yaml_file(suffix='modified')
+        with open(self.yaml_file) as yf:
+            self.yaml_data = yaml.load(yf, Loader=yaml.FullLoader)
+        importer.load_yaml(self.yaml_file)
+        importer.create_registry()  # importing the modified yaml file
+
+        self.state_pvs_modified = self._get_state_pvs()
+        self.registry = Registry.objects.get(code=self.yaml_data["code"])
+        self.forms = self.registry.forms
+
     def model_to_json_string(self, model, instance, fields):
+        """
+        Returns a json string representation of the instance with requested fields
+        :param model: django model class
+        :param instance: instance of the model class
+        :param fields: a dict of model class' field names and internal types
+        :return: a json string of instance's fields and values
+        """
+        return json.dumps(self.model_to_dict(model, instance, fields))
+
+    def model_to_dict(self, model, instance, fields):
+        """
+        Returns a dict representation of the instance with requested fields
+        :param model: django model class
+        :param instance: instance of the model class
+        :param fields: a dict of model class' field names and internal types
+        :return: a dict of instance's fields and values
+        """
         data = {}
         for f in sorted(fields.keys()):
             field_object = model._meta.get_field(f)
@@ -1843,14 +1885,17 @@ class CICImporterTestCase(TestCase):
                     data[f] = str(field_value)
                 else:
                     data[f] = None
-        return json.dumps(data)
+        return data
 
     def test_cdes(self):
+        """
+        Test if the imported CDE objects match the yaml
+        """
         fields = {f.name: f.get_internal_type() for f in CommonDataElement._meta.fields}
         id = "code"
         cdes_in_yaml = self.yaml_data["cdes"]
 
-        cdes_in_db = self._get_cdes()
+        cdes_in_db = self._get_cde_codes()
 
         for cde_from_yaml in cdes_in_yaml:
             if cde_from_yaml[id] in cdes_in_db:
@@ -1860,17 +1905,47 @@ class CICImporterTestCase(TestCase):
 
                 self.assertEqual(cde_in_yaml, cde_in_db)
 
+    def _pvg_as_dict(self, pvg):
+        """
+        Returns a dict representation of PVG and its PVs in the same sructure as in yaml
+        :param pvg: PVG object
+        :return: a dict of PVG and its PVs (excluding pk of PV)
+        """
+        pv_fields = {f.name: f.get_internal_type() for f in CDEPermittedValue._meta.fields if not f.is_relation and not f.primary_key}
+        d = {
+            "code": pvg.code,
+            "values": []
+        }
+        for pv in CDEPermittedValue.objects.filter(pv_group=pvg):
+            value_dict = self.model_to_dict(CDEPermittedValue, pv, pv_fields)
+            d["values"].append(value_dict)
+        return d
+
     def test_pvgs(self):
-        fields = {f.name: f.get_internal_type() for f in CDEPermittedValueGroup._meta.fields}
+        """
+        Test if the imported PermittedValueGroup objects match the yaml
+        """
         id = "code"
         pvgs_in_yaml = self.yaml_data["pvgs"]
 
-        pvgs_in_db = CDEPermittedValueGroup.objects.all()
+        pvgs_in_db = self._get_pvg_codes()
 
-        for pvg_from_yaml in pvgs_in_yaml:
-            if pvg_from_yaml[id] in pvgs_in_db:
-                pvg_instance = CDEPermittedValueGroup.get(code=pvg_from_yaml[id])
-                pvg_in_db = self.model_to_json_string(CDEPermittedValueGroup, pvg_instance, fields)
-                pvg_in_yaml = json.dumps(pvg_from_yaml)
+        for pvg_in_yaml in pvgs_in_yaml:
+            if pvg_in_yaml[id] in pvgs_in_db:
+                pvg_instance = CDEPermittedValueGroup.objects.get(code=pvg_in_yaml[id])
+                pvg_in_db = self._pvg_as_dict(pvg_instance)
 
-                self.assertEqual(pvg_in_yaml, pvg_in_db)
+                # sort the list of values dicts on code
+                pvg_values_in_yaml = sorted(pvg_in_yaml["values"], key=lambda k: k["code"])
+                pvg_values_in_db = sorted(pvg_in_db["values"], key=lambda k: k["code"])
+
+                self.assertEqual(pvg_values_in_yaml, pvg_values_in_db)
+
+    def test_pvs_modified(self):
+        """
+        Test if the PermittedValue objects are modified on import.
+        The position field was set to null in State values in the original yaml.
+        The modified yaml has the position set to 1 to 8 for these values.
+        """
+        print(f"State PVs {self.state_pvs_original}\nState PVs modified {self.state_pvs_modified}")
+        self.assertNotEqual(self.state_pvs_original, self.state_pvs_modified)
