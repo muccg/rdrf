@@ -905,39 +905,39 @@ def proms_checks(step, which, option):
         )
 
 
-@step('the menu "([^\"]+)" (contains|DOES NOT contain) "([^\"]+)"')
-def menu_contains_yn_general(step, menu, check, item):
-    if check == "contains":
-        xp = (
-            "//a[contains(.,'%s')]/following-sibling::ul/li/a[contains(.,'%s')]"
-            % (menu, item)
+@step('the menu "([^\"]+)" contains "([^\"]+)"')
+def menu_contains(step, menu, entry):
+    xp = '//a[contains(., "{0}")]/following-sibling::ul/li/a'.format(menu)
+    menu_elements = world.browser.find_elements_by_xpath(xp)
+    menu_entries = [e.get_attribute('innerHTML') for e in menu_elements]
+    if entry not in menu_entries:
+        raise Exception(
+            'Unable to find menu "{0}" option "{1}"'.format(menu, entry)
         )
-        try:
-            find(xp)
-        except Nse:
-            raise Exception(
-                "Could not find menu \"%s\" item \"%s\"\n"
-                "xpath:  %s"
-                % (menu, item, xp)
-            )
-    elif check == "DOES NOT contain":
-        xp = (
-            "//a[contains(.,'%s')]/following-sibling::ul/li"
-            % (menu)
+    if len(menu_entries) != len(set(menu_entries)):
+        raise Exception(
+            'At least one entry in menu "{0}" is duplicated.\n'
+            'Entries:\n{1}'.format(menu, menu_entries)
         )
-        ls1 = find_multiple(xp)
-        ls2 = []
-        for obj in ls1:
-            ls2.append(obj.get_attribute("text"))
-        if item in ls2:
-            raise Exception(
-                "Found menu \"%s\" item \"%s\", but should not exist.\n"
-                % (menu, item)
-            )
-        else:
-            pass
-    else:
-        raise Exception("Do not recognise check type:  %s" % check)
+    pass
+
+
+@step('the menu "([^\"]+)" DOES NOT contain "([^\"]+)"')
+def menu_not_contains(step, menu, entry):
+    xp = '//a[contains(., "{0}")]/following-sibling::ul/li/a'.format(menu)
+    menu_elements = world.browser.find_elements_by_xpath(xp)
+    menu_entries = [e.get_attribute('innerHTML') for e in menu_elements]
+    if entry in menu_entries:
+        raise Exception(
+            'Found menu "{0}" option "{1}", but should not be present'
+            ''.format(menu, entry)
+        )
+    if len(menu_entries) != len(set(menu_entries)):
+        raise Exception(
+            'At least one entry in menu "{0}" is duplicated.\n'
+            'Entries:\n{1}'.format(menu, menu_entries)
+        )
+    pass
 
 
 class Xpath:
