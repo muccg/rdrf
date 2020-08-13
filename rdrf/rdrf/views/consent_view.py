@@ -18,6 +18,10 @@ from rdrf.models.definition.models import Registry
 
 from rdrf.security.security_checks import security_check_user_patient
 
+import logging
+
+logger = logging.getLogger(__name__)
+
 
 class ConsentList(View):
 
@@ -26,6 +30,8 @@ class ConsentList(View):
 
     @method_decorator(login_required)
     def get(self, request, registry_code):
+        logger.info("CONSENTLISTGET %s %s" % (request.user,
+                                              registry_code))
         user_registries = [reg.code for reg in request.user.get_registries()]
         if registry_code not in user_registries:
             raise PermissionDenied
@@ -87,6 +93,10 @@ class ConsentDetails(View):
 
     @method_decorator(login_required)
     def get(self, request, registry_code, section_id, patient_id):
+        logger.info("CONSENTDETAILSGET %s %s %s %s" % (request.user,
+                                                       registry_code,
+                                                       section_id,
+                                                       patient_id))
         patient_model = Patient.objects.get(pk=patient_id)
         security_check_user_patient(request.user, patient_model)
 

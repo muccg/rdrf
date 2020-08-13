@@ -1,6 +1,6 @@
 {% extends "rdrf_cdes/base-1-col.html" %}
 {% block content %}
-<h2>Waiting for {{custom_action.name}}</h2>
+<h2>{{custom_action.name}} - <span id="status_heading">getting the report ready ...</span></h2>
 {% if patient_model %}
 <h3>for {{patient_model}}</h3>
 {% endif %}
@@ -11,17 +11,17 @@
 
 <script>
   var messages = {
-      waiting: "<p>Waiting for task to complete</p>",
+      waiting: "<p>Waiting for task to complete...</p>",
       finished: "<p>Task completed - download result here: </p>",
-      error: "<p>There was an error checking the result</p>"
+      error: "<p>There was an error checking the result.</p>"
   }
 
   var taskFinished = false;
   
-
   function createLink(result) {
-      return "<a href='" + result.download_link + "'>Download result ( Note: the report will be deleted from the server once downloaded.)</a>"
+      return "<a href='" + result.download_link + "'>Download result (Note: the report will be deleted from the server once downloaded.)</a>"
   }
+
   function checkTask() {
       console.log("checking task ...");
       const url = "{{task_api_url}}"; 
@@ -29,22 +29,23 @@
 	  if (result.status == "completed") {
 	      console.log("task completed");
 	      taskFinished = true;
-	      $("#statusdiv").empty().append(messages.finished + createLink(result));
+	      $("#statusdiv").html(messages.finished + createLink(result));
+	      $("#status_heading").html("ready to download")
 	  }
 	  else if (result.status == "error") {
 	      taskFinished = true;
-	      $("#statusdiv").empty().append("<b>The task failed</b>");
+	      $("#statusdiv").html("<b> The task failed</b>");
 	  }
 	  else {
-	      $("#statusdiv").empty().append(messages.waiting);
+	      $("#statusdiv").html(messages.waiting);
 	  }
       });
-
-      setTimeout(checkTask, 15000);
+      if (taskFinished == false){
+        setTimeout(checkTask, 15000);
+      }
   }
-
-  $(document).on("ready", checkTask);
-  
+  if (taskFinished == false){
+      $(document).on("ready", checkTask);
+  }
 </script>
-
 {% endblock %}

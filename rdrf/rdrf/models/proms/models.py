@@ -381,7 +381,7 @@ class SurveyRequest(models.Model):
                         "patient_email": self.patient.email,
                         "email_link": self.email_link,
                         "registry_name": self.registry.name,
-                        "survey_name": self.survey_name
+                        "survey_name": self.display_name
                     }
                     process_notification(self.registry.code,
                                          EventType.SURVEY_REQUEST,

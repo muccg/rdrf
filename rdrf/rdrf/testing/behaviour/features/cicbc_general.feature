@@ -11,7 +11,7 @@ Feature: General functionality of CIC Breast (ICHOMBC)
     When I am logged in as clinical
     Then location is "Patient List"
     And the menu "Menu" contains "Patient List"
-    And the menu "clinical" contains "Change Password"
+    # And the menu "clinical" contains "Change Password"
     And the menu "clinical" contains "Enable two-factor auth"
     And the menu "clinical" contains "Logout"
     When I click "SMITH Jane" on patientlisting

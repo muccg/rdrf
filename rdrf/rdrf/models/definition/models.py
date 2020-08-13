@@ -1666,6 +1666,9 @@ class ContextFormGroup(models.Model):
             raise ValidationError(
                 "Invalid naming cde: Should be form name/section code/cde code where all codes must exist")
 
+        if self.context_type == 'M' and self.items.all().count() > 1:
+            raise ValidationError("Context Form Group of type Multiple cannot have more than one form")
+
     def _valid_naming_cde_to_use(self, naming_cde_to_use):
         validation_message = "Invalid naming cde: Should be form name/section code/cde code where all codes must exist"
         if naming_cde_to_use:
@@ -1959,6 +1962,12 @@ class CustomAction(models.Model):
     code = models.CharField(max_length=80)
     name = models.CharField(max_length=80, blank=True, null=True)
     action_type = models.CharField(max_length=2, choices=ACTION_TYPES)
+    include_all = models.BooleanField(default=False, help_text="For Patient Status Report: Select this to include all "
+                                                               "data for the patients.<br>If this is not selected, "
+                                                               "then the Data field below should be filled in with "
+                                                               "the required report spec.<br>If this is selected, "
+                                                               "Data field should contain {}."
+                                      )
     data = models.TextField(null=True)
     scope = models.CharField(max_length=1, choices=SCOPES)  # controls where action appears
     runtime_spec = models.TextField(blank=True, null=True)  # json field to describe how the action is run
@@ -2080,13 +2089,15 @@ class CustomAction(models.Model):
                                             run_async=self.asynchronous,
                                             runtime_spec=rt_spec)
 
-            logger.info("custom action %s/%s by user %s on patient %s" % (self.registry.code,
-                                                                          self.name,
-                                                                          user.username,
-                                                                          patient_model.pk))
+            logger.info("CUSTOMACTION %s %s by user %s on patient %s" % (self.registry.code,
+                                                                         self.name,
+                                                                         user.username,
+                                                                         patient_model.pk))
             return result
         elif self.action_type == "SR":
             from rdrf.services.io.actions import patient_status_report
+            logger.info("CUSTOMACTION SR %s %s" % (self.registry.code,
+                                                   user.username))
             return patient_status_report.execute(self,
                                                  self.registry,
                                                  self.name,
@@ -2096,6 +2107,8 @@ class CustomAction(models.Model):
                                                  run_async=self.asynchronous)
         elif self.action_type == "DE":
             from rdrf.services.io.actions import deidentified_data_extract
+            logger.info("CUSTOMACTION DE %s %s" % (self.registry.code,
+                                                   user.username))
             return deidentified_data_extract.execute(self, user)
 
         else:

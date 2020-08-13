@@ -93,6 +93,7 @@ class ReportGenerator:
         self.filter_cde = None
         self.report_name = report_name
         self.report_spec = json.loads(report_spec)
+        self._setup_spec()
         self.date_format = None
         self.has_filter = True
         self._parse_filter_spec(self.runtime_spec)
@@ -107,6 +108,27 @@ class ReportGenerator:
         self.has_valid_filter = False
         self._setup_inputs()
         self._set_formats()
+
+    def _setup_spec(self):
+        if self.custom_action.include_all:
+            fixed_cfg = ContextFormGroup.objects.get(registry=self.custom_action.registry, context_type='F')
+            rfs = fixed_cfg.forms
+            columns = [
+                {"type": "demographics",
+                 "label": "Given Names",
+                 "name": "given_names"},
+                {"type": "demographics",
+                 "label": "Family Name",
+                 "name": "family_name"},
+                {"type": "demographics",
+                 "label": "DOB",
+                 "name": "date_of_birth"}
+            ]
+            for rf in rfs:
+                for sec in rf.section_models:
+                    for cde in sec.cde_models:
+                        columns.append({'name': f'{rf.name}/{sec.code}/{cde.code}', 'type': 'cde', 'label': f'{rf.name}/{sec.code}/{cde.code}'})
+            self.report_spec = {"columns": columns, "context_form_group": fixed_cfg.name}
 
     def _set_formats(self):
         if "formats" in self.report_spec:
@@ -161,16 +183,13 @@ class ReportGenerator:
         filename = generate_token()
         filepath = os.path.join(task_dir, filename)
         with open(filepath, "w") as f:
-            logger.info("writing csv ...")
             self.dump_csv(f)
-            logger.info("wrote csv ok")
         result = {"filepath": filepath,
                   "content_type": "text/csv",
                   "username": self.user.username,
                   "user_id": self.user.id,
                   "filename": f"{self.report_name}.csv",
                   }
-        logger.info("result dict = %s" % result)
         return result
 
     def _get_context(self, patient_model):
@@ -206,24 +225,21 @@ class ReportGenerator:
         rows.append(self._get_header())
         for patient_model in self._get_patients():
             try:
-                logger.info("getting data for patient %s" % patient_model.pk)
                 # the context needs to be determined by the report spec
                 # as it contains the context_form_group name
                 context_model = self._get_context(patient_model)
                 if not context_model:
-                    logger.info("no context - skipping")
                     continue
-                logger.info("context id = %s" % context_model.id)
                 data = self._load_patient_data(patient_model, context_model.id)
                 if not data:
-                    logger.info("no data")
+                    pass
                 else:
-                    logger.info("data exists")
                     row = []
                     for column in self.report_spec["columns"]:
                         column_value = "" if not data else self._get_column_value(patient_model, data, column)
                         row.append(column_value)
-                    rows.append(row)
+                    if any(row):
+                        rows.append(row)
             except Exception as ex:
                 logger.error("%s report error pid %s: %s" % (self.report_name, patient_model.pk, ex))
         self.report = rows
