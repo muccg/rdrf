@@ -909,10 +909,11 @@ def proms_checks(step, which, option):
 def menu_contains(step, menu, entry):
     xp = '//a[contains(., "{0}")]/following-sibling::ul/li/a'.format(menu)
     menu_elements = world.browser.find_elements_by_xpath(xp)
-    menu_entries = [e.get_attribute('innerHTML') for e in menu_elements]
+    menu_entries = [e.get_attribute('text').strip() for e in menu_elements]
     if entry not in menu_entries:
         raise Exception(
-            'Unable to find menu "{0}" option "{1}"'.format(menu, entry)
+            'Unable to find menu "{0}" option "{1}"\nEntries:\n{2}'
+            ''.format(menu, entry, menu_entries)
         )
     if len(menu_entries) != len(set(menu_entries)):
         raise Exception(
@@ -926,11 +927,11 @@ def menu_contains(step, menu, entry):
 def menu_not_contains(step, menu, entry):
     xp = '//a[contains(., "{0}")]/following-sibling::ul/li/a'.format(menu)
     menu_elements = world.browser.find_elements_by_xpath(xp)
-    menu_entries = [e.get_attribute('innerHTML') for e in menu_elements]
+    menu_entries = [e.get_attribute('text').strip() for e in menu_elements]
     if entry in menu_entries:
         raise Exception(
-            'Found menu "{0}" option "{1}", but should not be present'
-            ''.format(menu, entry)
+            'Found menu "{0}" option "{1}", but should not be present.\n'
+            'Entries:\n{2}'.format(menu, entry, menu_entries)
         )
     if len(menu_entries) != len(set(menu_entries)):
         raise Exception(
