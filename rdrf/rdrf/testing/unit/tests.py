@@ -2024,6 +2024,13 @@ class CICImporterTestCase(TestCase):
         print(f"registry version after import: {self.registry.version}")
         self.assertEqual(self.registry.version, "0.0.12")
 
+    def _precondition_cde_exists(self, precondition_cde, questions):
+        for q in questions:
+            exists = q["cde"] == precondition_cde
+            if exists:
+                return exists
+        return False
+
     def test_if_imported_surveys_match_yaml(self):
         """
         Tests if the imported Survey objects match the yaml
@@ -2043,5 +2050,14 @@ class CICImporterTestCase(TestCase):
                 survey_questions_in_db = sorted(survey_in_db["questions"], key=lambda k: k["cde"])
                 print(f"Survey {idx}. {survey_in_yaml[id]} YAML v DB--\n{survey_questions_in_yaml}\n\n{survey_questions_in_db}\n")
 
+                # compare the questions
                 self.assertEqual(survey_questions_in_yaml, survey_questions_in_db)
-                self.assertEqual(survey_in_yaml, survey_in_db)
+
+                # check validity of preconditions
+                print("Checking validity of preconditions")
+                for q in survey_questions_in_db:
+                    if q["precondition"] is not None:
+                        precondition_cde = q["precondition"]["cde"]
+                        is_precondition_cde_present = self._precondition_cde_exists(precondition_cde, survey_questions_in_db)
+                        print(f"{q['cde']} has precondition {precondition_cde} with {q['precondition']['value']}")
+                        self.assertTrue(is_precondition_cde_present)
