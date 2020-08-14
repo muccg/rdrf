@@ -16,7 +16,7 @@ from rdrf.models.definition.models import Registry, RegistryForm, Section
 from rdrf.models.definition.models import CDEPermittedValueGroup, CDEPermittedValue
 from rdrf.models.definition.models import CommonDataElement, InvalidAbnormalityConditionError, ValidationError
 from rdrf.models.definition.models import ClinicalData
-from rdrf.models.proms.models import Survey, SurveyQuestion
+from rdrf.models.proms.models import Survey, SurveyQuestion, Precondition
 from rdrf.views.form_view import FormView
 from registry.patients.models import Patient
 from registry.patients.models import State, PatientAddress, AddressType
@@ -1920,13 +1920,12 @@ class CICImporterTestCase(TestCase):
         id = "code"
         cdes_in_yaml = self.yaml_data["cdes"]
 
-        cdes_in_db = self._get_cde_codes()
         print("Comparing CDEs...")
-        for cde_from_yaml in cdes_in_yaml:
+        for idx, cde_from_yaml in enumerate(cdes_in_yaml):
             cde_instance = CommonDataElement.objects.get(code=cde_from_yaml[id])
             cde_in_db = self.model_to_json_string(CommonDataElement, cde_instance, fields)
             cde_in_yaml = json.dumps(cde_from_yaml)
-            print(f"--CDE--YAML v DB--\n{cde_in_yaml}\n{cde_in_db}\n")
+            print(f"{idx}. CDE-{cde_from_yaml[id]}--YAML v DB--\n{cde_in_yaml}\n{cde_in_db}\n")
             self.assertEqual(cde_in_yaml, cde_in_db)
 
     def _pvg_as_dict(self, pvg):
@@ -2033,7 +2032,9 @@ class CICImporterTestCase(TestCase):
 
     def test_if_imported_surveys_match_yaml(self):
         """
-        Tests if the imported Survey objects match the yaml
+        Tests if these objects match the yaml
+        - the imported Survey objects
+        - the imported Precondition objects
         """
         id = "name"
         surveys_in_yaml = self.yaml_data["surveys"]
@@ -2061,3 +2062,12 @@ class CICImporterTestCase(TestCase):
                         is_precondition_cde_present = self._precondition_cde_exists(precondition_cde, survey_questions_in_db)
                         print(f"{q['cde']} has precondition {precondition_cde} with {q['precondition']['value']}")
                         self.assertTrue(is_precondition_cde_present)
+
+                # check if Precondition objects are imported
+                for q in survey_questions_in_db:
+                    if q["precondition"] is not None:
+                        cde = q["precondition"]["cde"]
+                        value = q["precondition"]["value"]
+                        preconditions = Precondition.objects.filter(survey__name=survey_in_yaml[id],
+                                                                    cde__code=cde, value=value).count()
+                        self.assertEqual(preconditions, 1)
