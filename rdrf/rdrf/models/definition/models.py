@@ -1666,6 +1666,9 @@ class ContextFormGroup(models.Model):
             raise ValidationError(
                 "Invalid naming cde: Should be form name/section code/cde code where all codes must exist")
 
+        if self.context_type == 'M' and self.items.all().count() > 1:
+            raise ValidationError("Context Form Group of type Multiple cannot have more than one form")
+
     def _valid_naming_cde_to_use(self, naming_cde_to_use):
         validation_message = "Invalid naming cde: Should be form name/section code/cde code where all codes must exist"
         if naming_cde_to_use:
