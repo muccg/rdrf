@@ -16,6 +16,7 @@ from rdrf.models.definition.models import Registry, RegistryForm, Section
 from rdrf.models.definition.models import CDEPermittedValueGroup, CDEPermittedValue
 from rdrf.models.definition.models import CommonDataElement, InvalidAbnormalityConditionError, ValidationError
 from rdrf.models.definition.models import ClinicalData
+from rdrf.models.proms.models import Survey, SurveyQuestion
 from rdrf.views.form_view import FormView
 from registry.patients.models import Patient
 from registry.patients.models import State, PatientAddress, AddressType
@@ -1810,8 +1811,15 @@ class CICImporterTestCase(TestCase):
     """
     def _get_yaml_file(self, suffix='original'):
         this_dir = os.path.dirname(__file__)
-        test_yaml = os.path.abspath(os.path.join(this_dir, "..", "..", "fixtures", f"cic_crc_{suffix}.yaml"))
+        test_yaml = os.path.abspath(os.path.join(this_dir, "..", "..", "fixtures", f"cic_lung_{suffix}.yaml"))
         return test_yaml
+
+    def _get_survey_names(self):
+        """
+        returns a list of Survey names that are used in the imported registry
+        :return: a list of Survey names
+        """
+        return self.registry.survey_set.all().values_list("name", flat=True)
 
     def _get_cde_codes(self):
         """
@@ -1821,12 +1829,29 @@ class CICImporterTestCase(TestCase):
         cdes = []
         for form in self.forms:
             for section in form.section_models:
-                section_cdes = section.elements
+                section_cdes = section.elements.split(",")
                 cdes += section_cdes
         return cdes
 
     def _get_pvg_codes(self):
-        return list(CDEPermittedValueGroup.objects.all().values_list("code", flat=True))
+        """
+        returns a list of PVG codes that are used in the CDEs of the imported registry
+        :return: list of PVG codes
+        """
+        cdes = []
+        for form in self.forms:
+            for section in form.section_models:
+                section_cdes = section.elements.split(",")
+                cdes += section_cdes
+
+        return list(
+            dict.fromkeys(
+                [
+                    code for code in CommonDataElement.objects.filter(code__in=cdes).values_list("pv_group", flat=True)
+                    if code is not None
+                ]
+            )
+        )
 
     def _get_state_pvs(self):
         """
@@ -1887,7 +1912,7 @@ class CICImporterTestCase(TestCase):
                     data[f] = None
         return data
 
-    def test_cdes(self):
+    def test_if_imported_cdes_match_yaml(self):
         """
         Test if the imported CDE objects match the yaml
         """
@@ -1896,14 +1921,13 @@ class CICImporterTestCase(TestCase):
         cdes_in_yaml = self.yaml_data["cdes"]
 
         cdes_in_db = self._get_cde_codes()
-
+        print("Comparing CDEs...")
         for cde_from_yaml in cdes_in_yaml:
-            if cde_from_yaml[id] in cdes_in_db:
-                cde_instance = CommonDataElement.objects.get(code=cde_from_yaml[id])
-                cde_in_db = self.model_to_json_string(CommonDataElement, cde_instance, fields)
-                cde_in_yaml = json.dumps(cde_from_yaml)
-
-                self.assertEqual(cde_in_yaml, cde_in_db)
+            cde_instance = CommonDataElement.objects.get(code=cde_from_yaml[id])
+            cde_in_db = self.model_to_json_string(CommonDataElement, cde_instance, fields)
+            cde_in_yaml = json.dumps(cde_from_yaml)
+            print(f"--CDE--YAML v DB--\n{cde_in_yaml}\n{cde_in_db}\n")
+            self.assertEqual(cde_in_yaml, cde_in_db)
 
     def _pvg_as_dict(self, pvg):
         """
@@ -1921,7 +1945,7 @@ class CICImporterTestCase(TestCase):
             d["values"].append(value_dict)
         return d
 
-    def test_pvgs(self):
+    def test_if_imported_pvgs_match_yaml(self):
         """
         Test if the imported PermittedValueGroup objects match the yaml
         """
@@ -1930,7 +1954,7 @@ class CICImporterTestCase(TestCase):
 
         pvgs_in_db = self._get_pvg_codes()
 
-        for pvg_in_yaml in pvgs_in_yaml:
+        for idx, pvg_in_yaml in enumerate(pvgs_in_yaml):
             if pvg_in_yaml[id] in pvgs_in_db:
                 pvg_instance = CDEPermittedValueGroup.objects.get(code=pvg_in_yaml[id])
                 pvg_in_db = self._pvg_as_dict(pvg_instance)
@@ -1938,14 +1962,86 @@ class CICImporterTestCase(TestCase):
                 # sort the list of values dicts on code
                 pvg_values_in_yaml = sorted(pvg_in_yaml["values"], key=lambda k: k["code"])
                 pvg_values_in_db = sorted(pvg_in_db["values"], key=lambda k: k["code"])
-
+                print(f"PVG {idx}. {pvg_in_yaml[id]}--YAML v DB--\n{pvg_values_in_yaml}\n{pvg_values_in_db}\n")
                 self.assertEqual(pvg_values_in_yaml, pvg_values_in_db)
 
-    def test_pvs_modified(self):
+    def test_if_pvs_get_modified_by_import(self):
         """
         Test if the PermittedValue objects are modified on import.
         The position field was set to null in State values in the original yaml.
         The modified yaml has the position set to 1 to 8 for these values.
         """
-        print(f"State PVs {self.state_pvs_original}\nState PVs modified {self.state_pvs_modified}")
+        print(f"State PVs\n{self.state_pvs_original}\nState PVs modified\n{self.state_pvs_modified}")
         self.assertNotEqual(self.state_pvs_original, self.state_pvs_modified)
+
+    def _survey_question_as_dict(self, sq):
+        """
+        Returns a dict representation of SurveyQuestion in the same sructure as in yaml
+        :param survey: SurveyQuestion object
+        :return: a dict of SurveyQuestion
+        """
+        d = {
+            "cde": sq.cde.code,
+            "cde_path": sq.cde_path,
+            "copyright_text": sq.copyright_text,
+            "instruction": sq.instruction,
+            "position": sq.position,
+            "source": sq.source,
+            "widget_config": sq.widget_config,
+            "precondition": None
+        }
+        if sq.precondition:
+            d["precondition"] = {
+                "cde": sq.precondition.cde.code,
+                "value": sq.precondition.value
+            }
+        return d
+
+    def _survey_as_dict(self, survey):
+        """
+        Returns a dict representation of Survey and its SurveyQuestions in the same sructure as in yaml
+        :param survey: Survey object
+        :return: a dict of Survey and its SurveyQuestions
+        """
+        d = {
+            "name": survey.name,
+            "context_form_group": survey.context_form_group,
+            "display_name": survey.display_name,
+            "form": survey.form,
+            "is_followup": survey.is_followup,
+            "questions": []
+        }
+        for question in SurveyQuestion.objects.filter(survey=survey):
+            question_dict = self._survey_question_as_dict(question)
+            d["questions"].append(question_dict)
+        return d
+
+    def test_if_version_gets_modified_by_import(self):
+        """
+        Tests if the registry version gets modified with the import
+        The original yaml has version 1.26 and the modified one has version 1.27
+        """
+        print(f"registry version after import: {self.registry.version}")
+        self.assertEqual(self.registry.version, "0.0.12")
+
+    def test_if_imported_surveys_match_yaml(self):
+        """
+        Tests if the imported Survey objects match the yaml
+        """
+        id = "name"
+        surveys_in_yaml = self.yaml_data["surveys"]
+
+        surveys_in_db = self._get_survey_names()
+
+        for idx, survey_in_yaml in enumerate(surveys_in_yaml):
+            if survey_in_yaml[id] in surveys_in_db:
+                survey_instance = Survey.objects.get(name=survey_in_yaml[id])
+                survey_in_db = self._survey_as_dict(survey_instance)
+
+                # sort the list of question dicts on cde code
+                survey_questions_in_yaml = sorted(survey_in_yaml["questions"], key=lambda k: k["cde"])
+                survey_questions_in_db = sorted(survey_in_db["questions"], key=lambda k: k["cde"])
+                print(f"Survey {idx}. {survey_in_yaml[id]} YAML v DB--\n{survey_questions_in_yaml}\n\n{survey_questions_in_db}\n")
+
+                self.assertEqual(survey_questions_in_yaml, survey_questions_in_db)
+                self.assertEqual(survey_in_yaml, survey_in_db)

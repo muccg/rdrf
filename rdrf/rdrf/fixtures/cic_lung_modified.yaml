@@ -1,0 +1,7655 @@
+EXPORT_TIME: '2020-08-14 10:33:13.211660'
+EXPORT_TYPE: REGISTRY_PLUS_CDES
+RDRF_VERSION: 6.1.26
+REGISTRY_VERSION: 0.0.12
+cde_policies: []
+cdes:
+- abnormality_condition: ''
+  allow_multiple: true
+  calculation: ''
+  code: 1DIAGINVCOMPLC
+  datatype: range
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Complications from this diagnostic test
+  pattern: ''
+  pv_group: 1DIAGINVCOMPLC
+  questionnaire_text: ''
+  widget_name: ''
+- abnormality_condition: ''
+  allow_multiple: false
+  calculation: ''
+  code: 1DIAGINVCOMPOTHLC
+  datatype: string
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: 200
+  max_value: null
+  min_value: null
+  name: Complications from this diagnostic test 'other' (please specify)
+  pattern: ''
+  pv_group: null
+  questionnaire_text: ''
+  widget_name: ''
+- abnormality_condition: ''
+  allow_multiple: false
+  calculation: ''
+  code: 1DIAGINVDATELC
+  datatype: date
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Date of this diagnostic test
+  pattern: ''
+  pv_group: null
+  questionnaire_text: ''
+  widget_name: DateWidget
+- abnormality_condition: ''
+  allow_multiple: false
+  calculation: ''
+  code: 1DIAGINVOUTCLC
+  datatype: range
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Outcome of this diagnostic test
+  pattern: ''
+  pv_group: 1DIAGINVOUTCLC
+  questionnaire_text: ''
+  widget_name: RadioSelect
+- abnormality_condition: ''
+  allow_multiple: false
+  calculation: ''
+  code: 1DIAGINVTYPELC
+  datatype: range
+  desc: Diagnostic test performed following an abnormal CT scan (click ADD to add
+    additional diagnostic tests)
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Diagnostic test performed following an abnormal CT scan (click ADD to add
+    additional diagnostic tests)
+  pattern: ''
+  pv_group: 1DIAGINVTYPELC
+  questionnaire_text: ''
+  widget_name: RadioSelect
+- abnormality_condition: ''
+  allow_multiple: false
+  calculation: ''
+  code: 1diag_stageLC
+  datatype: range
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Was this performed as a diagnostic or staging test?
+  pattern: ''
+  pv_group: 1diag_stageLC
+  questionnaire_text: ''
+  widget_name: RadioSelect
+- abnormality_condition: ''
+  allow_multiple: false
+  calculation: ''
+  code: ALKLC
+  datatype: range
+  desc: ''
+  important: false
+  instructions: If the test is not performed, unknown can be answered
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: 'Mutation status: ALK translocation'
+  pattern: ''
+  pv_group: ALKLC
+  questionnaire_text: ''
+  widget_name: RadioSelect
+- abnormality_condition: ''
+  allow_multiple: false
+  calculation: ''
+  code: ASBESTOS
+  datatype: range
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Have you been exposed to asbestos?
+  pattern: ''
+  pv_group: ASBESTOS
+  questionnaire_text: ''
+  widget_name: RadioSelect
+- abnormality_condition: ''
+  allow_multiple: false
+  calculation: ''
+  code: AdditHistoryLC
+  datatype: string
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: 2000
+  max_value: null
+  min_value: null
+  name: Additional History
+  pattern: ''
+  pv_group: null
+  questionnaire_text: ''
+  widget_name: Textarea
+- abnormality_condition: null
+  allow_multiple: false
+  calculation: ''
+  code: Address
+  datatype: string
+  desc: Address
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Address
+  pattern: ''
+  pv_group: null
+  questionnaire_text: ''
+  widget_name: Textarea
+- abnormality_condition: null
+  allow_multiple: false
+  calculation: ''
+  code: AddressType
+  datatype: range
+  desc: home or postal
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Address type
+  pattern: ''
+  pv_group: AddressType
+  questionnaire_text: ''
+  widget_name: ''
+- abnormality_condition: null
+  allow_multiple: false
+  calculation: ''
+  code: BASISDIAGNLC
+  datatype: range
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Method of diagnosis (clinical or pathologic)
+  pattern: ''
+  pv_group: BASISDIAGNLC
+  questionnaire_text: ''
+  widget_name: RadioSelect
+- abnormality_condition: null
+  allow_multiple: false
+  calculation: ''
+  code: CDEPatientCentre
+  datatype: string
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: true
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Centre
+  pattern: ''
+  pv_group: null
+  questionnaire_text: ''
+  widget_name: DataSourceSelect:PatientCentres
+- abnormality_condition: null
+  allow_multiple: false
+  calculation: ''
+  code: CDEPatientDateOfBirth
+  datatype: date
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: true
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Date of Birth
+  pattern: ''
+  pv_group: null
+  questionnaire_text: ''
+  widget_name: DateWidget
+- abnormality_condition: null
+  allow_multiple: false
+  calculation: ''
+  code: CDEPatientEmail
+  datatype: email
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: true
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Email
+  pattern: ''
+  pv_group: null
+  questionnaire_text: ''
+  widget_name: ''
+- abnormality_condition: null
+  allow_multiple: false
+  calculation: ''
+  code: CDEPatientFamilyName
+  datatype: string
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: true
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Family Name
+  pattern: ''
+  pv_group: null
+  questionnaire_text: ''
+  widget_name: ''
+- abnormality_condition: null
+  allow_multiple: false
+  calculation: ''
+  code: CDEPatientGivenNames
+  datatype: string
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: true
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Given Names
+  pattern: ''
+  pv_group: null
+  questionnaire_text: ''
+  widget_name: ''
+- abnormality_condition: null
+  allow_multiple: false
+  calculation: ''
+  code: CDEPatientHomePhone
+  datatype: string
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Home Phone
+  pattern: ''
+  pv_group: null
+  questionnaire_text: ''
+  widget_name: ''
+- abnormality_condition: null
+  allow_multiple: false
+  calculation: ''
+  code: CDEPatientMobilePhone
+  datatype: string
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Mobile Phone
+  pattern: ''
+  pv_group: null
+  questionnaire_text: ''
+  widget_name: ''
+- abnormality_condition: null
+  allow_multiple: false
+  calculation: ''
+  code: CDEPatientNOKRelationship
+  datatype: range
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Parent/Guardian Relationship
+  pattern: ''
+  pv_group: NextOfKinRelationship
+  questionnaire_text: ''
+  widget_name: ''
+- abnormality_condition: null
+  allow_multiple: false
+  calculation: ''
+  code: CDEPatientNextOfKinAddress
+  datatype: string
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Parent/Guardian Address
+  pattern: ''
+  pv_group: null
+  questionnaire_text: ''
+  widget_name: TextArea
+- abnormality_condition: null
+  allow_multiple: false
+  calculation: ''
+  code: CDEPatientNextOfKinEmail
+  datatype: email
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Parent/Guardian Email
+  pattern: ''
+  pv_group: null
+  questionnaire_text: ''
+  widget_name: ''
+- abnormality_condition: null
+  allow_multiple: false
+  calculation: ''
+  code: CDEPatientNextOfKinFamilyName
+  datatype: string
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Parent/Guardian Family Name
+  pattern: ''
+  pv_group: null
+  questionnaire_text: ''
+  widget_name: ''
+- abnormality_condition: null
+  allow_multiple: false
+  calculation: ''
+  code: CDEPatientNextOfKinGivenNames
+  datatype: string
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Parent/Guardian Given Names
+  pattern: ''
+  pv_group: null
+  questionnaire_text: ''
+  widget_name: ''
+- abnormality_condition: null
+  allow_multiple: false
+  calculation: ''
+  code: CDEPatientNextOfKinState
+  datatype: range
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Parent/Guardian State
+  pattern: ''
+  pv_group: State
+  questionnaire_text: ''
+  widget_name: ''
+- abnormality_condition: null
+  allow_multiple: false
+  calculation: ''
+  code: CDEPatientNextOfKinSuburb
+  datatype: string
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Parent/Guardian Suburb
+  pattern: ''
+  pv_group: null
+  questionnaire_text: ''
+  widget_name: ''
+- abnormality_condition: null
+  allow_multiple: false
+  calculation: ''
+  code: CDEPatientSex
+  datatype: range
+  desc: sex
+  important: false
+  instructions: ''
+  is_required: true
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Sex
+  pattern: ''
+  pv_group: MeteorSexes
+  questionnaire_text: What is your sex?
+  widget_name: ''
+- abnormality_condition: null
+  allow_multiple: false
+  calculation: ''
+  code: CHEMOTXLC
+  datatype: range
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Chemotherapy
+  pattern: ''
+  pv_group: CHEMOTXLC
+  questionnaire_text: ''
+  widget_name: RadioSelect
+- abnormality_condition: ''
+  allow_multiple: false
+  calculation: ''
+  code: CHEMOTXONGOINGLC
+  datatype: range
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Chemotherapy on going
+  pattern: ''
+  pv_group: CHEMOTXONGOINGLC
+  questionnaire_text: ''
+  widget_name: RadioSelect
+- abnormality_condition: null
+  allow_multiple: false
+  calculation: ''
+  code: CHEMOTXSTARTDATELC
+  datatype: date
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Chemotherapy start date
+  pattern: ''
+  pv_group: null
+  questionnaire_text: ''
+  widget_name: DateWidget
+- abnormality_condition: null
+  allow_multiple: false
+  calculation: ''
+  code: CHEMOTXSTOPDATELC
+  datatype: date
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Chemotherapy stop date
+  pattern: ''
+  pv_group: null
+  questionnaire_text: ''
+  widget_name: DateWidget
+- abnormality_condition: null
+  allow_multiple: false
+  calculation: ''
+  code: CIGDAY
+  datatype: integer
+  desc: Average number of cigarettes smoked every day
+  important: false
+  instructions: Enter 999 if unknown
+  is_required: false
+  max_length: 3
+  max_value: null
+  min_value: null
+  name: Average number of cigarettes smoked every day
+  pattern: ''
+  pv_group: null
+  questionnaire_text: ''
+  widget_name: ''
+- abnormality_condition: ''
+  allow_multiple: true
+  calculation: ''
+  code: COMORB
+  datatype: range
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Do you have any of the following problems? (select all that apply)
+  pattern: ''
+  pv_group: COMORB
+  questionnaire_text: ''
+  widget_name: ''
+- abnormality_condition: ''
+  allow_multiple: true
+  calculation: ''
+  code: COMORBLUNG
+  datatype: range
+  desc: Change for lung
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Do you have any of the following lung problems? (select all that apply)
+  pattern: ''
+  pv_group: CoMorbidLung
+  questionnaire_text: ''
+  widget_name: ''
+- abnormality_condition: ''
+  allow_multiple: false
+  calculation: ''
+  code: COMORBLUNG_freetext
+  datatype: string
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: 300
+  max_value: null
+  min_value: null
+  name: Other lung disease (please specify)
+  pattern: ''
+  pv_group: null
+  questionnaire_text: ''
+  widget_name: ''
+- abnormality_condition: ''
+  allow_multiple: false
+  calculation: ''
+  code: COMORB_freetext
+  datatype: string
+  desc: ''
+  important: false
+  instructions: Include type of cancer if answered history of cancer above
+  is_required: false
+  max_length: 300
+  max_value: null
+  min_value: null
+  name: Any other comorbidities (please specify)
+  pattern: ''
+  pv_group: null
+  questionnaire_text: ''
+  widget_name: ''
+- abnormality_condition: null
+  allow_multiple: false
+  calculation: ''
+  code: COMPLRADCYTODATELC
+  datatype: date
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Date of cytopenia
+  pattern: ''
+  pv_group: null
+  questionnaire_text: ''
+  widget_name: DateWidget
+- abnormality_condition: null
+  allow_multiple: false
+  calculation: ''
+  code: COMPLRADINFDATELC
+  datatype: date
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Date of infection
+  pattern: ''
+  pv_group: null
+  questionnaire_text: ''
+  widget_name: DateWidget
+- abnormality_condition: null
+  allow_multiple: false
+  calculation: ''
+  code: COMPLRADKIDDATELC
+  datatype: date
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Date of acute kidney injury
+  pattern: ''
+  pv_group: null
+  questionnaire_text: ''
+  widget_name: DateWidget
+- abnormality_condition: null
+  allow_multiple: true
+  calculation: ''
+  code: COMPLRADLC
+  datatype: range
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: CTCAE grade III-­‐IV complications due to radiotherapy
+  pattern: ''
+  pv_group: COMPLSYSLC
+  questionnaire_text: ''
+  widget_name: ''
+- abnormality_condition: null
+  allow_multiple: false
+  calculation: ''
+  code: COMPLRADNEURODATELC
+  datatype: date
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Date of neuropathy, tinnitus, hearing impaired, or other neurologic toxicity
+  pattern: ''
+  pv_group: null
+  questionnaire_text: ''
+  widget_name: DateWidget
+- abnormality_condition: null
+  allow_multiple: false
+  calculation: ''
+  code: COMPLRADOESDATELC
+  datatype: date
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Date of oesophagitis, mucositis oral, nausea, vomiting, diarrhea, constipation,
+    or other GI toxicity
+  pattern: ''
+  pv_group: null
+  questionnaire_text: ''
+  widget_name: DateWidget
+- abnormality_condition: null
+  allow_multiple: false
+  calculation: ''
+  code: COMPLRADOTHERDATELC
+  datatype: date
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Date of 'other' complication
+  pattern: ''
+  pv_group: null
+  questionnaire_text: ''
+  widget_name: DateWidget
+- abnormality_condition: null
+  allow_multiple: false
+  calculation: ''
+  code: COMPLRADOTHERLC
+  datatype: string
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: 200
+  max_value: null
+  min_value: null
+  name: CTCAE grade III-­‐IV complication due to radiotherapy other than those explicitly
+    listed
+  pattern: ''
+  pv_group: null
+  questionnaire_text: ''
+  widget_name: ''
+- abnormality_condition: null
+  allow_multiple: false
+  calculation: ''
+  code: COMPLRADPNEDATELC
+  datatype: date
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Date of pneumonitis, cough, dyspnea, or other lung toxicity
+  pattern: ''
+  pv_group: null
+  questionnaire_text: ''
+  widget_name: DateWidget
+- abnormality_condition: null
+  allow_multiple: false
+  calculation: ''
+  code: COMPLRADSKIDATELC
+  datatype: date
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Date of skin reaction
+  pattern: ''
+  pv_group: null
+  questionnaire_text: ''
+  widget_name: DateWidget
+- abnormality_condition: null
+  allow_multiple: false
+  calculation: ''
+  code: COMPLSURGLC
+  datatype: range
+  desc: Clavien-­‐Dindo grade III-­‐IV complications due to surgery (Within six months
+    of surgery)
+  important: false
+  instructions: Within six months of surgery
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Clavien-­‐Dindo grade III-­‐IV complications due to surgery
+  pattern: ''
+  pv_group: COMPLSURGLC
+  questionnaire_text: ''
+  widget_name: RadioSelect
+- abnormality_condition: null
+  allow_multiple: false
+  calculation: ''
+  code: COMPLSYSCYTODATELC
+  datatype: date
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Date of cytopenia
+  pattern: ''
+  pv_group: null
+  questionnaire_text: ''
+  widget_name: DateWidget
+- abnormality_condition: null
+  allow_multiple: false
+  calculation: ''
+  code: COMPLSYSINFDATELC
+  datatype: date
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Date of infection
+  pattern: ''
+  pv_group: null
+  questionnaire_text: ''
+  widget_name: DateWidget
+- abnormality_condition: null
+  allow_multiple: false
+  calculation: ''
+  code: COMPLSYSKIDDATELC
+  datatype: date
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Date of acute kidney injury
+  pattern: ''
+  pv_group: null
+  questionnaire_text: ''
+  widget_name: DateWidget
+- abnormality_condition: null
+  allow_multiple: true
+  calculation: ''
+  code: COMPLSYSLC
+  datatype: range
+  desc: Indicate if patient experienced a CTCAE v 4.0 grade III-­‐V complication while
+    on therapy and within 6 months after initiating treatment
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: CTCAE grade III-­‐IV complications due to systemic therapy
+  pattern: ''
+  pv_group: COMPLSYSLC
+  questionnaire_text: ''
+  widget_name: ''
+- abnormality_condition: null
+  allow_multiple: false
+  calculation: ''
+  code: COMPLSYSNEURODATELC
+  datatype: date
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Date of neuropathy, tinnitus, hearing impaired, or other neurologic toxicity
+  pattern: ''
+  pv_group: null
+  questionnaire_text: ''
+  widget_name: DateWidget
+- abnormality_condition: null
+  allow_multiple: false
+  calculation: ''
+  code: COMPLSYSOESDATELC
+  datatype: date
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Date of oesophagitis, mucositis oral, nausea, vomiting, diarrhea, constipation,
+    or other GI toxicity
+  pattern: ''
+  pv_group: null
+  questionnaire_text: ''
+  widget_name: DateWidget
+- abnormality_condition: null
+  allow_multiple: false
+  calculation: ''
+  code: COMPLSYSOTHERDATELC
+  datatype: date
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Date of 'other' complication
+  pattern: ''
+  pv_group: null
+  questionnaire_text: ''
+  widget_name: DateWidget
+- abnormality_condition: ''
+  allow_multiple: false
+  calculation: ''
+  code: COMPLSYSOTHERLC
+  datatype: string
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: 200
+  max_value: null
+  min_value: null
+  name: Other complication (please specify)
+  pattern: ''
+  pv_group: null
+  questionnaire_text: ''
+  widget_name: ''
+- abnormality_condition: null
+  allow_multiple: false
+  calculation: ''
+  code: COMPLSYSPNEDATELC
+  datatype: date
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Date of pneumonitis, cough, dyspnea, or other lung toxicity
+  pattern: ''
+  pv_group: null
+  questionnaire_text: ''
+  widget_name: DateWidget
+- abnormality_condition: null
+  allow_multiple: false
+  calculation: ''
+  code: COMPLSYSSKIDATELC
+  datatype: date
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Date of skin reaction
+  pattern: ''
+  pv_group: null
+  questionnaire_text: ''
+  widget_name: DateWidget
+- abnormality_condition: null
+  allow_multiple: false
+  calculation: ''
+  code: CTDATELC
+  datatype: date
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Date of abnormal CT
+  pattern: ''
+  pv_group: null
+  questionnaire_text: ''
+  widget_name: DateWidget
+- abnormality_condition: null
+  allow_multiple: false
+  calculation: ''
+  code: CTINDICATIONLC
+  datatype: range
+  desc: |-
+    Incidental finding is defined as an unexpected abnormality that does not account for the patient’s presentation, in the opinion of the treating physician.
+    Screening is defined as a CT performed to exclude lung cancer in an asymptomatic patient.
+  important: false
+  instructions: |-
+    Incidental finding is defined as an unexpected abnormality that does not account for the patient’s presentation, in the opinion of the treating physician.
+    Screening is defined as a CT performed to exclude lung cancer in an asymptomatic patient.
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Why was your CT scan conducted?
+  pattern: ''
+  pv_group: CTDATELC
+  questionnaire_text: ''
+  widget_name: RadioSelect
+- abnormality_condition: null
+  allow_multiple: false
+  calculation: ''
+  code: CTOBSDONELC
+  datatype: date
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Performed date of repeat CT in patients undergoing CT observation
+  pattern: ''
+  pv_group: null
+  questionnaire_text: ''
+  widget_name: DateWidget
+- abnormality_condition: null
+  allow_multiple: false
+  calculation: ''
+  code: CTOBSDUELC
+  datatype: date
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Due date for repeat CT in patients undergoing CT observation
+  pattern: ''
+  pv_group: null
+  questionnaire_text: ''
+  widget_name: DateWidget
+- abnormality_condition: null
+  allow_multiple: false
+  calculation: ''
+  code: CTOBSOUTCOMELC
+  datatype: range
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Outcome for patients undergoing CT observation
+  pattern: ''
+  pv_group: CTOBSOUTCOMELC
+  questionnaire_text: ''
+  widget_name: RadioSelect
+- abnormality_condition: null
+  allow_multiple: false
+  calculation: ''
+  code: Country
+  datatype: range
+  desc: Country
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Country
+  pattern: ''
+  pv_group: Country
+  questionnaire_text: ''
+  widget_name: CountryWidget
+- abnormality_condition: null
+  allow_multiple: false
+  calculation: ''
+  code: DEATH
+  datatype: range
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Has the patient died?
+  pattern: ''
+  pv_group: DEATH
+  questionnaire_text: ''
+  widget_name: RadioSelect
+- abnormality_condition: null
+  allow_multiple: false
+  calculation: ''
+  code: DEATHDATE
+  datatype: date
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Date of death
+  pattern: ''
+  pv_group: null
+  questionnaire_text: ''
+  widget_name: DateWidget
+- abnormality_condition: null
+  allow_multiple: false
+  calculation: ''
+  code: DEATHLC
+  datatype: range
+  desc: As indicated on death certificate
+  important: false
+  instructions: As indicated on certificate of death
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Is death directly attributable to lung cancer
+  pattern: ''
+  pv_group: DEATHLC
+  questionnaire_text: ''
+  widget_name: RadioSelect
+- abnormality_condition: null
+  allow_multiple: false
+  calculation: ''
+  code: DEATHLCTX
+  datatype: range
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Is death directly attributable to lung cancer treatment?
+  pattern: ''
+  pv_group: DEATHLC
+  questionnaire_text: ''
+  widget_name: RadioSelect
+- abnormality_condition: null
+  allow_multiple: false
+  calculation: ''
+  code: DEATHPLACELC
+  datatype: range
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Where did the patient die (as per death certificate)
+  pattern: ''
+  pv_group: DEATHPLACELC
+  questionnaire_text: ''
+  widget_name: RadioSelect
+- abnormality_condition: ''
+  allow_multiple: false
+  calculation: // dummy line
+  code: DXINTERVALLC
+  datatype: calculated
+  desc: Number of days between initial review and diagnosis INCIDENDATELC - FIRSTSEENLC
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Initial review to diagnosis
+  pattern: ''
+  pv_group: null
+  questionnaire_text: ''
+  widget_name: ''
+- abnormality_condition: null
+  allow_multiple: false
+  calculation: ''
+  code: DXLC
+  datatype: range
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Final diagnosis
+  pattern: ''
+  pv_group: DXLC
+  questionnaire_text: ''
+  widget_name: RadioSelect
+- abnormality_condition: null
+  allow_multiple: false
+  calculation: ''
+  code: Date_recurrenceLC
+  datatype: date
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Date of diagnosis of recurrent or metachronous lung cancer
+  pattern: ''
+  pv_group: null
+  questionnaire_text: ''
+  widget_name: DateWidget
+- abnormality_condition: null
+  allow_multiple: false
+  calculation: ''
+  code: EDUCATIONLC
+  datatype: range
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Please indicate highest level of schooling completed
+  pattern: ''
+  pv_group: EDUCATIONLC
+  questionnaire_text: ''
+  widget_name: RadioSelect
+- abnormality_condition: ''
+  allow_multiple: false
+  calculation: ''
+  code: EGFRLC
+  datatype: range
+  desc: ''
+  important: false
+  instructions: If the test is not performed, unknown can be answered
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: 'Mutation status: Activating EGFR'
+  pattern: ''
+  pv_group: EGFRLC
+  questionnaire_text: ''
+  widget_name: RadioSelect
+- abnormality_condition: x in ["3","4"]
+  allow_multiple: false
+  calculation: ''
+  code: EORTCQLQC30_Q01
+  datatype: range
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Do you have any trouble doing strenuous activities, like carrying a heavy
+    shopping bag or a suitcase?
+  pattern: ''
+  pv_group: EORTCQLQC30
+  questionnaire_text: ''
+  widget_name: RadioSelect
+- abnormality_condition: x in ["3","4"]
+  allow_multiple: false
+  calculation: ''
+  code: EORTCQLQC30_Q02
+  datatype: range
+  desc: |-
+    Inclusion Criteria: All patients
+    Timing: Baseline, 6 months, 1 year post treatment, tracked annually up to 10 years
+    Reporting Source: Patient-­reported
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Do you have any trouble taking a long walk?
+  pattern: ''
+  pv_group: EORTCQLQC30
+  questionnaire_text: ''
+  widget_name: RadioSelect
+- abnormality_condition: x in ["3","4"]
+  allow_multiple: false
+  calculation: ''
+  code: EORTCQLQC30_Q03
+  datatype: range
+  desc: |-
+    Inclusion Criteria: All patients
+    Timing: Baseline, 6 months, 1 year post treatment, tracked annually up to 10 years
+    Reporting Source: Patient-‐reported
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Do you have any trouble taking a short walk outside of the house?
+  pattern: ''
+  pv_group: EORTCQLQC30
+  questionnaire_text: ''
+  widget_name: RadioSelect
+- abnormality_condition: x in ["3","4"]
+  allow_multiple: false
+  calculation: ''
+  code: EORTCQLQC30_Q04
+  datatype: range
+  desc: |-
+    Inclusion Criteria: All patients
+    Timing: Baseline, 6 months, 1 year post treatment, tracked annually up to 10 years
+    Reporting Source: Patient-­reported
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Do you need to stay in bed or a chair during the day?
+  pattern: ''
+  pv_group: EORTCQLQC30
+  questionnaire_text: ''
+  widget_name: RadioSelect
+- abnormality_condition: x in ["3","4"]
+  allow_multiple: false
+  calculation: ''
+  code: EORTCQLQC30_Q05
+  datatype: range
+  desc: |-
+    Inclusion Criteria: All patients
+    Timing: Baseline, 6 months, 1 year post treatment, tracked annually up to 10 years
+    Reporting Source: Patient-­reported
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Do you need help with eating, dressing, washing yourself or using the toilet?
+  pattern: ''
+  pv_group: EORTCQLQC30
+  questionnaire_text: ''
+  widget_name: RadioSelect
+- abnormality_condition: x in ["3","4"]
+  allow_multiple: false
+  calculation: ''
+  code: EORTCQLQC30_Q06
+  datatype: range
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Were you limited in doing either your work or other daily activities?
+  pattern: ''
+  pv_group: EORTCQLQC30
+  questionnaire_text: ''
+  widget_name: RadioSelect
+- abnormality_condition: x in ["3","4"]
+  allow_multiple: false
+  calculation: ''
+  code: EORTCQLQC30_Q07
+  datatype: range
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Were you limited in pursuing your hobbies or other leisure time activities?
+  pattern: ''
+  pv_group: EORTCQLQC30
+  questionnaire_text: ''
+  widget_name: RadioSelect
+- abnormality_condition: x in ["3","4"]
+  allow_multiple: false
+  calculation: ''
+  code: EORTCQLQC30_Q08
+  datatype: range
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Were you short of breath?
+  pattern: ''
+  pv_group: EORTCQLQC30
+  questionnaire_text: ''
+  widget_name: RadioSelect
+- abnormality_condition: x in ["3","4"]
+  allow_multiple: false
+  calculation: ''
+  code: EORTCQLQC30_Q09
+  datatype: range
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Have you had pain?
+  pattern: ''
+  pv_group: EORTCQLQC30
+  questionnaire_text: ''
+  widget_name: RadioSelect
+- abnormality_condition: x in ["3","4"]
+  allow_multiple: false
+  calculation: ''
+  code: EORTCQLQC30_Q10
+  datatype: range
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Did you need to rest?
+  pattern: ''
+  pv_group: EORTCQLQC30
+  questionnaire_text: ''
+  widget_name: RadioSelect
+- abnormality_condition: x in ["3","4"]
+  allow_multiple: false
+  calculation: ''
+  code: EORTCQLQC30_Q11
+  datatype: range
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Have you had trouble sleeping?
+  pattern: ''
+  pv_group: EORTCQLQC30
+  questionnaire_text: ''
+  widget_name: RadioSelect
+- abnormality_condition: x in ["3","4"]
+  allow_multiple: false
+  calculation: ''
+  code: EORTCQLQC30_Q12
+  datatype: range
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Have you felt weak?
+  pattern: ''
+  pv_group: EORTCQLQC30
+  questionnaire_text: ''
+  widget_name: RadioSelect
+- abnormality_condition: x in ["3","4"]
+  allow_multiple: false
+  calculation: ''
+  code: EORTCQLQC30_Q13
+  datatype: range
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Have you lacked appetite?
+  pattern: ''
+  pv_group: EORTCQLQC30
+  questionnaire_text: ''
+  widget_name: RadioSelect
+- abnormality_condition: x in ["3","4"]
+  allow_multiple: false
+  calculation: ''
+  code: EORTCQLQC30_Q14
+  datatype: range
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Have you felt nauseated?
+  pattern: ''
+  pv_group: EORTCQLQC30
+  questionnaire_text: ''
+  widget_name: RadioSelect
+- abnormality_condition: x in ["3","4"]
+  allow_multiple: false
+  calculation: ''
+  code: EORTCQLQC30_Q15
+  datatype: range
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Have you vomited?
+  pattern: ''
+  pv_group: EORTCQLQC30
+  questionnaire_text: ''
+  widget_name: RadioSelect
+- abnormality_condition: x in ["3","4"]
+  allow_multiple: false
+  calculation: ''
+  code: EORTCQLQC30_Q16
+  datatype: range
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Have you been constipated?
+  pattern: ''
+  pv_group: EORTCQLQC30
+  questionnaire_text: ''
+  widget_name: RadioSelect
+- abnormality_condition: x in ["3","4"]
+  allow_multiple: false
+  calculation: ''
+  code: EORTCQLQC30_Q17
+  datatype: range
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Have you had diarrhoea?
+  pattern: ''
+  pv_group: EORTCQLQC30
+  questionnaire_text: ''
+  widget_name: RadioSelect
+- abnormality_condition: x in ["3","4"]
+  allow_multiple: false
+  calculation: ''
+  code: EORTCQLQC30_Q18
+  datatype: range
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Were you tired?
+  pattern: ''
+  pv_group: EORTCQLQC30
+  questionnaire_text: ''
+  widget_name: RadioSelect
+- abnormality_condition: x in ["3","4"]
+  allow_multiple: false
+  calculation: ''
+  code: EORTCQLQC30_Q19
+  datatype: range
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Did pain interfere with your daily activities?
+  pattern: ''
+  pv_group: EORTCQLQC30
+  questionnaire_text: ''
+  widget_name: RadioSelect
+- abnormality_condition: x in ["3","4"]
+  allow_multiple: false
+  calculation: ''
+  code: EORTCQLQC30_Q20
+  datatype: range
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Have you had difficulty in concentrating on things, like reading a newspaper
+    or watching television?
+  pattern: ''
+  pv_group: EORTCQLQC30
+  questionnaire_text: ''
+  widget_name: RadioSelect
+- abnormality_condition: x in ["3","4"]
+  allow_multiple: false
+  calculation: ''
+  code: EORTCQLQC30_Q21
+  datatype: range
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Did you feel tense?
+  pattern: ''
+  pv_group: EORTCQLQC30
+  questionnaire_text: ''
+  widget_name: RadioSelect
+- abnormality_condition: x in ["3","4"]
+  allow_multiple: false
+  calculation: ''
+  code: EORTCQLQC30_Q22
+  datatype: range
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Did you worry?
+  pattern: ''
+  pv_group: EORTCQLQC30
+  questionnaire_text: ''
+  widget_name: RadioSelect
+- abnormality_condition: x in ["3","4"]
+  allow_multiple: false
+  calculation: ''
+  code: EORTCQLQC30_Q23
+  datatype: range
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Did you feel irritable?
+  pattern: ''
+  pv_group: EORTCQLQC30
+  questionnaire_text: ''
+  widget_name: RadioSelect
+- abnormality_condition: x in ["3","4"]
+  allow_multiple: false
+  calculation: ''
+  code: EORTCQLQC30_Q24
+  datatype: range
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Did you feel depressed?
+  pattern: ''
+  pv_group: EORTCQLQC30
+  questionnaire_text: ''
+  widget_name: RadioSelect
+- abnormality_condition: x in ["3","4"]
+  allow_multiple: false
+  calculation: ''
+  code: EORTCQLQC30_Q25
+  datatype: range
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Have you had difficulty remembering things?
+  pattern: ''
+  pv_group: EORTCQLQC30
+  questionnaire_text: ''
+  widget_name: RadioSelect
+- abnormality_condition: x in ["3","4"]
+  allow_multiple: false
+  calculation: ''
+  code: EORTCQLQC30_Q26
+  datatype: range
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Has your physical condition or medical treatment interfered with your family
+    life?
+  pattern: ''
+  pv_group: EORTCQLQC30
+  questionnaire_text: ''
+  widget_name: RadioSelect
+- abnormality_condition: x in ["3","4"]
+  allow_multiple: false
+  calculation: ''
+  code: EORTCQLQC30_Q27
+  datatype: range
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Has your physical condition or medical treatment interfered with your social
+    activities?
+  pattern: ''
+  pv_group: EORTCQLQC30
+  questionnaire_text: ''
+  widget_name: RadioSelect
+- abnormality_condition: x in ["3","4"]
+  allow_multiple: false
+  calculation: ''
+  code: EORTCQLQC30_Q28
+  datatype: range
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Has your physical condition or medical treatment caused you financial difficulties?
+  pattern: ''
+  pv_group: EORTCQLQC30
+  questionnaire_text: ''
+  widget_name: RadioSelect
+- abnormality_condition: x in ["1","2"]
+  allow_multiple: false
+  calculation: ''
+  code: EORTCQLQC30_Q29
+  datatype: range
+  desc: ''
+  important: false
+  instructions: 1 = Very poor and 7 = Excellent
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: How would you rate your overall health during the past week?
+  pattern: ''
+  pv_group: SevenScale
+  questionnaire_text: ''
+  widget_name: ''
+- abnormality_condition: x in ["1","2"]
+  allow_multiple: false
+  calculation: ''
+  code: EORTCQLQC30_Q30
+  datatype: range
+  desc: ''
+  important: false
+  instructions: 1 = Very poor and 7 = Excellent
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: How would you rate your overall quality of life during the past week?
+  pattern: ''
+  pv_group: SevenScale
+  questionnaire_text: ''
+  widget_name: ''
+- abnormality_condition: x in ["3","4"]
+  allow_multiple: false
+  calculation: ''
+  code: EORTCQLQLC13_Q01
+  datatype: range
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: How much did you cough?
+  pattern: ''
+  pv_group: EORTC13
+  questionnaire_text: ''
+  widget_name: RadioSelect
+- abnormality_condition: x in ["3","4"]
+  allow_multiple: false
+  calculation: ''
+  code: EORTCQLQLC13_Q02
+  datatype: range
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Did you cough up blood?
+  pattern: ''
+  pv_group: EORTC13
+  questionnaire_text: ''
+  widget_name: RadioSelect
+- abnormality_condition: x in ["3","4"]
+  allow_multiple: false
+  calculation: ''
+  code: EORTCQLQLC13_Q03
+  datatype: range
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Were you short of breath when you rested?
+  pattern: ''
+  pv_group: EORTC13
+  questionnaire_text: ''
+  widget_name: RadioSelect
+- abnormality_condition: x in ["3","4"]
+  allow_multiple: false
+  calculation: ''
+  code: EORTCQLQLC13_Q04
+  datatype: range
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Were you short of breath when you walked?
+  pattern: ''
+  pv_group: EORTC13
+  questionnaire_text: ''
+  widget_name: RadioSelect
+- abnormality_condition: x in ["3","4"]
+  allow_multiple: false
+  calculation: ''
+  code: EORTCQLQLC13_Q05
+  datatype: range
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Were you short of breath when you climbed stairs?
+  pattern: ''
+  pv_group: EORTC13
+  questionnaire_text: ''
+  widget_name: RadioSelect
+- abnormality_condition: x in ["3","4"]
+  allow_multiple: false
+  calculation: ''
+  code: EORTCQLQLC13_Q06
+  datatype: range
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Have you had a sore mouth or tongue?
+  pattern: ''
+  pv_group: EORTC13
+  questionnaire_text: ''
+  widget_name: RadioSelect
+- abnormality_condition: x in ["3","4"]
+  allow_multiple: false
+  calculation: ''
+  code: EORTCQLQLC13_Q07
+  datatype: range
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Have you had trouble swallowing?
+  pattern: ''
+  pv_group: EORTC13
+  questionnaire_text: ''
+  widget_name: RadioSelect
+- abnormality_condition: x in ["3","4"]
+  allow_multiple: false
+  calculation: ''
+  code: EORTCQLQLC13_Q08
+  datatype: range
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Have you had tingling hands or feet?
+  pattern: ''
+  pv_group: EORTC13
+  questionnaire_text: ''
+  widget_name: RadioSelect
+- abnormality_condition: x in ["3","4"]
+  allow_multiple: false
+  calculation: ''
+  code: EORTCQLQLC13_Q09
+  datatype: range
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Have you had hair loss?
+  pattern: ''
+  pv_group: EORTC13
+  questionnaire_text: ''
+  widget_name: RadioSelect
+- abnormality_condition: x in ["3","4"]
+  allow_multiple: false
+  calculation: ''
+  code: EORTCQLQLC13_Q10
+  datatype: range
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Have you had pain in your chest?
+  pattern: ''
+  pv_group: EORTC13
+  questionnaire_text: ''
+  widget_name: RadioSelect
+- abnormality_condition: x in ["3","4"]
+  allow_multiple: false
+  calculation: ''
+  code: EORTCQLQLC13_Q11
+  datatype: range
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Have you had pain in your arm or shoulder?
+  pattern: ''
+  pv_group: EORTC13
+  questionnaire_text: ''
+  widget_name: RadioSelect
+- abnormality_condition: x in ["3","4"]
+  allow_multiple: false
+  calculation: ''
+  code: EORTCQLQLC13_Q12
+  datatype: range
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Have you had pain in other parts of your body?
+  pattern: ''
+  pv_group: EORTC13
+  questionnaire_text: ''
+  widget_name: RadioSelect
+- abnormality_condition: ''
+  allow_multiple: false
+  calculation: ''
+  code: EORTCQLQLC13_Q12SUB
+  datatype: string
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: 100
+  max_value: null
+  min_value: null
+  name: Where was the pain?
+  pattern: ''
+  pv_group: null
+  questionnaire_text: ''
+  widget_name: ''
+- abnormality_condition: x in ["3","4"]
+  allow_multiple: false
+  calculation: ''
+  code: EORTCQLQLC13_Q13
+  datatype: range
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Did you take any medicine for pain?
+  pattern: ''
+  pv_group: EORTC13
+  questionnaire_text: ''
+  widget_name: RadioSelect
+- abnormality_condition: x in ["3","4"]
+  allow_multiple: false
+  calculation: ''
+  code: EORTCQLQLC13_Q13SUB
+  datatype: range
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: How much did the pain medication help?
+  pattern: ''
+  pv_group: EORTC13
+  questionnaire_text: ''
+  widget_name: RadioSelect
+- abnormality_condition: null
+  allow_multiple: false
+  calculation: ''
+  code: EQ_Anxiety_Depress
+  datatype: range
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: ANXIETY/DEPRESSION
+  pattern: ''
+  pv_group: EQ_Anxiety_Depress
+  questionnaire_text: ''
+  widget_name: RadioSelect
+- abnormality_condition: ''
+  allow_multiple: false
+  calculation: ''
+  code: EQ_Health_Rate
+  datatype: integer
+  desc: ''
+  important: false
+  instructions: We would like to know how good or bad your health is TODAY. This scale
+    is numbered from 0 to 100. 100 means the best health you can imagine. 0 means
+    the worst health you can imagine. Please tap on the scale to indicate how your
+    health is TODAY.
+  is_required: false
+  max_length: 3
+  max_value: '100.00'
+  min_value: '0.00'
+  name: YOUR HEALTH TODAY
+  pattern: ''
+  pv_group: null
+  questionnaire_text: ''
+  widget_name: ''
+- abnormality_condition: null
+  allow_multiple: false
+  calculation: ''
+  code: EQ_Mobility
+  datatype: range
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: MOBILITY
+  pattern: ''
+  pv_group: EQ_Mobility
+  questionnaire_text: ''
+  widget_name: RadioSelect
+- abnormality_condition: ''
+  allow_multiple: false
+  calculation: ''
+  code: EQ_Pain_Discomfort
+  datatype: range
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: PAIN/DISCOMFORT
+  pattern: ''
+  pv_group: EQ_Pain_Discomfort
+  questionnaire_text: ''
+  widget_name: RadioSelect
+- abnormality_condition: null
+  allow_multiple: false
+  calculation: ''
+  code: EQ_Selfcare
+  datatype: range
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: PERSONAL CARE
+  pattern: ''
+  pv_group: EQ_Selfcare
+  questionnaire_text: ''
+  widget_name: RadioSelect
+- abnormality_condition: null
+  allow_multiple: false
+  calculation: ''
+  code: EQ_UsualActivities
+  datatype: range
+  desc: ''
+  important: false
+  instructions: (e.g. work, study, housework, family or leisure activities)
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: USUAL ACTIVITIES
+  pattern: ''
+  pv_group: EQ_UsualActivities
+  questionnaire_text: ''
+  widget_name: RadioSelect
+- abnormality_condition: ''
+  allow_multiple: false
+  calculation: ''
+  code: ExamFindingsLC
+  datatype: string
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: 2000
+  max_value: null
+  min_value: null
+  name: Examination findings
+  pattern: ''
+  pv_group: null
+  questionnaire_text: ''
+  widget_name: Textarea
+- abnormality_condition: ''
+  allow_multiple: false
+  calculation: ''
+  code: FHXLUNG
+  datatype: range
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Have any of your first degree relatives had primary lung cancer?
+  pattern: ''
+  pv_group: FHXLUNG
+  questionnaire_text: ''
+  widget_name: RadioSelect
+- abnormality_condition: null
+  allow_multiple: false
+  calculation: ''
+  code: FIRSTSEENLC
+  datatype: date
+  desc: Date of first face to face meeting between a cancer specialist and a patient
+  important: false
+  instructions: Date of first face to face meeting between a cancer specialist and
+    a patient
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Date first seen
+  pattern: ''
+  pv_group: null
+  questionnaire_text: ''
+  widget_name: DateWidget
+- abnormality_condition: null
+  allow_multiple: false
+  calculation: ''
+  code: HISTOLLC
+  datatype: range
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Histology
+  pattern: ''
+  pv_group: HISTOLLC
+  questionnaire_text: ''
+  widget_name: RadioSelect
+- abnormality_condition: null
+  allow_multiple: false
+  calculation: ''
+  code: IMMUNOTXLC
+  datatype: range
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Immunotherapy
+  pattern: ''
+  pv_group: IMMUNOTXLC
+  questionnaire_text: ''
+  widget_name: RadioSelect
+- abnormality_condition: null
+  allow_multiple: false
+  calculation: ''
+  code: IMMUNOTXONGOINGLC
+  datatype: range
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Immunotherapy ongoing
+  pattern: ''
+  pv_group: IMMUNOTXONGOINGLC
+  questionnaire_text: ''
+  widget_name: RadioSelect
+- abnormality_condition: null
+  allow_multiple: false
+  calculation: ''
+  code: IMMUNOTXSTARTDATELC
+  datatype: date
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Immunotherapy start date
+  pattern: ''
+  pv_group: null
+  questionnaire_text: ''
+  widget_name: DateWidget
+- abnormality_condition: null
+  allow_multiple: false
+  calculation: ''
+  code: IMMUNOTXSTOPDATELC
+  datatype: date
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Immunotherapy stop date
+  pattern: ''
+  pv_group: null
+  questionnaire_text: ''
+  widget_name: DateWidget
+- abnormality_condition: null
+  allow_multiple: false
+  calculation: ''
+  code: INCIDENDATELC
+  datatype: date
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Date of pathologic (or clinical if no pathologic) diagnosis
+  pattern: ''
+  pv_group: null
+  questionnaire_text: ''
+  widget_name: DateWidget
+- abnormality_condition: ''
+  allow_multiple: false
+  calculation: ''
+  code: INCIDENDATEMETHODLC
+  datatype: range
+  desc: ''
+  important: false
+  instructions: Clinical only if pathologic diagnosis unavailable
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: How was the date of diagnosis defined?
+  pattern: ''
+  pv_group: INCIDENDATEMETHODLC
+  questionnaire_text: ''
+  widget_name: RadioSelect
+- abnormality_condition: null
+  allow_multiple: false
+  calculation: ''
+  code: INDIGSTATUS
+  datatype: range
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Indigenous status
+  pattern: ''
+  pv_group: INDIGSTATUS
+  questionnaire_text: ''
+  widget_name: RadioSelect
+- abnormality_condition: null
+  allow_multiple: false
+  calculation: ''
+  code: INHOSPITALLC
+  datatype: integer
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: 3
+  max_value: null
+  min_value: null
+  name: Number of days spent in hospital in the last 30 days of life
+  pattern: ''
+  pv_group: null
+  questionnaire_text: ''
+  widget_name: ''
+- abnormality_condition: ''
+  allow_multiple: false
+  calculation: //test
+  code: INITREVINTERVLC
+  datatype: calculated
+  desc: Number of days between referral to a specialist and initial review. FIRSTSEENLC
+    - REFDATELC
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Referral to initial review
+  pattern: ''
+  pv_group: null
+  questionnaire_text: ''
+  widget_name: ''
+- abnormality_condition: null
+  allow_multiple: false
+  calculation: ''
+  code: IXPLANLC
+  datatype: range
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Plan following initial investigations
+  pattern: ''
+  pv_group: IXPLANLC
+  questionnaire_text: ''
+  widget_name: RadioSelect
+- abnormality_condition: null
+  allow_multiple: false
+  calculation: ''
+  code: Intent_recurrenceLC
+  datatype: range
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: What is the intent of treatment for the recurrent or metachronous lung cancer?
+  pattern: ''
+  pv_group: Intent_recurrenceLC
+  questionnaire_text: ''
+  widget_name: RadioSelect
+- abnormality_condition: ''
+  allow_multiple: false
+  calculation: ''
+  code: InvestigationsLC
+  datatype: string
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Investigations
+  pattern: ''
+  pv_group: null
+  questionnaire_text: ''
+  widget_name: Textarea
+- abnormality_condition: ''
+  allow_multiple: false
+  calculation: ''
+  code: KCOLC
+  datatype: integer
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: '100.00'
+  min_value: '0.00'
+  name: Gas transfer, as measured by KCO
+  pattern: ''
+  pv_group: null
+  questionnaire_text: ''
+  widget_name: ''
+- abnormality_condition: null
+  allow_multiple: false
+  calculation: ''
+  code: LANGUAGELC
+  datatype: range
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Primary language spoken
+  pattern: ''
+  pv_group: LANGUAGELC
+  questionnaire_text: ''
+  widget_name: RadioSelect
+- abnormality_condition: null
+  allow_multiple: false
+  calculation: ''
+  code: LIVINGLC
+  datatype: range
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Living arrangements
+  pattern: ''
+  pv_group: LIVINGLC
+  questionnaire_text: ''
+  widget_name: RadioSelect
+- abnormality_condition: null
+  allow_multiple: false
+  calculation: ''
+  code: MARITAL
+  datatype: range
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Relationship status
+  pattern: ''
+  pv_group: MARITAL
+  questionnaire_text: ''
+  widget_name: RadioSelect
+- abnormality_condition: ''
+  allow_multiple: false
+  calculation: ''
+  code: MDTLC
+  datatype: range
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Was the patient presented at a lung cancer MDT?
+  pattern: ''
+  pv_group: MDTLC
+  questionnaire_text: ''
+  widget_name: RadioSelect
+- abnormality_condition: ''
+  allow_multiple: true
+  calculation: ''
+  code: MEDSLC
+  datatype: range
+  desc: Are you taking any of the following medications?
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Are you taking any of the following medications?
+  pattern: ''
+  pv_group: MEDSLC
+  questionnaire_text: ''
+  widget_name: ''
+- abnormality_condition: null
+  allow_multiple: false
+  calculation: ''
+  code: METACHLC
+  datatype: range
+  desc: 'Metachronous lung cancer is defined as: A) Histologically different. B) Histologically
+    identical if cancer free interval >4 years OR if it occurs in a different lobe
+    without nodal or metastatic spread'
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Has there been development of a metachronous lung cancer?
+  pattern: ''
+  pv_group: METACHLC
+  questionnaire_text: ''
+  widget_name: RadioSelect
+- abnormality_condition: null
+  allow_multiple: false
+  calculation: ''
+  code: MXDATELC
+  datatype: date
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Date of first treatment
+  pattern: ''
+  pv_group: null
+  questionnaire_text: ''
+  widget_name: DateWidget
+- abnormality_condition: ''
+  allow_multiple: false
+  calculation: // dummy line
+  code: MXINTERVAL1LC
+  datatype: calculated
+  desc: Number of days from initial referral to commencing treatment MXDATELC - REFDATELC
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Referral to treatment
+  pattern: ''
+  pv_group: null
+  questionnaire_text: ''
+  widget_name: ''
+- abnormality_condition: ''
+  allow_multiple: false
+  calculation: // dummy line
+  code: MXINTERVAL2LC
+  datatype: calculated
+  desc: Number of days from diagnosis to commencing treatment MXDATELC - INCIDENDATELC
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Diagnosis to treatment
+  pattern: ''
+  pv_group: null
+  questionnaire_text: ''
+  widget_name: ''
+- abnormality_condition: ''
+  allow_multiple: false
+  calculation: ''
+  code: Medicare
+  datatype: string
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Medicare Number
+  pattern: ''
+  pv_group: null
+  questionnaire_text: ''
+  widget_name: ''
+- abnormality_condition: null
+  allow_multiple: false
+  calculation: ''
+  code: Method_recurrenceLC
+  datatype: range
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Method of diagnosis of recurrent or metachronous lung cancer
+  pattern: ''
+  pv_group: Method_recurrenceLC
+  questionnaire_text: ''
+  widget_name: RadioSelect
+- abnormality_condition: ''
+  allow_multiple: true
+  calculation: ''
+  code: Mx_recurrenceLC
+  datatype: range
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: What is the treatment plan for the recurrent or metachronous lung cancer?
+  pattern: ''
+  pv_group: Mx_recurrenceLC
+  questionnaire_text: ''
+  widget_name: ''
+- abnormality_condition: null
+  allow_multiple: false
+  calculation: ''
+  code: NODLOCATIONLC
+  datatype: range
+  desc: ''
+  important: false
+  instructions: Patients with lung nodule only
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Location of nodule
+  pattern: ''
+  pv_group: NODLOCATIONLC
+  questionnaire_text: ''
+  widget_name: RadioSelect
+- abnormality_condition: null
+  allow_multiple: false
+  calculation: ''
+  code: NODSIZELC
+  datatype: integer
+  desc: ''
+  important: false
+  instructions: Nodule is <3cm. Mass is >3cm.
+  is_required: false
+  max_length: 2
+  max_value: null
+  min_value: null
+  name: Nodule size (mm)
+  pattern: ''
+  pv_group: null
+  questionnaire_text: ''
+  widget_name: ''
+- abnormality_condition: ''
+  allow_multiple: false
+  calculation: ''
+  code: NODSPICLC
+  datatype: range
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Is the nodule spiculated?
+  pattern: ''
+  pv_group: NODSPICLC
+  questionnaire_text: ''
+  widget_name: RadioSelect
+- abnormality_condition: ''
+  allow_multiple: false
+  calculation: ''
+  code: PDL_1
+  datatype: range
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: 'Mutation status: PDL -1'
+  pattern: ''
+  pv_group: EGFRLC
+  questionnaire_text: ''
+  widget_name: RadioSelect
+- abnormality_condition: ''
+  allow_multiple: false
+  calculation: ''
+  code: PERFORM
+  datatype: range
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Patient's ECOG/WHO performance status
+  pattern: ''
+  pv_group: PERFORM
+  questionnaire_text: ''
+  widget_name: RadioSelect
+- abnormality_condition: null
+  allow_multiple: false
+  calculation: ''
+  code: PETDATELC
+  datatype: date
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Date of PET scan
+  pattern: ''
+  pv_group: null
+  questionnaire_text: ''
+  widget_name: DateWidget
+- abnormality_condition: ''
+  allow_multiple: false
+  calculation: ''
+  code: PMI
+  datatype: string
+  desc: ''
+  important: false
+  instructions: Medical record number for public hospitals
+  is_required: false
+  max_length: 7
+  max_value: null
+  min_value: null
+  name: Patient Medical Index
+  pattern: ''
+  pv_group: null
+  questionnaire_text: ''
+  widget_name: ''
+- abnormality_condition: ''
+  allow_multiple: false
+  calculation: ''
+  code: PROMSConsent
+  datatype: range
+  desc: ''
+  important: false
+  instructions: Thank you for completing this survey.  We realise that the information
+    you have provided is personal and sensitive and so your confidentiality will be
+    protected at all times. Only your doctor will have access to your individual information.
+    Any use of your information for research purposes will only be in a non- identifiable,
+    combined format.
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Consent
+  pattern: ''
+  pv_group: fh_yes_no
+  questionnaire_text: ''
+  widget_name: ''
+- abnormality_condition: null
+  allow_multiple: false
+  calculation: ''
+  code: PULMFUNCAB
+  datatype: integer
+  desc: ''
+  important: false
+  instructions: In litres. Enter 999 if unknown
+  is_required: false
+  max_length: 3
+  max_value: null
+  min_value: null
+  name: Indicate the absolute value of FEV1 at time of lung cancer diagnosis
+  pattern: ''
+  pv_group: null
+  questionnaire_text: ''
+  widget_name: ''
+- abnormality_condition: null
+  allow_multiple: false
+  calculation: ''
+  code: PULMFUNCPER
+  datatype: integer
+  desc: ''
+  important: false
+  instructions: 0-100. Enter 999 if unknown
+  is_required: false
+  max_length: 3
+  max_value: null
+  min_value: null
+  name: Indicate the percentage predicted value of FEV1 at time of lung cancer diagnosis
+  pattern: ''
+  pv_group: null
+  questionnaire_text: ''
+  widget_name: ''
+- abnormality_condition: ''
+  allow_multiple: false
+  calculation: ''
+  code: PlanLC
+  datatype: string
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: 2000
+  max_value: null
+  min_value: null
+  name: Plan
+  pattern: ''
+  pv_group: null
+  questionnaire_text: ''
+  widget_name: Textarea
+- abnormality_condition: ''
+  allow_multiple: false
+  calculation: ''
+  code: PrivHosp
+  datatype: range
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Private hospital
+  pattern: ''
+  pv_group: PrivHospital
+  questionnaire_text: ''
+  widget_name: ''
+- abnormality_condition: ''
+  allow_multiple: false
+  calculation: ''
+  code: PrivHospMedRecNo
+  datatype: integer
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Private hospital medical record number
+  pattern: ''
+  pv_group: null
+  questionnaire_text: ''
+  widget_name: ''
+- abnormality_condition: ''
+  allow_multiple: false
+  calculation: ''
+  code: Ptaddress1
+  datatype: string
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Address
+  pattern: ''
+  pv_group: null
+  questionnaire_text: ''
+  widget_name: ''
+- abnormality_condition: ''
+  allow_multiple: false
+  calculation: ''
+  code: Ptaddress2
+  datatype: string
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Suburb
+  pattern: ''
+  pv_group: null
+  questionnaire_text: ''
+  widget_name: ''
+- abnormality_condition: ''
+  allow_multiple: false
+  calculation: ''
+  code: Ptaddress3
+  datatype: integer
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: 4
+  max_value: null
+  min_value: null
+  name: Postcode
+  pattern: ''
+  pv_group: null
+  questionnaire_text: ''
+  widget_name: ''
+- abnormality_condition: null
+  allow_multiple: false
+  calculation: ''
+  code: RADIOTXLC
+  datatype: range
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Radiotherapy
+  pattern: ''
+  pv_group: RADIOTXLC
+  questionnaire_text: ''
+  widget_name: RadioSelect
+- abnormality_condition: null
+  allow_multiple: false
+  calculation: ''
+  code: RADIOTXONGOINGLC
+  datatype: range
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Radiotherapy ongoing
+  pattern: ''
+  pv_group: RADIOTXONGOINGLC
+  questionnaire_text: ''
+  widget_name: RadioSelect
+- abnormality_condition: null
+  allow_multiple: false
+  calculation: ''
+  code: RADIOTXSTARTDATELC
+  datatype: date
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Radiotherapy start date
+  pattern: ''
+  pv_group: null
+  questionnaire_text: ''
+  widget_name: DateWidget
+- abnormality_condition: null
+  allow_multiple: false
+  calculation: ''
+  code: RADIOTXSTOPDATELC
+  datatype: date
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Radiotherapy stop date
+  pattern: ''
+  pv_group: null
+  questionnaire_text: ''
+  widget_name: DateWidget
+- abnormality_condition: null
+  allow_multiple: false
+  calculation: ''
+  code: RECURRENCELC
+  datatype: range
+  desc: Locoregional or metastatic cancer of the same histology as the primary cancer.
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Has there been recurrence of lung cancer?
+  pattern: ''
+  pv_group: RECURRENCELC
+  questionnaire_text: ''
+  widget_name: RadioSelect
+- abnormality_condition: null
+  allow_multiple: false
+  calculation: ''
+  code: REFDATELC
+  datatype: date
+  desc: 'Outpatient referral: Date referral received on WEBPAS for referral from primary
+    care provider (usually GP) or specialist requesting further investigation of suspected
+    lung cancer. Inpatient referral: Date of phone, oral, clinical referral to respiratory
+    physician'
+  important: false
+  instructions: 'Outpatient referral: Date referral received on WEBPAS for referral
+    from primary care provider (usually GP) or specialist requesting further investigation
+    of suspected lung cancer. Inpatient referral: Date of phone, oral, clinical referral
+    to respiratory physician'
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Date of referral
+  pattern: ''
+  pv_group: null
+  questionnaire_text: ''
+  widget_name: DateWidget
+- abnormality_condition: null
+  allow_multiple: false
+  calculation: ''
+  code: REVIEWLOC
+  datatype: range
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Location of first review
+  pattern: ''
+  pv_group: REVIEWLOC
+  questionnaire_text: ''
+  widget_name: RadioSelect
+- abnormality_condition: null
+  allow_multiple: false
+  calculation: ''
+  code: Region_recurrenceLC
+  datatype: range
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Region of recurrent lung cancer
+  pattern: ''
+  pv_group: Region_recurrenceLC
+  questionnaire_text: ''
+  widget_name: RadioSelect
+- abnormality_condition: ''
+  allow_multiple: false
+  calculation: ''
+  code: SMOKABSTINENTYRS
+  datatype: integer
+  desc: ''
+  important: false
+  instructions: Enter 999 if unknown
+  is_required: false
+  max_length: 3
+  max_value: null
+  min_value: null
+  name: How many years abstinent whilst smoking
+  pattern: ''
+  pv_group: null
+  questionnaire_text: ''
+  widget_name: ''
+- abnormality_condition: null
+  allow_multiple: false
+  calculation: ''
+  code: SMOKEPACKYEAR
+  datatype: integer
+  desc: The total number of cigarettes (manufactured or roll-your-own) smoked in pack
+    years calculated as number of pack-years = (number of cigarettes smoked per day/20)
+    × number of years smoked. Create a formula.
+  important: false
+  instructions: Enter 999 if unknown
+  is_required: false
+  max_length: 3
+  max_value: null
+  min_value: null
+  name: Number of smoking pack years
+  pattern: ''
+  pv_group: null
+  questionnaire_text: ''
+  widget_name: ''
+- abnormality_condition: null
+  allow_multiple: false
+  calculation: ''
+  code: SMOKING
+  datatype: range
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Smoking status at time of your lung cancer diagnosis
+  pattern: ''
+  pv_group: SMOKING
+  questionnaire_text: ''
+  widget_name: RadioSelect
+- abnormality_condition: ''
+  allow_multiple: false
+  calculation: ''
+  code: SMOKINGSTARTYEAR
+  datatype: integer
+  desc: ''
+  important: false
+  instructions: Enter 999 if unknown
+  is_required: false
+  max_length: 3
+  max_value: null
+  min_value: null
+  name: Age when started smoking
+  pattern: ''
+  pv_group: null
+  questionnaire_text: ''
+  widget_name: ''
+- abnormality_condition: ''
+  allow_multiple: false
+  calculation: ''
+  code: SMOKINGSTOPYEAR
+  datatype: integer
+  desc: ''
+  important: false
+  instructions: Enter 999 if unknown
+  is_required: false
+  max_length: 3
+  max_value: null
+  min_value: null
+  name: Age when stopped smoking
+  pattern: ''
+  pv_group: null
+  questionnaire_text: ''
+  widget_name: ''
+- abnormality_condition: null
+  allow_multiple: false
+  calculation: ''
+  code: SURGERYDATELC
+  datatype: date
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Date of this surgery
+  pattern: ''
+  pv_group: null
+  questionnaire_text: ''
+  widget_name: DateWidget
+- abnormality_condition: null
+  allow_multiple: false
+  calculation: ''
+  code: SURGERYLC
+  datatype: range
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Surgery
+  pattern: ''
+  pv_group: SURGERYLC
+  questionnaire_text: ''
+  widget_name: RadioSelect
+- abnormality_condition: ''
+  allow_multiple: false
+  calculation: ''
+  code: SYNCHLC
+  datatype: range
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Is there a synchronous cancer?
+  pattern: ''
+  pv_group: SYNCHLC
+  questionnaire_text: ''
+  widget_name: RadioSelect
+- abnormality_condition: null
+  allow_multiple: false
+  calculation: ''
+  code: State
+  datatype: range
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: State
+  pattern: ''
+  pv_group: State
+  questionnaire_text: ''
+  widget_name: ''
+- abnormality_condition: null
+  allow_multiple: false
+  calculation: ''
+  code: SuburbTown
+  datatype: string
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: true
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Suburb/Town
+  pattern: ''
+  pv_group: null
+  questionnaire_text: ''
+  widget_name: ''
+- abnormality_condition: null
+  allow_multiple: false
+  calculation: ''
+  code: TARGETTXLC
+  datatype: range
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Targeted therapy
+  pattern: ''
+  pv_group: TARGETTXLC
+  questionnaire_text: ''
+  widget_name: RadioSelect
+- abnormality_condition: null
+  allow_multiple: false
+  calculation: ''
+  code: TARGETTXONGOINGLC
+  datatype: range
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Targeted therapy ongoing
+  pattern: ''
+  pv_group: TARGETTXONGOINGLC
+  questionnaire_text: ''
+  widget_name: RadioSelect
+- abnormality_condition: null
+  allow_multiple: false
+  calculation: ''
+  code: TARGETTXSTARTDATELC
+  datatype: date
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Targeted therapy start date
+  pattern: ''
+  pv_group: null
+  questionnaire_text: ''
+  widget_name: DateWidget
+- abnormality_condition: null
+  allow_multiple: false
+  calculation: ''
+  code: TARGETTXSTOPDATELC
+  datatype: date
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Targeted therapy stop date
+  pattern: ''
+  pv_group: null
+  questionnaire_text: ''
+  widget_name: DateWidget
+- abnormality_condition: ''
+  allow_multiple: false
+  calculation: ''
+  code: THCLC
+  datatype: range
+  desc: Please indicate if you have ever used marijuana
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Have you ever used marijuana
+  pattern: ''
+  pv_group: THCLC
+  questionnaire_text: ''
+  widget_name: RadioSelect
+- abnormality_condition: ''
+  allow_multiple: false
+  calculation: ''
+  code: TNMCLC
+  datatype: range
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Overall clinical TNM stage
+  pattern: ''
+  pv_group: TNMCLC
+  questionnaire_text: ''
+  widget_name: RadioSelect
+- abnormality_condition: null
+  allow_multiple: false
+  calculation: ''
+  code: TNMCMLC
+  datatype: range
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Clinical metastatic stage
+  pattern: ''
+  pv_group: TNMCMLC
+  questionnaire_text: ''
+  widget_name: RadioSelect
+- abnormality_condition: null
+  allow_multiple: false
+  calculation: ''
+  code: TNMCNLC
+  datatype: range
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Clinical nodal stage
+  pattern: ''
+  pv_group: TNMCNLC
+  questionnaire_text: ''
+  widget_name: RadioSelect
+- abnormality_condition: null
+  allow_multiple: false
+  calculation: ''
+  code: TNMCSCLC
+  datatype: range
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Overall clinical TNM stage for SCLC
+  pattern: ''
+  pv_group: TNMCSCLC
+  questionnaire_text: ''
+  widget_name: RadioSelect
+- abnormality_condition: null
+  allow_multiple: false
+  calculation: ''
+  code: TNMCTLC
+  datatype: range
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Clinical tumour stage
+  pattern: ''
+  pv_group: TNMCTLC
+  questionnaire_text: ''
+  widget_name: RadioSelect
+- abnormality_condition: ''
+  allow_multiple: false
+  calculation: ''
+  code: TNMPLC
+  datatype: range
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Overall pathological TNM stage
+  pattern: ''
+  pv_group: TNMPLC
+  questionnaire_text: ''
+  widget_name: RadioSelect
+- abnormality_condition: null
+  allow_multiple: false
+  calculation: ''
+  code: TNMPMLC
+  datatype: range
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Pathological metastatic stage
+  pattern: ''
+  pv_group: TNMPMLC
+  questionnaire_text: ''
+  widget_name: RadioSelect
+- abnormality_condition: null
+  allow_multiple: false
+  calculation: ''
+  code: TNMPNLC
+  datatype: range
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Pathological nodal stage
+  pattern: ''
+  pv_group: TNMPNLC
+  questionnaire_text: ''
+  widget_name: RadioSelect
+- abnormality_condition: null
+  allow_multiple: false
+  calculation: ''
+  code: TNMPTLC
+  datatype: range
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Pathological tumor stage
+  pattern: ''
+  pv_group: TNMPTLC
+  questionnaire_text: ''
+  widget_name: RadioSelect
+- abnormality_condition: ''
+  allow_multiple: false
+  calculation: ''
+  code: TOTALINVLC
+  datatype: integer
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: 2
+  max_value: null
+  min_value: null
+  name: Total number of invasive investigations
+  pattern: ''
+  pv_group: null
+  questionnaire_text: ''
+  widget_name: ''
+- abnormality_condition: null
+  allow_multiple: false
+  calculation: ''
+  code: TREATCOMPLLC
+  datatype: range
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Was treatment completed
+  pattern: ''
+  pv_group: TREATCOMPLLC
+  questionnaire_text: ''
+  widget_name: RadioSelect
+- abnormality_condition: null
+  allow_multiple: false
+  calculation: ''
+  code: TREATINTLC
+  datatype: range
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Intent of treatment
+  pattern: ''
+  pv_group: TREATINTLC
+  questionnaire_text: ''
+  widget_name: RadioSelect
+- abnormality_condition: ''
+  allow_multiple: false
+  calculation: ''
+  code: Treating_clinician
+  datatype: range
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Treating clinician
+  pattern: ''
+  pv_group: treat_clinician
+  questionnaire_text: ''
+  widget_name: ''
+- abnormality_condition: ''
+  allow_multiple: false
+  calculation: ''
+  code: Treatment_speciality
+  datatype: range
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Which clinical speciality
+  pattern: ''
+  pv_group: TreatSpeciality
+  questionnaire_text: ''
+  widget_name: ''
+- abnormality_condition: ''
+  allow_multiple: false
+  calculation: ''
+  code: WEIGHTLLC
+  datatype: range
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Has there has been any unintentional weight loss
+  pattern: ''
+  pv_group: WEIGHTLLC
+  questionnaire_text: ''
+  widget_name: RadioSelect
+- abnormality_condition: null
+  allow_multiple: false
+  calculation: ''
+  code: followup_date
+  datatype: date
+  desc: Follow up appointment
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Date of follow up
+  pattern: ''
+  pv_group: null
+  questionnaire_text: ''
+  widget_name: DateWidget
+- abnormality_condition: null
+  allow_multiple: false
+  calculation: ''
+  code: followup_patient_status
+  datatype: range
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Patient Status at last follow up
+  pattern: ''
+  pv_group: followup_patient_status
+  questionnaire_text: ''
+  widget_name: RadioSelect
+- abnormality_condition: null
+  allow_multiple: false
+  calculation: ''
+  code: postcode
+  datatype: string
+  desc: Postcode
+  important: false
+  instructions: ''
+  is_required: true
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Postcode
+  pattern: ''
+  pv_group: null
+  questionnaire_text: ''
+  widget_name: ''
+- abnormality_condition: null
+  allow_multiple: false
+  calculation: ''
+  code: public_private
+  datatype: range
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Was the patient treated as a public or private patient?
+  pattern: ''
+  pv_group: public_private
+  questionnaire_text: ''
+  widget_name: RadioSelect
+code: ICHOMLC
+complete_fields: []
+consent_rules: []
+consent_sections:
+- applicability_condition: ''
+  code: promsconsentsection
+  information_link: null
+  information_text: Thank you for completing this survey. We realise that the information
+    you have provided is personal and sensitive and so your confidentiality will be
+    protected at all times. Only your doctor will have access to your individual information.
+    Any use of your information for research purposes will only be in a non- identifiable,
+    combined format.
+  questions:
+  - code: promsconsent
+    instructions: ''
+    position: 1
+    question_label: I consent to ongoing involvement in the CIC Cancer project and
+      receiving a reminder for the next survey.
+    questionnaire_label: ''
+  section_label: Proms Consent
+  validation_rule: ''
+context_form_groups:
+- context_type: M
+  forms:
+  - Followup_PROMS
+  is_default: false
+  name: FollowUp
+  naming_cde_to_use: null
+  naming_scheme: D
+  ordering: C
+- context_type: F
+  forms:
+  - Baseline_PROMS
+  - Patientinformation
+  - InitialReview
+  - IxPathwayAndDiagnosis
+  - Treatment
+  - Intervals
+  - Surv_Recur
+  is_default: true
+  name: Modules
+  naming_cde_to_use: null
+  naming_scheme: D
+  ordering: C
+custom_actions:
+- action_type: PR
+  code: pr
+  data: |-
+    # Initial review of patients with suspected lung cancer
+
+    |Name|DOB|Email|
+    |:---|:---|:---|
+    |{{ given_names }} {{ family_name }}|{{ date_of_birth }}|{{ email }}|
+    |**Unit medical record number**||**Country of Birth**|
+    |{{ umrn }}||{{ country_of_birth }}|
+    |**Date of referral**||**Date of first review**|
+    |{{ REFDATELC }}||{{ FIRSTSEENLC }}|
+
+    --------
+
+    ### DEMOGRAPHIC QUESTIONS
+
+    |||
+    |:---|:---|
+    |**1. Indigenous status** | {{ INDIGSTATUS }}|
+    |**2. Are you being treated as a private patient for this medical problem?**|{{ public_private }}|
+    |**3. Highest Level of Schooling**|{{ EDUCATIONLC }}|
+    |**4. Married/de facto status**|{{ MARITAL }}|
+    |**5. Current living arrangements**|{{ LIVINGLC }}|
+    |**6. Most commonly spoken language**|{{ LANGUAGELC }}|
+
+    --------------
+
+    ### LUNG CANCER RISK FACTORS
+
+    |||
+    |:---|:---|
+    |**1. Current smoking status**|{{ SMOKING }}|
+    |**2. How old were you when you started smoking?**|{{ SMOKINGSTARTYEAR }}|
+    |**3. How many years were you abstinent for?**|{{ SMOKABSTINENTYRS }}|
+    |**4. How old were you when you stopped smoking?**|{{ SMOKINGSTOPYEAR  }}|
+    |**5. What was your average number of cigarettes per day?**|{{ CIGDAY }}|
+    |**6. Asbestos exposure**|{{ ASBESTOS }}|
+    |**7. Marijuana use**|{{ THCLC }}|
+    |**8. First degree relative with primary lung cancer**|{{ FHXLUNG }}|
+
+    -----------------------------
+
+    ### PERFORMANCE STATUS AND CO-MORBIDITIES
+    **Current ECOG status:** {{ PERFORM }}
+    ### Lung diseases
+    {{ COMORBLUNG }}
+    {{ COMORBLUNG_freetext }}
+
+    ### Comorbidities
+    {{ COMORB }}
+    {{ COMORB_freetext }}
+
+
+    -------------------------------------
+    ### Medications
+    {{ MEDSLC }}
+
+    --------------
+    ### Why was your CT scan conducted?
+    {{ CTINDICATIONLC }}
+
+    --------------
+    ### Additional history
+    {{ AdditHistoryLC }}
+
+    --------------
+    ### Examination findings
+    {{ ExamFindingsLC }}
+
+    --------------
+    ### Investigations
+    {{ InvestigationsLC }}
+
+    ------------------------
+    ### Plan
+    {{ PlanLC }}
+
+    ----------------------
+  groups_allowed:
+  - Clinical Staff
+  include_all: false
+  name: Patient Report
+  runtime_spec: |-
+    {
+        "async": false
+     }
+  scope: P
+- action_type: SR
+  code: completion
+  data: |-
+    {"columns": [
+    {"type": "demographics",
+    "label": "Patient ID",
+    "name": "id"},
+    {"type": "demographics",
+    "label": "Sex",
+    "name": "sex"},
+    {"type": "demographics",
+    "label": "Given Names",
+    "name": "given_names"},
+    {"type": "demographics",
+    "label": "Family Name",
+    "name": "family_name"},
+    {"type": "%",
+    "name": "InitialReview",
+    "label": "Initial Review"},
+    {"type": "%",
+    "name": "Intervals",
+    "label": "Intervals"},
+    {"type": "%",
+    "name": "IxPathwayAndDiagnosis",
+    "label": "IxPathwayAndDiagnosis"},
+    {"type": "%",
+    "name": "Patientinformation",
+    "label": "Patientinformation"},
+
+    {"type": "%",
+    "name": "Surv_Recur",
+    "label": "Surv_Recur"},
+    {"type": "%",
+    "name": "Treatment",
+    "label": "Treatment"}
+    ],
+    "context_form_group": "Modules"
+    }
+  groups_allowed:
+  - Clinical Staff
+  include_all: false
+  name: CompletionReport
+  runtime_spec: '{"async": true}'
+  scope: U
+- action_type: DE
+  code: deident
+  data: '{}'
+  groups_allowed:
+  - Clinical Staff
+  include_all: false
+  name: DeidentifiedReport
+  runtime_spec: '{"async": false}'
+  scope: U
+- action_type: SR
+  code: identincludeall
+  data: '{}'
+  groups_allowed:
+  - Clinical Staff
+  include_all: true
+  name: IdentifiedReportAllFields
+  runtime_spec: '{"async": true}'
+  scope: U
+demographic_fields:
+- field: maiden_name
+  group: Clinical Staff
+  hidden: true
+  readonly: null
+  registry: ICHOMLC
+- field: umrn
+  group: Clinical Staff
+  hidden: true
+  readonly: null
+  registry: ICHOMLC
+- field: place_of_birth
+  group: Clinical Staff
+  hidden: true
+  readonly: null
+  registry: ICHOMLC
+- field: date_of_migration
+  group: Clinical Staff
+  hidden: true
+  readonly: null
+  registry: ICHOMLC
+- field: ethnic_origin
+  group: Clinical Staff
+  hidden: true
+  readonly: null
+  registry: ICHOMLC
+desc: ICHOM Lung Cancer
+email_notifications:
+- description: survey-request
+  disabled: false
+  email_from: no-reply@mg.ccgapps.com.au
+  email_templates:
+  - body: |-
+      Dear {{display_name}}<br>
+      <br>
+      You are receiving this email because you agreed to take part in the Continuous Improvement in Care (CIC) – Cancer Project.<br>
+      <br>
+      We would appreciate if you could complete the following survey prior to your next appointment with the doctor.<br>
+      <br>
+      Yours answers may help your doctor to identify any areas where you are having problems, so that these can be addressed.<br>
+      <br>
+      Please click on the following link to begin the survey:<br>
+      <br>
+      {{email_link}}
+    description: CIC survey request
+    language: en
+    subject: '{{registry_name}} {{survey_name}} Survey Request'
+  group_recipient: null
+  recipient: '{{patient_email}}'
+forms:
+- applicability_condition: ''
+  display_name: Baseline PROMS
+  header: |-
+    We are interested in some things about you and your health. Please answer all of
+    the questions yourself by selecting the answer that best applies to you. There are
+    no "right" or "wrong" answers. The information that you provide will remain strictly
+    confidential.
+  is_questionnaire: false
+  name: Baseline_PROMS
+  position: 0
+  questionnaire_display_name: ''
+  questionnaire_questions: ''
+  sections:
+  - allow_multiple: false
+    code: EORTCQLQC30_1a
+    display_name: Please answer all of the questions yourself by selecting the answer
+      that best applies to you
+    elements:
+    - EORTCQLQC30_Q01
+    - EORTCQLQC30_Q02
+    - EORTCQLQC30_Q03
+    - EORTCQLQC30_Q04
+    - EORTCQLQC30_Q05
+    extra: null
+    questionnaire_display_name: ''
+    questionnaire_help: ''
+  - allow_multiple: false
+    code: EORTCQLQC30_1b
+    display_name: 'During the past week:'
+    elements:
+    - EORTCQLQC30_Q06
+    - EORTCQLQC30_Q07
+    - EORTCQLQC30_Q08
+    - EORTCQLQC30_Q09
+    - EORTCQLQC30_Q10
+    - EORTCQLQC30_Q11
+    - EORTCQLQC30_Q12
+    - EORTCQLQC30_Q13
+    - EORTCQLQC30_Q14
+    - EORTCQLQC30_Q15
+    - EORTCQLQC30_Q16
+    - EORTCQLQC30_Q17
+    - EORTCQLQC30_Q18
+    - EORTCQLQC30_Q19
+    - EORTCQLQC30_Q20
+    - EORTCQLQC30_Q21
+    - EORTCQLQC30_Q22
+    - EORTCQLQC30_Q23
+    - EORTCQLQC30_Q24
+    - EORTCQLQC30_Q25
+    - EORTCQLQC30_Q26
+    - EORTCQLQC30_Q27
+    - EORTCQLQC30_Q28
+    extra: null
+    questionnaire_display_name: ''
+    questionnaire_help: ''
+  - allow_multiple: false
+    code: EORTCQLQC30_2
+    display_name: For the following questions please select the number between 1 and
+      7 that best applies to you
+    elements:
+    - EORTCQLQC30_Q29
+    - EORTCQLQC30_Q30
+    extra: null
+    questionnaire_display_name: ''
+    questionnaire_help: ''
+  - allow_multiple: false
+    code: EQ_5D
+    display_name: Under each heading, please tap the ONE box that best describes your
+      health TODAY
+    elements:
+    - EQ_Mobility
+    - EQ_Selfcare
+    - EQ_UsualActivities
+    - EQ_Pain_Discomfort
+    - EQ_Anxiety_Depress
+    - EQ_Health_Rate
+    extra: null
+    questionnaire_display_name: Under each heading, please tap the ONE box that best
+      describes your health TODAY
+    questionnaire_help: ''
+  - allow_multiple: false
+    code: EORTCQLQC13
+    display_name: 'During the past week:'
+    elements:
+    - EORTCQLQLC13_Q01
+    - EORTCQLQLC13_Q02
+    - EORTCQLQLC13_Q03
+    - EORTCQLQLC13_Q04
+    - EORTCQLQLC13_Q05
+    - EORTCQLQLC13_Q05
+    - EORTCQLQLC13_Q06
+    - EORTCQLQLC13_Q07
+    - EORTCQLQLC13_Q08
+    - EORTCQLQLC13_Q09
+    - EORTCQLQLC13_Q10
+    - EORTCQLQLC13_Q11
+    - EORTCQLQLC13_Q12
+    - EORTCQLQLC13_Q12SUB
+    - EORTCQLQLC13_Q13
+    - EORTCQLQLC13_Q13SUB
+    extra: null
+    questionnaire_display_name: ''
+    questionnaire_help: ''
+- applicability_condition: ''
+  display_name: Follow up PROMS
+  header: ''
+  is_questionnaire: false
+  name: Followup_PROMS
+  position: 0
+  questionnaire_display_name: ''
+  questionnaire_questions: ''
+  sections:
+  - allow_multiple: false
+    code: EORTCQLQC30_1a
+    display_name: Please answer all of the questions yourself by selecting the answer
+      that best applies to you
+    elements:
+    - EORTCQLQC30_Q01
+    - EORTCQLQC30_Q02
+    - EORTCQLQC30_Q03
+    - EORTCQLQC30_Q04
+    - EORTCQLQC30_Q05
+    extra: null
+    questionnaire_display_name: ''
+    questionnaire_help: ''
+  - allow_multiple: false
+    code: EORTCQLQC30_1b
+    display_name: 'During the past week:'
+    elements:
+    - EORTCQLQC30_Q06
+    - EORTCQLQC30_Q07
+    - EORTCQLQC30_Q08
+    - EORTCQLQC30_Q09
+    - EORTCQLQC30_Q10
+    - EORTCQLQC30_Q11
+    - EORTCQLQC30_Q12
+    - EORTCQLQC30_Q13
+    - EORTCQLQC30_Q14
+    - EORTCQLQC30_Q15
+    - EORTCQLQC30_Q16
+    - EORTCQLQC30_Q17
+    - EORTCQLQC30_Q18
+    - EORTCQLQC30_Q19
+    - EORTCQLQC30_Q20
+    - EORTCQLQC30_Q21
+    - EORTCQLQC30_Q22
+    - EORTCQLQC30_Q23
+    - EORTCQLQC30_Q24
+    - EORTCQLQC30_Q25
+    - EORTCQLQC30_Q26
+    - EORTCQLQC30_Q27
+    - EORTCQLQC30_Q28
+    extra: null
+    questionnaire_display_name: ''
+    questionnaire_help: ''
+  - allow_multiple: false
+    code: EORTCQLQC30_2
+    display_name: For the following questions please select the number between 1 and
+      7 that best applies to you
+    elements:
+    - EORTCQLQC30_Q29
+    - EORTCQLQC30_Q30
+    extra: null
+    questionnaire_display_name: ''
+    questionnaire_help: ''
+  - allow_multiple: false
+    code: EQ_5D
+    display_name: Under each heading, please tap the ONE box that best describes your
+      health TODAY
+    elements:
+    - EQ_Mobility
+    - EQ_Selfcare
+    - EQ_UsualActivities
+    - EQ_Pain_Discomfort
+    - EQ_Anxiety_Depress
+    - EQ_Health_Rate
+    extra: null
+    questionnaire_display_name: Under each heading, please tap the ONE box that best
+      describes your health TODAY
+    questionnaire_help: ''
+  - allow_multiple: false
+    code: EORTCQLQC13
+    display_name: 'During the past week:'
+    elements:
+    - EORTCQLQLC13_Q01
+    - EORTCQLQLC13_Q02
+    - EORTCQLQLC13_Q03
+    - EORTCQLQLC13_Q04
+    - EORTCQLQLC13_Q05
+    - EORTCQLQLC13_Q05
+    - EORTCQLQLC13_Q06
+    - EORTCQLQLC13_Q07
+    - EORTCQLQLC13_Q08
+    - EORTCQLQLC13_Q09
+    - EORTCQLQLC13_Q10
+    - EORTCQLQLC13_Q11
+    - EORTCQLQLC13_Q12
+    - EORTCQLQLC13_Q12SUB
+    - EORTCQLQLC13_Q13
+    - EORTCQLQLC13_Q13SUB
+    extra: null
+    questionnaire_display_name: ''
+    questionnaire_help: ''
+- applicability_condition: ''
+  display_name: Initial review
+  header: ''
+  is_questionnaire: false
+  name: InitialReview
+  position: 1
+  questionnaire_display_name: ''
+  questionnaire_questions: ''
+  sections:
+  - allow_multiple: false
+    code: DatesAndLocationLC
+    display_name: Dates and location
+    elements:
+    - REFDATELC
+    - FIRSTSEENLC
+    - REVIEWLOC
+    extra: null
+    questionnaire_display_name: ''
+    questionnaire_help: ''
+  - allow_multiple: false
+    code: PastMedHistory
+    display_name: Past medical history and performance status
+    elements:
+    - WEIGHTLLC
+    - COMORBLUNG
+    - COMORBLUNG_freetext
+    - COMORB
+    - COMORB_freetext
+    - PULMFUNCAB
+    - PULMFUNCPER
+    - KCOLC
+    - MEDSLC
+    - PERFORM
+    extra: null
+    questionnaire_display_name: ''
+    questionnaire_help: ''
+  - allow_multiple: false
+    code: RiskFactorsSmoking
+    display_name: Lung cancer risk factors - Smoking
+    elements:
+    - SMOKING
+    - SMOKINGSTARTYEAR
+    - SMOKINGSTOPYEAR
+    - SMOKABSTINENTYRS
+    - CIGDAY
+    - SMOKEPACKYEAR
+    extra: null
+    questionnaire_display_name: ''
+    questionnaire_help: ''
+  - allow_multiple: false
+    code: RiskFactorsNonSmoking
+    display_name: Lung cancer risk factors - Non-smoking
+    elements:
+    - THCLC
+    - ASBESTOS
+    - FHXLUNG
+    extra: null
+    questionnaire_display_name: ''
+    questionnaire_help: ''
+  - allow_multiple: false
+    code: ClinNotesLC
+    display_name: Clinical notes
+    elements:
+    - CTINDICATIONLC
+    - AdditHistoryLC
+    - ExamFindingsLC
+    - InvestigationsLC
+    - PlanLC
+    extra: null
+    questionnaire_display_name: ''
+    questionnaire_help: ''
+- applicability_condition: ''
+  display_name: Time intervals
+  header: ''
+  is_questionnaire: false
+  name: Intervals
+  position: 4
+  questionnaire_display_name: ''
+  questionnaire_questions: ''
+  sections:
+  - allow_multiple: false
+    code: IntervalsCalc
+    display_name: Time intervals
+    elements:
+    - INITREVINTERVLC
+    - DXINTERVALLC
+    - MXINTERVAL1LC
+    - MXINTERVAL2LC
+    extra: null
+    questionnaire_display_name: ''
+    questionnaire_help: ''
+- applicability_condition: ''
+  display_name: Investigation pathway and diagnosis
+  header: ''
+  is_questionnaire: false
+  name: IxPathwayAndDiagnosis
+  position: 2
+  questionnaire_display_name: ''
+  questionnaire_questions: ''
+  sections:
+  - allow_multiple: false
+    code: InitialAbnCTScan
+    display_name: Initial abnormal CT scan
+    elements:
+    - CTDATELC
+    - NODLOCATIONLC
+    - NODSIZELC
+    - NODSPICLC
+    - IXPLANLC
+    extra: null
+    questionnaire_display_name: ''
+    questionnaire_help: ''
+  - allow_multiple: false
+    code: CTObservation
+    display_name: CT observation
+    elements:
+    - CTOBSDUELC
+    - CTOBSDONELC
+    - CTOBSOUTCOMELC
+    extra: null
+    questionnaire_display_name: ''
+    questionnaire_help: ''
+  - allow_multiple: true
+    code: InvasiveInvestigations
+    display_name: Invasive investigations
+    elements:
+    - 1DIAGINVTYPELC
+    - 1DIAGINVDATELC
+    - 1diag_stageLC
+    - 1DIAGINVOUTCLC
+    - 1DIAGINVCOMPLC
+    - 1DIAGINVCOMPOTHLC
+    extra: null
+    questionnaire_display_name: ''
+    questionnaire_help: ''
+  - allow_multiple: false
+    code: TotalInvasiveInvestigations
+    display_name: Total number of diagnostic investigations
+    elements:
+    - TOTALINVLC
+    extra: null
+    questionnaire_display_name: ''
+    questionnaire_help: ''
+  - allow_multiple: false
+    code: PETScan
+    display_name: PET Scan
+    elements:
+    - PETDATELC
+    extra: null
+    questionnaire_display_name: ''
+    questionnaire_help: ''
+  - allow_multiple: false
+    code: FinalDx
+    display_name: Diagnosis
+    elements:
+    - DXLC
+    - INCIDENDATELC
+    - INCIDENDATEMETHODLC
+    - BASISDIAGNLC
+    - HISTOLLC
+    - SYNCHLC
+    - ALKLC
+    - EGFRLC
+    - PDL_1
+    - TNMCTLC
+    - TNMCNLC
+    - TNMCMLC
+    - TNMCLC
+    - TNMCSCLC
+    - MDTLC
+    extra: null
+    questionnaire_display_name: ''
+    questionnaire_help: ''
+- applicability_condition: ''
+  display_name: Patient information
+  header: Patient Information
+  is_questionnaire: false
+  name: Patientinformation
+  position: 0
+  questionnaire_display_name: ''
+  questionnaire_questions: ''
+  sections:
+  - allow_multiple: false
+    code: DEMOGRAPHICSLC
+    display_name: Patient information
+    elements:
+    - INDIGSTATUS
+    - public_private
+    - EDUCATIONLC
+    - MARITAL
+    - LIVINGLC
+    - LANGUAGELC
+    extra: null
+    questionnaire_display_name: ''
+    questionnaire_help: ''
+  - allow_multiple: false
+    code: PtIdentifiers1
+    display_name: Public Hospital Medical Record Number
+    elements:
+    - PMI
+    extra: null
+    questionnaire_display_name: ''
+    questionnaire_help: ''
+  - allow_multiple: true
+    code: PrivHospCodes
+    display_name: Private Hospital Records
+    elements:
+    - PrivHosp
+    - PrivHospMedRecNo
+    extra: null
+    questionnaire_display_name: Private Hospital Records
+    questionnaire_help: ''
+  - allow_multiple: false
+    code: PtIdentifiers2
+    display_name: Patient identifiers
+    elements:
+    - Medicare
+    - Ptaddress1
+    - Ptaddress2
+    - Ptaddress3
+    extra: null
+    questionnaire_display_name: Patient identifiers
+    questionnaire_help: ''
+  - allow_multiple: true
+    code: Consultants
+    display_name: Treating consultants
+    elements:
+    - Treating_clinician
+    - Treatment_speciality
+    extra: null
+    questionnaire_display_name: ''
+    questionnaire_help: ''
+- applicability_condition: ''
+  display_name: Survival and Recurrence
+  header: ''
+  is_questionnaire: false
+  name: Surv_Recur
+  position: 5
+  questionnaire_display_name: ''
+  questionnaire_questions: ''
+  sections:
+  - allow_multiple: false
+    code: Followup
+    display_name: Follow up
+    elements:
+    - followup_date
+    - followup_patient_status
+    extra: null
+    questionnaire_display_name: ''
+    questionnaire_help: ''
+  - allow_multiple: false
+    code: Recur
+    display_name: Recurrence
+    elements:
+    - RECURRENCELC
+    - METACHLC
+    - Date_recurrenceLC
+    - Method_recurrenceLC
+    - Region_recurrenceLC
+    - Mx_recurrenceLC
+    - Intent_recurrenceLC
+    extra: null
+    questionnaire_display_name: ''
+    questionnaire_help: ''
+  - allow_multiple: false
+    code: Survival
+    display_name: Survival
+    elements:
+    - DEATH
+    - DEATHDATE
+    - DEATHLC
+    - DEATHLCTX
+    - DEATHPLACELC
+    - INHOSPITALLC
+    extra: null
+    questionnaire_display_name: ''
+    questionnaire_help: ''
+- applicability_condition: ''
+  display_name: Treatment
+  header: ''
+  is_questionnaire: false
+  name: Treatment
+  position: 3
+  questionnaire_display_name: ''
+  questionnaire_questions: ''
+  sections:
+  - allow_multiple: false
+    code: Treatment
+    display_name: Treatment - all patients
+    elements:
+    - TREATINTLC
+    - TREATCOMPLLC
+    - MXDATELC
+    extra: null
+    questionnaire_display_name: ''
+    questionnaire_help: ''
+  - allow_multiple: false
+    code: SurgeryAndComp
+    display_name: Surgery during the last year
+    elements:
+    - SURGERYLC
+    - SURGERYDATELC
+    - TNMPTLC
+    - TNMPNLC
+    - TNMPMLC
+    - TNMPLC
+    - COMPLSURGLC
+    extra: null
+    questionnaire_display_name: ''
+    questionnaire_help: ''
+  - allow_multiple: false
+    code: SystemicTherapy
+    display_name: Systemic therapy during the last year
+    elements:
+    - TARGETTXLC
+    - TARGETTXSTARTDATELC
+    - TARGETTXSTOPDATELC
+    - TARGETTXONGOINGLC
+    - CHEMOTXLC
+    - CHEMOTXSTARTDATELC
+    - CHEMOTXSTOPDATELC
+    - CHEMOTXONGOINGLC
+    - IMMUNOTXLC
+    - IMMUNOTXSTARTDATELC
+    - IMMUNOTXSTOPDATELC
+    - IMMUNOTXONGOINGLC
+    extra: null
+    questionnaire_display_name: ''
+    questionnaire_help: ''
+  - allow_multiple: false
+    code: SystemicComplications
+    display_name: Complications of systemic therapy
+    elements:
+    - COMPLSYSLC
+    - COMPLSYSOTHERLC
+    - COMPLSYSCYTODATELC
+    - COMPLSYSINFDATELC
+    - COMPLSYSSKIDATELC
+    - COMPLSYSPNEDATELC
+    - COMPLSYSOESDATELC
+    - COMPLSYSNEURODATELC
+    - COMPLSYSKIDDATELC
+    - COMPLSYSOTHERDATELC
+    extra: null
+    questionnaire_display_name: ''
+    questionnaire_help: ''
+  - allow_multiple: false
+    code: RadiotherapyAndCompl
+    display_name: Radiotherapy during the last year
+    elements:
+    - RADIOTXLC
+    - RADIOTXSTARTDATELC
+    - RADIOTXSTOPDATELC
+    - RADIOTXONGOINGLC
+    - COMPLRADLC
+    - COMPLRADOTHERLC
+    - COMPLRADCYTODATELC
+    - COMPLRADINFDATELC
+    - COMPLRADSKIDATELC
+    - COMPLRADPNEDATELC
+    - COMPLRADOESDATELC
+    - COMPLRADNEURODATELC
+    - COMPLRADKIDDATELC
+    - COMPLRADOTHERDATELC
+    extra: null
+    questionnaire_display_name: ''
+    questionnaire_help: ''
+forms_allowed_groups:
+  Baseline_PROMS: []
+  Followup_PROMS: []
+  InitialReview: []
+  Intervals: []
+  IxPathwayAndDiagnosis: []
+  Patientinformation: []
+  Surv_Recur: []
+  Treatment: []
+generic_sections:
+- allow_multiple: false
+  code: PatientData
+  display_name: Personal Information
+  elements:
+  - CDEPatientCentre
+  - CDEPatientFamilyName
+  - CDEPatientGivenNames
+  - CDEPatientDateOfBirth
+  - CDEPatientSex
+  - CDEPatientHomePhone
+  - CDEPatientMobilePhone
+  - CDEPatientEmail
+  - CDEPatientNextOfKinFamilyName
+  - CDEPatientNextOfKinGivenNames
+  - CDEPatientNOKRelationship
+  - CDEPatientNextOfKinEmail
+  - CDEPatientNextOfKinAddress
+  - CDEPatientNextOfKinSuburb
+  - CDEPatientNextOfKinState
+  extra: null
+  questionnaire_display_name: ''
+  questionnaire_help: ''
+- allow_multiple: true
+  code: PatientDataAddressSection
+  display_name: Addresses
+  elements:
+  - AddressType
+  - Address
+  - Country
+  - State
+  - SuburbTown
+  - postcode
+  extra: null
+  questionnaire_display_name: ''
+  questionnaire_help: ''
+metadata_json: |-
+  {"features": ["proms_clinical","contexts","proms_adding_disabled"],
+  "section_blacklist": ["Next of Kin", "Patient Doctor", "Patient Address"],
+  "surveys": [ {"code": "FollowUpLung", "description": "FollowUpPROMS"},
+  {"code": "BaselineLung", "description": "Baseline PROMS - Lung cancer"}],
+  "proms_system_url": "https://rdrf.ccgapps.com.au/ciclungproms",
+  "preamble_text":"This survey helps us to understand how your cancer care and treatment affects your life, from your point of view. The information you provide will help your health team to provide care that better meets your individual needs. What you tell us will also help to improve care for people who undergo medical treatments in the future. There is more than one questionnaire in the survey. So some of the questions may seem the same. This is because we are trying to work out if one or another questionnaire is better to use. In the future, this will lead to a much shorter survey. So please try to answer all the questions. Thank you again for taking part in the study.","copyright_text":"Lorem ipsum dolor sit amet, consectetur adipiscing elit. Praesent cursus ante id nulla eleifend, facilisis venenatis lacus porta. Vestibulum viverra odio vel mauris faucibus maximus. Aenean quis dui venenatis, iaculis tellus vitae, maximus nibh. Pellentesque quam nibh, hendrerit nec quam in, semper porta eros.","consents":{"PROMSConsent":"promsconsent"}
+  }
+name: ICHOM Lung Cancer
+patient_data_section: {}
+pvgs:
+- code: 1DIAGINVCOMPLC
+  values:
+  - code: '4'
+    desc: Other
+    position: 4
+    questionnaire_value: Other
+    value: Other
+  - code: '3'
+    desc: Unexpected escalation in care needs
+    position: 3
+    questionnaire_value: Unexpected escalation in care needs
+    value: Unexpected escalation in care needs
+  - code: '2'
+    desc: PTX, ICC
+    position: 2
+    questionnaire_value: PTX, ICC
+    value: PTX, ICC
+  - code: '1'
+    desc: PTX, no ICC
+    position: 1
+    questionnaire_value: PTX, no ICC
+    value: PTX, no ICC
+  - code: '0'
+    desc: None
+    position: 0
+    questionnaire_value: None
+    value: None
+- code: 1DIAGINVOUTCLC
+  values:
+  - code: '3'
+    desc: Non diagnostic
+    position: 3
+    questionnaire_value: Non diagnostic
+    value: Non diagnostic
+  - code: '2'
+    desc: Diagnostic but insufficient for all tests
+    position: 2
+    questionnaire_value: Diagnostic but insufficient for all tests
+    value: Diagnostic but insufficient for all tests
+  - code: '1'
+    desc: Diagnostic
+    position: 1
+    questionnaire_value: DIagnostic
+    value: Diagnostic
+- code: 1DIAGINVTYPELC
+  values:
+  - code: '18'
+    desc: EBUS and Bronchoscopy
+    position: 5
+    questionnaire_value: EBUS and Bronchoscopy
+    value: EBUS and Bronchoscopy
+  - code: '16'
+    desc: Clinical diagnosis
+    position: 17
+    questionnaire_value: Clinical diagnosis
+    value: Clinical diagnosis
+  - code: '15'
+    desc: Primary resection
+    position: 16
+    questionnaire_value: Primary resection
+    value: Primary resection
+  - code: '14'
+    desc: VATS
+    position: 15
+    questionnaire_value: VATS
+    value: VATS
+  - code: '13'
+    desc: Pleuroscopy
+    position: 14
+    questionnaire_value: Pleuroscopy
+    value: Pleuroscopy
+  - code: '12'
+    desc: Pleural aspiration
+    position: 13
+    questionnaire_value: Pleural aspiration
+    value: Pleural aspiration
+  - code: '11'
+    desc: USS other biopsy
+    position: 12
+    questionnaire_value: USS other biopsy
+    value: USS other biopsy
+  - code: '10'
+    desc: USS liver biopsy
+    position: 11
+    questionnaire_value: USS liver biopsy
+    value: USS liver biopsy
+  - code: '9'
+    desc: USS lung/pleural biopsy
+    position: 10
+    questionnaire_value: USS lung/pleural biopsy
+    value: USS lung/pleural biopsy
+  - code: '8'
+    desc: USS LN biopsy
+    position: 9
+    questionnaire_value: USS LN biopsy
+    value: USS LN biopsy
+  - code: '7'
+    desc: CT other biopsy
+    position: 8
+    questionnaire_value: CT other biopsy
+    value: CT other biopsy
+  - code: '6'
+    desc: CT pleural biopsy
+    position: 7
+    questionnaire_value: CT pleural biopsy
+    value: CT pleural biopsy
+  - code: '5'
+    desc: CT lung biopsy
+    position: 6
+    questionnaire_value: CT lung biopsy
+    value: CT lung biopsy
+  - code: '17'
+    desc: Other
+    position: 17
+    questionnaire_value: Other
+    value: Other
+  - code: '4'
+    desc: EBUS both
+    position: 4
+    questionnaire_value: EBUS both
+    value: EBUS both
+  - code: '3'
+    desc: EBUS linear only
+    position: 3
+    questionnaire_value: EBUS linear only
+    value: EBUS linear only
+  - code: '2'
+    desc: EBUS radial only
+    position: 2
+    questionnaire_value: EBUS radial only
+    value: EBUS radial only
+  - code: '1'
+    desc: Bronchoscopy
+    position: 1
+    questionnaire_value: Bronchoscopy
+    value: Bronchoscopy
+- code: 1diag_stageLC
+  values:
+  - code: '999'
+    desc: Unknown
+    position: 999
+    questionnaire_value: Unknown
+    value: Unknown
+  - code: '0'
+    desc: Diagnostic
+    position: 0
+    questionnaire_value: Diagnostic
+    value: Diagnostic
+  - code: '1'
+    desc: Staging
+    position: 1
+    questionnaire_value: Staging
+    value: Staging
+- code: ALKLC
+  values:
+  - code: '999'
+    desc: Unknown
+    position: 999
+    questionnaire_value: Unknown
+    value: Unknown
+  - code: '2'
+    desc: Failed analysis
+    position: 2
+    questionnaire_value: Failed analysis
+    value: Failed analysis
+  - code: '1'
+    desc: 'Yes'
+    position: 1
+    questionnaire_value: 'Yes'
+    value: 'Yes'
+  - code: '0'
+    desc: 'No'
+    position: 0
+    questionnaire_value: 'No'
+    value: 'No'
+- code: ASBESTOS
+  values:
+  - code: Unknown
+    desc: Unknown
+    position: 999
+    questionnaire_value: Unknown
+    value: Unknown
+  - code: '1'
+    desc: 'Yes'
+    position: 1
+    questionnaire_value: 'Yes'
+    value: 'Yes'
+  - code: '0'
+    desc: 'No'
+    position: 0
+    questionnaire_value: 'No'
+    value: 'No'
+- code: AddressType
+  values:
+  - code: AddressTypePostal
+    desc: Postal
+    position: 2
+    questionnaire_value: Postal
+    value: Postal
+  - code: AddressTypeHome
+    desc: Home
+    position: 1
+    questionnaire_value: Home
+    value: Home
+- code: BASISDIAGNLC
+  values:
+  - code: '999'
+    desc: Unknown
+    position: 999
+    questionnaire_value: Unknown
+    value: Unknown
+  - code: '3'
+    desc: Cytological assessment
+    position: 3
+    questionnaire_value: Cytological assessment
+    value: Cytological assessment
+  - code: '2'
+    desc: Histological assessment
+    position: 2
+    questionnaire_value: Histological assessment
+    value: Histological assessment
+  - code: '1'
+    desc: Clinical assessment
+    position: 1
+    questionnaire_value: Clinical assessment
+    value: Clinical assessment
+- code: CHEMOTXLC
+  values:
+  - code: '1'
+    desc: 'Yes'
+    position: 1
+    questionnaire_value: 'Yes'
+    value: 'Yes'
+  - code: '0'
+    desc: 'No'
+    position: 0
+    questionnaire_value: 'No'
+    value: 'No'
+- code: CHEMOTXONGOINGLC
+  values:
+  - code: '1'
+    desc: Treatment ongoing
+    position: 1
+    questionnaire_value: Treatment ongoing
+    value: Treatment ongoing
+- code: COMORB
+  values:
+  - code: '0'
+    desc: I have no other diseases
+    position: 1
+    questionnaire_value: ''
+    value: I have no other diseases
+  - code: '1'
+    desc: Heart disease (For example, angina, heart attack, or heart failure)
+    position: 2
+    questionnaire_value: ''
+    value: Heart disease (For example, angina, heart attack, or heart failure)
+  - code: '2'
+    desc: High blood pressure
+    position: 3
+    questionnaire_value: ''
+    value: High blood pressure
+  - code: '3'
+    desc: Leg pain when walking due to poor circulation
+    position: 4
+    questionnaire_value: ''
+    value: Leg pain when walking due to poor circulation
+  - code: '5'
+    desc: Diabetes
+    position: 6
+    questionnaire_value: ''
+    value: Diabetes
+  - code: '6'
+    desc: Kidney disease
+    position: 7
+    questionnaire_value: ''
+    value: Kidney disease
+  - code: '7'
+    desc: Liver disease
+    position: 8
+    questionnaire_value: ''
+    value: Liver disease
+  - code: '8'
+    desc: Problems caused by stroke
+    position: 9
+    questionnaire_value: ''
+    value: Problems caused by stroke
+  - code: '9'
+    desc: Disease of the nervous system (For example, Parkinson's disease or multiple
+      sclerosis)
+    position: 10
+    questionnaire_value: null
+    value: Disease of the nervous system (For example, Parkinson's disease or multiple
+      sclerosis)
+  - code: '10'
+    desc: Other cancer -  deleted at Dave Manners request (within the last 5 years)
+    position: 11
+    questionnaire_value: null
+    value: Other cancer
+  - code: '11'
+    desc: Depression
+    position: 12
+    questionnaire_value: ''
+    value: Depression
+  - code: '12'
+    desc: Arthritis
+    position: 13
+    questionnaire_value: ''
+    value: Arthritis
+- code: COMPLSURGLC
+  values:
+  - code: '2'
+    desc: Yes, grade IV
+    position: 2
+    questionnaire_value: Yes, grade IV
+    value: Yes, grade IV
+  - code: '1'
+    desc: Yes, grade III
+    position: 1
+    questionnaire_value: Yes, grade III
+    value: Yes, grade III
+  - code: '0'
+    desc: 'No'
+    position: 0
+    questionnaire_value: 'No'
+    value: 'No'
+- code: COMPLSYSLC
+  values:
+  - code: '888'
+    desc: Other
+    position: 888
+    questionnaire_value: Other
+    value: Other
+  - code: '7'
+    desc: Acute kidney injury
+    position: 7
+    questionnaire_value: Acute kidney injury
+    value: Acute kidney injury
+  - code: '6'
+    desc: Neuropathy, tinnitus, hearing impaired, other neurologic toxicity
+    position: 6
+    questionnaire_value: Neuropathy, tinnitus, hearing impaired, other neurologic
+      toxicity
+    value: Neuropathy, tinnitus, hearing impaired, other neurologic toxicity
+  - code: '5'
+    desc: Oesophagitis, mucositis oral, nausea, vomiting, diarrhea, constipation,
+      other GI toxicity
+    position: 5
+    questionnaire_value: Oesophagitis, mucositis oral, nausea, vomiting, diarrhea,
+      constipation, other GI toxicity
+    value: Oesophagitis, mucositis oral, nausea, vomiting, diarrhea, constipation,
+      other GI toxicity
+  - code: '4'
+    desc: Pneumonitis, cough, dyspnea, other lung toxicity
+    position: 4
+    questionnaire_value: Pneumonitis, cough, dyspnea, other lung toxicity
+    value: Pneumonitis, cough, dyspnea, other lung toxicity
+  - code: '3'
+    desc: Skin reaction (rash, dermatitis radiation)
+    position: 3
+    questionnaire_value: Skin reaction (rash, dermatitis radiation)
+    value: Skin reaction (rash, dermatitis radiation)
+  - code: '2'
+    desc: Infection, any primary site
+    position: 2
+    questionnaire_value: Infection, any primary site
+    value: Infection, any primary site
+  - code: '1'
+    desc: |-
+      Cytopenias (anemia, febrile neutropenia, thrombocytopenia)Infection, any primary site, 3 = Skin reaction (rash, dermatitis radiation), 4 = Pneumonitis, cough, dyspnea, other lung toxicity, 5 = Oesophagitis, mucositis oral, nausea, vomiting, diarrhea, constipation, other GI
+      toxicity, 6 = Neuropathy, tinnitus, hearing impaired, other neurologic toxicity, 7 = Acute kidney injury, 888 = Other"
+    position: 1
+    questionnaire_value: Cytopenias (anemia, febrile neutropenia, thrombocytopenia)
+    value: Cytopenias (anemia, febrile neutropenia, thrombocytopenia)
+  - code: '0'
+    desc: |-
+      No grade III-­IV toxicityCytopenias (anemia, febrile neutropenia, thrombocytopenia), 2 = Infection, any primary site, 3 = Skin reaction (rash, dermatitis radiation), 4 = Pneumonitis, cough, dyspnea, other lung toxicity, 5 = Oesophagitis, mucositis oral, nausea, vomiting, diarrhea, constipation, other GI
+      toxicity, 6 = Neuropathy, tinnitus, hearing impaired, other neurologic toxicity, 7 = Acute kidney injury, 888 = Other"
+    position: 0
+    questionnaire_value: No grade III-­IV toxicity
+    value: No grade III-­IV toxicity
+- code: CTDATELC
+  values:
+  - code: '999'
+    desc: Unknown
+    position: 999
+    questionnaire_value: Unknown
+    value: Unknown
+  - code: '3'
+    desc: Screening
+    position: 3
+    questionnaire_value: Screening
+    value: Screening
+  - code: '2'
+    desc: Incidental finding
+    position: 2
+    questionnaire_value: Incidental finding
+    value: Incidental finding
+  - code: '1'
+    desc: Investigation of symptoms
+    position: 1
+    questionnaire_value: Investigation of symptoms
+    value: Investigation of symptoms
+- code: CTOBSOUTCOMELC
+  values:
+  - code: '3'
+    desc: Lost to follow up
+    position: 3
+    questionnaire_value: Lost to follow up
+    value: Lost to follow up
+  - code: '2'
+    desc: Proceed to invasive investigation
+    position: 2
+    questionnaire_value: Proceed to invasive investigation
+    value: Proceed to invasive investigation
+  - code: '1'
+    desc: Completed
+    position: 1
+    questionnaire_value: Completed
+    value: Completed
+- code: CoMorbidLung
+  values:
+  - code: '5'
+    desc: Other lung disease
+    position: 5
+    questionnaire_value: Other lung disease
+    value: Other lung disease
+  - code: '4'
+    desc: Asthma
+    position: 4
+    questionnaire_value: Asthma
+    value: Asthma
+  - code: '3'
+    desc: Chronic bronchitis
+    position: 3
+    questionnaire_value: Chronic bronchitis
+    value: Chronic bronchitis
+  - code: '2'
+    desc: Emphysema
+    position: 2
+    questionnaire_value: Emphysema
+    value: Emphysema
+  - code: '1'
+    desc: COPD
+    position: 1
+    questionnaire_value: COPD
+    value: COPD
+- code: Country
+  values:
+  - code: AU
+    desc: Australia
+    position: 1
+    questionnaire_value: Australia
+    value: Australia
+  - code: NZ
+    desc: New Zealand
+    position: 2
+    questionnaire_value: New Zealand
+    value: New Zealand
+- code: DEATH
+  values:
+  - code: '1'
+    desc: 'Yes'
+    position: 1
+    questionnaire_value: 'Yes'
+    value: 'Yes'
+  - code: '0'
+    desc: 'No'
+    position: 0
+    questionnaire_value: 'No'
+    value: 'No'
+- code: DEATHLC
+  values:
+  - code: '999'
+    desc: Unknown
+    position: 999
+    questionnaire_value: Unknown
+    value: Unknown
+  - code: '1'
+    desc: 'Yes'
+    position: 1
+    questionnaire_value: 'Yes'
+    value: 'Yes'
+  - code: '0'
+    desc: 'No'
+    position: 0
+    questionnaire_value: 'No'
+    value: 'No'
+- code: DEATHPLACELC
+  values:
+  - code: '4'
+    desc: Hospice
+    position: 4
+    questionnaire_value: 'Hospices: many hospices are "freestanding‟ but some are
+      found within hospitals. Also, hospices increasingly work in the community'
+    value: 'Hospices: many hospices are "freestanding‟ but some are found within hospitals.
+      Also, hospices increasingly work in the community'
+  - code: '2'
+    desc: 'Own residence: the death occurred in the place of usual residence where
+      this is not a communal establishment'
+    position: 2
+    questionnaire_value: 'Own residence: the death occurred in the place of usual
+      residence where this is not a communal establishment'
+    value: 'Own residence: the death occurred in the place of usual residence where
+      this is not a communal establishment'
+  - code: '888'
+    desc: Other
+    position: 888
+    questionnaire_value: Other
+    value: Other
+  - code: '3'
+    desc: 'Care home: private home or residential home or specialist nursing homes'
+    position: 3
+    questionnaire_value: 'Care home: private home or residential home or specialist
+      nursing homes'
+    value: 'Care home: private home or residential home or specialist nursing homes'
+  - code: '1'
+    desc: 'Hospital: acute or community hospitals/units but not psychiatric hospitals'
+    position: 1
+    questionnaire_value: 'Hospital: acute or community hospitals/units but not psychiatric
+      hospitals'
+    value: 'Hospital: acute or community hospitals/units but not psychiatric hospitals'
+- code: DXLC
+  values:
+  - code: '999'
+    desc: Unknown
+    position: 999
+    questionnaire_value: Unknown
+    value: Unknown
+  - code: '3'
+    desc: Other
+    position: 3
+    questionnaire_value: Other
+    value: Other
+  - code: '2'
+    desc: Non malignant
+    position: 2
+    questionnaire_value: Non malignant
+    value: Non malignant
+  - code: '1'
+    desc: Malignant
+    position: 1
+    questionnaire_value: Malignant
+    value: Malignant
+- code: EDUCATIONLC
+  values:
+  - code: '4'
+    desc: Tertiary
+    position: 4
+    questionnaire_value: Tertiary
+    value: Tertiary
+  - code: '3'
+    desc: Post secondary
+    position: 3
+    questionnaire_value: Post secondary
+    value: Post secondary
+  - code: '2'
+    desc: Secondary
+    position: 2
+    questionnaire_value: Secondary
+    value: Secondary
+  - code: '1'
+    desc: Primary
+    position: 1
+    questionnaire_value: Primary
+    value: Primary
+  - code: '0'
+    desc: None
+    position: 0
+    questionnaire_value: None
+    value: None
+- code: EGFRLC
+  values:
+  - code: '999'
+    desc: Unknown
+    position: 999
+    questionnaire_value: Unknown
+    value: Unknown
+  - code: '2'
+    desc: Failed analysis
+    position: 2
+    questionnaire_value: Failed analysis
+    value: Failed analysis
+  - code: '1'
+    desc: 'Yes'
+    position: 1
+    questionnaire_value: 'Yes'
+    value: 'Yes'
+  - code: '0'
+    desc: 'No'
+    position: 0
+    questionnaire_value: 'No'
+    value: 'No'
+- code: EORTC13
+  values:
+  - code: '4'
+    desc: Very much
+    position: 4
+    questionnaire_value: Very much
+    value: Very much
+  - code: '3'
+    desc: Quite a bit
+    position: 3
+    questionnaire_value: Quite a bit
+    value: Quite a bit
+  - code: '2'
+    desc: A little
+    position: 2
+    questionnaire_value: A little
+    value: A little
+  - code: '1'
+    desc: Not at all
+    position: 1
+    questionnaire_value: Not at all
+    value: Not at all
+- code: EORTCQLQC30
+  values:
+  - code: '4'
+    desc: Very much
+    position: 4
+    questionnaire_value: Very much
+    value: Very much
+  - code: '3'
+    desc: Quite a bit
+    position: 3
+    questionnaire_value: Quite a bit
+    value: Quite a bit
+  - code: '2'
+    desc: A little
+    position: 2
+    questionnaire_value: A little
+    value: A little
+  - code: '1'
+    desc: Not at all
+    position: 1
+    questionnaire_value: Not at all
+    value: Not at all
+- code: EQ_Anxiety_Depress
+  values:
+  - code: '5'
+    desc: I am extremely anxious or depressed
+    position: 5
+    questionnaire_value: I am extremely anxious or depressed
+    value: I am extremely anxious or depressed
+  - code: '4'
+    desc: I am severely anxious or depressed
+    position: 4
+    questionnaire_value: I am severely anxious or depressed
+    value: I am severely anxious or depressed
+  - code: '3'
+    desc: I am moderately anxious or depressed
+    position: 3
+    questionnaire_value: I am moderately anxious or depressed
+    value: I am moderately anxious or depressed
+  - code: '2'
+    desc: I am slightly anxious or depressed
+    position: 2
+    questionnaire_value: I am slightly anxious or depressed
+    value: I am slightly anxious or depressed
+  - code: '1'
+    desc: I am not anxious or depressed
+    position: 1
+    questionnaire_value: I am not anxious or depressed
+    value: I am not anxious or depressed
+- code: EQ_Mobility
+  values:
+  - code: '4'
+    desc: I have severe problems with walking around
+    position: 4
+    questionnaire_value: I have severe problems with walking around
+    value: I have severe problems with walking around
+  - code: '3'
+    desc: I have moderate problems with walking around
+    position: 3
+    questionnaire_value: I have moderate problems with walking around
+    value: I have moderate problems with walking around
+  - code: '5'
+    desc: I am unable to walk around
+    position: 5
+    questionnaire_value: I am unable to walk around
+    value: I am unable to walk around
+  - code: '2'
+    desc: I have slight problems with walking around
+    position: 2
+    questionnaire_value: I have slight problems with walking around
+    value: I have slight problems with walking around
+  - code: '1'
+    desc: I have no problems with walking around
+    position: 1
+    questionnaire_value: I have no problems with walking around
+    value: I have no problems with walking around
+- code: EQ_Pain_Discomfort
+  values:
+  - code: '5'
+    desc: I have extreme pain or discomfort
+    position: 5
+    questionnaire_value: I have extreme pain or discomfort
+    value: I have extreme pain or discomfort
+  - code: '4'
+    desc: I have severe pain or discomfort
+    position: 4
+    questionnaire_value: I have severe pain or discomfort
+    value: I have severe pain or discomfort
+  - code: '3'
+    desc: I have moderate pain or discomfort
+    position: 3
+    questionnaire_value: I have moderate pain or discomfort
+    value: I have moderate pain or discomfort
+  - code: '2'
+    desc: I have slight pain or discomfort
+    position: 2
+    questionnaire_value: I have slight pain or discomfort
+    value: I have slight pain or discomfort
+  - code: '1'
+    desc: I have no pain or discomfort
+    position: 1
+    questionnaire_value: I have no pain or discomfort
+    value: I have no pain or discomfort
+- code: EQ_Selfcare
+  values:
+  - code: '4'
+    desc: I have severe problems with washing or dressing myself
+    position: 4
+    questionnaire_value: I have severe problems with washing or dressing myself
+    value: I have severe problems with washing or dressing myself
+  - code: '5'
+    desc: I am unable to wash or dress myself
+    position: 5
+    questionnaire_value: I am unable to wash or dress myself
+    value: I am unable to wash or dress myself
+  - code: '3'
+    desc: I have moderate problems with washing or dressing myself
+    position: 3
+    questionnaire_value: I have moderate problems with washing or dressing myself
+    value: I have moderate problems with washing or dressing myself
+  - code: '2'
+    desc: I have slight problems with washing or dressing myself
+    position: 2
+    questionnaire_value: I have slight problems with washing or dressing myself
+    value: I have slight problems with washing or dressing myself
+  - code: '1'
+    desc: I have no problems with washing or dressing myself
+    position: 1
+    questionnaire_value: I have no problems with washing or dressing myself
+    value: I have no problems with washing or dressing myself
+- code: EQ_UsualActivities
+  values:
+  - code: '5'
+    desc: I am unable to do my usual activities
+    position: 5
+    questionnaire_value: I am unable to do my usual activities
+    value: I am unable to do my usual activities
+  - code: '4'
+    desc: I have severe problems doing my usual activities
+    position: 4
+    questionnaire_value: I have severe problems doing my usual activities
+    value: I have severe problems doing my usual activities
+  - code: '3'
+    desc: I have moderate problems doing my usual activities
+    position: 3
+    questionnaire_value: I have moderate problems doing my usual activities
+    value: I have moderate problems doing my usual activities
+  - code: '2'
+    desc: I have slight problems doing my usual activities
+    position: 2
+    questionnaire_value: I have slight problems doing my usual activities
+    value: I have slight problems doing my usual activities
+  - code: '1'
+    desc: I have no problems doing my usual activities
+    position: 1
+    questionnaire_value: I have no problems doing my usual activities
+    value: I have no problems doing my usual activities
+- code: FHXLUNG
+  values:
+  - code: Unknown
+    desc: Unknown
+    position: 999
+    questionnaire_value: Unknown
+    value: Unknown
+  - code: '0'
+    desc: 'No'
+    position: 0
+    questionnaire_value: 'No'
+    value: 'No'
+  - code: '1'
+    desc: 'Yes'
+    position: 1
+    questionnaire_value: 'Yes'
+    value: 'Yes'
+- code: HISTOLLC
+  values:
+  - code: '999'
+    desc: Unknown
+    position: 999
+    questionnaire_value: Unknown
+    value: Unknown
+  - code: '17'
+    desc: Metastatic disease from distant primary
+    position: 17
+    questionnaire_value: Metastatic disease from distant primary
+    value: Metastatic disease from distant primary
+  - code: '16'
+    desc: Carcinoid atypical (NET grade 2)
+    position: 16
+    questionnaire_value: Carcinoid atypical (NET grade 2)
+    value: Carcinoid atypical (NET grade 2)
+  - code: '15'
+    desc: Carcinoid typical (NET grade 1)
+    position: 15
+    questionnaire_value: Carcinoid typical (NET grade 1)
+    value: Carcinoid typical (NET grade 1)
+  - code: '14'
+    desc: Minimally invasive adenocarcinoma
+    position: 14
+    questionnaire_value: Minimally invasive adenocarcinoma
+    value: Minimally invasive adenocarcinoma
+  - code: '13'
+    desc: Adenocarcinoma in situ
+    position: 13
+    questionnaire_value: Adenocarcinoma in situ
+    value: Adenocarcinoma in situ
+  - code: '12'
+    desc: Atypical adenomatous hyperplasia
+    position: 12
+    questionnaire_value: Atypical adenomatous hyperplasia
+    value: Atypical adenomatous hyperplasia
+  - code: '11'
+    desc: NSCLC-­‐not otherwise specified
+    position: 11
+    questionnaire_value: NSCLC-­‐not otherwise specified
+    value: NSCLC-­‐not otherwise specified
+  - code: '10'
+    desc: NSCLC with spindle and/or giant cell carcinoma,
+    position: 10
+    questionnaire_value: NSCLC with spindle and/or giant cell carcinoma
+    value: NSCLC with spindle and/or giant cell carcinoma
+  - code: '9'
+    desc: NSCLC with NE morphology (negative NE markers)
+    position: 9
+    questionnaire_value: NSCLC with NE morphology (negative NE markers)
+    value: NSCLC with NE morphology (negative NE markers)
+  - code: '8'
+    desc: NSCLC with neuroendocrine (NE) morphology and positive NE markers; possible
+      large-cell neuroendocrine carcinoma
+    position: 8
+    questionnaire_value: NSCLC with neuroendocrine (NE) morphology and positive NE
+      markers; possible large-cell neuroendocrine carcinoma
+    value: NSCLC with neuroendocrine (NE) morphology and positive NE markers; possible
+      large-cell neuroendocrine carcinoma
+  - code: '7'
+    desc: NSCLC – favour squamous cell carcinoma
+    position: 7
+    questionnaire_value: NSCLC – favour squamous cell carcinoma
+    value: NSCLC – favour squamous cell carcinoma
+  - code: '6'
+    desc: Non-­small cell lung cancer (NSCLC) – favour adenocarcioma
+    position: 6
+    questionnaire_value: Non-­small cell lung cancer (NSCLC) – favour adenocarcioma
+    value: Non-­small cell lung cancer (NSCLC) – favour adenocarcioma
+  - code: '5'
+    desc: Small-cell carcinoma
+    position: 5
+    questionnaire_value: Small-cell carcinoma
+    value: Small-cell carcinoma
+  - code: '4'
+    desc: Squamous cell carcinoma
+    position: 4
+    questionnaire_value: Squamous cell carcinoma
+    value: Squamous cell carcinoma
+  - code: '3'
+    desc: Invasive mucinous adenocarcinoma
+    position: 3
+    questionnaire_value: Invasive mucinous adenocarcinoma
+    value: Invasive mucinous adenocarcinoma
+  - code: '2'
+    desc: Adenocarcinoma with lepidic pattern
+    position: 2
+    questionnaire_value: Adenocarcinoma with lepidic pattern
+    value: Adenocarcinoma with lepidic pattern
+  - code: '1'
+    desc: Adenocarcinoma
+    position: 1
+    questionnaire_value: Adenocarcinoma
+    value: Adenocarcinoma
+- code: IMMUNOTXLC
+  values:
+  - code: '1'
+    desc: 'Yes'
+    position: 1
+    questionnaire_value: 'Yes'
+    value: 'Yes'
+  - code: '0'
+    desc: 'No'
+    position: 0
+    questionnaire_value: 'No'
+    value: 'No'
+- code: IMMUNOTXONGOINGLC
+  values:
+  - code: '1'
+    desc: Treatment ongoing
+    position: 1
+    questionnaire_value: Treatment ongoing
+    value: Treatment ongoing
+- code: INCIDENDATEMETHODLC
+  values:
+  - code: '999'
+    desc: Unknown
+    position: 999
+    questionnaire_value: Unknown
+    value: Unknown
+  - code: '888'
+    desc: Other
+    position: 888
+    questionnaire_value: Other
+    value: Other
+  - code: '5'
+    desc: Clinical - date of first consultation at the outpatient clinic because of
+      this malignancy (if only outpatient data available)
+    position: 5
+    questionnaire_value: Clinical - date of first consultation at the outpatient clinic
+      because of this malignancy (if only outpatient data available)
+    value: Clinical - date of first consultation at the outpatient clinic because
+      of this malignancy (if only outpatient data available)
+  - code: '4'
+    desc: Clinical - date of admission to hospital because of this malignancy
+    position: 4
+    questionnaire_value: Clinical - date of admission to hospital because of this
+      malignancy
+    value: Clinical - date of admission to hospital because of this malignancy
+  - code: '3'
+    desc: Date of pathology report
+    position: 3
+    questionnaire_value: Date of pathology report
+    value: Date of pathology report
+  - code: '2'
+    desc: Date specimen received
+    position: 2
+    questionnaire_value: Date specimen received
+    value: Date specimen received
+  - code: '1'
+    desc: Date specimen taken
+    position: 1
+    questionnaire_value: Date specimen taken
+    value: Date specimen taken
+- code: INDIGSTATUS
+  values:
+  - code: '3'
+    desc: Aboriginal and Torres Strait Islander
+    position: 3
+    questionnaire_value: Aboriginal and Torres Strait Islander
+    value: Aboriginal and Torres Strait Islander
+  - code: '2'
+    desc: Torres Strait Islander
+    position: 2
+    questionnaire_value: Torres Strait Islander
+    value: Torres Strait Islander
+  - code: '1'
+    desc: Aboriginal
+    position: 1
+    questionnaire_value: Aboriginal
+    value: Aboriginal
+  - code: '0'
+    desc: Neither
+    position: 0
+    questionnaire_value: Neither
+    value: Neither
+- code: IXPLANLC
+  values:
+  - code: '3'
+    desc: No further inestigation
+    position: 3
+    questionnaire_value: No further investigation
+    value: No further investigation
+  - code: '2'
+    desc: Invasive investigation
+    position: 2
+    questionnaire_value: Invasive investigation
+    value: Invasive investigation
+  - code: '1'
+    desc: CT observation
+    position: 1
+    questionnaire_value: CT observation
+    value: CT observation
+- code: Intent_recurrenceLC
+  values:
+  - code: '999'
+    desc: Unknown
+    position: 999
+    questionnaire_value: Unknown
+    value: Unknown
+  - code: '2'
+    desc: Palliative
+    position: 2
+    questionnaire_value: Palliative
+    value: Palliative
+  - code: '1'
+    desc: Curative
+    position: 1
+    questionnaire_value: Curative
+    value: Curative
+- code: LANGUAGELC
+  values:
+  - code: '3'
+    desc: LOTE, interpreter required
+    position: 3
+    questionnaire_value: LOTE, interpreter required
+    value: LOTE, interpreter required
+  - code: '2'
+    desc: LOTE, interpreter not required
+    position: 2
+    questionnaire_value: LOTE, interpreter not required
+    value: LOTE, interpreter not required
+  - code: '1'
+    desc: English
+    position: 1
+    questionnaire_value: English
+    value: English
+- code: LIVINGLC
+  values:
+  - code: '6'
+    desc: Other
+    position: 6
+    questionnaire_value: Other
+    value: Other
+  - code: '5'
+    desc: Homeless
+    position: 5
+    questionnaire_value: Homeless
+    value: Homeless
+  - code: '4'
+    desc: Prisoner
+    position: 4
+    questionnaire_value: Prisoner
+    value: Prisoner
+  - code: '3'
+    desc: Aged care facility
+    position: 3
+    questionnaire_value: Aged care facility
+    value: Aged care facility
+  - code: '2'
+    desc: Home with family
+    position: 2
+    questionnaire_value: Home with family
+    value: Home with family
+  - code: '1'
+    desc: Home alone
+    position: 1
+    questionnaire_value: Home alone
+    value: Home alone
+- code: MARITAL
+  values:
+  - code: '4'
+    desc: Widowed
+    position: 4
+    questionnaire_value: Widowed
+    value: Widowed
+  - code: '2'
+    desc: Divorced/separated
+    position: 3
+    questionnaire_value: Divorced/separated
+    value: Divorced/separated
+  - code: '1'
+    desc: Married/partnered
+    position: 1
+    questionnaire_value: Married/partnered
+    value: Married/partnered
+  - code: '0'
+    desc: Never married/partnered
+    position: 0
+    questionnaire_value: Never married/partnered
+    value: Never married/partnered
+- code: MDTLC
+  values:
+  - code: '999'
+    desc: Unknown
+    position: 999
+    questionnaire_value: Unknown
+    value: Unknown
+  - code: '1'
+    desc: 'Yes'
+    position: 1
+    questionnaire_value: 'Yes'
+    value: 'Yes'
+  - code: '0'
+    desc: 'No'
+    position: 0
+    questionnaire_value: 'No'
+    value: 'No'
+- code: MEDSLC
+  values:
+  - code: '7'
+    desc: NOAC
+    position: 7
+    questionnaire_value: NOAC
+    value: NOAC
+  - code: '6'
+    desc: Enoxaparin
+    position: 6
+    questionnaire_value: Enoxaparin
+    value: Enoxaparin
+  - code: '5'
+    desc: Warfarin
+    position: 5
+    questionnaire_value: Warfarin
+    value: Warfarin
+  - code: '4'
+    desc: Dipyrimadole
+    position: 4
+    questionnaire_value: Dipyrimadole
+    value: Dipyrimadole
+  - code: '3'
+    desc: Ticagrelor
+    position: 3
+    questionnaire_value: Ticagrelor
+    value: Ticagrelor
+  - code: '2'
+    desc: Clopidogrel
+    position: 2
+    questionnaire_value: Cloridogrel
+    value: Cloridogrel
+  - code: '1'
+    desc: Aspirin
+    position: 1
+    questionnaire_value: Aspirin
+    value: Aspirin
+  - code: '0'
+    desc: None
+    position: 0
+    questionnaire_value: None
+    value: None
+- code: METACHLC
+  values:
+  - code: '999'
+    desc: Unknown
+    position: 999
+    questionnaire_value: Unknown
+    value: Unknown
+  - code: '1'
+    desc: 'Yes'
+    position: 1
+    questionnaire_value: 'Yes'
+    value: 'Yes'
+  - code: '0'
+    desc: 'No'
+    position: 0
+    questionnaire_value: 'No'
+    value: 'No'
+- code: MeteorSexes
+  values:
+  - code: '3'
+    desc: Indeterminate
+    position: 3
+    questionnaire_value: Indeterminate
+    value: Indeterminate
+  - code: '2'
+    desc: Female
+    position: 2
+    questionnaire_value: Female
+    value: Female
+  - code: '1'
+    desc: Male
+    position: 1
+    questionnaire_value: Male
+    value: Male
+- code: Method_recurrenceLC
+  values:
+  - code: '999'
+    desc: Unknown
+    position: 999
+    questionnaire_value: Unknown
+    value: Unknown
+  - code: '4'
+    desc: Other
+    position: 4
+    questionnaire_value: Other
+    value: Other
+  - code: '3'
+    desc: Pathology
+    position: 3
+    questionnaire_value: Pathology
+    value: Pathology
+  - code: '2'
+    desc: Radiology
+    position: 2
+    questionnaire_value: Radiology
+    value: Radiology
+  - code: '1'
+    desc: Clinical examination
+    position: 1
+    questionnaire_value: Clinical examination
+    value: Clinical examination
+- code: Mx_recurrenceLC
+  values:
+  - code: '999'
+    desc: Unknown
+    position: 999
+    questionnaire_value: Unknown
+    value: Unknown
+  - code: '6'
+    desc: Other
+    position: 6
+    questionnaire_value: Other
+    value: Other
+  - code: '5'
+    desc: Best supportive care
+    position: 5
+    questionnaire_value: Best supportive care
+    value: Best supportive care
+  - code: '4'
+    desc: Radiotherapy
+    position: 4
+    questionnaire_value: Radiotherapy
+    value: Radiotherapy
+  - code: '3'
+    desc: Systemic therapy, not chemotherapy
+    position: 3
+    questionnaire_value: Systemic therapy, not chemotherapy
+    value: Systemic therapy, not chemotherapy
+  - code: '2'
+    desc: Chemotherapy
+    position: 2
+    questionnaire_value: Chemotherapy
+    value: Chemotherapy
+  - code: '1'
+    desc: Surgery
+    position: 1
+    questionnaire_value: Surgery
+    value: Surgery
+- code: NODLOCATIONLC
+  values:
+  - code: '2'
+    desc: Not upper lobe
+    position: 2
+    questionnaire_value: Not upper lobe
+    value: Not upper lobe
+  - code: '1'
+    desc: Upper lobe
+    position: 1
+    questionnaire_value: Upper lobe
+    value: Upper lobe
+- code: NODSPICLC
+  values:
+  - code: '999'
+    desc: Unknown
+    position: 999
+    questionnaire_value: Unknown
+    value: Unknown
+  - code: '2'
+    desc: Other
+    position: 2
+    questionnaire_value: Other
+    value: Other
+  - code: '1'
+    desc: 'Yes'
+    position: 1
+    questionnaire_value: 'Yes'
+    value: 'Yes'
+  - code: '0'
+    desc: 'No'
+    position: 0
+    questionnaire_value: 'No'
+    value: 'No'
+- code: NextOfKinRelationship
+  values:
+  - code: Other
+    desc: Other
+    position: 3
+    questionnaire_value: Other
+    value: Other
+  - code: Mother
+    desc: Mother
+    position: 2
+    questionnaire_value: Mother
+    value: Mother
+  - code: Father
+    desc: Father
+    position: 1
+    questionnaire_value: Father
+    value: Father
+- code: PERFORM
+  values:
+  - code: '4'
+    desc: Completely disabled. Not able to self-care. Totally confined to bed or chair.
+    position: 4
+    questionnaire_value: Completely disabled. Not able to self-care. Totally confined
+      to bed or chair.
+    value: 4 - Completely disabled. Not able to self-care. Totally confined to bed
+      or chair.
+  - code: '3'
+    desc: Capable of only limited self-care, confined to bed or chair more than 50%
+      of waking hours
+    position: 3
+    questionnaire_value: Capable of only limited self-care, confined to bed or chair
+      more than 50% of waking hours
+    value: 3 - Capable of only limited self-care, confined to bed or chair more than
+      50% of waking hours
+  - code: '2'
+    desc: Ambulatory and capable of self-care but unable to carry out any work activities
+    position: 2
+    questionnaire_value: Ambulatory and capable of self-care but unable to carry out
+      any work activities
+    value: 2 - Ambulatory and capable of self-care but unable to carry out any work
+      activities
+  - code: '1'
+    desc: Restricted in physically strenuous activity but ambulatory and able to carry
+      out light work
+    position: 1
+    questionnaire_value: Restricted in physically strenuous activity but ambulatory
+      and able to carry out light work
+    value: 1 - Restricted in physically strenuous activity but ambulatory and able
+      to carry out light work
+  - code: '0'
+    desc: Fully active, able to carry on all normal activities without restrictions
+    position: 0
+    questionnaire_value: Fully active, able to carry on all normal activities without
+      restrictions
+    value: 0 - Fully active, able to carry on all normal activities without restrictions
+- code: PrivHospital
+  values:
+  - code: '1'
+    desc: SJOG - Midland
+    position: 1
+    questionnaire_value: SJOG - Midland
+    value: SJOG - Midland
+- code: RADIOTXLC
+  values:
+  - code: '3'
+    desc: Yes, brain metastasis
+    position: 4
+    questionnaire_value: Yes, brain metastasis
+    value: Yes, brain metastasis
+  - code: '2'
+    desc: Yes, any metastatic site except brainYes, brain metastasis
+    position: 2
+    questionnaire_value: Yes, any metastatic site except brain
+    value: Yes, any metastatic site except brain
+  - code: '1'
+    desc: Yes, primary tumour
+    position: 1
+    questionnaire_value: Yes, primary tumour
+    value: Yes, primary tumour
+  - code: '0'
+    desc: 'No'
+    position: 0
+    questionnaire_value: 'No'
+    value: 'No'
+- code: RADIOTXONGOINGLC
+  values:
+  - code: '1'
+    desc: Treatment ongoing
+    position: 1
+    questionnaire_value: Treatment ongoing
+    value: Treatment ongoing
+- code: RECURRENCELC
+  values:
+  - code: '999'
+    desc: Unknown
+    position: 999
+    questionnaire_value: Unknown
+    value: Unknown
+  - code: '1'
+    desc: 'Yes'
+    position: 1
+    questionnaire_value: 'Yes'
+    value: 'Yes'
+  - code: '0'
+    desc: 'No'
+    position: 0
+    questionnaire_value: 'No'
+    value: 'No'
+- code: REVIEWLOC
+  values:
+  - code: '2'
+    desc: Outpatient
+    position: 2
+    questionnaire_value: Outpatient
+    value: Outpatient
+  - code: '1'
+    desc: Inpatient
+    position: 1
+    questionnaire_value: Inpatient
+    value: Inpatient
+- code: Region_recurrenceLC
+  values:
+  - code: '999'
+    desc: Unknown
+    position: 999
+    questionnaire_value: Unknown
+    value: Unknown
+  - code: '3'
+    desc: Distant
+    position: 3
+    questionnaire_value: Distant
+    value: Distant
+  - code: '2'
+    desc: Regional
+    position: 2
+    questionnaire_value: Regional
+    value: Regional
+  - code: '1'
+    desc: Local
+    position: 1
+    questionnaire_value: Local
+    value: Local
+- code: SMOKING
+  values:
+  - code: Unknown
+    desc: Unknown
+    position: 999
+    questionnaire_value: Unknown
+    value: Unknown
+  - code: '3'
+    desc: Current smoker
+    position: 3
+    questionnaire_value: Current smoker
+    value: Current smoker
+  - code: '2'
+    desc: Ex-smoker (stopped at least 1 year before diagnosis)
+    position: 2
+    questionnaire_value: Ex-smoker (stopped at least 1 year before diagnosis)
+    value: Ex-smoker (stopped at least 1 year before diagnosis)
+  - code: '1'
+    desc: Never smoker (< 100 cigarettes in your lifetime)
+    position: 1
+    questionnaire_value: Never smoker (< 100 cigarettes in your lifetime)
+    value: Never smoker (< 100 cigarettes in your lifetime)
+- code: SURGERYLC
+  values:
+  - code: '3'
+    desc: Yes, brain metastasis
+    position: 3
+    questionnaire_value: Yes, brain metastasis
+    value: Yes, brain metastasis
+  - code: '2'
+    desc: Yes, any metastatic site except brain
+    position: 2
+    questionnaire_value: Yes, any metastatic site except brain
+    value: Yes, any metastatic site except brain
+  - code: '1'
+    desc: Yes, primary tumour
+    position: 1
+    questionnaire_value: Yes, primary tumour
+    value: Yes, primary tumour
+  - code: '0'
+    desc: 'No'
+    position: 0
+    questionnaire_value: 'No'
+    value: 'No'
+- code: SYNCHLC
+  values:
+  - code: '999'
+    desc: Unknown
+    position: 999
+    questionnaire_value: Unknown
+    value: Unknown
+  - code: '1'
+    desc: 'Yes'
+    position: 1
+    questionnaire_value: 'Yes'
+    value: 'Yes'
+  - code: '0'
+    desc: 'No'
+    position: 0
+    questionnaire_value: 'No'
+    value: 'No'
+- code: SevenScale
+  values:
+  - code: '7'
+    desc: '7'
+    position: 7
+    questionnaire_value: null
+    value: '7'
+  - code: '6'
+    desc: '6'
+    position: 6
+    questionnaire_value: null
+    value: '6'
+  - code: '5'
+    desc: '5'
+    position: 5
+    questionnaire_value: null
+    value: '5'
+  - code: '4'
+    desc: '4'
+    position: 4
+    questionnaire_value: null
+    value: '4'
+  - code: '3'
+    desc: '3'
+    position: 3
+    questionnaire_value: null
+    value: '3'
+  - code: '2'
+    desc: '2'
+    position: 2
+    questionnaire_value: null
+    value: '2'
+  - code: '1'
+    desc: '1'
+    position: 1
+    questionnaire_value: null
+    value: '1'
+- code: State
+  values:
+  - code: VIC
+    desc: Victoria
+    position: 1
+    questionnaire_value: null
+    value: Victoria
+  - code: NT
+    desc: Northern Territory
+    position: 2
+    questionnaire_value: null
+    value: Northern Territory
+  - code: NSW
+    desc: New South Wales
+    position: 3
+    questionnaire_value: null
+    value: New South Wales
+  - code: TAS
+    desc: Tasmania
+    position: 4
+    questionnaire_value: null
+    value: Tasmania
+  - code: ACT
+    desc: Australian Capital Territory
+    position: 5
+    questionnaire_value: null
+    value: Australian Capital Territory
+  - code: SA
+    desc: South Australia
+    position: 6
+    questionnaire_value: null
+    value: South Australia
+  - code: WA
+    desc: Western Australia
+    position: 7
+    questionnaire_value: null
+    value: Western Australia
+  - code: QLD
+    desc: Queensland
+    position: 8
+    questionnaire_value: null
+    value: Queensland
+- code: TARGETTXLC
+  values:
+  - code: '1'
+    desc: 'Yes'
+    position: 1
+    questionnaire_value: 'Yes'
+    value: 'Yes'
+  - code: '0'
+    desc: 'No'
+    position: 0
+    questionnaire_value: 'No'
+    value: 'No'
+- code: TARGETTXONGOINGLC
+  values:
+  - code: '1'
+    desc: Treatment ongoing
+    position: 1
+    questionnaire_value: Treatment ongoing
+    value: Treatment ongoing
+- code: THCLC
+  values:
+  - code: '999'
+    desc: Unknown
+    position: 999
+    questionnaire_value: Unknown
+    value: Unknown
+  - code: '1'
+    desc: 'Yes'
+    position: 1
+    questionnaire_value: 'Yes'
+    value: 'Yes'
+  - code: '0'
+    desc: 'No'
+    position: 0
+    questionnaire_value: 'No'
+    value: 'No'
+- code: TNMCLC
+  values:
+  - code: '12'
+    desc: IVB
+    position: 12
+    questionnaire_value: IVB
+    value: IVB
+  - code: '11'
+    desc: IVA
+    position: 11
+    questionnaire_value: IVA
+    value: IVA
+  - code: '10'
+    desc: IIIC
+    position: 10
+    questionnaire_value: IIIC
+    value: IIIC
+  - code: '9'
+    desc: IIIB
+    position: 9
+    questionnaire_value: IIIB
+    value: IIIB
+  - code: '8'
+    desc: IIIA
+    position: 8
+    questionnaire_value: IIIA
+    value: IIIA
+  - code: '7'
+    desc: IIB
+    position: 7
+    questionnaire_value: IIB
+    value: IIB
+  - code: '6'
+    desc: IIA
+    position: 6
+    questionnaire_value: IIA
+    value: IIA
+  - code: '5'
+    desc: IB
+    position: 5
+    questionnaire_value: IB
+    value: IB
+  - code: '4'
+    desc: IA3
+    position: 4
+    questionnaire_value: IA3
+    value: IA3
+  - code: '3'
+    desc: IA2
+    position: 3
+    questionnaire_value: IA2
+    value: IA2
+  - code: '2'
+    desc: IA1
+    position: 2
+    questionnaire_value: IA1
+    value: IA1
+  - code: '1'
+    desc: '0'
+    position: 1
+    questionnaire_value: '0'
+    value: '0'
+  - code: '0'
+    desc: Occult carcinoma TX
+    position: 0
+    questionnaire_value: '0'
+    value: Occult carcinoma
+- code: TNMCMLC
+  values:
+  - code: '999'
+    desc: Unknown
+    position: 999
+    questionnaire_value: Unknown
+    value: Unknown
+  - code: '3'
+    desc: M1c
+    position: 3
+    questionnaire_value: M1c
+    value: M1c
+  - code: '2'
+    desc: M1b
+    position: 2
+    questionnaire_value: M1b
+    value: M1b
+  - code: '1'
+    desc: M1a
+    position: 1
+    questionnaire_value: M1a
+    value: M1a
+  - code: '0'
+    desc: M0
+    position: 0
+    questionnaire_value: M0
+    value: M0
+- code: TNMCNLC
+  values:
+  - code: '999'
+    desc: Unknown
+    position: 999
+    questionnaire_value: Unknown
+    value: Unknown
+  - code: '7'
+    desc: N3
+    position: 7
+    questionnaire_value: N3
+    value: N3
+  - code: '6'
+    desc: N2b
+    position: 6
+    questionnaire_value: N2b
+    value: N2b
+  - code: '5'
+    desc: N2a2
+    position: 5
+    questionnaire_value: N2a2
+    value: N2a2
+  - code: '4'
+    desc: N2a1
+    position: 4
+    questionnaire_value: N2a1
+    value: N2a1
+  - code: '3'
+    desc: N1b
+    position: 3
+    questionnaire_value: N1b
+    value: N1b
+  - code: '2'
+    desc: N1a
+    position: 2
+    questionnaire_value: N1a
+    value: N1a
+  - code: '1'
+    desc: N0
+    position: 1
+    questionnaire_value: N0
+    value: N0
+  - code: '0'
+    desc: Nx
+    position: 0
+    questionnaire_value: Nx
+    value: Nx
+- code: TNMCSCLC
+  values:
+  - code: '999'
+    desc: Unknown
+    position: 999
+    questionnaire_value: Unknown
+    value: Unknown
+  - code: '2'
+    desc: Extensive stage
+    position: 2
+    questionnaire_value: Extensive stage
+    value: Extensive stage
+  - code: '1'
+    desc: Limited stage
+    position: 1
+    questionnaire_value: Limited stage
+    value: Limited stage
+- code: TNMCTLC
+  values:
+  - code: Unknown
+    desc: Unknown
+    position: 999
+    questionnaire_value: Unknown
+    value: Unknown
+  - code: '10'
+    desc: T4
+    position: 10
+    questionnaire_value: T4
+    value: T4
+  - code: '9'
+    desc: T3
+    position: 9
+    questionnaire_value: T3
+    value: T3
+  - code: '8'
+    desc: T2b
+    position: 8
+    questionnaire_value: T2b
+    value: T2b
+  - code: '7'
+    desc: T2a
+    position: 7
+    questionnaire_value: T2a
+    value: T2a
+  - code: '6'
+    desc: T1c
+    position: 6
+    questionnaire_value: T1c
+    value: T1c
+  - code: '5'
+    desc: T1b
+    position: 5
+    questionnaire_value: T1b
+    value: T1b
+  - code: '4'
+    desc: T1a
+    position: 4
+    questionnaire_value: T1a
+    value: T1a
+  - code: '3'
+    desc: T1mi
+    position: 3
+    questionnaire_value: T1mi
+    value: T1mi
+  - code: '2'
+    desc: Tis
+    position: 2
+    questionnaire_value: Tis
+    value: Tis
+  - code: '1'
+    desc: T0
+    position: 1
+    questionnaire_value: T0
+    value: T0
+  - code: '0'
+    desc: Tx
+    position: 0
+    questionnaire_value: Tx
+    value: Tx
+- code: TNMPLC
+  values:
+  - code: '12'
+    desc: IVB
+    position: 12
+    questionnaire_value: IVB
+    value: IVB
+  - code: '11'
+    desc: IVA
+    position: 11
+    questionnaire_value: IVA
+    value: IVA
+  - code: '10'
+    desc: IIIC
+    position: 10
+    questionnaire_value: IIIC
+    value: IIIC
+  - code: '9'
+    desc: IIIB
+    position: 9
+    questionnaire_value: IIIB
+    value: IIIB
+  - code: '8'
+    desc: IIIA
+    position: 8
+    questionnaire_value: IIIA
+    value: IIIA
+  - code: '7'
+    desc: IIB
+    position: 7
+    questionnaire_value: IIB
+    value: IIB
+  - code: '6'
+    desc: IIA
+    position: 6
+    questionnaire_value: IIA
+    value: IIA
+  - code: '5'
+    desc: IB
+    position: 5
+    questionnaire_value: IB
+    value: IB
+  - code: '4'
+    desc: IA3
+    position: 4
+    questionnaire_value: IA3
+    value: IA3
+  - code: '3'
+    desc: IA2
+    position: 3
+    questionnaire_value: IA2
+    value: IA2
+  - code: '2'
+    desc: IA1
+    position: 2
+    questionnaire_value: IA1
+    value: IA1
+  - code: '1'
+    desc: '0'
+    position: 1
+    questionnaire_value: '0'
+    value: '0'
+  - code: '0'
+    desc: Occult carcinoma
+    position: 0
+    questionnaire_value: Occult carcinoma
+    value: Occult carcinoma
+- code: TNMPMLC
+  values:
+  - code: '999'
+    desc: Unknown
+    position: 999
+    questionnaire_value: Unknown
+    value: Unknown
+  - code: '3'
+    desc: M1c
+    position: 3
+    questionnaire_value: M1c
+    value: M1c
+  - code: '2'
+    desc: M1b
+    position: 2
+    questionnaire_value: M1b
+    value: M1b
+  - code: '1'
+    desc: M1a
+    position: 1
+    questionnaire_value: M1a
+    value: M1a
+  - code: '0'
+    desc: M0
+    position: 0
+    questionnaire_value: M0
+    value: M0
+- code: TNMPNLC
+  values:
+  - code: '999'
+    desc: Unknown
+    position: 999
+    questionnaire_value: Unknown
+    value: Unknown
+  - code: '7'
+    desc: N3
+    position: 7
+    questionnaire_value: N3
+    value: N3
+  - code: '6'
+    desc: N2b
+    position: 6
+    questionnaire_value: N2b
+    value: N2b
+  - code: '5'
+    desc: N2a2
+    position: 5
+    questionnaire_value: N2a2
+    value: N2a2
+  - code: '4'
+    desc: N2a14
+    position: 4
+    questionnaire_value: N2a1
+    value: N2a1
+  - code: '3'
+    desc: N1b
+    position: 3
+    questionnaire_value: N1b
+    value: N1b
+  - code: '2'
+    desc: N1aN1b. 4 = N2a1. 5 = N2a2. 6 = N2b. 7 = N3. 999 = unknown
+    position: 2
+    questionnaire_value: N1a
+    value: N1a
+  - code: '1'
+    desc: N0N1a. 3 = N1b. 4 = N2a1. 5 = N2a2. 6 = N2b. 7 = N3. 999 = unknown
+    position: 1
+    questionnaire_value: N0
+    value: N0
+  - code: '0'
+    desc: NxN0. 2 = N1a. 3 = N1b. 4 = N2a1. 5 = N2a2. 6 = N2b. 7 = N3. 999 = unknown
+    position: 0
+    questionnaire_value: Nx
+    value: Nx
+- code: TNMPTLC
+  values:
+  - code: '999'
+    desc: Unknown
+    position: 999
+    questionnaire_value: Unknown
+    value: Unknown
+  - code: '10'
+    desc: T4
+    position: 10
+    questionnaire_value: T4
+    value: T4
+  - code: '9'
+    desc: T3
+    position: 9
+    questionnaire_value: T3
+    value: T3
+  - code: '8'
+    desc: T2b
+    position: 8
+    questionnaire_value: T2b
+    value: T2b
+  - code: '7'
+    desc: T2a
+    position: 7
+    questionnaire_value: T2a
+    value: T2a
+  - code: '6'
+    desc: T1c
+    position: 6
+    questionnaire_value: T1c
+    value: T1c
+  - code: '5'
+    desc: T1b
+    position: 5
+    questionnaire_value: T1b
+    value: T1b
+  - code: '4'
+    desc: T1a
+    position: 4
+    questionnaire_value: T1a
+    value: T1a
+  - code: '3'
+    desc: T1mi
+    position: 3
+    questionnaire_value: T1mi
+    value: T1mi
+  - code: '2'
+    desc: Tis
+    position: 2
+    questionnaire_value: Tis
+    value: Tis
+  - code: '1'
+    desc: T0
+    position: 1
+    questionnaire_value: T0
+    value: T0
+  - code: '0'
+    desc: Tx
+    position: 0
+    questionnaire_value: Tx
+    value: Tx
+- code: TREATCOMPLLC
+  values:
+  - code: '999'
+    desc: Unknown
+    position: 999
+    questionnaire_value: Unknown
+    value: Unknown
+  - code: '6'
+    desc: No, due to patient death
+    position: 6
+    questionnaire_value: No, due to patient death
+    value: No, due to patient death
+  - code: '5'
+    desc: No, due to toxicity
+    position: 5
+    questionnaire_value: No, due to toxicity
+    value: No, due to toxicity
+  - code: '4'
+    desc: No, patient choice
+    position: 4
+    questionnaire_value: No, patient choice
+    value: No, patient choice
+  - code: '3'
+    desc: Yes but with radiotherapy dose reduction
+    position: 3
+    questionnaire_value: Yes but with radiotherapy dose reduction
+    value: Yes but with radiotherapy dose reduction
+  - code: '2'
+    desc: Yes but with chemotherapy dose reduction
+    position: 2
+    questionnaire_value: Yes but with chemotherapy dose reduction
+    value: Yes but with chemotherapy dose reduction
+  - code: '1'
+    desc: 'Yes'
+    position: 1
+    questionnaire_value: 'Yes'
+    value: 'Yes'
+- code: TREATINTLC
+  values:
+  - code: '999'
+    desc: Unknown
+    position: 999
+    questionnaire_value: Unknown
+    value: Unknown
+  - code: '2'
+    desc: Palliative (includes ablative treatment for oligometastatic disease)
+    position: 2
+    questionnaire_value: Palliative (includes ablative treatment for oligometastatic
+      disease)
+    value: Palliative (includes ablative treatment for oligometastatic disease)
+  - code: '1'
+    desc: Curative/Radical
+    position: 1
+    questionnaire_value: Curative/Radical
+    value: Curative/Radical
+- code: TreatSpeciality
+  values:
+  - code: '4'
+    desc: Cardiothoracic Surgery
+    position: 4
+    questionnaire_value: Cardiothoracic Surgery
+    value: Cardiothoracic Surgery
+  - code: '3'
+    desc: Radiation Oncology
+    position: 3
+    questionnaire_value: Radiation Oncology
+    value: Radiation Oncology
+  - code: '2'
+    desc: Medical Oncology
+    position: 2
+    questionnaire_value: Medical Oncology
+    value: Medical Oncology
+  - code: '1'
+    desc: Respiratory Medicine
+    position: 1
+    questionnaire_value: Respiratory Medicine
+    value: Respiratory Medicine
+- code: WEIGHTLLC
+  values:
+  - code: '999'
+    desc: Unknown
+    position: 999
+    questionnaire_value: Unknown
+    value: Unknown
+  - code: '1'
+    desc: 'Yes'
+    position: 1
+    questionnaire_value: 'Yes'
+    value: 'Yes'
+  - code: '0'
+    desc: 'No'
+    position: 0
+    questionnaire_value: 'No'
+    value: 'No'
+- code: fh_yes_no
+  values:
+  - code: NA
+    desc: NA
+    position: 4
+    questionnaire_value: null
+    value: NA
+  - code: fh_yes_no_unknown
+    desc: Unknown
+    position: 3
+    questionnaire_value: null
+    value: Unknown
+  - code: fh_yes_no_no
+    desc: 'No'
+    position: 2
+    questionnaire_value: null
+    value: 'No'
+  - code: fh_yes_no_yes
+    desc: 'Yes'
+    position: 1
+    questionnaire_value: null
+    value: 'Yes'
+- code: followup_patient_status
+  values:
+  - code: '4'
+    desc: Lost to Follow-up
+    position: 4
+    questionnaire_value: Lost to follow up
+    value: Lost to follow up
+  - code: '3'
+    desc: Deceased
+    position: 3
+    questionnaire_value: Deceased
+    value: Deceased
+  - code: '2'
+    desc: Alive, second primary cancer
+    position: 2
+    questionnaire_value: Alive, second primary cancer
+    value: Alive, second primary cancer
+  - code: '1'
+    desc: Alive with disease
+    position: 1
+    questionnaire_value: Alive with disease
+    value: Alive with disease
+  - code: '0'
+    desc: Alive, no recurrence
+    position: 0
+    questionnaire_value: Alive, no recurrence
+    value: Alive, no recurrence
+- code: public_private
+  values:
+  - code: '999'
+    desc: Unknown
+    position: 999
+    questionnaire_value: Unknown
+    value: Unknown
+  - code: '3'
+    desc: Both public and private
+    position: 3
+    questionnaire_value: Both public and private
+    value: Both public and private
+  - code: '2'
+    desc: Private
+    position: 2
+    questionnaire_value: Private
+    value: Private
+  - code: '1'
+    desc: Public
+    position: 1
+    questionnaire_value: Public
+    value: Public
+- code: treat_clinician
+  values:
+  - code: '001'
+    desc: David Manners
+    position: 1
+    questionnaire_value: David Manners
+    value: David Manners
+reports: []
+reviews: []
+splash_screen: |-
+  <h2>ICHOM Lung Cancer Data Collection</h2>
+
+  <h1>This is a demo site, please do not enter any real data!</h1>
+surveys:
+- context_form_group: Modules
+  display_name: Baseline PROMS - Lung cancer
+  form: Baseline_PROMS
+  is_followup: false
+  name: BaselineLung
+  questions:
+  - cde: EORTCQLQLC13_Q12SUB
+    cde_path: null
+    copyright_text: © QLQ-LC13 Copyright 1994 EORTC Quality of life Group. All rights
+      reserved
+    instruction: ''
+    position: 49
+    precondition:
+      cde: EORTCQLQLC13_Q12
+      value: 2,3
+    source: ''
+    widget_config: null
+  - cde: EORTCQLQLC13_Q13SUB
+    cde_path: null
+    copyright_text: © QLQ-LC13 Copyright 1994 EORTC Quality of life Group. All rights
+      reserved
+    instruction: ''
+    position: 51
+    precondition:
+      cde: EORTCQLQLC13_Q13
+      value: 2,3
+    source: ''
+    widget_config: null
+  - cde: EQ_Selfcare
+    cde_path: null
+    copyright_text: © EuroQol Research Foundation. EQ-5D™ is a trade mark of the EuroQol
+      Research Foundation
+    instruction: Please tap the ONE box that best describes your health TODAY.
+    position: 32
+    precondition: null
+    source: ''
+    widget_config: null
+  - cde: EQ_UsualActivities
+    cde_path: null
+    copyright_text: © EuroQol Research Foundation. EQ-5D™ is a trade mark of the EuroQol
+      Research Foundation
+    instruction: Please tap the ONE box that best describes your health TODAY.
+    position: 33
+    precondition: null
+    source: ''
+    widget_config: null
+  - cde: EQ_Pain_Discomfort
+    cde_path: null
+    copyright_text: © EuroQol Research Foundation. EQ-5D™ is a trade mark of the EuroQol
+      Research Foundation
+    instruction: Please tap the ONE box that best describes your health TODAY.
+    position: 34
+    precondition: null
+    source: ''
+    widget_config: null
+  - cde: EQ_Anxiety_Depress
+    cde_path: null
+    copyright_text: © EuroQol Research Foundation. EQ-5D™ is a trade mark of the EuroQol
+      Research Foundation
+    instruction: Please tap the ONE box that best describes your health TODAY.
+    position: 35
+    precondition: null
+    source: ''
+    widget_config: null
+  - cde: EORTCQLQC30_Q01
+    cde_path: null
+    copyright_text: © Copyright 1995 EORTC Quality of Life Group. All rights reserved.
+      Version 3.0
+    instruction: In this section please answer all of the questions by selecting the
+      answer that best applies to you. There are no right or wrong answers.
+    position: 1
+    precondition: null
+    source: ''
+    widget_config: null
+  - cde: EORTCQLQC30_Q02
+    cde_path: null
+    copyright_text: © Copyright 1995 EORTC Quality of Life Group. All rights reserved.
+      Version 3.0
+    instruction: ''
+    position: 2
+    precondition: null
+    source: ''
+    widget_config: null
+  - cde: EORTCQLQC30_Q03
+    cde_path: null
+    copyright_text: © Copyright 1995 EORTC Quality of Life Group. All rights reserved.
+      Version 3.0
+    instruction: ''
+    position: 3
+    precondition: null
+    source: ''
+    widget_config: null
+  - cde: EORTCQLQC30_Q04
+    cde_path: null
+    copyright_text: © Copyright 1995 EORTC Quality of Life Group. All rights reserved.
+      Version 3.0
+    instruction: ''
+    position: 4
+    precondition: null
+    source: ''
+    widget_config: null
+  - cde: EORTCQLQC30_Q05
+    cde_path: null
+    copyright_text: © Copyright 1995 EORTC Quality of Life Group. All rights reserved.
+      Version 3.0
+    instruction: ''
+    position: 5
+    precondition: null
+    source: ''
+    widget_config: null
+  - cde: EORTCQLQC30_Q06
+    cde_path: null
+    copyright_text: © Copyright 1995 EORTC Quality of Life Group. All rights reserved.
+      Version 3.0
+    instruction: 'During the past week:'
+    position: 6
+    precondition: null
+    source: ''
+    widget_config: null
+  - cde: EORTCQLQC30_Q07
+    cde_path: null
+    copyright_text: © Copyright 1995 EORTC Quality of Life Group. All rights reserved.
+      Version 3.0
+    instruction: 'During the past week:'
+    position: 7
+    precondition: null
+    source: ''
+    widget_config: null
+  - cde: EORTCQLQC30_Q08
+    cde_path: null
+    copyright_text: © Copyright 1995 EORTC Quality of Life Group. All rights reserved.
+      Version 3.0
+    instruction: 'During the past week:'
+    position: 8
+    precondition: null
+    source: ''
+    widget_config: null
+  - cde: EORTCQLQC30_Q09
+    cde_path: null
+    copyright_text: © Copyright 1995 EORTC Quality of Life Group. All rights reserved.
+      Version 3.0
+    instruction: 'During the past week:'
+    position: 9
+    precondition: null
+    source: ''
+    widget_config: null
+  - cde: EORTCQLQC30_Q10
+    cde_path: null
+    copyright_text: © Copyright 1995 EORTC Quality of Life Group. All rights reserved.
+      Version 3.0
+    instruction: 'During the past week:'
+    position: 10
+    precondition: null
+    source: ''
+    widget_config: null
+  - cde: EORTCQLQC30_Q11
+    cde_path: null
+    copyright_text: © Copyright 1995 EORTC Quality of Life Group. All rights reserved.
+      Version 3.0
+    instruction: 'During the past week:'
+    position: 11
+    precondition: null
+    source: ''
+    widget_config: null
+  - cde: EORTCQLQC30_Q12
+    cde_path: null
+    copyright_text: © Copyright 1995 EORTC Quality of Life Group. All rights reserved.
+      Version 3.0
+    instruction: 'During the past week:'
+    position: 12
+    precondition: null
+    source: ''
+    widget_config: null
+  - cde: EORTCQLQC30_Q13
+    cde_path: null
+    copyright_text: © Copyright 1995 EORTC Quality of Life Group. All rights reserved.
+      Version 3.0
+    instruction: 'During the past week:'
+    position: 13
+    precondition: null
+    source: ''
+    widget_config: null
+  - cde: EORTCQLQC30_Q14
+    cde_path: null
+    copyright_text: © Copyright 1995 EORTC Quality of Life Group. All rights reserved.
+      Version 3.0
+    instruction: 'During the past week:'
+    position: 14
+    precondition: null
+    source: ''
+    widget_config: null
+  - cde: EORTCQLQC30_Q15
+    cde_path: null
+    copyright_text: © Copyright 1995 EORTC Quality of Life Group. All rights reserved.
+      Version 3.0
+    instruction: 'During the past week:'
+    position: 15
+    precondition: null
+    source: ''
+    widget_config: null
+  - cde: EORTCQLQC30_Q16
+    cde_path: null
+    copyright_text: © Copyright 1995 EORTC Quality of Life Group. All rights reserved.
+      Version 3.0
+    instruction: 'During the past week:'
+    position: 16
+    precondition: null
+    source: ''
+    widget_config: null
+  - cde: EORTCQLQC30_Q17
+    cde_path: null
+    copyright_text: © Copyright 1995 EORTC Quality of Life Group. All rights reserved.
+      Version 3.0
+    instruction: 'During the past week:'
+    position: 17
+    precondition: null
+    source: ''
+    widget_config: null
+  - cde: EORTCQLQC30_Q18
+    cde_path: null
+    copyright_text: © Copyright 1995 EORTC Quality of Life Group. All rights reserved.
+      Version 3.0
+    instruction: 'During the past week:'
+    position: 18
+    precondition: null
+    source: ''
+    widget_config: null
+  - cde: EORTCQLQC30_Q19
+    cde_path: null
+    copyright_text: © Copyright 1995 EORTC Quality of Life Group. All rights reserved.
+      Version 3.0
+    instruction: 'During the past week:'
+    position: 19
+    precondition: null
+    source: ''
+    widget_config: null
+  - cde: EORTCQLQC30_Q20
+    cde_path: null
+    copyright_text: © Copyright 1995 EORTC Quality of Life Group. All rights reserved.
+      Version 3.0
+    instruction: 'During the past week:'
+    position: 20
+    precondition: null
+    source: ''
+    widget_config: null
+  - cde: EORTCQLQC30_Q21
+    cde_path: null
+    copyright_text: © Copyright 1995 EORTC Quality of Life Group. All rights reserved.
+      Version 3.0
+    instruction: 'During the past week:'
+    position: 21
+    precondition: null
+    source: ''
+    widget_config: null
+  - cde: EORTCQLQC30_Q22
+    cde_path: null
+    copyright_text: © Copyright 1995 EORTC Quality of Life Group. All rights reserved.
+      Version 3.0
+    instruction: 'During the past week:'
+    position: 22
+    precondition: null
+    source: ''
+    widget_config: null
+  - cde: EORTCQLQC30_Q23
+    cde_path: null
+    copyright_text: © Copyright 1995 EORTC Quality of Life Group. All rights reserved.
+      Version 3.0
+    instruction: 'During the past week:'
+    position: 23
+    precondition: null
+    source: ''
+    widget_config: null
+  - cde: EORTCQLQC30_Q24
+    cde_path: null
+    copyright_text: © Copyright 1995 EORTC Quality of Life Group. All rights reserved.
+      Version 3.0
+    instruction: 'During the past week:'
+    position: 24
+    precondition: null
+    source: ''
+    widget_config: null
+  - cde: EORTCQLQC30_Q25
+    cde_path: null
+    copyright_text: © Copyright 1995 EORTC Quality of Life Group. All rights reserved.
+      Version 3.0
+    instruction: 'During the past week:'
+    position: 25
+    precondition: null
+    source: ''
+    widget_config: null
+  - cde: EORTCQLQC30_Q26
+    cde_path: null
+    copyright_text: © Copyright 1995 EORTC Quality of Life Group. All rights reserved.
+      Version 3.0
+    instruction: 'During the past week:'
+    position: 26
+    precondition: null
+    source: ''
+    widget_config: null
+  - cde: EORTCQLQC30_Q27
+    cde_path: null
+    copyright_text: © Copyright 1995 EORTC Quality of Life Group. All rights reserved.
+      Version 3.0
+    instruction: 'During the past week:'
+    position: 27
+    precondition: null
+    source: ''
+    widget_config: null
+  - cde: EORTCQLQC30_Q28
+    cde_path: null
+    copyright_text: © Copyright 1995 EORTC Quality of Life Group. All rights reserved.
+      Version 3.0
+    instruction: 'During the past week:'
+    position: 28
+    precondition: null
+    source: ''
+    widget_config: null
+  - cde: EORTCQLQC30_Q29
+    cde_path: null
+    copyright_text: © Copyright 1995 EORTC Quality of Life Group. All rights reserved.
+      Version 3.0
+    instruction: ''
+    position: 29
+    precondition: null
+    source: ''
+    widget_config: null
+  - cde: EORTCQLQC30_Q30
+    cde_path: null
+    copyright_text: © Copyright 1995 EORTC Quality of Life Group. All rights reserved.
+      Version 3.0
+    instruction: ''
+    position: 30
+    precondition: null
+    source: ''
+    widget_config: null
+  - cde: EORTCQLQLC13_Q01
+    cde_path: null
+    copyright_text: © QLQ-LC13 Copyright 1994 EORTC Quality of life Group. All rights
+      reserved
+    instruction: 'During the past week:'
+    position: 37
+    precondition: null
+    source: ''
+    widget_config: null
+  - cde: EORTCQLQLC13_Q02
+    cde_path: null
+    copyright_text: © QLQ-LC13 Copyright 1994 EORTC Quality of life Group. All rights
+      reserved
+    instruction: 'During the past week:'
+    position: 38
+    precondition: null
+    source: ''
+    widget_config: null
+  - cde: EORTCQLQLC13_Q03
+    cde_path: null
+    copyright_text: © QLQ-LC13 Copyright 1994 EORTC Quality of life Group. All rights
+      reserved
+    instruction: 'During the past week:'
+    position: 39
+    precondition: null
+    source: ''
+    widget_config: null
+  - cde: EORTCQLQLC13_Q04
+    cde_path: null
+    copyright_text: © QLQ-LC13 Copyright 1994 EORTC Quality of life Group. All rights
+      reserved
+    instruction: 'During the past week:'
+    position: 40
+    precondition: null
+    source: ''
+    widget_config: null
+  - cde: EORTCQLQLC13_Q05
+    cde_path: null
+    copyright_text: © QLQ-LC13 Copyright 1994 EORTC Quality of life Group. All rights
+      reserved
+    instruction: 'During the past week:'
+    position: 41
+    precondition: null
+    source: ''
+    widget_config: null
+  - cde: EORTCQLQLC13_Q06
+    cde_path: null
+    copyright_text: © QLQ-LC13 Copyright 1994 EORTC Quality of life Group. All rights
+      reserved
+    instruction: 'During the past week:'
+    position: 42
+    precondition: null
+    source: ''
+    widget_config: null
+  - cde: EORTCQLQLC13_Q07
+    cde_path: null
+    copyright_text: © QLQ-LC13 Copyright 1994 EORTC Quality of life Group. All rights
+      reserved
+    instruction: 'During the past week:'
+    position: 43
+    precondition: null
+    source: ''
+    widget_config: null
+  - cde: EORTCQLQLC13_Q08
+    cde_path: null
+    copyright_text: © QLQ-LC13 Copyright 1994 EORTC Quality of life Group. All rights
+      reserved
+    instruction: 'During the past week:'
+    position: 44
+    precondition: null
+    source: ''
+    widget_config: null
+  - cde: EORTCQLQLC13_Q09
+    cde_path: null
+    copyright_text: © QLQ-LC13 Copyright 1994 EORTC Quality of life Group. All rights
+      reserved
+    instruction: 'During the past week:'
+    position: 45
+    precondition: null
+    source: ''
+    widget_config: null
+  - cde: EORTCQLQLC13_Q10
+    cde_path: null
+    copyright_text: © QLQ-LC13 Copyright 1994 EORTC Quality of life Group. All rights
+      reserved
+    instruction: 'During the past week:'
+    position: 46
+    precondition: null
+    source: ''
+    widget_config: null
+  - cde: EORTCQLQLC13_Q11
+    cde_path: null
+    copyright_text: © QLQ-LC13 Copyright 1994 EORTC Quality of life Group. All rights
+      reserved
+    instruction: 'During the past week:'
+    position: 47
+    precondition: null
+    source: ''
+    widget_config: null
+  - cde: EORTCQLQLC13_Q12
+    cde_path: null
+    copyright_text: © QLQ-LC13 Copyright 1994 EORTC Quality of life Group. All rights
+      reserved
+    instruction: 'During the past week:'
+    position: 48
+    precondition: null
+    source: ''
+    widget_config: null
+  - cde: EORTCQLQLC13_Q13
+    cde_path: null
+    copyright_text: © QLQ-LC13 Copyright 1994 EORTC Quality of life Group. All rights
+      reserved
+    instruction: 'During the past week:'
+    position: 50
+    precondition: null
+    source: ''
+    widget_config: null
+  - cde: EQ_Mobility
+    cde_path: null
+    copyright_text: © EuroQol Research Foundation. EQ-5D™ is a trade mark of the EuroQol
+      Research Foundation
+    instruction: Please tap the ONE box that best describes your health TODAY.
+    position: 31
+    precondition: null
+    source: ''
+    widget_config: null
+  - cde: PROMSConsent
+    cde_path: null
+    copyright_text: ''
+    instruction: ''
+    position: 52
+    precondition: null
+    source: ''
+    widget_config: null
+  - cde: EQ_Health_Rate
+    cde_path: null
+    copyright_text: © EuroQol Research Foundation. EQ-5D™ is a trade mark of the EuroQol
+      Research Foundation
+    instruction: ''
+    position: 36
+    precondition: null
+    source: ''
+    widget_config: '{"widget_name": "slider", "max_label": "The best health you can
+      imagine", "min_label": "The worst health you can imagine", "box_label": "YOUR
+      HEALTH TODAY"}'
+- context_form_group: FollowUp
+  display_name: FollowUpPROMS
+  form: Followup_PROMS
+  is_followup: true
+  name: FollowUpLung
+  questions:
+  - cde: PROMSConsent
+    cde_path: null
+    copyright_text: ''
+    instruction: ''
+    position: 52
+    precondition: null
+    source: ''
+    widget_config: null
+  - cde: EORTCQLQC30_Q01
+    cde_path: null
+    copyright_text: © Copyright 1995 EORTC Quality of Life Group. All rights reserved.
+      Version 3.0
+    instruction: In this section please answer all of the questions by selecting the
+      answer that best applies to you. There are no right or wrong answers.
+    position: 1
+    precondition: null
+    source: ''
+    widget_config: null
+  - cde: EORTCQLQC30_Q02
+    cde_path: null
+    copyright_text: © Copyright 1995 EORTC Quality of Life Group. All rights reserved.
+      Version 3.0
+    instruction: ''
+    position: 2
+    precondition: null
+    source: ''
+    widget_config: null
+  - cde: EORTCQLQC30_Q03
+    cde_path: null
+    copyright_text: © Copyright 1995 EORTC Quality of Life Group. All rights reserved.
+      Version 3.0
+    instruction: ''
+    position: 3
+    precondition: null
+    source: ''
+    widget_config: null
+  - cde: EORTCQLQC30_Q04
+    cde_path: null
+    copyright_text: © Copyright 1995 EORTC Quality of Life Group. All rights reserved.
+      Version 3.0
+    instruction: ''
+    position: 4
+    precondition: null
+    source: ''
+    widget_config: null
+  - cde: EORTCQLQC30_Q08
+    cde_path: null
+    copyright_text: © Copyright 1995 EORTC Quality of Life Group. All rights reserved.
+      Version 3.0
+    instruction: 'During the past week:'
+    position: 8
+    precondition: null
+    source: ''
+    widget_config: null
+  - cde: EORTCQLQC30_Q09
+    cde_path: null
+    copyright_text: © Copyright 1995 EORTC Quality of Life Group. All rights reserved.
+      Version 3.0
+    instruction: 'During the past week:'
+    position: 9
+    precondition: null
+    source: ''
+    widget_config: null
+  - cde: EORTCQLQC30_Q10
+    cde_path: null
+    copyright_text: © Copyright 1995 EORTC Quality of Life Group. All rights reserved.
+      Version 3.0
+    instruction: 'During the past week:'
+    position: 10
+    precondition: null
+    source: ''
+    widget_config: null
+  - cde: EORTCQLQC30_Q05
+    cde_path: null
+    copyright_text: © Copyright 1995 EORTC Quality of Life Group. All rights reserved.
+      Version 3.0
+    instruction: ''
+    position: 5
+    precondition: null
+    source: ''
+    widget_config: null
+  - cde: EORTCQLQC30_Q06
+    cde_path: null
+    copyright_text: © Copyright 1995 EORTC Quality of Life Group. All rights reserved.
+      Version 3.0
+    instruction: 'During the past week:'
+    position: 6
+    precondition: null
+    source: ''
+    widget_config: null
+  - cde: EORTCQLQC30_Q07
+    cde_path: null
+    copyright_text: © Copyright 1995 EORTC Quality of Life Group. All rights reserved.
+      Version 3.0
+    instruction: 'During the past week:'
+    position: 7
+    precondition: null
+    source: ''
+    widget_config: null
+  - cde: EORTCQLQC30_Q11
+    cde_path: null
+    copyright_text: © Copyright 1995 EORTC Quality of Life Group. All rights reserved.
+      Version 3.0
+    instruction: 'During the past week:'
+    position: 11
+    precondition: null
+    source: ''
+    widget_config: null
+  - cde: EORTCQLQC30_Q12
+    cde_path: null
+    copyright_text: © Copyright 1995 EORTC Quality of Life Group. All rights reserved.
+      Version 3.0
+    instruction: 'During the past week:'
+    position: 12
+    precondition: null
+    source: ''
+    widget_config: null
+  - cde: EORTCQLQC30_Q13
+    cde_path: null
+    copyright_text: © Copyright 1995 EORTC Quality of Life Group. All rights reserved.
+      Version 3.0
+    instruction: 'During the past week:'
+    position: 13
+    precondition: null
+    source: ''
+    widget_config: null
+  - cde: EORTCQLQC30_Q14
+    cde_path: null
+    copyright_text: © Copyright 1995 EORTC Quality of Life Group. All rights reserved.
+      Version 3.0
+    instruction: 'During the past week:'
+    position: 14
+    precondition: null
+    source: ''
+    widget_config: null
+  - cde: EORTCQLQC30_Q15
+    cde_path: null
+    copyright_text: © Copyright 1995 EORTC Quality of Life Group. All rights reserved.
+      Version 3.0
+    instruction: 'During the past week:'
+    position: 15
+    precondition: null
+    source: ''
+    widget_config: null
+  - cde: EORTCQLQC30_Q16
+    cde_path: null
+    copyright_text: © Copyright 1995 EORTC Quality of Life Group. All rights reserved.
+      Version 3.0
+    instruction: 'During the past week:'
+    position: 16
+    precondition: null
+    source: ''
+    widget_config: null
+  - cde: EORTCQLQC30_Q17
+    cde_path: null
+    copyright_text: © Copyright 1995 EORTC Quality of Life Group. All rights reserved.
+      Version 3.0
+    instruction: 'During the past week:'
+    position: 17
+    precondition: null
+    source: ''
+    widget_config: null
+  - cde: EORTCQLQC30_Q18
+    cde_path: null
+    copyright_text: © Copyright 1995 EORTC Quality of Life Group. All rights reserved.
+      Version 3.0
+    instruction: 'During the past week:'
+    position: 18
+    precondition: null
+    source: ''
+    widget_config: null
+  - cde: EORTCQLQC30_Q19
+    cde_path: null
+    copyright_text: © Copyright 1995 EORTC Quality of Life Group. All rights reserved.
+      Version 3.0
+    instruction: 'During the past week:'
+    position: 19
+    precondition: null
+    source: ''
+    widget_config: null
+  - cde: EORTCQLQC30_Q20
+    cde_path: null
+    copyright_text: © Copyright 1995 EORTC Quality of Life Group. All rights reserved.
+      Version 3.0
+    instruction: 'During the past week:'
+    position: 20
+    precondition: null
+    source: ''
+    widget_config: null
+  - cde: EORTCQLQC30_Q21
+    cde_path: null
+    copyright_text: © Copyright 1995 EORTC Quality of Life Group. All rights reserved.
+      Version 3.0
+    instruction: 'During the past week:'
+    position: 21
+    precondition: null
+    source: ''
+    widget_config: null
+  - cde: EORTCQLQC30_Q22
+    cde_path: null
+    copyright_text: © Copyright 1995 EORTC Quality of Life Group. All rights reserved.
+      Version 3.0
+    instruction: 'During the past week:'
+    position: 22
+    precondition: null
+    source: ''
+    widget_config: null
+  - cde: EORTCQLQC30_Q23
+    cde_path: null
+    copyright_text: © Copyright 1995 EORTC Quality of Life Group. All rights reserved.
+      Version 3.0
+    instruction: 'During the past week:'
+    position: 23
+    precondition: null
+    source: ''
+    widget_config: null
+  - cde: EORTCQLQC30_Q24
+    cde_path: null
+    copyright_text: © Copyright 1995 EORTC Quality of Life Group. All rights reserved.
+      Version 3.0
+    instruction: 'During the past week:'
+    position: 24
+    precondition: null
+    source: ''
+    widget_config: null
+  - cde: EORTCQLQC30_Q25
+    cde_path: null
+    copyright_text: © Copyright 1995 EORTC Quality of Life Group. All rights reserved.
+      Version 3.0
+    instruction: 'During the past week:'
+    position: 25
+    precondition: null
+    source: ''
+    widget_config: null
+  - cde: EORTCQLQC30_Q26
+    cde_path: null
+    copyright_text: © Copyright 1995 EORTC Quality of Life Group. All rights reserved.
+      Version 3.0
+    instruction: 'During the past week:'
+    position: 26
+    precondition: null
+    source: ''
+    widget_config: null
+  - cde: EORTCQLQC30_Q27
+    cde_path: null
+    copyright_text: © Copyright 1995 EORTC Quality of Life Group. All rights reserved.
+      Version 3.0
+    instruction: 'During the past week:'
+    position: 27
+    precondition: null
+    source: ''
+    widget_config: null
+  - cde: EORTCQLQC30_Q28
+    cde_path: null
+    copyright_text: © Copyright 1995 EORTC Quality of Life Group. All rights reserved.
+      Version 3.0
+    instruction: 'During the past week:'
+    position: 28
+    precondition: null
+    source: ''
+    widget_config: null
+  - cde: EORTCQLQC30_Q29
+    cde_path: null
+    copyright_text: © Copyright 1995 EORTC Quality of Life Group. All rights reserved.
+      Version 3.0
+    instruction: ''
+    position: 29
+    precondition: null
+    source: ''
+    widget_config: null
+  - cde: EORTCQLQC30_Q30
+    cde_path: null
+    copyright_text: © Copyright 1995 EORTC Quality of Life Group. All rights reserved.
+      Version 3.0
+    instruction: ''
+    position: 30
+    precondition: null
+    source: ''
+    widget_config: null
+  - cde: EORTCQLQLC13_Q01
+    cde_path: null
+    copyright_text: © QLQ-LC13 Copyright 1994 EORTC Quality of life Group. All rights
+      reserved
+    instruction: 'During the past week:'
+    position: 37
+    precondition: null
+    source: ''
+    widget_config: null
+  - cde: EORTCQLQLC13_Q02
+    cde_path: null
+    copyright_text: © QLQ-LC13 Copyright 1994 EORTC Quality of life Group. All rights
+      reserved
+    instruction: 'During the past week:'
+    position: 38
+    precondition: null
+    source: ''
+    widget_config: null
+  - cde: EORTCQLQLC13_Q03
+    cde_path: null
+    copyright_text: © QLQ-LC13 Copyright 1994 EORTC Quality of life Group. All rights
+      reserved
+    instruction: 'During the past week:'
+    position: 39
+    precondition: null
+    source: ''
+    widget_config: null
+  - cde: EORTCQLQLC13_Q04
+    cde_path: null
+    copyright_text: © QLQ-LC13 Copyright 1994 EORTC Quality of life Group. All rights
+      reserved
+    instruction: 'During the past week:'
+    position: 40
+    precondition: null
+    source: ''
+    widget_config: null
+  - cde: EORTCQLQLC13_Q05
+    cde_path: null
+    copyright_text: © QLQ-LC13 Copyright 1994 EORTC Quality of life Group. All rights
+      reserved
+    instruction: 'During the past week:'
+    position: 41
+    precondition: null
+    source: ''
+    widget_config: null
+  - cde: EORTCQLQLC13_Q06
+    cde_path: null
+    copyright_text: © QLQ-LC13 Copyright 1994 EORTC Quality of life Group. All rights
+      reserved
+    instruction: 'During the past week:'
+    position: 42
+    precondition: null
+    source: ''
+    widget_config: null
+  - cde: EQ_Health_Rate
+    cde_path: null
+    copyright_text: © EuroQol Research Foundation. EQ-5D™ is a trade mark of the EuroQol
+      Research Foundation
+    instruction: ''
+    position: 36
+    precondition: null
+    source: ''
+    widget_config: '{"widget_name": "slider", "max_label": "The best health you can
+      imagine", "min_label": "The worst health you can imagine", "box_label": "YOUR
+      HEALTH TODAY"}'
+  - cde: EORTCQLQLC13_Q07
+    cde_path: null
+    copyright_text: © QLQ-LC13 Copyright 1994 EORTC Quality of life Group. All rights
+      reserved
+    instruction: 'During the past week:'
+    position: 43
+    precondition: null
+    source: ''
+    widget_config: null
+  - cde: EORTCQLQLC13_Q08
+    cde_path: null
+    copyright_text: © QLQ-LC13 Copyright 1994 EORTC Quality of life Group. All rights
+      reserved
+    instruction: 'During the past week:'
+    position: 44
+    precondition: null
+    source: ''
+    widget_config: null
+  - cde: EORTCQLQLC13_Q09
+    cde_path: null
+    copyright_text: © QLQ-LC13 Copyright 1994 EORTC Quality of life Group. All rights
+      reserved
+    instruction: 'During the past week:'
+    position: 45
+    precondition: null
+    source: ''
+    widget_config: null
+  - cde: EORTCQLQLC13_Q10
+    cde_path: null
+    copyright_text: © QLQ-LC13 Copyright 1994 EORTC Quality of life Group. All rights
+      reserved
+    instruction: 'During the past week:'
+    position: 46
+    precondition: null
+    source: ''
+    widget_config: null
+  - cde: EORTCQLQLC13_Q11
+    cde_path: null
+    copyright_text: © QLQ-LC13 Copyright 1994 EORTC Quality of life Group. All rights
+      reserved
+    instruction: 'During the past week:'
+    position: 47
+    precondition: null
+    source: ''
+    widget_config: null
+  - cde: EORTCQLQLC13_Q12
+    cde_path: null
+    copyright_text: © QLQ-LC13 Copyright 1994 EORTC Quality of life Group. All rights
+      reserved
+    instruction: 'During the past week:'
+    position: 48
+    precondition: null
+    source: ''
+    widget_config: null
+  - cde: EORTCQLQLC13_Q13
+    cde_path: null
+    copyright_text: © QLQ-LC13 Copyright 1994 EORTC Quality of life Group. All rights
+      reserved
+    instruction: 'During the past week:'
+    position: 50
+    precondition: null
+    source: ''
+    widget_config: null
+  - cde: EQ_Selfcare
+    cde_path: null
+    copyright_text: © EuroQol Research Foundation. EQ-5D™ is a trade mark of the EuroQol
+      Research Foundation
+    instruction: Please tap the ONE box that best describes your health TODAY.
+    position: 32
+    precondition: null
+    source: ''
+    widget_config: null
+  - cde: EQ_UsualActivities
+    cde_path: null
+    copyright_text: © EuroQol Research Foundation. EQ-5D™ is a trade mark of the EuroQol
+      Research Foundation
+    instruction: Please tap the ONE box that best describes your health TODAY.
+    position: 33
+    precondition: null
+    source: ''
+    widget_config: null
+  - cde: EORTCQLQLC13_Q12SUB
+    cde_path: null
+    copyright_text: © QLQ-LC13 Copyright 1994 EORTC Quality of life Group. All rights
+      reserved
+    instruction: ''
+    position: 49
+    precondition:
+      cde: EORTCQLQLC13_Q12
+      value: 2,3
+    source: ''
+    widget_config: null
+  - cde: EORTCQLQLC13_Q13SUB
+    cde_path: null
+    copyright_text: © QLQ-LC13 Copyright 1994 EORTC Quality of life Group. All rights
+      reserved
+    instruction: ''
+    position: 51
+    precondition:
+      cde: EORTCQLQLC13_Q13
+      value: 2,3,4
+    source: ''
+    widget_config: null
+  - cde: EQ_Mobility
+    cde_path: null
+    copyright_text: © EuroQol Research Foundation. EQ-5D™ is a trade mark of the EuroQol
+      Research Foundation
+    instruction: Please tap the ONE box that best describes your health TODAY.
+    position: 31
+    precondition: null
+    source: ''
+    widget_config: null
+  - cde: EQ_Pain_Discomfort
+    cde_path: null
+    copyright_text: © EuroQol Research Foundation. EQ-5D™ is a trade mark of the EuroQol
+      Research Foundation
+    instruction: Please tap the ONE box that best describes your health TODAY.
+    position: 34
+    precondition: null
+    source: ''
+    widget_config: null
+  - cde: EQ_Anxiety_Depress
+    cde_path: null
+    copyright_text: © EuroQol Research Foundation. EQ-5D™ is a trade mark of the EuroQol
+      Research Foundation
+    instruction: Please tap the ONE box that best describes your health TODAY.
+    position: 35
+    precondition: null
+    source: ''
+    widget_config: null
+working_groups:
+- SJOG
