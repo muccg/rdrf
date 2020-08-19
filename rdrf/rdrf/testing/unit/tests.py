@@ -1833,6 +1833,15 @@ class CICImporterTestCase(TestCase):
                 cdes += section_cdes
         return cdes
 
+    def _get_section_codes(self):
+        sections = []
+        for form in self.forms:
+             sections += form.sections.split(",")
+        return sections
+
+    def _get_form_names(self):
+        return [form.name for form in self.forms]
+
     def _get_pvg_codes(self):
         """
         returns a list of PVG codes that are used in the CDEs of the imported registry
@@ -1860,38 +1869,6 @@ class CICImporterTestCase(TestCase):
         pv_group = CDEPermittedValueGroup.objects.get(code="State")
         return {pv.code: pv.position for pv in CDEPermittedValue.objects.filter(pv_group=pv_group).order_by('code')}
 
-    def setUp(self):
-        self.maxDiff = None
-        self.models = {
-            CommonDataElement: {"id": "code", "objects_in_yaml": "cdes", "db_objects_getter": self._get_cde_codes},
-            CDEPermittedValueGroup: {"id": "code", "objects_in_yaml": "pvgs", "db_objects_getter": self._get_pvg_codes}
-        }
-
-        importer = Importer()
-        importer.load_yaml(self._get_yaml_file())
-        importer.create_registry()  # using the original yaml file
-        self.state_pvs_original = self._get_state_pvs()
-
-        self.yaml_file = self._get_yaml_file(suffix='modified')
-        with open(self.yaml_file) as yf:
-            self.yaml_data = yaml.load(yf, Loader=yaml.FullLoader)
-        importer.load_yaml(self.yaml_file)
-        importer.create_registry()  # importing the modified yaml file
-
-        self.state_pvs_modified = self._get_state_pvs()
-        self.registry = Registry.objects.get(code=self.yaml_data["code"])
-        self.forms = self.registry.forms
-
-    def model_to_json_string(self, model, instance, fields):
-        """
-        Returns a json string representation of the instance with requested fields
-        :param model: django model class
-        :param instance: instance of the model class
-        :param fields: a dict of model class' field names and internal types
-        :return: a json string of instance's fields and values
-        """
-        return json.dumps(self.model_to_dict(model, instance, fields))
-
     def model_to_dict(self, model, instance, fields):
         """
         Returns a dict representation of the instance with requested fields
@@ -1912,21 +1889,23 @@ class CICImporterTestCase(TestCase):
                     data[f] = None
         return data
 
-    def test_if_imported_cdes_match_yaml(self):
+    def model_to_json_string(self, model, instance, fields):
         """
-        Test if the imported CDE objects match the yaml
+        Returns a json string representation of the instance with requested fields
+        :param model: django model class
+        :param instance: instance of the model class
+        :param fields: a dict of model class' field names and internal types
+        :return: a json string of instance's fields and values
         """
-        fields = {f.name: f.get_internal_type() for f in CommonDataElement._meta.fields}
-        id = "code"
-        cdes_in_yaml = self.yaml_data["cdes"]
+        return json.dumps(self.model_to_dict(model, instance, fields))
 
-        print("Comparing CDEs...")
-        for idx, cde_from_yaml in enumerate(cdes_in_yaml):
-            cde_instance = CommonDataElement.objects.get(code=cde_from_yaml[id])
-            cde_in_db = self.model_to_json_string(CommonDataElement, cde_instance, fields)
-            cde_in_yaml = json.dumps(cde_from_yaml)
-            print(f"{idx}. CDE-{cde_from_yaml[id]}--YAML v DB--\n{cde_in_yaml}\n{cde_in_db}\n")
-            self.assertEqual(cde_in_yaml, cde_in_db)
+    def form_to_json_string(self, instance, fields):
+        f = self.model_to_dict(RegistryForm, instance, fields)
+        f["sections"] = [self.model_to_dict(Section, section, self.section_fields)
+                         for section in instance.section_models]
+        for section in f["sections"]:
+            section["elements"] = section["elements"].split(",")
+        return json.dumps(f)
 
     def _pvg_as_dict(self, pvg):
         """
@@ -1943,35 +1922,6 @@ class CICImporterTestCase(TestCase):
             value_dict = self.model_to_dict(CDEPermittedValue, pv, pv_fields)
             d["values"].append(value_dict)
         return d
-
-    def test_if_imported_pvgs_match_yaml(self):
-        """
-        Test if the imported PermittedValueGroup objects match the yaml
-        """
-        id = "code"
-        pvgs_in_yaml = self.yaml_data["pvgs"]
-
-        pvgs_in_db = self._get_pvg_codes()
-
-        for idx, pvg_in_yaml in enumerate(pvgs_in_yaml):
-            if pvg_in_yaml[id] in pvgs_in_db:
-                pvg_instance = CDEPermittedValueGroup.objects.get(code=pvg_in_yaml[id])
-                pvg_in_db = self._pvg_as_dict(pvg_instance)
-
-                # sort the list of values dicts on code
-                pvg_values_in_yaml = sorted(pvg_in_yaml["values"], key=lambda k: k["code"])
-                pvg_values_in_db = sorted(pvg_in_db["values"], key=lambda k: k["code"])
-                print(f"PVG {idx}. {pvg_in_yaml[id]}--YAML v DB--\n{pvg_values_in_yaml}\n{pvg_values_in_db}\n")
-                self.assertEqual(pvg_values_in_yaml, pvg_values_in_db)
-
-    def test_if_pvs_get_modified_by_import(self):
-        """
-        Test if the PermittedValue objects are modified on import.
-        The position field was set to null in State values in the original yaml.
-        The modified yaml has the position set to 1 to 8 for these values.
-        """
-        print(f"State PVs\n{self.state_pvs_original}\nState PVs modified\n{self.state_pvs_modified}")
-        self.assertNotEqual(self.state_pvs_original, self.state_pvs_modified)
 
     def _survey_question_as_dict(self, sq):
         """
@@ -2015,14 +1965,6 @@ class CICImporterTestCase(TestCase):
             d["questions"].append(question_dict)
         return d
 
-    def test_if_version_gets_modified_by_import(self):
-        """
-        Tests if the registry version gets modified with the import
-        The original yaml has version 1.26 and the modified one has version 1.27
-        """
-        print(f"registry version after import: {self.registry.version}")
-        self.assertEqual(self.registry.version, "0.0.12")
-
     def _precondition_cde_exists(self, precondition_cde, questions):
         for q in questions:
             exists = q["cde"] == precondition_cde
@@ -2030,44 +1972,123 @@ class CICImporterTestCase(TestCase):
                 return exists
         return False
 
-    def test_if_imported_surveys_match_yaml(self):
+    def setUp(self):
+        self.maxDiff = None
+        importer = Importer()
+        importer.load_yaml(self._get_yaml_file())
+        importer.create_registry()  # using the original yaml file here
+        self.state_pvs_original = self._get_state_pvs()
+
+        self.yaml_file = self._get_yaml_file(suffix='modified')
+        with open(self.yaml_file) as yf:
+            self.yaml_data = yaml.load(yf, Loader=yaml.FullLoader)
+        importer.load_yaml(self.yaml_file)
+        importer.create_registry()  # using the modified yaml file here
+
+        self.cde_fields = {f.name: f.get_internal_type() for f in CommonDataElement._meta.fields}
+        self.cdes_in_yaml = self.yaml_data["cdes"]
+
+        self.state_pvs_modified = self._get_state_pvs()
+        self.registry = Registry.objects.get(code=self.yaml_data["code"])
+        
+        self.forms = self.registry.forms
+
+        self.surveys_in_yaml = self.yaml_data["surveys"]
+        self.survey_names_in_db = self._get_survey_names()
+
+        self.pvgs_in_yaml = self.yaml_data["pvgs"]
+        self.pvg_codes_in_db = self._get_pvg_codes()
+
+        self.section_fields = {f.name: f.get_internal_type() for f in Section._meta.fields if f.name != "id"}
+        self.sections_in_yaml = []  # self.yaml_data["sections"]
+        self.section_codes_in_db = self._get_section_codes()
+
+        self.form_fields = {f.name: f.get_internal_type()
+                            for f in RegistryForm._meta.fields
+                            if not f.is_relation and f.name!="id" and f.name!="is_questionnaire_login"}
+        self.forms_in_yaml = self.yaml_data["forms"]
+        self.form_names_in_db = self._get_form_names()
+
+    def assert_precondition_imported(self, q, survey_questions_in_db, survey_in_yaml):
+        cde = q["precondition"]["cde"]
+        value = q["precondition"]["value"]
+        preconditions = Precondition.objects.filter(survey__name=survey_in_yaml["name"],
+                                                    cde__code=cde, value=value).count()
+        self.assertEqual(preconditions, 1)
+
+    def assert_precondition_validity(self, q, survey_questions_in_db):
+        precondition_cde = q["precondition"]["cde"]
+        is_precondition_cde_present = self._precondition_cde_exists(precondition_cde,
+                                                                    survey_questions_in_db)
+        self.assertTrue(is_precondition_cde_present)
+
+    def test_cdes(self):
+        """
+        Test if the imported CDE objects match the yaml
+        """
+        for cde_in_yaml in self.cdes_in_yaml:
+            cde = CommonDataElement.objects.get(code=cde_in_yaml["code"])
+            cde_from_db = self.model_to_json_string(CommonDataElement, cde, self.cde_fields)
+            cde_from_yaml = json.dumps(cde_in_yaml)
+            self.assertEqual(cde_from_yaml, cde_from_db)
+
+    def test_forms(self):
+        """
+         Tests if the imported RegistryForm objects match the yaml
+        """
+        for form_in_yaml in self.forms_in_yaml:
+            form = RegistryForm.objects.get(name=form_in_yaml["name"])
+            form_from_db = self.form_to_json_string(form, self.form_fields)
+            form_from_yaml = json.dumps(form_in_yaml)
+            self.assertEqual(form_from_yaml, form_from_db)
+
+    def test_survey_questions_and_preconditions(self):
         """
         Tests if these objects match the yaml
-        - the imported Survey objects
+        - the imported SurveyQuestion objects
         - the imported Precondition objects
         """
-        id = "name"
-        surveys_in_yaml = self.yaml_data["surveys"]
+        for survey_in_yaml in self.surveys_in_yaml:
 
-        surveys_in_db = self._get_survey_names()
+            assert(survey_in_yaml["name"] in self.survey_names_in_db)
 
-        for idx, survey_in_yaml in enumerate(surveys_in_yaml):
-            if survey_in_yaml[id] in surveys_in_db:
-                survey_instance = Survey.objects.get(name=survey_in_yaml[id])
-                survey_in_db = self._survey_as_dict(survey_instance)
+            if survey_in_yaml["name"] in self.survey_names_in_db:
+                survey = Survey.objects.get(name=survey_in_yaml["name"])
+                survey_in_db = self._survey_as_dict(survey)
 
-                # sort the list of question dicts on cde code
                 survey_questions_in_yaml = sorted(survey_in_yaml["questions"], key=lambda k: k["cde"])
                 survey_questions_in_db = sorted(survey_in_db["questions"], key=lambda k: k["cde"])
-                print(f"Survey {idx}. {survey_in_yaml[id]} YAML v DB--\n{survey_questions_in_yaml}\n\n{survey_questions_in_db}\n")
+                self.assertEqual(survey_questions_in_yaml, survey_questions_in_db)  # questions
 
-                # compare the questions
-                self.assertEqual(survey_questions_in_yaml, survey_questions_in_db)
+                for question_in_db in survey_questions_in_db:
+                    if question_in_db["precondition"] is not None:
+                        self.assert_precondition_imported(question_in_db, survey_questions_in_db, survey_in_yaml)
+                        self.assert_precondition_validity(question_in_db, survey_questions_in_db)
 
-                # check validity of preconditions
-                print("Checking validity of preconditions")
-                for q in survey_questions_in_db:
-                    if q["precondition"] is not None:
-                        precondition_cde = q["precondition"]["cde"]
-                        is_precondition_cde_present = self._precondition_cde_exists(precondition_cde, survey_questions_in_db)
-                        print(f"{q['cde']} has precondition {precondition_cde} with {q['precondition']['value']}")
-                        self.assertTrue(is_precondition_cde_present)
+    def test_pvgs(self):
+        """
+        Test if the imported PermittedValueGroup objects match the yaml
+        """
+        for pvg_in_yaml in self.pvgs_in_yaml:
+            if pvg_in_yaml["code"] in self.pvg_codes_in_db:
+                pvg = CDEPermittedValueGroup.objects.get(code=pvg_in_yaml["code"])
+                pvg_in_db = self._pvg_as_dict(pvg)
 
-                # check if Precondition objects are imported
-                for q in survey_questions_in_db:
-                    if q["precondition"] is not None:
-                        cde = q["precondition"]["cde"]
-                        value = q["precondition"]["value"]
-                        preconditions = Precondition.objects.filter(survey__name=survey_in_yaml[id],
-                                                                    cde__code=cde, value=value).count()
-                        self.assertEqual(preconditions, 1)
+                pvg_values_in_yaml = sorted(pvg_in_yaml["values"], key=lambda k: k["code"])
+                pvg_values_in_db = sorted(pvg_in_db["values"], key=lambda k: k["code"])
+                self.assertEqual(pvg_values_in_yaml, pvg_values_in_db)
+
+    def test_if_pvs_get_modified_by_import(self):
+        """
+        Test if the PermittedValue objects are modified on import.
+        The position field was set to null in State values in the original yaml.
+        The modified yaml has the position set to 1 to 8 for these values.
+        """
+        self.assertNotEqual(self.state_pvs_original, self.state_pvs_modified)
+
+    def test_if_version_gets_modified_by_import(self):
+        """
+        Tests if the registry version gets modified with the import
+        The original yaml has version 0.0.11 and the modified one has version 0.0.12
+        """
+        self.assertEqual(self.registry.version, "0.0.12")
