@@ -1836,7 +1836,7 @@ class CICImporterTestCase(TestCase):
     def _get_section_codes(self):
         sections = []
         for form in self.forms:
-             sections += form.sections.split(",")
+            sections += form.sections.split(",")
         return sections
 
     def _get_form_names(self):
@@ -1990,7 +1990,7 @@ class CICImporterTestCase(TestCase):
 
         self.state_pvs_modified = self._get_state_pvs()
         self.registry = Registry.objects.get(code=self.yaml_data["code"])
-        
+
         self.forms = self.registry.forms
 
         self.surveys_in_yaml = self.yaml_data["surveys"]
@@ -2005,7 +2005,7 @@ class CICImporterTestCase(TestCase):
 
         self.form_fields = {f.name: f.get_internal_type()
                             for f in RegistryForm._meta.fields
-                            if not f.is_relation and f.name!="id" and f.name!="is_questionnaire_login"}
+                            if not f.is_relation and f.name not in ["id", "is_questionnaire_login"]}
         self.forms_in_yaml = self.yaml_data["forms"]
         self.form_names_in_db = self._get_form_names()
 
