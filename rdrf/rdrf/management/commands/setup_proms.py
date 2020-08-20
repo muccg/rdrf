@@ -1,13 +1,13 @@
 import sys
 from django.core.management import BaseCommand
 from django.db import transaction
-from rdrf.models.definition.models import Registry, CommonDataElement, CDEPermittedValueGroup, CDEPermittedValue
-from rdrf.models.proms.models import Survey, SurveyQuestion, Precondition, RegistryForm, Section
+from rdrf.models.definition.models import Registry
 from rdrf.services.io.defs.importer import Importer
 
 
 class Command(BaseCommand):
-    help = "Setup PROMS system: preserve metadata(optional), clear existing models, import yaml"
+    help = "Setup PROMS system: overwrite metadata(optional), clear existing models, import yaml. " \
+           "(Preserves metadata by default.)"
 
     def add_arguments(self, parser):
         parser.add_argument('-y',
@@ -17,15 +17,15 @@ class Command(BaseCommand):
                             default=None,
                             help='The registry definition yaml file')
         parser.add_argument('-o',
-                            '--override-metadata',
-                            action='store',
+                            '--overwrite-metadata',
+                            action='store_true',
                             dest='override',
-                            default='N',
-                            help='Y to override metadata with metadata in yaml. importer preserves metadata by default')
+                            default=False,
+                            help='To overwrite metadata with metadata in yaml. Skip this option to preserve metadata.')
 
     def handle(self, *args, **options):
         yaml_file = options.get("yaml")
-        override_metadata = options.get("override").upper()
+        override_metadata = options.get("override")
 
         if yaml_file is None:
             self.stderr.write(f"Error: --yaml argument is required")
@@ -43,34 +43,23 @@ class Command(BaseCommand):
             except Registry.DoesNotExist:
                 pass
             else:
-                if override_metadata == 'N':  # preserve metadata by default
+                if not override_metadata:  # preserve metadata by default
                     current_metadata = registry.metadata_json
 
-            klasses = [CommonDataElement, CDEPermittedValueGroup, CDEPermittedValue, Survey,
-                       SurveyQuestion, Precondition, RegistryForm, Section]
-
             with transaction.atomic():
-                for klass in klasses:
-                    klass.objects.all().delete()
-
                 try:
                     importer.create_registry()
+                    if not override_metadata and current_metadata is not None:  # restore metadata
+                        registry = Registry.objects.get(code=importer.data['code'])
+                        registry.metadata_json = current_metadata
+                        try:
+                            registry.save()
+                        except Exception as e:
+                            self.stderr.write("Exception while saving registry: %s" % e)
+                            raise e
                 except Exception as e:
                     self.stderr.write("Exception %s" % e)
                     raise e
-                else:
-                    self.stdout.write("No exception was caught in the importer")
 
                 self.stdout.write("Importer state: %s" % importer.state)
                 self.stdout.write("Importer errors: %s" % importer.errors)
-
-                if override_metadata == 'N' and current_metadata is not None:
-                    registry.metadata_json = current_metadata
-
-                try:
-                    registry.save()
-                except Exception as e:
-                    self.stderr.write("Exception while saving registry: %s" % e)
-                    raise e
-                else:
-                    self.stdout.write("No exception was caught while saving the registry.")
