@@ -1,8 +1,7 @@
 import sys
 from django.core.management import BaseCommand
 from django.db import transaction
-from rdrf.models.definition.models import Registry, CommonDataElement, CDEPermittedValueGroup, CDEPermittedValue
-from rdrf.models.proms.models import Survey, SurveyQuestion, Precondition, RegistryForm, Section
+from rdrf.models.definition.models import Registry
 from rdrf.services.io.defs.importer import Importer
 
 
@@ -47,13 +46,7 @@ class Command(BaseCommand):
                 if not override_metadata:  # preserve metadata by default
                     current_metadata = registry.metadata_json
 
-            klasses = [CommonDataElement, CDEPermittedValueGroup, CDEPermittedValue, Survey,
-                       SurveyQuestion, Precondition, RegistryForm, Section]
-
             with transaction.atomic():
-                for klass in klasses:
-                    klass.objects.all().delete()
-
                 try:
                     importer.create_registry()
                     if not override_metadata and current_metadata is not None:  # restore metadata
