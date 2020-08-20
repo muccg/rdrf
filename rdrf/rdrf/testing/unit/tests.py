@@ -2111,6 +2111,11 @@ class SetupPromsCommandTest(TestCase):
         call_command("setup_proms", yaml=self.modified_yaml)
         self.assertEqual(Registry.objects.get(code="ICHOMLC").version, "0.0.12")
 
+    def test_preserving_metadata(self):
+        call_command("setup_proms", yaml=self.modified_yaml)
+        proms_system_url = Registry.objects.get(code="ICHOMLC").metadata["proms_system_url"]
+        self.assertEqual(proms_system_url, "https://rdrf.ccgapps.com.au/ciclungproms")
+
     def test_overwriting_metadata(self):
         call_command("setup_proms", yaml=self.modified_yaml, override=True)
         proms_system_url = Registry.objects.get(code="ICHOMLC").metadata["proms_system_url"]
