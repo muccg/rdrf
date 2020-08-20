@@ -40,12 +40,12 @@ class Command(BaseCommand):
 
             current_metadata = None
             try:
-                target_registry = Registry.objects.get(code=importer.data['code'])
+                registry = Registry.objects.get(code=importer.data['code'])
             except Registry.DoesNotExist:
                 pass
             else:
                 if not override_metadata:  # preserve metadata by default
-                    current_metadata = target_registry.metadata_json
+                    current_metadata = registry.metadata_json
 
             klasses = [CommonDataElement, CDEPermittedValueGroup, CDEPermittedValue, Survey,
                        SurveyQuestion, Precondition, RegistryForm, Section]
@@ -56,22 +56,17 @@ class Command(BaseCommand):
 
                 try:
                     importer.create_registry()
+                    if not override_metadata and current_metadata is not None:  # restore metadata
+                        registry = Registry.objects.get(code=importer.data['code'])
+                        registry.metadata_json = current_metadata
+                        try:
+                            registry.save()
+                        except Exception as e:
+                            self.stderr.write("Exception while saving registry: %s" % e)
+                            raise e
                 except Exception as e:
                     self.stderr.write("Exception %s" % e)
                     raise e
-                else:
-                    self.stdout.write("No exception was caught in the importer")
 
                 self.stdout.write("Importer state: %s" % importer.state)
                 self.stdout.write("Importer errors: %s" % importer.errors)
-
-                if not override_metadata and current_metadata is not None:  # restore metadata
-                    target_registry = Registry.objects.get(code=importer.data['code'])
-                    target_registry.metadata_json = current_metadata
-                    try:
-                        target_registry.save()
-                    except Exception as e:
-                        self.stderr.write("Exception while saving registry: %s" % e)
-                        raise e
-                    else:
-                        self.stdout.write("No exception was caught while saving the registry..")
