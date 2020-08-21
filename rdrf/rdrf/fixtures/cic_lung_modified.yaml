@@ -4503,7 +4503,7 @@ metadata_json: |-
   "section_blacklist": ["Next of Kin", "Patient Doctor", "Patient Address"],
   "surveys": [ {"code": "FollowUpLung", "description": "FollowUpPROMS"},
   {"code": "BaselineLung", "description": "Baseline PROMS - Lung cancer"}],
-  "proms_system_url": "https://rdrf.ccgapps.com.au/ciclungproms",
+  "proms_system_url": "https://rdrf.ccgapps.com.au/ciclungpromsmodified",
   "preamble_text":"This survey helps us to understand how your cancer care and treatment affects your life, from your point of view. The information you provide will help your health team to provide care that better meets your individual needs. What you tell us will also help to improve care for people who undergo medical treatments in the future. There is more than one questionnaire in the survey. So some of the questions may seem the same. This is because we are trying to work out if one or another questionnaire is better to use. In the future, this will lead to a much shorter survey. So please try to answer all the questions. Thank you again for taking part in the study.","copyright_text":"Lorem ipsum dolor sit amet, consectetur adipiscing elit. Praesent cursus ante id nulla eleifend, facilisis venenatis lacus porta. Vestibulum viverra odio vel mauris faucibus maximus. Aenean quis dui venenatis, iaculis tellus vitae, maximus nibh. Pellentesque quam nibh, hendrerit nec quam in, semper porta eros.","consents":{"PROMSConsent":"promsconsent"}
   }
 name: ICHOM Lung Cancer

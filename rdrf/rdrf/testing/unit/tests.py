@@ -2092,3 +2092,31 @@ class CICImporterTestCase(TestCase):
         The original yaml has version 0.0.11 and the modified one has version 0.0.12
         """
         self.assertEqual(self.registry.version, "0.0.12")
+
+
+class SetupPromsCommandTest(TestCase):
+
+    def setUp(self):
+        importer = Importer()
+        importer.load_yaml(self._get_yaml_file())
+        importer.create_registry()
+        self.modified_yaml = self._get_yaml_file(suffix='modified')
+
+    def _get_yaml_file(self, suffix='original'):
+        this_dir = os.path.dirname(__file__)
+        test_yaml = os.path.abspath(os.path.join(this_dir, "..", "..", "fixtures", f"cic_lung_{suffix}.yaml"))
+        return test_yaml
+
+    def test_version(self):
+        call_command("setup_proms", yaml=self.modified_yaml)
+        self.assertEqual(Registry.objects.get(code="ICHOMLC").version, "0.0.12")
+
+    def test_preserving_metadata(self):
+        call_command("setup_proms", yaml=self.modified_yaml)
+        proms_system_url = Registry.objects.get(code="ICHOMLC").metadata["proms_system_url"]
+        self.assertEqual(proms_system_url, "https://rdrf.ccgapps.com.au/ciclungproms")
+
+    def test_overwriting_metadata(self):
+        call_command("setup_proms", yaml=self.modified_yaml, override=True)
+        proms_system_url = Registry.objects.get(code="ICHOMLC").metadata["proms_system_url"]
+        self.assertEqual(proms_system_url, "https://rdrf.ccgapps.com.au/ciclungpromsmodified")
