@@ -16,6 +16,7 @@ from rdrf.models.definition.models import Registry, RegistryForm, Section
 from rdrf.models.definition.models import CDEPermittedValueGroup, CDEPermittedValue
 from rdrf.models.definition.models import CommonDataElement, InvalidAbnormalityConditionError, ValidationError
 from rdrf.models.definition.models import ClinicalData
+from rdrf.models.proms.models import Survey, SurveyQuestion, Precondition
 from rdrf.views.form_view import FormView
 from registry.patients.models import Patient
 from registry.patients.models import State, PatientAddress, AddressType
@@ -462,7 +463,7 @@ class ExporterTestCase(RDRFTestCase):
             f.write(yaml_data)
 
         with open("/tmp/test.yaml") as f:
-            data = yaml.load(f)
+            data = yaml.load(f, Loader=yaml.FullLoader)
 
         test_key('EXPORT_TYPE', data)
         test_key('RDRF_VERSION', data)
@@ -1802,3 +1803,320 @@ class UpdateCalculatedFieldsTestCase(FormTestCase):
             "CDEBMI",
             db_record)
         self.assertEqual(cdebmi_value, "25.96")
+
+
+class CICImporterTestCase(TestCase):
+    """
+    Tests for the definition importer
+    """
+    def _get_yaml_file(self, suffix='original'):
+        this_dir = os.path.dirname(__file__)
+        test_yaml = os.path.abspath(os.path.join(this_dir, "..", "..", "fixtures", f"cic_lung_{suffix}.yaml"))
+        return test_yaml
+
+    def _get_survey_names(self):
+        """
+        returns a list of Survey names that are used in the imported registry
+        :return: a list of Survey names
+        """
+        return self.registry.survey_set.all().values_list("name", flat=True)
+
+    def _get_cde_codes(self):
+        """
+        returns a list of CDE codes that are used in the form sections of the imported registry
+        :return: list of CDE codes
+        """
+        cdes = []
+        for form in self.forms:
+            for section in form.section_models:
+                section_cdes = section.elements.split(",")
+                cdes += section_cdes
+        return cdes
+
+    def _get_section_codes(self):
+        sections = []
+        for form in self.forms:
+            sections += form.sections.split(",")
+        return sections
+
+    def _get_form_names(self):
+        return [form.name for form in self.forms]
+
+    def _get_pvg_codes(self):
+        """
+        returns a list of PVG codes that are used in the CDEs of the imported registry
+        :return: list of PVG codes
+        """
+        cdes = []
+        for form in self.forms:
+            for section in form.section_models:
+                section_cdes = section.elements.split(",")
+                cdes += section_cdes
+
+        return list(
+            dict.fromkeys(
+                [
+                    code for code in CommonDataElement.objects.filter(code__in=cdes).values_list("pv_group", flat=True)
+                    if code is not None
+                ]
+            )
+        )
+
+    def _get_state_pvs(self):
+        """
+        Returns a dict of State PV codes and positions
+        """
+        pv_group = CDEPermittedValueGroup.objects.get(code="State")
+        return {pv.code: pv.position for pv in CDEPermittedValue.objects.filter(pv_group=pv_group).order_by('code')}
+
+    def model_to_dict(self, model, instance, fields):
+        """
+        Returns a dict representation of the instance with requested fields
+        :param model: django model class
+        :param instance: instance of the model class
+        :param fields: a dict of model class' field names and internal types
+        :return: a dict of instance's fields and values
+        """
+        data = {}
+        for f in sorted(fields.keys()):
+            field_object = model._meta.get_field(f)
+            field_value = field_object.value_from_object(instance)
+            data[f] = field_value
+            if fields[f] == "DecimalField":
+                if field_value is not None:
+                    data[f] = str(field_value)
+                else:
+                    data[f] = None
+        return data
+
+    def model_to_json_string(self, model, instance, fields):
+        """
+        Returns a json string representation of the instance with requested fields
+        :param model: django model class
+        :param instance: instance of the model class
+        :param fields: a dict of model class' field names and internal types
+        :return: a json string of instance's fields and values
+        """
+        return json.dumps(self.model_to_dict(model, instance, fields))
+
+    def form_to_json_string(self, instance, fields):
+        f = self.model_to_dict(RegistryForm, instance, fields)
+        f["sections"] = [self.model_to_dict(Section, section, self.section_fields)
+                         for section in instance.section_models]
+        for section in f["sections"]:
+            section["elements"] = section["elements"].split(",")
+        return json.dumps(f)
+
+    def _pvg_as_dict(self, pvg):
+        """
+        Returns a dict representation of PVG and its PVs in the same sructure as in yaml
+        :param pvg: PVG object
+        :return: a dict of PVG and its PVs (excluding pk of PV)
+        """
+        pv_fields = {f.name: f.get_internal_type() for f in CDEPermittedValue._meta.fields if not f.is_relation and not f.primary_key}
+        d = {
+            "code": pvg.code,
+            "values": []
+        }
+        for pv in CDEPermittedValue.objects.filter(pv_group=pvg):
+            value_dict = self.model_to_dict(CDEPermittedValue, pv, pv_fields)
+            d["values"].append(value_dict)
+        return d
+
+    def _survey_question_as_dict(self, sq):
+        """
+        Returns a dict representation of SurveyQuestion in the same sructure as in yaml
+        :param survey: SurveyQuestion object
+        :return: a dict of SurveyQuestion
+        """
+        d = {
+            "cde": sq.cde.code,
+            "cde_path": sq.cde_path,
+            "copyright_text": sq.copyright_text,
+            "instruction": sq.instruction,
+            "position": sq.position,
+            "source": sq.source,
+            "widget_config": sq.widget_config,
+            "precondition": None
+        }
+        if sq.precondition:
+            d["precondition"] = {
+                "cde": sq.precondition.cde.code,
+                "value": sq.precondition.value
+            }
+        return d
+
+    def _survey_as_dict(self, survey):
+        """
+        Returns a dict representation of Survey and its SurveyQuestions in the same sructure as in yaml
+        :param survey: Survey object
+        :return: a dict of Survey and its SurveyQuestions
+        """
+        d = {
+            "name": survey.name,
+            "context_form_group": survey.context_form_group,
+            "display_name": survey.display_name,
+            "form": survey.form,
+            "is_followup": survey.is_followup,
+            "questions": []
+        }
+        for question in SurveyQuestion.objects.filter(survey=survey):
+            question_dict = self._survey_question_as_dict(question)
+            d["questions"].append(question_dict)
+        return d
+
+    def _precondition_cde_exists(self, precondition_cde, questions):
+        for q in questions:
+            exists = q["cde"] == precondition_cde
+            if exists:
+                return exists
+        return False
+
+    def setUp(self):
+        self.maxDiff = None
+        importer = Importer()
+        importer.load_yaml(self._get_yaml_file())
+        importer.create_registry()  # using the original yaml file here
+        self.state_pvs_original = self._get_state_pvs()
+
+        self.yaml_file = self._get_yaml_file(suffix='modified')
+        with open(self.yaml_file) as yf:
+            self.yaml_data = yaml.load(yf, Loader=yaml.FullLoader)
+        importer.load_yaml(self.yaml_file)
+        importer.create_registry()  # using the modified yaml file here
+
+        self.cde_fields = {f.name: f.get_internal_type() for f in CommonDataElement._meta.fields}
+        self.cdes_in_yaml = self.yaml_data["cdes"]
+
+        self.state_pvs_modified = self._get_state_pvs()
+        self.registry = Registry.objects.get(code=self.yaml_data["code"])
+
+        self.forms = self.registry.forms
+
+        self.surveys_in_yaml = self.yaml_data["surveys"]
+        self.survey_names_in_db = self._get_survey_names()
+
+        self.pvgs_in_yaml = self.yaml_data["pvgs"]
+        self.pvg_codes_in_db = self._get_pvg_codes()
+
+        self.section_fields = {f.name: f.get_internal_type() for f in Section._meta.fields if f.name != "id"}
+        self.sections_in_yaml = []  # self.yaml_data["sections"]
+        self.section_codes_in_db = self._get_section_codes()
+
+        self.form_fields = {f.name: f.get_internal_type()
+                            for f in RegistryForm._meta.fields
+                            if not f.is_relation and f.name not in ["id", "is_questionnaire_login"]}
+        self.forms_in_yaml = self.yaml_data["forms"]
+        self.form_names_in_db = self._get_form_names()
+
+    def assert_precondition_imported(self, q, survey_questions_in_db, survey_in_yaml):
+        cde = q["precondition"]["cde"]
+        value = q["precondition"]["value"]
+        preconditions = Precondition.objects.filter(survey__name=survey_in_yaml["name"],
+                                                    cde__code=cde, value=value).count()
+        self.assertEqual(preconditions, 1)
+
+    def assert_precondition_validity(self, q, survey_questions_in_db):
+        precondition_cde = q["precondition"]["cde"]
+        is_precondition_cde_present = self._precondition_cde_exists(precondition_cde,
+                                                                    survey_questions_in_db)
+        self.assertTrue(is_precondition_cde_present)
+
+    def test_cdes(self):
+        """
+        Test if the imported CDE objects match the yaml
+        """
+        for cde_in_yaml in self.cdes_in_yaml:
+            cde = CommonDataElement.objects.get(code=cde_in_yaml["code"])
+            cde_from_db = self.model_to_json_string(CommonDataElement, cde, self.cde_fields)
+            cde_from_yaml = json.dumps(cde_in_yaml)
+            self.assertEqual(cde_from_yaml, cde_from_db)
+
+    def test_forms(self):
+        """
+         Tests if the imported RegistryForm objects match the yaml
+        """
+        for form_in_yaml in self.forms_in_yaml:
+            form = RegistryForm.objects.get(name=form_in_yaml["name"])
+            form_from_db = self.form_to_json_string(form, self.form_fields)
+            form_from_yaml = json.dumps(form_in_yaml)
+            self.assertEqual(form_from_yaml, form_from_db)
+
+    def test_survey_questions_and_preconditions(self):
+        """
+        Tests if these objects match the yaml
+        - the imported SurveyQuestion objects
+        - the imported Precondition objects
+        """
+        for survey_in_yaml in self.surveys_in_yaml:
+
+            assert(survey_in_yaml["name"] in self.survey_names_in_db)
+
+            if survey_in_yaml["name"] in self.survey_names_in_db:
+                survey = Survey.objects.get(name=survey_in_yaml["name"])
+                survey_in_db = self._survey_as_dict(survey)
+
+                survey_questions_in_yaml = sorted(survey_in_yaml["questions"], key=lambda k: k["cde"])
+                survey_questions_in_db = sorted(survey_in_db["questions"], key=lambda k: k["cde"])
+                self.assertEqual(survey_questions_in_yaml, survey_questions_in_db)  # questions
+
+                for question_in_db in survey_questions_in_db:
+                    if question_in_db["precondition"] is not None:
+                        self.assert_precondition_imported(question_in_db, survey_questions_in_db, survey_in_yaml)
+                        self.assert_precondition_validity(question_in_db, survey_questions_in_db)
+
+    def test_pvgs(self):
+        """
+        Test if the imported PermittedValueGroup objects match the yaml
+        """
+        for pvg_in_yaml in self.pvgs_in_yaml:
+            if pvg_in_yaml["code"] in self.pvg_codes_in_db:
+                pvg = CDEPermittedValueGroup.objects.get(code=pvg_in_yaml["code"])
+                pvg_in_db = self._pvg_as_dict(pvg)
+
+                pvg_values_in_yaml = sorted(pvg_in_yaml["values"], key=lambda k: k["code"])
+                pvg_values_in_db = sorted(pvg_in_db["values"], key=lambda k: k["code"])
+                self.assertEqual(pvg_values_in_yaml, pvg_values_in_db)
+
+    def test_if_pvs_get_modified_by_import(self):
+        """
+        Test if the PermittedValue objects are modified on import.
+        The position field was set to null in State values in the original yaml.
+        The modified yaml has the position set to 1 to 8 for these values.
+        """
+        self.assertNotEqual(self.state_pvs_original, self.state_pvs_modified)
+
+    def test_if_version_gets_modified_by_import(self):
+        """
+        Tests if the registry version gets modified with the import
+        The original yaml has version 0.0.11 and the modified one has version 0.0.12
+        """
+        self.assertEqual(self.registry.version, "0.0.12")
+
+
+class SetupPromsCommandTest(TestCase):
+
+    def setUp(self):
+        importer = Importer()
+        importer.load_yaml(self._get_yaml_file())
+        importer.create_registry()
+        self.modified_yaml = self._get_yaml_file(suffix='modified')
+
+    def _get_yaml_file(self, suffix='original'):
+        this_dir = os.path.dirname(__file__)
+        test_yaml = os.path.abspath(os.path.join(this_dir, "..", "..", "fixtures", f"cic_lung_{suffix}.yaml"))
+        return test_yaml
+
+    def test_version(self):
+        call_command("setup_proms", yaml=self.modified_yaml)
+        self.assertEqual(Registry.objects.get(code="ICHOMLC").version, "0.0.12")
+
+    def test_preserving_metadata(self):
+        call_command("setup_proms", yaml=self.modified_yaml)
+        proms_system_url = Registry.objects.get(code="ICHOMLC").metadata["proms_system_url"]
+        self.assertEqual(proms_system_url, "https://rdrf.ccgapps.com.au/ciclungproms")
+
+    def test_overwriting_metadata(self):
+        call_command("setup_proms", yaml=self.modified_yaml, override=True)
+        proms_system_url = Registry.objects.get(code="ICHOMLC").metadata["proms_system_url"]
+        self.assertEqual(proms_system_url, "https://rdrf.ccgapps.com.au/ciclungpromsmodified")
