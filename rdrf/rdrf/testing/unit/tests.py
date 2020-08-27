@@ -39,9 +39,7 @@ logger = logging.getLogger(__name__)
 
 class CalculatedFunctionsTestCase(TestCase):
 
-
     def setUp(self):
-
         # Note that we convert the string date as a date django date
         patient_date_of_birth = '2000-05-17'
         self.patient_values = {'date_of_birth': datetime.strptime(patient_date_of_birth, '%Y-%m-%d'),
