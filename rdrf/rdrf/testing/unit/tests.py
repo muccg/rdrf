@@ -39,7 +39,9 @@ logger = logging.getLogger(__name__)
 
 class CalculatedFunctionsTestCase(TestCase):
 
+
     def setUp(self):
+
         # Note that we convert the string date as a date django date
         patient_date_of_birth = '2000-05-17'
         self.patient_values = {'date_of_birth': datetime.strptime(patient_date_of_birth, '%Y-%m-%d'),
@@ -393,6 +395,7 @@ class FormFiller(object):
 
 
 class RDRFTestCase(TestCase):
+    databases = {'default', 'clinical'}
     fixtures = ['testing_auth', 'testing_users', 'testing_rdrf']
 
 
@@ -1328,6 +1331,8 @@ class MinTypeTest(TestCase):
 
 
 class StructureChecker(TestCase):
+    databases = {'default', 'clinical'}
+
     def _run_command(self, *args, **kwargs):
         from django.core import management
         import io
