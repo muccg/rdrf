@@ -5,7 +5,7 @@ package_data = {}
 start_dir = os.getcwd()
 requirements = [
     "ccg-django-utils==0.4.2",
-    "celery==4.4.2",
+    "celery==4.4.7",
     "Django==2.1.15",
     "django-ajax-selects==1.7.1",
     "django-anymail==7.0.0",
