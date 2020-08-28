@@ -9,7 +9,7 @@ requirements = [
     "Django==2.1.15",
     "django-ajax-selects==1.7.1",
     "django-anymail==7.0.0",
-    "django-countries==5.5",
+    "django-countries==6.1.3",
     "django-extensions==2.2.5",
     "django-iprestrict==1.7.0",
     "django-messages-ui==2.0.2",
