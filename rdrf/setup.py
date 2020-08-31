@@ -5,15 +5,15 @@ package_data = {}
 start_dir = os.getcwd()
 requirements = [
     "ccg-django-utils==0.4.2",
-    "celery==4.4.2",
+    "celery==4.4.7",
     "Django==2.1.15",
-    "django-ajax-selects==1.7.1",
     "django-anymail==7.2.1",
+    "django-ajax-selects==1.9.1",
     "django-countries==5.5",
     "django-extensions==2.2.5",
     "django-iprestrict==1.7.0",
     "django-messages-ui==2.0.2",
-    "django-nose==1.4.6",
+    "django-nose==1.4.7",
     "django-positions==0.6.0",
     "django-registration-redux==2.6",
     "djangorestframework==3.9.4",
