@@ -13,7 +13,7 @@ requirements = [
     "django-extensions==2.2.5",
     "django-iprestrict==1.7.0",
     "django-messages-ui==2.0.2",
-    "django-nose==1.4.6",
+    "django-nose==1.4.7",
     "django-positions==0.6.0",
     "django-registration-redux==2.6",
     "djangorestframework==3.9.4",
