@@ -104,6 +104,7 @@ class Links:
         Surveys = QuickLink(reverse("admin:rdrf_survey_changelist"), _("Surveys"))
         SurveyAssignments = QuickLink(reverse("admin:rdrf_surveyassignment_changelist"), _("Survey Assignments"))
         SurveyRequest = QuickLink(reverse("admin:rdrf_surveyrequest_changelist"), _("Survey Request"))
+        RegistryYamls = QuickLink(reverse("admin:rdrf_registryyaml_changelist"), _('Registry Yamls'))
 
     if settings.DESIGN_MODE:
         Registries = QuickLink(reverse("admin:rdrf_registry_changelist"), _("Registries"))
@@ -258,6 +259,7 @@ class Links:
             Surveys.text: Surveys,
             SurveyAssignments.text: SurveyAssignments,
             SurveyRequest.text: SurveyRequest,
+            RegistryYamls.text: RegistryYamls,
         }
 
     if settings.SYSTEM_ROLE == SystemRoles.CIC_PROMS:

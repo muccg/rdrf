@@ -13,7 +13,7 @@ from django.utils.decorators import method_decorator
 from django.shortcuts import render
 from django.conf import settings
 from rest_framework import status
-from rdrf.services.rest.serializers import SurveyAssignmentSerializer
+from rdrf.services.rest.serializers import SurveyAssignmentSerializer, RegistryYamlSerializer
 from rdrf.services.rest.auth import PromsAuthentication
 from rest_framework.permissions import AllowAny
 import requests
@@ -108,15 +108,51 @@ class PromsDownload(APIView):
         return SurveyAssignment.objects.filter(state="completed", registry__code=registry_code).order_by('updated')
 
 
+class RegistryYamlAPIView(APIView):
+    authentication_classes = (PromsAuthentication,)
+    permission_classes = (AllowAny,)
+
+    @method_decorator(csrf_exempt)
+    def post(self, request, format=None):
+        registry_code = request.POST.get("code", "")
+        serializer = RegistryYamlSerializer(data=request.data)
+        if serializer.is_valid():
+            registry_yaml = serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        print("--------------------------")
+        print(serializer.errors)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
 class PromsProcessor:
     # todo refactor other proms system actions to use this class
     def __init__(self, registry_model):
         self.registry_model = registry_model
         self.proms_url = registry_model.proms_system_url
 
-    def download_proms(self):
-        from django.conf import settings
+    def sync_proms(self):
+        if not self.proms_url:
+            raise Exception("Registry %s does not have an associated proms system" % self.registry_model)
 
+        api = "/api/proms/v1/definitionimport"
+        api_url = self.proms_url + api
+        definition_yaml = "test" # TO DO get the yaml here
+
+        post_data = {'proms_secret_token': settings.PROMS_SECRET_TOKEN,
+                     'code': self.registry_model.code,
+                     'definition': definition_yaml
+                    }
+
+        response = requests.post(api_url, data=post_data)
+
+        if response.status_code != 201:
+            logger.error(f"Error syncing proms")
+        else:
+            # TODO: add a history object to this registry to mark its definition was synced with proms
+            logger.info(f"Done syncing proms")
+            pass
+
+    def download_proms(self):
         if not self.proms_url:
             raise Exception("Registry %s does not have an associated proms system" % self.registry_model)
 
