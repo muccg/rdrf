@@ -166,7 +166,7 @@ class RegistryYamlAPIView(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-class PromsProcessor:
+class PromsSystemManager:
     # todo refactor other proms system actions to use this class
     def __init__(self, registry_model):
         self.registry_model = registry_model
@@ -183,7 +183,7 @@ class PromsProcessor:
             logger.error(f"Error exporting {registry.name}: {ex}")
         return yaml_data
 
-    def sync_proms(self, override_metadata):
+    def update_definition(self, override_metadata):
         if not self.proms_url:
             raise Exception("Registry %s does not have an associated proms system" % self.registry_model)
 
@@ -198,9 +198,9 @@ class PromsProcessor:
         response = requests.post(api_url, data=post_data)
 
         if response.status_code != 200:
-            logger.error(f"Error syncing proms")
+            logger.error(f"Error updating proms definition")
         else:
-            logger.info(f"Done syncing proms")
+            logger.info(f"Done updating proms definition: {self.proms_url}")
 
     def download_proms(self):
         if not self.proms_url:
