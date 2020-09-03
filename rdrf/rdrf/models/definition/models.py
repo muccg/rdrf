@@ -2153,6 +2153,7 @@ class RegistryYaml(models.Model):
     processed_at = models.DateTimeField(auto_now=True)
     registry_version_before = models.CharField(max_length=20, blank=True, null=True)
     registry_version_after = models.CharField(max_length=20, blank=True, null=True)
+    import_succeeded = models.BooleanField(default=False)
 
     def __str__(self):
-        return f"{self.code}-{str(self.created_at)}"
+        return self.code

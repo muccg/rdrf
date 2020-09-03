@@ -1,6 +1,6 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rdrf.models.definition.models import Registry, RegistryForm, Section
+from rdrf.models.definition.models import Registry, RegistryForm, Section, RegistryYaml
 from rdrf.models.definition.models import CommonDataElement
 from rdrf.models.proms.models import Survey
 from rdrf.models.proms.models import SurveyAssignment
@@ -12,7 +12,10 @@ from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
 from django.shortcuts import render
 from django.conf import settings
+from django.db import transaction
 from rest_framework import status
+from rdrf.services.io.defs.exporter import Exporter
+from rdrf.services.io.defs.importer import Importer
 from rdrf.services.rest.serializers import SurveyAssignmentSerializer, RegistryYamlSerializer
 from rdrf.services.rest.auth import PromsAuthentication
 from rest_framework.permissions import AllowAny
@@ -112,15 +115,54 @@ class RegistryYamlAPIView(APIView):
     authentication_classes = (PromsAuthentication,)
     permission_classes = (AllowAny,)
 
+    def _mark_success(self, id, version_before, version_after):
+        RegistryYaml.objects.update_or_create(pk=id, defaults={'registry_version_before': version_before,
+                                                               'registry_version_after': version_after,
+                                                               'import_succeeded': True})
+
+    def _import(self, request, registry_yaml):
+        importer = Importer()
+        importer.load_yaml_from_string(registry_yaml.definition)
+
+        override_metadata = request.POST.get("override", False)
+        version_before = None
+        current_metadata = None
+        try:
+            registry = Registry.objects.get(code=importer.data['code'])
+            version_before = registry.version
+        except Registry.DoesNotExist:
+            pass
+        else:
+            if not override_metadata:  # preserve metadata by default
+                current_metadata = registry.metadata_json
+
+        succeeded = False
+        with transaction.atomic():
+            try:
+                importer.create_registry()
+                if not override_metadata and current_metadata is not None:  # restore metadata
+                    registry = Registry.objects.get(code=importer.data['code'])
+                    registry.metadata_json = current_metadata
+                    try:
+                        registry.save()
+                    except Exception as e:
+                        logger.error(f"Definition import failed. Exception while saving registry: {e}")
+                        raise e
+                self._mark_success(registry_yaml.pk, version_before, registry.version)
+                succeeded = True
+            except Exception as e:
+                logger.error(f"Definition import failed. Exception {e}")
+                raise e
+        return succeeded
+
     @method_decorator(csrf_exempt)
     def post(self, request, format=None):
-        registry_code = request.POST.get("code", "")
         serializer = RegistryYamlSerializer(data=request.data)
         if serializer.is_valid():
             registry_yaml = serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        print("--------------------------")
-        print(serializer.errors)
+            result = self._import(request, registry_yaml)
+            if result:
+                return Response(serializer.data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
@@ -130,27 +172,35 @@ class PromsProcessor:
         self.registry_model = registry_model
         self.proms_url = registry_model.proms_system_url
 
-    def sync_proms(self):
+    def _get_definition(self, registry):
+        exporter = Exporter(registry)
+        yaml_data = None
+        try:
+            yaml_data, errors = exporter.export_yaml()
+            if errors:
+                logger.error(f"Error exporting {registry.name}")
+        except Exception as ex:
+            logger.error(f"Error exporting {registry.name}: {ex}")
+        return yaml_data
+
+    def sync_proms(self, override_metadata):
         if not self.proms_url:
             raise Exception("Registry %s does not have an associated proms system" % self.registry_model)
 
         api = "/api/proms/v1/definitionimport"
         api_url = self.proms_url + api
-        definition_yaml = "test" # TO DO get the yaml here
 
+        definition_yaml = self._get_definition(self.registry_model)
         post_data = {'proms_secret_token': settings.PROMS_SECRET_TOKEN,
                      'code': self.registry_model.code,
-                     'definition': definition_yaml
-                    }
-
+                     'override': override_metadata,
+                     'definition': definition_yaml}
         response = requests.post(api_url, data=post_data)
 
-        if response.status_code != 201:
+        if response.status_code != 200:
             logger.error(f"Error syncing proms")
         else:
-            # TODO: add a history object to this registry to mark its definition was synced with proms
             logger.info(f"Done syncing proms")
-            pass
 
     def download_proms(self):
         if not self.proms_url:

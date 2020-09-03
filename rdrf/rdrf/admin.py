@@ -509,6 +509,7 @@ class RegistryYamlAdmin(admin.ModelAdmin):
     list_display = ('code',
                     'created_at',
                     'processed_at',
+                    'import_succeeded',
                     'registry_version_before',
                     'registry_version_after')
 

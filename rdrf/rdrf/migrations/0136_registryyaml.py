@@ -17,9 +17,10 @@ class Migration(migrations.Migration):
                 ('definition', models.TextField()),
                 ('code', models.CharField(max_length=10)),
                 ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('processed_at', models.DateTimeField(auto_now_add=True)),
+                ('processed_at', models.DateTimeField(auto_now=True)),
                 ('registry_version_before', models.CharField(blank=True, max_length=20, null=True)),
                 ('registry_version_after', models.CharField(blank=True, max_length=20, null=True)),
+                ('import_succeeded', models.BooleanField(default=False)),
             ],
         ),
     ]
