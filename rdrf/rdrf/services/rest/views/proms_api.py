@@ -21,6 +21,7 @@ from rdrf.services.rest.auth import PromsAuthentication
 from rest_framework.permissions import AllowAny
 import requests
 import json
+import sys
 
 
 import logging
@@ -199,6 +200,7 @@ class PromsSystemManager:
 
         if response.status_code != 200:
             logger.error(f"Error updating proms definition")
+            sys.exit(1)
         else:
             logger.info(f"Done updating proms definition: {self.proms_url}")
 
