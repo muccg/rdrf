@@ -2140,3 +2140,20 @@ class CustomAction(models.Model):
             return False
 
         return True
+
+
+class RegistryYaml(models.Model):
+    """
+        Represents the definition yaml received from the site system
+        used for syncing the proms system with
+    """
+    definition = models.TextField()
+    code = models.CharField(max_length=10)
+    created_at = models.DateTimeField(auto_now_add=True)
+    processed_at = models.DateTimeField(auto_now=True)
+    registry_version_before = models.CharField(max_length=20, blank=True, null=True)
+    registry_version_after = models.CharField(max_length=20, blank=True, null=True)
+    import_succeeded = models.BooleanField(default=False)
+
+    def __str__(self):
+        return self.code

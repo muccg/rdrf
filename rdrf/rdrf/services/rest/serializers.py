@@ -3,6 +3,7 @@ from rest_framework.reverse import reverse
 from registry.patients.models import Patient, Registry, Doctor, NextOfKinRelationship
 from registry.groups.models import CustomUser, WorkingGroup
 from rdrf.models.proms.models import SurveyAssignment
+from rdrf.models.definition.models import RegistryYaml
 
 
 class DoctorHyperlinkId(serializers.HyperlinkedRelatedField):
@@ -164,3 +165,14 @@ class SurveyAssignmentSerializer(serializers.Serializer):
 
     def validate(self, data):
         return data
+
+
+class RegistryYamlSerializer(serializers.Serializer):
+    definition = serializers.CharField()
+    code = serializers.CharField()
+
+    def create(self, validated_data):
+        registry_yaml = RegistryYaml(definition=validated_data["definition"],
+                                     code=validated_data["code"])
+        registry_yaml.save()
+        return registry_yaml
