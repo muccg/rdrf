@@ -22,6 +22,7 @@ from rdrf.models.definition.models import ContextFormGroupItem
 from rdrf.models.definition.models import CDEFile
 from rdrf.models.definition.models import ConsentRule
 from rdrf.models.definition.models import ClinicalData
+from rdrf.models.definition.models import RegistryYaml
 from rdrf.models.proms.models import Survey
 from rdrf.models.proms.models import SurveyQuestion
 from rdrf.models.proms.models import Precondition
@@ -188,6 +189,7 @@ generate_questionnaire_action.short_description = _("Generate Questionnaire")
 
 
 class RegistryAdmin(admin.ModelAdmin):
+    list_display = ('name', 'code', 'version')
     actions = [export_registry_action, generate_questionnaire_action]
 
     def get_queryset(self, request):
@@ -503,6 +505,15 @@ class CustomActionExecutionAdmin(admin.ModelAdmin):
         return [field.name for field in obj.__class__._meta.fields]
 
 
+class RegistryYamlAdmin(admin.ModelAdmin):
+    list_display = ('code',
+                    'created_at',
+                    'processed_at',
+                    'import_succeeded',
+                    'registry_version_before',
+                    'registry_version_after')
+
+
 CDEPermittedValueAdmin = create_restricted_model_admin_class(
     CDEPermittedValue,
     ordering=['code'],
@@ -544,10 +555,12 @@ DESIGN_MODE_ADMIN_COMPONENTS = [
     (CDEFile, CDEFileAdmin),
 ]
 
-PROMS_ADMIN_COMPONENTS = [(Survey, SurveyAdmin),
-                          (SurveyAssignment, SurveyAssignmentAdmin),
-                          (SurveyRequest, SurveyRequestAdmin),
-                          ]
+PROMS_ADMIN_COMPONENTS = [
+    (RegistryYaml, RegistryYamlAdmin),
+    (Survey, SurveyAdmin),
+    (SurveyAssignment, SurveyAssignmentAdmin),
+    (SurveyRequest, SurveyRequestAdmin),
+]
 
 NORMAL_MODE_ADMIN_COMPONENTS = [
     (Registry, RegistryAdmin),
