@@ -619,7 +619,6 @@ LOGIN_REDIRECT_URL = '{0}/'.format(SCRIPT_NAME)
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
-        'rest_framework.authentication.BasicAuthentication',
         'rest_framework.authentication.SessionAuthentication',
     ),
     'DEFAULT_PERMISSION_CLASSES': (
