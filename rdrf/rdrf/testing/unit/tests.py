@@ -393,6 +393,7 @@ class FormFiller(object):
 
 
 class RDRFTestCase(TestCase):
+    databases = {'default', 'clinical'}
     fixtures = ['testing_auth', 'testing_users', 'testing_rdrf']
 
 
@@ -1328,6 +1329,8 @@ class MinTypeTest(TestCase):
 
 
 class StructureChecker(TestCase):
+    databases = {'default', 'clinical'}
+
     def _run_command(self, *args, **kwargs):
         from django.core import management
         import io

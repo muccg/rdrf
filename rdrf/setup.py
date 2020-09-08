@@ -6,7 +6,7 @@ start_dir = os.getcwd()
 requirements = [
     "ccg-django-utils==0.4.2",
     "celery==4.4.7",
-    "Django==2.1.15",
+    "Django==2.2.13",
     "django-anymail==7.2.1",
     "django-ajax-selects==1.9.1",
     "django-countries==6.1.3",
@@ -37,7 +37,7 @@ requirements = [
     "setuptools",
     "setuptools_scm==3.3.3",
     "six==1.13.0",
-    "SQLAlchemy==1.3.12",
+    "SQLAlchemy==1.2.5",
     "uwsgi==2.0.18",
     "django-formtools==2.2",
     "django-otp==0.7.4",
