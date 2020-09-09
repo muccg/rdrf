@@ -701,3 +701,8 @@ CACHES['search_results'] = CACHES['redis']
 
 # Downloadable files from custom actions
 TASK_FILE_DIRECTORY = env.get("task_file_directory", "/data/static/tasks")
+
+# CICAP
+CICAP_ADDRESS = env.get("cicap_address", None)
+CICAP_USER = env.get("cicap_user", None)
+CICAPP_PASSWORD = env.get("cicap_password", None)
