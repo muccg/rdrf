@@ -19,7 +19,7 @@
   var taskFinished = false;
   
   function createLink(result) {
-      return "<a href='" + result.download_link + "'>Download result (Note: the report will be deleted from the server once downloaded.)</a>"
+      return "<a id='download_link' href='" + result.download_link + "'>Download result (Note: the report will be deleted from the server once downloaded.)</a>"
   }
 
   function checkTask() {
@@ -39,6 +39,14 @@
 	  else {
 	      $("#statusdiv").html(messages.waiting);
 	  }
+      }).fail(function(jqxhr, textStatus, error){
+          if (error=="Forbidden") {
+              if ($("#download_link").length){
+                window.location.href = $("#download_link").attr("href");
+              } else {
+                location.reload();
+              }
+          };
       });
       if (taskFinished == false){
         setTimeout(checkTask, 15000);

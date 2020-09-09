@@ -5,6 +5,7 @@ from datetime import datetime
 import json
 
 from django.db.models import Q
+from django.contrib.auth.mixins import LoginRequiredMixin
 from rest_framework import generics
 from rest_framework import viewsets
 from rest_framework import status
@@ -369,7 +370,7 @@ class TaskInfoView(APIView):
         return reverse("v1:download-list", args=[task_id])
 
 
-class TaskResultDownloadView(APIView):
+class TaskResultDownloadView(LoginRequiredMixin, APIView):
     permission_classes = (IsAuthenticated,)
 
     def _safe_to_delete(self, filepath):
