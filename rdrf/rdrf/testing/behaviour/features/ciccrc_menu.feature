@@ -15,7 +15,6 @@ Feature: Menu options in CIC Clinical (ICHOMCRC).
     And the menu "Menu" contains "Reports"
     And the menu "Menu" contains "Users"
     And the menu "Menu" contains "Completion Report"
-    And the menu "Menu" contains "Deidentified Report"
     And the menu "Menu" contains "BCCA Report"
     And the menu "Menu" contains "IdentifiedReport"
     Then the menu "Settings" contains "Explorer"
@@ -35,7 +34,6 @@ Feature: Menu options in CIC Clinical (ICHOMCRC).
     And the menu "Menu" contains "Reports"
     And the menu "Menu" contains "Users"
     And the menu "Menu" contains "Completion Report"
-    And the menu "Menu" contains "Deidentified Report"
     And the menu "Menu" contains "BCCA Report"
     And the menu "Menu" contains "IdentifiedReport"
     Then the menu "Settings" contains "Explorer"
@@ -52,7 +50,6 @@ Feature: Menu options in CIC Clinical (ICHOMCRC).
     When I am logged in as clinical
     Then the menu "Menu" contains "Patient List"
     And the menu "Menu" contains "Completion Report"
-    And the menu "Menu" contains "Deidentified Report"
     And the menu "Menu" contains "BCCA Report"
     And the menu "Menu" contains "IdentifiedReport"
     # And the menu "clinical" contains "Change Password"
@@ -61,7 +58,6 @@ Feature: Menu options in CIC Clinical (ICHOMCRC).
     When I click "SMITH John" on patientlisting
     Then the menu "Menu" contains "Patient List"
     And the menu "Menu" contains "Completion Report"
-    And the menu "Menu" contains "Deidentified Report"
     And the menu "Menu" contains "BCCA Report"
     And the menu "Menu" contains "IdentifiedReport"
     # And the menu "clinical" contains "Change Password"
