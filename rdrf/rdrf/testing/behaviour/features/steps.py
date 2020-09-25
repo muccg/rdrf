@@ -1320,3 +1320,36 @@ def see_validation_error_message(step, message):
 def count_validation_error_messages(step, count):
     messages = world.browser.find_elements_by_xpath('//span[@class="label label-danger"]')
     assert_equal(len(messages), int(count))
+
+
+pID = ''
+
+
+@step('should see CIC ID for patient')
+def check_cic_id(step):
+    xp = '//span[@class="glyphicon glyphicon-tag"]/parent::i'
+    obj = find(xp)
+    global pID
+    pID = obj.get_attribute("innerText").strip()
+    assert pID != '', 'Patient has no CIC ID, but should have.'
+    pass
+
+
+@step('search for the patient using the ID')
+def search_by_id(step):
+    xp = '//*/parent::label[contains(., "Search:")]/input'
+    obj = find(xp)
+    try:
+        obj.send_keys(pID)
+    except NameError:
+        raise Exception('The global variable "pID" could not be found')
+    time.sleep(2)
+    pass
+
+
+@step('the patient should exist')
+def patient_exists(step):
+    xp = '//*/parent::td[@class="sorting_1"]/a'
+    obj = find_multiple(xp)
+    assert len(obj) == 1, 'Unexpected number of patients: {0}'.format(len(obj))
+    pass
