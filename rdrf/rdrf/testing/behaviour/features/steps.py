@@ -1352,15 +1352,4 @@ def patient_exists(step):
     xp = '//*/parent::td[@class="sorting_1"]/a'
     obj = find_multiple(xp)
     assert len(obj) == 1, 'Unexpected number of patients: {0}'.format(len(obj))
-    """
-    obj.click()
-    xp2 = '//span[@class="glyphicon glyphicon-tag"]/parent::i'
-    obj2 = find(xp2)
-    try:
-        assert obj2.get_attribute("innerText").strip() == pID
-    except NameError:
-        raise 'The global variable "pID" could not be found'
-    except Nse:
-        raise 'The ID does not match the patient\'s ID'
-    """
     pass
