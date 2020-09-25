@@ -1320,3 +1320,12 @@ def see_validation_error_message(step, message):
 def count_validation_error_messages(step, count):
     messages = world.browser.find_elements_by_xpath('//span[@class="label label-danger"]')
     assert_equal(len(messages), int(count))
+
+
+@step('should see CIC ID for patient')
+def check_cic_id(step):
+	xp = '//span[@class="glyphicon glyphicon-tag"]/parent::i'
+	obj = find(xp)
+	assert obj.get_attribute("innerText").strip() != "",\
+		'Patient has no CIC ID, but should have.'
+	pass
