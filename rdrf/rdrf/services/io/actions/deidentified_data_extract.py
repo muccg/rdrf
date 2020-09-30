@@ -18,6 +18,7 @@ def security_check(custom_action, user):
 class SQL:
     clinical_data_query = "SELECT django_id as pid, data, context_id, collection FROM rdrf_clinicaldata WHERE collection='cdes' or collection='history'"
     id_query = "SELECT id, deident from patients_patient WHERE deident IS NOT NULL AND active IS NOT FALSE"
+    sr_query = "SELECT p.deident as id, sr.survey_name, to_char(sr.updated,'YYYY-MM-DD HH24:MI:SS') , sr.communication_type, sr.state from rdrf_surveyrequest sr inner join patients_patient p on p.id = sr.patient_id"
 
 
 class PipeLine:
@@ -27,6 +28,7 @@ class PipeLine:
         self.conn_clin = connections['clinical']
         self.conn_demo = connections['default']
         self.data = []
+        self.sr_data = []
         self.id_map = self._construct_deident_map()
 
     def _raw_sql(self, conn, sql):
@@ -42,6 +44,7 @@ class PipeLine:
         self.data = [self._deidentify_row(row) for row in
                      self._raw_sql(self.conn_clin, SQL.clinical_data_query)
                      if row[0] in self.id_map]
+        
 
     def _deidentify_row(self, row):
         d = {}
@@ -54,11 +57,23 @@ class PipeLine:
         d["data"] = data
         return d
 
+    def get_srs(self):
+        def make_dict(row):
+            return {"id": row[0],
+                    "survey_name": row[1],
+                    "updated": row[2],
+                    "channel": row[3],
+                    "state": row[4]}
+        
+        self.srs =  [ make_dict(row) for row in self._raw_sql(self.conn_demo, SQL.sr_query)]
+        
+
 
 def extract_data():
     p = PipeLine()
     p.deidentify()
-    return p.data
+    p.get_srs()
+    return p.data, p.srs
 
 
 def execute(custom_action, user):
@@ -71,7 +86,8 @@ def execute(custom_action, user):
                         "timestamp": timestamp,
                         "version": PipeLine.VERSION,
                         "guid": guid}
-    data["data"] = results
+    data["data"] = results[0]
+    data["srs"] = results[1]
     json_data = json.dumps(data)
     response = HttpResponse(content_type="application/zip")
     zf = ZipFile(response, 'w', zipfile.ZIP_DEFLATED)
