@@ -703,6 +703,6 @@ CACHES['search_results'] = CACHES['redis']
 TASK_FILE_DIRECTORY = env.get("task_file_directory", "/data/static/tasks")
 
 # CICAP
-CICAP_ADDRESS = env.get("cicap_address", None)
-CICAP_USER = env.get("cicap_user", None)
-CICAPP_PASSWORD = env.get("cicap_password", None)
+CICAP_ADDRESS = env.get("cicap_address", "")
+CICAP_USER = env.get("cicap_user", "")
+CICAPP_PASSWORD = env.get("cicap_password", "")
