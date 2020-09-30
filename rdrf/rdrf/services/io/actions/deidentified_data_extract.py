@@ -3,6 +3,7 @@ import json
 import zipfile
 from zipfile import ZipFile
 import uuid
+from io import BytesIO
 from django.db import connections
 from django.http import HttpResponse
 from django.conf import settings
@@ -76,7 +77,7 @@ def extract_data():
     return p.data, p.srs
 
 
-def execute(custom_action, user):
+def execute(custom_action, user, create_bytes_io=False):
     a = datetime.now()
     timestamp = datetime.timestamp(a)
     guid = str(uuid.uuid1())
@@ -89,11 +90,17 @@ def execute(custom_action, user):
     data["data"] = results[0]
     data["srs"] = results[1]
     json_data = json.dumps(data)
-    response = HttpResponse(content_type="application/zip")
-    zf = ZipFile(response, 'w', zipfile.ZIP_DEFLATED)
+    if create_bytes_io:
+        obj = BytesIO()
+    else:
+        obj = HttpResponse(content_type="application/zip")
+
+    zf = ZipFile(obj, 'w', zipfile.ZIP_DEFLATED)
     name = settings.DEIDENTIFIED_SITE_ID + "_" + a.strftime("%Y%m%d%H%M%S")
     zip_name = name + ".zip"
     json_name = name + ".json"
     zf.writestr(json_name, json_data)
-    response['Content-Disposition'] = 'attachment; filename=%s' % zip_name
-    return response
+    if not create_bytes_io:
+        obj['Content-Disposition'] = 'attachment; filename=%s' % zip_name
+
+    return zip_name, obj
