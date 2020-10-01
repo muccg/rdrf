@@ -45,7 +45,6 @@ class PipeLine:
         self.data = [self._deidentify_row(row) for row in
                      self._raw_sql(self.conn_clin, SQL.clinical_data_query)
                      if row[0] in self.id_map]
-        
 
     def _deidentify_row(self, row):
         d = {}
@@ -65,9 +64,8 @@ class PipeLine:
                     "updated": row[2],
                     "channel": row[3],
                     "state": row[4]}
-        
-        self.srs =  [ make_dict(row) for row in self._raw_sql(self.conn_demo, SQL.sr_query)]
-        
+
+        self.srs = [make_dict(row) for row in self._raw_sql(self.conn_demo, SQL.sr_query)]
 
 
 def extract_data():
