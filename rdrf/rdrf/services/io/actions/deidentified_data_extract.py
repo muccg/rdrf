@@ -3,6 +3,7 @@ import json
 import zipfile
 from zipfile import ZipFile
 import uuid
+from io import BytesIO
 from django.db import connections
 from django.http import HttpResponse
 from django.conf import settings
@@ -18,6 +19,7 @@ def security_check(custom_action, user):
 class SQL:
     clinical_data_query = "SELECT django_id as pid, data, context_id, collection FROM rdrf_clinicaldata WHERE collection='cdes' or collection='history'"
     id_query = "SELECT id, deident from patients_patient WHERE deident IS NOT NULL AND active IS NOT FALSE"
+    sr_query = "SELECT p.deident as id, sr.survey_name, to_char(sr.updated,'YYYY-MM-DD HH24:MI:SS') , sr.communication_type, sr.state from rdrf_surveyrequest sr inner join patients_patient p on p.id = sr.patient_id"
 
 
 class PipeLine:
@@ -27,6 +29,7 @@ class PipeLine:
         self.conn_clin = connections['clinical']
         self.conn_demo = connections['default']
         self.data = []
+        self.sr_data = []
         self.id_map = self._construct_deident_map()
 
     def _raw_sql(self, conn, sql):
@@ -54,14 +57,25 @@ class PipeLine:
         d["data"] = data
         return d
 
+    def get_srs(self):
+        def make_dict(row):
+            return {"id": row[0],
+                    "survey_name": row[1],
+                    "updated": row[2],
+                    "channel": row[3],
+                    "state": row[4]}
+
+        self.srs = [make_dict(row) for row in self._raw_sql(self.conn_demo, SQL.sr_query)]
+
 
 def extract_data():
     p = PipeLine()
     p.deidentify()
-    return p.data
+    p.get_srs()
+    return p.data, p.srs
 
 
-def execute(custom_action, user):
+def execute(custom_action, user, create_bytes_io=False):
     a = datetime.now()
     timestamp = datetime.timestamp(a)
     guid = str(uuid.uuid1())
@@ -71,13 +85,21 @@ def execute(custom_action, user):
                         "timestamp": timestamp,
                         "version": PipeLine.VERSION,
                         "guid": guid}
-    data["data"] = results
+    data["data"] = results[0]
+    data["srs"] = results[1]
     json_data = json.dumps(data)
-    response = HttpResponse(content_type="application/zip")
-    zf = ZipFile(response, 'w', zipfile.ZIP_DEFLATED)
+    if create_bytes_io:
+        obj = BytesIO()
+    else:
+        obj = HttpResponse(content_type="application/zip")
+
+    zf = ZipFile(obj, 'w', zipfile.ZIP_DEFLATED)
     name = settings.DEIDENTIFIED_SITE_ID + "_" + a.strftime("%Y%m%d%H%M%S")
     zip_name = name + ".zip"
     json_name = name + ".json"
     zf.writestr(json_name, json_data)
-    response['Content-Disposition'] = 'attachment; filename=%s' % zip_name
-    return response
+    if not create_bytes_io:
+        obj['Content-Disposition'] = 'attachment; filename=%s' % zip_name
+        return obj
+
+    return zip_name, obj

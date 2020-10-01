@@ -80,6 +80,7 @@ services:
       - WAIT_FOR_CACHE=1
       - DJANGO_FIXTURES=test
       - ALLOWED_HOSTS=*
+      - DEIDENTIFIED_SITE_ID=testing
       - CSRF_TRUSTED_ORIGINS=localhost nginxtest
       - CACHESERVER=cacheprod
       - DBSERVER=dbprod
