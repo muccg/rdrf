@@ -102,5 +102,6 @@ def execute(custom_action, user, create_bytes_io=False):
     zf.writestr(json_name, json_data)
     if not create_bytes_io:
         obj['Content-Disposition'] = 'attachment; filename=%s' % zip_name
+        return obj
 
     return zip_name, obj
