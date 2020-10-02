@@ -1353,3 +1353,31 @@ def patient_exists(step):
     obj = find_multiple(xp)
     assert len(obj) == 1, 'Unexpected number of patients: {0}'.format(len(obj))
     pass
+
+
+@step('open the drop-down menu')
+def open_drop_down(step):
+    find('//*[contains(@class, "tasks")]/parent::a').click()
+    pass
+
+
+@step('select the custom action "([^\"]+)"')
+def select_cust_act(step, action):
+    xp = '//*/a[contains(., "{0}")]'.format(action)
+    find(xp).click()
+    pass
+
+
+@step('should see (\d+) "([^\"]+)" element[s]?')
+def check_elements(step, number, type):
+    xp = ''
+
+    if type == "date":
+        xp = '//input[contains(@class, "{0}")]'.format(type)
+    elif type == "submit":
+        xp = '//input[contains(@type, "{0}")]'.format(type)
+
+    web_elements = find_multiple(xp)
+    assert len(web_elements) == int(number),\
+        'Unexpected number of elements: {0}'.format(len(web_elements))
+    pass
