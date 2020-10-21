@@ -103,7 +103,8 @@ class PromsDownload(APIView):
         completed_survey_assignments = self.get_queryset(registry_code)
         completed_surveys = SurveyAssignmentSerializer(completed_survey_assignments, many=True)
         response = Response(completed_surveys.data)
-        logger.info(f"downloaded {len(completed_survey_assignments)} completed surveys that were downloaded for {registry_code} registry")
+        logger.info(
+            f"downloaded {len(completed_survey_assignments)} completed surveys that were downloaded for {registry_code} registry")
         return response
 
     def get_queryset(self, registry_code):
@@ -215,7 +216,7 @@ class PromsSystemManager:
         response = requests.post(api_url, data=post_data)
 
         if response.status_code != 200:
-            logger.warning(f"Error retrieving proms")
+            logger.warning("Error retrieving proms")
             raise Exception("Error retrieving proms")
         else:
             data = response.json()
@@ -245,6 +246,8 @@ class PromsSystemManager:
                     continue
 
                 # Remember the patient ids so we can later update the calculated field for this patient.
+                survey_request.state = SurveyRequestStates.IN_PROCESS
+                survery_request.save()
                 patient_ids.add(survey_request.patient.id)
 
                 self._update_proms_fields(survey_request, survey_data)
@@ -324,7 +327,8 @@ class PromsSystemManager:
                 context_model = patient_model.default_context(self.registry_model)
 
         if context_model is None:
-            raise Exception("cannot determine proms pull context for patient %s" % getattr(patient_model, settings.LOG_PATIENT_FIELDNAME))
+            raise Exception("cannot determine proms pull context for patient %s" %
+                            getattr(patient_model, settings.LOG_PATIENT_FIELDNAME))
 
         # Retrieve the cde_path
         cde_paths = {}
