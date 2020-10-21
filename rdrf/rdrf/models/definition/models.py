@@ -1983,6 +1983,16 @@ class CustomAction(models.Model):
             raise
 
     @property
+    def action_data(self):
+        if not self.data:
+            return {}
+        try:
+            return json.loads(self.data)
+        except ValueError as verr:
+            logger.error(f"can't load data as json: custom action {self.name}  {verr}")
+            raise
+
+    @property
     def asynchronous(self):
         spec = self._get_spec()
         return "async" in spec and spec["async"]
