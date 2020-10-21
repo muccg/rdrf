@@ -221,8 +221,7 @@ class ReportGenerator:
         return self._run_report()
 
     def _run_report(self):
-        rows = []
-        rows.append(self._get_header())
+        rows = [self._get_header()]
         for patient_model in self._get_patients():
             try:
                 # the context needs to be determined by the report spec
@@ -231,15 +230,12 @@ class ReportGenerator:
                 if not context_model:
                     continue
                 data = self._load_patient_data(patient_model, context_model.id)
-                if not data:
-                    pass
-                else:
-                    row = []
-                    for column in self.report_spec["columns"]:
-                        column_value = "" if not data else self._get_column_value(patient_model, data, column)
-                        row.append(column_value)
-                    if any(row):
-                        rows.append(row)
+                row = []
+                for column in self.report_spec["columns"]:
+                    column_value = self._get_column_value(patient_model, data, column)
+                    row.append(column_value)
+                if any(row):
+                    rows.append(row)
             except Exception as ex:
                 logger.error("%s report error pid %s: %s" % (self.report_name, patient_model.pk, ex))
         self.report = rows
@@ -256,18 +252,19 @@ class ReportGenerator:
         if column_type == ColumnType.DEMOGRAPHICS:
             column_name = column["name"]
             return self._get_demographics_column(patient_model, column_name)
-        if column_type == ColumnType.COMPLETION:
-            form_name = column["name"]
-            return self._completed(patient_model, form_name, data)
-        if column_type == ColumnType.COMPLETION_PERCENTAGE:
-            form_name = column["name"]
-            return self._completed(patient_model, form_name, data, percentage=True)
-        if column_type == ColumnType.CDE:
-            cde_path = column["name"]
-            try:
-                return self._get_cde(patient_model, cde_path, data)
-            except KeyError:
-                return "[Not Entered]"
+        if data is not None:
+            if column_type == ColumnType.COMPLETION:
+                form_name = column["name"]
+                return self._completed(patient_model, form_name, data)
+            if column_type == ColumnType.COMPLETION_PERCENTAGE:
+                form_name = column["name"]
+                return self._completed(patient_model, form_name, data, percentage=True)
+            if column_type == ColumnType.CDE:
+                cde_path = column["name"]
+                try:
+                    return self._get_cde(patient_model, cde_path, data)
+                except KeyError:
+                    return "[Not Entered]"
         if column_type == ColumnType.CONSENT:
             consent_section_code, consent_code = column["name"].split("/")
             return self._get_consent(patient_model,
@@ -285,7 +282,7 @@ class ReportGenerator:
             return self._get_followup_date(patient_model,
                                            context_form_group_name,
                                            form_name)
-        else:
+        elif data is not None:
             raise ReportParserException("Unknown column type: %s" % column_type)
 
     def _get_followup_date(self,
