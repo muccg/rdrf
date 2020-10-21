@@ -304,6 +304,7 @@ class SurveyRequestStates:
     REQUESTED = "requested"
     RECEIVED = "received"
     ERROR = "error"
+    IN_PROCESS = "in process"
 
 
 class CommunicationTypes:
