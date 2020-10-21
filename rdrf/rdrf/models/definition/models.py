@@ -1722,11 +1722,12 @@ class ContextFormGroup(models.Model):
     def get_add_action(self, patient_model):
         if self.patient_can_add(patient_model):
             num_forms = len(self.form_models)
+            action_title = ""
             # Direct link to form if num forms is 1 ( handler redirects transparently)
-            from rdrf.helpers.utils import de_camelcase as dc
-            action_title = "Add %s" % dc(
-                self.form_models[0].name) if num_forms == 1 else "Add %s" % dc(
-                self.name)
+            if not self.registry.has_feature("proms_adding_disabled"):
+                from rdrf.helpers.utils import de_camelcase as dc
+                action_title = "Add %s" % dc(
+                    self.form_models[0].name) if num_forms == 1 else "Add %s" % dc(self.name)
 
             if not self.supports_direct_linking:
                 # We can't go directly to the form - so we first land on the add context view, which on save
