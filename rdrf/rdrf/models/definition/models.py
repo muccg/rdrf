@@ -1727,8 +1727,7 @@ class ContextFormGroup(models.Model):
             if not self.registry.has_feature("proms_adding_disabled"):
                 from rdrf.helpers.utils import de_camelcase as dc
                 action_title = "Add %s" % dc(
-                    self.form_models[0].name) if num_forms == 1 else "Add %s" % dc(
-                self.name)
+                    self.form_models[0].name) if num_forms == 1 else "Add %s" % dc(self.name)
 
             if not self.supports_direct_linking:
                 # We can't go directly to the form - so we first land on the add context view, which on save
