@@ -64,8 +64,9 @@ class PipeLine:
         if not blacklisted_forms:
             return
         for row in self.data:
-            row["data"]["forms"] = [form_dict for form_dict in row["data"]
-                                    ["forms"] if form_dict["name"] not in blacklisted_forms]
+            if "data" in row and "forms" in row["data"]:
+                row["data"]["forms"] = [form_dict for form_dict in row["data"]
+                                        ["forms"] if form_dict["name"] not in blacklisted_forms]
 
     def get_srs(self):
         def make_dict(row):
