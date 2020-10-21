@@ -246,11 +246,13 @@ class PromsSystemManager:
                     continue
 
                 # Remember the patient ids so we can later update the calculated field for this patient.
+                logger.info(f"pulling proms for survey request token {survey_request.patient_token}")
                 survey_request.state = SurveyRequestStates.IN_PROCESS
-                survery_request.save()
+                survey_request.save()
                 patient_ids.add(survey_request.patient.id)
 
                 self._update_proms_fields(survey_request, survey_data)
+                logger.info(f"finished pulling proms for survey request token {survey_request.patient_token}")
 
                 # Store the survey id so we can delete it on the PROMS site once all surveys are downloaded.
                 survey_ids.append(survey_response["id"])
