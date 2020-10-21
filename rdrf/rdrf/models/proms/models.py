@@ -345,7 +345,8 @@ class SurveyRequest(models.Model):
         (SurveyRequestStates.CREATED, "Created"),
         (SurveyRequestStates.REQUESTED, "Requested"),
         (SurveyRequestStates.RECEIVED, "Received"),
-        (SurveyRequestStates.ERROR, "Error"))
+        (SurveyRequestStates.ERROR, "Error"),
+        (SurveyRequestStates.IN_PROCESS, "In Process"))
     COMMUNICATION_TYPES = (
         (CommunicationTypes.QRCODE, "QRCode"),
         (CommunicationTypes.EMAIL, "Email"))
