@@ -1332,7 +1332,6 @@ def check_cic_id(step):
     global pID
     pID = obj.get_attribute("innerText").strip()
     assert pID != '', 'Patient has no CIC ID, but should have.'
-    pass
 
 
 @step('search for the patient using the ID')
@@ -1344,7 +1343,6 @@ def search_by_id(step):
     except NameError:
         raise Exception('The global variable "pID" could not be found')
     time.sleep(2)
-    pass
 
 
 @step('the patient should exist')
@@ -1352,20 +1350,17 @@ def patient_exists(step):
     xp = '//*/parent::td[@class="sorting_1"]/a'
     obj = find_multiple(xp)
     assert len(obj) == 1, 'Unexpected number of patients: {0}'.format(len(obj))
-    pass
 
 
 @step('open the drop-down menu')
 def open_drop_down(step):
     find('//*[contains(@class, "tasks")]/parent::a').click()
-    pass
 
 
 @step('select the custom action "([^\"]+)"')
 def select_cust_act(step, action):
     xp = '//*/a[contains(., "{0}")]'.format(action)
     find(xp).click()
-    pass
 
 
 @step(r'should see (\d+) "([^\"]+)" element[s]?')
@@ -1380,4 +1375,3 @@ def check_elements(step, number, type):
     web_elements = find_multiple(xp)
     assert len(web_elements) == int(number),\
         'Unexpected number of elements: {0}'.format(len(web_elements))
-    pass
