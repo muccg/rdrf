@@ -17,7 +17,7 @@ def security_check(custom_action, user):
 
 
 class SQL:
-    clinical_data_query = "SELECT django_id as pid, data, context_id, collection FROM rdrf_clinicaldata WHERE collection='cdes' or collection='history'"
+    clinical_data_query = "SELECT django_id as pid, data, context_id, collection FROM rdrf_clinicaldata WHERE collection='cdes'"
     id_query = "SELECT id, deident from patients_patient WHERE deident IS NOT NULL AND active IS NOT FALSE"
     sr_query = "SELECT p.deident as id, sr.survey_name, to_char(sr.updated,'YYYY-MM-DD HH24:MI:SS') , sr.communication_type, sr.state from rdrf_surveyrequest sr inner join patients_patient p on p.id = sr.patient_id"
 
@@ -25,7 +25,8 @@ class SQL:
 class PipeLine:
     VERSION = "1.0"
 
-    def __init__(self):
+    def __init__(self, custom_action):
+        self.custom_action = custom_action
         self.conn_clin = connections['clinical']
         self.conn_demo = connections['default']
         self.data = []
@@ -57,6 +58,16 @@ class PipeLine:
         d["data"] = data
         return d
 
+    def remove_blacklisted(self):
+        action_data = self.custom_action.action_data
+        blacklisted_forms = action_data.get("blacklist", [])
+        if not blacklisted_forms:
+            return
+        for row in self.data:
+            if "data" in row and "forms" in row["data"]:
+                row["data"]["forms"] = [form_dict for form_dict in row["data"]
+                                        ["forms"] if form_dict["name"] not in blacklisted_forms]
+
     def get_srs(self):
         def make_dict(row):
             return {"id": row[0],
@@ -68,9 +79,10 @@ class PipeLine:
         self.srs = [make_dict(row) for row in self._raw_sql(self.conn_demo, SQL.sr_query)]
 
 
-def extract_data():
-    p = PipeLine()
+def extract_data(custom_action):
+    p = PipeLine(custom_action)
     p.deidentify()
+    p.remove_blacklisted()
     p.get_srs()
     return p.data, p.srs
 
@@ -79,7 +91,7 @@ def execute(custom_action, user, create_bytes_io=False):
     a = datetime.now()
     timestamp = datetime.timestamp(a)
     guid = str(uuid.uuid1())
-    results = extract_data()
+    results = extract_data(custom_action)
     data = {}
     data["manifest"] = {"site": settings.DEIDENTIFIED_SITE_ID,
                         "timestamp": timestamp,
