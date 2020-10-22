@@ -1368,7 +1368,7 @@ def select_cust_act(step, action):
     pass
 
 
-@step('should see (\d+) "([^\"]+)" element[s]?')
+@step(r'should see (\d+) "([^\"]+)" element[s]?')
 def check_elements(step, number, type):
     xp = ''
 
