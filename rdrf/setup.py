@@ -37,7 +37,7 @@ requirements = [
     "setuptools",
     "setuptools_scm==3.3.3",
     "six==1.15.0",
-    "SQLAlchemy==1.2.5",
+    "SQLAlchemy==1.3.20",
     "uwsgi==2.0.19.1",
     "django-formtools==2.2",
     "django-otp==0.7.4",
