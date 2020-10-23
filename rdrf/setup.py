@@ -15,7 +15,7 @@ requirements = [
     "django-messages-ui==2.0.2",
     "django-nose==1.4.7",
     "django-positions==0.6.0",
-    "django-registration-redux==2.8",
+    "django-registration-redux==2.6",
     "djangorestframework==3.12.1",
     "django-storages==1.10.1",
     "django-templatetag-handlebars==1.3.1",
