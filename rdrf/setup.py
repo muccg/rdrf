@@ -5,7 +5,7 @@ package_data = {}
 start_dir = os.getcwd()
 requirements = [
     "ccg-django-utils==0.4.2",
-    "celery==4.4.7",
+    "celery==5.0.2",
     "Django==2.2.16",
     "django-anymail==8.1",
     "django-ajax-selects==2.0.0",
@@ -58,7 +58,7 @@ requirements = [
     "Markdown==3.1.1",
     "xhtml2pdf",
     "django-redis==4.12.1",
-    "kombu==4.6.8"
+    "kombu==5.0.2"
 ]
 
 
