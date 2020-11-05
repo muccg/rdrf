@@ -27,7 +27,7 @@ requirements = [
     "openpyxl==3.0.5",
     "polib==1.1.0",
     "psycopg2==2.8.6",
-    "pycountry==19.8.18",
+    "pycountry==20.7.3",
     "pyinotify==0.9.6",
     "pyodbc==4.0.30",
     "pyparsing==2.4.7",
