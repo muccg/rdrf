@@ -5,12 +5,12 @@ package_data = {}
 start_dir = os.getcwd()
 requirements = [
     "ccg-django-utils==0.4.2",
-    "celery==4.4.7",
+    "celery==5.0.2",
     "Django==2.2.16",
-    "django-anymail==7.2.1",
-    "django-ajax-selects==1.9.1",
+    "django-anymail==8.1",
+    "django-ajax-selects==2.0.0",
     "django-countries==6.1.3",
-    "django-extensions==2.2.5",
+    "django-extensions==3.0.9",
     "django-iprestrict==1.7.0",
     "django-messages-ui==2.0.2",
     "django-nose==1.4.7",
@@ -22,9 +22,9 @@ requirements = [
     "django-templatetag-sugar==1.0",
     "django-useraudit==1.7.1",
     "django-uwsgi==0.2.2",
-    "geoip2==2.9.0",
+    "geoip2==4.1.0",
     "jsonschema==3.2.0",
-    "openpyxl==2.6.4",
+    "openpyxl==3.0.5",
     "polib==1.1.0",
     "psycopg2==2.8.6",
     "pycountry==19.8.18",
@@ -35,16 +35,16 @@ requirements = [
     "python-memcached==1.59",
     "pyyaml==5.3.1",
     "setuptools",
-    "setuptools_scm==3.3.3",
+    "setuptools_scm==4.1.2",
     "six==1.15.0",
     "SQLAlchemy==1.3.20",
     "uwsgi==2.0.19.1",
     "django-formtools==2.2",
-    "django-otp==0.7.4",
-    "django-phonenumber-field==2.4.0",
+    "django-otp==1.0.1",
+    "django-phonenumber-field==4.0.0",
     "django-two-factor-auth==1.12.1",
     "phonenumberslite==8.12.11",
-    "Pillow==6.2.2",
+    "Pillow==8.0.1",
     "qrcode==6.1",
     "django-reversion==3.0.8",
     "ua-parser==0.10.0",
@@ -58,7 +58,7 @@ requirements = [
     "Markdown==3.1.1",
     "xhtml2pdf",
     "django-redis==4.12.1",
-    "kombu==4.6.8"
+    "kombu==5.0.2"
 ]
 
 
