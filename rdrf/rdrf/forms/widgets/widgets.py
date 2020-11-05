@@ -235,6 +235,8 @@ class StateWidget(widgets.Select):
             state = pycountry.subdivisions.get(code=value)
         except KeyError:
             state = None
+        except LookupError:
+            state = None
 
         if state is not None:
             country_states = pycountry.subdivisions.get(country_code=state.country.alpha_2)
