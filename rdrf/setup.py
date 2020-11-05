@@ -41,7 +41,7 @@ requirements = [
     "uwsgi==2.0.19.1",
     "django-formtools==2.2",
     "django-otp==1.0.1",
-    "django-phonenumber-field==2.4.0",
+    "django-phonenumber-field==4.0.0",
     "django-two-factor-auth==1.12.1",
     "phonenumberslite==8.12.11",
     "Pillow==8.0.1",
