@@ -1363,7 +1363,7 @@ def select_cust_act(step, action):
     find(xp).click()
 
 
-@step(r'should see (\d+) "([^\"]+)" element[s]?')
+@step(r'should see (\d+) "([^\"]+)" elements?')
 def check_elements(step, number, type):
     xp = ''
 
@@ -1375,3 +1375,15 @@ def check_elements(step, number, type):
     web_elements = find_multiple(xp)
     assert len(web_elements) == int(number),\
         'Unexpected number of elements: {0}'.format(len(web_elements))
+
+
+@step('should see an? (success|error|info) message')
+def check_alert_msg(step, message):
+    msg_type = {
+        "success": "alert alert-success",
+        "error": "alert alert-danger",
+        "info": "alert alert-alert alert-info",
+    }
+
+    xp = '//*[contains(@class, "{0}")]'.format(msg_type[message])
+    find(xp) # find() asserts that the element can be found, so further checks not required
