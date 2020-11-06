@@ -22,5 +22,4 @@ Feature: Add a patient and add an address with no country
     And I fill out "Suburb" in "Patient Address" section "1" with "Perth"
     And I fill out "Postcode" in "Patient Address" section "1" with "6000"
     And I press the "Save" button
-    Then I should see an error message
-    And I should see "Patient Address country: This field is required"
+    Then I should see an error message saying "Patient Address country: This field is required"

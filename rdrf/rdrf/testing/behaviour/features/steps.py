@@ -1387,3 +1387,16 @@ def check_alert_msg(step, message):
 
     xp = '//*[contains(@class, "{0}")]'.format(msg_type[message])
     find(xp)  # find() asserts that the element can be found, so further checks not required
+
+
+@step('should see an? (success|error|info) message saying "([^\"]+)"')
+def check_alert_msg(step, mtype, message):
+    msg_type = {
+        "success": "alert alert-success",
+        "error": "alert alert-danger",
+        "info": "alert alert-alert alert-info",
+    }
+
+    xp = '//*[contains(@class, "{0}")]'.format(msg_type[mtype])
+    alertbox = find(xp)  # find() asserts that the element can be found, so further checks not required
+    assert message in alertbox.innerText, "Unable to find {0} message".format(mtype)
