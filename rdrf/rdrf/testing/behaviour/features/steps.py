@@ -1386,4 +1386,4 @@ def check_alert_msg(step, message):
     }
 
     xp = '//*[contains(@class, "{0}")]'.format(msg_type[message])
-    find(xp) # find() asserts that the element can be found, so further checks not required
+    find(xp)  # find() asserts that the element can be found, so further checks not required
