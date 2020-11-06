@@ -1378,7 +1378,7 @@ def check_elements(step, number, type):
 
 
 @step('should see an? (success|error|info) message')
-def check_alert_msg(step, message):
+def check_alert_type(step, message):
     msg_type = {
         "success": "alert alert-success",
         "error": "alert alert-danger",
