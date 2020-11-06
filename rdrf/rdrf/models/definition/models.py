@@ -660,6 +660,10 @@ class CommonDataElement(models.Model):
     important = models.BooleanField(
         default=False, help_text="Indicate whether the field should be emphasised with a green asterisk")
 
+    validation_rules_description = models.CharField(
+        blank=True,
+        help_text="A description of the required rules for validating the field")
+
     def __str__(self):
         return "CDE %s:%s" % (self.code, self.name)
 
