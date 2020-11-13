@@ -812,7 +812,7 @@ class CommonDataElement(models.Model):
             if self.min_value is not None:
                 validation_rules_description += "\nWith a minimum value of %d" % self.min_value
 
-        elif self.is_required == True:
+        elif self.is_required is True:
             validation_rules_description += "\nMust be filled"
 
         else:
