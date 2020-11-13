@@ -660,10 +660,6 @@ class CommonDataElement(models.Model):
     important = models.BooleanField(
         default=False, help_text="Indicate whether the field should be emphasised with a green asterisk")
 
-    validation_rules_description = models.CharField(
-        blank=True,
-        help_text="A description of the required rules for validating the field")
-
     def __str__(self):
         return "CDE %s:%s" % (self.code, self.name)
 
@@ -798,6 +794,31 @@ class CommonDataElement(models.Model):
 
     def get_admin_link(self):
         return '<a href="{0}" target="_blank">{1}</a>'.format(self.get_admin_url(), self)
+
+    def get_val_description(self):
+        validation_rules_description = "The %s CDE:" % self.code
+
+        if self.datatype == "string":
+            validation_rules_description += "\nIs a character set"
+            if self.max_length is not None:
+                validation_rules_description += "\nWith a limit of %d characters" % self.max_length
+            if self.pattern is not None and self.pattern != "":
+                validation_rules_description += "\nThat must match the pattern \"%s\"" % self.pattern
+
+        elif self.datatype == "integer" or self.datatype == "float":
+            validation_rules_description += "\nIs a number"
+            if self.max_value is not None:
+                validation_rules_description += "\nWith a maximum value of %d" % self.max_value
+            if self.min_value is not None:
+                validation_rules_description += "\nWith a minimum value of %d" % self.min_value
+
+        elif self.is_required == True:
+            validation_rules_description += "\nMust be filled"
+
+        else:
+            validation_rules_description += "\nHas no validation requirements"
+
+        return validation_rules_description
 
 
 def validate_abnormality_condition(abnormality_condition, datatype):
