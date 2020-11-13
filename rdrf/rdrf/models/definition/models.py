@@ -799,24 +799,24 @@ class CommonDataElement(models.Model):
         validation_rules_description = "The %s CDE:" % self.code
 
         if self.datatype == "string":
-            validation_rules_description += "\nIs a character set"
+            validation_rules_description += "<br>Is a character string"
             if self.max_length is not None:
-                validation_rules_description += "\nWith a limit of %d characters" % self.max_length
+                validation_rules_description += "<br>With a limit of %d characters" % self.max_length
             if self.pattern is not None and self.pattern != "":
-                validation_rules_description += "\nThat must match the pattern \"%s\"" % self.pattern
+                validation_rules_description += "<br>That must match the pattern \"%s\"" % self.pattern
 
         elif self.datatype == "integer" or self.datatype == "float":
-            validation_rules_description += "\nIs a number"
+            validation_rules_description += "<br>Is a number"
             if self.max_value is not None:
-                validation_rules_description += "\nWith a maximum value of %d" % self.max_value
+                validation_rules_description += "<br>With a maximum value of %d" % self.max_value
             if self.min_value is not None:
-                validation_rules_description += "\nWith a minimum value of %d" % self.min_value
+                validation_rules_description += "<br>With a minimum value of %d" % self.min_value
 
         elif self.is_required is True:
-            validation_rules_description += "\nMust be filled"
+            validation_rules_description += "<br>Must be filled"
 
         else:
-            validation_rules_description += "\nHas no validation requirements"
+            validation_rules_description += "<br>Has no validation requirements"
 
         return validation_rules_description
 
