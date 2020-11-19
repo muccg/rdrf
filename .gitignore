@@ -1,5 +1,5 @@
 syntax: glob
-
+TAGS
 *.pyc
 *.swp
 *.swo
