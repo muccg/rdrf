@@ -1404,8 +1404,7 @@ def check_alert_msg(step, mtype, message):
 
 @step('go to the login page')
 def go_to_login_and_wait(step):
-    try_to_login(step)
-    time.sleep(15)
+    world.browser.get("https://rdrf.ccgapps.com.au/cicclinical/account/login?next=/cicclinical/router/")
 
 
 @step('should be on the password reset page')
