@@ -1,4 +1,4 @@
-Feature: Follow the password reset worflow in CIC CRC.
+Feature: Follow the password reset workflow in CIC CRC.
   As a user of CIC CRC
   I should be able to use the password reset form without error.
 

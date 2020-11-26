@@ -1405,7 +1405,7 @@ def check_alert_msg(step, mtype, message):
 @step('go to the login page')
 def go_to_login_and_wait(step):
     try_to_login(step)
-    time.sleep(1000)
+    time.sleep(15)
 
 
 @step('should be on the password reset page')
