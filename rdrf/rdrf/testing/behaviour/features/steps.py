@@ -1402,6 +1402,12 @@ def check_alert_msg(step, mtype, message):
     assert message in alertbox.innerText, "Unable to find {0} message".format(mtype)
 
 
+@step('go to the login page')
+def go_to_login_and_wait(step):
+    try_to_login(step)
+    time.sleep(1000)
+
+
 @step('should be on the password reset page')
 def check_reset_page(step):
     xp = '//*[contains(text(), "Did you forget your username or password?")]'
