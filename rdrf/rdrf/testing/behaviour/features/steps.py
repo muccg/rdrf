@@ -287,7 +287,7 @@ def click_submit_button(step, value):
     This enables us to click on button, input or a elements that look like buttons.
     """
     submit_element = world.browser.find_element_by_xpath(
-        "//*[@id='submit-btn' and @value='{0}']".format(value))
+        "//*[(@id='submit-btn' or @type='submit') and @value='{0}']".format(value))
     utils.click(submit_element)
 
 
@@ -1400,3 +1400,28 @@ def check_alert_msg(step, mtype, message):
     xp = '//*[contains(@class, "{0}")]'.format(msg_type[mtype])
     alertbox = find(xp)  # find() asserts that the element can be found, so further checks not required
     assert message in alertbox.innerText, "Unable to find {0} message".format(mtype)
+
+
+@step('should be on the password reset page')
+def check_reset_page(step):
+    xp = '//*[contains(text(), "Did you forget your username or password?")]'
+    find(xp)  # find() asserts that the element can be found, so further checks not required
+
+
+@step('enter the email "([^\"]+)"')
+def enter_reset_email(step, reset_email):
+    xp = '//input[@type="email"]'
+    text_box = s_find(xp)
+    text_box.clear()
+    text_box.send_keys(reset_email)
+
+
+@step('should be on the email sent page')
+def check_reset_page(step):
+    assert world.browser.current_url.endswith("/login_assistance_email_sent"), "Email not sent!"
+
+
+@step('should see the site with no errors')
+def check_no_runtime_error(step):
+    xp = '//nav[contains(@class, "navbar")]'
+    find(xp)  # find() asserts that the element can be found, so further checks not required
