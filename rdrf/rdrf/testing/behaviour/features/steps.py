@@ -1422,7 +1422,7 @@ def enter_reset_email(step, reset_email):
 
 
 @step('should be on the email sent page')
-def check_reset_page(step):
+def check_email_sent_page(step):
     assert world.browser.current_url.endswith("/login_assistance_email_sent"), "Email not sent!"
 
 
