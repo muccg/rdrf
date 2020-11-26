@@ -7,8 +7,7 @@ Feature: Follow the password reset worflow in CIC CRC.
     Given a registry named "ICHOM Colorectal Cancer"
 
   Scenario: User selects the password reset link, enters their email and submits it, then checks that there have been no errors
-    When I try to log in
-    Then I should be on the login page
+    Given I try to log in
     When I click "Trouble signing in"
     Then I should be on the password reset page
     When I enter the email "test@test.com"
