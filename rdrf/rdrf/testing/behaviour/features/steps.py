@@ -1400,3 +1400,47 @@ def check_alert_msg(step, mtype, message):
     xp = '//*[contains(@class, "{0}")]'.format(msg_type[mtype])
     alertbox = find(xp)  # find() asserts that the element can be found, so further checks not required
     assert message in alertbox.innerText, "Unable to find {0} message".format(mtype)
+
+
+reg_codes = {
+    "ICHOM Colorectal Cancer": "cicclinical",
+    "ICHOM Breast Cancer": "cicbc",
+    "ICHOM Lung Cancer": "ciclc",
+    "FH Registry": "fh",
+}
+
+
+@step('go to the Common Data Element admin page')
+def goto_CDE_admin(step):
+    world.browser.get(world.site_url + "admin/rdrf/commondataelement/")
+
+
+@step('click the Add button')
+def click_add_button(step):
+    '''
+    This function is specific to the Add button as the existing generic function
+    does not handle buttons other than submit buttons at this stage, and I am
+    unsure if I am permitted to overhaul existing functions due to the 
+    potential issues that may occur.
+    '''
+    xp = '//*[contains(., "add_button")]'
+    add_btn = find(xp)
+    add_btn.click()
+
+
+@step('should be on the CDE editing page')
+def check_add_CDE_page(step):
+    xp = '//*[contains(text(), "This CDE is used in:")]'  # This text only appears on the CDE editing page
+    find(xp)  # find() asserts that the element can be found, so further checks not required
+
+
+@step('should see the "([^\"]+)" (field|checkbox)')
+def check_page_fields_show(step, field_name):
+    xp = f'//*[contains(@id, "{field_name}") and ancestor::*[contains(@class, "{field_name}") and not(contains(@style, "display: none"))]]'
+    find(xp) # find() asserts that the element can be found, so further checks not required
+
+
+@step('should NOT see the "([^\"]+)" (field|checkbox)')
+def check_page_fields_hide(step, field_name):
+    xp = f'//*[contains(@id, "{field_name}") and ancestor::*[contains(@class, "{field_name}") and contains(@style, "display: none")]]'
+    find(xp) # find() asserts that the element can be found, so further checks not required
