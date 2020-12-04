@@ -1426,6 +1426,21 @@ def check_add_CDE_page(step):
     find(xp)  # find() asserts that the element can be found, so further checks not required
 
 
+@step('enter "([^\"]+)" for the "([^\"]+)" field')
+def fill_field(step, f_value, f_name):
+    find_id_xp = f'//*[contains(text(), "{f_name}")]'
+    id_elem = find(find_id_xp)
+    id_var = id_elem.get_attribute('for')
+    xp = f'//input[@type="text" and @id="{id_var}"]'
+    find(xp).send_keys(f"{f_value}")
+
+
+@step('save the CDE')
+def save_cde(step):
+    xp = '//input[contains(@name, "_save")]'
+    find(xp).click()
+
+
 @step('should see the "([^\"]+)" (?=field|checkbox)')
 def check_page_fields_show(step, field_name):
     find_id_xp = f'//*[contains(text(), "{field_name}")]'
