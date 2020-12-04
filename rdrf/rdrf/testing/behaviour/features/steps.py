@@ -1402,14 +1402,6 @@ def check_alert_msg(step, mtype, message):
     assert message in alertbox.innerText, "Unable to find {0} message".format(mtype)
 
 
-reg_codes = {
-    "ICHOM Colorectal Cancer": "cicclinical",
-    "ICHOM Breast Cancer": "cicbc",
-    "ICHOM Lung Cancer": "ciclc",
-    "FH Registry": "fh",
-}
-
-
 @step('go to the Common Data Element admin page')
 def goto_CDE_admin(step):
     world.browser.get(world.site_url + "admin/rdrf/commondataelement/")
