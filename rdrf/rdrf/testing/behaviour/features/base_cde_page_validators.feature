@@ -7,7 +7,7 @@ Feature: Hiding unneeded validation options on the CDE admin page
     Given export "ciccrc.zip"
     Given a registry named "ICHOM Colorectal Cancer"
 
-  Scenario: Admin user creates new CDE, but does not yet select a data type
+  Scenario: Admin user navigates to the CDE admin page and creates new CDE, but does not yet select a data type
     Given I am logged in as admin
     When I go to the Common Data Element admin page
     And I click the Add button
@@ -20,11 +20,8 @@ Feature: Hiding unneeded validation options on the CDE admin page
     And I should see the "Pattern" field
 
   Scenario: Admin user creates new CDE and selects String for the CDE data type
-    Given I am logged in as admin
-    When I go to the Common Data Element admin page
-    And I click the Add button
-    Then I should be on the CDE editing page
-    When I select "string" from "datatype"
+    Given I should be on the CDE editing page
+    When I select "String" from "Datatype"
     Then I should see the "Max length" field
     And I should see the "Pattern" field
     And I should NOT see the "Pv group" field
@@ -33,11 +30,8 @@ Feature: Hiding unneeded validation options on the CDE admin page
     And I should NOT see the "Min value" field
 
   Scenario: Admin user creates new CDE and selects Integer for the CDE data type
-    Given I am logged in as admin
-    When I go to the Common Data Element admin page
-    And I click the Add button
-    Then I should be on the CDE editing page
-    When I select "integer" from "datatype"
+    Given I should be on the CDE editing page
+    When I select "Integer" from "Datatype"
     Then I should see the "Max value" field
     And I should see the "Min value" field
     And I should NOT see the "Max length" field
@@ -46,11 +40,8 @@ Feature: Hiding unneeded validation options on the CDE admin page
     And I should NOT see the "Pattern" field
 
   Scenario: Admin user creates new CDE and selects Decimal for the CDE data type
-    Given I am logged in as admin
-    When I go to the Common Data Element admin page
-    And I click the Add button
-    Then I should be on the CDE editing page
-    When I select "float" from "datatype"
+    Given I should be on the CDE editing page
+    When I select "Decimal" from "Datatype"
     Then I should see the "Max value" field
     And I should see the "Min value" field
     And I should NOT see the "Max length" field
@@ -59,11 +50,8 @@ Feature: Hiding unneeded validation options on the CDE admin page
     And I should NOT see the "Pattern" field
 
   Scenario: Admin user creates new CDE and selects Alpha Numeric for the CDE data type
-    Given I am logged in as admin
-    When I go to the Common Data Element admin page
-    And I click the Add button
-    Then I should be on the CDE editing page
-    When I select "alphanumeric" from "datatype"
+    Given I should be on the CDE editing page
+    When I select "Alpha Numeric" from "Datatype"
     Then I should see the "Max length" field
     And I should see the "Pattern" field
     And I should NOT see the "Pv group" field
@@ -72,11 +60,8 @@ Feature: Hiding unneeded validation options on the CDE admin page
     And I should NOT see the "Min value" field
 
   Scenario: Admin user creates new CDE and selects Date for the CDE data type
-    Given I am logged in as admin
-    When I go to the Common Data Element admin page
-    And I click the Add button
-    Then I should be on the CDE editing page
-    When I select "date" from "datatype"
+    Given I should be on the CDE editing page
+    When I select "Date" from "Datatype"
     Then I should NOT see the "Pv group" field
     And I should NOT see the "Allow multiple" checkbox
     And I should NOT see the "Max length" field
@@ -85,11 +70,8 @@ Feature: Hiding unneeded validation options on the CDE admin page
     And I should NOT see the "Pattern" field
 
   Scenario: Admin user creates new CDE and selects Boolean for the CDE data type
-    Given I am logged in as admin
-    When I go to the Common Data Element admin page
-    And I click the Add button
-    Then I should be on the CDE editing page
-    When I select "boolean" from "datatype"
+    Given I should be on the CDE editing page
+    When I select "Boolean" from "Datatype"
     Then I should NOT see the "Pv group" field
     And I should NOT see the "Allow multiple" checkbox
     And I should NOT see the "Max length" field
@@ -98,11 +80,8 @@ Feature: Hiding unneeded validation options on the CDE admin page
     And I should NOT see the "Pattern" field
 
   Scenario: Admin user creates new CDE and selects Range for the CDE data type
-    Given I am logged in as admin
-    When I go to the Common Data Element admin page
-    And I click the Add button
-    Then I should be on the CDE editing page
-    When I select "range" from "datatype"
+    Given I should be on the CDE editing page
+    When I select "Range" from "Datatype"
     Then I should see the "Pv group" field
     And I should see the "Allow multiple" checkbox
     And I should NOT see the "Max length" field
@@ -111,11 +90,8 @@ Feature: Hiding unneeded validation options on the CDE admin page
     And I should NOT see the "Pattern" field
 
   Scenario: Admin user creates new CDE and selects Calculated for the CDE data type
-    Given I am logged in as admin
-    When I go to the Common Data Element admin page
-    And I click the Add button
-    Then I should be on the CDE editing page
-    When I select "calculated" from "datatype"
+    Given I should be on the CDE editing page
+    When I select "Calculated" from "Datatype"
     Then I should NOT see the "Pv group" field
     And I should NOT see the "Allow multiple" checkbox
     And I should NOT see the "Max length" field
@@ -124,11 +100,8 @@ Feature: Hiding unneeded validation options on the CDE admin page
     And I should NOT see the "Pattern" field
 
   Scenario: Admin user creates new CDE and selects File for the CDE data type
-    Given I am logged in as admin
-    When I go to the Common Data Element admin page
-    And I click the Add button
-    Then I should be on the CDE editing page
-    When I select "file" from "datatype"
+    Given I should be on the CDE editing page
+    When I select "File" from "Datatype"
     Then I should NOT see the "Pv group" field
     And I should NOT see the "Allow multiple" checkbox
     And I should NOT see the "Max length" field

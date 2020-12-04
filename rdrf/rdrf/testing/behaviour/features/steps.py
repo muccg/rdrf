@@ -1423,7 +1423,7 @@ def click_add_button(step):
     unsure if I am permitted to overhaul existing functions due to the 
     potential issues that may occur.
     '''
-    xp = '//*[contains(., "add_button")]'
+    xp = '//a[contains(@id, "add_button")]'
     add_btn = find(xp)
     add_btn.click()
 
@@ -1434,13 +1434,19 @@ def check_add_CDE_page(step):
     find(xp)  # find() asserts that the element can be found, so further checks not required
 
 
-@step('should see the "([^\"]+)" (field|checkbox)')
+@step('should see the "([^\"]+)" (?=field|checkbox)')
 def check_page_fields_show(step, field_name):
-    xp = f'//*[contains(@id, "{field_name}") and ancestor::*[contains(@class, "{field_name}") and not(contains(@style, "display: none"))]]'
+    find_id_xp = f'//*[contains(text(), "{field_name}")]'
+    id_elem = find(find_id_xp)
+    id_var = id_elem.get_attribute('for')[3:]
+    xp = f'//*[contains(@id, "{id_var}") and ancestor::*[contains(@class, "{id_var}") and not(contains(@style, "display: none"))]]'
     find(xp) # find() asserts that the element can be found, so further checks not required
 
 
-@step('should NOT see the "([^\"]+)" (field|checkbox)')
+@step('should NOT see the "([^\"]+)" (?=field|checkbox)')
 def check_page_fields_hide(step, field_name):
-    xp = f'//*[contains(@id, "{field_name}") and ancestor::*[contains(@class, "{field_name}") and contains(@style, "display: none")]]'
+    find_id_xp = f'//*[contains(text(), "{field_name}")]'
+    id_elem = find(find_id_xp)
+    id_var = id_elem.get_attribute('for')[3:]
+    xp = f'//*[contains(@id, "{id_var}") and ancestor::*[contains(@class, "{id_var}") and contains(@style, "display: none")]]'
     find(xp) # find() asserts that the element can be found, so further checks not required
