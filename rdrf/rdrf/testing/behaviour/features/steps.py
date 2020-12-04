@@ -1402,9 +1402,20 @@ def check_alert_msg(step, mtype, message):
     assert message in alertbox.innerText, "Unable to find {0} message".format(mtype)
 
 
+reg_codes = {
+    "ICHOM Colorectal Cancer": "cicclinical",
+    "ICHOM Breast Cancer": "cicbc",
+    "ICHOM Lung Cancer": "ciclc",
+    "FH Registry": "fh",
+}
+
+
 @step('go to the login page')
 def go_to_login_and_wait(step):
-    world.browser.get("https://rdrf.ccgapps.com.au/cicclinical/account/login?next=/cicclinical/router/")
+    world.browser.get(
+        f"{world.site_url}{reg_codes[world.registry]}"
+        f"/account/login?next=/{reg_codes[world.registry]}/router/"
+    )
 
 
 @step('should be on the password reset page')
