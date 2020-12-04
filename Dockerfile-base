@@ -32,6 +32,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
   nfs-common \
   && apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
  
-RUN pip install --upgrade pip; pip install zipp
+#RUN pip install --upgrade pip
+RUN pip install zipp
 
 ENTRYPOINT ["/bin/sh"]
