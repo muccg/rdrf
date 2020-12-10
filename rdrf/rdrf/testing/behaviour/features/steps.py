@@ -1437,8 +1437,8 @@ def fill_field(step, f_value, f_name):
 
 @step('save the CDE')
 def save_cde(step):
-    xp = '//input[contains(@name, "_save")]'
-    find(xp).click()
+    xp = '//form[contains(@id, "commondataelement_form")]'
+    find(xp).submit()
 
 
 @step('should see the "([^\"]+)" (?=field|checkbox)')
