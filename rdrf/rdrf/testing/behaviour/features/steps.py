@@ -1403,7 +1403,7 @@ def check_alert_msg(step, mtype, message):
 
 
 @step('go to the Common Data Element admin page')
-def goto_CDE_admin(step):
+def goto_cde_admin(step):
     world.browser.get(world.site_url + "admin/rdrf/commondataelement/")
 
 
@@ -1412,7 +1412,7 @@ def click_add_button(step):
     '''
     This function is specific to the Add button as the existing generic function
     does not handle buttons other than submit buttons at this stage, and I am
-    unsure if I am permitted to overhaul existing functions due to the 
+    unsure if I am permitted to overhaul existing functions due to the
     potential issues that may occur.
     '''
     xp = '//a[contains(@id, "add_button")]'
@@ -1421,7 +1421,7 @@ def click_add_button(step):
 
 
 @step('should be on the CDE editing page')
-def check_add_CDE_page(step):
+def check_add_cde_page(step):
     xp = '//*[contains(text(), "This CDE is used in:")]'  # This text only appears on the CDE editing page
     find(xp)  # find() asserts that the element can be found, so further checks not required
 
@@ -1447,7 +1447,7 @@ def check_page_fields_show(step, field_name):
     id_elem = find(find_id_xp)
     id_var = id_elem.get_attribute('for')[3:]
     xp = f'//*[contains(@id, "{id_var}") and ancestor::*[contains(@class, "{id_var}") and not(contains(@style, "display: none"))]]'
-    find(xp) # find() asserts that the element can be found, so further checks not required
+    find(xp)  # find() asserts that the element can be found, so further checks not required
 
 
 @step('should NOT see the "([^\"]+)" (?=field|checkbox)')
@@ -1456,4 +1456,4 @@ def check_page_fields_hide(step, field_name):
     id_elem = find(find_id_xp)
     id_var = id_elem.get_attribute('for')[3:]
     xp = f'//*[contains(@id, "{id_var}") and ancestor::*[contains(@class, "{id_var}") and contains(@style, "display: none")]]'
-    find(xp) # find() asserts that the element can be found, so further checks not required
+    find(xp)  # find() asserts that the element can be found, so further checks not required
