@@ -1413,8 +1413,7 @@ reg_codes = {
 @step('go to the login page')
 def go_to_login_and_wait(step):
     world.browser.get(
-        f"{world.site_url}{reg_codes[world.registry]}"
-        f"/account/login?next=/{reg_codes[world.registry]}/router/"
+        f"{world.site_url}account/login"
     )
 
 
