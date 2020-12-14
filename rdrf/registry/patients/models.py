@@ -1306,6 +1306,10 @@ class ParentGuardian(models.Model):
     def __str__(self):
         return "%s %s" % (self.first_name, self.last_name)
 
+    def clean(self):
+        if ParentGuardian.objects.filter(user=self.user).exclude(pk=self.pk).count():
+            raise ValidationError(f"User {self.user} is already a Parent-Guardian")
+
     @property
     def children(self):
         if not self.self_patient:
