@@ -7,3 +7,96 @@
 {% block valdesc %}
     {{ original.get_val_description|safe }}
 {% endblock %}
+
+{% block extrahead %}
+    {{ block.super }}
+    <script>
+        function setDTypeVal () {
+            function validatorsString () {
+                $("#id_pv_group").prop("selectedIndex", 0);
+                $("#id_allow_multiple").prop("checked", false);
+                $("#id_max_value").val("");
+                $("#id_min_value").val("");
+
+                $("div[class*='pv_group']").hide();
+                $("div[class*='allow_multiple']").hide();
+                $("div[class*='max_value']").hide();
+                $("div[class*='min_value']").hide();
+
+                $("div[class*='max_length']").show();
+                $("div[class*='pattern']").show();
+            }
+
+            function validatorsNum () {
+                $("#id_pv_group").prop("selectedIndex", 0);
+                $("#id_allow_multiple").prop("checked", false);
+                $("#id_max_length").val("");
+                $("#id_pattern").val("");
+
+                $("div[class*='pv_group']").hide();
+                $("div[class*='allow_multiple']").hide();
+                $("div[class*='max_length']").hide();
+                $("div[class*='pattern']").hide();
+
+                $("div[class*='max_value']").show();
+                $("div[class*='min_value']").show();
+            }
+
+            function validatorsRange () {
+                $("#id_max_length").val("");
+                $("#id_max_value").val("");
+                $("#id_min_value").val("");
+                $("#id_pattern").val("");
+
+                $("div[class*='max_length']").hide();
+                $("div[class*='max_value']").hide();
+                $("div[class*='min_value']").hide();
+                $("div[class*='pattern']").hide();
+
+                $("div[class*='pv_group']").show();
+                $("div[class*='allow_multiple']").show();
+            }
+
+            function validatorsOther () {
+                $("#id_pv_group").prop("selectedIndex", 0);
+                $("#id_allow_multiple").prop("checked", false);
+                $("#id_max_length").val("");
+                $("#id_max_value").val("");
+                $("#id_min_value").val("");
+                $("#id_pattern").val("");
+
+                $("div[class*='pv_group']").hide();
+                $("div[class*='allow_multiple']").hide();
+                $("div[class*='max_length']").hide();
+                $("div[class*='max_value']").hide();
+                $("div[class*='min_value']").hide();
+                $("div[class*='pattern']").hide();
+            }
+                
+            $("#id_datatype").change(function () {
+                //Find the datatype field, get the currently-selected value. and
+                //hide/show different fields based on the data type
+                switch($(this).val()) {
+                    case "string":
+                    case "alphanumeric":
+                        validatorsString();
+                        break;
+                    case "integer":
+                    case "float":
+                        validatorsNum();
+                        break;
+                    case "range":
+                        validatorsRange();
+                        break;
+                    case "date":
+                    case "boolean":
+                    case "calculated":
+                    case "file":
+                        validatorsOther();
+                        break;
+                }
+            })
+            .change();
+        }
+    </script>
+{% endblock %}
