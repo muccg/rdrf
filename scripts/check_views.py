@@ -1,12 +1,26 @@
-import os, re, sys
+import os
+import re
+import sys
 
 from os.path import abspath, join
 
 
 vcheck_states = {
-    's' : "SEARCH",
-    'v' : "INVIEW",
+    's': "SEARCH",
+    'v': "INVIEW",
 }
+
+whitelist = [
+    'RouterView',
+    'PromsCompletedPageView',
+    'PromsView',
+    'PromsLandingPageView',
+    'RegistryView',
+    'LandingView',
+    'UsernameLookup',
+    'RecaptchaValidator',
+    'ClinicianActivationView',
+]
 
 
 def check_view_security():
@@ -51,7 +65,7 @@ def check_view_security():
                                 if ("@method_decorator(login_required)" not in f_lines[index - 1]) and ("@login_required" not in f_lines[index - 1]):
                                     # add view class name to list w/regex
                                     if full_f_name not in files_and_views:
-                                        files_and_views.update({full_f_name : []})
+                                        files_and_views.update({full_f_name: []})
                                     if cur_view not in files_and_views[full_f_name]:
                                         files_and_views[full_f_name].append(cur_view)
 
