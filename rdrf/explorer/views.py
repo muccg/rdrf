@@ -257,7 +257,7 @@ class DownloadQueryView(LoginRequiredMixin, View):
         return report_table_generator.dump_csv(response)
 
 
-class SqlQueryView(View):
+class SqlQueryView(LoginRequiredMixin, View):
 
     def post(self, request):
         form = QueryForm(request.POST)
