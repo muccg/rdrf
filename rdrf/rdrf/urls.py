@@ -345,3 +345,14 @@ if settings.SYSTEM_ROLE == SystemRoles.CIC_PROMS:
     urlpatterns = proms_patterns
 else:
     urlpatterns = normalpatterns
+
+blacklisted_patterns = [
+    r'^explorer/'
+]
+
+if settings.SYSTEM_ROLE == SystemRoles.CIC_CLINICAL:
+    new_patterns = []
+    for url_pattern in urlpatterns:
+        if url_pattern.pattern.regex.pattern not in blacklisted_patterns:
+            new_patterns.append(url_pattern)
+    urlpatterns = new_patterns
