@@ -2,6 +2,7 @@
 TO DO:
     - Further abstract states (maybe find some way of removing reliance on indices)
     - Add comments to provide full information on code
+    - Create unit tests for script (view with mixin, view w/out mixin with decorators, no mixin no decorators)
 '''
 
 import os
@@ -46,8 +47,16 @@ def get_superclass(class_text):
 
 
 def find_view(line_text):
-    # stuff here
-    pass
+    state_n = 's'
+    view_n = ''
+    # Check line
+    superclass_str = get_superclass(line_text)
+    if superclass_str != [] and "View" in superclass_str:
+        # Change to "in-view" state if check for mixin is false
+        if "LoginRequiredMixin" not in superclass_str:
+            state_n = 'v'
+            view_n = re.findall(r'class (.+)\(', line_text)
+    return state_n, view_n
 
 
 def validate_view(line_text):
@@ -64,6 +73,7 @@ def search_and_check_views(cur_line, all_lines, line_index, cur_state, cur_file,
 
     # Search until view is found
     if new_state == "SEARCH":
+        '''
         # Check line
         superclass_str = get_superclass(cur_line)
         if superclass_str != [] and "View" in superclass_str:
@@ -71,6 +81,8 @@ def search_and_check_views(cur_line, all_lines, line_index, cur_state, cur_file,
             if "LoginRequiredMixin" not in superclass_str:
                 cur_state = 'v'
                 cur_view = re.findall(r'class (.+)\(', cur_line)
+        '''
+        cur_state, cur_view = find_view(cur_line)
 
     # While in "in-view" state, look for get/post methods
     elif new_state == "INVIEW":
@@ -86,6 +98,35 @@ def search_and_check_views(cur_line, all_lines, line_index, cur_state, cur_file,
                     f_and_v_list[cur_file].append(cur_view)
 
     return cur_state, cur_view
+
+
+def remove_whitelisted(insecure_list):
+    # Create empty list in which to store files to be removed from the list (ones containing only whitelisted views)
+    remove_files = []
+    # Loop through files
+    for bad_file in insecure_list:
+        # Another empty list, this one to remove whitelisted views
+        remove_views = []
+        # Loop through views
+        for bad_view in insecure_list[bad_file]:
+            # The view strings are stored in single-element lists for some reason, so we have to access them like so
+            # Check if the current view is whitelisted
+            if bad_view[0] in whitelist:
+                # Populate the list of views to be ignored
+                remove_views.append(bad_view)
+        # Loop through views to be removed
+        for rm_view in remove_views:
+            # Remove views
+            insecure_list[bad_file].remove(rm_view)
+        # Check if there are any remaining insecure views in the file
+        if insecure_list[bad_file] == []:
+            # Populate list of files to be ignored
+            remove_files.append(bad_file)
+
+    # Loop through files to be removed
+    for rm_file in remove_files:
+        # Remove file
+        insecure_list.pop(rm_file)
 
 
 def check_view_security():
@@ -109,7 +150,7 @@ def check_view_security():
                     # Iterate through lines, using enumerate() to grab positional values
                     for index, line_var in enumerate(f_lines):
                         state, view = search_and_check_views(line_var, f_lines, index, state, full_f_name, view, files_and_views)
-
+    '''
     ### WHITELISTING ###
     # Create empty list in which to store files to be removed from the list (ones containing only whitelisted views)
     remove_files = []
@@ -138,6 +179,8 @@ def check_view_security():
         # Remove file
         files_and_views.pop(rm_file)
     ### END WHITELISTING ###
+    '''
+    remove_whitelisted(files_and_views)
 
     if len(files_and_views) > 0:
         print("Non-secure views found:")
