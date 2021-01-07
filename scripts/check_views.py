@@ -1,8 +1,10 @@
 '''
 TO DO:
-    - Further abstract states (maybe find some way of removing reliance on indices)
+    - Further abstract states (maybe find some way of removing reliance
+      on indices)
     - Add comments to provide full information on code
-    - Create unit tests for script (view with mixin, view w/out mixin with decorators, no mixin no decorators)
+    - Create unit tests for script (view with mixin, view w/out mixin
+      with decorators, no mixin no decorators)
 '''
 
 import os
@@ -59,21 +61,21 @@ def find_view(line_text):
     return state_n, view_n
 
 
-def validate_view(line_text, v_lines, v_index, v_file, v_view, v_fv_list):
+def validate_view(line_text, v_lines, v_index):
+    has_failed = False
     # Check for get/post
     if ("def get(" in line_text) or ("def post(" in line_text):
         # Check if get/post has a decorator - if not, add to list
-        if ("@method_decorator(login_required)" not in v_lines[v_index - 1]) and \
-           ("@login_required" not in v_lines[v_index - 1]):
-            # add view class name to list w/regex
-            if v_file not in v_fv_list:
-                v_fv_list.update({v_file: []})
-            if v_view not in v_fv_list[v_file]:
-                v_fv_list[v_file].append(v_view)
+        if (("@method_decorator(login_required)" not in v_lines[v_index - 1])
+                and ("@login_required" not in v_lines[v_index - 1])):
+            has_failed = True
+    return has_failed
 
-
-def search_and_check_views(cur_line, all_lines, line_index, cur_state, cur_file, cur_view, f_and_v_list):
-    # Change back to normal search once normal indent level is reached (use regex to match no leading whitespace and no comments)
+def search_and_check_views(cur_line, all_lines, line_index,
+                           cur_state, cur_view):
+    view_failed = False
+    # Change back to normal search once normal indent level is reached
+    # (use regex to match no leading whitespace and no comments)
     if re.match(r'^[^\s\#]', cur_line) is not None:
         cur_state = 's'
     # Redefine current state
@@ -85,25 +87,14 @@ def search_and_check_views(cur_line, all_lines, line_index, cur_state, cur_file,
 
     # While in "in-view" state, look for get/post methods
     elif new_state == "INVIEW":
-        '''
-        # Check for get/post
-        if ("def get(" in cur_line) or ("def post(" in cur_line):
-            # Check if get/post has a decorator - if not, add to list
-            if ("@method_decorator(login_required)" not in all_lines[line_index - 1]) and \
-               ("@login_required" not in all_lines[line_index - 1]):
-                # add view class name to list w/regex
-                if cur_file not in f_and_v_list:
-                    f_and_v_list.update({cur_file: []})
-                if cur_view not in f_and_v_list[cur_file]:
-                    f_and_v_list[cur_file].append(cur_view)
-        '''
-        validate_view(cur_line, all_lines, line_index, cur_file, cur_view, f_and_v_list)
+        view_failed = validate_view(cur_line, all_lines, line_index)
 
-    return cur_state, cur_view
+    return view_failed, cur_state, cur_view
 
 
 def remove_whitelisted(insecure_list):
-    # Create empty list in which to store files to be removed from the list (ones containing only whitelisted views)
+    # Create empty list in which to store files to be removed from the
+    # list (ones containing only whitelisted views)
     remove_files = []
     # Loop through files
     for bad_file in insecure_list:
@@ -111,7 +102,8 @@ def remove_whitelisted(insecure_list):
         remove_views = []
         # Loop through views
         for bad_view in insecure_list[bad_file]:
-            # The view strings are stored in single-element lists for some reason, so we have to access them like so
+            # The view strings are stored in single-element lists for
+            # some reason, so we have to access them like so.
             # Check if the current view is whitelisted
             if bad_view[0] in whitelist:
                 # Populate the list of views to be ignored
@@ -132,12 +124,17 @@ def remove_whitelisted(insecure_list):
 
 
 def check_view_security():
+    # Update this so that the map is only updated in this function
+    # Use functions to find non-secure views, return them, then
+    # update map in here
     files_and_views = {}
-    dir_name = abspath(sys.argv[1])  # Not the best, but this way only one base directory is read. Perhaps do some error handling if a directory isn't passed in
+    # Not the best, but this way only one base directory is read.
+    # Perhaps do some error handling if a directory isn't passed in
+    dir_name = abspath(sys.argv[1])
     
     # Explore base directory and all subdirectories
     for base_dir, sub_dirs, files in os.walk(dir_name):
-        # Don't check build folder - removes duplicates
+        # Don't check build folder - removes duplicates (perhaps refine)
         if "build" not in base_dir:
             # Iterate through file names
             for f_name in files:
@@ -148,10 +145,26 @@ def check_view_security():
                     f_lines = open(full_f_name).readlines()
                     state = 's'
                     view = ''
+                    view_list = []
 
-                    # Iterate through lines, using enumerate() to grab positional values
+                    # Iterate through lines, using enumerate() to grab
+                    # positional values
+                    '''
                     for index, line_var in enumerate(f_lines):
-                        state, view = search_and_check_views(line_var, f_lines, index, state, full_f_name, view, files_and_views)
+                        state, view = search_and_check_views(
+                            line_var, f_lines, index, state, full_f_name,
+                            view, files_and_views
+                        )
+                    '''
+                    for index, line_var in enumerate(f_lines):
+                        weak_view, state, view = search_and_check_views(line_var, f_lines, index, state, view)
+
+                        if weak_view:
+                            if view not in view_list:
+                                view_list.append(view)
+
+                    if view_list != []:
+                        files_and_views.update({full_f_name: view_list})
 
     remove_whitelisted(files_and_views)
 
