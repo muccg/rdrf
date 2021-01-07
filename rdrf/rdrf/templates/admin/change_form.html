@@ -39,6 +39,9 @@
 <p class="thumbnail">
     {% block usage %}{% endblock %}
 </p>
+<p class="thumbnail">
+    {% block valdesc %}{% endblock %}
+</p>
 
 <form {% if has_file_field %}enctype="multipart/form-data" {% endif %}action="{{ form_url }}" method="post" id="{{ opts.model_name }}_form">{% csrf_token %}{% block form_top %}{% endblock %}
 <div>
