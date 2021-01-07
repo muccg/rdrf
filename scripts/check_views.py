@@ -59,9 +59,17 @@ def find_view(line_text):
     return state_n, view_n
 
 
-def validate_view(line_text):
-    # more stuff here
-    pass
+def validate_view(line_text, v_lines, v_index, v_file, v_view, v_fv_list):
+    # Check for get/post
+    if ("def get(" in line_text) or ("def post(" in line_text):
+        # Check if get/post has a decorator - if not, add to list
+        if ("@method_decorator(login_required)" not in v_lines[v_index - 1]) and \
+           ("@login_required" not in v_lines[v_index - 1]):
+            # add view class name to list w/regex
+            if v_file not in v_fv_list:
+                v_fv_list.update({v_file: []})
+            if v_view not in v_fv_list[v_file]:
+                v_fv_list[v_file].append(v_view)
 
 
 def search_and_check_views(cur_line, all_lines, line_index, cur_state, cur_file, cur_view, f_and_v_list):
@@ -73,19 +81,11 @@ def search_and_check_views(cur_line, all_lines, line_index, cur_state, cur_file,
 
     # Search until view is found
     if new_state == "SEARCH":
-        '''
-        # Check line
-        superclass_str = get_superclass(cur_line)
-        if superclass_str != [] and "View" in superclass_str:
-            # Change to "in-view" state if check for mixin is false
-            if "LoginRequiredMixin" not in superclass_str:
-                cur_state = 'v'
-                cur_view = re.findall(r'class (.+)\(', cur_line)
-        '''
         cur_state, cur_view = find_view(cur_line)
 
     # While in "in-view" state, look for get/post methods
     elif new_state == "INVIEW":
+        '''
         # Check for get/post
         if ("def get(" in cur_line) or ("def post(" in cur_line):
             # Check if get/post has a decorator - if not, add to list
@@ -96,6 +96,8 @@ def search_and_check_views(cur_line, all_lines, line_index, cur_state, cur_file,
                     f_and_v_list.update({cur_file: []})
                 if cur_view not in f_and_v_list[cur_file]:
                     f_and_v_list[cur_file].append(cur_view)
+        '''
+        validate_view(cur_line, all_lines, line_index, cur_file, cur_view, f_and_v_list)
 
     return cur_state, cur_view
 
@@ -150,7 +152,7 @@ def check_view_security():
                     # Iterate through lines, using enumerate() to grab positional values
                     for index, line_var in enumerate(f_lines):
                         state, view = search_and_check_views(line_var, f_lines, index, state, full_f_name, view, files_and_views)
-                        
+
     remove_whitelisted(files_and_views)
 
     if len(files_and_views) > 0:
