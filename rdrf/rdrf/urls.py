@@ -350,7 +350,7 @@ blacklisted_patterns = [
     r'^explorer/'
 ]
 
-if settings.SYSTEM_ROLE == SystemRoles.CIC_CLINICAL:
+if settings.SYSTEM_ROLE != SystemRoles.NORMAL:
     new_patterns = []
     for url_pattern in urlpatterns:
         if url_pattern.pattern.regex.pattern not in blacklisted_patterns:
