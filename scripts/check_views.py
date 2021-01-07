@@ -57,7 +57,7 @@ def find_view(line_text):
         # Change to "in-view" state if check for mixin is false
         if "LoginRequiredMixin" not in superclass_str:
             state_n = 'v'
-            view_n = re.findall(r'class (.+)\(', line_text)
+            view_n = re.findall(r'class (.+)\(', line_text)[0]
     return state_n, view_n
 
 
@@ -105,7 +105,7 @@ def remove_whitelisted(insecure_list):
             # The view strings are stored in single-element lists for
             # some reason, so we have to access them like so.
             # Check if the current view is whitelisted
-            if bad_view[0] in whitelist:
+            if bad_view in whitelist:
                 # Populate the list of views to be ignored
                 remove_views.append(bad_view)
         # Loop through views to be removed
@@ -149,13 +149,6 @@ def check_view_security():
 
                     # Iterate through lines, using enumerate() to grab
                     # positional values
-                    '''
-                    for index, line_var in enumerate(f_lines):
-                        state, view = search_and_check_views(
-                            line_var, f_lines, index, state, full_f_name,
-                            view, files_and_views
-                        )
-                    '''
                     for index, line_var in enumerate(f_lines):
                         weak_view, state, view = search_and_check_views(line_var, f_lines, index, state, view)
 
