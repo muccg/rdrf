@@ -108,35 +108,6 @@ def check_view_security():
 
                     # Iterate through lines, using enumerate() to grab positional values
                     for index, line_var in enumerate(f_lines):
-                        '''
-                        # Change back to normal search once normal indent level is reached (use regex to match no leading whitespace and no comments)
-                        if re.match(r'^[^\s\#]', line_var) is not None:
-                            state = 's'
-                        # Redefine current state
-                        cur_state = vcheck_states[state]
-
-                        # Search until view is found
-                        if cur_state == "SEARCH":
-                            # Check line
-                            superclass_str = get_superclass(line_var)
-                            if superclass_str != [] and "View" in superclass_str:
-                                # Change to "in-view" state if check for mixin is false
-                                if "LoginRequiredMixin" not in superclass_str:
-                                    state = 'v'
-                                    cur_view = re.findall(r'class (.+)\(', line_var)
-
-                        # While in "in-view" state, look for get/post methods
-                        elif cur_state == "INVIEW":
-                            # Check for get/post
-                            if ("def get(" in line_var) or ("def post(" in line_var):
-                                # Check if get/post has a decorator - if not, add to list
-                                if ("@method_decorator(login_required)" not in f_lines[index - 1]) and ("@login_required" not in f_lines[index - 1]):
-                                    # add view class name to list w/regex
-                                    if full_f_name not in files_and_views:
-                                        files_and_views.update({full_f_name: []})
-                                    if cur_view not in files_and_views[full_f_name]:
-                                        files_and_views[full_f_name].append(cur_view)
-                        '''
                         state, view = search_and_check_views(line_var, f_lines, index, state, full_f_name, view, files_and_views)
 
     ### WHITELISTING ###
