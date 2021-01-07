@@ -150,36 +150,7 @@ def check_view_security():
                     # Iterate through lines, using enumerate() to grab positional values
                     for index, line_var in enumerate(f_lines):
                         state, view = search_and_check_views(line_var, f_lines, index, state, full_f_name, view, files_and_views)
-    '''
-    ### WHITELISTING ###
-    # Create empty list in which to store files to be removed from the list (ones containing only whitelisted views)
-    remove_files = []
-    # Loop through files
-    for bad_file in files_and_views:
-        # Another empty list, this one to remove whitelisted views
-        remove_views = []
-        # Loop through views
-        for bad_view in files_and_views[bad_file]:
-            # The view strings are stored in single-element lists for some reason, so we have to access them like so
-            # Check if the current view is whitelisted
-            if bad_view[0] in whitelist:
-                # Populate the list of views to be ignored
-                remove_views.append(bad_view)
-        # Loop through views to be removed
-        for rm_view in remove_views:
-            # Remove views
-            files_and_views[bad_file].remove(rm_view)
-        # Check if there are any remaining insecure views in the file
-        if files_and_views[bad_file] == []:
-            # Populate list of files to be ignored
-            remove_files.append(bad_file)
-
-    # Loop through files to be removed
-    for rm_file in remove_files:
-        # Remove file
-        files_and_views.pop(rm_file)
-    ### END WHITELISTING ###
-    '''
+                        
     remove_whitelisted(files_and_views)
 
     if len(files_and_views) > 0:
