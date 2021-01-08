@@ -50,6 +50,12 @@ whitelist = [
 ]
 
 
+def get_lines(file_name, file_dir):
+    full_file = join(file_dir, file_name)
+    lines = open(full_file).readlines()
+    return lines, full_file
+
+
 def get_superclass(class_text):
     super_strings = []
     ret_strings = []
@@ -124,6 +130,19 @@ def remove_whitelisted(insecure_dict):
         insecure_dict.pop(rm_file)
 
 
+def show_bad_views(file_view_dict):
+    if len(file_view_dict) > 0:
+        print("Non-secure views found:")
+        for bad_file, bad_views in file_view_dict.items():
+            print(f"File: {bad_file}")
+            print("Views:")
+            for bad_view in bad_views:
+                print(bad_view)
+        sys.exit(1)
+    else:
+        print("Views secure.")
+
+
 def check_view_security():
     files_and_views = {}
     # Not the best, but this way only one base directory is read.
@@ -136,8 +155,7 @@ def check_view_security():
                        s_dir not in ignore_dirs]
         for f_name in files:
             if re.match(r'.+\.py$', f_name) is not None:
-                full_f_name = join(base_dir, f_name)
-                f_lines = open(full_f_name).readlines()
+                f_lines, full_f_name = get_lines(f_name, base_dir)
                 state = 's'
                 view = ''
                 view_list = []
@@ -154,18 +172,7 @@ def check_view_security():
                     files_and_views.update({full_f_name: view_list})
 
     remove_whitelisted(files_and_views)
-
-    if len(files_and_views) > 0:
-        print("Non-secure views found:")
-        for bad_file, bad_views in files_and_views.items():
-            print(f"File: {bad_file}")
-            print("Views:")
-            for bad_view in bad_views:
-                print(bad_view)
-        sys.exit(1)
-    else:
-        print("Views secure.")
-
+    show_bad_views(files_and_views)
 
 # Run the primary function if this is being used standalone
 if __name__ == "__main__":
