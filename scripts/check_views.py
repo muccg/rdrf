@@ -92,63 +92,40 @@ def search_and_check_views(cur_line, all_lines, line_index,
     return view_failed, cur_state, cur_view
 
 
-def remove_whitelisted(insecure_list):
-    # Create empty list in which to store files to be removed from the
-    # list (ones containing only whitelisted views)
+def remove_whitelisted(insecure_dict):
     remove_files = []
-    # Loop through files
-    for bad_file in insecure_list:
-        # Another empty list, this one to remove whitelisted views
+
+    for bad_file, bad_views in insecure_dict.items():
         remove_views = []
-        # Loop through views
-        for bad_view in insecure_list[bad_file]:
-            # The view strings are stored in single-element lists for
-            # some reason, so we have to access them like so.
-            # Check if the current view is whitelisted
+        for bad_view in bad_views:
             if bad_view in whitelist:
-                # Populate the list of views to be ignored
                 remove_views.append(bad_view)
-        # Loop through views to be removed
         for rm_view in remove_views:
-            # Remove views
-            insecure_list[bad_file].remove(rm_view)
-        # Check if there are any remaining insecure views in the file
-        if insecure_list[bad_file] == []:
-            # Populate list of files to be ignored
+            insecure_dict[bad_file].remove(rm_view)
+        if insecure_dict[bad_file] == []:
             remove_files.append(bad_file)
 
-    # Loop through files to be removed
     for rm_file in remove_files:
-        # Remove file
-        insecure_list.pop(rm_file)
+        insecure_dict.pop(rm_file)
 
 
 def check_view_security():
-    # Update this so that the map is only updated in this function
-    # Use functions to find non-secure views, return them, then
-    # update map in here
     files_and_views = {}
     # Not the best, but this way only one base directory is read.
     # Perhaps do some error handling if a directory isn't passed in
     dir_name = abspath(sys.argv[1])
     
-    # Explore base directory and all subdirectories
     for base_dir, sub_dirs, files in os.walk(dir_name):
         # Don't check build folder - removes duplicates (perhaps refine)
         if "build" not in base_dir:
-            # Iterate through file names
             for f_name in files:
-                # If file is Python file
                 if re.match(r'.+\.py$', f_name) is not None:
-                    # Open file and start searching
                     full_f_name = join(base_dir, f_name)
                     f_lines = open(full_f_name).readlines()
                     state = 's'
                     view = ''
                     view_list = []
 
-                    # Iterate through lines, using enumerate() to grab
-                    # positional values
                     for index, line_var in enumerate(f_lines):
                         weak_view, state, view = search_and_check_views(line_var, f_lines, index, state, view)
 
@@ -163,10 +140,10 @@ def check_view_security():
 
     if len(files_and_views) > 0:
         print("Non-secure views found:")
-        for bad_file in files_and_views:
+        for bad_file, bad_views in files_and_views.items():
             print(f"File: {bad_file}")
             print("Views:")
-            for bad_view in files_and_views[bad_file]:
+            for bad_view in bad_views:
                 print(bad_view)
         sys.exit(1)
     else:
