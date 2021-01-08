@@ -40,7 +40,8 @@ class Links:
             _("Archived Patients"))
         Genes = QuickLink(reverse("admin:genetic_gene_changelist"), _("Genes"))
         Laboratories = QuickLink(reverse("admin:genetic_laboratory_changelist"), _("Laboratories"))
-        Explorer = QuickLink(reverse("rdrf:explorer_main"), _("Explorer"))
+        if settings.SYSTEM_ROLE == SystemRoles.NORMAL:
+            Explorer = QuickLink(reverse("rdrf:explorer_main"), _("Explorer"))
         Users = QuickLink(reverse("admin:groups_customuser_changelist"), _('Users'))
         WorkingGroups = QuickLink(
             reverse("admin:groups_workinggroup_changelist"),
@@ -192,9 +193,10 @@ class Links:
                 Custom_Actions.text: Custom_Actions,
                 Custom_Action_Executions.text: Custom_Action_Executions,
             }
-        EXPLORER = {
-            Explorer.text: Explorer,
-        }
+        if settings.SYSTEM_ROLE == SystemRoles.NORMAL:
+            EXPLORER = {
+                Explorer.text: Explorer,
+            }
         if settings.DESIGN_MODE:
             REGISTRY_DESIGN = {
                 Registries.text: Registries,
@@ -390,11 +392,13 @@ class QuickLinks(object):
             MenuConfig().settings = {
                 **Links.AUDITING,
                 **Links.DOCTORS,
-                **Links.EXPLORER,
                 **Links.FAMILY_LINKAGE,
                 **Links.PERMISSIONS,
                 **Links.REGISTRATION,
             }
+
+            if settings.SYSTEM_ROLE == SystemRoles.NORMAL:
+                MenuConfig().settings.update(Links.EXPLORER)
 
             # menu with everything, used for the admin page
             if not settings.DESIGN_MODE:

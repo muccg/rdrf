@@ -1400,3 +1400,60 @@ def check_alert_msg(step, mtype, message):
     xp = '//*[contains(@class, "{0}")]'.format(msg_type[mtype])
     alertbox = find(xp)  # find() asserts that the element can be found, so further checks not required
     assert message in alertbox.innerText, "Unable to find {0} message".format(mtype)
+
+
+@step('go to the Common Data Element admin page')
+def goto_cde_admin(step):
+    world.browser.get(world.site_url + "admin/rdrf/commondataelement/")
+
+
+@step('click the Add button')
+def click_add_button(step):
+    '''
+    This function is specific to the Add button as the existing generic function
+    does not handle buttons other than submit buttons at this stage, and I am
+    unsure if I am permitted to overhaul existing functions due to the
+    potential issues that may occur.
+    '''
+    xp = '//a[contains(@id, "add_button")]'
+    add_btn = find(xp)
+    add_btn.click()
+
+
+@step('should be on the CDE editing page')
+def check_add_cde_page(step):
+    xp = '//*[contains(text(), "This CDE is used in:")]'  # This text only appears on the CDE editing page
+    find(xp)  # find() asserts that the element can be found, so further checks not required
+
+
+@step('enter "([^\"]+)" for the "([^\"]+)" field')
+def fill_field(step, f_value, f_name):
+    find_id_xp = f'//*[contains(text(), "{f_name}")]'
+    id_elem = find(find_id_xp)
+    id_var = id_elem.get_attribute('for')
+    xp = f'//input[@type="text" and @id="{id_var}"]'
+    find(xp).send_keys(f"{f_value}")
+
+
+@step('save the CDE')
+def save_cde(step):
+    xp = '//form[contains(@id, "commondataelement_form")]'
+    find(xp).submit()
+
+
+@step('should see the "([^\"]+)" (?=field|checkbox)')
+def check_page_fields_show(step, field_name):
+    find_id_xp = f'//*[contains(text(), "{field_name}")]'
+    id_elem = find(find_id_xp)
+    id_var = id_elem.get_attribute('for')[3:]
+    xp = f'//*[contains(@id, "{id_var}") and ancestor::*[contains(@class, "{id_var}") and not(contains(@style, "display: none"))]]'
+    find(xp)  # find() asserts that the element can be found, so further checks not required
+
+
+@step('should NOT see the "([^\"]+)" (?=field|checkbox)')
+def check_page_fields_hide(step, field_name):
+    find_id_xp = f'//*[contains(text(), "{field_name}")]'
+    id_elem = find(find_id_xp)
+    id_var = id_elem.get_attribute('for')[3:]
+    xp = f'//*[contains(@id, "{id_var}") and ancestor::*[contains(@class, "{id_var}") and contains(@style, "display: none")]]'
+    find(xp)  # find() asserts that the element can be found, so further checks not required
