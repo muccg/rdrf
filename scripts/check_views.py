@@ -14,6 +14,20 @@ import sys
 from os.path import abspath, join
 
 
+check_decorator_strings = [
+    '@method_decorator(login_required)',
+    '@login_required',
+]
+
+check_method_strings = [
+    'def get(',
+    'def post(',
+]
+
+ignore_dirs = set([
+    'build',
+])
+
 vcheck_states = {
     's': "SEARCH",
     'v': "INVIEW",
@@ -64,12 +78,13 @@ def find_view(line_text):
 def validate_view(line_text, v_lines, v_index):
     has_failed = False
     # Check for get/post
-    if ("def get(" in line_text) or ("def post(" in line_text):
+    if any(met_str in line_text for met_str in check_method_strings):
         # Check if get/post has a decorator - if not, add to list
-        if (("@method_decorator(login_required)" not in v_lines[v_index - 1])
-                and ("@login_required" not in v_lines[v_index - 1])):
+        if not any(dec_str in v_lines[v_index - 1] for
+                   dec_str in check_decorator_strings):
             has_failed = True
     return has_failed
+
 
 def search_and_check_views(cur_line, all_lines, line_index,
                            cur_state, cur_view):
@@ -114,27 +129,29 @@ def check_view_security():
     # Not the best, but this way only one base directory is read.
     # Perhaps do some error handling if a directory isn't passed in
     dir_name = abspath(sys.argv[1])
-    
-    for base_dir, sub_dirs, files in os.walk(dir_name):
-        # Don't check build folder - removes duplicates (perhaps refine)
-        if "build" not in base_dir:
-            for f_name in files:
-                if re.match(r'.+\.py$', f_name) is not None:
-                    full_f_name = join(base_dir, f_name)
-                    f_lines = open(full_f_name).readlines()
-                    state = 's'
-                    view = ''
-                    view_list = []
 
-                    for index, line_var in enumerate(f_lines):
-                        weak_view, state, view = search_and_check_views(line_var, f_lines, index, state, view)
+    for base_dir, sub_dirs, files in os.walk(dir_name, topdown=True):
+        # Don't check certain folders - removes duplicates
+        sub_dirs[:] = [s_dir for s_dir in sub_dirs if
+                       s_dir not in ignore_dirs]
+        for f_name in files:
+            if re.match(r'.+\.py$', f_name) is not None:
+                full_f_name = join(base_dir, f_name)
+                f_lines = open(full_f_name).readlines()
+                state = 's'
+                view = ''
+                view_list = []
 
-                        if weak_view:
-                            if view not in view_list:
-                                view_list.append(view)
+                for index, line_var in enumerate(f_lines):
+                    weak_view, state, view = search_and_check_views(line_var,
+                        f_lines, index, state, view)
 
-                    if view_list != []:
-                        files_and_views.update({full_f_name: view_list})
+                    if weak_view:
+                        if view not in view_list:
+                            view_list.append(view)
+
+                if view_list != []:
+                    files_and_views.update({full_f_name: view_list})
 
     remove_whitelisted(files_and_views)
 
