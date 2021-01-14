@@ -163,7 +163,7 @@ def check_view_security():
                 for index, line_var in enumerate(f_lines):
                     weak_view, state, view = search_and_check_views(
                         line_var, f_lines, index, state, view
-                        )
+                    )
 
                     if weak_view:
                         if view not in view_list:
