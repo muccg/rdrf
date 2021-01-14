@@ -161,8 +161,9 @@ def check_view_security():
                 view_list = []
 
                 for index, line_var in enumerate(f_lines):
-                    weak_view, state, view = search_and_check_views(line_var,
-                        f_lines, index, state, view)
+                    weak_view, state, view = search_and_check_views(
+                        line_var, f_lines, index, state, view
+                        )
 
                     if weak_view:
                         if view not in view_list:
@@ -173,6 +174,7 @@ def check_view_security():
 
     remove_whitelisted(files_and_views)
     show_bad_views(files_and_views)
+
 
 # Run the primary function if this is being used standalone
 if __name__ == "__main__":
