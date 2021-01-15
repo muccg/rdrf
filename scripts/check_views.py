@@ -52,7 +52,10 @@ whitelist = [
 
 def get_lines(file_name, file_dir):
     full_file = join(file_dir, file_name)
-    lines = open(full_file).readlines()
+
+    with open(full_file) as open_file:
+        lines = open_file.readlines()
+
     return lines, full_file
 
 
@@ -72,10 +75,10 @@ def find_view(line_text):
     state_n = 's'
     view_n = ''
     # Check line
-    superclass_str = get_superclass(line_text)
-    if superclass_str != [] and "View" in superclass_str:
+    superclasses = get_superclass(line_text)
+    if superclasses != [] and "View" in superclasses:
         # Change to "in-view" state if check for mixin is false
-        if "LoginRequiredMixin" not in superclass_str:
+        if "LoginRequiredMixin" not in superclasses:
             state_n = 'v'
             view_n = re.findall(r'class (.+)\(', line_text)[0]
     return state_n, view_n
