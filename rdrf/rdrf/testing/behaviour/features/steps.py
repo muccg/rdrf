@@ -1439,6 +1439,7 @@ def check_email_sent_page(step):
 @step('should see the site with no errors')
 def check_no_runtime_error(step):
     xp = '//nav[contains(@class, "navbar")]'
+    find(xp)  # find() asserts that the element can be found, so further checks not required
 
 
 @step('go to the Common Data Element admin page')
