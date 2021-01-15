@@ -1,6 +1,7 @@
 # -*- encoding: utf-8 -*-
 import logging
 import os
+import subprocess
 import yaml
 from datetime import datetime
 from datetime import timedelta
@@ -2123,3 +2124,13 @@ class SetupPromsCommandTest(TestCase):
         call_command("setup_proms", yaml=self.modified_yaml, override=True)
         proms_system_url = Registry.objects.get(code="ICHOMLC").metadata["proms_system_url"]
         self.assertEqual(proms_system_url, "https://rdrf.ccgapps.com.au/ciclungpromsmodified")
+
+
+class CheckViewsTestCase(TestCase):
+
+    def test_check_views(self):
+        completed_process = subprocess.run(["python", "/app/scripts/check_views.py", "/app/rdrf"], capture_output=True)
+        if completed_process.returncode == 1:
+            print("Insecure Views:")
+            print(completed_process.stdout)
+        self.assertEqual(completed_process.returncode, 0)
