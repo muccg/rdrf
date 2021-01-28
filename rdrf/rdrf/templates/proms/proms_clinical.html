@@ -84,7 +84,11 @@
                         <td>{{sr.user}}</td>
                         <td>{{sr.updated}}</td>
                         <td width="40%">{{sr.email_link}}</td>
+                      {% if sr.state == 'received' %}
+                        <td>completed</td>
+                      {% else %}
                         <td>{{sr.state}}</td>
+                      {% endif %}
 	                    {% if sr.state == 'requested' and sr.communication_type == 'qrcode' %}
                         <td>
                             <img src="{{ sr.qrcode_link }}" width="80" height="80" >
