@@ -2134,3 +2134,90 @@ class CheckViewsTestCase(TestCase):
             print("Insecure Views:")
             print(completed_process.stdout)
         self.assertEqual(completed_process.returncode, 0)
+
+
+class CheckViewsUnitTests(TestCase):
+
+    def setUp(self):
+        import os
+        import sys
+        base_dir = os.getcwd()
+        base_path = sys.path
+        os.chdir("/app/scripts")
+        sys.path.append(".")
+        from check_views import search_and_check_views
+        os.chdir(base_dir)
+        sys.path = base_path
+
+        self.func_to_test = search_and_check_views
+
+    def check_view_assist(self, view_lines):
+        good_view = True
+        state = 's'
+        view = ''
+
+        for index, line_var in enumerate(view_lines):
+            bad_view, state, view = self.func_to_test(
+                line_var, view_lines, index, state, view
+            )
+            if bad_view:
+                print(f"{line_var}: {state} {view}")
+                good_view = False
+
+        return good_view
+
+    def test_search_and_check_views(self):
+        non_view_lines = [
+            "def random_func(blah):",
+            "   random = False",
+            "   if blah:",
+            "       random = True",
+            "   return random",
+            "",
+            "class RandomClass():",
+            "   var1 = 6",
+            "   ",
+            "   def get():",
+            "       return var1",
+            "",
+        ]
+
+        mixin_view_lines = [
+            "class HaveMixinView(LoginRequiredMixin, View):",
+            "   ",
+            "   def get(self, request):",
+            "       return whatever",
+            "   ",
+            "   def post(self, request, query_id, action):",
+            "       return another",
+            "",
+        ]
+
+        dec_view_lines = [
+            "class DecoratedView(View):",
+            "   ",
+            "   @login_required",
+            "   def get(self, request):",
+            "       return whatever",
+            "   ",
+            "   @method_decorator(login_required)",
+            "   def post(self, request, query_id, action):",
+            "       return another",
+            "",
+        ]
+
+        bad_view_lines = [
+            "class BadView(View):",
+            "   ",
+            "   def get(self, request):",
+            "       return whatever",
+            "   ",
+            "   def post(self, request, query_id, action):",
+            "       return another",
+            "",
+        ]
+
+        self.assertTrue(self.check_view_assist(non_view_lines))
+        self.assertTrue(self.check_view_assist(mixin_view_lines))
+        self.assertTrue(self.check_view_assist(dec_view_lines))
+        self.assertFalse(self.check_view_assist(bad_view_lines))
