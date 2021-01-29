@@ -2142,12 +2142,12 @@ class CheckViewsUnitTests(TestCase):
         import os
         import sys
         base_dir = os.getcwd()
-        base_path = sys.path
+        old_sys_path = sys.path
         os.chdir("/app/scripts")
         sys.path.append(".")
         from check_views import search_and_check_views
         os.chdir(base_dir)
-        sys.path = base_path
+        sys.path = old_sys_path
 
         self.func_to_test = search_and_check_views
 
@@ -2167,7 +2167,7 @@ class CheckViewsUnitTests(TestCase):
         return good_view
 
     def test_search_and_check_views(self):
-        non_view_lines = [
+        not_a_view = [
             "def random_func(blah):",
             "   random = False",
             "   if blah:",
@@ -2182,7 +2182,7 @@ class CheckViewsUnitTests(TestCase):
             "",
         ]
 
-        mixin_view_lines = [
+        view_has_mixin = [
             "class HaveMixinView(LoginRequiredMixin, View):",
             "   ",
             "   def get(self, request):",
@@ -2193,7 +2193,7 @@ class CheckViewsUnitTests(TestCase):
             "",
         ]
 
-        dec_view_lines = [
+        view_has_decorators = [
             "class DecoratedView(View):",
             "   ",
             "   @login_required",
@@ -2206,7 +2206,7 @@ class CheckViewsUnitTests(TestCase):
             "",
         ]
 
-        bad_view_lines = [
+        view_lacks_security = [
             "class BadView(View):",
             "   ",
             "   def get(self, request):",
@@ -2217,7 +2217,7 @@ class CheckViewsUnitTests(TestCase):
             "",
         ]
 
-        self.assertTrue(self.check_view_assist(non_view_lines))
-        self.assertTrue(self.check_view_assist(mixin_view_lines))
-        self.assertTrue(self.check_view_assist(dec_view_lines))
-        self.assertFalse(self.check_view_assist(bad_view_lines))
+        self.assertTrue(self.check_view_assist(not_a_view), "Error: should not find bad view where there is no view!")
+        self.assertTrue(self.check_view_assist(view_has_mixin), "Error: view has mixin, but mixin has not been found!")
+        self.assertTrue(self.check_view_assist(view_has_decorators), "Error: view has decorators, but decorators have not been found!")
+        self.assertFalse(self.check_view_assist(view_lacks_security), "Error: view is not secure, but no issues found!")
