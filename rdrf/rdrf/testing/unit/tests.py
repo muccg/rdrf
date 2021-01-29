@@ -1,6 +1,7 @@
 # -*- encoding: utf-8 -*-
 import logging
 import os
+import subprocess
 import yaml
 from datetime import datetime
 from datetime import timedelta
@@ -2123,3 +2124,100 @@ class SetupPromsCommandTest(TestCase):
         call_command("setup_proms", yaml=self.modified_yaml, override=True)
         proms_system_url = Registry.objects.get(code="ICHOMLC").metadata["proms_system_url"]
         self.assertEqual(proms_system_url, "https://rdrf.ccgapps.com.au/ciclungpromsmodified")
+
+
+class CheckViewsTestCase(TestCase):
+
+    def test_check_views(self):
+        completed_process = subprocess.run(["python", "/app/scripts/check_views.py", "/app/rdrf"], capture_output=True)
+        if completed_process.returncode == 1:
+            print("Insecure Views:")
+            print(completed_process.stdout)
+        self.assertEqual(completed_process.returncode, 0)
+
+
+class CheckViewsUnitTests(TestCase):
+
+    def setUp(self):
+        import os
+        import sys
+        base_dir = os.getcwd()
+        old_sys_path = sys.path
+        os.chdir("/app/scripts")
+        sys.path.append(".")
+        from check_views import search_and_check_views
+        os.chdir(base_dir)
+        sys.path = old_sys_path
+
+        self.func_to_test = search_and_check_views
+
+    def check_view_assist(self, view_lines):
+        good_view = True
+        state = 's'
+        view = ''
+
+        for index, line_var in enumerate(view_lines):
+            bad_view, state, view = self.func_to_test(
+                line_var, view_lines, index, state, view
+            )
+            if bad_view:
+                print(f"{line_var}: {state} {view}")
+                good_view = False
+
+        return good_view
+
+    def test_search_and_check_views(self):
+        not_a_view = [
+            "def random_func(blah):",
+            "   random = False",
+            "   if blah:",
+            "       random = True",
+            "   return random",
+            "",
+            "class RandomClass():",
+            "   var1 = 6",
+            "   ",
+            "   def get():",
+            "       return var1",
+            "",
+        ]
+
+        view_has_mixin = [
+            "class HaveMixinView(LoginRequiredMixin, View):",
+            "   ",
+            "   def get(self, request):",
+            "       return whatever",
+            "   ",
+            "   def post(self, request, query_id, action):",
+            "       return another",
+            "",
+        ]
+
+        view_has_decorators = [
+            "class DecoratedView(View):",
+            "   ",
+            "   @login_required",
+            "   def get(self, request):",
+            "       return whatever",
+            "   ",
+            "   @method_decorator(login_required)",
+            "   def post(self, request, query_id, action):",
+            "       return another",
+            "",
+        ]
+
+        view_lacks_security = [
+            "class BadView(View):",
+            "   ",
+            "   def get(self, request):",
+            "       return whatever",
+            "   ",
+            "   def post(self, request, query_id, action):",
+            "       return another",
+            "",
+        ]
+
+        self.assertTrue(self.check_view_assist(not_a_view), "Error: should not find bad view where there is no view!")
+        self.assertTrue(self.check_view_assist(view_has_mixin), "Error: view has mixin, but mixin has not been found!")
+        self.assertTrue(self.check_view_assist(view_has_decorators), "Error: view has decorators, but decorators have not been found!")
+        self.assertFalse(self.check_view_assist(view_lacks_security), "Error: view is not secure, but no issues found!")
