@@ -1602,13 +1602,6 @@ class Colours(object):
     yellow = "#ffff00"
 
 
-class ConstructorFormView(View):
-    @method_decorator(anonymous_not_allowed)
-    @method_decorator(login_required)
-    def get(self, request, form_name):
-        return render(request, 'rdrf_cdes/%s.html' % form_name)
-
-
 class CustomConsentFormView(View):
 
     @method_decorator(anonymous_not_allowed)
