@@ -17,7 +17,8 @@ class PromsAuthentication(authentication.BaseAuthentication):
 
         if secret_token != proms_secret_token:
             logger.warning("tokens don't match - failed to auth")
-            return False
+            logger.warning("Request token in packet: %s", secret_token)
+            raise exceptions.AuthenticationFailed("Unable to authenticate")
 
         try:
             user = CustomUser.objects.get(username=proms_username)
