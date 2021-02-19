@@ -60,7 +60,7 @@ def handler_exceptions(request):
     raise Exception("Forced exception in /raise")
 
 
-def handler404(request, exception):
+def handler404(request, exception=None):
     return render(request, "404.html")
 
 
