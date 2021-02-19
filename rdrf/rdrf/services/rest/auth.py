@@ -12,13 +12,13 @@ class PromsAuthentication(authentication.BaseAuthentication):
         from django.conf import settings
         secret_token = request.POST.get("proms_secret_token", "")
 
-        proms_secret_token = "bler"  #settings.PROMS_SECRET_TOKEN
+        proms_secret_token = settings.PROMS_SECRET_TOKEN
         proms_username = settings.PROMS_USERNAME
 
         if secret_token != proms_secret_token:
             logger.warning("tokens don't match - failed to auth")
-            logger.warning("Request token: %s", secret_token)
-            raise exceptions.AuthenticationFailed("Mismatched tokens")
+            logger.warning("Request token in packet: %s", secret_token)
+            raise exceptions.AuthenticationFailed("Unable to authenticate")
 
         try:
             user = CustomUser.objects.get(username=proms_username)
