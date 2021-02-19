@@ -60,7 +60,7 @@ def handler_exceptions(request):
     raise Exception("Forced exception in /raise")
 
 
-def handler404(request, exception):
+def handler404(request, exception=None):
     return render(request, "404.html")
 
 
@@ -144,8 +144,6 @@ normalpatterns += [
             CustomActionView.as_view(), name='custom_action'),
     re_path(r'^api/v1/', include(('rdrf.services.rest.urls.api_urls', 'api_urls'), namespace='v1')),
     re_path(r'^api/proms/v1/', include(('rdrf.services.rest.urls.proms_api_urls', 'proms_api_urls'), namespace=None)),
-    re_path(r'^constructors/(?P<form_name>\w+)/?$',
-            form_view.ConstructorFormView.as_view(), name="constructors"),
     re_path(r'^rpc', form_view.RPCHandler.as_view(), name='rpc'),
 
     path('admin/', admin.site.urls),
