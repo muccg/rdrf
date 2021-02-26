@@ -2127,9 +2127,9 @@ class SetupPromsCommandTest(TestCase):
 
 
 script_paths = {
-            "rdrf": "/app/scripts",
-            "mtm": "/app/rdrf/scripts",
-        }
+    "rdrf": "/app/scripts",
+    "mtm": "/app/rdrf/scripts",
+}
 
 
 class CheckViewsTestCase(TestCase):
