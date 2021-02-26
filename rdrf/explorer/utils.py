@@ -266,14 +266,14 @@ class DatabaseUtils(object):
                     sql_column_name = self.reverse_map[i]
                     sql_columns_dict[sql_column_name] = item
 
-                    for mongo_columns_dict in self.run_mongo_one_row(sql_columns_dict, collection, max_items):
-                        if mongo_columns_dict is None:
-                            sql_columns_dict["snapshot"] = False
-                            yield sql_columns_dict
-                        else:
-                            mongo_columns_dict["snapshot"] = False
-                            for combined_dict in self._combine_sql_and_mongo(sql_columns_dict, mongo_columns_dict):
-                                yield combined_dict
+                for mongo_columns_dict in self.run_mongo_one_row(sql_columns_dict, collection, max_items):
+                    if mongo_columns_dict is None:
+                        sql_columns_dict["snapshot"] = False
+                        yield sql_columns_dict
+                    else:
+                        mongo_columns_dict["snapshot"] = False
+                        for combined_dict in self._combine_sql_and_mongo(sql_columns_dict, mongo_columns_dict):
+                            yield combined_dict
 
         def longitudinal():
             for row in self.cursor:
