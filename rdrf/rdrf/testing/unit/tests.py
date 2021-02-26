@@ -2126,10 +2126,17 @@ class SetupPromsCommandTest(TestCase):
         self.assertEqual(proms_system_url, "https://rdrf.ccgapps.com.au/ciclungpromsmodified")
 
 
+script_paths = {
+            "rdrf": "/app/scripts",
+            "mtm": "/app/rdrf/scripts",
+        }
+
+
 class CheckViewsTestCase(TestCase):
 
     def test_check_views(self):
-        completed_process = subprocess.run(["python", "/app/scripts/check_views.py", "/app/rdrf"], capture_output=True)
+        proj_name = os.getenv("PROJECT_NAME")
+        completed_process = subprocess.run(["python", f"{script_paths[proj_name]}/check_views.py", "/app/rdrf"], capture_output=True)
         if completed_process.returncode == 1:
             print("Insecure Views:")
             print(completed_process.stdout)
@@ -2139,11 +2146,11 @@ class CheckViewsTestCase(TestCase):
 class CheckViewsUnitTests(TestCase):
 
     def setUp(self):
-        import os
         import sys
         base_dir = os.getcwd()
         old_sys_path = sys.path
-        os.chdir("/app/scripts")
+        proj_name = os.getenv("PROJECT_NAME")
+        os.chdir(script_paths[proj_name])
         sys.path.append(".")
         from check_views import search_and_check_views
         os.chdir(base_dir)
