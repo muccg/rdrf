@@ -22,6 +22,8 @@ from rdrf.services.rest.serializers import PatientSerializer, RegistrySerializer
 from celery.result import AsyncResult
 from django.http import HttpResponse
 from rdrf.models.task_models import CustomActionExecution
+from rdrf.models.definition.models import CommonDataElement
+from rdrf.helpers.utils import same_working_group, is_calculated_cde_in_registry
 
 import logging
 logger = logging.getLogger(__name__)
@@ -318,6 +320,30 @@ class CalculatedCdeValue(APIView):
                           'registry_code': request.data["registry_code"],
                           'sex': str(request.data["patient_sex"])}
         form_values = request.data["form_values"]
+
+        # lots to do
+        try:
+            patient_id = request.data["patient_id"]
+            patient = Patient.objects.get(pk=patient_id)
+            cde_code = request.data["cde_code"]
+            cde = CommonDataElement.objects.get(pk=cde_code)
+            registry_code = request.data["registry_code"]
+            registry = Registry.objects.get_by_natural_key(registry_code)
+        except Patient.DoesNotExist:
+            raise BadRequestError(f"Patient {patient_id} does not exist")
+        except CommonDataElement.DoesNotExist:
+            raise BadRequestError(f"CDE {cde_code} does not exist")
+        except Registry.DoesNotExist:
+            raise BadRequestError(f"Registry {registry_code} does not exist")
+
+        # let things time out and check the user
+        # check the anonymous_not_allowed decorator
+
+        if not same_working_group(patient, request.user, registry):
+            raise BadRequestError("Patient is not in this working group")
+        if not is_calculated_cde_in_registry(cde, registry):
+            raise BadRequestError("CDE is not a calculated field in this registry")
+
         mod = __import__('rdrf.forms.fields.calculated_functions', fromlist=['object'])
         func = getattr(mod, request.data["cde_code"])
         if func:
