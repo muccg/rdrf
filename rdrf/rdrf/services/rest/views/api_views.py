@@ -200,7 +200,6 @@ class ListStates(APIView):
 
 class ListClinicians(APIView):
     queryset = CustomUser.objects.none()
-    permission_classes = (IsAuthenticatedOrReadOnly,)
 
     def get(self, request, registry_code, format=None):
         users = CustomUser.objects.filter(registry__code=registry_code, is_superuser=False)
