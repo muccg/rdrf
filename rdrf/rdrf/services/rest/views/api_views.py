@@ -23,7 +23,7 @@ from celery.result import AsyncResult
 from django.http import HttpResponse
 from rdrf.models.task_models import CustomActionExecution
 from rdrf.models.definition.models import CommonDataElement
-from rdrf.helpers.utils import same_working_group, is_calculated_in_reg
+from rdrf.helpers.utils import same_working_group, is_calculated_cde_in_registry
 
 import logging
 logger = logging.getLogger(__name__)
@@ -339,9 +339,9 @@ class CalculatedCdeValue(APIView):
         # let things time out and check the user
         # check the anonymous_not_allowed decorator
 
-        if not same_working_group(patient, request.user):
+        if not same_working_group(patient, request.user, registry):
             raise BadRequestError("Patient is not in this working group")
-        if not is_calculated_in_reg(cde, registry):
+        if not is_calculated_cde_in_registry(cde, registry):
             raise BadRequestError("CDE is not a calculated field in this registry")
 
         mod = __import__('rdrf.forms.fields.calculated_functions', fromlist=['object'])

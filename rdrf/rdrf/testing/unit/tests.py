@@ -2283,22 +2283,22 @@ class CalculatedFieldSecurityTestCase(RDRFTestCase):
         return p
 
     def test_calc_field_security(self):
-        from rdrf.helpers.utils import same_working_group, is_calculated_in_reg
+        from rdrf.helpers.utils import same_working_group, is_calculated_cde_in_registry
         # What tests do we need?
         # 1. Testing user and patient with matching working groups
-        self.assertTrue(same_working_group(self.patient, self.user1))
+        self.assertTrue(same_working_group(self.patient, self.user1, self.registry))
 
         # 2. Testing user and patient with mismatched working groups
-        self.assertFalse(same_working_group(self.patient, self.user2))
+        self.assertFalse(same_working_group(self.patient, self.user2, self.registry))
 
         # 3. Testing Admin working group matching
-        self.assertTrue(same_working_group(self.patient, self.user_admin))
+        self.assertTrue(same_working_group(self.patient, self.user_admin, self.registry))
 
         # 4. Testing if FH calculated field exists in FH
-        self.assertTrue(is_calculated_in_reg(CommonDataElement.objects.get(pk="CDEBMI"), self.registry))
+        self.assertTrue(is_calculated_cde_in_registry(CommonDataElement.objects.get(pk="CDEBMI"), self.registry))
 
         # 5. Testing if FH non-calculated field is picked up by function
-        self.assertFalse(is_calculated_in_reg(CommonDataElement.objects.get(pk="CDE00003"), self.registry))
+        self.assertFalse(is_calculated_cde_in_registry(CommonDataElement.objects.get(pk="CDE00003"), self.registry))
 
         # 6. Testing if non-FH calculated field exists in FH
         # No non-FH calculated fields in the test data, but have

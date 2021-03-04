@@ -992,23 +992,19 @@ def supports_deidentification_workflow():
     return False
 
 
-def same_working_group(patient, user):
+def same_working_group(patient, user, registry):
     user_work_groups = set([wg.id for wg in user.working_groups.all()])
     patient_work_groups = set([wg.id for wg in patient.working_groups.all()])
-    if not user.is_superuser and not user_work_groups.intersection(patient_work_groups):
+    registry_work_groups = set([wg.id for wg in registry.workinggroup_set.all()])
+    if not user.is_superuser and not user_work_groups.intersection(patient_work_groups, registry_work_groups):
         return False
     else:
         return True
 
 
-def is_calculated_in_reg(cde, registry):
-    calc_cdes = []
+def is_calculated_cde_in_registry(cde, registry):
     for form_model in registry.forms:
         for sec_model in form_model.section_models:
             for cde_model in sec_model.cde_models:
-                if cde_model.datatype == "calculated":
-                    calc_cdes.append(cde_model)
-    if cde not in calc_cdes:
-        return False
-    else:
-        return True
+                if cde_model.code == cde.code and cde_model.datatype == "calculated":
+                    return True
