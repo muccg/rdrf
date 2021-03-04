@@ -335,7 +335,7 @@ class CalculatedCdeValue(APIView):
             raise BadRequestError(f"CDE {cde_code} does not exist")
         except Registry.DoesNotExist:
             raise BadRequestError(f"Registry {registry_code} does not exist")
-        
+
         # let things time out and check the user
         # check the anonymous_not_allowed decorator
 
