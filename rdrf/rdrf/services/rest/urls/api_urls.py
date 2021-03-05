@@ -10,8 +10,8 @@ router.register(r'doctors', api_views.DoctorViewSet)
 router.register(r'nextofkinrelationship', api_views.NextOfKinRelationshipViewSet)
 router.register(r'workinggroups', api_views.WorkingGroupViewSet)
 router.register(r'countries', api_views.ListCountries, basename='country')
-router.register(r'genes', api_views.LookupGenes, basename='gene')
-router.register(r'laboratories', api_views.LookupLaboratories, basename='laboratory')
+#router.register(r'genes', api_views.LookupGenes, basename='gene')
+#router.register(r'laboratories', api_views.LookupLaboratories, basename='laboratory')
 router.register(r'registries/(?P<registry_code>\w+)/indices',
                 api_views.LookupIndex, basename='index')
 router.register(r'registries/(?P<registry_code>\w+)/clinicians',
