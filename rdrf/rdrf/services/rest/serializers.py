@@ -103,6 +103,7 @@ class CliniciansHyperlink(RegistryHyperlink):
 class PatientsHyperlink(RegistryHyperlink):
     view_name = 'patient-list'
 
+
 def get_clinicians_url():
     from django.conf import settings
 
@@ -110,6 +111,7 @@ def get_clinicians_url():
         return CliniciansHyperlink(read_only=True, source='*')
     else:
         return ""
+
 
 def get_meta_fields():
     from django.conf import settings
@@ -133,6 +135,7 @@ def get_meta_fields():
             'version',
             'url',
             'patients_url')
+
 
 class RegistrySerializer(serializers.HyperlinkedModelSerializer):
     # Add some more urls for better browsability
