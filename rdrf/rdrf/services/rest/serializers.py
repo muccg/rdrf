@@ -1,9 +1,11 @@
+from django.conf import settings
 from rest_framework import serializers
 from rest_framework.reverse import reverse
 from registry.patients.models import Patient, Registry, Doctor, NextOfKinRelationship
 from registry.groups.models import CustomUser, WorkingGroup
 from rdrf.models.proms.models import SurveyAssignment
 from rdrf.models.definition.models import RegistryYaml
+from rdrf.system_role import SystemRoles
 
 
 class DoctorHyperlinkId(serializers.HyperlinkedRelatedField):
@@ -107,19 +109,30 @@ class PatientsHyperlink(RegistryHyperlink):
 class RegistrySerializer(serializers.HyperlinkedModelSerializer):
     # Add some more urls for better browsability
     patients_url = PatientsHyperlink(read_only=True, source='*')
-    clinicians_url = CliniciansHyperlink(read_only=True, source='*')
+    if settings.SYSTEM_ROLE == SystemRoles.NORMAL:
+        clinicians_url = CliniciansHyperlink(read_only=True, source='*')
 
     class Meta:
         model = Registry
-        fields = (
-            'pk',
-            'name',
-            'code',
-            'desc',
-            'version',
-            'url',
-            'patients_url',
-            'clinicians_url')
+        if settings.SYSTEM_ROLE == SystemRoles.NORMAL:
+            fields = (
+                'pk',
+                'name',
+                'code',
+                'desc',
+                'version',
+                'url',
+                'patients_url',
+                'clinicians_url')
+        else:
+            fields = (
+                'pk',
+                'name',
+                'code',
+                'desc',
+                'version',
+                'url',
+                'patients_url')
         extra_kwargs = {
             'url': {'lookup_field': 'code'},
         }
