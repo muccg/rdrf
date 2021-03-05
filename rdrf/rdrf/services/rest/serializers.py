@@ -1,11 +1,9 @@
-from django.conf import settings
 from rest_framework import serializers
 from rest_framework.reverse import reverse
 from registry.patients.models import Patient, Registry, Doctor, NextOfKinRelationship
 from registry.groups.models import CustomUser, WorkingGroup
 from rdrf.models.proms.models import SurveyAssignment
 from rdrf.models.definition.models import RegistryYaml
-from rdrf.system_role import SystemRoles
 
 
 class DoctorHyperlinkId(serializers.HyperlinkedRelatedField):
@@ -105,34 +103,45 @@ class CliniciansHyperlink(RegistryHyperlink):
 class PatientsHyperlink(RegistryHyperlink):
     view_name = 'patient-list'
 
+def get_clinicians_url():
+    from django.conf import settings
+
+    if settings.SYSTEM_ROLE == "NORMAL":
+        return CliniciansHyperlink(read_only=True, source='*')
+    else:
+        return ""
+
+def get_meta_fields():
+    from django.conf import settings
+
+    if settings.SYSTEM_ROLE == "NORMAL":
+        return (
+            'pk',
+            'name',
+            'code',
+            'desc',
+            'version',
+            'url',
+            'patients_url',
+            'clinicians_url')
+    else:
+        return (
+            'pk',
+            'name',
+            'code',
+            'desc',
+            'version',
+            'url',
+            'patients_url')
 
 class RegistrySerializer(serializers.HyperlinkedModelSerializer):
     # Add some more urls for better browsability
     patients_url = PatientsHyperlink(read_only=True, source='*')
-    if settings.SYSTEM_ROLE == SystemRoles.NORMAL:
-        clinicians_url = CliniciansHyperlink(read_only=True, source='*')
+    clinicians_url = get_clinicians_url()
 
     class Meta:
         model = Registry
-        if settings.SYSTEM_ROLE == SystemRoles.NORMAL:
-            fields = (
-                'pk',
-                'name',
-                'code',
-                'desc',
-                'version',
-                'url',
-                'patients_url',
-                'clinicians_url')
-        else:
-            fields = (
-                'pk',
-                'name',
-                'code',
-                'desc',
-                'version',
-                'url',
-                'patients_url')
+        fields = get_meta_fields()
         extra_kwargs = {
             'url': {'lookup_field': 'code'},
         }
