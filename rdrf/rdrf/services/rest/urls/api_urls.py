@@ -8,7 +8,6 @@ from rdrf.system_role import SystemRoles
 router = DefaultRouterWithSimpleViews()
 router.register(r'registries', api_views.RegistryList, basename='registry')
 router.register(r'users', api_views.CustomUserViewSet)
-router.register(r'nextofkinrelationship', api_views.NextOfKinRelationshipViewSet)
 router.register(r'workinggroups', api_views.WorkingGroupViewSet)
 router.register(r'countries', api_views.ListCountries, basename='country')
 router.register(r'genes', api_views.LookupGenes, basename='gene')
@@ -24,6 +23,8 @@ router.register(r'taskdownloads/(?P<task_id>[0-9a-z_\-]+)',
 
 if settings.SYSTEM_ROLE == SystemRoles.NORMAL:
     router.register(r'doctors', api_views.DoctorViewSet)
+    router.register(r'nextofkinrelationship', api_views.NextOfKinRelationshipViewSet)
+
 
 urlpatterns = [
     re_path(r'registries/(?P<code>\w+)/$', api_views.RegistryDetail.as_view(), name='registry-detail'),

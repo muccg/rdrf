@@ -202,6 +202,13 @@ class ListClinicians(APIView):
     queryset = CustomUser.objects.none()
 
     def get(self, request, registry_code, format=None):
+        user_registry_codes = []
+
+        for user_reg in request.user.registry.all():
+            user_registry_codes.append(user_reg.code)
+        if not request.user.is_superuser and registry_code not in user_registry_codes:
+            self.permission_denied(request, message="You do not have access to this registry")
+
         users = CustomUser.objects.filter(registry__code=registry_code, is_superuser=False)
         clinicians = [u for u in users if u.is_clinician]
 
