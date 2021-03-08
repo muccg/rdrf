@@ -146,8 +146,13 @@ class WorkingGroupViewSet(viewsets.ModelViewSet):
 
 
 class CustomUserViewSet(viewsets.ModelViewSet):
-    queryset = CustomUser.objects.all()
+    queryset = CustomUser.objects.none()
     serializer_class = CustomUserSerializer
+
+    def get_queryset(self):
+        if not self.request.user.is_superuser:
+            self.permission_denied(self.request, message='Not permitted to access user list')
+        return CustomUser.objects.all()
 
 
 class ListCountries(APIView):
