@@ -4,7 +4,7 @@ from django.shortcuts import render, redirect
 from django.views.generic.base import View
 from django.views.generic import CreateView
 from django.urls import reverse
-from django.http import HttpResponseRedirect
+from django.http import HttpResponseRedirect, Http404
 
 from rdrf.models.definition.models import Registry
 from rdrf.models.definition.models import CdePolicy
@@ -925,10 +925,14 @@ class PatientEditView(View):
 
         user = request.user
         hide_registry_specific_fields_section = False
-        if patient_id is None:
-            patient = None
-        else:
-            patient = Patient.objects.get(id=patient_id)
+
+        try:
+            if patient_id is None:
+                patient = None
+            else:
+                patient = Patient.objects.get(id=patient_id)
+        except Patient.DoesNotExist:
+            raise Http404()
 
         registry = Registry.objects.get(code=registry_code)
 
