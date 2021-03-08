@@ -297,8 +297,11 @@ class LookupIndex(APIView):
         if not registry.has_feature('family_linkage'):
             return Response([])
 
-        query = (Q(given_names__icontains=term) | Q(family_name__icontains=term)) & \
-            Q(working_groups__in=request.user.working_groups.all(), active=True)
+        if request.user.is_superuser:
+            query = Q(given_names__icontains=term) | Q(family_name__icontains=term)
+        else:
+            query = (Q(given_names__icontains=term) | Q(family_name__icontains=term)) & \
+                Q(working_groups__in=request.user.working_groups.all(), active=True)
 
         def to_dict(patient):
             return {
