@@ -678,6 +678,8 @@ ENABLE_PWD_CHANGE = env.get("enable_pwd_change", True)
 REGISTRATION_ENABLED = env.get("registration_enabled", True)
 
 # Celery
+USE_CELERY = env.get('USE_CELERY', False)
+
 CACHES['redis'] = {
     "BACKEND": "django_redis.cache.RedisCache",
     "LOCATION": env.getlist("cache", ["redis://rediscache:6379/1"]),
