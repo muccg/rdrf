@@ -6,6 +6,7 @@ import json
 
 from django.db.models import Q
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.conf import settings
 from rest_framework import generics
 from rest_framework import viewsets
 from rest_framework import status
@@ -373,6 +374,8 @@ class TaskInfoView(APIView):
     permission_classes = (IsAuthenticated,)
 
     def get(self, request, task_id):
+        if not settings.USE_CELERY:
+            raise BadRequestError("No tasks to view")
         cae = None
         if task_id is None:
             result = {"status": "error",
@@ -381,6 +384,9 @@ class TaskInfoView(APIView):
             res = AsyncResult(task_id)
             if res.ready():
                 cae = CustomActionExecution.objects.get(task_id=task_id)
+                if cae.user.username != request.user.username and not request.user.is_superuser:
+                    logger.info(f"Illegal task access: user {request.user.username} - task {task_id}")
+                    self.permission_denied(request, message="You did not create this task")
                 cae.status = "task finished"
                 runtime_delta = datetime.now() - cae.created
                 cae.runtime = runtime_delta.seconds
@@ -418,7 +424,6 @@ class TaskResultDownloadView(LoginRequiredMixin, APIView):
         Avoid any risk of being hacked somehow
         """
         import os.path
-        from django.conf import settings
         dir_ok = filepath.startswith(settings.TASK_FILE_DIRECTORY)
         file_exists = os.path.exists(filepath)
         is_file = os.path.isfile(filepath)
@@ -439,9 +444,16 @@ class TaskResultDownloadView(LoginRequiredMixin, APIView):
                     no_dollar])
 
     def get(self, request, task_id):
+        if not settings.USE_CELERY:
+            raise BadRequestError("No tasks to download")
         try:
             res = AsyncResult(task_id)
             cae = CustomActionExecution.objects.get(task_id=task_id)
+
+            # Need to separately raise and catch an exception, as permission_denied raises one too
+            if cae.user.username != request.user.username and not request.user.is_superuser:
+                raise BadRequestError()
+
             cae.status = "predownload"
             cae.save()
             if res.ready() and res.successful():
@@ -479,7 +491,9 @@ class TaskResultDownloadView(LoginRequiredMixin, APIView):
                                                 content_type="application/text")
                         response['Content-Disposition'] = "inline; filename=%s" % "error.txt"
                         return response
-
+        except BadRequestError:
+            logger.info(f"Illegal task access: user {request.user.username} - task {task_id}")
+            self.permission_denied(request, message="You did not create this task")
         except Exception as ex:
             logger.error("Error getting task download: %s" % ex)
             raise Exception("Server Error getting download")
