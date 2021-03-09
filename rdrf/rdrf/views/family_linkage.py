@@ -165,7 +165,8 @@ class FamilyLinkageManager(object):
                 patient_relative.relationship = relative_dict["relationship"]
                 patient_relative.save()
                 updated_rels.add(patient_relative.patient.id)
-                index_and_rels.add(patient_relative.relative_patient.id)
+                if patient_relative.relative_patient is not None:
+                    index_and_rels.add(patient_relative.relative_patient.id)
                 index_and_rels.add(patient_relative.patient.id)
             elif relative_dict["class"] == "Patient":
                 # index 'demoted' : create patient rel object
@@ -278,9 +279,11 @@ class FamilyLinkageView(View):
                 flm.run()
 
         except Exception as ex:
+            logger.error(ex)
             for undo in flm.mongo_undos:
                 try:
                     undo()
-                except Exception:
+                except Exception as inex:
+                    logger.error(inex)
                     logger.error("could not undo %s" % undo)
             raise ex

@@ -6,6 +6,7 @@ import json
 
 from django.db.models import Q
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.conf import settings
 from rest_framework import generics
 from rest_framework import viewsets
 from rest_framework import status
@@ -22,6 +23,8 @@ from rdrf.services.rest.serializers import PatientSerializer, RegistrySerializer
 from celery.result import AsyncResult
 from django.http import HttpResponse
 from rdrf.models.task_models import CustomActionExecution
+from rdrf.models.definition.models import CommonDataElement
+from rdrf.helpers.utils import same_working_group, is_calculated_cde_in_registry
 
 import logging
 logger = logging.getLogger(__name__)
@@ -144,8 +147,13 @@ class WorkingGroupViewSet(viewsets.ModelViewSet):
 
 
 class CustomUserViewSet(viewsets.ModelViewSet):
-    queryset = CustomUser.objects.all()
+    queryset = CustomUser.objects.none()
     serializer_class = CustomUserSerializer
+
+    def get_queryset(self):
+        if not self.request.user.is_superuser:
+            self.permission_denied(self.request, message='Not permitted to access user list')
+        return CustomUser.objects.all()
 
 
 class ListCountries(APIView):
@@ -198,9 +206,15 @@ class ListStates(APIView):
 
 class ListClinicians(APIView):
     queryset = CustomUser.objects.none()
-    permission_classes = (IsAuthenticatedOrReadOnly,)
 
     def get(self, request, registry_code, format=None):
+        user_registry_codes = []
+
+        for user_reg in request.user.registry.all():
+            user_registry_codes.append(user_reg.code)
+        if not request.user.is_superuser and registry_code not in user_registry_codes:
+            self.permission_denied(request, message="You do not have access to this registry")
+
         users = CustomUser.objects.filter(registry__code=registry_code, is_superuser=False)
         clinicians = [u for u in users if u.is_clinician]
 
@@ -289,8 +303,11 @@ class LookupIndex(APIView):
         if not registry.has_feature('family_linkage'):
             return Response([])
 
-        query = (Q(given_names__icontains=term) | Q(family_name__icontains=term)) & \
-            Q(working_groups__in=request.user.working_groups.all(), active=True)
+        if request.user.is_superuser:
+            query = Q(given_names__icontains=term) | Q(family_name__icontains=term)
+        else:
+            query = (Q(given_names__icontains=term) | Q(family_name__icontains=term)) & \
+                Q(working_groups__in=request.user.working_groups.all(), active=True)
 
         def to_dict(patient):
             return {
@@ -318,6 +335,30 @@ class CalculatedCdeValue(APIView):
                           'registry_code': request.data["registry_code"],
                           'sex': str(request.data["patient_sex"])}
         form_values = request.data["form_values"]
+
+        # lots to do
+        try:
+            patient_id = request.data["patient_id"]
+            patient = Patient.objects.get(pk=patient_id)
+            cde_code = request.data["cde_code"]
+            cde = CommonDataElement.objects.get(pk=cde_code)
+            registry_code = request.data["registry_code"]
+            registry = Registry.objects.get_by_natural_key(registry_code)
+        except Patient.DoesNotExist:
+            raise BadRequestError(f"Patient {patient_id} does not exist")
+        except CommonDataElement.DoesNotExist:
+            raise BadRequestError(f"CDE {cde_code} does not exist")
+        except Registry.DoesNotExist:
+            raise BadRequestError(f"Registry {registry_code} does not exist")
+
+        # let things time out and check the user
+        # check the anonymous_not_allowed decorator
+
+        if not same_working_group(patient, request.user, registry):
+            raise BadRequestError("Patient is not in this working group")
+        if not is_calculated_cde_in_registry(cde, registry):
+            raise BadRequestError("CDE is not a calculated field in this registry")
+
         mod = __import__('rdrf.forms.fields.calculated_functions', fromlist=['object'])
         func = getattr(mod, request.data["cde_code"])
         if func:
@@ -333,6 +374,8 @@ class TaskInfoView(APIView):
     permission_classes = (IsAuthenticated,)
 
     def get(self, request, task_id):
+        if not settings.USE_CELERY:
+            raise BadRequestError("No tasks to view")
         cae = None
         if task_id is None:
             result = {"status": "error",
@@ -341,6 +384,9 @@ class TaskInfoView(APIView):
             res = AsyncResult(task_id)
             if res.ready():
                 cae = CustomActionExecution.objects.get(task_id=task_id)
+                if cae.user.username != request.user.username and not request.user.is_superuser:
+                    logger.info(f"Illegal task access: user {request.user.username} - task {task_id}")
+                    self.permission_denied(request, message="You did not create this task")
                 cae.status = "task finished"
                 runtime_delta = datetime.now() - cae.created
                 cae.runtime = runtime_delta.seconds
@@ -378,7 +424,6 @@ class TaskResultDownloadView(LoginRequiredMixin, APIView):
         Avoid any risk of being hacked somehow
         """
         import os.path
-        from django.conf import settings
         dir_ok = filepath.startswith(settings.TASK_FILE_DIRECTORY)
         file_exists = os.path.exists(filepath)
         is_file = os.path.isfile(filepath)
@@ -399,9 +444,16 @@ class TaskResultDownloadView(LoginRequiredMixin, APIView):
                     no_dollar])
 
     def get(self, request, task_id):
+        if not settings.USE_CELERY:
+            raise BadRequestError("No tasks to download")
         try:
             res = AsyncResult(task_id)
             cae = CustomActionExecution.objects.get(task_id=task_id)
+
+            # Need to separately raise and catch an exception, as permission_denied raises one too
+            if cae.user.username != request.user.username and not request.user.is_superuser:
+                raise BadRequestError()
+
             cae.status = "predownload"
             cae.save()
             if res.ready() and res.successful():
@@ -439,7 +491,9 @@ class TaskResultDownloadView(LoginRequiredMixin, APIView):
                                                 content_type="application/text")
                         response['Content-Disposition'] = "inline; filename=%s" % "error.txt"
                         return response
-
+        except BadRequestError:
+            logger.info(f"Illegal task access: user {request.user.username} - task {task_id}")
+            self.permission_denied(request, message="You did not create this task")
         except Exception as ex:
             logger.error("Error getting task download: %s" % ex)
             raise Exception("Server Error getting download")

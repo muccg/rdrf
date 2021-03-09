@@ -2228,3 +2228,78 @@ class CheckViewsUnitTests(TestCase):
         self.assertTrue(self.check_view_assist(view_has_mixin), "Error: view has mixin, but mixin has not been found!")
         self.assertTrue(self.check_view_assist(view_has_decorators), "Error: view has decorators, but decorators have not been found!")
         self.assertFalse(self.check_view_assist(view_lacks_security), "Error: view is not secure, but no issues found!")
+
+
+class CalculatedFieldSecurityTestCase(RDRFTestCase):
+
+    def setUp(self):
+        super(CalculatedFieldSecurityTestCase, self).setUp()
+        self.registry = Registry.objects.get(code='fh')
+
+        self.wg1, created = WorkingGroup.objects.get_or_create(name="testgroup1",
+                                                               registry=self.registry)
+        if created:
+            self.wg1.save()
+
+        self.wg2, created = WorkingGroup.objects.get_or_create(name="testgroup2",
+                                                               registry=self.registry)
+        if created:
+            self.wg2.save()
+
+        self.user1 = CustomUser.objects.get(username="curator")
+        self.user1.registry.set([self.registry])
+        self.user1.working_groups.add(self.wg1)
+        self.user1.save()
+
+        self.user2 = CustomUser.objects.get(username="clinical")
+        self.user2.registry.set([self.registry])
+        self.user2.working_groups.add(self.wg2)
+        self.user2.save()
+
+        self.user_admin = CustomUser.objects.get(username="admin")
+
+        self.working_group, created = WorkingGroup.objects.get_or_create(name="WA")
+        self.working_group.save()
+
+        self.patient = self.create_patient()
+        self.patient.working_groups.add(self.wg1)
+        self.patient.save()
+
+    def create_patient(self):
+        from rdrf.db.contexts_api import RDRFContextManager
+
+        p = Patient()
+        p.consent = True
+        p.name = "Harry"
+        p.date_of_birth = datetime(1978, 6, 15)
+        p.working_group = self.working_group
+        p.save()
+        p.rdrf_registry.set([self.registry])
+
+        context_manager = RDRFContextManager(self.registry)
+        self.default_context = context_manager.get_or_create_default_context(
+            p, new_patient=True)
+
+        return p
+
+    def test_calc_field_security(self):
+        from rdrf.helpers.utils import same_working_group, is_calculated_cde_in_registry
+        # What tests do we need?
+        # 1. Testing user and patient with matching working groups
+        self.assertTrue(same_working_group(self.patient, self.user1, self.registry))
+
+        # 2. Testing user and patient with mismatched working groups
+        self.assertFalse(same_working_group(self.patient, self.user2, self.registry))
+
+        # 3. Testing Admin working group matching
+        self.assertTrue(same_working_group(self.patient, self.user_admin, self.registry))
+
+        # 4. Testing if FH calculated field exists in FH
+        self.assertTrue(is_calculated_cde_in_registry(CommonDataElement.objects.get(pk="CDEBMI"), self.registry))
+
+        # 5. Testing if FH non-calculated field is picked up by function
+        self.assertFalse(is_calculated_cde_in_registry(CommonDataElement.objects.get(pk="CDE00003"), self.registry))
+
+        # 6. Testing if non-FH calculated field exists in FH
+        # No non-FH calculated fields in the test data, but have
+        # manually tested this in a local build with DD calc fields

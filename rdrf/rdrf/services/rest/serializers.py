@@ -104,14 +104,20 @@ class PatientsHyperlink(RegistryHyperlink):
     view_name = 'patient-list'
 
 
-class RegistrySerializer(serializers.HyperlinkedModelSerializer):
-    # Add some more urls for better browsability
-    patients_url = PatientsHyperlink(read_only=True, source='*')
-    clinicians_url = CliniciansHyperlink(read_only=True, source='*')
+def get_clinicians_url():
+    from django.conf import settings
 
-    class Meta:
-        model = Registry
-        fields = (
+    if settings.SYSTEM_ROLE == "NORMAL":
+        return CliniciansHyperlink(read_only=True, source='*')
+    else:
+        return ""
+
+
+def get_meta_fields():
+    from django.conf import settings
+
+    if settings.SYSTEM_ROLE == "NORMAL":
+        return (
             'pk',
             'name',
             'code',
@@ -120,6 +126,25 @@ class RegistrySerializer(serializers.HyperlinkedModelSerializer):
             'url',
             'patients_url',
             'clinicians_url')
+    else:
+        return (
+            'pk',
+            'name',
+            'code',
+            'desc',
+            'version',
+            'url',
+            'patients_url')
+
+
+class RegistrySerializer(serializers.HyperlinkedModelSerializer):
+    # Add some more urls for better browsability
+    patients_url = PatientsHyperlink(read_only=True, source='*')
+    clinicians_url = get_clinicians_url()
+
+    class Meta:
+        model = Registry
+        fields = get_meta_fields()
         extra_kwargs = {
             'url': {'lookup_field': 'code'},
         }

@@ -44,7 +44,7 @@ requirements = [
     "django-phonenumber-field==4.0.0",
     "django-two-factor-auth==1.12.1",
     "phonenumberslite==8.12.11",
-    "Pillow==8.0.1",
+    "Pillow==8.1.0",
     "qrcode==6.1",
     "django-reversion==3.0.8",
     "ua-parser==0.10.0",
@@ -139,7 +139,7 @@ for package in ['rdrf', 'registry.common', 'registry.genetic',
 
 
 setup(name='django-rdrf',
-      version="6.3.4",
+      version="6.3.5",
       packages=find_packages(),
       description='RDRF',
       long_description='Rare Disease Registry Framework',
