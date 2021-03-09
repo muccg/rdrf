@@ -385,6 +385,7 @@ class TaskInfoView(APIView):
             if res.ready():
                 cae = CustomActionExecution.objects.get(task_id=task_id)
                 if cae.user.username != request.user.username and not request.user.is_superuser:
+                    logger.info(f"Illegal task access: user {request.user.username} - task {task_id}")
                     self.permission_denied(request, message="You did not create this task")
                 cae.status = "task finished"
                 runtime_delta = datetime.now() - cae.created
@@ -491,6 +492,7 @@ class TaskResultDownloadView(LoginRequiredMixin, APIView):
                         response['Content-Disposition'] = "inline; filename=%s" % "error.txt"
                         return response
         except BadRequestError:
+            logger.info(f"Illegal task access: user {request.user.username} - task {task_id}")
             self.permission_denied(request, message="You did not create this task")
         except Exception as ex:
             logger.error("Error getting task download: %s" % ex)
