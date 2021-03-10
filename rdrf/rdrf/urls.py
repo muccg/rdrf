@@ -345,7 +345,8 @@ else:
     urlpatterns = normalpatterns
 
 blacklisted_patterns = [
-    r'^explorer/'
+    r'^explorer/',
+    r'^reports/?'
 ]
 
 if settings.SYSTEM_ROLE != SystemRoles.NORMAL:
