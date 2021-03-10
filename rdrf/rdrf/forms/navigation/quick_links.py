@@ -31,7 +31,6 @@ class Links:
 
     if settings.SYSTEM_ROLE in (SystemRoles.NORMAL, SystemRoles.CIC_DEV, SystemRoles.CIC_CLINICAL):
         PatientsListing = QuickLink(reverse("patientslisting"), _("Patient List"))
-        Reports = QuickLink(reverse("reports"), _("Reports"))
         QuestionnaireResponses = QuickLink(reverse("admin:rdrf_questionnaireresponse_changelist"),
                                            _("Questionnaire Responses"))
         Doctors = QuickLink(reverse("admin:patients_doctor_changelist"), _("Doctors"))
@@ -42,6 +41,7 @@ class Links:
         Laboratories = QuickLink(reverse("admin:genetic_laboratory_changelist"), _("Laboratories"))
         if settings.SYSTEM_ROLE == SystemRoles.NORMAL:
             Explorer = QuickLink(reverse("rdrf:explorer_main"), _("Explorer"))
+            Reports = QuickLink(reverse("reports"), _("Reports"))
         Users = QuickLink(reverse("admin:groups_customuser_changelist"), _('Users'))
         WorkingGroups = QuickLink(
             reverse("admin:groups_workinggroup_changelist"),
@@ -197,6 +197,9 @@ class Links:
             EXPLORER = {
                 Explorer.text: Explorer,
             }
+            REPORTING = {
+                Reports.text: Reports,
+            }
         if settings.DESIGN_MODE:
             REGISTRY_DESIGN = {
                 Registries.text: Registries,
@@ -210,9 +213,7 @@ class Links:
                 ConsentValues.text: ConsentValues,
                 ContextFormGroups.text: ContextFormGroups,
             }
-        REPORTING = {
-            Reports.text: Reports,
-        }
+
         STATE_MANAGEMENT = {
             States.text: States
         }
@@ -336,11 +337,14 @@ class QuickLinks(object):
                 **Links.PERMISSIONS,
                 **Links.QUESTIONNAIRE,
                 **Links.REGISTRATION,
-                **Links.REPORTING,
                 **Links.STATE_MANAGEMENT,
                 **Links.USER_MANAGEMENT,
                 **Links.WORKING_GROUPS,
             }
+
+            if settings.SYSTEM_ROLE == SystemRoles.NORMAL:
+                normal_menus.update({**Links.REPORTING, })
+
             MenuConfig().patient = {}
 
             MenuConfig().parent = {}
@@ -359,10 +363,12 @@ class QuickLinks(object):
                 **Links.CONSENT,
                 **Links.DATA_ENTRY,
                 **Links.DOCTORS,
-                **Links.REPORTING,
                 **Links.USER_MANAGEMENT,
                 **Links.QUESTIONNAIRE,
             }
+
+            if settings.SYSTEM_ROLE == SystemRoles.NORMAL:
+                MenuConfig().working_group_curator.update(Links.REPORTING)
 
             MenuConfig().genetic_staff = {
                 **Links.DATA_ENTRY
