@@ -31,7 +31,6 @@ class Links:
 
     if settings.SYSTEM_ROLE in (SystemRoles.NORMAL, SystemRoles.CIC_DEV, SystemRoles.CIC_CLINICAL):
         PatientsListing = QuickLink(reverse("patientslisting"), _("Patient List"))
-        # Reports = QuickLink(reverse("reports"), _("Reports"))
         QuestionnaireResponses = QuickLink(reverse("admin:rdrf_questionnaireresponse_changelist"),
                                            _("Questionnaire Responses"))
         Doctors = QuickLink(reverse("admin:patients_doctor_changelist"), _("Doctors"))
@@ -214,11 +213,7 @@ class Links:
                 ConsentValues.text: ConsentValues,
                 ContextFormGroups.text: ContextFormGroups,
             }
-        '''
-        REPORTING = {
-            Reports.text: Reports,
-        }
-        '''
+
         STATE_MANAGEMENT = {
             States.text: States
         }
@@ -342,7 +337,6 @@ class QuickLinks(object):
                 **Links.PERMISSIONS,
                 **Links.QUESTIONNAIRE,
                 **Links.REGISTRATION,
-                # **Links.REPORTING,
                 **Links.STATE_MANAGEMENT,
                 **Links.USER_MANAGEMENT,
                 **Links.WORKING_GROUPS,
@@ -369,7 +363,6 @@ class QuickLinks(object):
                 **Links.CONSENT,
                 **Links.DATA_ENTRY,
                 **Links.DOCTORS,
-                # **Links.REPORTING,
                 **Links.USER_MANAGEMENT,
                 **Links.QUESTIONNAIRE,
             }
@@ -550,9 +543,7 @@ class QuickLinks(object):
             return []
         for group in groups:
             links = {**links, **self._group_links(group.lower())}
-        menu_link_list = list(OrderedDict(sorted(links.items())).values())
-        # logger.debug(menu_list)
-        return menu_link_list
+        return list(OrderedDict(sorted(links.items())).values())
 
     def settings_links(self):
         # get links for the 'settings' menu
@@ -564,6 +555,4 @@ class QuickLinks(object):
     def admin_page_links(self):
         # get links for the admin page
         links = MenuConfig().all
-        admin_link_dict = OrderedDict(sorted(links.items())).values()
-        # logger.debug(link_dict)
-        return admin_link_dict
+        return OrderedDict(sorted(links.items())).values()
