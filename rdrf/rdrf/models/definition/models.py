@@ -233,6 +233,10 @@ class Registry(models.Model):
         else:
             return {}
 
+    @metadata.setter
+    def metadata(self, metadata):
+        self.metadata_json = json.dumps(metadata)
+
     def get_metadata_item(self, item):
         try:
             return self.metadata[item]
