@@ -410,6 +410,7 @@ class SurveyRequest(models.Model):
         survey_assignment_data = {**survey_assignment_data, 'proms_secret_token': settings.PROMS_SECRET_TOKEN}
 
         response = requests.post(api_url, data=survey_assignment_data)
+        logger.info(f"proms request response: {response}")
         self.check_response_for_error(response)
 
     def _get_survey_assignment_data(self):
