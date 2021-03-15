@@ -61,9 +61,10 @@ from functools import reduce
 logger = logging.getLogger(__name__)
 
 
-@admin.register(ClinicalData)
-class BaseReversionAdmin(VersionAdmin):
-    pass
+if settings.SYSTEM_ROLE != SystemRoles.CIC_PROMS:
+    @admin.register(ClinicalData)
+    class BaseReversionAdmin(VersionAdmin):
+        pass
 
 
 class SectionAdmin(admin.ModelAdmin):
@@ -556,10 +557,13 @@ DESIGN_MODE_ADMIN_COMPONENTS = [
 ]
 
 PROMS_ADMIN_COMPONENTS = [
-    (RegistryYaml, RegistryYamlAdmin),
     (Survey, SurveyAdmin),
     (SurveyAssignment, SurveyAssignmentAdmin),
     (SurveyRequest, SurveyRequestAdmin),
+]
+
+PROMS_ADMIN_OTHER_COMPONENTS = [
+    (RegistryYaml, RegistryYamlAdmin),
 ]
 
 NORMAL_MODE_ADMIN_COMPONENTS = [
@@ -591,10 +595,10 @@ if settings.SYSTEM_ROLE == SystemRoles.NORMAL:
     ADMIN_COMPONENTS = ADMIN_COMPONENTS + NORMAL_MODE_ADMIN_COMPONENTS
 
 if settings.SYSTEM_ROLE == SystemRoles.CIC_DEV:
-    ADMIN_COMPONENTS = ADMIN_COMPONENTS + NORMAL_MODE_ADMIN_COMPONENTS + PROMS_ADMIN_COMPONENTS
+    ADMIN_COMPONENTS = ADMIN_COMPONENTS + NORMAL_MODE_ADMIN_COMPONENTS + PROMS_ADMIN_COMPONENTS + PROMS_ADMIN_OTHER_COMPONENTS
 
 if settings.SYSTEM_ROLE == SystemRoles.CIC_CLINICAL:
-    ADMIN_COMPONENTS = ADMIN_COMPONENTS + NORMAL_MODE_ADMIN_COMPONENTS + PROMS_ADMIN_COMPONENTS
+    ADMIN_COMPONENTS = ADMIN_COMPONENTS + NORMAL_MODE_ADMIN_COMPONENTS + PROMS_ADMIN_COMPONENTS + PROMS_ADMIN_OTHER_COMPONENTS
 
 for model_class, model_admin in ADMIN_COMPONENTS:
     if not admin.site.is_registered(model_class):
