@@ -105,9 +105,10 @@ class Links:
         Surveys = QuickLink(reverse("admin:rdrf_survey_changelist"), _("Surveys"))
         SurveyAssignments = QuickLink(reverse("admin:rdrf_surveyassignment_changelist"), _("Survey Assignments"))
         SurveyRequest = QuickLink(reverse("admin:rdrf_surveyrequest_changelist"), _("Survey Request"))
-        RegistryYamls = QuickLink(reverse("admin:rdrf_registryyaml_changelist"), _('Registry Yamls'))
+        if settings.SYSTEM_ROLE != SystemRoles.CIC_PROMS:
+            RegistryYamls = QuickLink(reverse("admin:rdrf_registryyaml_changelist"), _('Registry Yamls'))
 
-    if settings.DESIGN_MODE:
+    if settings.DESIGN_MODE and settings.SYSTEM_ROLE != SystemRoles.CIC_PROMS:
         Registries = QuickLink(reverse("admin:rdrf_registry_changelist"), _("Registries"))
         RegistryForms = QuickLink(
             reverse("admin:rdrf_registryform_changelist"),
@@ -262,23 +263,9 @@ class Links:
             Surveys.text: Surveys,
             SurveyAssignments.text: SurveyAssignments,
             SurveyRequest.text: SurveyRequest,
-            RegistryYamls.text: RegistryYamls,
         }
-
-    if settings.SYSTEM_ROLE == SystemRoles.CIC_PROMS:
-        if settings.DESIGN_MODE:
-            REGISTRY_DESIGN = {
-                Registries.text: Registries,
-                RegistryForms.text: RegistryForms,
-                Sections.text: Sections,
-                DataElements.text: DataElements,
-                CdePolicy.text: CdePolicy,
-                PermissibleValueGroups.text: PermissibleValueGroups,
-                PermissibleValues.text: PermissibleValues,
-                ConsentSections.text: ConsentSections,
-                ConsentValues.text: ConsentValues,
-                ContextFormGroups.text: ContextFormGroups,
-            }
+        if settings.SYSTEM_ROLE != SystemRoles.CIC_PROMS:
+            PROMS.update({RegistryYamls.text: RegistryYamls, })
 
 
 class MenuConfig(object):
@@ -318,7 +305,7 @@ class QuickLinks(object):
         # Main menu per user type
         design_menus = {}
 
-        if settings.DESIGN_MODE:
+        if settings.DESIGN_MODE and settings.SYSTEM_ROLE != SystemRoles.CIC_PROMS:
             design_menus = {
                 **Links.REGISTRY_DESIGN,
             }

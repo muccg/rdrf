@@ -97,15 +97,12 @@ two_factor_auth_urls = [
 ]
 
 proms_patterns = [
-    re_path(r'^customactions/(?P<action_id>\d+)/(?P<patient_id>\d+)/?$',
-            CustomActionView.as_view(), name='custom_action'),
     re_path(r'^promslanding/?$', PromsLandingPageView.as_view(), name="proms_landing_page"),
     re_path(r'^proms/?$', PromsView.as_view(), name="proms"),
     re_path(r'^promsqrcode/(?P<patient_token>[0-9A-Za-z_\-]+)/?$', PromsQRCodeImageView.as_view(), name="promsqrcode"),
     re_path(r'^promscompleted/?$', PromsCompletedPageView.as_view(), name="proms_completed"),
     re_path(r'^translations/jsi18n/$', JavaScriptCatalog.as_view(), name='javascript-catalog'),
     re_path(r'^api/proms/v1/', include(('rdrf.services.rest.urls.proms_api_urls', 'proms_api_urls'), namespace=None)),
-    re_path(r'^rpc', form_view.RPCHandler.as_view(), name='rpc'),
     path('admin/', admin.site.urls),
     re_path(r'', include((two_factor_auth_urls, 'two_factor'), namespace=None)),
 
