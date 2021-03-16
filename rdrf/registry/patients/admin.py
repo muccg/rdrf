@@ -32,6 +32,9 @@ from django.contrib.auth import get_user_model
 import logging
 from registry.patients.models import ConsentValue
 
+from django.conf import settings
+from rdrf.system_role import SystemRoles
+
 logger = logging.getLogger(__name__)
 
 
@@ -560,14 +563,15 @@ def create_proxy_class(base_model, new_name):
     return proxy_class
 
 
-admin.site.register(Doctor, DoctorAdmin)
-admin.site.register(State, StateAdmin)
-admin.site.register(NextOfKinRelationship, NextOfKinRelationshipAdmin)
-admin.site.register(AddressType, AddressTypeAdmin)
-admin.site.register(ParentGuardian, ParentGuardianAdmin)
-admin.site.register(Patient, PatientAdmin)
-admin.site.register(ConsentValue, ConsentValueAdmin)
-admin.site.register(ClinicianOther, ClinicianOtherAdmin)
-admin.site.register(create_proxy_class(Patient, "ArchivedPatient"), ArchivedPatientAdmin)
+if settings.SYSTEM_ROLE != SystemRoles.CIC_PROMS:
+    admin.site.register(Doctor, DoctorAdmin)
+    admin.site.register(State, StateAdmin)
+    admin.site.register(NextOfKinRelationship, NextOfKinRelationshipAdmin)
+    admin.site.register(AddressType, AddressTypeAdmin)
+    admin.site.register(ParentGuardian, ParentGuardianAdmin)
+    admin.site.register(Patient, PatientAdmin)
+    admin.site.register(ClinicianOther, ClinicianOtherAdmin)
+    admin.site.register(create_proxy_class(Patient, "ArchivedPatient"), ArchivedPatientAdmin)
+    admin.site.register(ConsentValue, ConsentValueAdmin)
 
 admin.site.disable_action('delete_selected')

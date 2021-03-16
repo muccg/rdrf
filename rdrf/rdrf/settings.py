@@ -663,7 +663,7 @@ AUTH_PASSWORD_VALIDATORS = [{
 ]
 
 # setup for PROMS
-PROMS_SECRET_TOKEN = env.get("proms_secret_token", "foobar")  # todo set this us in env etc
+PROMS_SECRET_TOKEN = env.get("proms_secret_token", "foobar")
 PROMS_USERNAME = env.get("proms_username", "promsuser")
 PROMS_LOGO = env.get("proms_logo", "")
 
@@ -708,3 +708,12 @@ TASK_FILE_DIRECTORY = env.get("task_file_directory", "/data/static/tasks")
 CICAP_ADDRESS = env.get("cicap_address", "")
 CICAP_USER = env.get("cicap_user", "")
 CICAPP_PASSWORD = env.get("cicap_password", "")
+
+# check system role
+
+if SYSTEM_ROLE in [SystemRoles.CIC_CLINICAL, SystemRoles.CIC_PROMS, SystemRoles.CIC_DEV]:
+    if PROMS_SECRET_TOKEN == "foobar":
+        raise Exception("set PROMS_SECRET_TOKEN")
+    else:
+        if len(PROMS_SECRET_TOKEN) < 20:
+            raise Exception("PROMS_SECRET_TOKEN length error")
