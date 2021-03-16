@@ -13,6 +13,7 @@ from django.utils.decorators import method_decorator
 from django.shortcuts import render
 from django.conf import settings
 from django.db import transaction
+from django.http import HttpResponseBadRequest
 from rest_framework import status
 from rdrf.services.io.defs.exporter import Exporter
 from rdrf.services.io.defs.importer import Importer
@@ -43,15 +44,18 @@ class SurveyEndpoint(View):
         registry_code = data.get("registry_code")
         survey_name = data.get("survey_name")
 
-        registry_model = Registry.objects.get(code=registry_code)
+        try:
+            registry_model = Registry.objects.get(code=registry_code)
 
-        survey_model = Survey.objects.get(registry=registry_model,
-                                          name=survey_name)
+            survey_model = Survey.objects.get(registry=registry_model,
+                                              name=survey_name)
 
-        survey_assignment = SurveyAssignment.objects.get(registry=survey_model.registry,
-                                                         survey_name=survey_model.name,
-                                                         patient_token=patient_token,
-                                                         state=SurveyStates.REQUESTED)
+            survey_assignment = SurveyAssignment.objects.get(registry=survey_model.registry,
+                                                             survey_name=survey_model.name,
+                                                             patient_token=patient_token,
+                                                             state=SurveyStates.REQUESTED)
+        except (Registry.DoesNotExist, Survey.DoesNotExist, SurveyAssignment.DoesNotExist) as dne_error:
+            return HttpResponseBadRequest("Invalid survey request")
 
         survey_assignment.response = json.dumps(survey_answers)
         survey_assignment.state = SurveyStates.COMPLETED
