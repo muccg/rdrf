@@ -54,7 +54,7 @@ class SurveyEndpoint(View):
                                                              survey_name=survey_model.name,
                                                              patient_token=patient_token,
                                                              state=SurveyStates.REQUESTED)
-        except (Registry.DoesNotExist, Survey.DoesNotExist, SurveyAssignment.DoesNotExist) as dne_error:
+        except (Registry.DoesNotExist, Survey.DoesNotExist, SurveyAssignment.DoesNotExist):
             return HttpResponseBadRequest("Invalid survey request")
 
         survey_assignment.response = json.dumps(survey_answers)
