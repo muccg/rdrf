@@ -6,7 +6,7 @@ from rest_framework import routers, viewsets
 # Changed solution to allow for function views
 
 
-class DefaultRouterWithSimpleViews(routers.DefaultRouter):
+class DefaultRouterWithSimpleViews(routers.SimpleRouter):
     """
     Extends functionality of DefaultRouter adding possibility to register
     simple API views, not just Viewsets.
