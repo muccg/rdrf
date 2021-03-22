@@ -398,6 +398,7 @@ class SurveyRequest(models.Model):
 
     def _send_proms_request(self):
         from django.conf import settings
+        logger.info(f"SURVEYREQUESTSTART;{self.id};{self.patient_token};{self.user};{self.survey_name}")
 
         proms_system_url = self.registry.metadata.get("proms_system_url", None)
         if proms_system_url is None:
@@ -405,13 +406,18 @@ class SurveyRequest(models.Model):
 
         api = "/api/proms/v1/surveyassignments"
         api_url = proms_system_url + api
+        logger.info(f"SURVEYREQUESTTARGET;{self.id};{self.patient_token};{api_url}")
 
         survey_assignment_data = self._get_survey_assignment_data()
         survey_assignment_data = {**survey_assignment_data, 'proms_secret_token': settings.PROMS_SECRET_TOKEN}
-
-        response = requests.post(api_url, data=survey_assignment_data)
-        logger.info(f"proms request response: {response}")
-        self.check_response_for_error(response)
+        try:
+            response = requests.post(api_url, data=survey_assignment_data)
+            logger.info(f"SURVEYREQUESTRESPONSE:{self.id};{self.patient_token};{response}")
+            logger.info(f"SURVEYREQUESTEND;{self.id};{self.patient_token}")
+            self.check_response_for_error(response)
+        except Exception as ex:
+            logger.error(f"SURVEYREQUESTERROR;{self.id};{self.patient_token};{ex}")
+            raise
 
     def _get_survey_assignment_data(self):
         packet = {}
@@ -429,7 +435,10 @@ class SurveyRequest(models.Model):
 
     def check_response_for_error(self, response):
         if (status.is_success(response.status_code) and response.status_code == status.HTTP_201_CREATED):
+            logger.info(f"SURVEYREQUEST;{self.id};{self.patient_token};SUCCESS")
             return True
+
+        logger.error(f"SURVEYREQUEST;{self.id};{self.patient_token};FAIL;{response.status_code}")
 
         if (status.is_success(response.status_code)):
             self._set_error("Error with other status %s" % response)
