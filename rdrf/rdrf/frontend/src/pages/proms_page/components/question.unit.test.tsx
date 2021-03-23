@@ -5,11 +5,11 @@ import ReactDOM from 'react-dom';
 import Question from './question';
 import * as Logic from '../logic';
 
-//var elList = Logic.evalElements([{"cde": "doy"}], {});
-//var newQuestion = <Question /> //title="test" />; //questions={elList}/>;
+// var elList = Logic.evalElements([{"cde": "doy"}], {});
+// var newQuestion = <Question /> //title="test" />; //questions={elList}/>;
 
 describe('An empty Question', () => {
-    let newQuestion = <Question />
+    const newQuestion = <Question />
     it('is defined', () => {
         expect(newQuestion).toBeDefined();
     });
