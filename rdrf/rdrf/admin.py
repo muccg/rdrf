@@ -503,7 +503,7 @@ class CustomActionExecutionAdmin(admin.ModelAdmin):
                     "runtime")
 
     def get_readonly_fields(self, request, obj=None):
-        return [field.name for field in obj.__class__._meta.fields]
+        return [] if obj is None else [field.name for field in obj.__class__._meta.fields]
 
 
 class RegistryYamlAdmin(admin.ModelAdmin):
