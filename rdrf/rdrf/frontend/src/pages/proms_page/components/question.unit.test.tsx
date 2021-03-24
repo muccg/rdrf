@@ -70,7 +70,8 @@ const dummyQuestions1 = [
 // var newQuestion = <Question title="test" questions={elList}/>;
 
 describe('An empty Question', () => {
-    const newQuestion = <Question />
+    //const newQuestion = <Question />
+    const newQuestion = new Question.WrappedComponent({});
     it('is defined', () => {
         expect(newQuestion).toBeDefined();
     });
@@ -82,6 +83,11 @@ describe('An empty Question', () => {
     });
     it('does not have questions', () => {
         expect(newQuestion.props).not.toHaveProperty('questions');
+    });
+    it('throws an exception when entering data', () => {
+        expect(() => {
+            newQuestion.props.enterData("cde1", "yes", true);
+        }).toThrow();
     });
     // Etc. etc.
     // Check Jest API for more methods
