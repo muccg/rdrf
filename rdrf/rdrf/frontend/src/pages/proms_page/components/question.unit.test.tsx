@@ -5,7 +5,7 @@ import ReactDOM from 'react-dom';
 import Question from './question';
 import * as Logic from '../logic';
 
-const dummy_questions_1 = [
+const dummyQuestions1 = [
     {
       "tag": "cde",
       "cde": "registryQ1",
