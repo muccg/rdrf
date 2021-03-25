@@ -502,8 +502,11 @@ class CustomActionExecutionAdmin(admin.ModelAdmin):
                     "patient",
                     "runtime")
 
+    def has_add_permission(self, request, obj=None):
+        return False
+
     def get_readonly_fields(self, request, obj=None):
-        return [] if obj is None else [field.name for field in obj.__class__._meta.fields]
+        return [field.name for field in obj.__class__._meta.fields]
 
 
 class RegistryYamlAdmin(admin.ModelAdmin):
