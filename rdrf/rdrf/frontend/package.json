@@ -61,6 +61,7 @@
     ]
   },
   "devDependencies": {
+    "@testing-library/react": "^11.2.5",
     "fs": "^0.0.1-security",
     "renamer": "^1.1.4",
     "tslint": "^6.0.0",
