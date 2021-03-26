@@ -9,11 +9,6 @@ import App from "./index";
 const devtoolsExtension = "__REDUX_DEVTOOLS_EXTENSION_COMPOSE__";
 const composeEnhancers = window[devtoolsExtension] || compose;
 
-const testStore = createStore(
-  actions.promsPageReducer,
-  composeEnhancers(applyMiddleware(thunk))
-);
-
 /*
 const unsubscribe = testStore.subscribe(() =>
   global.console.log(testStore.getState())
@@ -70,7 +65,20 @@ describe("An empty App component", () => {
   });
 });
 
-describe("A test App using Redux", () => {
+/*
+* Both of the following test sections update the state by directly firing actions
+* on the Redux store. The alternative is to use the React Testing Library module
+* fireEvent, simulating actually interacting with the page. Those tests can be set
+* up later.
+*/
+
+// Checking that the component is updating correctly
+describe("Component tests: A test App using Redux", () => {
+  const testStore = createStore(
+    actions.promsPageReducer,
+    composeEnhancers(applyMiddleware(thunk))
+  );
+
   it("can render", () => {
     const { rerender, asFragment } = render(
       <Provider store={testStore}>
@@ -144,7 +152,7 @@ describe("A test App using Redux", () => {
                             type="radio"
                             value="answer1"
                           />
-                          Anwser 1
+                          Answer 1
                         </label>
                       </div>
                     </div>
@@ -282,17 +290,45 @@ describe("A test App using Redux", () => {
       expect.stringContaining("1")
     );
   });
-  it('can got to the next question from the first question (non-render)', () => {
+  it('can have data entered', () => {
+    const { rerender, asFragment } = render(
+      <Provider store={testStore}>
+        <App />
+      </Provider>
+    );
+    let answer1Select = screen.getByLabelText("Answer 1", { exact: false });
+    expect(answer1Select.checked).toEqual(false);
+    
+    // fireEvent.click(answer1Select);
+    testStore.dispatch(actions.enterData({cde: "registryQ1", value: "answer1", isValid: true}));
+
+    rerender(
+      <Provider store={testStore}>
+        <App />
+      </Provider>
+    );
+    expect(answer1Select.checked).toEqual(true);
+  });
+});
+
+// Checking the Redux store directly
+describe('Reducer tests: the state', () => {
+  const testStore = createStore(
+    actions.promsPageReducer,
+    composeEnhancers(applyMiddleware(thunk))
+  );
+
+  it('can go to the next question from the first question', () => {
     expect(testStore.getState().stage).toEqual(0);
     testStore.dispatch(actions.goNext());
     expect(testStore.getState().stage).toEqual(1);
   });
-  it('can got to the previous question from the second question (non-render)', () => {
+  it('can go to the previous question from the second question', () => {
     expect(testStore.getState().stage).toEqual(1);
     testStore.dispatch(actions.goPrevious());
     expect(testStore.getState().stage).toEqual(0);
   });
-  it('can have data entered (non-render)', () => {
+  it('can have data entered', () => {
     expect(testStore.getState().answers).toStrictEqual({});
     // console.log(testStore.getState().answers);
     testStore.dispatch(actions.enterData({cde: "registryQ1", value: "answer1", isValid: true}));

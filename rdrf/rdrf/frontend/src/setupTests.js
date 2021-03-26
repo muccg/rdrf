@@ -15,7 +15,7 @@ window.proms_config = {
           "options": [
             {
               "code": "answer1",
-              "text": "Anwser 1"
+              "text": "Answer 1"
             },
             {
               "code": "answer2",
