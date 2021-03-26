@@ -39,6 +39,39 @@ window.proms_config = {
         }
       },
       {
+        "tag": "cond",
+        "cond": {
+          "op": "or",
+          "cde": "registryQ1",
+          "value": ["answer1", "answer2"]
+        },
+        "cde": "registryQ3",
+        "title": "Question 3 - title",
+        "instructions": "This question requires other questions to be answered first.",
+        "spec": {
+          "ui": "range",
+          "options": [
+            {
+              "code": "good_answer",
+              "text": "Good"
+            },
+            {
+              "code": "not_good_answer",
+              "text": "Not so good"
+            },
+            {
+              "code": "bad_answer",
+              "text": "Bad"
+            }
+          ],
+          "allow_multiple": false
+        },
+        "survey_question_instruction": "How are you?",
+        "copyright_text": "",
+        "source": "",
+        "datatype": "range"
+      },
+      {
         "tag": "cde",
         "cde": "PROMSConsent",
         "datatype": "range",
