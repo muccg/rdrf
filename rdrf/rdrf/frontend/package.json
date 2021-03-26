@@ -63,6 +63,7 @@
   "devDependencies": {
     "@testing-library/react": "^11.2.5",
     "fs": "^0.0.1-security",
+    "prettier": "^2.2.1",
     "renamer": "^1.1.4",
     "tslint": "^6.0.0",
     "tslint-config-prettier": "^1.18.0",

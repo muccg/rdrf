@@ -34,7 +34,9 @@ window.proms_config = {
         "survey_question_instruction": "",
         "copyright_text": "",
         "source": "",
-        "spec": null
+        "spec": {
+          "ui": "text"
+        }
       },
       {
         "tag": "cde",
