@@ -296,7 +296,7 @@ describe("Component tests: A test App using Redux", () => {
         <App />
       </Provider>
     );
-    let answer1Select = screen.getByLabelText("Answer 1", { exact: false });
+    const answer1Select = screen.getByLabelText("Answer 1", { exact: false });
     expect(answer1Select.checked).toEqual(false);
     
     // fireEvent.click(answer1Select);
