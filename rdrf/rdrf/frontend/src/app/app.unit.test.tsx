@@ -80,7 +80,7 @@ describe("Component tests: A test App using Redux", () => {
   );
 
   /*
-  * Test 1
+  * Test 1 - Basic mock render
   */
   it("can render", () => {
     const { rerender, asFragment } = render(
@@ -91,7 +91,7 @@ describe("Component tests: A test App using Redux", () => {
   });
 
   /*
-  * Test 2
+  * Test 2 - Initialisation test
   */
   it("is on the first question", () => {
     const { rerender, asFragment } = render(
@@ -254,10 +254,11 @@ describe("Component tests: A test App using Redux", () => {
     expect(screen.getByText("Question", { exact: false }).innerHTML).toEqual(
       expect.stringContaining("1")
     );
+    expect(screen.getByText("Previous").disabled).toEqual(true);
   });
 
   /*
-  * Test 3
+  * Test 3 - Next question test
   */
   it('can go to the next question from the first question', () => {
     const { rerender, asFragment } = render(
@@ -269,7 +270,9 @@ describe("Component tests: A test App using Redux", () => {
       expect.stringContaining("1")
     );
 
-    testStore.dispatch(actions.goNext());
+    // testStore.dispatch(actions.goNext());
+    const nextButton = screen.getByText("Next");
+    fireEvent.click(nextButton);
 
     rerender(
       <Provider store={testStore}>
@@ -282,7 +285,7 @@ describe("Component tests: A test App using Redux", () => {
   });
 
   /*
-  * Test 4
+  * Test 4 - Previous question test
   */
   it('can go to the previous question from the second question', () => {
     const { rerender, asFragment } = render(
@@ -458,8 +461,9 @@ describe("Component tests: A test App using Redux", () => {
       </Provider>
     );
 
-    var answer1Select = screen.getByLabelText("Answer 1", { exact: false });
-    var answer2Select = screen.getByLabelText("Answer 2", { exact: false });
+    const regQ1String = "registryQ1";
+    let answer1Select = screen.getByLabelText("Answer 1", { exact: false });
+    let answer2Select = screen.getByLabelText("Answer 2", { exact: false });
     const nextButton = screen.getByText("Next");
     const prevButton = screen.getByText("Previous");
 
@@ -513,7 +517,7 @@ describe("Component tests: A test App using Redux", () => {
     // We expect Answer 1 to be unchecked now - allow_multiple is false
     expect(answer1Select.checked).toEqual(false);
     expect(answer2Select.checked).toEqual(true);
-    expect(testStore.getState().answers["registryQ1"]).not.toEqual("answer1");
+    expect(testStore.getState().answers[regQ1String]).not.toEqual("answer1");
 
     // Go forward two questions again
     fireEvent.click(nextButton);
@@ -550,9 +554,9 @@ describe("Component tests: A test App using Redux", () => {
     );
     const nextButton = screen.getByText("Next");
     const prevButton = screen.getByText("Previous");
-    var goodAnswerSelect = screen.getByLabelText("Good");
-    var notGoodSelect = screen.getByLabelText("Not so good");
-    var badAnswerSelect = screen.getByLabelText("Bad");
+    let goodAnswerSelect = screen.getByLabelText("Good");
+    let notGoodSelect = screen.getByLabelText("Not so good");
+    let badAnswerSelect = screen.getByLabelText("Bad");
 
     expect(goodAnswerSelect.checked).toEqual(false);
     expect(notGoodSelect.checked).toEqual(false);
@@ -577,9 +581,9 @@ describe("Component tests: A test App using Redux", () => {
     expect(screen.getByText("title", { exact: false }).innerHTML).toEqual(
       expect.stringContaining("Question 3")
     );
-    var goodAnswerSelect = screen.getByLabelText("Good");
-    var notGoodSelect = screen.getByLabelText("Not so good");
-    var badAnswerSelect = screen.getByLabelText("Bad");
+    goodAnswerSelect = screen.getByLabelText("Good");
+    notGoodSelect = screen.getByLabelText("Not so good");
+    badAnswerSelect = screen.getByLabelText("Bad");
 
     fireEvent.click(goodAnswerSelect);
     rerender(
@@ -618,9 +622,9 @@ describe("Component tests: A test App using Redux", () => {
     );
     const nextButton = screen.getByText("Next");
     const prevButton = screen.getByText("Previous");
-    var goodAnswerSelect = screen.getByLabelText("Good");
-    var notGoodSelect = screen.getByLabelText("Not so good");
-    var badAnswerSelect = screen.getByLabelText("Bad");
+    let goodAnswerSelect = screen.getByLabelText("Good");
+    let notGoodSelect = screen.getByLabelText("Not so good");
+    let badAnswerSelect = screen.getByLabelText("Bad");
 
     expect(goodAnswerSelect.checked).toEqual(true);
     expect(notGoodSelect.checked).toEqual(false);
@@ -645,9 +649,9 @@ describe("Component tests: A test App using Redux", () => {
     expect(screen.getByText("title", { exact: false }).innerHTML).toEqual(
       expect.stringContaining("Question 3")
     );
-    var goodAnswerSelect = screen.getByLabelText("Good");
-    var notGoodSelect = screen.getByLabelText("Not so good");
-    var badAnswerSelect = screen.getByLabelText("Bad");
+    goodAnswerSelect = screen.getByLabelText("Good");
+    notGoodSelect = screen.getByLabelText("Not so good");
+    badAnswerSelect = screen.getByLabelText("Bad");
 
     fireEvent.click(notGoodSelect);
     rerender(
@@ -686,9 +690,9 @@ describe("Component tests: A test App using Redux", () => {
     );
     const nextButton = screen.getByText("Next");
     const prevButton = screen.getByText("Previous");
-    var goodAnswerSelect = screen.getByLabelText("Good");
-    var notGoodSelect = screen.getByLabelText("Not so good");
-    var badAnswerSelect = screen.getByLabelText("Bad");
+    let goodAnswerSelect = screen.getByLabelText("Good");
+    let notGoodSelect = screen.getByLabelText("Not so good");
+    let badAnswerSelect = screen.getByLabelText("Bad");
 
     expect(goodAnswerSelect.checked).toEqual(false);
     expect(notGoodSelect.checked).toEqual(true);
@@ -713,9 +717,9 @@ describe("Component tests: A test App using Redux", () => {
     expect(screen.getByText("title", { exact: false }).innerHTML).toEqual(
       expect.stringContaining("Question 3")
     );
-    var goodAnswerSelect = screen.getByLabelText("Good");
-    var notGoodSelect = screen.getByLabelText("Not so good");
-    var badAnswerSelect = screen.getByLabelText("Bad");
+    goodAnswerSelect = screen.getByLabelText("Good");
+    notGoodSelect = screen.getByLabelText("Not so good");
+    badAnswerSelect = screen.getByLabelText("Bad");
 
     fireEvent.click(badAnswerSelect);
     rerender(
@@ -784,14 +788,15 @@ describe('Reducer tests: the state', () => {
   });
 
   it('has the third question remain available after changing data in the first question', () => {
+    const regQ1String = "registryQ1";
     expect(testStore.getState().questions[2].cde).toEqual("registryQ3");
     expect(testStore.getState().answers).toHaveProperty("registryQ1");
-    expect(testStore.getState().answers["registryQ1"]).toEqual("answer1");
+    expect(testStore.getState().answers[regQ1String]).toEqual("answer1");
     expect(testStore.getState().questions.length).toEqual(4);
     testStore.dispatch(actions.enterData({cde: "registryQ1", value: "answer2", isValid: true}));
     expect(testStore.getState().questions[2].cde).toEqual("registryQ3");
     expect(testStore.getState().answers).toHaveProperty("registryQ1");
-    expect(testStore.getState().answers["registryQ1"]).not.toEqual("answer1");
+    expect(testStore.getState().answers[regQ1String]).not.toEqual("answer1");
     expect(testStore.getState().questions.length).toEqual(4);
   });
 
@@ -817,5 +822,53 @@ describe('Reducer tests: the state', () => {
     testStore.dispatch(actions.enterData({cde: "registryQ3", value: "bad_answer", isValid: true}));
     expect(testStore.getState().questions.length).toEqual(5);
     expect(testStore.getState().questions[3].cde).toEqual("registryQ4");
+  });
+
+  const regQ4String = "registryQ4";
+  it('does not make the fifth question available if "Work is stressful" is selected in the fourth question', () => {
+    expect(testStore.getState().questions.length).toEqual(5);
+    expect(testStore.getState().questions[4].cde).toEqual("PROMSConsent");
+    expect(testStore.getState().answers[regQ4String]).toBeUndefined();
+    testStore.dispatch(actions.enterData({cde: "registryQ4", value: "work_answer", isValid: true}));
+    expect(testStore.getState().questions.length).toEqual(5);
+    expect(testStore.getState().questions[4].cde).toEqual("PROMSConsent");
+    expect(testStore.getState().answers[regQ4String]).toEqual("work_answer");
+  });
+
+  it('does not make the fifth question available if "Work is stressful" and "Can\'t see my friends" are selected in the fourth question', () => {
+    expect(testStore.getState().questions.length).toEqual(5);
+    expect(testStore.getState().questions[4].cde).toEqual("PROMSConsent");
+    expect(testStore.getState().answers[regQ4String]).toEqual("work_answer");
+    testStore.dispatch(actions.enterData({cde: "registryQ4", value: ["work_answer", "friends_answer"], isValid: true}));
+    expect(testStore.getState().questions.length).toEqual(5);
+    expect(testStore.getState().questions[4].cde).toEqual("PROMSConsent");
+    expect(testStore.getState().answers[regQ4String]).toEqual(["work_answer", "friends_answer"]);
+  });
+
+  it('does not make the fifth question available if "Can\'t see my friends" and "Just a bad day" are selected in the fourth question', () => {
+    expect(testStore.getState().questions.length).toEqual(5);
+    expect(testStore.getState().questions[4].cde).toEqual("PROMSConsent");
+    expect(testStore.getState().answers[regQ4String]).toEqual(["work_answer", "friends_answer"]);
+    testStore.dispatch(actions.enterData({cde: "registryQ4", value: ["friends_answer", "day_answer"], isValid: true}));
+    expect(testStore.getState().questions.length).toEqual(5);
+    expect(testStore.getState().questions[4].cde).toEqual("PROMSConsent");
+    expect(testStore.getState().answers[regQ4String]).toEqual(["friends_answer", "day_answer"]);
+  });
+  it('makes the fifth question available if "React is difficult" is selected in the fourth question with any other answers', () => {
+    expect(testStore.getState().questions.length).toEqual(5);
+    expect(testStore.getState().questions[4].cde).toEqual("PROMSConsent");
+    expect(testStore.getState().answers[regQ4String]).toEqual(["friends_answer", "day_answer"]);
+    testStore.dispatch(actions.enterData({cde: "registryQ4", value: ["react_answer"], isValid: true}));
+    expect(testStore.getState().questions.length).toEqual(6);
+    expect(testStore.getState().questions[4].cde).toEqual("registryQ5");
+    expect(testStore.getState().answers[regQ4String]).toEqual(["react_answer"]);
+    testStore.dispatch(actions.enterData({cde: "registryQ4", value: ["react_answer", "day_answer"], isValid: true}));
+    expect(testStore.getState().questions.length).toEqual(6);
+    expect(testStore.getState().questions[4].cde).toEqual("registryQ5");
+    expect(testStore.getState().answers[regQ4String]).toEqual(["react_answer", "day_answer"]);
+    testStore.dispatch(actions.enterData({cde: "registryQ4", value: ["react_answer", "day_answer", "work_answer", "friends_answer"], isValid: true}));
+    expect(testStore.getState().questions.length).toEqual(6);
+    expect(testStore.getState().questions[4].cde).toEqual("registryQ5");
+    expect(testStore.getState().answers[regQ4String]).toEqual(["react_answer", "day_answer", "work_answer", "friends_answer"]);
   });
 });
