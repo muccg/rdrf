@@ -72,6 +72,98 @@ window.proms_config = {
         "datatype": "range"
       },
       {
+        "tag": "cond",
+        "cond": {
+          "op": "=",
+          "cde": "registryQ3",
+          "value": "bad_answer"
+        },
+        "cde": "registryQ4",
+        "title": "Question 4 - title",
+        "instructions": "Another preconditional question",
+        "spec": {
+          "ui": "range",
+          "options": [
+            {
+              "code": "work_answer",
+              "text": "Work is stressful"
+            },
+            {
+              "code": "friends_answer",
+              "text": "Can't see my friends"
+            },
+            {
+              "code": "react_answer",
+              "text": "React is difficult"
+            },
+            {
+              "code": "day_answer",
+              "text": "Just a bad day"
+            }
+          ],
+          "allow_multiple": true
+        },
+        "survey_question_instruction": "Why do you feel bad?",
+        "copyright_text": "",
+        "source": "",
+        "datatype": "range"
+      },
+      {
+        "tag": "cond",
+        "cond": {
+          "op": "contains",
+          "cde": "registryQ4",
+          "value": "react_answer"
+        },
+        "cde": "registryQ5",
+        "title": "Question 5 - title",
+        "instructions": "Given your work with React:",
+        "spec": {
+          "ui": "range",
+          "options": [
+            {
+              "code": "hard_to_read",
+              "text": "It's hard to read"
+            },
+            {
+              "code": "too_many_deps",
+              "text": "It has too many dependencies"
+            },
+            {
+              "code": "by_fb",
+              "text": "It's made by Facebook"
+            },
+            {
+              "code": "zero_understanding",
+              "text": "I don't understand it"
+            }
+          ],
+          "allow_multiple": true
+        },
+        "survey_question_instruction": "What do you find difficult with React?",
+        "copyright_text": "",
+        "source": "",
+        "datatype": "range"
+      },
+      {
+        "tag": "cond",
+        "cond": {
+          "op": "intersection",
+          "cde": "registryQ5",
+          "value": ["too_many_deps", "by_fb"]
+        },
+        "cde": "registryQ6",
+        "title": "Question 6 - title",
+        "instructions": "As some of your difficulties can't be addressed:",
+        "spec": {
+          "ui": "text"
+        },
+        "survey_question_instruction": "Use this space to vent your frustrations.",
+        "copyright_text": "",
+        "source": "",
+        "datatype": "text"
+      },
+      {
         "tag": "cde",
         "cde": "PROMSConsent",
         "datatype": "range",
