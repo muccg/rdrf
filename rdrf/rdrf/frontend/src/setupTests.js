@@ -164,6 +164,114 @@ window.proms_config = {
         "datatype": "text"
       },
       {
+        "tag": "cond",
+        "cond": {
+          "op": "=",
+          "cde": "registryQ6",
+          "value": "typetest"
+        },
+        "cde": "registryQ7",
+        "title": "Question 7 - title",
+        "instructions": "",
+        "spec": {
+          "ui": "integer-normal",
+          "params": {
+            "type": "text",
+            "max": "1000",
+            "min": "0"
+          }
+        },
+        "survey_question_instruction": "",
+        "copyright_text": "",
+        "source": "",
+        "datatype": "integer"
+      },
+      {
+        "tag": "cond",
+        "cond": {
+          "op": "=",
+          "cde": "registryQ6",
+          "value": "typetest"
+        },
+        "cde": "registryQ8",
+        "title": "Question 8 - title",
+        "instructions": "",
+        "spec": {
+          "ui": "integer-slider",
+          "params": {
+            "max": "10",
+            "min": "1"
+          },
+          "widget_spec": {
+            "widget_name": "slider",
+            "min_label": "The worst",
+            "max_label": "The best",
+            "box_label": "On a scale of 1 to 10:"
+          }
+        },
+        "survey_question_instruction": "",
+        "copyright_text": "",
+        "source": "",
+        "datatype": "integer"
+      },
+      {
+        "tag": "cond",
+        "cond": {
+          "op": "=",
+          "cde": "registryQ6",
+          "value": "typetest"
+        },
+        "cde": "registryQ9",
+        "title": "Question 9 - title",
+        "instructions": "",
+        "spec": {
+          "ui": "float",
+          "params": {
+            "max": "1000",
+            "min": "0"
+          }
+        },
+        "survey_question_instruction": "",
+        "copyright_text": "",
+        "source": "",
+        "datatype": "float"
+      },
+      {
+        "tag": "cond",
+        "cond": {
+          "op": "=",
+          "cde": "registryQ6",
+          "value": "typetest"
+        },
+        "cde": "registryQ10",
+        "title": "Question 10 - title",
+        "instructions": "",
+        "spec": {
+          "ui": "date"
+        },
+        "survey_question_instruction": "",
+        "copyright_text": "",
+        "source": "",
+        "datatype": "date"
+      },
+      {
+        "tag": "cond",
+        "cond": {
+          "op": "=",
+          "cde": "registryQ6",
+          "value": "typetest"
+        },
+        "cde": "registryQ11",
+        "title": "Question 11 - title",
+        "instructions": "",
+        "spec": {
+          "ui": "consent"
+        },
+        "survey_question_instruction": "",
+        "copyright_text": "",
+        "source": ""
+      },
+      {
         "tag": "cde",
         "cde": "PROMSConsent",
         "datatype": "range",
