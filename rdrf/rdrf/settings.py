@@ -212,6 +212,7 @@ INSTALLED_APPS = [
 
 # LDAP
 LDAP_ENABLED = env.get("ldap_enabled", False)
+SECURE_LDAP_REQUIRED = env.get("secure_ldap", False)
 
 # Default values used by our development ldap container.
 # Comment out the ldap/phpldapadmin containers in docker-compose.yml to test locally.
@@ -304,6 +305,15 @@ AUTHENTICATION_BACKENDS = [
 if LDAP_ENABLED:
     AUTHENTICATION_BACKENDS.insert(0, 'rdrf.auth.ldap_backend.RDRFLDAPBackend')
 
+
+if LDAP_ENABLED:
+    if SECURE_LDAP_REQUIRED:
+        AUTH_LDAP_GLOBAL_OPTIONS = {
+            ldap.OPT_X_TLS_CACERTFILE: env.get("LDAP_CACERTFILE", ""),
+            ldap.OPT_X_TLS_CACERTDIR: env.get("LDAP_CACERTDIR", "/ldap-certs"),
+            ldap.OPT_X_TLS_CERTFILE: env.get("LDAP_CERTFILE", ""),
+            ldap.OPT_X_TLS_KEYFILE: env.get("LDAP_KEYFILE", "")
+        }
 
 # email
 EMAIL_USE_TLS = env.get("email_use_tls", False)
