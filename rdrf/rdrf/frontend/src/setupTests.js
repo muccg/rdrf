@@ -82,7 +82,7 @@ window.proms_config = {
         "title": "Question 4 - title",
         "instructions": "Another preconditional question",
         "spec": {
-          "ui": "range",
+          "ui": "multi_select",
           "options": [
             {
               "code": "work_answer",
@@ -119,7 +119,7 @@ window.proms_config = {
         "title": "Question 5 - title",
         "instructions": "Given your work with React:",
         "spec": {
-          "ui": "range",
+          "ui": "multi_select",
           "options": [
             {
               "code": "hard_to_read",

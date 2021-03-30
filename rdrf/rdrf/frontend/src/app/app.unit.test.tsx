@@ -15,6 +15,10 @@ const unsubscribe = testStore.subscribe(() =>
 );
 */
 
+const regQ1String = "registryQ1";
+const regQ4String = "registryQ4";
+const regQ5String = "registryQ5";
+
 describe("An empty App component", () => {
   // const newApp = <App />;
   // Constructed like this because of the way App is exported - the class is wrapped
@@ -461,7 +465,6 @@ describe("Component tests: A test App using Redux", () => {
       </Provider>
     );
 
-    const regQ1String = "registryQ1";
     let answer1Select = screen.getByLabelText("Answer 1", { exact: false });
     let answer2Select = screen.getByLabelText("Answer 2", { exact: false });
     const nextButton = screen.getByText("Next");
@@ -744,12 +747,1051 @@ describe("Component tests: A test App using Redux", () => {
   });
 
   /*
-  * Tests to do
+  * Test 12
   */
-  it.todo('does not make the fifth question available if "Work is stressful" is selected in the fourth question');
-  it.todo('does not make the fifth question available if "Work is stressful" and "Can\'t see my friends" are selected in the fourth question');
-  it.todo('does not make the fifth question available if "Can\'t see my friends" and "Just a bad day" are selected in the fourth question');
-  it.todo('makes the fifth question available if "React is difficult" is selected in the fourth question with other answers');
+  it('does not make the fifth question available if "Work is stressful" is selected in the fourth question', () => {
+    const { rerender, asFragment } = render(
+      <Provider store={testStore}>
+        <App />
+      </Provider>
+    );
+
+    expect(screen.getByText("title", { exact: false }).innerHTML).toEqual(
+      expect.stringContaining("Question 4")
+    );
+
+    const nextButton = screen.getByText("Next");
+    const prevButton = screen.getByText("Previous");
+    let workSelect = screen.getByLabelText("Work is stressful");
+    let friendsSelect = screen.getByLabelText("Can't see my friends");
+    let reactSelect = screen.getByLabelText("React is difficult");
+    let daySelect = screen.getByLabelText("Just a bad day");
+
+    expect(workSelect.checked).toEqual(false);
+    expect(friendsSelect.checked).toEqual(false);
+    expect(reactSelect.checked).toEqual(false);
+    expect(daySelect.checked).toEqual(false);
+
+    fireEvent.click(nextButton);
+    rerender(
+      <Provider store={testStore}>
+        <App />
+      </Provider>
+    );
+
+    expect(screen.getByText("Consent")).toBeDefined();
+
+    fireEvent.click(prevButton);
+    rerender(
+      <Provider store={testStore}>
+        <App />
+      </Provider>
+    );
+
+    expect(screen.getByText("title", { exact: false }).innerHTML).toEqual(
+      expect.stringContaining("Question 4")
+    );
+    workSelect = screen.getByLabelText("Work is stressful");
+    friendsSelect = screen.getByLabelText("Can't see my friends");
+    reactSelect = screen.getByLabelText("React is difficult");
+    daySelect = screen.getByLabelText("Just a bad day");
+
+    fireEvent.click(workSelect);
+    rerender(
+      <Provider store={testStore}>
+        <App />
+      </Provider>
+    );
+
+    expect(workSelect.checked).toEqual(true);
+    expect(friendsSelect.checked).toEqual(false);
+    expect(reactSelect.checked).toEqual(false);
+    expect(daySelect.checked).toEqual(false);
+
+    fireEvent.click(nextButton);
+    rerender(
+      <Provider store={testStore}>
+        <App />
+      </Provider>
+    );
+
+    expect(screen.getByText("Consent")).toBeDefined();
+    // Return to Question 4 for next test
+    fireEvent.click(prevButton);
+  });
+
+  /*
+  * Test 13
+  */
+  it('does not make the fifth question available if "Work is stressful" and "Can\'t see my friends" are selected in the fourth question', () => {
+    const { rerender, asFragment } = render(
+      <Provider store={testStore}>
+        <App />
+      </Provider>
+    );
+
+    expect(screen.getByText("title", { exact: false }).innerHTML).toEqual(
+      expect.stringContaining("Question 4")
+    );
+
+    const nextButton = screen.getByText("Next");
+    const prevButton = screen.getByText("Previous");
+    let workSelect = screen.getByLabelText("Work is stressful");
+    let friendsSelect = screen.getByLabelText("Can't see my friends");
+    let reactSelect = screen.getByLabelText("React is difficult");
+    let daySelect = screen.getByLabelText("Just a bad day");
+
+    expect(workSelect.checked).toEqual(true);
+    expect(friendsSelect.checked).toEqual(false);
+    expect(reactSelect.checked).toEqual(false);
+    expect(daySelect.checked).toEqual(false);
+
+    fireEvent.click(nextButton);
+    rerender(
+      <Provider store={testStore}>
+        <App />
+      </Provider>
+    );
+
+    expect(screen.getByText("Consent")).toBeDefined();
+
+    fireEvent.click(prevButton);
+    rerender(
+      <Provider store={testStore}>
+        <App />
+      </Provider>
+    );
+
+    expect(screen.getByText("title", { exact: false }).innerHTML).toEqual(
+      expect.stringContaining("Question 4")
+    );
+    workSelect = screen.getByLabelText("Work is stressful");
+    friendsSelect = screen.getByLabelText("Can't see my friends");
+    reactSelect = screen.getByLabelText("React is difficult");
+    daySelect = screen.getByLabelText("Just a bad day");
+
+    fireEvent.click(friendsSelect);
+    rerender(
+      <Provider store={testStore}>
+        <App />
+      </Provider>
+    );
+
+    expect(workSelect.checked).toEqual(true);
+    expect(friendsSelect.checked).toEqual(true);
+    expect(reactSelect.checked).toEqual(false);
+    expect(daySelect.checked).toEqual(false);
+
+    fireEvent.click(nextButton);
+    rerender(
+      <Provider store={testStore}>
+        <App />
+      </Provider>
+    );
+
+    expect(screen.getByText("Consent")).toBeDefined();
+    // Return to Question 4 for next test
+    fireEvent.click(prevButton);
+  });
+
+  /*
+  * Test 14
+  */
+  it('does not make the fifth question available if "Can\'t see my friends" and "Just a bad day" are selected in the fourth question', () => {
+    const { rerender, asFragment } = render(
+      <Provider store={testStore}>
+        <App />
+      </Provider>
+    );
+
+    expect(screen.getByText("title", { exact: false }).innerHTML).toEqual(
+      expect.stringContaining("Question 4")
+    );
+
+    const nextButton = screen.getByText("Next");
+    const prevButton = screen.getByText("Previous");
+    let workSelect = screen.getByLabelText("Work is stressful");
+    let friendsSelect = screen.getByLabelText("Can't see my friends");
+    let reactSelect = screen.getByLabelText("React is difficult");
+    let daySelect = screen.getByLabelText("Just a bad day");
+
+    expect(workSelect.checked).toEqual(true);
+    expect(friendsSelect.checked).toEqual(true);
+    expect(reactSelect.checked).toEqual(false);
+    expect(daySelect.checked).toEqual(false);
+
+    fireEvent.click(nextButton);
+    rerender(
+      <Provider store={testStore}>
+        <App />
+      </Provider>
+    );
+
+    expect(screen.getByText("Consent")).toBeDefined();
+
+    fireEvent.click(prevButton);
+    rerender(
+      <Provider store={testStore}>
+        <App />
+      </Provider>
+    );
+
+    expect(screen.getByText("title", { exact: false }).innerHTML).toEqual(
+      expect.stringContaining("Question 4")
+    );
+    workSelect = screen.getByLabelText("Work is stressful");
+    friendsSelect = screen.getByLabelText("Can't see my friends");
+    reactSelect = screen.getByLabelText("React is difficult");
+    daySelect = screen.getByLabelText("Just a bad day");
+
+    fireEvent.click(workSelect);
+    rerender(
+      <Provider store={testStore}>
+        <App />
+      </Provider>
+    );
+    fireEvent.click(daySelect);
+    rerender(
+      <Provider store={testStore}>
+        <App />
+      </Provider>
+    );
+
+    expect(workSelect.checked).toEqual(false);
+    expect(friendsSelect.checked).toEqual(true);
+    expect(reactSelect.checked).toEqual(false);
+    expect(daySelect.checked).toEqual(true);
+
+    fireEvent.click(nextButton);
+    rerender(
+      <Provider store={testStore}>
+        <App />
+      </Provider>
+    );
+
+    expect(screen.getByText("Consent")).toBeDefined();
+    // Return to Question 4 for next test
+    fireEvent.click(prevButton);
+  });
+
+  /*
+  * Test 15
+  */
+  it('makes the fifth question available if "React is difficult" is selected in the fourth question with other answers', () => {
+    const { rerender, asFragment } = render(
+      <Provider store={testStore}>
+        <App />
+      </Provider>
+    );
+
+    expect(screen.getByText("title", { exact: false }).innerHTML).toEqual(
+      expect.stringContaining("Question 4")
+    );
+
+    const nextButton = screen.getByText("Next");
+    const prevButton = screen.getByText("Previous");
+    let workSelect = screen.getByLabelText("Work is stressful");
+    let friendsSelect = screen.getByLabelText("Can't see my friends");
+    let reactSelect = screen.getByLabelText("React is difficult");
+    let daySelect = screen.getByLabelText("Just a bad day");
+
+    expect(workSelect.checked).toEqual(false);
+    expect(friendsSelect.checked).toEqual(true);
+    expect(reactSelect.checked).toEqual(false);
+    expect(daySelect.checked).toEqual(true);
+
+    fireEvent.click(nextButton);
+    rerender(
+      <Provider store={testStore}>
+        <App />
+      </Provider>
+    );
+
+    expect(screen.getByText("Consent")).toBeDefined();
+
+    fireEvent.click(prevButton);
+    rerender(
+      <Provider store={testStore}>
+        <App />
+      </Provider>
+    );
+
+    expect(screen.getByText("title", { exact: false }).innerHTML).toEqual(
+      expect.stringContaining("Question 4")
+    );
+    workSelect = screen.getByLabelText("Work is stressful");
+    friendsSelect = screen.getByLabelText("Can't see my friends");
+    reactSelect = screen.getByLabelText("React is difficult");
+    daySelect = screen.getByLabelText("Just a bad day");
+
+    fireEvent.click(reactSelect);
+    rerender(
+      <Provider store={testStore}>
+        <App />
+      </Provider>
+    );
+
+    expect(workSelect.checked).toEqual(false);
+    expect(friendsSelect.checked).toEqual(true);
+    expect(reactSelect.checked).toEqual(true);
+    expect(daySelect.checked).toEqual(true);
+
+    fireEvent.click(nextButton);
+    rerender(
+      <Provider store={testStore}>
+        <App />
+      </Provider>
+    );
+
+    expect(screen.getByText("title", { exact: false }).innerHTML).toEqual(
+      expect.stringContaining("Question 5")
+    );
+
+    fireEvent.click(prevButton);
+    rerender(
+      <Provider store={testStore}>
+        <App />
+      </Provider>
+    );
+
+    expect(screen.getByText("title", { exact: false }).innerHTML).toEqual(
+      expect.stringContaining("Question 4")
+    );
+    workSelect = screen.getByLabelText("Work is stressful");
+    friendsSelect = screen.getByLabelText("Can't see my friends");
+    reactSelect = screen.getByLabelText("React is difficult");
+    daySelect = screen.getByLabelText("Just a bad day");
+
+    fireEvent.click(friendsSelect);
+    rerender(
+      <Provider store={testStore}>
+        <App />
+      </Provider>
+    );
+
+    expect(workSelect.checked).toEqual(false);
+    expect(friendsSelect.checked).toEqual(false);
+    expect(reactSelect.checked).toEqual(true);
+    expect(daySelect.checked).toEqual(true);
+
+    fireEvent.click(nextButton);
+    rerender(
+      <Provider store={testStore}>
+        <App />
+      </Provider>
+    );
+
+    expect(screen.getByText("title", { exact: false }).innerHTML).toEqual(
+      expect.stringContaining("Question 5")
+    );
+
+    fireEvent.click(prevButton);
+    rerender(
+      <Provider store={testStore}>
+        <App />
+      </Provider>
+    );
+
+    expect(screen.getByText("title", { exact: false }).innerHTML).toEqual(
+      expect.stringContaining("Question 4")
+    );
+    workSelect = screen.getByLabelText("Work is stressful");
+    friendsSelect = screen.getByLabelText("Can't see my friends");
+    reactSelect = screen.getByLabelText("React is difficult");
+    daySelect = screen.getByLabelText("Just a bad day");
+
+    fireEvent.click(workSelect);
+    rerender(
+      <Provider store={testStore}>
+        <App />
+      </Provider>
+    );
+
+    expect(workSelect.checked).toEqual(true);
+    expect(friendsSelect.checked).toEqual(false);
+    expect(reactSelect.checked).toEqual(true);
+    expect(daySelect.checked).toEqual(true);
+
+    fireEvent.click(nextButton);
+    rerender(
+      <Provider store={testStore}>
+        <App />
+      </Provider>
+    );
+
+    expect(screen.getByText("title", { exact: false }).innerHTML).toEqual(
+      expect.stringContaining("Question 5")
+    );
+
+    fireEvent.click(prevButton);
+    rerender(
+      <Provider store={testStore}>
+        <App />
+      </Provider>
+    );
+
+    expect(screen.getByText("title", { exact: false }).innerHTML).toEqual(
+      expect.stringContaining("Question 4")
+    );
+    workSelect = screen.getByLabelText("Work is stressful");
+    friendsSelect = screen.getByLabelText("Can't see my friends");
+    reactSelect = screen.getByLabelText("React is difficult");
+    daySelect = screen.getByLabelText("Just a bad day");
+
+    fireEvent.click(workSelect);
+    rerender(
+      <Provider store={testStore}>
+        <App />
+      </Provider>
+    );
+    fireEvent.click(daySelect);
+    rerender(
+      <Provider store={testStore}>
+        <App />
+      </Provider>
+    );
+
+    expect(workSelect.checked).toEqual(false);
+    expect(friendsSelect.checked).toEqual(false);
+    expect(reactSelect.checked).toEqual(true);
+    expect(daySelect.checked).toEqual(false);
+
+    fireEvent.click(nextButton);
+    rerender(
+      <Provider store={testStore}>
+        <App />
+      </Provider>
+    );
+
+    expect(screen.getByText("title", { exact: false }).innerHTML).toEqual(
+      expect.stringContaining("Question 5")
+    );
+  });
+
+  it('does not make the sixth question available if "It\'s hard to read" is selected in the fifth question', () => {
+    const { rerender, asFragment } = render(
+      <Provider store={testStore}>
+        <App />
+      </Provider>
+    );
+
+    expect(screen.getByText("title", { exact: false }).innerHTML).toEqual(
+      expect.stringContaining("Question 5")
+    );
+
+    const nextButton = screen.getByText("Next");
+    const prevButton = screen.getByText("Previous");
+    let hardToReadSelect = screen.getByLabelText("It's hard to read");
+    let dependenciesSelect = screen.getByLabelText("It has too many dependencies");
+    let facebookSelect = screen.getByLabelText("It's made by Facebook");
+    let noUnderstandingSelect = screen.getByLabelText("I don't understand it");
+
+    expect(hardToReadSelect.checked).toEqual(false);
+    expect(dependenciesSelect.checked).toEqual(false);
+    expect(facebookSelect.checked).toEqual(false);
+    expect(noUnderstandingSelect.checked).toEqual(false);
+
+    fireEvent.click(nextButton);
+    rerender(
+      <Provider store={testStore}>
+        <App />
+      </Provider>
+    );
+
+    expect(screen.getByText("Consent")).toBeDefined();
+
+    fireEvent.click(prevButton);
+    rerender(
+      <Provider store={testStore}>
+        <App />
+      </Provider>
+    );
+
+    expect(screen.getByText("title", { exact: false }).innerHTML).toEqual(
+      expect.stringContaining("Question 5")
+    );
+    hardToReadSelect = screen.getByLabelText("It's hard to read");
+    dependenciesSelect = screen.getByLabelText("It has too many dependencies");
+    facebookSelect = screen.getByLabelText("It's made by Facebook");
+    noUnderstandingSelect = screen.getByLabelText("I don't understand it");
+
+    fireEvent.click(hardToReadSelect);
+    rerender(
+      <Provider store={testStore}>
+        <App />
+      </Provider>
+    );
+
+    expect(hardToReadSelect.checked).toEqual(true);
+    expect(dependenciesSelect.checked).toEqual(false);
+    expect(facebookSelect.checked).toEqual(false);
+    expect(noUnderstandingSelect.checked).toEqual(false);
+
+    fireEvent.click(nextButton);
+    rerender(
+      <Provider store={testStore}>
+        <App />
+      </Provider>
+    );
+
+    expect(screen.getByText("Consent")).toBeDefined();
+    // Return to Question 5 for next test
+    fireEvent.click(prevButton);
+  });
+
+  it('does not make the sixth question available if "It\'s hard to read" and "I don\'t understand it" are selected in the fifth question', () => {
+    const { rerender, asFragment } = render(
+      <Provider store={testStore}>
+        <App />
+      </Provider>
+    );
+
+    expect(screen.getByText("title", { exact: false }).innerHTML).toEqual(
+      expect.stringContaining("Question 5")
+    );
+
+    const nextButton = screen.getByText("Next");
+    const prevButton = screen.getByText("Previous");
+    let hardToReadSelect = screen.getByLabelText("It's hard to read");
+    let dependenciesSelect = screen.getByLabelText("It has too many dependencies");
+    let facebookSelect = screen.getByLabelText("It's made by Facebook");
+    let noUnderstandingSelect = screen.getByLabelText("I don't understand it");
+
+    expect(hardToReadSelect.checked).toEqual(true);
+    expect(dependenciesSelect.checked).toEqual(false);
+    expect(facebookSelect.checked).toEqual(false);
+    expect(noUnderstandingSelect.checked).toEqual(false);
+
+    fireEvent.click(nextButton);
+    rerender(
+      <Provider store={testStore}>
+        <App />
+      </Provider>
+    );
+
+    expect(screen.getByText("Consent")).toBeDefined();
+
+    fireEvent.click(prevButton);
+    rerender(
+      <Provider store={testStore}>
+        <App />
+      </Provider>
+    );
+
+    expect(screen.getByText("title", { exact: false }).innerHTML).toEqual(
+      expect.stringContaining("Question 5")
+    );
+    hardToReadSelect = screen.getByLabelText("It's hard to read");
+    dependenciesSelect = screen.getByLabelText("It has too many dependencies");
+    facebookSelect = screen.getByLabelText("It's made by Facebook");
+    noUnderstandingSelect = screen.getByLabelText("I don't understand it");
+
+    fireEvent.click(noUnderstandingSelect);
+    rerender(
+      <Provider store={testStore}>
+        <App />
+      </Provider>
+    );
+
+    expect(hardToReadSelect.checked).toEqual(true);
+    expect(dependenciesSelect.checked).toEqual(false);
+    expect(facebookSelect.checked).toEqual(false);
+    expect(noUnderstandingSelect.checked).toEqual(true);
+
+    fireEvent.click(nextButton);
+    rerender(
+      <Provider store={testStore}>
+        <App />
+      </Provider>
+    );
+
+    expect(screen.getByText("Consent")).toBeDefined();
+    // Return to Question 5 for next test
+    fireEvent.click(prevButton);
+  });
+
+  it('makes the sixth question available if "It has too many dependencies" is selected with any other answer in the fifth question', () => {
+    const { rerender, asFragment } = render(
+      <Provider store={testStore}>
+        <App />
+      </Provider>
+    );
+
+    expect(screen.getByText("title", { exact: false }).innerHTML).toEqual(
+      expect.stringContaining("Question 5")
+    );
+
+    const nextButton = screen.getByText("Next");
+    const prevButton = screen.getByText("Previous");
+    let hardToReadSelect = screen.getByLabelText("It's hard to read");
+    let dependenciesSelect = screen.getByLabelText("It has too many dependencies");
+    let facebookSelect = screen.getByLabelText("It's made by Facebook");
+    let noUnderstandingSelect = screen.getByLabelText("I don't understand it");
+
+    expect(hardToReadSelect.checked).toEqual(true);
+    expect(dependenciesSelect.checked).toEqual(false);
+    expect(facebookSelect.checked).toEqual(false);
+    expect(noUnderstandingSelect.checked).toEqual(true);
+
+    fireEvent.click(nextButton);
+    rerender(
+      <Provider store={testStore}>
+        <App />
+      </Provider>
+    );
+
+    expect(screen.getByText("Consent")).toBeDefined();
+
+    fireEvent.click(prevButton);
+    rerender(
+      <Provider store={testStore}>
+        <App />
+      </Provider>
+    );
+
+    expect(screen.getByText("title", { exact: false }).innerHTML).toEqual(
+      expect.stringContaining("Question 5")
+    );
+    hardToReadSelect = screen.getByLabelText("It's hard to read");
+    dependenciesSelect = screen.getByLabelText("It has too many dependencies");
+    facebookSelect = screen.getByLabelText("It's made by Facebook");
+    noUnderstandingSelect = screen.getByLabelText("I don't understand it");
+
+    fireEvent.click(dependenciesSelect);
+    rerender(
+      <Provider store={testStore}>
+        <App />
+      </Provider>
+    );
+
+    expect(hardToReadSelect.checked).toEqual(true);
+    expect(dependenciesSelect.checked).toEqual(true);
+    expect(facebookSelect.checked).toEqual(false);
+    expect(noUnderstandingSelect.checked).toEqual(true);
+
+    fireEvent.click(nextButton);
+    rerender(
+      <Provider store={testStore}>
+        <App />
+      </Provider>
+    );
+
+    expect(screen.getByText("title", { exact: false }).innerHTML).toEqual(
+      expect.stringContaining("Question 6")
+    );
+
+    fireEvent.click(prevButton);
+    rerender(
+      <Provider store={testStore}>
+        <App />
+      </Provider>
+    );
+
+    expect(screen.getByText("title", { exact: false }).innerHTML).toEqual(
+      expect.stringContaining("Question 5")
+    );
+    hardToReadSelect = screen.getByLabelText("It's hard to read");
+    dependenciesSelect = screen.getByLabelText("It has too many dependencies");
+    facebookSelect = screen.getByLabelText("It's made by Facebook");
+    noUnderstandingSelect = screen.getByLabelText("I don't understand it");
+
+    fireEvent.click(hardToReadSelect);
+    rerender(
+      <Provider store={testStore}>
+        <App />
+      </Provider>
+    );
+
+    expect(hardToReadSelect.checked).toEqual(false);
+    expect(dependenciesSelect.checked).toEqual(true);
+    expect(facebookSelect.checked).toEqual(false);
+    expect(noUnderstandingSelect.checked).toEqual(true);
+
+    fireEvent.click(nextButton);
+    rerender(
+      <Provider store={testStore}>
+        <App />
+      </Provider>
+    );
+
+    expect(screen.getByText("title", { exact: false }).innerHTML).toEqual(
+      expect.stringContaining("Question 6")
+    );
+
+    fireEvent.click(prevButton);
+    rerender(
+      <Provider store={testStore}>
+        <App />
+      </Provider>
+    );
+
+    expect(screen.getByText("title", { exact: false }).innerHTML).toEqual(
+      expect.stringContaining("Question 5")
+    );
+    hardToReadSelect = screen.getByLabelText("It's hard to read");
+    dependenciesSelect = screen.getByLabelText("It has too many dependencies");
+    facebookSelect = screen.getByLabelText("It's made by Facebook");
+    noUnderstandingSelect = screen.getByLabelText("I don't understand it");
+
+    fireEvent.click(noUnderstandingSelect);
+    rerender(
+      <Provider store={testStore}>
+        <App />
+      </Provider>
+    );
+
+    expect(hardToReadSelect.checked).toEqual(false);
+    expect(dependenciesSelect.checked).toEqual(true);
+    expect(facebookSelect.checked).toEqual(false);
+    expect(noUnderstandingSelect.checked).toEqual(false);
+
+    fireEvent.click(nextButton);
+    rerender(
+      <Provider store={testStore}>
+        <App />
+      </Provider>
+    );
+
+    expect(screen.getByText("title", { exact: false }).innerHTML).toEqual(
+      expect.stringContaining("Question 6")
+    );
+
+    fireEvent.click(prevButton);
+    rerender(
+      <Provider store={testStore}>
+        <App />
+      </Provider>
+    );
+
+    expect(screen.getByText("title", { exact: false }).innerHTML).toEqual(
+      expect.stringContaining("Question 5")
+    );
+    hardToReadSelect = screen.getByLabelText("It's hard to read");
+    dependenciesSelect = screen.getByLabelText("It has too many dependencies");
+    facebookSelect = screen.getByLabelText("It's made by Facebook");
+    noUnderstandingSelect = screen.getByLabelText("I don't understand it");
+
+    fireEvent.click(dependenciesSelect);
+    rerender(
+      <Provider store={testStore}>
+        <App />
+      </Provider>
+    );
+    fireEvent.click(hardToReadSelect);
+    rerender(
+      <Provider store={testStore}>
+        <App />
+      </Provider>
+    );
+    fireEvent.click(noUnderstandingSelect);
+    rerender(
+      <Provider store={testStore}>
+        <App />
+      </Provider>
+    );
+
+    expect(hardToReadSelect.checked).toEqual(true);
+    expect(dependenciesSelect.checked).toEqual(false);
+    expect(facebookSelect.checked).toEqual(false);
+    expect(noUnderstandingSelect.checked).toEqual(true);
+
+    fireEvent.click(nextButton);
+    rerender(
+      <Provider store={testStore}>
+        <App />
+      </Provider>
+    );
+
+    expect(screen.getByText("Consent")).toBeDefined();
+    // Return to Question 5 for next test
+    fireEvent.click(prevButton);
+  });
+
+  it('makes the sixth question available if "It\'s made by Facebook" is selected with any other answer in the fifth question', () => {
+    const { rerender, asFragment } = render(
+      <Provider store={testStore}>
+        <App />
+      </Provider>
+    );
+
+    expect(screen.getByText("title", { exact: false }).innerHTML).toEqual(
+      expect.stringContaining("Question 5")
+    );
+
+    const nextButton = screen.getByText("Next");
+    const prevButton = screen.getByText("Previous");
+    let hardToReadSelect = screen.getByLabelText("It's hard to read");
+    let dependenciesSelect = screen.getByLabelText("It has too many dependencies");
+    let facebookSelect = screen.getByLabelText("It's made by Facebook");
+    let noUnderstandingSelect = screen.getByLabelText("I don't understand it");
+
+    expect(hardToReadSelect.checked).toEqual(true);
+    expect(dependenciesSelect.checked).toEqual(false);
+    expect(facebookSelect.checked).toEqual(false);
+    expect(noUnderstandingSelect.checked).toEqual(true);
+
+    fireEvent.click(nextButton);
+    rerender(
+      <Provider store={testStore}>
+        <App />
+      </Provider>
+    );
+
+    expect(screen.getByText("Consent")).toBeDefined();
+
+    fireEvent.click(prevButton);
+    rerender(
+      <Provider store={testStore}>
+        <App />
+      </Provider>
+    );
+
+    expect(screen.getByText("title", { exact: false }).innerHTML).toEqual(
+      expect.stringContaining("Question 5")
+    );
+    hardToReadSelect = screen.getByLabelText("It's hard to read");
+    dependenciesSelect = screen.getByLabelText("It has too many dependencies");
+    facebookSelect = screen.getByLabelText("It's made by Facebook");
+    noUnderstandingSelect = screen.getByLabelText("I don't understand it");
+
+    fireEvent.click(facebookSelect);
+    rerender(
+      <Provider store={testStore}>
+        <App />
+      </Provider>
+    );
+
+    expect(hardToReadSelect.checked).toEqual(true);
+    expect(dependenciesSelect.checked).toEqual(false);
+    expect(facebookSelect.checked).toEqual(true);
+    expect(noUnderstandingSelect.checked).toEqual(true);
+
+    fireEvent.click(nextButton);
+    rerender(
+      <Provider store={testStore}>
+        <App />
+      </Provider>
+    );
+
+    expect(screen.getByText("title", { exact: false }).innerHTML).toEqual(
+      expect.stringContaining("Question 6")
+    );
+
+    fireEvent.click(prevButton);
+    rerender(
+      <Provider store={testStore}>
+        <App />
+      </Provider>
+    );
+
+    expect(screen.getByText("title", { exact: false }).innerHTML).toEqual(
+      expect.stringContaining("Question 5")
+    );
+    hardToReadSelect = screen.getByLabelText("It's hard to read");
+    dependenciesSelect = screen.getByLabelText("It has too many dependencies");
+    facebookSelect = screen.getByLabelText("It's made by Facebook");
+    noUnderstandingSelect = screen.getByLabelText("I don't understand it");
+
+    fireEvent.click(hardToReadSelect);
+    rerender(
+      <Provider store={testStore}>
+        <App />
+      </Provider>
+    );
+
+    expect(hardToReadSelect.checked).toEqual(false);
+    expect(dependenciesSelect.checked).toEqual(false);
+    expect(facebookSelect.checked).toEqual(true);
+    expect(noUnderstandingSelect.checked).toEqual(true);
+
+    fireEvent.click(nextButton);
+    rerender(
+      <Provider store={testStore}>
+        <App />
+      </Provider>
+    );
+
+    expect(screen.getByText("title", { exact: false }).innerHTML).toEqual(
+      expect.stringContaining("Question 6")
+    );
+
+    fireEvent.click(prevButton);
+    rerender(
+      <Provider store={testStore}>
+        <App />
+      </Provider>
+    );
+
+    expect(screen.getByText("title", { exact: false }).innerHTML).toEqual(
+      expect.stringContaining("Question 5")
+    );
+    hardToReadSelect = screen.getByLabelText("It's hard to read");
+    dependenciesSelect = screen.getByLabelText("It has too many dependencies");
+    facebookSelect = screen.getByLabelText("It's made by Facebook");
+    noUnderstandingSelect = screen.getByLabelText("I don't understand it");
+
+    fireEvent.click(noUnderstandingSelect);
+    rerender(
+      <Provider store={testStore}>
+        <App />
+      </Provider>
+    );
+
+    expect(hardToReadSelect.checked).toEqual(false);
+    expect(dependenciesSelect.checked).toEqual(false);
+    expect(facebookSelect.checked).toEqual(true);
+    expect(noUnderstandingSelect.checked).toEqual(false);
+
+    fireEvent.click(nextButton);
+    rerender(
+      <Provider store={testStore}>
+        <App />
+      </Provider>
+    );
+
+    expect(screen.getByText("title", { exact: false }).innerHTML).toEqual(
+      expect.stringContaining("Question 6")
+    );
+
+    fireEvent.click(prevButton);
+    rerender(
+      <Provider store={testStore}>
+        <App />
+      </Provider>
+    );
+
+    expect(screen.getByText("title", { exact: false }).innerHTML).toEqual(
+      expect.stringContaining("Question 5")
+    );
+    hardToReadSelect = screen.getByLabelText("It's hard to read");
+    dependenciesSelect = screen.getByLabelText("It has too many dependencies");
+    facebookSelect = screen.getByLabelText("It's made by Facebook");
+    noUnderstandingSelect = screen.getByLabelText("I don't understand it");
+
+    fireEvent.click(facebookSelect);
+    rerender(
+      <Provider store={testStore}>
+        <App />
+      </Provider>
+    );
+    fireEvent.click(hardToReadSelect);
+    rerender(
+      <Provider store={testStore}>
+        <App />
+      </Provider>
+    );
+    fireEvent.click(noUnderstandingSelect);
+    rerender(
+      <Provider store={testStore}>
+        <App />
+      </Provider>
+    );
+
+    expect(hardToReadSelect.checked).toEqual(true);
+    expect(dependenciesSelect.checked).toEqual(false);
+    expect(facebookSelect.checked).toEqual(false);
+    expect(noUnderstandingSelect.checked).toEqual(true);
+
+    fireEvent.click(nextButton);
+    rerender(
+      <Provider store={testStore}>
+        <App />
+      </Provider>
+    );
+
+    expect(screen.getByText("Consent")).toBeDefined();
+    // Return to Question 5 for next test
+    fireEvent.click(prevButton);
+  });
+
+  it('makes the sixth question available if "It has too many dependencies" and "It\'s made by Facebook" are selected in the fifth question', () => {
+    const { rerender, asFragment } = render(
+      <Provider store={testStore}>
+        <App />
+      </Provider>
+    );
+
+    expect(screen.getByText("title", { exact: false }).innerHTML).toEqual(
+      expect.stringContaining("Question 5")
+    );
+
+    const nextButton = screen.getByText("Next");
+    const prevButton = screen.getByText("Previous");
+    let hardToReadSelect = screen.getByLabelText("It's hard to read");
+    let dependenciesSelect = screen.getByLabelText("It has too many dependencies");
+    let facebookSelect = screen.getByLabelText("It's made by Facebook");
+    let noUnderstandingSelect = screen.getByLabelText("I don't understand it");
+
+    expect(hardToReadSelect.checked).toEqual(true);
+    expect(dependenciesSelect.checked).toEqual(false);
+    expect(facebookSelect.checked).toEqual(false);
+    expect(noUnderstandingSelect.checked).toEqual(true);
+
+    fireEvent.click(nextButton);
+    rerender(
+      <Provider store={testStore}>
+        <App />
+      </Provider>
+    );
+
+    expect(screen.getByText("Consent")).toBeDefined();
+
+    fireEvent.click(prevButton);
+    rerender(
+      <Provider store={testStore}>
+        <App />
+      </Provider>
+    );
+
+    expect(screen.getByText("title", { exact: false }).innerHTML).toEqual(
+      expect.stringContaining("Question 5")
+    );
+    hardToReadSelect = screen.getByLabelText("It's hard to read");
+    dependenciesSelect = screen.getByLabelText("It has too many dependencies");
+    facebookSelect = screen.getByLabelText("It's made by Facebook");
+    noUnderstandingSelect = screen.getByLabelText("I don't understand it");
+
+    fireEvent.click(dependenciesSelect);
+    rerender(
+      <Provider store={testStore}>
+        <App />
+      </Provider>
+    );
+    fireEvent.click(facebookSelect);
+    rerender(
+      <Provider store={testStore}>
+        <App />
+      </Provider>
+    );
+    fireEvent.click(hardToReadSelect);
+    rerender(
+      <Provider store={testStore}>
+        <App />
+      </Provider>
+    );
+    fireEvent.click(noUnderstandingSelect);
+    rerender(
+      <Provider store={testStore}>
+        <App />
+      </Provider>
+    );
+
+    expect(hardToReadSelect.checked).toEqual(false);
+    expect(dependenciesSelect.checked).toEqual(true);
+    expect(facebookSelect.checked).toEqual(true);
+    expect(noUnderstandingSelect.checked).toEqual(false);
+
+    fireEvent.click(nextButton);
+    rerender(
+      <Provider store={testStore}>
+        <App />
+      </Provider>
+    );
+
+    expect(screen.getByText("title", { exact: false }).innerHTML).toEqual(
+      expect.stringContaining("Question 6")
+    );
+  });
 });
 
 // Checking the Redux store directly
@@ -759,22 +1801,34 @@ describe('Reducer tests: the state', () => {
     composeEnhancers(applyMiddleware(thunk))
   );
 
+  /*
+  * Test 1
+  */
   it('can go to the next question from the first question', () => {
     expect(testStore.getState().stage).toEqual(0);
     testStore.dispatch(actions.goNext());
     expect(testStore.getState().stage).toEqual(1);
   });
 
+  /*
+  * Test 2
+  */
   it('can go to the previous question from the second question', () => {
     expect(testStore.getState().stage).toEqual(1);
     testStore.dispatch(actions.goPrevious());
     expect(testStore.getState().stage).toEqual(0);
   });
 
+  /*
+  * Test 3
+  */
   it('only has three questions', () => {
     expect(testStore.getState().questions.length).toEqual(3);
   });
 
+  /*
+  * Test 4
+  */
   it('can have data entered', () => {
     expect(testStore.getState().answers).toStrictEqual({});
     // console.log(testStore.getState().answers);
@@ -783,12 +1837,17 @@ describe('Reducer tests: the state', () => {
     // console.log(testStore.getState());
   });
 
+  /*
+  * Test 5
+  */
   it('has the third question (preconditional) available after entering data in the first question', () => {
     expect(testStore.getState().questions.length).toEqual(4);
   });
 
+  /*
+  * Test 6
+  */
   it('has the third question remain available after changing data in the first question', () => {
-    const regQ1String = "registryQ1";
     expect(testStore.getState().questions[2].cde).toEqual("registryQ3");
     expect(testStore.getState().answers).toHaveProperty("registryQ1");
     expect(testStore.getState().answers[regQ1String]).toEqual("answer1");
@@ -800,6 +1859,9 @@ describe('Reducer tests: the state', () => {
     expect(testStore.getState().questions.length).toEqual(4);
   });
 
+  /*
+  * Test 7
+  */
   it('does not make the fourth question available if "Good" is answered in the third question', () => {
     expect(testStore.getState().questions.length).toEqual(4);
     expect(testStore.getState().questions[3].cde).toEqual("PROMSConsent");
@@ -808,6 +1870,9 @@ describe('Reducer tests: the state', () => {
     expect(testStore.getState().questions[3].cde).toEqual("PROMSConsent");
   });
 
+  /*
+  * Test 8
+  */
   it('does not make the fourth question available if "Not so good" is answered in the third question', () => {
     expect(testStore.getState().questions.length).toEqual(4);
     expect(testStore.getState().questions[3].cde).toEqual("PROMSConsent");
@@ -816,6 +1881,9 @@ describe('Reducer tests: the state', () => {
     expect(testStore.getState().questions[3].cde).toEqual("PROMSConsent");
   });
 
+  /*
+  * Test 9
+  */
   it('makes the fourth question available if "Bad" is answered in the third question', () => {
     expect(testStore.getState().questions.length).toEqual(4);
     expect(testStore.getState().questions[3].cde).toEqual("PROMSConsent");
@@ -824,27 +1892,35 @@ describe('Reducer tests: the state', () => {
     expect(testStore.getState().questions[3].cde).toEqual("registryQ4");
   });
 
-  const regQ4String = "registryQ4";
+  /*
+  * Test 10
+  */
   it('does not make the fifth question available if "Work is stressful" is selected in the fourth question', () => {
     expect(testStore.getState().questions.length).toEqual(5);
     expect(testStore.getState().questions[4].cde).toEqual("PROMSConsent");
     expect(testStore.getState().answers[regQ4String]).toBeUndefined();
-    testStore.dispatch(actions.enterData({cde: "registryQ4", value: "work_answer", isValid: true}));
+    testStore.dispatch(actions.enterData({cde: "registryQ4", value: ["work_answer"], isValid: true}));
     expect(testStore.getState().questions.length).toEqual(5);
     expect(testStore.getState().questions[4].cde).toEqual("PROMSConsent");
-    expect(testStore.getState().answers[regQ4String]).toEqual("work_answer");
+    expect(testStore.getState().answers[regQ4String]).toEqual(["work_answer"]);
   });
 
+  /*
+  * Test 11
+  */
   it('does not make the fifth question available if "Work is stressful" and "Can\'t see my friends" are selected in the fourth question', () => {
     expect(testStore.getState().questions.length).toEqual(5);
     expect(testStore.getState().questions[4].cde).toEqual("PROMSConsent");
-    expect(testStore.getState().answers[regQ4String]).toEqual("work_answer");
+    expect(testStore.getState().answers[regQ4String]).toEqual(["work_answer"]);
     testStore.dispatch(actions.enterData({cde: "registryQ4", value: ["work_answer", "friends_answer"], isValid: true}));
     expect(testStore.getState().questions.length).toEqual(5);
     expect(testStore.getState().questions[4].cde).toEqual("PROMSConsent");
     expect(testStore.getState().answers[regQ4String]).toEqual(["work_answer", "friends_answer"]);
   });
 
+  /*
+  * Test 12
+  */
   it('does not make the fifth question available if "Can\'t see my friends" and "Just a bad day" are selected in the fourth question', () => {
     expect(testStore.getState().questions.length).toEqual(5);
     expect(testStore.getState().questions[4].cde).toEqual("PROMSConsent");
@@ -854,6 +1930,10 @@ describe('Reducer tests: the state', () => {
     expect(testStore.getState().questions[4].cde).toEqual("PROMSConsent");
     expect(testStore.getState().answers[regQ4String]).toEqual(["friends_answer", "day_answer"]);
   });
+
+  /*
+  * Test 13
+  */
   it('makes the fifth question available if "React is difficult" is selected in the fourth question with any other answers', () => {
     expect(testStore.getState().questions.length).toEqual(5);
     expect(testStore.getState().questions[4].cde).toEqual("PROMSConsent");
@@ -870,5 +1950,79 @@ describe('Reducer tests: the state', () => {
     expect(testStore.getState().questions.length).toEqual(6);
     expect(testStore.getState().questions[4].cde).toEqual("registryQ5");
     expect(testStore.getState().answers[regQ4String]).toEqual(["react_answer", "day_answer", "work_answer", "friends_answer"]);
+  });
+
+  it('does not make the sixth question available if "It\'s hard to read" is selected in the fifth question', () => {
+    expect(testStore.getState().questions.length).toEqual(6);
+    expect(testStore.getState().questions[5].cde).toEqual("PROMSConsent");
+    expect(testStore.getState().answers[regQ5String]).toBeUndefined();
+    testStore.dispatch(actions.enterData({cde: regQ5String, value: ["hard_to_read"], isValid: true}));
+    expect(testStore.getState().questions.length).toEqual(6);
+    expect(testStore.getState().questions[5].cde).toEqual("PROMSConsent");
+    expect(testStore.getState().answers[regQ5String]).toEqual(["hard_to_read"]);
+  });
+
+  it('does not make the sixth question available if "It\'s hard to read" and "I don\'t understand it" are selected in the fifth question', () => {
+    expect(testStore.getState().questions.length).toEqual(6);
+    expect(testStore.getState().questions[5].cde).toEqual("PROMSConsent");
+    expect(testStore.getState().answers[regQ5String]).toEqual(["hard_to_read"]);
+    testStore.dispatch(actions.enterData({cde: regQ5String, value: ["hard_to_read", "zero_understanding"], isValid: true}));
+    expect(testStore.getState().questions.length).toEqual(6);
+    expect(testStore.getState().questions[5].cde).toEqual("PROMSConsent");
+    expect(testStore.getState().answers[regQ5String]).toEqual(["hard_to_read", "zero_understanding"]);
+  });
+
+  it('makes the sixth question available if "It has too many dependencies" is selected with any other answer in the fifth question', () => {
+    expect(testStore.getState().questions.length).toEqual(6);
+    expect(testStore.getState().questions[5].cde).toEqual("PROMSConsent");
+    expect(testStore.getState().answers[regQ5String]).toEqual(["hard_to_read", "zero_understanding"]);
+    testStore.dispatch(actions.enterData({cde: regQ5String, value: ["too_many_deps"], isValid: true}));
+    expect(testStore.getState().questions.length).toEqual(7);
+    expect(testStore.getState().questions[5].cde).toEqual("registryQ6");
+    expect(testStore.getState().answers[regQ5String]).toEqual(["too_many_deps"]);
+    testStore.dispatch(actions.enterData({cde: regQ5String, value: ["too_many_deps", "hard_to_read"], isValid: true}));
+    expect(testStore.getState().questions.length).toEqual(7);
+    expect(testStore.getState().questions[5].cde).toEqual("registryQ6");
+    expect(testStore.getState().answers[regQ5String]).toEqual(["too_many_deps", "hard_to_read"]);
+    testStore.dispatch(actions.enterData({cde: regQ5String, value: ["too_many_deps", "hard_to_read", "zero_understanding"], isValid: true}));
+    expect(testStore.getState().questions.length).toEqual(7);
+    expect(testStore.getState().questions[5].cde).toEqual("registryQ6");
+    expect(testStore.getState().answers[regQ5String]).toEqual(["too_many_deps", "hard_to_read", "zero_understanding"]);
+    testStore.dispatch(actions.enterData({cde: regQ5String, value: ["hard_to_read", "zero_understanding"], isValid: true}));
+    expect(testStore.getState().questions.length).toEqual(6);
+    expect(testStore.getState().questions[5].cde).toEqual("PROMSConsent");
+    expect(testStore.getState().answers[regQ5String]).toEqual(["hard_to_read", "zero_understanding"]);
+  });
+
+  it('makes the sixth question available if "It\'s made by Facebook" is selected with any other answer in the fifth question', () => {
+    expect(testStore.getState().questions.length).toEqual(6);
+    expect(testStore.getState().questions[5].cde).toEqual("PROMSConsent");
+    expect(testStore.getState().answers[regQ5String]).toEqual(["hard_to_read", "zero_understanding"]);
+    testStore.dispatch(actions.enterData({cde: regQ5String, value: ["by_fb"], isValid: true}));
+    expect(testStore.getState().questions.length).toEqual(7);
+    expect(testStore.getState().questions[5].cde).toEqual("registryQ6");
+    expect(testStore.getState().answers[regQ5String]).toEqual(["by_fb"]);
+    testStore.dispatch(actions.enterData({cde: regQ5String, value: ["by_fb", "hard_to_read"], isValid: true}));
+    expect(testStore.getState().questions.length).toEqual(7);
+    expect(testStore.getState().questions[5].cde).toEqual("registryQ6");
+    expect(testStore.getState().answers[regQ5String]).toEqual(["by_fb", "hard_to_read"]);
+    testStore.dispatch(actions.enterData({cde: regQ5String, value: ["by_fb", "hard_to_read", "zero_understanding"], isValid: true}));
+    expect(testStore.getState().questions.length).toEqual(7);
+    expect(testStore.getState().questions[5].cde).toEqual("registryQ6");
+    expect(testStore.getState().answers[regQ5String]).toEqual(["by_fb", "hard_to_read", "zero_understanding"]);
+    testStore.dispatch(actions.enterData({cde: regQ5String, value: ["hard_to_read", "zero_understanding"], isValid: true}));
+    expect(testStore.getState().questions.length).toEqual(6);
+    expect(testStore.getState().questions[5].cde).toEqual("PROMSConsent");
+    expect(testStore.getState().answers[regQ5String]).toEqual(["hard_to_read", "zero_understanding"]);
+  });
+
+  it('makes the sixth question available if "It has too many dependencies" and "It\'s made by Facebook" are selected in the fifth question', () => {
+    expect(testStore.getState().questions.length).toEqual(6);
+    expect(testStore.getState().questions[5].cde).toEqual("PROMSConsent");
+    expect(testStore.getState().answers[regQ5String]).toEqual(["hard_to_read", "zero_understanding"]);
+    testStore.dispatch(actions.enterData({cde: regQ5String, value: ["too_many_deps", "by_fb"], isValid: true}));
+    expect(testStore.getState().questions.length).toEqual(7);
+    expect(testStore.getState().questions[5].cde).toEqual("registryQ6");
+    expect(testStore.getState().answers[regQ5String]).toEqual(["too_many_deps", "by_fb"]);
   });
 });
