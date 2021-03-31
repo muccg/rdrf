@@ -1,5 +1,6 @@
 # Django settings for rdrf project.
 from django_auth_ldap.config import LDAPSearch
+from django_auth_ldap.config import LDAPSearchUnion
 from django_auth_ldap.config import PosixGroupType
 from django_auth_ldap.config import GroupOfNamesType
 from django_auth_ldap.config import ActiveDirectoryGroupType
@@ -211,9 +212,40 @@ INSTALLED_APPS = [
 
 
 # LDAP
-LDAP_ENABLED = env.get("ldap_enabled", False)
-LDAP_DEBUG = env.get("ldap_debug", False)
-SECURE_LDAP_REQUIRED = env.get("secure_ldap", False)
+
+class LDAPConfigLookup:
+    def __init__(self, env: EnvConfig, config_file):
+        self.env = env
+        self.source = None
+        self.config_file = config_file
+        self._load_config()
+
+    def _load_config(self):
+        if self.config_file:
+            import json
+            with open(self.config_file) as jf:
+                self.data = json.load(jf)
+                self.source = "file"
+        else:
+            self.data = None
+            self.source = "env"
+
+    def get(self, parameter, default_value):
+        if self.source == "env":
+            return self.env.get(parameter, default_value)
+        elif self.source == "file":
+            return self.data.get(parameter.upper(), default_value)
+        else:
+            raise Exception(f"Unknown LDAP Config Source: {self.source}")
+
+
+RDRF_LDAP_CONFIG_FILE = env.get("RDRF_LDAP_CONFIG_FILE", "")
+ldap_config = LDAPConfigLookup(env, RDRF_LDAP_CONFIG_FILE)
+
+
+RDRF_LDAP_ENABLED = ldap_config.get("rdrf_ldap_enabled", False)
+RDRF_LDAP_DEBUG = ldap_config.get("rdrf_ldap_debug", False)
+RDRF_SECURE_LDAP_REQUIRED = ldap_config.get("rdrf_secure_ldap_required", False)
 
 # Default values used by our development ldap container.
 # Comment out the ldap/phpldapadmin containers in docker-compose.yml to test locally.
@@ -236,31 +268,33 @@ DEV_LDAP_CACHE_GROUPS = False
 DEV_LDAP_CACHE_TIMEOUT = 1  # Default to 1 hour.
 
 # these enviroment variables are prefixed RDRF_ to not conflict with the variables expected by LDAP auth middleware.
-RDRF_AUTH_LDAP_BIND_DC = env.get("rdrf_auth_ldap_bind_dc", DEV_LDAP_DC)
-RDRF_AUTH_LDAP_BIND_GROUP = env.get("rdrf_auth_ldap_bind_group", DEV_LDAP_GROUP)
-RDRF_AUTH_LDAP_FIRST_NAME_ATTR = env.get("rdrf_auth_ldap_first_name_attr", DEV_LDAP_FIRST_NAME_ATTR)
-RDRF_AUTH_LDAP_LAST_NAME_ATTR = env.get("rdrf_auth_ldap_last_name_attr", DEV_LDAP_LAST_NAME_ATTR)
-RDRF_AUTH_LDAP_MAIL_ATTR = env.get("rdrf_auth_ldap_mail_attr", DEV_LDAP_MAIL_ATTR)
-RDRF_AUTH_LDAP_IS_ACTIVE_GROUP = env.get("rdrf_auth_ldap_is_active_group", DEV_LDAP_IS_ACTIVE_GROUP)
-RDRF_AUTH_LDAP_IS_SUPERUSER_GROUP = env.get("rdrf_auth_ldap_is_superuser_group", DEV_LDAP_IS_SUPERUSER_GROUP)
-RDRF_AUTH_LDAP_GROUP_TYPE_ATTR = env.get("rdrf_auth_ldap_group_type_attr", DEV_LDAP_GROUP_TYPE_ATTR)
-RDRF_AUTH_LDAP_REGISTRY_CODE = env.get("rdrf_auth_ldap_registry_code", DEV_LDAP_REGISTRY_CODE)
-RDRF_AUTH_LDAP_AUTH_GROUP = env.get("rdrf_auth_ldap_auth_group", DEV_LDAP_AUTH_GROUP)
-RDRF_AUTH_LDAP_WORKING_GROUP = env.get("rdrf_auth_ldap_working_group", DEV_LDAP_WORKING_GROUP)
-RDRF_AUTH_LDAP_ALLOW_SUPERUSER = env.get("rdrf_auth_ldap_allow_superuser", False)
-RDRF_AUTH_LDAP_FORCE_ISACTIVE = env.get("rdrf_auth_ldap_force_isactive", True)
-RDRF_AUTH_LDAP_REQUIRE_2FA = env.get("rdrf_auth_ldap_require_2fa", False)
-RDRF_AUTH_LDAP_GROUP_SEARCH_TYPE = env.get("rdrf_auth_ldap_group_search_type", "posix")
-RDRF_AUTH_LDAP_GROUP_SEARCH_FIELD = env.get("rdrf_auth_ldap_group_search_field", "objectClass")
-RDRF_AUTH_LDAP_GROUP_SEARCH_FIELD_VALUE = env.get("rdrf_auth_ldap_group_search_field_value", "posixGroup")
-RDRF_AUTH_LDAP_USER_SEARCH_ATTR = env.get("rdrf_auth_ldap_user_search_attr", "uid")
+RDRF_LDAP_DEBUG = ldap_config.get("rdrf_ldap_debug", False)
+RDRF_AUTH_LDAP_BIND_DC = ldap_config.get("rdrf_auth_ldap_bind_dc", DEV_LDAP_DC)
+RDRF_AUTH_LDAP_BIND_GROUP = ldap_config.get("rdrf_auth_ldap_bind_group", DEV_LDAP_GROUP)
+RDRF_AUTH_LDAP_FIRST_NAME_ATTR = ldap_config.get("rdrf_auth_ldap_first_name_attr", DEV_LDAP_FIRST_NAME_ATTR)
+RDRF_AUTH_LDAP_LAST_NAME_ATTR = ldap_config.get("rdrf_auth_ldap_last_name_attr", DEV_LDAP_LAST_NAME_ATTR)
+RDRF_AUTH_LDAP_MAIL_ATTR = ldap_config.get("rdrf_auth_ldap_mail_attr", DEV_LDAP_MAIL_ATTR)
+RDRF_AUTH_LDAP_IS_ACTIVE_GROUP = ldap_config.get("rdrf_auth_ldap_is_active_group", DEV_LDAP_IS_ACTIVE_GROUP)
+RDRF_AUTH_LDAP_IS_SUPERUSER_GROUP = ldap_config.get("rdrf_auth_ldap_is_superuser_group", DEV_LDAP_IS_SUPERUSER_GROUP)
+RDRF_AUTH_LDAP_GROUP_TYPE_ATTR = ldap_config.get("rdrf_auth_ldap_group_type_attr", DEV_LDAP_GROUP_TYPE_ATTR)
+RDRF_AUTH_LDAP_REGISTRY_CODE = ldap_config.get("rdrf_auth_ldap_registry_code", DEV_LDAP_REGISTRY_CODE)
+RDRF_AUTH_LDAP_AUTH_GROUP = ldap_config.get("rdrf_auth_ldap_auth_group", DEV_LDAP_AUTH_GROUP)
+RDRF_AUTH_LDAP_WORKING_GROUP = ldap_config.get("rdrf_auth_ldap_working_group", DEV_LDAP_WORKING_GROUP)
+RDRF_AUTH_LDAP_ALLOW_SUPERUSER = ldap_config.get("rdrf_auth_ldap_allow_superuser", False)
+RDRF_AUTH_LDAP_FORCE_ISACTIVE = ldap_config.get("rdrf_auth_ldap_force_isactive", True)
+RDRF_AUTH_LDAP_REQUIRE_2FA = ldap_config.get("rdrf_auth_ldap_require_2fa", False)
+RDRF_AUTH_LDAP_GROUP_SEARCH_TYPE = ldap_config.get("rdrf_auth_ldap_group_search_type", "posix")
+RDRF_AUTH_LDAP_GROUP_SEARCH_FIELD = ldap_config.get("rdrf_auth_ldap_group_search_field", "objectClass")
+RDRF_AUTH_LDAP_GROUP_SEARCH_FIELD_VALUE = ldap_config.get("rdrf_auth_ldap_group_search_field_value", "posixGroup")
+RDRF_AUTH_LDAP_USER_SEARCH_ATTR = ldap_config.get("rdrf_auth_ldap_user_search_attr", "uid")
+
 
 # LDAP auth middleware env variables.
 
-# LDAP connection variables.
-AUTH_LDAP_SERVER_URI = env.get("auth_ldap_server_uri", DEV_LDAP_URL)
-AUTH_LDAP_BIND_DN = env.get("auth_ldap_bind_dn", DEV_LDAP_DN)
-AUTH_LDAP_BIND_PASSWORD = env.get("auth_ldap_bind_password", DEV_LDAP_PASSWORD)
+# LDAP connection variables
+AUTH_LDAP_SERVER_URI = ldap_config.get("auth_ldap_server_uri", DEV_LDAP_URL)
+AUTH_LDAP_BIND_DN = ldap_config.get("auth_ldap_bind_dn", DEV_LDAP_DN)
+AUTH_LDAP_BIND_PASSWORD = ldap_config.get("auth_ldap_bind_password", DEV_LDAP_PASSWORD)
 
 # Matching LDAP user fields to RDRF user fields.
 AUTH_LDAP_USER_ATTR_MAP = {"first_name": RDRF_AUTH_LDAP_FIRST_NAME_ATTR,
@@ -268,8 +302,13 @@ AUTH_LDAP_USER_ATTR_MAP = {"first_name": RDRF_AUTH_LDAP_FIRST_NAME_ATTR,
                            "email": RDRF_AUTH_LDAP_MAIL_ATTR}
 
 # LDAP User Search settings.
-AUTH_LDAP_USER_SEARCH = LDAPSearch(RDRF_AUTH_LDAP_BIND_DC, ldap.SCOPE_SUBTREE,
-                                   f"({RDRF_AUTH_LDAP_USER_SEARCH_ATTR}=%(user)s)")
+# Allow for the possibility that users may be in disjoint subtrees in the active directory:
+if type(RDRF_AUTH_LDAP_BIND_DC) is list:
+    AUTH_LDAP_USER_SEARCH = LDAPSearchUnion(*[LDAPSearch(subtree_root, ldap.SCOPE_SUBTREE, f"({RDRF_AUTH_LDAP_USER_SEARCH_ATTR}=%(user)s)")
+                                              for subtree_root in RDRF_AUTH_LDAP_BIND_DC])
+else:
+    AUTH_LDAP_USER_SEARCH = LDAPSearch(RDRF_AUTH_LDAP_BIND_DC, ldap.SCOPE_SUBTREE,
+                                       f"({RDRF_AUTH_LDAP_USER_SEARCH_ATTR}=%(user)s)")
 
 # Matching LDAP user group to user settings (superuser / active)
 AUTH_LDAP_USER_FLAGS_BY_GROUP = {}
@@ -287,12 +326,12 @@ elif RDRF_AUTH_LDAP_GROUP_SEARCH_TYPE == "groupofnames":
     AUTH_LDAP_GROUP_TYPE = GroupOfNamesType(name_attr=RDRF_AUTH_LDAP_GROUP_TYPE_ATTR)
 elif RDRF_AUTH_LDAP_GROUP_SEARCH_TYPE == "activedirectory":
     AUTH_LDAP_GROUP_TYPE = ActiveDirectoryGroupType(name_attr=RDRF_AUTH_LDAP_GROUP_TYPE_ATTR)
-AUTH_LDAP_FIND_GROUP_PERMS = env.get("auth_ldap_find_group_perms", DEV_LDAP_GROUP_PERMS)
-AUTH_LDAP_CACHE_GROUPS = env.get("auth_ldap_cache_groups", DEV_LDAP_CACHE_GROUPS)
-AUTH_LDAP_GROUP_CACHE_TIMEOUT = env.get("auth_ldap_group_cache_timeout", DEV_LDAP_CACHE_TIMEOUT)
+AUTH_LDAP_FIND_GROUP_PERMS = ldap_config.get("auth_ldap_find_group_perms", DEV_LDAP_GROUP_PERMS)
+AUTH_LDAP_CACHE_GROUPS = ldap_config.get("auth_ldap_cache_groups", DEV_LDAP_CACHE_GROUPS)
+AUTH_LDAP_GROUP_CACHE_TIMEOUT = ldap_config.get("auth_ldap_group_cache_timeout", DEV_LDAP_CACHE_TIMEOUT)
 
 # Security: set required LDAP group (user must be in this LDAP group to login in RDRF)
-AUTH_LDAP_REQUIRE_GROUP = env.get("auth_ldap_require_group", "")
+AUTH_LDAP_REQUIRE_GROUP = ldap_config.get("auth_ldap_require_group", "")
 
 # these determine which authentication method to use
 # apps use modelbackend by default, but can be overridden here
@@ -303,17 +342,17 @@ AUTHENTICATION_BACKENDS = [
     'django.contrib.auth.backends.ModelBackend',
     'useraudit.backend.AuthFailedLoggerBackend',
 ]
-if LDAP_ENABLED:
+if RDRF_LDAP_ENABLED:
     AUTHENTICATION_BACKENDS.insert(0, 'rdrf.auth.ldap_backend.RDRFLDAPBackend')
 
 
-if LDAP_ENABLED:
-    if SECURE_LDAP_REQUIRED:
+if RDRF_LDAP_ENABLED:
+    if RDRF_SECURE_LDAP_REQUIRED:
         AUTH_LDAP_GLOBAL_OPTIONS = {
-            ldap.OPT_X_TLS_CACERTFILE: env.get("LDAP_CACERTFILE", ""),
-            ldap.OPT_X_TLS_CACERTDIR: env.get("LDAP_CACERTDIR", "/ldap-certs"),
-            ldap.OPT_X_TLS_CERTFILE: env.get("LDAP_CERTFILE", ""),
-            ldap.OPT_X_TLS_KEYFILE: env.get("LDAP_KEYFILE", "")
+            ldap.OPT_X_TLS_CACERTFILE: ldap_config.get("LDAP_CACERTFILE", ""),
+            ldap.OPT_X_TLS_CACERTDIR: ldap_config.get("LDAP_CACERTDIR", "/ldap-config"),
+            ldap.OPT_X_TLS_CERTFILE: ldap_config.get("LDAP_CERTFILE", ""),
+            ldap.OPT_X_TLS_KEYFILE: ldap_config.get("LDAP_KEYFILE", "")
         }
 
 # email
@@ -597,7 +636,7 @@ LOGGING = {
         },
         'django_auth_ldap': {
             'handlers': ['ldap-file', 'console'],
-            'level': 'DEBUG' if LDAP_DEBUG else 'INFO',
+            'level': 'DEBUG' if RDRF_LDAP_DEBUG else 'INFO',
             'propagate': True,
         }
     }
