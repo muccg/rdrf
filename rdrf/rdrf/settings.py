@@ -212,6 +212,7 @@ INSTALLED_APPS = [
 
 # LDAP
 LDAP_ENABLED = env.get("ldap_enabled", False)
+LDAP_DEBUG = env.get("ldap_debug", False)
 SECURE_LDAP_REQUIRED = env.get("secure_ldap", False)
 
 # Default values used by our development ldap container.
@@ -534,6 +535,13 @@ LOGGING = {
             'when': 'midnight',
             'formatter': 'verbose'
         },
+        'ldap-file': {
+            'level': 'DEBUG',
+            'class': 'ccg_django_utils.loghandlers.ParentPathFileHandler',
+            'filename': os.path.join(LOG_DIRECTORY, 'ldap.log'),
+            'when': 'midnight',
+            'formatter': 'verbose'
+        },
         'admin_command_file': {
             'level': 'INFO',
             'class': 'ccg_django_utils.loghandlers.ParentPathFileHandler',
@@ -587,6 +595,11 @@ LOGGING = {
             'level': 'DEBUG' if DEBUG else 'INFO',
             'propagate': False,
         },
+        'django_auth_ldap': {
+            'handlers': ['ldap-file', 'console'],
+            'level': 'DEBUG' if LDAP_DEBUG else 'INFO',
+            'propagate': True,
+        }
     }
 }
 
