@@ -198,6 +198,8 @@ window.proms_config = {
         "instructions": "",
         "spec": {
           "ui": "integer-slider",
+          "max": 10,
+          "min": 0,
           "params": {
             "max": "10",
             "min": "1"
@@ -270,6 +272,39 @@ window.proms_config = {
         "survey_question_instruction": "",
         "copyright_text": "",
         "source": ""
+      },
+      {
+        "tag": "cond",
+        "cond": {
+          "op": "=",
+          "cde": "registryQ6",
+          "value": "typetest"
+        },
+        "cde": "registryQ12",
+        "title": "Question 12 - title",
+        "instructions": "",
+        "spec": {
+          "ui": "range",
+          "options": [
+            {
+              "code": "answer1",
+              "text": "First answer"
+            },
+            {
+              "code": "answer2",
+              "text": "Second answer"
+            },
+            {
+              "code": "answer3",
+              "text": "Third answer"
+            }
+          ],
+          "allow_multiple": false
+        },
+        "survey_question_instruction": "",
+        "copyright_text": "",
+        "source": "",
+        "datatype": "range"
       },
       {
         "tag": "cde",

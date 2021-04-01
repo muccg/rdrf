@@ -1817,11 +1817,107 @@ describe("Component tests: A test App using Redux", () => {
         expect.stringContaining("Question 7")
       );
 
-      let answerBox: HTMLElement;
+      let numberBox: HTMLElement;
 
       expect(() => {
-        answerBox = screen.getByRole("textbox");
+        numberBox = screen.getByRole("textbox");
       }).not.toThrow();
+    });
+
+    it('can have an integer entered', () => {
+      const { rerender, asFragment } = render(
+        <Provider store={testStore}>
+          <App />
+        </Provider>
+      );
+
+      const numberBox = screen.getByRole("textbox");
+      const nextButton = screen.getByText("Next");
+      const prevButton = screen.getByText("Previous");
+
+      expect(numberBox.value).toEqual("");
+      expect(nextButton.disabled).toEqual(false);
+      expect(prevButton.disabled).toEqual(false);
+
+      fireEvent.change(numberBox, { target: { value: 3 } });
+      rerender(
+        <Provider store={testStore}>
+          <App />
+        </Provider>
+      );
+
+      expect(numberBox.value).toEqual("3");
+      expect(nextButton.disabled).toEqual(false);
+      expect(prevButton.disabled).toEqual(false);
+    });
+
+    it('cannot have a non-numeric character entered', () => {
+      const { rerender, asFragment } = render(
+        <Provider store={testStore}>
+          <App />
+        </Provider>
+      );
+
+      const numberBox = screen.getByRole("textbox");
+      const nextButton = screen.getByText("Next");
+      const prevButton = screen.getByText("Previous");
+
+      expect(numberBox.value).toEqual("3");
+      expect(nextButton.disabled).toEqual(false);
+      expect(prevButton.disabled).toEqual(false);
+
+      fireEvent.change(numberBox, { target: { value: 'a' } });
+      rerender(
+        <Provider store={testStore}>
+          <App />
+        </Provider>
+      );
+
+      expect(numberBox.value).toEqual("a");
+      // If the answer is not valid, the Next and Previous buttons are disabled
+      expect(nextButton.disabled).toEqual(true);
+      expect(prevButton.disabled).toEqual(true);
+
+      fireEvent.change(numberBox, { target: { value: 3 } });
+    });
+
+    it('cannot have a floating-point number entered', () => {
+      const { rerender, asFragment } = render(
+        <Provider store={testStore}>
+          <App />
+        </Provider>
+      );
+
+      const numberBox = screen.getByRole("textbox");
+      const nextButton = screen.getByText("Next");
+      const prevButton = screen.getByText("Previous");
+
+      expect(numberBox.value).toEqual("3");
+      expect(nextButton.disabled).toEqual(false);
+      expect(prevButton.disabled).toEqual(false);
+
+      fireEvent.change(numberBox, { target: { value: 3.5 } });
+      rerender(
+        <Provider store={testStore}>
+          <App />
+        </Provider>
+      );
+
+      expect(numberBox.value).toEqual("3.5");
+      // If the answer is not valid, the Next and Previous buttons are disabled
+      expect(nextButton.disabled).toEqual(true);
+      expect(prevButton.disabled).toEqual(true);
+
+      fireEvent.change(numberBox, { target: { value: 3 } });
+      rerender(
+        <Provider store={testStore}>
+          <App />
+        </Provider>
+      );
+
+      expect(numberBox.value).toEqual("3");
+      expect(nextButton.disabled).toEqual(false);
+      expect(prevButton.disabled).toEqual(false);
     });
   });
 
@@ -1843,6 +1939,44 @@ describe("Component tests: A test App using Redux", () => {
       expect(() => {
         slideWidget = screen.getByRole("slider");
       }).not.toThrow();
+
+      expect(screen.getByText("The worst", {exact: false}).innerHTML).toEqual(
+        expect.stringContaining("1")
+      );
+      expect(screen.getByText("The best", {exact: false}).innerHTML).toEqual(
+        expect.stringContaining("10")
+      );
+    });
+
+    // Can't fire events on the slider, so it's hard to test
+    // Can't get the attribute "aria-valuenow" from the widget
+    it('updates the value in the box when the slider is changed', () => {
+      const { rerender, asFragment } = render(
+        <Provider store={testStore}>
+          <App />
+        </Provider>
+      );
+
+      // const slideWidget = screen.getByRole("slider");
+      const textBox = screen.getByText("On a scale of 1 to 10:");
+
+      // expect(slideWidget.value).toBeUndefined();
+      expect(textBox.children[1].innerHTML).toEqual("");
+
+      // None of these work
+      // fireEvent.change(slideWidget, {target: {state: {value: 7}}});
+      // fireEvent.click(slideWidget.parentElement, {clientY: 250});
+      // fireEvent.change(slideWidget, {"ariaValueNow": "7"});
+      testStore.dispatch(actions.enterData({cde: "registryQ8", value: 7, isValid: true}));
+
+      rerender(
+        <Provider store={testStore}>
+          <App />
+        </Provider>
+      );
+
+      // expect(slideWidget.aria-valuenow).toEqual("7");
+      expect(textBox.children[1].innerHTML).toEqual("7");
     });
   });
 
@@ -1859,11 +1993,95 @@ describe("Component tests: A test App using Redux", () => {
         expect.stringContaining("Question 9")
       );
 
-      let answerBox: HTMLElement;
+      let floatBox: HTMLElement;
 
       expect(() => {
-        answerBox = screen.getByRole("textbox");
+        floatBox = screen.getByRole("textbox");
       }).not.toThrow();
+    });
+
+    it('can have an integer entered', () => {
+      const { rerender, asFragment } = render(
+        <Provider store={testStore}>
+          <App />
+        </Provider>
+      );
+
+      const floatBox = screen.getByRole("textbox");
+      const nextButton = screen.getByText("Next");
+      const prevButton = screen.getByText("Previous");
+
+      expect(floatBox.value).toEqual("");
+      expect(nextButton.disabled).toEqual(false);
+      expect(prevButton.disabled).toEqual(false);
+
+      fireEvent.change(floatBox, { target: { value: 3 } });
+      rerender(
+        <Provider store={testStore}>
+          <App />
+        </Provider>
+      );
+
+      expect(floatBox.value).toEqual("3");
+      expect(nextButton.disabled).toEqual(false);
+      expect(prevButton.disabled).toEqual(false);
+    });
+
+    it('can have a floating-point number entered', () => {
+      const { rerender, asFragment } = render(
+        <Provider store={testStore}>
+          <App />
+        </Provider>
+      );
+
+      const floatBox = screen.getByRole("textbox");
+      const nextButton = screen.getByText("Next");
+      const prevButton = screen.getByText("Previous");
+
+      expect(floatBox.value).toEqual("3");
+      expect(nextButton.disabled).toEqual(false);
+      expect(prevButton.disabled).toEqual(false);
+
+      fireEvent.change(floatBox, { target: { value: 3.5 } });
+      rerender(
+        <Provider store={testStore}>
+          <App />
+        </Provider>
+      );
+
+      expect(floatBox.value).toEqual("3.5");
+      expect(nextButton.disabled).toEqual(false);
+      expect(prevButton.disabled).toEqual(false);
+    });
+
+    it('cannot have a non-numeric character entered', () => {
+      const { rerender, asFragment } = render(
+        <Provider store={testStore}>
+          <App />
+        </Provider>
+      );
+
+      const floatBox = screen.getByRole("textbox");
+      const nextButton = screen.getByText("Next");
+      const prevButton = screen.getByText("Previous");
+
+      expect(floatBox.value).toEqual("3.5");
+      expect(nextButton.disabled).toEqual(false);
+      expect(prevButton.disabled).toEqual(false);
+
+      fireEvent.change(floatBox, { target: { value: 'a' } });
+      rerender(
+        <Provider store={testStore}>
+          <App />
+        </Provider>
+      );
+
+      expect(floatBox.value).toEqual("a");
+      // If the answer is not valid, the Next and Previous buttons are disabled
+      expect(nextButton.disabled).toEqual(true);
+      expect(prevButton.disabled).toEqual(true);
+
+      fireEvent.change(floatBox, { target: { value: 3.5 } });
     });
   });
   describe('Datatype tests: text', () => {
@@ -1884,6 +2102,55 @@ describe("Component tests: A test App using Redux", () => {
       expect(() => {
         answerBox = screen.getByRole("textbox");
       }).not.toThrow();
+    });
+
+    it('can have any text entered', () => {
+      const { rerender, asFragment } = render(
+        <Provider store={testStore}>
+          <App />
+        </Provider>
+      );
+
+      const answerBox = screen.getByRole("textbox");
+      const nextButton = screen.getByText("Next");
+      const prevButton = screen.getByText("Previous");
+
+      expect(answerBox.value).toEqual("");
+      expect(nextButton.disabled).toEqual(false);
+      expect(prevButton.disabled).toEqual(false);
+
+      fireEvent.change(answerBox, { target: { value: 'a' } });
+      rerender(
+        <Provider store={testStore}>
+          <App />
+        </Provider>
+      );
+
+      expect(answerBox.value).toEqual("a");
+      expect(nextButton.disabled).toEqual(false);
+      expect(prevButton.disabled).toEqual(false);
+
+      fireEvent.change(answerBox, { target: { value: 23 } });
+      rerender(
+        <Provider store={testStore}>
+          <App />
+        </Provider>
+      );
+
+      expect(answerBox.value).toEqual("23");
+      expect(nextButton.disabled).toEqual(false);
+      expect(prevButton.disabled).toEqual(false);
+
+      fireEvent.change(answerBox, { target: { value: 'here\'s a longer sentence' } });
+      rerender(
+        <Provider store={testStore}>
+          <App />
+        </Provider>
+      );
+
+      expect(answerBox.value).toEqual("here's a longer sentence");
+      expect(nextButton.disabled).toEqual(false);
+      expect(prevButton.disabled).toEqual(false);
     });
   });
   describe('Datatype tests: date', () => {
@@ -1908,10 +2175,14 @@ describe("Component tests: A test App using Redux", () => {
       }).not.toThrow();
       expect(dateBox.type).toEqual("date");
     });
+    it.todo('can have a date input in the YYYY-MM-DD format');
+    it.todo('cannot have a date input in other formats');
+    it.todo('cannot have a regular number input');
+    it.todo('cannot have a non-numeric character (besides "-") entered');
   });
   describe('Datatype tests: range', () => {
-    it('displays radio select options in Question 3', () => {
-      testStore.getState().stage = 2;
+    it('displays 3 unchecked radio select buttons in Question 12', () => {
+      testStore.getState().stage = 11;
       const { rerender, asFragment } = render(
         <Provider store={testStore}>
           <App />
@@ -1919,7 +2190,7 @@ describe("Component tests: A test App using Redux", () => {
       );
 
       expect(screen.getByText("title", { exact: false }).innerHTML).toEqual(
-        expect.stringContaining("Question 3")
+        expect.stringContaining("Question 12")
       );
 
       let radioButtons: HTMLElement[];
@@ -1927,10 +2198,56 @@ describe("Component tests: A test App using Redux", () => {
       expect(() => {
         radioButtons = screen.getAllByRole("radio");
       }).not.toThrow();
-
+      expect(radioButtons.length).toEqual(3);
       radioButtons.forEach((rButton) => {
           expect(rButton.type).toEqual("radio");
+          expect(rButton.checked).toEqual(false);
       });
+    });
+
+    it('selects a radio button when it is clicked', () => {
+      const { rerender, asFragment } = render(
+        <Provider store={testStore}>
+          <App />
+        </Provider>
+      );
+
+      const answer1Select = screen.getByLabelText("First answer");
+      
+      expect(answer1Select.checked).toEqual(false);
+
+      fireEvent.click(answer1Select);
+      rerender(
+        <Provider store={testStore}>
+          <App />
+        </Provider>
+      );
+
+      expect(answer1Select.checked).toEqual(true);
+    });
+
+    it('de-selects a checked radio button when another is clicked', () => {
+      const { rerender, asFragment } = render(
+        <Provider store={testStore}>
+          <App />
+        </Provider>
+      );
+
+      const answer1Select = screen.getByLabelText("First answer");
+      const answer2Select = screen.getByLabelText("Second answer");
+      
+      expect(answer1Select.checked).toEqual(true);
+      expect(answer2Select.checked).toEqual(false);
+
+      fireEvent.click(answer2Select);
+      rerender(
+        <Provider store={testStore}>
+          <App />
+        </Provider>
+      );
+
+      expect(answer1Select.checked).toEqual(false);
+      expect(answer2Select.checked).toEqual(true);
     });
   });
   describe('Datatype tests: multiselect', () => {
@@ -1989,228 +2306,238 @@ describe('Reducer tests: the state', () => {
     composeEnhancers(applyMiddleware(thunk))
   );
 
-  /*
-  * Test 1
-  */
-  it('can go to the next question from the first question', () => {
-    expect(testStore.getState().stage).toEqual(0);
-    testStore.dispatch(actions.goNext());
-    expect(testStore.getState().stage).toEqual(1);
+  describe('Basic tests', () => {
+    /*
+    * Test 1
+    */
+    it('can go to the next question from the first question', () => {
+      expect(testStore.getState().stage).toEqual(0);
+      testStore.dispatch(actions.goNext());
+      expect(testStore.getState().stage).toEqual(1);
+    });
+
+    /*
+    * Test 2
+    */
+    it('can go to the previous question from the second question', () => {
+      expect(testStore.getState().stage).toEqual(1);
+      testStore.dispatch(actions.goPrevious());
+      expect(testStore.getState().stage).toEqual(0);
+    });
   });
 
-  /*
-  * Test 2
-  */
-  it('can go to the previous question from the second question', () => {
-    expect(testStore.getState().stage).toEqual(1);
-    testStore.dispatch(actions.goPrevious());
-    expect(testStore.getState().stage).toEqual(0);
+  describe("Preconditional tests: 'or'", () => {
+    /*
+    * Test 3
+    */
+    it('only has three questions', () => {
+      expect(testStore.getState().questions.length).toEqual(3);
+    });
+
+    /*
+    * Test 4
+    */
+    it('can have data entered', () => {
+      expect(testStore.getState().answers).toStrictEqual({});
+      // console.log(testStore.getState().answers);
+      testStore.dispatch(actions.enterData({cde: "registryQ1", value: "answer1", isValid: true}));
+      expect(testStore.getState().answers).not.toEqual({});
+      // console.log(testStore.getState());
+    });
+
+    /*
+    * Test 5
+    */
+    it('has the third question (preconditional) available after entering data in the first question', () => {
+      expect(testStore.getState().questions.length).toEqual(4);
+    });
+
+    /*
+    * Test 6
+    */
+    it('has the third question remain available after changing data in the first question', () => {
+      expect(testStore.getState().questions[2].cde).toEqual("registryQ3");
+      expect(testStore.getState().answers).toHaveProperty("registryQ1");
+      expect(testStore.getState().answers[regQ1String]).toEqual("answer1");
+      expect(testStore.getState().questions.length).toEqual(4);
+      testStore.dispatch(actions.enterData({cde: "registryQ1", value: "answer2", isValid: true}));
+      expect(testStore.getState().questions[2].cde).toEqual("registryQ3");
+      expect(testStore.getState().answers).toHaveProperty("registryQ1");
+      expect(testStore.getState().answers[regQ1String]).not.toEqual("answer1");
+      expect(testStore.getState().questions.length).toEqual(4);
+    });
   });
 
-  /*
-  * Test 3
-  */
-  it('only has three questions', () => {
-    expect(testStore.getState().questions.length).toEqual(3);
+  describe("Preconditional tests: '='", () => {
+    /*
+    * Test 7
+    */
+    it('does not make the fourth question available if "Good" is answered in the third question', () => {
+      expect(testStore.getState().questions.length).toEqual(4);
+      expect(testStore.getState().questions[3].cde).toEqual("PROMSConsent");
+      testStore.dispatch(actions.enterData({cde: "registryQ3", value: "good_answer", isValid: true}));
+      expect(testStore.getState().questions.length).toEqual(4);
+      expect(testStore.getState().questions[3].cde).toEqual("PROMSConsent");
+    });
+
+    /*
+    * Test 8
+    */
+    it('does not make the fourth question available if "Not so good" is answered in the third question', () => {
+      expect(testStore.getState().questions.length).toEqual(4);
+      expect(testStore.getState().questions[3].cde).toEqual("PROMSConsent");
+      testStore.dispatch(actions.enterData({cde: "registryQ3", value: "not_good_answer", isValid: true}));
+      expect(testStore.getState().questions.length).toEqual(4);
+      expect(testStore.getState().questions[3].cde).toEqual("PROMSConsent");
+    });
+
+    /*
+    * Test 9
+    */
+    it('makes the fourth question available if "Bad" is answered in the third question', () => {
+      expect(testStore.getState().questions.length).toEqual(4);
+      expect(testStore.getState().questions[3].cde).toEqual("PROMSConsent");
+      testStore.dispatch(actions.enterData({cde: "registryQ3", value: "bad_answer", isValid: true}));
+      expect(testStore.getState().questions.length).toEqual(5);
+      expect(testStore.getState().questions[3].cde).toEqual("registryQ4");
+    });
   });
 
-  /*
-  * Test 4
-  */
-  it('can have data entered', () => {
-    expect(testStore.getState().answers).toStrictEqual({});
-    // console.log(testStore.getState().answers);
-    testStore.dispatch(actions.enterData({cde: "registryQ1", value: "answer1", isValid: true}));
-    expect(testStore.getState().answers).not.toEqual({});
-    // console.log(testStore.getState());
+  describe("Preconditional tests: 'contains'", () => {
+    /*
+    * Test 10
+    */
+    it('does not make the fifth question available if "Work is stressful" is selected in the fourth question', () => {
+      expect(testStore.getState().questions.length).toEqual(5);
+      expect(testStore.getState().questions[4].cde).toEqual("PROMSConsent");
+      expect(testStore.getState().answers[regQ4String]).toBeUndefined();
+      testStore.dispatch(actions.enterData({cde: "registryQ4", value: ["work_answer"], isValid: true}));
+      expect(testStore.getState().questions.length).toEqual(5);
+      expect(testStore.getState().questions[4].cde).toEqual("PROMSConsent");
+      expect(testStore.getState().answers[regQ4String]).toEqual(["work_answer"]);
+    });
+
+    /*
+    * Test 11
+    */
+    it('does not make the fifth question available if "Work is stressful" and "Can\'t see my friends" are selected in the fourth question', () => {
+      expect(testStore.getState().questions.length).toEqual(5);
+      expect(testStore.getState().questions[4].cde).toEqual("PROMSConsent");
+      expect(testStore.getState().answers[regQ4String]).toEqual(["work_answer"]);
+      testStore.dispatch(actions.enterData({cde: "registryQ4", value: ["work_answer", "friends_answer"], isValid: true}));
+      expect(testStore.getState().questions.length).toEqual(5);
+      expect(testStore.getState().questions[4].cde).toEqual("PROMSConsent");
+      expect(testStore.getState().answers[regQ4String]).toEqual(["work_answer", "friends_answer"]);
+    });
+
+    /*
+    * Test 12
+    */
+    it('does not make the fifth question available if "Can\'t see my friends" and "Just a bad day" are selected in the fourth question', () => {
+      expect(testStore.getState().questions.length).toEqual(5);
+      expect(testStore.getState().questions[4].cde).toEqual("PROMSConsent");
+      expect(testStore.getState().answers[regQ4String]).toEqual(["work_answer", "friends_answer"]);
+      testStore.dispatch(actions.enterData({cde: "registryQ4", value: ["friends_answer", "day_answer"], isValid: true}));
+      expect(testStore.getState().questions.length).toEqual(5);
+      expect(testStore.getState().questions[4].cde).toEqual("PROMSConsent");
+      expect(testStore.getState().answers[regQ4String]).toEqual(["friends_answer", "day_answer"]);
+    });
+
+    /*
+    * Test 13
+    */
+    it('makes the fifth question available if "React is difficult" is selected in the fourth question with any other answers', () => {
+      expect(testStore.getState().questions.length).toEqual(5);
+      expect(testStore.getState().questions[4].cde).toEqual("PROMSConsent");
+      expect(testStore.getState().answers[regQ4String]).toEqual(["friends_answer", "day_answer"]);
+      testStore.dispatch(actions.enterData({cde: "registryQ4", value: ["react_answer"], isValid: true}));
+      expect(testStore.getState().questions.length).toEqual(6);
+      expect(testStore.getState().questions[4].cde).toEqual("registryQ5");
+      expect(testStore.getState().answers[regQ4String]).toEqual(["react_answer"]);
+      testStore.dispatch(actions.enterData({cde: "registryQ4", value: ["react_answer", "day_answer"], isValid: true}));
+      expect(testStore.getState().questions.length).toEqual(6);
+      expect(testStore.getState().questions[4].cde).toEqual("registryQ5");
+      expect(testStore.getState().answers[regQ4String]).toEqual(["react_answer", "day_answer"]);
+      testStore.dispatch(actions.enterData({cde: "registryQ4", value: ["react_answer", "day_answer", "work_answer", "friends_answer"], isValid: true}));
+      expect(testStore.getState().questions.length).toEqual(6);
+      expect(testStore.getState().questions[4].cde).toEqual("registryQ5");
+      expect(testStore.getState().answers[regQ4String]).toEqual(["react_answer", "day_answer", "work_answer", "friends_answer"]);
+    });
   });
 
-  /*
-  * Test 5
-  */
-  it('has the third question (preconditional) available after entering data in the first question', () => {
-    expect(testStore.getState().questions.length).toEqual(4);
-  });
+  describe("Preconditional tests: 'intersection'", () => {
+    it('does not make the sixth question available if "It\'s hard to read" is selected in the fifth question', () => {
+      expect(testStore.getState().questions.length).toEqual(6);
+      expect(testStore.getState().questions[5].cde).toEqual("PROMSConsent");
+      expect(testStore.getState().answers[regQ5String]).toBeUndefined();
+      testStore.dispatch(actions.enterData({cde: regQ5String, value: ["hard_to_read"], isValid: true}));
+      expect(testStore.getState().questions.length).toEqual(6);
+      expect(testStore.getState().questions[5].cde).toEqual("PROMSConsent");
+      expect(testStore.getState().answers[regQ5String]).toEqual(["hard_to_read"]);
+    });
 
-  /*
-  * Test 6
-  */
-  it('has the third question remain available after changing data in the first question', () => {
-    expect(testStore.getState().questions[2].cde).toEqual("registryQ3");
-    expect(testStore.getState().answers).toHaveProperty("registryQ1");
-    expect(testStore.getState().answers[regQ1String]).toEqual("answer1");
-    expect(testStore.getState().questions.length).toEqual(4);
-    testStore.dispatch(actions.enterData({cde: "registryQ1", value: "answer2", isValid: true}));
-    expect(testStore.getState().questions[2].cde).toEqual("registryQ3");
-    expect(testStore.getState().answers).toHaveProperty("registryQ1");
-    expect(testStore.getState().answers[regQ1String]).not.toEqual("answer1");
-    expect(testStore.getState().questions.length).toEqual(4);
-  });
+    it('does not make the sixth question available if "It\'s hard to read" and "I don\'t understand it" are selected in the fifth question', () => {
+      expect(testStore.getState().questions.length).toEqual(6);
+      expect(testStore.getState().questions[5].cde).toEqual("PROMSConsent");
+      expect(testStore.getState().answers[regQ5String]).toEqual(["hard_to_read"]);
+      testStore.dispatch(actions.enterData({cde: regQ5String, value: ["hard_to_read", "zero_understanding"], isValid: true}));
+      expect(testStore.getState().questions.length).toEqual(6);
+      expect(testStore.getState().questions[5].cde).toEqual("PROMSConsent");
+      expect(testStore.getState().answers[regQ5String]).toEqual(["hard_to_read", "zero_understanding"]);
+    });
 
-  /*
-  * Test 7
-  */
-  it('does not make the fourth question available if "Good" is answered in the third question', () => {
-    expect(testStore.getState().questions.length).toEqual(4);
-    expect(testStore.getState().questions[3].cde).toEqual("PROMSConsent");
-    testStore.dispatch(actions.enterData({cde: "registryQ3", value: "good_answer", isValid: true}));
-    expect(testStore.getState().questions.length).toEqual(4);
-    expect(testStore.getState().questions[3].cde).toEqual("PROMSConsent");
-  });
+    it('makes the sixth question available if "It has too many dependencies" is selected with any other answer in the fifth question', () => {
+      expect(testStore.getState().questions.length).toEqual(6);
+      expect(testStore.getState().questions[5].cde).toEqual("PROMSConsent");
+      expect(testStore.getState().answers[regQ5String]).toEqual(["hard_to_read", "zero_understanding"]);
+      testStore.dispatch(actions.enterData({cde: regQ5String, value: ["too_many_deps"], isValid: true}));
+      expect(testStore.getState().questions.length).toEqual(7);
+      expect(testStore.getState().questions[5].cde).toEqual("registryQ6");
+      expect(testStore.getState().answers[regQ5String]).toEqual(["too_many_deps"]);
+      testStore.dispatch(actions.enterData({cde: regQ5String, value: ["too_many_deps", "hard_to_read"], isValid: true}));
+      expect(testStore.getState().questions.length).toEqual(7);
+      expect(testStore.getState().questions[5].cde).toEqual("registryQ6");
+      expect(testStore.getState().answers[regQ5String]).toEqual(["too_many_deps", "hard_to_read"]);
+      testStore.dispatch(actions.enterData({cde: regQ5String, value: ["too_many_deps", "hard_to_read", "zero_understanding"], isValid: true}));
+      expect(testStore.getState().questions.length).toEqual(7);
+      expect(testStore.getState().questions[5].cde).toEqual("registryQ6");
+      expect(testStore.getState().answers[regQ5String]).toEqual(["too_many_deps", "hard_to_read", "zero_understanding"]);
+      testStore.dispatch(actions.enterData({cde: regQ5String, value: ["hard_to_read", "zero_understanding"], isValid: true}));
+      expect(testStore.getState().questions.length).toEqual(6);
+      expect(testStore.getState().questions[5].cde).toEqual("PROMSConsent");
+      expect(testStore.getState().answers[regQ5String]).toEqual(["hard_to_read", "zero_understanding"]);
+    });
 
-  /*
-  * Test 8
-  */
-  it('does not make the fourth question available if "Not so good" is answered in the third question', () => {
-    expect(testStore.getState().questions.length).toEqual(4);
-    expect(testStore.getState().questions[3].cde).toEqual("PROMSConsent");
-    testStore.dispatch(actions.enterData({cde: "registryQ3", value: "not_good_answer", isValid: true}));
-    expect(testStore.getState().questions.length).toEqual(4);
-    expect(testStore.getState().questions[3].cde).toEqual("PROMSConsent");
-  });
+    it('makes the sixth question available if "It\'s made by Facebook" is selected with any other answer in the fifth question', () => {
+      expect(testStore.getState().questions.length).toEqual(6);
+      expect(testStore.getState().questions[5].cde).toEqual("PROMSConsent");
+      expect(testStore.getState().answers[regQ5String]).toEqual(["hard_to_read", "zero_understanding"]);
+      testStore.dispatch(actions.enterData({cde: regQ5String, value: ["by_fb"], isValid: true}));
+      expect(testStore.getState().questions.length).toEqual(7);
+      expect(testStore.getState().questions[5].cde).toEqual("registryQ6");
+      expect(testStore.getState().answers[regQ5String]).toEqual(["by_fb"]);
+      testStore.dispatch(actions.enterData({cde: regQ5String, value: ["by_fb", "hard_to_read"], isValid: true}));
+      expect(testStore.getState().questions.length).toEqual(7);
+      expect(testStore.getState().questions[5].cde).toEqual("registryQ6");
+      expect(testStore.getState().answers[regQ5String]).toEqual(["by_fb", "hard_to_read"]);
+      testStore.dispatch(actions.enterData({cde: regQ5String, value: ["by_fb", "hard_to_read", "zero_understanding"], isValid: true}));
+      expect(testStore.getState().questions.length).toEqual(7);
+      expect(testStore.getState().questions[5].cde).toEqual("registryQ6");
+      expect(testStore.getState().answers[regQ5String]).toEqual(["by_fb", "hard_to_read", "zero_understanding"]);
+      testStore.dispatch(actions.enterData({cde: regQ5String, value: ["hard_to_read", "zero_understanding"], isValid: true}));
+      expect(testStore.getState().questions.length).toEqual(6);
+      expect(testStore.getState().questions[5].cde).toEqual("PROMSConsent");
+      expect(testStore.getState().answers[regQ5String]).toEqual(["hard_to_read", "zero_understanding"]);
+    });
 
-  /*
-  * Test 9
-  */
-  it('makes the fourth question available if "Bad" is answered in the third question', () => {
-    expect(testStore.getState().questions.length).toEqual(4);
-    expect(testStore.getState().questions[3].cde).toEqual("PROMSConsent");
-    testStore.dispatch(actions.enterData({cde: "registryQ3", value: "bad_answer", isValid: true}));
-    expect(testStore.getState().questions.length).toEqual(5);
-    expect(testStore.getState().questions[3].cde).toEqual("registryQ4");
-  });
-
-  /*
-  * Test 10
-  */
-  it('does not make the fifth question available if "Work is stressful" is selected in the fourth question', () => {
-    expect(testStore.getState().questions.length).toEqual(5);
-    expect(testStore.getState().questions[4].cde).toEqual("PROMSConsent");
-    expect(testStore.getState().answers[regQ4String]).toBeUndefined();
-    testStore.dispatch(actions.enterData({cde: "registryQ4", value: ["work_answer"], isValid: true}));
-    expect(testStore.getState().questions.length).toEqual(5);
-    expect(testStore.getState().questions[4].cde).toEqual("PROMSConsent");
-    expect(testStore.getState().answers[regQ4String]).toEqual(["work_answer"]);
-  });
-
-  /*
-  * Test 11
-  */
-  it('does not make the fifth question available if "Work is stressful" and "Can\'t see my friends" are selected in the fourth question', () => {
-    expect(testStore.getState().questions.length).toEqual(5);
-    expect(testStore.getState().questions[4].cde).toEqual("PROMSConsent");
-    expect(testStore.getState().answers[regQ4String]).toEqual(["work_answer"]);
-    testStore.dispatch(actions.enterData({cde: "registryQ4", value: ["work_answer", "friends_answer"], isValid: true}));
-    expect(testStore.getState().questions.length).toEqual(5);
-    expect(testStore.getState().questions[4].cde).toEqual("PROMSConsent");
-    expect(testStore.getState().answers[regQ4String]).toEqual(["work_answer", "friends_answer"]);
-  });
-
-  /*
-  * Test 12
-  */
-  it('does not make the fifth question available if "Can\'t see my friends" and "Just a bad day" are selected in the fourth question', () => {
-    expect(testStore.getState().questions.length).toEqual(5);
-    expect(testStore.getState().questions[4].cde).toEqual("PROMSConsent");
-    expect(testStore.getState().answers[regQ4String]).toEqual(["work_answer", "friends_answer"]);
-    testStore.dispatch(actions.enterData({cde: "registryQ4", value: ["friends_answer", "day_answer"], isValid: true}));
-    expect(testStore.getState().questions.length).toEqual(5);
-    expect(testStore.getState().questions[4].cde).toEqual("PROMSConsent");
-    expect(testStore.getState().answers[regQ4String]).toEqual(["friends_answer", "day_answer"]);
-  });
-
-  /*
-  * Test 13
-  */
-  it('makes the fifth question available if "React is difficult" is selected in the fourth question with any other answers', () => {
-    expect(testStore.getState().questions.length).toEqual(5);
-    expect(testStore.getState().questions[4].cde).toEqual("PROMSConsent");
-    expect(testStore.getState().answers[regQ4String]).toEqual(["friends_answer", "day_answer"]);
-    testStore.dispatch(actions.enterData({cde: "registryQ4", value: ["react_answer"], isValid: true}));
-    expect(testStore.getState().questions.length).toEqual(6);
-    expect(testStore.getState().questions[4].cde).toEqual("registryQ5");
-    expect(testStore.getState().answers[regQ4String]).toEqual(["react_answer"]);
-    testStore.dispatch(actions.enterData({cde: "registryQ4", value: ["react_answer", "day_answer"], isValid: true}));
-    expect(testStore.getState().questions.length).toEqual(6);
-    expect(testStore.getState().questions[4].cde).toEqual("registryQ5");
-    expect(testStore.getState().answers[regQ4String]).toEqual(["react_answer", "day_answer"]);
-    testStore.dispatch(actions.enterData({cde: "registryQ4", value: ["react_answer", "day_answer", "work_answer", "friends_answer"], isValid: true}));
-    expect(testStore.getState().questions.length).toEqual(6);
-    expect(testStore.getState().questions[4].cde).toEqual("registryQ5");
-    expect(testStore.getState().answers[regQ4String]).toEqual(["react_answer", "day_answer", "work_answer", "friends_answer"]);
-  });
-
-  it('does not make the sixth question available if "It\'s hard to read" is selected in the fifth question', () => {
-    expect(testStore.getState().questions.length).toEqual(6);
-    expect(testStore.getState().questions[5].cde).toEqual("PROMSConsent");
-    expect(testStore.getState().answers[regQ5String]).toBeUndefined();
-    testStore.dispatch(actions.enterData({cde: regQ5String, value: ["hard_to_read"], isValid: true}));
-    expect(testStore.getState().questions.length).toEqual(6);
-    expect(testStore.getState().questions[5].cde).toEqual("PROMSConsent");
-    expect(testStore.getState().answers[regQ5String]).toEqual(["hard_to_read"]);
-  });
-
-  it('does not make the sixth question available if "It\'s hard to read" and "I don\'t understand it" are selected in the fifth question', () => {
-    expect(testStore.getState().questions.length).toEqual(6);
-    expect(testStore.getState().questions[5].cde).toEqual("PROMSConsent");
-    expect(testStore.getState().answers[regQ5String]).toEqual(["hard_to_read"]);
-    testStore.dispatch(actions.enterData({cde: regQ5String, value: ["hard_to_read", "zero_understanding"], isValid: true}));
-    expect(testStore.getState().questions.length).toEqual(6);
-    expect(testStore.getState().questions[5].cde).toEqual("PROMSConsent");
-    expect(testStore.getState().answers[regQ5String]).toEqual(["hard_to_read", "zero_understanding"]);
-  });
-
-  it('makes the sixth question available if "It has too many dependencies" is selected with any other answer in the fifth question', () => {
-    expect(testStore.getState().questions.length).toEqual(6);
-    expect(testStore.getState().questions[5].cde).toEqual("PROMSConsent");
-    expect(testStore.getState().answers[regQ5String]).toEqual(["hard_to_read", "zero_understanding"]);
-    testStore.dispatch(actions.enterData({cde: regQ5String, value: ["too_many_deps"], isValid: true}));
-    expect(testStore.getState().questions.length).toEqual(7);
-    expect(testStore.getState().questions[5].cde).toEqual("registryQ6");
-    expect(testStore.getState().answers[regQ5String]).toEqual(["too_many_deps"]);
-    testStore.dispatch(actions.enterData({cde: regQ5String, value: ["too_many_deps", "hard_to_read"], isValid: true}));
-    expect(testStore.getState().questions.length).toEqual(7);
-    expect(testStore.getState().questions[5].cde).toEqual("registryQ6");
-    expect(testStore.getState().answers[regQ5String]).toEqual(["too_many_deps", "hard_to_read"]);
-    testStore.dispatch(actions.enterData({cde: regQ5String, value: ["too_many_deps", "hard_to_read", "zero_understanding"], isValid: true}));
-    expect(testStore.getState().questions.length).toEqual(7);
-    expect(testStore.getState().questions[5].cde).toEqual("registryQ6");
-    expect(testStore.getState().answers[regQ5String]).toEqual(["too_many_deps", "hard_to_read", "zero_understanding"]);
-    testStore.dispatch(actions.enterData({cde: regQ5String, value: ["hard_to_read", "zero_understanding"], isValid: true}));
-    expect(testStore.getState().questions.length).toEqual(6);
-    expect(testStore.getState().questions[5].cde).toEqual("PROMSConsent");
-    expect(testStore.getState().answers[regQ5String]).toEqual(["hard_to_read", "zero_understanding"]);
-  });
-
-  it('makes the sixth question available if "It\'s made by Facebook" is selected with any other answer in the fifth question', () => {
-    expect(testStore.getState().questions.length).toEqual(6);
-    expect(testStore.getState().questions[5].cde).toEqual("PROMSConsent");
-    expect(testStore.getState().answers[regQ5String]).toEqual(["hard_to_read", "zero_understanding"]);
-    testStore.dispatch(actions.enterData({cde: regQ5String, value: ["by_fb"], isValid: true}));
-    expect(testStore.getState().questions.length).toEqual(7);
-    expect(testStore.getState().questions[5].cde).toEqual("registryQ6");
-    expect(testStore.getState().answers[regQ5String]).toEqual(["by_fb"]);
-    testStore.dispatch(actions.enterData({cde: regQ5String, value: ["by_fb", "hard_to_read"], isValid: true}));
-    expect(testStore.getState().questions.length).toEqual(7);
-    expect(testStore.getState().questions[5].cde).toEqual("registryQ6");
-    expect(testStore.getState().answers[regQ5String]).toEqual(["by_fb", "hard_to_read"]);
-    testStore.dispatch(actions.enterData({cde: regQ5String, value: ["by_fb", "hard_to_read", "zero_understanding"], isValid: true}));
-    expect(testStore.getState().questions.length).toEqual(7);
-    expect(testStore.getState().questions[5].cde).toEqual("registryQ6");
-    expect(testStore.getState().answers[regQ5String]).toEqual(["by_fb", "hard_to_read", "zero_understanding"]);
-    testStore.dispatch(actions.enterData({cde: regQ5String, value: ["hard_to_read", "zero_understanding"], isValid: true}));
-    expect(testStore.getState().questions.length).toEqual(6);
-    expect(testStore.getState().questions[5].cde).toEqual("PROMSConsent");
-    expect(testStore.getState().answers[regQ5String]).toEqual(["hard_to_read", "zero_understanding"]);
-  });
-
-  it('makes the sixth question available if "It has too many dependencies" and "It\'s made by Facebook" are selected in the fifth question', () => {
-    expect(testStore.getState().questions.length).toEqual(6);
-    expect(testStore.getState().questions[5].cde).toEqual("PROMSConsent");
-    expect(testStore.getState().answers[regQ5String]).toEqual(["hard_to_read", "zero_understanding"]);
-    testStore.dispatch(actions.enterData({cde: regQ5String, value: ["too_many_deps", "by_fb"], isValid: true}));
-    expect(testStore.getState().questions.length).toEqual(7);
-    expect(testStore.getState().questions[5].cde).toEqual("registryQ6");
-    expect(testStore.getState().answers[regQ5String]).toEqual(["too_many_deps", "by_fb"]);
+    it('makes the sixth question available if "It has too many dependencies" and "It\'s made by Facebook" are selected in the fifth question', () => {
+      expect(testStore.getState().questions.length).toEqual(6);
+      expect(testStore.getState().questions[5].cde).toEqual("PROMSConsent");
+      expect(testStore.getState().answers[regQ5String]).toEqual(["hard_to_read", "zero_understanding"]);
+      testStore.dispatch(actions.enterData({cde: regQ5String, value: ["too_many_deps", "by_fb"], isValid: true}));
+      expect(testStore.getState().questions.length).toEqual(7);
+      expect(testStore.getState().questions[5].cde).toEqual("registryQ6");
+      expect(testStore.getState().answers[regQ5String]).toEqual(["too_many_deps", "by_fb"]);
+    });
   });
 });
