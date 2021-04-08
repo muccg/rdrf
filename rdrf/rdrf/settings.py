@@ -292,6 +292,7 @@ RDRF_AUTH_LDAP_USER_SEARCH_ATTR = ldap_config.get("rdrf_auth_ldap_user_search_at
 # LDAP auth middleware env variables.
 
 # LDAP connection variables
+AUTH_LDAP_START_TLS = ldap_config.get("auth_ldap_start_tls", False)
 AUTH_LDAP_SERVER_URI = ldap_config.get("auth_ldap_server_uri", DEV_LDAP_URL)
 AUTH_LDAP_BIND_DN = ldap_config.get("auth_ldap_bind_dn", DEV_LDAP_DN)
 AUTH_LDAP_BIND_PASSWORD = ldap_config.get("auth_ldap_bind_password", DEV_LDAP_PASSWORD)
