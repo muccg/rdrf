@@ -18,5 +18,6 @@ sudo chown 1000:1000 data/
 ./develop.sh check-migrations
 ./develop.sh run-unittests
 ./develop.sh aloe teststack
+./develop.sh run "" node test
 ./develop.sh run build lint
 ./develop.sh run "" node lint
