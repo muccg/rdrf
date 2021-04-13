@@ -37,6 +37,14 @@ if [ "$1" = 'lint' ]; then
     exit $?
 fi
 
+if [ "$1" = 'test' ]; then
+    info "[Run] Test the React components"
+    
+    yarn install
+    CI=true npm test
+    
+    exit $?
+fi
 
 info "[RUN]: Builtin command not provided [build|lint|watch]"
 info "[RUN]: $*"
