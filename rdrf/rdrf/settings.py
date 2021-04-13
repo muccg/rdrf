@@ -349,12 +349,15 @@ if RDRF_LDAP_ENABLED:
 
 if RDRF_LDAP_ENABLED:
     if RDRF_SECURE_LDAP_REQUIRED:
+
         AUTH_LDAP_GLOBAL_OPTIONS = {
             ldap.OPT_X_TLS_CACERTFILE: ldap_config.get("LDAP_CACERTFILE", ""),
             ldap.OPT_X_TLS_CACERTDIR: ldap_config.get("LDAP_CACERTDIR", "/ldap-config"),
             ldap.OPT_X_TLS_CERTFILE: ldap_config.get("LDAP_CERTFILE", ""),
-            ldap.OPT_X_TLS_KEYFILE: ldap_config.get("LDAP_KEYFILE", "")
+            ldap.OPT_X_TLS_KEYFILE: ldap_config.get("LDAP_KEYFILE", ""),
+            ldap.OPT_X_TLS_REQUIRE_CERT: ldap_config.get("LDAP_REQUIRE_CERT", ldap.OPT_X_TLS_DEMAND)
         }
+
 
 # email
 EMAIL_USE_TLS = env.get("email_use_tls", False)
