@@ -241,10 +241,6 @@ class LDAPConfigLookup:
 
 RDRF_LDAP_CONFIG_FILE = env.get("RDRF_LDAP_CONFIG_FILE", "")
 ldap_config = LDAPConfigLookup(env, RDRF_LDAP_CONFIG_FILE)
-LDAP_TRACE_LEVEL = ldap_config.get("LDAP_TRACE_LEVEL", 0)
-
-ldap.set_option(ldap.OPT_DEBUG_LEVEL, ldap_config.get("LDAP_DEBUG_LEVEL", 4095))
-
 
 RDRF_LDAP_ENABLED = ldap_config.get("rdrf_ldap_enabled", False)
 RDRF_LDAP_DEBUG = ldap_config.get("rdrf_ldap_debug", False)
