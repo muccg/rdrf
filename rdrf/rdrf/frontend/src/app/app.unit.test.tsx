@@ -2741,16 +2741,13 @@ describe('Action tests: the app', () => {
 
 /* Another test with problems - the payload contains what appears to be an Event, but has
  * nothing defined. Additionally, it's not clear where this event comes from.
- ****************************************************************************************
+ ****************************************************************************************/
   it('fires the submitAnswers action when the "Submit" button is clicked on the last page', (done) => {
     const numStages = testStore.getState().questions.length;
-    testStore.getState().stage = numStages - 1;
-
-    const nullEvent = new Event("null");
+    testStore.getState().stage = numStages - 1
 
     const expectedActions = [
       {
-        //"payload": nullEvent,
         "type": "PROMS_SUBMIT"
       }
     ];
@@ -2764,12 +2761,9 @@ describe('Action tests: the app', () => {
 
     const submitButton = screen.getByText("Submit Answers");
     fireEvent.click(submitButton);
-    console.log(new Event("null"));
     moxios.wait(() => {
-      console.log(moxios.requests.mostRecent());
-      expect(actionList).toEqual(expectedActions);
+      expect(actionList[0].type).toEqual(expectedActions[0].type);
       done();
     });
   });
-*/
 });
