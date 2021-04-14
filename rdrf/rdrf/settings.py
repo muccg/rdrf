@@ -352,11 +352,11 @@ if RDRF_LDAP_ENABLED:
             ldap.OPT_X_TLS_CACERTFILE: ldap_config.get("LDAP_CACERTFILE", ""),
             ldap.OPT_X_TLS_CACERTDIR: ldap_config.get("LDAP_CACERTDIR", "/certs"),
             ldap.OPT_X_TLS_REQUIRE_CERT: ldap_config.get("LDAP_REQUIRE_CERT", ldap.OPT_X_TLS_NEVER),
-            ldap.OPT_X_DEBUG_LEVEL: ldap_config.get("LDAP_DEBUG_LEVEL", 0)
         }
 
         AUTH_LDAP_CONNECTION_OPTIONS = {ldap.OPT_REFERRALS: ldap_config.get("LDAP_OPT_REFERRALS", 0),
                                         ldap.OPT_PROTOCOL_VERSION: ldap_config.get("LDAP_PROTOCOL_VERSION", ldap.VERSION3),
+                                        ldap.OPT_DEBUG_LEVEL: ldap_config.get("LDAP_DEBUG_LEVEL", 4095),
                                         ldap.OPT_X_TLS_NEWCTX: 0}
 
 
