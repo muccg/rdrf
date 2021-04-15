@@ -2750,6 +2750,77 @@ describe('Action tests: the app', () => {
     fireEvent.change(answerBox, { target: { value: 12345 } });
 
     expect(actionList).toEqual(expectedActions);
+
+    // Need to add in answer to display preconditional questions
+    testStore.dispatch(actions.enterData({cde: "registryQ6", value: "typetest", isValid: true}));
+  });
+
+  it('fires the enterData action when a slider widget is clicked', () => {
+    testStore.getState().stage = 6;
+
+    const expectedActions = [
+      {
+        "payload": {
+          "cde": "registryQ8",
+          "value": null,  // An action is fired when the page first renders
+          "isValid": true
+        },
+        "type": "PROMS_ENTER_DATA"
+      },
+      {
+        "payload": {
+          "cde": "registryQ8",
+          "value": 7,
+          "isValid": true
+        },
+        "type": "PROMS_ENTER_DATA"
+      },
+      {
+        "payload": {
+          "cde": "registryQ8",
+          "value": 10,
+          "isValid": true
+        },
+        "type": "PROMS_ENTER_DATA"
+      },
+      {
+        "payload": {
+          "cde": "registryQ8",
+          "value": 4,
+          "isValid": true
+        },
+        "type": "PROMS_ENTER_DATA"
+      }
+    ];
+
+    const { rerender, asFragment } = render(
+      <Provider store={testStore}>
+        <App />
+      </Provider>
+    );
+
+    const slideWidget = screen.getByRole("slider").parentElement;
+
+    // Mocking the slider dimensions
+    slideWidget.getBoundingClientRect = jest.fn(() => {
+      return {
+        bottom: 300,
+        height: 100,
+        left: 10,
+        right: 20,
+        top: 200,
+        width: 10,
+        x: 50,
+        y: 250,
+        toJSON: null
+      };
+    });
+
+    fireEvent.mouseDown(slideWidget, {clientX: 55, clientY: 230});
+    fireEvent.mouseDown(slideWidget, {clientX: 55, clientY: 200});
+    fireEvent.mouseDown(slideWidget, {clientX: 55, clientY: 260});
+
+    expect(actionList).toEqual(expectedActions);
   });
 
 /* Another test with problems - the payload contains what appears to be an Event, but has
