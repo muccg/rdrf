@@ -2767,3 +2767,278 @@ describe('Action tests: the app', () => {
     });
   });
 });
+
+describe('Navigational tests: the app', () => {
+  const testStore = createStore(
+    actions.promsPageReducer,
+    composeEnhancers(applyMiddleware(thunk))
+  );
+
+  it('retains radio select answers when returning to question', () => {
+    const { rerender, asFragment } = render(
+      <Provider store={testStore}>
+        <App />
+      </Provider>
+    );
+    expect(screen.getByText("title", { exact: false }).innerHTML).toEqual(
+      expect.stringContaining("Question 1")
+    );
+
+    const nextButton = screen.getByText("Next");
+    const prevButton = screen.getByText("Previous");
+    let answer1Select = screen.getByLabelText("Answer 1", { exact: false });
+    let answer2Select = screen.getByLabelText("Answer 2", { exact: false });
+
+    expect(nextButton.disabled).toEqual(false);
+    expect(prevButton.disabled).toEqual(true);
+    expect(answer1Select.checked).toEqual(false);
+    expect(answer2Select.checked).toEqual(false);
+
+    fireEvent.click(answer1Select);
+    rerender(
+      <Provider store={testStore}>
+        <App />
+      </Provider>
+    );
+
+    expect(answer1Select.checked).toEqual(true);
+    expect(answer2Select.checked).toEqual(false);
+
+    fireEvent.click(nextButton);
+    rerender(
+      <Provider store={testStore}>
+        <App />
+      </Provider>
+    );
+
+    expect(screen.getByText("title", { exact: false }).innerHTML).toEqual(
+      expect.stringContaining("Question 2")
+    );
+    expect(nextButton.disabled).toEqual(false);
+    expect(prevButton.disabled).toEqual(false);
+
+    fireEvent.click(prevButton);
+    rerender(
+      <Provider store={testStore}>
+        <App />
+      </Provider>
+    );
+
+    expect(screen.getByText("title", { exact: false }).innerHTML).toEqual(
+      expect.stringContaining("Question 1")
+    );
+    answer1Select = screen.getByLabelText("Answer 1", { exact: false });
+    answer2Select = screen.getByLabelText("Answer 2", { exact: false });
+    expect(answer1Select.checked).toEqual(true);
+    expect(answer2Select.checked).toEqual(false);
+  });
+
+  it('retains multiselect answers when returning to question', () => {
+    // Need to add in answer to display preconditional questions
+    testStore.dispatch(actions.enterData({cde: "registryQ3", value: "bad_answer", isValid: true}));
+    testStore.getState().stage = 3;
+
+    const { rerender, asFragment } = render(
+      <Provider store={testStore}>
+        <App />
+      </Provider>
+    );
+    expect(screen.getByText("title", { exact: false }).innerHTML).toEqual(
+      expect.stringContaining("Question 4")
+    );
+
+    const nextButton = screen.getByText("Next");
+    const prevButton = screen.getByText("Previous");
+    let workSelect = screen.getByLabelText("Work is stressful");
+    let friendsSelect = screen.getByLabelText("Can't see my friends");
+    let reactSelect = screen.getByLabelText("React is difficult");
+    let daySelect = screen.getByLabelText("Just a bad day");
+
+    expect(workSelect.checked).toEqual(false);
+    expect(friendsSelect.checked).toEqual(false);
+    expect(reactSelect.checked).toEqual(false);
+    expect(daySelect.checked).toEqual(false);
+
+    fireEvent.click(workSelect);
+    fireEvent.click(reactSelect);
+    rerender(
+      <Provider store={testStore}>
+        <App />
+      </Provider>
+    );
+
+    expect(workSelect.checked).toEqual(true);
+    expect(friendsSelect.checked).toEqual(false);
+    expect(reactSelect.checked).toEqual(true);
+    expect(daySelect.checked).toEqual(false);    
+
+    fireEvent.click(nextButton);
+    rerender(
+      <Provider store={testStore}>
+        <App />
+      </Provider>
+    );
+
+    expect(screen.getByText("title", { exact: false }).innerHTML).toEqual(
+      expect.stringContaining("Question 5")
+    );
+
+    fireEvent.click(prevButton);
+    rerender(
+      <Provider store={testStore}>
+        <App />
+      </Provider>
+    );
+
+    expect(screen.getByText("title", { exact: false }).innerHTML).toEqual(
+      expect.stringContaining("Question 4")
+    );
+    
+    workSelect = screen.getByLabelText("Work is stressful");
+    friendsSelect = screen.getByLabelText("Can't see my friends");
+    reactSelect = screen.getByLabelText("React is difficult");
+    daySelect = screen.getByLabelText("Just a bad day");
+    expect(workSelect.checked).toEqual(true);
+    expect(friendsSelect.checked).toEqual(false);
+    expect(reactSelect.checked).toEqual(true);
+    expect(daySelect.checked).toEqual(false);
+  });
+
+  it('retains integer answers when returning to question', () => {
+    // Need to add in answer to display preconditional questions
+    testStore.dispatch(actions.enterData({cde: "registryQ5", value: ["by_fb"], isValid: true}));
+    testStore.dispatch(actions.enterData({cde: "registryQ6", value: "typetest", isValid: true}))
+    testStore.getState().stage = 6;
+
+    const { rerender, asFragment } = render(
+      <Provider store={testStore}>
+        <App />
+      </Provider>
+    );
+    expect(screen.getByText("title", { exact: false }).innerHTML).toEqual(
+      expect.stringContaining("Question 7")
+    );
+
+    const nextButton = screen.getByText("Next");
+    const prevButton = screen.getByText("Previous");
+    let numBox = screen.getByRole("textbox");
+
+    expect(nextButton.disabled).toEqual(false);
+    expect(prevButton.disabled).toEqual(false);
+    expect(numBox.value).toEqual("");
+
+    fireEvent.change(numBox, { target: { value: 99 } });
+    rerender(
+      <Provider store={testStore}>
+        <App />
+      </Provider>
+    );
+
+    expect(numBox.value).toEqual("99");
+
+    fireEvent.click(prevButton);
+    rerender(
+      <Provider store={testStore}>
+        <App />
+      </Provider>
+    );
+
+    expect(screen.getByText("title", { exact: false }).innerHTML).toEqual(
+      expect.stringContaining("Question 6")
+    );
+
+    fireEvent.click(nextButton);
+    rerender(
+      <Provider store={testStore}>
+        <App />
+      </Provider>
+    );
+
+    expect(screen.getByText("title", { exact: false }).innerHTML).toEqual(
+      expect.stringContaining("Question 7")
+    );
+    numBox = screen.getByRole("textbox");
+    expect(numBox.value).toEqual("99");
+  });
+
+  it('retains slider widget answers when returning to question', () => {
+    testStore.getState().stage = 7;
+    const { rerender, asFragment } = render(
+      <Provider store={testStore}>
+        <App />
+      </Provider>
+    );
+
+    expect(screen.getByText("title", { exact: false }).innerHTML).toEqual(
+      expect.stringContaining("Question 8")
+    );
+
+    /*
+    const nextButton = screen.getByText("Next");
+    const prevButton = screen.getByText("Previous");
+    let slideWidget = screen.getByRole("slider").parentElement;
+    let slideHandle = screen.getByRole("slider");
+
+    expect(nextButton.disabled).toEqual(false);
+    expect(prevButton.disabled).toEqual(false);
+    expect(slideHandle.getAttribute("aria-valuenow")).toEqual(null);
+
+    */
+  })
+
+  it('retains text answers when returning to question', () => {
+    testStore.getState().stage = 1;
+
+    const { rerender, asFragment } = render(
+      <Provider store={testStore}>
+        <App />
+      </Provider>
+    );
+    expect(screen.getByText("title", { exact: false }).innerHTML).toEqual(
+      expect.stringContaining("Question 2")
+    );
+
+    const nextButton = screen.getByText("Next");
+    const prevButton = screen.getByText("Previous");
+    let textBox = screen.getByRole("textbox");
+
+    expect(nextButton.disabled).toEqual(false);
+    expect(prevButton.disabled).toEqual(false);
+    expect(textBox.value).toEqual("");
+
+    fireEvent.change(textBox, { target: { value: "Hello world!" } });
+    rerender(
+      <Provider store={testStore}>
+        <App />
+      </Provider>
+    );
+
+    expect(textBox.value).toEqual("Hello world!");
+
+    fireEvent.click(prevButton);
+    rerender(
+      <Provider store={testStore}>
+        <App />
+      </Provider>
+    );
+
+    expect(screen.getByText("title", { exact: false }).innerHTML).toEqual(
+      expect.stringContaining("Question 1")
+    );
+    expect(nextButton.disabled).toEqual(false);
+    expect(prevButton.disabled).toEqual(true);
+
+    fireEvent.click(nextButton);
+    rerender(
+      <Provider store={testStore}>
+        <App />
+      </Provider>
+    );
+
+    expect(screen.getByText("title", { exact: false }).innerHTML).toEqual(
+      expect.stringContaining("Question 2")
+    );
+    textBox = screen.getByRole("textbox");
+    expect(textBox.value).toEqual("Hello world!");
+  });
+});
