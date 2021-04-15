@@ -20,6 +20,12 @@ const regQ1String = "registryQ1";
 const regQ4String = "registryQ4";
 const regQ5String = "registryQ5";
 
+let actionList = [];
+const captureAction = state => next => action => {
+  actionList.push(action);
+  return next(action);
+};
+
 describe("An empty App component", () => {
   // const newApp = <App />;
   // Constructed like this because of the way App is exported - the class is wrapped
@@ -81,8 +87,12 @@ describe("An empty App component", () => {
 describe("Component tests: A test App using Redux", () => {
   const testStore = createStore(
     actions.promsPageReducer,
-    composeEnhancers(applyMiddleware(thunk))
+    composeEnhancers(applyMiddleware(thunk, captureAction))
   );
+
+  beforeEach(() => {
+    actionList = [];
+  });
 
   describe("Basic tests", () => {
       /*
@@ -1949,8 +1959,6 @@ describe("Component tests: A test App using Redux", () => {
       );
     });
 
-    // Can't fire events on the slider, so it's hard to test
-    // Can't get the attribute "aria-valuenow" from the widget
     it('updates the value in the box when the slider is changed', () => {
       const { rerender, asFragment } = render(
         <Provider store={testStore}>
@@ -1958,17 +1966,29 @@ describe("Component tests: A test App using Redux", () => {
         </Provider>
       );
 
-      // const slideWidget = screen.getByRole("slider");
+      const slideWidget = screen.getByRole("slider").parentElement; // Entire slider widget
+      const slideHandle = screen.getByRole("slider"); // Slider handle
       const textBox = screen.getByText("On a scale of 1 to 10:");
 
-      // expect(slideWidget.value).toBeUndefined();
+      expect(slideHandle.getAttribute("aria-valuenow")).toEqual(null);
       expect(textBox.children[1].innerHTML).toEqual("");
 
-      // None of these work
-      // fireEvent.change(slideWidget, {target: {state: {value: 7}}});
-      // fireEvent.click(slideWidget.parentElement, {clientY: 250});
-      // fireEvent.change(slideWidget, {"ariaValueNow": "7"});
-      testStore.dispatch(actions.enterData({cde: "registryQ8", value: 7, isValid: true}));
+      // Mocking the slider dimensions
+      slideWidget.getBoundingClientRect = jest.fn(() => {
+        return {
+          bottom: 300,
+          height: 100,
+          left: 10,
+          right: 20,
+          top: 200,
+          width: 10,
+          x: 50,
+          y: 250,
+          toJSON: null
+        };
+      });
+
+      fireEvent.mouseDown(slideWidget, {clientX: 55, clientY: 230});
 
       rerender(
         <Provider store={testStore}>
@@ -1976,7 +1996,7 @@ describe("Component tests: A test App using Redux", () => {
         </Provider>
       );
 
-      // expect(slideWidget.aria-valuenow).toEqual("7");
+      expect(slideHandle.getAttribute("aria-valuenow")).toEqual("7");
       expect(textBox.children[1].innerHTML).toEqual("7");
     });
   });
@@ -2550,13 +2570,6 @@ describe('Reducer tests: the state', () => {
 
 // Testing actions by adding middleware to regular stores capture them
 describe('Action tests: the app', () => {
-  let actionList = [];
-
-  const captureAction = state => next => action => {
-    actionList.push(action);
-    return next(action);
-  };
-
   const testStore = createStore(
     actions.promsPageReducer,
     composeEnhancers(applyMiddleware(thunk, captureAction))
@@ -2735,6 +2748,77 @@ describe('Action tests: the app', () => {
     fireEvent.change(answerBox, { target: { value: 'blah' } });
     fireEvent.change(answerBox, { target: { value: 'Hello world' } });
     fireEvent.change(answerBox, { target: { value: 12345 } });
+
+    expect(actionList).toEqual(expectedActions);
+
+    // Need to add in answer to display preconditional questions
+    testStore.dispatch(actions.enterData({cde: "registryQ6", value: "typetest", isValid: true}));
+  });
+
+  it('fires the enterData action when a slider widget is clicked', () => {
+    testStore.getState().stage = 6;
+
+    const expectedActions = [
+      {
+        "payload": {
+          "cde": "registryQ8",
+          "value": null,  // An action is fired when the page first renders
+          "isValid": true
+        },
+        "type": "PROMS_ENTER_DATA"
+      },
+      {
+        "payload": {
+          "cde": "registryQ8",
+          "value": 7,
+          "isValid": true
+        },
+        "type": "PROMS_ENTER_DATA"
+      },
+      {
+        "payload": {
+          "cde": "registryQ8",
+          "value": 10,
+          "isValid": true
+        },
+        "type": "PROMS_ENTER_DATA"
+      },
+      {
+        "payload": {
+          "cde": "registryQ8",
+          "value": 4,
+          "isValid": true
+        },
+        "type": "PROMS_ENTER_DATA"
+      }
+    ];
+
+    const { rerender, asFragment } = render(
+      <Provider store={testStore}>
+        <App />
+      </Provider>
+    );
+
+    const slideWidget = screen.getByRole("slider").parentElement;
+
+    // Mocking the slider dimensions
+    slideWidget.getBoundingClientRect = jest.fn(() => {
+      return {
+        bottom: 300,
+        height: 100,
+        left: 10,
+        right: 20,
+        top: 200,
+        width: 10,
+        x: 50,
+        y: 250,
+        toJSON: null
+      };
+    });
+
+    fireEvent.mouseDown(slideWidget, {clientX: 55, clientY: 230});
+    fireEvent.mouseDown(slideWidget, {clientX: 55, clientY: 200});
+    fireEvent.mouseDown(slideWidget, {clientX: 55, clientY: 260});
 
     expect(actionList).toEqual(expectedActions);
   });
