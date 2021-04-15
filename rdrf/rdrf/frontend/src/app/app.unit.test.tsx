@@ -3,6 +3,7 @@ import { render, screen, fireEvent } from "@testing-library/react";
 import { Provider } from "react-redux";
 import { applyMiddleware, compose, createStore } from "redux";
 import thunk from "redux-thunk";
+import moxios from "moxios";
 import * as actions from "../pages/proms_page/reducers";
 import App from "./index";
 
@@ -2084,6 +2085,7 @@ describe("Component tests: A test App using Redux", () => {
       fireEvent.change(floatBox, { target: { value: 3.5 } });
     });
   });
+
   describe('Datatype tests: text', () => {
     it('displays a textbox in Question 2', () => {
       testStore.getState().stage = 1;
@@ -2153,6 +2155,7 @@ describe("Component tests: A test App using Redux", () => {
       expect(prevButton.disabled).toEqual(false);
     });
   });
+
   describe('Datatype tests: date', () => {
     // Date will need more testing, as it's not used in any existing surveys
     it('displays a date box in Question 10', () => {
@@ -2180,6 +2183,7 @@ describe("Component tests: A test App using Redux", () => {
     it.todo('cannot have a regular number input');
     it.todo('cannot have a non-numeric character (besides "-") entered');
   });
+
   describe('Datatype tests: range', () => {
     it('displays 3 unchecked radio select buttons in Question 12', () => {
       testStore.getState().stage = 11;
@@ -2250,6 +2254,7 @@ describe("Component tests: A test App using Redux", () => {
       expect(answer2Select.checked).toEqual(true);
     });
   });
+
   describe('Datatype tests: multiselect', () => {
     it('displays multiselect options in Question 4', () => {
       testStore.getState().stage = 3;
@@ -2274,6 +2279,7 @@ describe("Component tests: A test App using Redux", () => {
       });
     });
   });
+
   describe('Datatype tests: consent', () => {
     it('displays one checkbox and consent text in Question 11', () => {
       testStore.getState().stage = 10;
@@ -2538,6 +2544,226 @@ describe('Reducer tests: the state', () => {
       expect(testStore.getState().questions.length).toEqual(7);
       expect(testStore.getState().questions[5].cde).toEqual("registryQ6");
       expect(testStore.getState().answers[regQ5String]).toEqual(["too_many_deps", "by_fb"]);
+    });
+  });
+});
+
+// Testing actions by adding middleware to regular stores capture them
+describe('Action tests: the app', () => {
+  let actionList = [];
+
+  const captureAction = state => next => action => {
+    actionList.push(action);
+    return next(action);
+  };
+
+  const testStore = createStore(
+    actions.promsPageReducer,
+    composeEnhancers(applyMiddleware(thunk, captureAction))
+  );
+
+  beforeEach(() => {
+    actionList = [];
+  });
+
+  beforeAll(() => {
+    moxios.install();
+  });
+
+  afterAll(() => {
+    moxios.uninstall();
+  });
+
+  it('fires the goNext action when the "Next" button is clicked', () => {
+    const expectedActions = [
+      {
+        "type": "PROMS_NEXT"
+      }
+    ];
+
+    // Mock render and interact
+    const { rerender, asFragment } = render(
+      <Provider store={testStore}>
+        <App />
+      </Provider>
+    );
+
+    const nextButton = screen.getByText("Next");
+    fireEvent.click(nextButton);
+
+    expect(actionList).toEqual(expectedActions);
+  });
+
+  it('fires the goPrevious action when the "Previous" button is clicked', () => {
+    const expectedActions = [
+      {
+        "type": "PROMS_PREVIOUS"
+      }
+    ];
+
+    // Mock render and interact
+    const { rerender, asFragment } = render(
+      <Provider store={testStore}>
+        <App />
+      </Provider>
+    );
+
+    const prevButton = screen.getByText("Previous");
+    fireEvent.click(prevButton);
+
+    expect(actionList).toEqual(expectedActions);
+  });
+
+  it('fires the enterData action when a radio button is clicked', () => {
+    const expectedActions = [
+      {
+        "payload": {
+          "cde": "registryQ1",
+          "value": "answer1",
+          "isValid": true
+        },
+        "type": "PROMS_ENTER_DATA"
+      },
+      {
+        "payload": {
+          "cde": "registryQ1",
+          "value": "answer2",
+          "isValid": true
+        },
+        "type": "PROMS_ENTER_DATA"
+      }
+    ];
+
+    // Mock render and interact
+    const { rerender, asFragment } = render(
+      <Provider store={testStore}>
+        <App />
+      </Provider>
+    );
+
+    const answer1Select = screen.getByLabelText("Answer 1", { exact: false });
+    const answer2Select = screen.getByLabelText("Answer 2", { exact: false });
+    fireEvent.click(answer1Select);
+    fireEvent.click(answer2Select);
+
+    expect(actionList).toEqual(expectedActions);
+
+    // Need to add in answer to display preconditional questions
+    testStore.dispatch(actions.enterData({cde: "registryQ3", value: "bad_answer", isValid: true}));
+  });
+
+  it('fires the enterData action when a checkbox is clicked', () => {
+    testStore.getState().stage = 3;
+
+    const expectedActions = [
+      {
+        "payload": {
+          "cde": "registryQ4",
+          "value": ["work_answer"],
+          "isValid": true
+        },
+        "type": "PROMS_ENTER_DATA"
+      },
+      {
+        "payload": {
+          "cde": "registryQ4",
+          "value": ["work_answer", "react_answer"],
+          "isValid": true
+        },
+        "type": "PROMS_ENTER_DATA"
+      }
+    ];
+
+    // Mock render and interact
+    const { rerender, asFragment } = render(
+      <Provider store={testStore}>
+        <App />
+      </Provider>
+    );
+
+    const answer1Select = screen.getByLabelText("Work is stressful", { exact: false });
+    const answer2Select = screen.getByLabelText("React is difficult", { exact: false });
+    fireEvent.click(answer1Select);
+    rerender(
+      <Provider store={testStore}>
+        <App />
+      </Provider>
+    );
+    fireEvent.click(answer2Select);
+
+    expect(actionList).toEqual(expectedActions);
+  });
+
+  it('fires the enterData action when text is entered to a text field', () => {
+    testStore.getState().stage = 1;
+
+    const expectedActions = [
+      {
+        "payload": {
+          "cde": "registryQ2",
+          "value": "blah",
+          "isValid": true
+        },
+        "type": "PROMS_ENTER_DATA"
+      },
+      {
+        "payload": {
+          "cde": "registryQ2",
+          "value": "Hello world",
+          "isValid": true
+        },
+        "type": "PROMS_ENTER_DATA"
+      },
+      {
+        "payload": {
+          "cde": "registryQ2",
+          "value": "12345",
+          "isValid": true
+        },
+        "type": "PROMS_ENTER_DATA"
+      }
+    ];
+
+    // Mock render and interact
+    const { rerender, asFragment } = render(
+      <Provider store={testStore}>
+        <App />
+      </Provider>
+    );
+
+    const answerBox = screen.getByRole("textbox");
+    fireEvent.change(answerBox, { target: { value: 'blah' } });
+    fireEvent.change(answerBox, { target: { value: 'Hello world' } });
+    fireEvent.change(answerBox, { target: { value: 12345 } });
+
+    expect(actionList).toEqual(expectedActions);
+  });
+
+/* Another test with problems - the payload contains what appears to be an Event, but has
+ * nothing defined. Additionally, it's not clear where this event comes from.
+ ****************************************************************************************/
+  it('fires the submitAnswers action when the "Submit" button is clicked on the last page', (done) => {
+    const numStages = testStore.getState().questions.length;
+    testStore.getState().stage = numStages - 1
+
+    const expectedActions = [
+      {
+        "type": "PROMS_SUBMIT"
+      }
+    ];
+
+    // Mock render and interact
+    const { rerender, asFragment } = render(
+      <Provider store={testStore}>
+        <App />
+      </Provider>
+    );
+
+    const submitButton = screen.getByText("Submit Answers");
+    fireEvent.click(submitButton);
+    moxios.wait(() => {
+      expect(actionList[0].type).toEqual(expectedActions[0].type);
+      done();
     });
   });
 });
