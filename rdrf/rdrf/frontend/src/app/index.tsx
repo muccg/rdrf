@@ -65,6 +65,10 @@ class App extends React.Component<AppInterface, object> {
         }
     }
 
+    public handleSubmit = (event) => {
+        this.props.submitAnswers();
+    }
+
     public render() {
         let nextButton;
         let backButton;
@@ -83,12 +87,12 @@ class App extends React.Component<AppInterface, object> {
         if (this.atEnd()) {
             !isMobile ?
                 nextButton = (<Col sm={{ size: 4, order: 2, offset: 1 }}>
-                    <Button onClick={this.props.submitAnswers} color="success" size="sm">Submit Answers</Button>
+                    <Button onClick={this.handleSubmit} color="success" size="sm">Submit Answers</Button>
                 </Col>)
                 :
                 submitButton = (
                     <div className="text-center">
-                        <Button onClick={this.props.submitAnswers} color="success" size="sm">Submit Answers</Button>
+                        <Button onClick={this.handleSubmit} color="success" size="sm">Submit Answers</Button>
                     </div>
                 )
         }

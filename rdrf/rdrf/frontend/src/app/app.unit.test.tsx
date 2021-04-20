@@ -2846,7 +2846,7 @@ describe('Action tests: the app', () => {
     const submitButton = screen.getByText("Submit Answers");
     fireEvent.click(submitButton);
     moxios.wait(() => {
-      expect(actionList[0].type).toEqual(expectedActions[0].type);
+      expect(actionList).toEqual(expectedActions);
       done();
     });
   });
