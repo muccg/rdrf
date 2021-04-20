@@ -8,6 +8,7 @@ from useraudit.models import FailedLoginLog, LoginAttempt, LoginLog
 
 import json
 
+
 class Command(BaseCommand):
     help = "Gets stats for every registry on the site"
 
