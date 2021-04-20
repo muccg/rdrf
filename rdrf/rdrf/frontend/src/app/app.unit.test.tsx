@@ -3,6 +3,7 @@ import { render, screen, fireEvent } from "@testing-library/react";
 import { Provider } from "react-redux";
 import { applyMiddleware, compose, createStore } from "redux";
 import thunk from "redux-thunk";
+import moxios from "moxios";
 import * as actions from "../pages/proms_page/reducers";
 import App from "./index";
 
@@ -18,6 +19,12 @@ const unsubscribe = testStore.subscribe(() =>
 const regQ1String = "registryQ1";
 const regQ4String = "registryQ4";
 const regQ5String = "registryQ5";
+
+let actionList = [];
+const captureAction = state => next => action => {
+  actionList.push(action);
+  return next(action);
+};
 
 describe("An empty App component", () => {
   // const newApp = <App />;
@@ -80,8 +87,12 @@ describe("An empty App component", () => {
 describe("Component tests: A test App using Redux", () => {
   const testStore = createStore(
     actions.promsPageReducer,
-    composeEnhancers(applyMiddleware(thunk))
+    composeEnhancers(applyMiddleware(thunk, captureAction))
   );
+
+  beforeEach(() => {
+    actionList = [];
+  });
 
   describe("Basic tests", () => {
       /*
@@ -1948,8 +1959,6 @@ describe("Component tests: A test App using Redux", () => {
       );
     });
 
-    // Can't fire events on the slider, so it's hard to test
-    // Can't get the attribute "aria-valuenow" from the widget
     it('updates the value in the box when the slider is changed', () => {
       const { rerender, asFragment } = render(
         <Provider store={testStore}>
@@ -1957,17 +1966,29 @@ describe("Component tests: A test App using Redux", () => {
         </Provider>
       );
 
-      // const slideWidget = screen.getByRole("slider");
+      const slideWidget = screen.getByRole("slider").parentElement; // Entire slider widget
+      const slideHandle = screen.getByRole("slider"); // Slider handle
       const textBox = screen.getByText("On a scale of 1 to 10:");
 
-      // expect(slideWidget.value).toBeUndefined();
+      expect(slideHandle.getAttribute("aria-valuenow")).toEqual(null);
       expect(textBox.children[1].innerHTML).toEqual("");
 
-      // None of these work
-      // fireEvent.change(slideWidget, {target: {state: {value: 7}}});
-      // fireEvent.click(slideWidget.parentElement, {clientY: 250});
-      // fireEvent.change(slideWidget, {"ariaValueNow": "7"});
-      testStore.dispatch(actions.enterData({cde: "registryQ8", value: 7, isValid: true}));
+      // Mocking the slider dimensions
+      slideWidget.getBoundingClientRect = jest.fn(() => {
+        return {
+          bottom: 300,
+          height: 100,
+          left: 10,
+          right: 20,
+          top: 200,
+          width: 10,
+          x: 50,
+          y: 250,
+          toJSON: null
+        };
+      });
+
+      fireEvent.mouseDown(slideWidget, {clientX: 55, clientY: 230});
 
       rerender(
         <Provider store={testStore}>
@@ -1975,7 +1996,7 @@ describe("Component tests: A test App using Redux", () => {
         </Provider>
       );
 
-      // expect(slideWidget.aria-valuenow).toEqual("7");
+      expect(slideHandle.getAttribute("aria-valuenow")).toEqual("7");
       expect(textBox.children[1].innerHTML).toEqual("7");
     });
   });
@@ -2084,6 +2105,7 @@ describe("Component tests: A test App using Redux", () => {
       fireEvent.change(floatBox, { target: { value: 3.5 } });
     });
   });
+
   describe('Datatype tests: text', () => {
     it('displays a textbox in Question 2', () => {
       testStore.getState().stage = 1;
@@ -2153,6 +2175,7 @@ describe("Component tests: A test App using Redux", () => {
       expect(prevButton.disabled).toEqual(false);
     });
   });
+
   describe('Datatype tests: date', () => {
     // Date will need more testing, as it's not used in any existing surveys
     it('displays a date box in Question 10', () => {
@@ -2180,6 +2203,7 @@ describe("Component tests: A test App using Redux", () => {
     it.todo('cannot have a regular number input');
     it.todo('cannot have a non-numeric character (besides "-") entered');
   });
+
   describe('Datatype tests: range', () => {
     it('displays 3 unchecked radio select buttons in Question 12', () => {
       testStore.getState().stage = 11;
@@ -2250,6 +2274,7 @@ describe("Component tests: A test App using Redux", () => {
       expect(answer2Select.checked).toEqual(true);
     });
   });
+
   describe('Datatype tests: multiselect', () => {
     it('displays multiselect options in Question 4', () => {
       testStore.getState().stage = 3;
@@ -2274,6 +2299,7 @@ describe("Component tests: A test App using Redux", () => {
       });
     });
   });
+
   describe('Datatype tests: consent', () => {
     it('displays one checkbox and consent text in Question 11', () => {
       testStore.getState().stage = 10;
@@ -2539,5 +2565,771 @@ describe('Reducer tests: the state', () => {
       expect(testStore.getState().questions[5].cde).toEqual("registryQ6");
       expect(testStore.getState().answers[regQ5String]).toEqual(["too_many_deps", "by_fb"]);
     });
+  });
+});
+
+// Testing actions by adding middleware to regular stores capture them
+describe('Action tests: the app', () => {
+  const testStore = createStore(
+    actions.promsPageReducer,
+    composeEnhancers(applyMiddleware(thunk, captureAction))
+  );
+
+  beforeEach(() => {
+    actionList = [];
+  });
+
+  beforeAll(() => {
+    moxios.install();
+  });
+
+  afterAll(() => {
+    moxios.uninstall();
+  });
+
+  it('fires the goNext action when the "Next" button is clicked', () => {
+    const expectedActions = [
+      {
+        "type": "PROMS_NEXT"
+      }
+    ];
+
+    // Mock render and interact
+    const { rerender, asFragment } = render(
+      <Provider store={testStore}>
+        <App />
+      </Provider>
+    );
+
+    const nextButton = screen.getByText("Next");
+    fireEvent.click(nextButton);
+
+    expect(actionList).toEqual(expectedActions);
+  });
+
+  it('fires the goPrevious action when the "Previous" button is clicked', () => {
+    const expectedActions = [
+      {
+        "type": "PROMS_PREVIOUS"
+      }
+    ];
+
+    // Mock render and interact
+    const { rerender, asFragment } = render(
+      <Provider store={testStore}>
+        <App />
+      </Provider>
+    );
+
+    const prevButton = screen.getByText("Previous");
+    fireEvent.click(prevButton);
+
+    expect(actionList).toEqual(expectedActions);
+  });
+
+  it('fires the enterData action when a radio button is clicked', () => {
+    const expectedActions = [
+      {
+        "payload": {
+          "cde": "registryQ1",
+          "value": "answer1",
+          "isValid": true
+        },
+        "type": "PROMS_ENTER_DATA"
+      },
+      {
+        "payload": {
+          "cde": "registryQ1",
+          "value": "answer2",
+          "isValid": true
+        },
+        "type": "PROMS_ENTER_DATA"
+      }
+    ];
+
+    // Mock render and interact
+    const { rerender, asFragment } = render(
+      <Provider store={testStore}>
+        <App />
+      </Provider>
+    );
+
+    const answer1Select = screen.getByLabelText("Answer 1", { exact: false });
+    const answer2Select = screen.getByLabelText("Answer 2", { exact: false });
+    fireEvent.click(answer1Select);
+    fireEvent.click(answer2Select);
+
+    expect(actionList).toEqual(expectedActions);
+
+    // Need to add in answer to display preconditional questions
+    testStore.dispatch(actions.enterData({cde: "registryQ3", value: "bad_answer", isValid: true}));
+  });
+
+  it('fires the enterData action when a checkbox is clicked', () => {
+    testStore.getState().stage = 3;
+
+    const expectedActions = [
+      {
+        "payload": {
+          "cde": "registryQ4",
+          "value": ["work_answer"],
+          "isValid": true
+        },
+        "type": "PROMS_ENTER_DATA"
+      },
+      {
+        "payload": {
+          "cde": "registryQ4",
+          "value": ["work_answer", "react_answer"],
+          "isValid": true
+        },
+        "type": "PROMS_ENTER_DATA"
+      }
+    ];
+
+    // Mock render and interact
+    const { rerender, asFragment } = render(
+      <Provider store={testStore}>
+        <App />
+      </Provider>
+    );
+
+    const answer1Select = screen.getByLabelText("Work is stressful", { exact: false });
+    const answer2Select = screen.getByLabelText("React is difficult", { exact: false });
+    fireEvent.click(answer1Select);
+    rerender(
+      <Provider store={testStore}>
+        <App />
+      </Provider>
+    );
+    fireEvent.click(answer2Select);
+
+    expect(actionList).toEqual(expectedActions);
+  });
+
+  it('fires the enterData action when text is entered to a text field', () => {
+    testStore.getState().stage = 1;
+
+    const expectedActions = [
+      {
+        "payload": {
+          "cde": "registryQ2",
+          "value": "blah",
+          "isValid": true
+        },
+        "type": "PROMS_ENTER_DATA"
+      },
+      {
+        "payload": {
+          "cde": "registryQ2",
+          "value": "Hello world",
+          "isValid": true
+        },
+        "type": "PROMS_ENTER_DATA"
+      },
+      {
+        "payload": {
+          "cde": "registryQ2",
+          "value": "12345",
+          "isValid": true
+        },
+        "type": "PROMS_ENTER_DATA"
+      }
+    ];
+
+    // Mock render and interact
+    const { rerender, asFragment } = render(
+      <Provider store={testStore}>
+        <App />
+      </Provider>
+    );
+
+    const answerBox = screen.getByRole("textbox");
+    fireEvent.change(answerBox, { target: { value: 'blah' } });
+    fireEvent.change(answerBox, { target: { value: 'Hello world' } });
+    fireEvent.change(answerBox, { target: { value: 12345 } });
+
+    expect(actionList).toEqual(expectedActions);
+
+    // Need to add in answer to display preconditional questions
+    testStore.dispatch(actions.enterData({cde: "registryQ6", value: "typetest", isValid: true}));
+  });
+
+  it('fires the enterData action when a slider widget is clicked', () => {
+    testStore.getState().stage = 6;
+
+    const expectedActions = [
+      {
+        "payload": {
+          "cde": "registryQ8",
+          "value": null,  // An action is fired when the page first renders
+          "isValid": true
+        },
+        "type": "PROMS_ENTER_DATA"
+      },
+      {
+        "payload": {
+          "cde": "registryQ8",
+          "value": 7,
+          "isValid": true
+        },
+        "type": "PROMS_ENTER_DATA"
+      },
+      {
+        "payload": {
+          "cde": "registryQ8",
+          "value": 10,
+          "isValid": true
+        },
+        "type": "PROMS_ENTER_DATA"
+      },
+      {
+        "payload": {
+          "cde": "registryQ8",
+          "value": 4,
+          "isValid": true
+        },
+        "type": "PROMS_ENTER_DATA"
+      }
+    ];
+
+    const { rerender, asFragment } = render(
+      <Provider store={testStore}>
+        <App />
+      </Provider>
+    );
+
+    const slideWidget = screen.getByRole("slider").parentElement;
+
+    // Mocking the slider dimensions
+    slideWidget.getBoundingClientRect = jest.fn(() => {
+      return {
+        bottom: 300,
+        height: 100,
+        left: 10,
+        right: 20,
+        top: 200,
+        width: 10,
+        x: 50,
+        y: 250,
+        toJSON: null
+      };
+    });
+
+    fireEvent.mouseDown(slideWidget, {clientX: 55, clientY: 230});
+    fireEvent.mouseDown(slideWidget, {clientX: 55, clientY: 200});
+    fireEvent.mouseDown(slideWidget, {clientX: 55, clientY: 260});
+
+    expect(actionList).toEqual(expectedActions);
+  });
+
+/* Another test with problems - the payload contains what appears to be an Event, but has
+ * nothing defined. Additionally, it's not clear where this event comes from.
+ ****************************************************************************************/
+  it('fires the submitAnswers action when the "Submit" button is clicked on the last page', (done) => {
+    const numStages = testStore.getState().questions.length;
+    testStore.getState().stage = numStages - 1
+
+    const expectedActions = [
+      {
+        "type": "PROMS_SUBMIT"
+      }
+    ];
+
+    // Mock render and interact
+    const { rerender, asFragment } = render(
+      <Provider store={testStore}>
+        <App />
+      </Provider>
+    );
+
+    const submitButton = screen.getByText("Submit Answers");
+    fireEvent.click(submitButton);
+    moxios.wait(() => {
+      expect(actionList[0].type).toEqual(expectedActions[0].type);
+      done();
+    });
+  });
+});
+
+describe('Navigational tests: the app', () => {
+  const testStore = createStore(
+    actions.promsPageReducer,
+    composeEnhancers(applyMiddleware(thunk))
+  );
+
+  it('retains checked radio select answers when returning to question', () => {
+    const { rerender, asFragment } = render(
+      <Provider store={testStore}>
+        <App />
+      </Provider>
+    );
+    expect(screen.getByText("title", { exact: false }).innerHTML).toEqual(
+      expect.stringContaining("Question 1")
+    );
+
+    const nextButton = screen.getByText("Next");
+    const prevButton = screen.getByText("Previous");
+    let answer1Select = screen.getByLabelText("Answer 1", { exact: false });
+    let answer2Select = screen.getByLabelText("Answer 2", { exact: false });
+
+    expect(nextButton.disabled).toEqual(false);
+    expect(prevButton.disabled).toEqual(true);
+    expect(answer1Select.checked).toEqual(false);
+    expect(answer2Select.checked).toEqual(false);
+
+    fireEvent.click(answer1Select);
+    rerender(
+      <Provider store={testStore}>
+        <App />
+      </Provider>
+    );
+
+    expect(answer1Select.checked).toEqual(true);
+    expect(answer2Select.checked).toEqual(false);
+
+    fireEvent.click(nextButton);
+    rerender(
+      <Provider store={testStore}>
+        <App />
+      </Provider>
+    );
+
+    expect(screen.getByText("title", { exact: false }).innerHTML).toEqual(
+      expect.stringContaining("Question 2")
+    );
+    expect(nextButton.disabled).toEqual(false);
+    expect(prevButton.disabled).toEqual(false);
+
+    fireEvent.click(prevButton);
+    rerender(
+      <Provider store={testStore}>
+        <App />
+      </Provider>
+    );
+
+    expect(screen.getByText("title", { exact: false }).innerHTML).toEqual(
+      expect.stringContaining("Question 1")
+    );
+    answer1Select = screen.getByLabelText("Answer 1", { exact: false });
+    answer2Select = screen.getByLabelText("Answer 2", { exact: false });
+    expect(answer1Select.checked).toEqual(true);
+    expect(answer2Select.checked).toEqual(false);
+  });
+
+  it('retains checked multiselect answers when returning to question', () => {
+    // Need to add in answer to display preconditional questions
+    testStore.dispatch(actions.enterData({cde: "registryQ3", value: "bad_answer", isValid: true}));
+    testStore.getState().stage = 3;
+
+    const { rerender, asFragment } = render(
+      <Provider store={testStore}>
+        <App />
+      </Provider>
+    );
+    expect(screen.getByText("title", { exact: false }).innerHTML).toEqual(
+      expect.stringContaining("Question 4")
+    );
+
+    const nextButton = screen.getByText("Next");
+    const prevButton = screen.getByText("Previous");
+    let workSelect = screen.getByLabelText("Work is stressful");
+    let friendsSelect = screen.getByLabelText("Can't see my friends");
+    let reactSelect = screen.getByLabelText("React is difficult");
+    let daySelect = screen.getByLabelText("Just a bad day");
+
+    expect(workSelect.checked).toEqual(false);
+    expect(friendsSelect.checked).toEqual(false);
+    expect(reactSelect.checked).toEqual(false);
+    expect(daySelect.checked).toEqual(false);
+
+    fireEvent.click(workSelect);
+    fireEvent.click(reactSelect);
+    rerender(
+      <Provider store={testStore}>
+        <App />
+      </Provider>
+    );
+
+    expect(workSelect.checked).toEqual(true);
+    expect(friendsSelect.checked).toEqual(false);
+    expect(reactSelect.checked).toEqual(true);
+    expect(daySelect.checked).toEqual(false);    
+
+    fireEvent.click(nextButton);
+    rerender(
+      <Provider store={testStore}>
+        <App />
+      </Provider>
+    );
+
+    expect(screen.getByText("title", { exact: false }).innerHTML).toEqual(
+      expect.stringContaining("Question 5")
+    );
+
+    fireEvent.click(prevButton);
+    rerender(
+      <Provider store={testStore}>
+        <App />
+      </Provider>
+    );
+
+    expect(screen.getByText("title", { exact: false }).innerHTML).toEqual(
+      expect.stringContaining("Question 4")
+    );
+    
+    workSelect = screen.getByLabelText("Work is stressful");
+    friendsSelect = screen.getByLabelText("Can't see my friends");
+    reactSelect = screen.getByLabelText("React is difficult");
+    daySelect = screen.getByLabelText("Just a bad day");
+    expect(workSelect.checked).toEqual(true);
+    expect(friendsSelect.checked).toEqual(false);
+    expect(reactSelect.checked).toEqual(true);
+    expect(daySelect.checked).toEqual(false);
+  });
+
+  it('retains integer answers when returning to question', () => {
+    // Need to add in answer to display preconditional questions
+    testStore.dispatch(actions.enterData({cde: "registryQ5", value: ["by_fb"], isValid: true}));
+    testStore.dispatch(actions.enterData({cde: "registryQ6", value: "typetest", isValid: true}))
+    testStore.getState().stage = 6;
+
+    const { rerender, asFragment } = render(
+      <Provider store={testStore}>
+        <App />
+      </Provider>
+    );
+    expect(screen.getByText("title", { exact: false }).innerHTML).toEqual(
+      expect.stringContaining("Question 7")
+    );
+
+    const nextButton = screen.getByText("Next");
+    const prevButton = screen.getByText("Previous");
+    let numBox = screen.getByRole("textbox");
+
+    expect(nextButton.disabled).toEqual(false);
+    expect(prevButton.disabled).toEqual(false);
+    expect(numBox.value).toEqual("");
+
+    fireEvent.change(numBox, { target: { value: 99 } });
+    rerender(
+      <Provider store={testStore}>
+        <App />
+      </Provider>
+    );
+
+    expect(numBox.value).toEqual("99");
+
+    fireEvent.click(prevButton);
+    rerender(
+      <Provider store={testStore}>
+        <App />
+      </Provider>
+    );
+
+    expect(screen.getByText("title", { exact: false }).innerHTML).toEqual(
+      expect.stringContaining("Question 6")
+    );
+
+    fireEvent.click(nextButton);
+    rerender(
+      <Provider store={testStore}>
+        <App />
+      </Provider>
+    );
+
+    expect(screen.getByText("title", { exact: false }).innerHTML).toEqual(
+      expect.stringContaining("Question 7")
+    );
+    numBox = screen.getByRole("textbox");
+    expect(numBox.value).toEqual("99");
+  });
+
+  it('retains slider widget answers when returning to question', () => {
+    testStore.getState().stage = 7;
+    const { rerender, asFragment } = render(
+      <Provider store={testStore}>
+        <App />
+      </Provider>
+    );
+
+    expect(screen.getByText("title", { exact: false }).innerHTML).toEqual(
+      expect.stringContaining("Question 8")
+    );
+
+    const nextButton = screen.getByText("Next");
+    const prevButton = screen.getByText("Previous");
+    const slideWidget = screen.getByRole("slider").parentElement;
+    let slideHandle = screen.getByRole("slider");
+
+    expect(nextButton.disabled).toEqual(false);
+    expect(prevButton.disabled).toEqual(false);
+    expect(slideHandle.getAttribute("aria-valuenow")).toEqual(null);
+
+    // Mocking the slider dimensions
+    slideWidget.getBoundingClientRect = jest.fn(() => {
+      return {
+        bottom: 300,
+        height: 100,
+        left: 10,
+        right: 20,
+        top: 200,
+        width: 10,
+        x: 50,
+        y: 250,
+        toJSON: null
+      };
+    });
+
+    fireEvent.mouseDown(slideWidget, {clientX: 55, clientY: 230});
+    rerender(
+      <Provider store={testStore}>
+        <App />
+      </Provider>
+    );
+
+    expect(slideHandle.getAttribute("aria-valuenow")).toEqual("7");
+
+    fireEvent.click(prevButton);
+    rerender(
+      <Provider store={testStore}>
+        <App />
+      </Provider>
+    );
+
+    expect(screen.getByText("title", { exact: false }).innerHTML).toEqual(
+      expect.stringContaining("Question 7")
+    );
+
+    fireEvent.click(nextButton);
+    rerender(
+      <Provider store={testStore}>
+        <App />
+      </Provider>
+    );
+
+    expect(screen.getByText("title", { exact: false }).innerHTML).toEqual(
+      expect.stringContaining("Question 8")
+    );
+    slideHandle = screen.getByRole("slider");
+    expect(slideHandle.getAttribute("aria-valuenow")).toEqual("7");
+  });
+
+  it('retains floating-point number answers when returning to question', () => {
+    testStore.getState().stage = 8;
+
+    const { rerender, asFragment } = render(
+      <Provider store={testStore}>
+        <App />
+      </Provider>
+    );
+    expect(screen.getByText("title", { exact: false }).innerHTML).toEqual(
+      expect.stringContaining("Question 9")
+    );
+
+    const nextButton = screen.getByText("Next");
+    const prevButton = screen.getByText("Previous");
+    let floatBox = screen.getByRole("textbox");
+
+    expect(nextButton.disabled).toEqual(false);
+    expect(prevButton.disabled).toEqual(false);
+    expect(floatBox.value).toEqual("");
+
+    fireEvent.change(floatBox, { target: { value: 9.9 } });
+    rerender(
+      <Provider store={testStore}>
+        <App />
+      </Provider>
+    );
+
+    expect(floatBox.value).toEqual("9.9");
+
+    fireEvent.click(prevButton);
+    rerender(
+      <Provider store={testStore}>
+        <App />
+      </Provider>
+    );
+
+    expect(screen.getByText("title", { exact: false }).innerHTML).toEqual(
+      expect.stringContaining("Question 8")
+    );
+
+    fireEvent.click(nextButton);
+    rerender(
+      <Provider store={testStore}>
+        <App />
+      </Provider>
+    );
+
+    expect(screen.getByText("title", { exact: false }).innerHTML).toEqual(
+      expect.stringContaining("Question 9")
+    );
+    floatBox = screen.getByRole("textbox");
+    expect(floatBox.value).toEqual("9.9");
+  });
+
+  it('retains date answers when returning to question', () => {
+    testStore.getState().stage = 9;
+
+    const { rerender, asFragment } = render(
+      <Provider store={testStore}>
+        <App />
+      </Provider>
+    );
+    expect(screen.getByText("title", { exact: false }).innerHTML).toEqual(
+      expect.stringContaining("Question 10")
+    );
+
+    const nextButton = screen.getByText("Next");
+    const prevButton = screen.getByText("Previous");
+    let dateBox = screen.getByDisplayValue("");
+    expect(dateBox.type).toEqual("date");
+
+    expect(nextButton.disabled).toEqual(false);
+    expect(prevButton.disabled).toEqual(false);
+    expect(dateBox.value).toEqual("");
+
+    fireEvent.change(dateBox, { target: { value: "1979-08-27" } });
+    rerender(
+      <Provider store={testStore}>
+        <App />
+      </Provider>
+    );
+
+    expect(dateBox.value).toEqual("1979-08-27");
+
+    fireEvent.click(prevButton);
+    rerender(
+      <Provider store={testStore}>
+        <App />
+      </Provider>
+    );
+
+    expect(screen.getByText("title", { exact: false }).innerHTML).toEqual(
+      expect.stringContaining("Question 9")
+    );
+
+    fireEvent.click(nextButton);
+    rerender(
+      <Provider store={testStore}>
+        <App />
+      </Provider>
+    );
+
+    expect(screen.getByText("title", { exact: false }).innerHTML).toEqual(
+      expect.stringContaining("Question 10")
+    );
+    dateBox = screen.getByDisplayValue("1979-08-27");
+    expect(dateBox.type).toEqual("date");
+  });
+
+  it('retains the checked consent checkbox when returning to question', () => {
+    testStore.getState().stage = 10;
+
+    const { rerender, asFragment } = render(
+      <Provider store={testStore}>
+        <App />
+      </Provider>
+    );
+
+    expect(screen.getByText("title", { exact: false }).innerHTML).toEqual(
+      expect.stringContaining("Question 11")
+    );
+
+    const nextButton = screen.getByText("Next");
+    const prevButton = screen.getByText("Previous");
+    let consentBox = screen.getByRole("checkbox");
+
+    expect(consentBox.checked).toEqual(false);
+
+    fireEvent.click(consentBox);
+    rerender(
+      <Provider store={testStore}>
+        <App />
+      </Provider>
+    );
+
+    expect(consentBox.checked).toEqual(true);
+
+    fireEvent.click(prevButton);
+    rerender(
+      <Provider store={testStore}>
+        <App />
+      </Provider>
+    );
+
+    expect(screen.getByText("title", { exact: false }).innerHTML).toEqual(
+      expect.stringContaining("Question 10")
+    );
+
+    fireEvent.click(nextButton);
+    rerender(
+      <Provider store={testStore}>
+        <App />
+      </Provider>
+    );
+
+    expect(screen.getByText("title", { exact: false }).innerHTML).toEqual(
+      expect.stringContaining("Question 11")
+    );
+    consentBox = screen.getByRole("checkbox");
+    expect(consentBox.checked).toEqual(true);
+  });
+
+  it('retains text answers when returning to question', () => {
+    testStore.getState().stage = 1;
+
+    const { rerender, asFragment } = render(
+      <Provider store={testStore}>
+        <App />
+      </Provider>
+    );
+    expect(screen.getByText("title", { exact: false }).innerHTML).toEqual(
+      expect.stringContaining("Question 2")
+    );
+
+    const nextButton = screen.getByText("Next");
+    const prevButton = screen.getByText("Previous");
+    let textBox = screen.getByRole("textbox");
+
+    expect(nextButton.disabled).toEqual(false);
+    expect(prevButton.disabled).toEqual(false);
+    expect(textBox.value).toEqual("");
+
+    fireEvent.change(textBox, { target: { value: "Hello world!" } });
+    rerender(
+      <Provider store={testStore}>
+        <App />
+      </Provider>
+    );
+
+    expect(textBox.value).toEqual("Hello world!");
+
+    fireEvent.click(prevButton);
+    rerender(
+      <Provider store={testStore}>
+        <App />
+      </Provider>
+    );
+
+    expect(screen.getByText("title", { exact: false }).innerHTML).toEqual(
+      expect.stringContaining("Question 1")
+    );
+    expect(nextButton.disabled).toEqual(false);
+    expect(prevButton.disabled).toEqual(true);
+
+    fireEvent.click(nextButton);
+    rerender(
+      <Provider store={testStore}>
+        <App />
+      </Provider>
+    );
+
+    expect(screen.getByText("title", { exact: false }).innerHTML).toEqual(
+      expect.stringContaining("Question 2")
+    );
+    textBox = screen.getByRole("textbox");
+    expect(textBox.value).toEqual("Hello world!");
   });
 });

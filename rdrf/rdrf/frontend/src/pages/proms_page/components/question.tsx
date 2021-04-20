@@ -372,6 +372,10 @@ class Question extends React.Component<QuestionInterface, object> {
     }
 
     public renderText(question: any) {
+        let currentValue = "";
+        if (this.props.answers[question.cde] !== undefined) {
+            currentValue = this.props.answers[question.cde];
+        }
         return (
             <Form>
                 <FormGroup tag="fieldset">
@@ -387,6 +391,7 @@ class Question extends React.Component<QuestionInterface, object> {
                             name={question.cde}
                             onChange={this.handleInputChange}
                             onKeyDown={this.handleInputKeyDown}
+                            value={currentValue}
                         />
                     </Col>
                 </FormGroup>
