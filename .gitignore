@@ -44,6 +44,7 @@ startup
 *.tags
 *.tags1
 .env_local
+.vscode
 
 
 node_modules

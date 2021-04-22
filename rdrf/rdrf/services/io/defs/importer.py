@@ -465,6 +465,35 @@ class Importer(object):
         r.save()
         logger.info("imported registry object OK")
 
+        self._create_forms(r, f, imported_forms)
+
+        extra_forms = original_forms - imported_forms
+        # if there are extra forms in the original set, we delete them
+        for form_name in extra_forms:
+            try:
+                extra_form = RegistryForm.objects.get(registry=r, name=form_name)
+                assert form_name not in imported_forms
+                logger.info("deleting extra form not present in import file: %s" % form_name)
+                extra_form.delete()
+            except RegistryForm.DoesNotExist:
+                # shouldn't happen but if so just continue
+                pass
+
+        self._create_working_groups(r)
+        # create consent sections if they exist
+        self._create_consent_sections(r)
+        # generate the questionnaire for this reqistry
+        try:
+            r.generate_questionnaire()
+        except Exception as ex:
+            raise QuestionnaireGenerationError(str(ex))
+
+        self._create_form_permissions(r)
+        self._create_all_remaining_objects(r)
+
+        logger.info("end of import registry objects!")
+
+    def _create_forms(self, r, f, imported_forms):
         for frm_map in self.data["forms"]:
             logger.info("starting import of form map %s" % frm_map)
 
@@ -510,28 +539,7 @@ class Importer(object):
             logger.info("imported form %s OK" % f.name)
             imported_forms.add(f.name)
 
-        extra_forms = original_forms - imported_forms
-        # if there are extra forms in the original set, we delete them
-        for form_name in extra_forms:
-            try:
-                extra_form = RegistryForm.objects.get(registry=r, name=form_name)
-                assert form_name not in imported_forms
-                logger.info("deleting extra form not present in import file: %s" % form_name)
-                extra_form.delete()
-            except RegistryForm.DoesNotExist:
-                # shouldn't happen but if so just continue
-                pass
-
-        self._create_working_groups(r)
-        # create consent sections if they exist
-        self._create_consent_sections(r)
-        # generate the questionnaire for this reqistry
-        try:
-            r.generate_questionnaire()
-        except Exception as ex:
-            raise QuestionnaireGenerationError(str(ex))
-
-        self._create_form_permissions(r)
+    def _create_all_remaining_objects(self, r):
         if "demographic_fields" in self.data:
             self._create_demographic_fields(self.data["demographic_fields"])
             logger.info("demographic field definitions OK ")
@@ -581,8 +589,6 @@ class Importer(object):
         if "custom_actions" in self.data:
             self._create_custom_actions(r)
             logger.info("imported custom actions OK")
-
-        logger.info("end of import registry objects!")
 
     def _create_consent_rules(self, registry_model):
         from rdrf.models.definition.models import ConsentRule
