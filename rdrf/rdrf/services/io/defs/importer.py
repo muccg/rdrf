@@ -465,7 +465,7 @@ class Importer(object):
         r.save()
         logger.info("imported registry object OK")
 
-        self._create_forms(r, f, imported_forms)
+        self._create_forms(r, imported_forms)
 
         extra_forms = original_forms - imported_forms
         # if there are extra forms in the original set, we delete them
@@ -493,7 +493,7 @@ class Importer(object):
 
         logger.info("end of import registry objects!")
 
-    def _create_forms(self, r, f, imported_forms):
+    def _create_forms(self, registry, imported_forms):
         for frm_map in self.data["forms"]:
             logger.info("starting import of form map %s" % frm_map)
 
@@ -502,7 +502,7 @@ class Importer(object):
             # First create section models so the form save validation passes
             self._create_form_sections(frm_map)
 
-            f, created = RegistryForm.objects.get_or_create(registry=r, name=frm_map["name"],
+            f, created = RegistryForm.objects.get_or_create(registry=registry, name=frm_map["name"],
                                                             defaults={'sections': sections})
             if not created:
                 f.sections = sections
@@ -532,7 +532,7 @@ class Importer(object):
             if "applicability_condition" in frm_map:
                 f.applicability_condition = frm_map["applicability_condition"]
 
-            f.registry = r
+            f.registry = registry
             if 'position' in frm_map:
                 f.position = frm_map['position']
             f.save()

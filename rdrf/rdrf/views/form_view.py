@@ -552,7 +552,7 @@ class FormView(View):
             section_field_ids_map[s] = self._get_field_ids(form_class)
 
             if not section_model.allow_multiple:
-                error_count = self._add_form_sections(form_class, request, s, dyn_patient, registry_code, sections_to_save, form_section, error_count, all_errors)
+                all_sections_valid, error_count = self._add_form_sections(form_class, request, s, dyn_patient, registry_code, sections_to_save, form_section, error_count, all_errors)
 
             else:
                 all_sections_valid, error_count = self._add_form_multi_sections(section_model, s, formset_prefixes, total_forms_ids, initial_forms_ids, form_class, request, dyn_patient, registry_code, sections_to_save, form_section, error_count, all_errors)
@@ -745,6 +745,7 @@ class FormView(View):
         self.user = request.user
 
     def _add_form_multi_sections(self, section_model, section_code, formset_prefixes, total_forms_ids, initial_forms_ids, form_class, request, dyn_patient, registry_code, sections_to_save, form_section, error_count, all_errors):
+        all_sections_valid = True
         if section_model.extra:
             extra = section_model.extra
         else:
@@ -796,6 +797,7 @@ class FormView(View):
         return all_sections_valid, error_count
 
     def _add_form_sections(self, form_class, request, section_code, dyn_patient, registry_code, sections_to_save, form_section, error_count, all_errors):
+        all_sections_valid = True
         form = form_class(request.POST, files=request.FILES)
         if form.is_valid():
             dynamic_data = form.cleaned_data
@@ -825,7 +827,7 @@ class FormView(View):
 
             form_section[section_code] = form_class(wrap_uploaded_files(
                 registry_code, post_copy), request.FILES)
-        return error_count
+        return all_sections_valid, error_count
 
     def _get_sections(self, form):
         section_parts = form.get_sections()
