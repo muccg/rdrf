@@ -5,7 +5,7 @@ import Tooltip from "rc-tooltip";
 import * as React from 'react';
 import { connect } from 'react-redux';
 import { Col, Form, FormGroup, Input, Label } from 'reactstrap';
-import { InputType } from 'reactstrap/lib';
+// import { InputType } from 'reactstrap/lib';  // yarn build fails if this is used
 import { QuestionInterface } from './interfaces';
 
 import * as actions from '../reducers';
