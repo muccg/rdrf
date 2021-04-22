@@ -1317,9 +1317,6 @@ class ParentGuardian(models.Model):
         else:
             return [p for p in self.patient.all() if p.pk != self.self_patient.pk]
 
-    def is_parent_of(self, other_patient):
-        return other_patient in self.children
-
 
 @receiver(post_save, sender=ParentGuardian)
 def update_my_user(sender, **kwargs):
