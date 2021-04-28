@@ -26,3 +26,9 @@ def is_proms_system(request):
     return {
         'is_proms_system': settings.SYSTEM_ROLE == SystemRoles.CIC_PROMS
     }
+
+
+def session_security_settings(request):
+    return {
+        'session_security_enabled': settings.SESSION_SECURITY_ENABLE
+    }

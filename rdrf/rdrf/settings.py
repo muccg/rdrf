@@ -136,7 +136,7 @@ TEMPLATES = [
                 "rdrf.context_processors.context_processors.common_settings",
                 "rdrf.context_processors.context_processors.cic_system_role",
                 "rdrf.context_processors.context_processors.is_proms_system",
-
+                "rdrf.context_processors.context_processors.session_security_settings",
             ],
             "debug": DEBUG,
             "loaders": [
