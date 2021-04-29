@@ -2198,10 +2198,131 @@ describe("Component tests: A test App using Redux", () => {
       }).not.toThrow();
       expect(dateBox.type).toEqual("date");
     });
-    it.todo('can have a date input in the YYYY-MM-DD format');
-    it.todo('cannot have a date input in other formats');
-    it.todo('cannot have a regular number input');
-    it.todo('cannot have a non-numeric character (besides "-") entered');
+
+    it('can have a date input in the YYYY-MM-DD format', () => {
+      const { rerender, asFragment } = render(
+        <Provider store={testStore}>
+          <App />
+        </Provider>
+      );
+
+      const dateBox = screen.getByDisplayValue("");
+      const nextButton = screen.getByText("Next");
+      const prevButton = screen.getByText("Previous");
+
+      expect(dateBox.type).toEqual("date");
+      expect(nextButton.disabled).toEqual(false);
+      expect(prevButton.disabled).toEqual(false);
+
+      fireEvent.change(dateBox, { target: { value: "1979-08-27" } });
+      rerender(
+        <Provider store={testStore}>
+          <App />
+        </Provider>
+      );
+
+      expect(dateBox.value).toEqual("1979-08-27");
+      expect(nextButton.disabled).toEqual(false);
+      expect(prevButton.disabled).toEqual(false);
+    });
+
+    it('cannot have a date input in other formats', () => {
+      const { rerender, asFragment } = render(
+        <Provider store={testStore}>
+          <App />
+        </Provider>
+      );
+
+      const dateBox = screen.getByDisplayValue("1979-08-27");
+      const nextButton = screen.getByText("Next");
+      const prevButton = screen.getByText("Previous");
+
+      expect(dateBox.type).toEqual("date");
+      expect(nextButton.disabled).toEqual(false);
+      expect(prevButton.disabled).toEqual(false);
+
+      fireEvent.change(dateBox, { target: { value: "20-05-2002" } });
+      rerender(
+        <Provider store={testStore}>
+          <App />
+        </Provider>
+      );
+
+      expect(dateBox.value).toEqual("");
+      expect(nextButton.disabled).toEqual(true);
+      expect(prevButton.disabled).toEqual(true);
+
+      fireEvent.change(dateBox, { target: { value: "1979-08-27" } });
+    });
+    
+    it('cannot have a regular number input', () => {
+      const { rerender, asFragment } = render(
+        <Provider store={testStore}>
+          <App />
+        </Provider>
+      );
+
+      const dateBox = screen.getByDisplayValue("1979-08-27");
+      const nextButton = screen.getByText("Next");
+      const prevButton = screen.getByText("Previous");
+
+      expect(dateBox.type).toEqual("date");
+      expect(nextButton.disabled).toEqual(false);
+      expect(prevButton.disabled).toEqual(false);
+
+      fireEvent.change(dateBox, { target: { value: "250" } });
+      rerender(
+        <Provider store={testStore}>
+          <App />
+        </Provider>
+      );
+
+      expect(dateBox.value).toEqual("");
+      expect(nextButton.disabled).toEqual(true);
+      expect(prevButton.disabled).toEqual(true);
+
+      fireEvent.change(dateBox, { target: { value: "1979-08-27" } });
+    });
+
+    it('cannot have a non-numeric character (besides "-") entered', () => {
+      const { rerender, asFragment } = render(
+        <Provider store={testStore}>
+          <App />
+        </Provider>
+      );
+
+      const dateBox = screen.getByDisplayValue("1979-08-27");
+      const nextButton = screen.getByText("Next");
+      const prevButton = screen.getByText("Previous");
+
+      expect(dateBox.type).toEqual("date");
+      expect(nextButton.disabled).toEqual(false);
+      expect(prevButton.disabled).toEqual(false);
+
+      fireEvent.change(dateBox, { target: { value: "1979/08/27" } });
+      rerender(
+        <Provider store={testStore}>
+          <App />
+        </Provider>
+      );
+
+      expect(dateBox.value).toEqual("");
+      expect(nextButton.disabled).toEqual(true);
+      expect(prevButton.disabled).toEqual(true);
+
+      fireEvent.change(dateBox, { target: { value: "abcde" } });
+      rerender(
+        <Provider store={testStore}>
+          <App />
+        </Provider>
+      );
+
+      expect(dateBox.value).toEqual("");
+      expect(nextButton.disabled).toEqual(true);
+      expect(prevButton.disabled).toEqual(true);
+
+      fireEvent.change(dateBox, { target: { value: "1979-08-27" } });
+    });
   });
 
   describe('Datatype tests: range', () => {
