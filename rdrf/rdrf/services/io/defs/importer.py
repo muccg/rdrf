@@ -465,6 +465,35 @@ class Importer(object):
         r.save()
         logger.info("imported registry object OK")
 
+        self._create_forms(r, imported_forms)
+
+        extra_forms = original_forms - imported_forms
+        # if there are extra forms in the original set, we delete them
+        for form_name in extra_forms:
+            try:
+                extra_form = RegistryForm.objects.get(registry=r, name=form_name)
+                assert form_name not in imported_forms
+                logger.info("deleting extra form not present in import file: %s" % form_name)
+                extra_form.delete()
+            except RegistryForm.DoesNotExist:
+                # shouldn't happen but if so just continue
+                pass
+
+        self._create_working_groups(r)
+        # create consent sections if they exist
+        self._create_consent_sections(r)
+        # generate the questionnaire for this reqistry
+        try:
+            r.generate_questionnaire()
+        except Exception as ex:
+            raise QuestionnaireGenerationError(str(ex))
+
+        self._create_form_permissions(r)
+        self._create_all_remaining_objects(r)
+
+        logger.info("end of import registry objects!")
+
+    def _create_forms(self, registry, imported_forms):
         for frm_map in self.data["forms"]:
             logger.info("starting import of form map %s" % frm_map)
 
@@ -473,7 +502,7 @@ class Importer(object):
             # First create section models so the form save validation passes
             self._create_form_sections(frm_map)
 
-            f, created = RegistryForm.objects.get_or_create(registry=r, name=frm_map["name"],
+            f, created = RegistryForm.objects.get_or_create(registry=registry, name=frm_map["name"],
                                                             defaults={'sections': sections})
             if not created:
                 f.sections = sections
@@ -503,86 +532,38 @@ class Importer(object):
             if "applicability_condition" in frm_map:
                 f.applicability_condition = frm_map["applicability_condition"]
 
-            f.registry = r
+            f.registry = registry
             if 'position' in frm_map:
                 f.position = frm_map['position']
             f.save()
             logger.info("imported form %s OK" % f.name)
             imported_forms.add(f.name)
 
-        extra_forms = original_forms - imported_forms
-        # if there are extra forms in the original set, we delete them
-        for form_name in extra_forms:
-            try:
-                extra_form = RegistryForm.objects.get(registry=r, name=form_name)
-                assert form_name not in imported_forms
-                logger.info("deleting extra form not present in import file: %s" % form_name)
-                extra_form.delete()
-            except RegistryForm.DoesNotExist:
-                # shouldn't happen but if so just continue
-                pass
+    def _create_all_remaining_objects(self, r):
+        remaining_objects = [
+            "demographic_fields",
+            "complete_fields",
+            "reports",
+            "cde_policies",
+            "context_form_groups",
+            "email_notifications",
+            "consent_rules",
+            "surveys",
+            "reviews",
+            "custom_actions"
+        ]
 
-        self._create_working_groups(r)
-        # create consent sections if they exist
-        self._create_consent_sections(r)
-        # generate the questionnaire for this reqistry
-        try:
-            r.generate_questionnaire()
-        except Exception as ex:
-            raise QuestionnaireGenerationError(str(ex))
-
-        self._create_form_permissions(r)
-        if "demographic_fields" in self.data:
-            self._create_demographic_fields(self.data["demographic_fields"])
-            logger.info("demographic field definitions OK ")
-        else:
-            logger.info("no demographic_fields to import")
-
-        if "complete_fields" in self.data:
-            self._create_complete_form_fields(r, self.data["complete_fields"])
-            logger.info("complete field definitions OK ")
-        else:
-            logger.info("no complete field definitions to import")
-
-        if "reports" in self.data:
-            self._create_reports(self.data["reports"])
-            logger.info("complete reports OK ")
-        else:
-            logger.info("no reports to import")
-
-        if "cde_policies" in self.data:
-            self._create_cde_policies(r)
-            logger.info("imported cde policies OK")
-        else:
-            logger.info("no cde policies to import")
-
-        if "context_form_groups" in self.data:
-            self._create_context_form_groups(r)
-            logger.info("imported context form groups OK")
-        else:
-            logger.info("no context form groups to import")
-
-        if "email_notifications" in self.data:
-            self._create_email_notifications(r)
-            logger.info("imported email notifications OK")
-
-        if "consent_rules" in self.data:
-            self._create_consent_rules(r)
-            logger.info("imported consent rules OK")
-
-        if "surveys" in self.data:
-            self._create_surveys(r)
-            logger.info("imported surveys OK")
-
-        if "reviews" in self.data:
-            self._create_reviews(r)
-            logger.info("imported reviews OK")
-
-        if "custom_actions" in self.data:
-            self._create_custom_actions(r)
-            logger.info("imported custom actions OK")
-
-        logger.info("end of import registry objects!")
+        for import_obj in remaining_objects:
+            if import_obj in self.data:
+                if import_obj in ["demographic_fields", "reports"]:
+                    getattr(self, f"_create_{import_obj}")(self.data[import_obj])
+                elif import_obj == "complete_fields":
+                    self._create_complete_form_fields(r, self.data["complete_fields"])
+                else:
+                    getattr(self, f"_create_{import_obj}")(r)
+                logger.info(f"{import_obj} definition OK")
+            else:
+                logger.info(f"no {import_obj} to import")
 
     def _create_consent_rules(self, registry_model):
         from rdrf.models.definition.models import ConsentRule
