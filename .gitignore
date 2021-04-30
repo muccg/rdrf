@@ -44,8 +44,7 @@ startup
 *.tags
 *.tags1
 .env_local
-
-
+.vscode
 node_modules
 yarn-error.log
 rdrf/rdrf/frontend/dist

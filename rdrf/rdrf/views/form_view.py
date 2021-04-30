@@ -493,12 +493,7 @@ class FormView(View):
                                                      registry_code,
                                                      form_id,
                                                      patient_id)
-        if request.user.is_superuser:
-            pass
-        elif request.user.is_working_group_staff or request.user.has_perm("rdrf.form_%s_is_readonly" % form_id):
-            raise PermissionDenied()
-
-        self.user = request.user
+        self._set_user(request, form_id)
 
         registry = Registry.objects.get(code=registry_code)
         self.registry = registry
@@ -557,85 +552,10 @@ class FormView(View):
             section_field_ids_map[s] = self._get_field_ids(form_class)
 
             if not section_model.allow_multiple:
-                form = form_class(request.POST, files=request.FILES)
-                if form.is_valid():
-                    dynamic_data = form.cleaned_data
-                    section_info = SectionInfo(
-                        s,
-                        dyn_patient,
-                        False,
-                        registry_code,
-                        "cdes",
-                        dynamic_data,
-                        form_class=form_class)
-                    sections_to_save.append(section_info)
-                    current_data = dyn_patient.load_dynamic_data(self.registry.code, "cdes")
-                    form_data = wrap_file_cdes(
-                        registry_code, dynamic_data, current_data, multisection=False)
-                    form_section[s] = form_class(dynamic_data, initial=form_data)
-                else:
-                    all_sections_valid = False
-                    for e in form.errors:
-                        error_count += 1
-                        all_errors.append(e)
-
-                    from rdrf.helpers.utils import wrap_uploaded_files
-                    post_copy = request.POST.copy()
-                    # request.POST.update(request.FILES)
-                    post_copy.update(request.FILES)
-
-                    form_section[s] = form_class(wrap_uploaded_files(
-                        registry_code, post_copy), request.FILES)
+                all_sections_valid, error_count = self._add_form_sections(form_class, request, s, dyn_patient, registry_code, sections_to_save, form_section, error_count, all_errors)
 
             else:
-                if section_model.extra:
-                    extra = section_model.extra
-                else:
-                    extra = 0
-
-                prefix = "formset_%s" % s
-                formset_prefixes[s] = prefix
-                total_forms_ids[s] = "id_%s-TOTAL_FORMS" % prefix
-                initial_forms_ids[s] = "id_%s-INITIAL_FORMS" % prefix
-                form_set_class = formset_factory(form_class, extra=extra, can_delete=True)
-                formset = form_set_class(request.POST, files=request.FILES, prefix=prefix)
-                assert formset.prefix == prefix
-
-                if formset.is_valid():
-                    dynamic_data = formset.cleaned_data  # a list of values
-                    to_remove = [i for i, d in enumerate(dynamic_data) if d.get('DELETE')]
-                    index_map = make_index_map(to_remove, len(dynamic_data))
-
-                    for i in reversed(to_remove):
-                        del dynamic_data[i]
-
-                    current_data = dyn_patient.load_dynamic_data(self.registry.code, "cdes")
-                    section_dict = {s: dynamic_data}
-                    section_info = SectionInfo(s,
-                                               dyn_patient,
-                                               True,
-                                               registry_code,
-                                               "cdes",
-                                               section_dict,
-                                               index_map,
-                                               form_set_class=form_set_class,
-                                               prefix=prefix)
-
-                    sections_to_save.append(section_info)
-                    form_data = wrap_file_cdes(
-                        registry_code,
-                        dynamic_data,
-                        current_data,
-                        multisection=True,
-                        index_map=index_map)
-                    form_section[s] = form_set_class(initial=form_data, prefix=prefix)
-
-                else:
-                    all_sections_valid = False
-                    for e in formset.errors:
-                        error_count += 1
-                        all_errors.append(e)
-                    form_section[s] = form_set_class(request.POST, request.FILES, prefix=prefix)
+                all_sections_valid, error_count = self._add_form_multi_sections(section_model, s, formset_prefixes, total_forms_ids, initial_forms_ids, form_class, request, dyn_patient, registry_code, sections_to_save, form_section, error_count, all_errors)
 
         if all_sections_valid:
             # Only save to the db iff all sections are valid
@@ -815,6 +735,99 @@ class FormView(View):
                                  failure_message)
 
         return render(request, self._get_template(), context)
+
+    def _set_user(self, request, form_id):
+        if request.user.is_superuser:
+            pass
+        elif request.user.is_working_group_staff or request.user.has_perm("rdrf.form_%s_is_readonly" % form_id):
+            raise PermissionDenied()
+
+        self.user = request.user
+
+    def _add_form_multi_sections(self, section_model, section_code, formset_prefixes, total_forms_ids, initial_forms_ids, form_class, request, dyn_patient, registry_code, sections_to_save, form_section, error_count, all_errors):
+        all_sections_valid = True
+        if section_model.extra:
+            extra = section_model.extra
+        else:
+            extra = 0
+
+        prefix = "formset_%s" % section_code
+        formset_prefixes[section_code] = prefix
+        total_forms_ids[section_code] = "id_%s-TOTAL_FORMS" % prefix
+        initial_forms_ids[section_code] = "id_%s-INITIAL_FORMS" % prefix
+        form_set_class = formset_factory(form_class, extra=extra, can_delete=True)
+        formset = form_set_class(request.POST, files=request.FILES, prefix=prefix)
+        assert formset.prefix == prefix
+
+        if formset.is_valid():
+            dynamic_data = formset.cleaned_data  # a list of values
+            to_remove = [i for i, d in enumerate(dynamic_data) if d.get('DELETE')]
+            index_map = make_index_map(to_remove, len(dynamic_data))
+
+            for i in reversed(to_remove):
+                del dynamic_data[i]
+
+            current_data = dyn_patient.load_dynamic_data(self.registry.code, "cdes")
+            section_dict = {section_code: dynamic_data}
+            section_info = SectionInfo(section_code,
+                                       dyn_patient,
+                                       True,
+                                       registry_code,
+                                       "cdes",
+                                       section_dict,
+                                       index_map,
+                                       form_set_class=form_set_class,
+                                       prefix=prefix)
+
+            sections_to_save.append(section_info)
+            form_data = wrap_file_cdes(
+                registry_code,
+                dynamic_data,
+                current_data,
+                multisection=True,
+                index_map=index_map)
+            form_section[section_code] = form_set_class(initial=form_data, prefix=prefix)
+
+        else:
+            all_sections_valid = False
+            for e in formset.errors:
+                error_count += 1
+                all_errors.append(e)
+            form_section[section_code] = form_set_class(request.POST, request.FILES, prefix=prefix)
+        return all_sections_valid, error_count
+
+    def _add_form_sections(self, form_class, request, section_code, dyn_patient, registry_code, sections_to_save, form_section, error_count, all_errors):
+        all_sections_valid = True
+        form = form_class(request.POST, files=request.FILES)
+        if form.is_valid():
+            dynamic_data = form.cleaned_data
+            section_info = SectionInfo(
+                section_code,
+                dyn_patient,
+                False,
+                registry_code,
+                "cdes",
+                dynamic_data,
+                form_class=form_class)
+            sections_to_save.append(section_info)
+            current_data = dyn_patient.load_dynamic_data(self.registry.code, "cdes")
+            form_data = wrap_file_cdes(
+                registry_code, dynamic_data, current_data, multisection=False)
+            form_section[section_code] = form_class(dynamic_data, initial=form_data)
+        else:
+            all_sections_valid = False
+            for e in form.errors:
+                error_count += 1
+                all_errors.append(e)
+
+            from rdrf.helpers.utils import wrap_uploaded_files
+            post_copy = request.POST.copy()
+            # request.POST.update(request.FILES)
+            post_copy.update(request.FILES)
+
+            form_section[section_code] = form_class(wrap_uploaded_files(
+                registry_code, post_copy), request.FILES)
+        return all_sections_valid, error_count
 
     def _get_sections(self, form):
         section_parts = form.get_sections()
