@@ -2489,6 +2489,27 @@ describe("Component tests: A test App using Redux", () => {
         expect.stringContaining("CIC Cancer")
       );
     });
+
+    it('selects the checkbox when it is clicked', () => {
+      const { rerender, asFragment } = render(
+        <Provider store={testStore}>
+          <App />
+        </Provider>
+      );
+
+      const checkBox = screen.getByRole("checkbox");
+      
+      expect(checkBox.checked).toEqual(false);
+
+      fireEvent.click(checkBox);
+      rerender(
+        <Provider store={testStore}>
+          <App />
+        </Provider>
+      );
+
+      expect(checkBox.checked).toEqual(true);
+    });
   });
 });
 
