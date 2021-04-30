@@ -35,7 +35,22 @@ function _arrayWithoutHoles(arr) {
   var patient_sex = "";
   var registry_code = "";
   var wsurl = "";
- 
+  var isInetExplorer = !!window.MSInputMethodContext && !!document.documentMode;
+  
+  if(isInetExplorer){
+    var promiseScript = document.createElement("script");
+    promiseScript.type = "text/javascript";
+    promiseScript.src =
+        "https://cdn.jsdelivr.net/npm/promise-polyfill@8.1.3/dist/polyfill.min.js";
+
+    var fetchScript = document.createElement("script");
+    fetchScript.type = "text/javascript";
+    fetchScript.src =
+        "https://cdn.jsdelivr.net/npm/whatwg-fetch@3.4.0/dist/fetch.umd.min.js";
+
+    document.head.appendChild(promiseScript);
+    document.head.appendChild(fetchScript);
+  }
 
   var update_function = function update_function(calculated_cdes) {
     calculated_cdes.forEach(function(cde_code) {
@@ -64,32 +79,65 @@ function _arrayWithoutHoles(arr) {
 	registry_code: registry_code,
         form_values: calculated_cde_inputs_json_values
       };
-      fetch(wsurl, {
-        method: "post",
-        headers: {
-          "Content-Type": "application/json",
-          "X-CSRFToken": $("[name=csrfmiddlewaretoken]").val()
-        },
-        body: JSON.stringify(body)
-      })
-        .then(function(response) {
-          if (!response.ok) {
-            throw new Error(response.statusText);
-          }
 
-          return response.json();
+      if(isInetExplorer){
+        setTimeout(function(){
+          window.fetch(wsurl, {
+            method: "post",
+            headers: {
+              "Content-Type": "application/json",
+              "X-CSRFToken": $("[name=csrfmiddlewaretoken]").val()
+            },
+            body: JSON.stringify(body)
+          })
+            .then(function(response) {
+              if (!response.ok) {
+                throw new Error(response.statusText);
+              }
+  
+              return response.json();
+            })
+            .then(function(result) {
+              if (result.stat === "fail") {
+                throw new Error(result.message);
+              }
+  
+              $("[id$=__".concat(cde_code, "]")).val(result);
+              $("[id$=__".concat(cde_code, "]")).trigger("change");
+            })
+            .catch(function(errormsg) {
+              console.log(errormsg);
+            });
+        }, 1000);
+      }
+      else{
+        fetch(wsurl, {
+          method: "post",
+          headers: {
+            "Content-Type": "application/json",
+            "X-CSRFToken": $("[name=csrfmiddlewaretoken]").val()
+          },
+          body: JSON.stringify(body)
         })
-        .then(function(result) {
-          if (result.stat === "fail") {
-            throw new Error(result.message);
-          }
+          .then(function(response) {
+            if (!response.ok) {
+              throw new Error(response.statusText);
+            }
 
-          $("[id$=__".concat(cde_code, "]")).val(result);
-          $("[id$=__".concat(cde_code, "]")).trigger("change");
-        })
-        .catch(function(errormsg) {
-          console.log(errormsg);
-        });
+            return response.json();
+          })
+          .then(function(result) {
+            if (result.stat === "fail") {
+              throw new Error(result.message);
+            }
+
+            $("[id$=__".concat(cde_code, "]")).val(result);
+            $("[id$=__".concat(cde_code, "]")).trigger("change");
+          })
+          .catch(function(errormsg) {
+            console.log(errormsg);
+          });
+      }
     });
   };
 
