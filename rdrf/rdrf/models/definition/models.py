@@ -2197,3 +2197,16 @@ class RegistryYaml(models.Model):
 
     def __str__(self):
         return self.code
+
+
+class Integration(models.Model):
+    registry = models.ForeignKey(Registry)
+    config = models.TextField()  # json
+
+
+class IntegrationField(models.Model):
+    integration = models.ForeignKey(Integration)
+    form = models.ForeignKey(RegistryForm)
+    section = models.ForeignKey(Section)
+    cde = models.ForeignKey(CommonDataElement)
+    config = models.TextField()
