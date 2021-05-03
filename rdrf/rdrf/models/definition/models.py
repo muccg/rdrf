@@ -2199,14 +2199,76 @@ class RegistryYaml(models.Model):
         return self.code
 
 
+class IntegrationError(Exception):
+    pass
+
+
 class Integration(models.Model):
-    registry = models.ForeignKey(Registry)
-    config = models.TextField()  # json
+    EXTERNAL_SYSTEMS = (('webpas', 'Web Pas'),
+                        ('isoft', 'ISoft ICM'),
+                        ('genie', 'Genie'),
+                        ('qool', 'QOOL'),
+                        ('wacr', 'WA Cancer Registry'),
+                        ('coca', 'CoCa'),
+                        ('ultralis', 'Ultra/LIS'),
+                        ('mosaiq', 'Mosaiq'),
+                        ('impax', 'IMPAX'),
+                        ('ipharmacy', 'IPharmacy'),
+                        ('pcor', 'PCOR'))
+
+        )
+    registry=models.ForeignKey(Registry)
+    system=models.CharField(max_length = 100, choices = EXTERNAL_SYSTEMS)
+    config=models.TextField()  # json
+
+    def pull(self):
+       if not self.implemented:
+           raise IntegrationError(f"{self.system} not implemented")
+       self.check_config("pull")
+
+
+
+    def error_msg(self, msg):
+        logger.error(f"Integration {self.system} error: {msg}")
+
+
+
+
+    def push(self):
+       self.check_config("push")
+
+    def check_config(self, command):
+        import json
+        try:
+            config=json.loads(self.config)
+        except Exception as ex:
+            msg=f"could not load config: %s" % ex)
+            self.error_msg(msg)
+            raise IntegrationError(f"{self.system} {command}: {ex}")
+
+
+    @ property
+    def implemented(self):
+        try:
+            module_name=f"rdrf.services.io.{self.system}"
+            module=__import__(module)
+        except ImportError:
+            return False
+
+        return True
+
+
+
+
+
+
+
+
 
 
 class IntegrationField(models.Model):
-    integration = models.ForeignKey(Integration)
-    form = models.ForeignKey(RegistryForm)
-    section = models.ForeignKey(Section)
-    cde = models.ForeignKey(CommonDataElement)
-    config = models.TextField()
+    integration=models.ForeignKey(Integration, related_name='fields')
+    form_name=models.CharField(max_length=80, blank=True)
+    section_code=models.CharField(max_length=100, blank=True)
+    cde_code=models.CharField(max_length=30, blank=True)
+    config=models.TextField()
