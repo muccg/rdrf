@@ -1008,3 +1008,15 @@ def is_calculated_cde_in_registry(cde, registry):
             for cde_model in sec_model.cde_models:
                 if cde_model.code == cde.code and cde_model.datatype == "calculated":
                     return True
+
+
+def integration_function(func):
+    """
+    Decorator to register an integration function
+    """
+    func.integration_function = True
+
+    def wrapper(*args, **kwargs):
+        return func(*args, **kwargs)
+
+    return wrapper
