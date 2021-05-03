@@ -12,11 +12,12 @@ if [ "$1" = 'build' ]; then
     info "BUILD_VERSION ${BUILD_VERSION}"
     info "PROJECT_SOURCE ${PROJECT_SOURCE}"
 
+    set -e
     set -x
     yarn install --frozen-lockfile
     npm run build
 
-    exit 0
+    exit $?
 fi
 
 if [ "$1" = 'watch' ]; then
@@ -25,7 +26,7 @@ if [ "$1" = 'watch' ]; then
     yarn install
     npm run watch
 
-    exit 0
+    exit $?
 fi
 
 if [ "$1" = 'lint' ]; then
