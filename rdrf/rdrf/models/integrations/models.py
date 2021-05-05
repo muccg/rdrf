@@ -70,11 +70,11 @@ class Integration(models.Model):
                     raw_value = field.get_value(patient, packet)
                     converted_value = field.convert(raw_value)
                     patient_data[field] = converted_value
-                except IntegrationConversionError as ice:
+                except IntegrationConversionError:
                     logger.error("Error processing incoming field")
-                except ValidationError as verr:
+                except ValidationError:
                     logger.error("Error processing incoming field")
-            updated_data.append((patient, patient_data))
+            update_data.append((patient, patient_data))
         return update_data
 
     def get_patients(self, packet):
@@ -136,4 +136,3 @@ class IntegrationField(models.Model):
         validator == validation.ValidatorFactory(cde_model)
 
         return validator.create_validators()
-
