@@ -44,6 +44,10 @@
     <script type="text/javascript" src="{% static 'js/vendor/jquery-1.11.3.min.js' %}"></script>
     <script type="text/javascript" src="{% static 'js/vendor/jquery-ui-1.11.4.min.js' %}"></script>
 
+    {% if session_security_enabled %}
+        {% include 'session_security/all.html' %}
+    {% endif %}
+
     {% if request.LANGUAGE_CODE.lower != "en" %}
     {% static "" as baseUrl %}
     <script src="{{ baseUrl }}/js/vendor/i18n/datepicker-{{ request.LANGUAGE_CODE }}.js"></script>
