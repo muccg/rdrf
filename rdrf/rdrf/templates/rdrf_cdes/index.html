@@ -28,7 +28,7 @@
     <![endif]-->
 </head>
 <body id="home">
-    <header class="navbar navbar-inverse hero" role="banner">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top hero">
         <div class="container">
             <div class="navbar-header">
                 <button class="navbar-toggle" type="button" data-toggle="collapse" data-target=".bs-navbar-collapse">
@@ -38,22 +38,22 @@
                 </button>
                 <a href="{% url 'landing' %}" class="navbar-brand">RDRF {% version_number %}</a>
             </div>
-            <nav class="collapse navbar-collapse bs-navbar-collapse" role="navigation">
-                <ul class="nav navbar-nav navbar-right">
-                    <li>
-                        <a href="https://muccg.github.io/rdrf/">{% trans "Project" %}</a>
+            <div class="navbar-expanded-lg">
+                <ul class="navbar-nav me-auto my-2 my-lg-0 navbar-nav-scroll" style="--bs-scroll-height: 100px;">
+                    <li class="nav-item">
+                        <a class="nav-link" href="https://muccg.github.io/rdrf/">{% trans "Project" %}</a>
                     </li>
-                    <li>
-                        <a href="https://github.com/muccg/rdrf/">{% trans "Source code" %}</a>
+                    <li class="nav-item">
+                        <a class="nav-link" href="https://github.com/muccg/rdrf/">{% trans "Source code" %}</a>
                     </li>
-                    <li class="dropdown">
-                        <a href="#" class="dropdown-toggle" data-toggle="dropdown">
-                            {% trans "Registries on this site" %} <b class="caret"></b>
+                    <li class="nav-item dropdown">
+                        <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown">
+                            {% trans "Registries on this site" %}
                         </a>
                         <ul class="dropdown-menu">
                             {% for reg in registries %}
                             <li>
-                                <a href="{% url 'registry' reg.code %}">
+                                <a class="dropdwn-item" href="{% url 'registry' reg.code %}">
                                     {{reg.name|translate}}{% if reg.version %} v{{reg.version}}{% endif %}
                                 </a>
                             </li>
@@ -62,9 +62,9 @@
                     </li>
 
                 </ul>
-            </nav>
+            </div>
         </div>
-    </header>
+    </nav>
 
     <div id="hero">
         <div class="container">
