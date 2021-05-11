@@ -173,8 +173,7 @@ class FamilyLinkageManager(object):
                 # index 'demoted' : create patient rel object
                 patient = Patient.objects.get(pk=relative_dict["pk"])
                 try:
-                    patient_country = PatientAddress.objects.get(patient=patient).country
-                    patient_location = pycountry.countries.get(name=patient_country).alpha_2
+                    patient_location = PatientAddress.objects.get(patient=patient).country
                 except PatientAddress.DoesNotExist:
                     patient_location = "AU"
 
