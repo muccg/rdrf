@@ -69,7 +69,7 @@
         $(document).ready(function () {
             addExtraValidationMethods();
 
-            setDTypeVal();
+            {% block morescripts %}{% endblock %}
 
             $("#submit-btn").click(function () {
                 $("#main-form").submit();
