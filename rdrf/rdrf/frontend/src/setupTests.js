@@ -307,6 +307,43 @@ window.proms_config = {
         "datatype": "range"
       },
       {
+        "tag": "cond",
+        "cond": {
+          "op": "=",
+          "cde": "registryQ6",
+          "value": "typetest"
+        },
+        "cde": "registryQ13",
+        "title": "Question 13 - title",
+        "instructions": "",
+        "spec": {
+          "ui": "multi_select",
+          "options": [
+            {
+              "code": "answer1",
+              "text": "First answer"
+            },
+            {
+              "code": "answer2",
+              "text": "Second answer"
+            },
+            {
+              "code": "answer3",
+              "text": "Third answer"
+            },
+            {
+              "code": "answer4",
+              "text": "Fourth answer"
+            }
+          ],
+          "allow_multiple": true
+        },
+        "survey_question_instruction": "",
+        "copyright_text": "",
+        "source": "",
+        "datatype": "range"
+      },
+      {
         "tag": "cde",
         "cde": "PROMSConsent",
         "datatype": "range",

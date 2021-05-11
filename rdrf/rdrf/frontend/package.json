@@ -18,6 +18,7 @@
     "bootstrap": "^4.4.1",
     "child_process": "^1.0.2",
     "lodash": "^4.17.19",
+    "npm-watch": "^0.9.0",
     "rc-slider": "^9.2.2",
     "rc-tooltip": "^4.0.1",
     "react": "^16.13.0",
@@ -33,6 +34,14 @@
     "typescript": "3.8.3",
     "yarn": "^1.22.4"
   },
+  "watch": {
+    "build": {
+      "patterns": [
+        "src"
+      ],
+      "extensions": "js,jsx,ts,tsx"
+    }
+  },
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
@@ -43,7 +52,7 @@
     "build-rename-js": "renamer --find '/main(.*)/' --replace 'main-bundle.min.js' build/static/js/*.js && renamer --find '/runtime(.*)/' --replace 'runtime-bundle.min.js' build/static/js/*.js && renamer --find '/^\\d(.*)/' --replace 'vendors-bundle.min.js' build/static/js/*.js ",
     "build-rename-css": "renamer --find '/main(.*)/' --replace 'main.css' build/static/css/*.css  && renamer --find '/^\\d(.*)/' --replace 'vendors.css' build/static/css/*.css ",
     "lint": "tslint 'src/**/*.ts{,x}'",
-    "watch": "node watch.js"
+    "watch": "npm-watch"
   },
   "eslintConfig": {
     "extends": "react-app"

@@ -2198,10 +2198,131 @@ describe("Component tests: A test App using Redux", () => {
       }).not.toThrow();
       expect(dateBox.type).toEqual("date");
     });
-    it.todo('can have a date input in the YYYY-MM-DD format');
-    it.todo('cannot have a date input in other formats');
-    it.todo('cannot have a regular number input');
-    it.todo('cannot have a non-numeric character (besides "-") entered');
+
+    it('can have a date input in the YYYY-MM-DD format', () => {
+      const { rerender, asFragment } = render(
+        <Provider store={testStore}>
+          <App />
+        </Provider>
+      );
+
+      const dateBox = screen.getByDisplayValue("");
+      const nextButton = screen.getByText("Next");
+      const prevButton = screen.getByText("Previous");
+
+      expect(dateBox.type).toEqual("date");
+      expect(nextButton.disabled).toEqual(false);
+      expect(prevButton.disabled).toEqual(false);
+
+      fireEvent.change(dateBox, { target: { value: "1979-08-27" } });
+      rerender(
+        <Provider store={testStore}>
+          <App />
+        </Provider>
+      );
+
+      expect(dateBox.value).toEqual("1979-08-27");
+      expect(nextButton.disabled).toEqual(false);
+      expect(prevButton.disabled).toEqual(false);
+    });
+
+    it('cannot have a date input in other formats', () => {
+      const { rerender, asFragment } = render(
+        <Provider store={testStore}>
+          <App />
+        </Provider>
+      );
+
+      const dateBox = screen.getByDisplayValue("1979-08-27");
+      const nextButton = screen.getByText("Next");
+      const prevButton = screen.getByText("Previous");
+
+      expect(dateBox.type).toEqual("date");
+      expect(nextButton.disabled).toEqual(false);
+      expect(prevButton.disabled).toEqual(false);
+
+      fireEvent.change(dateBox, { target: { value: "20-05-2002" } });
+      rerender(
+        <Provider store={testStore}>
+          <App />
+        </Provider>
+      );
+
+      expect(dateBox.value).toEqual("");
+      expect(nextButton.disabled).toEqual(true);
+      expect(prevButton.disabled).toEqual(true);
+
+      fireEvent.change(dateBox, { target: { value: "1979-08-27" } });
+    });
+
+    it('cannot have a regular number input', () => {
+      const { rerender, asFragment } = render(
+        <Provider store={testStore}>
+          <App />
+        </Provider>
+      );
+
+      const dateBox = screen.getByDisplayValue("1979-08-27");
+      const nextButton = screen.getByText("Next");
+      const prevButton = screen.getByText("Previous");
+
+      expect(dateBox.type).toEqual("date");
+      expect(nextButton.disabled).toEqual(false);
+      expect(prevButton.disabled).toEqual(false);
+
+      fireEvent.change(dateBox, { target: { value: "250" } });
+      rerender(
+        <Provider store={testStore}>
+          <App />
+        </Provider>
+      );
+
+      expect(dateBox.value).toEqual("");
+      expect(nextButton.disabled).toEqual(true);
+      expect(prevButton.disabled).toEqual(true);
+
+      fireEvent.change(dateBox, { target: { value: "1979-08-27" } });
+    });
+
+    it('cannot have a non-numeric character (besides "-") entered', () => {
+      const { rerender, asFragment } = render(
+        <Provider store={testStore}>
+          <App />
+        </Provider>
+      );
+
+      const dateBox = screen.getByDisplayValue("1979-08-27");
+      const nextButton = screen.getByText("Next");
+      const prevButton = screen.getByText("Previous");
+
+      expect(dateBox.type).toEqual("date");
+      expect(nextButton.disabled).toEqual(false);
+      expect(prevButton.disabled).toEqual(false);
+
+      fireEvent.change(dateBox, { target: { value: "1979/08/27" } });
+      rerender(
+        <Provider store={testStore}>
+          <App />
+        </Provider>
+      );
+
+      expect(dateBox.value).toEqual("");
+      expect(nextButton.disabled).toEqual(true);
+      expect(prevButton.disabled).toEqual(true);
+
+      fireEvent.change(dateBox, { target: { value: "abcde" } });
+      rerender(
+        <Provider store={testStore}>
+          <App />
+        </Provider>
+      );
+
+      expect(dateBox.value).toEqual("");
+      expect(nextButton.disabled).toEqual(true);
+      expect(prevButton.disabled).toEqual(true);
+
+      fireEvent.change(dateBox, { target: { value: "1979-08-27" } });
+    });
   });
 
   describe('Datatype tests: range', () => {
@@ -2276,8 +2397,8 @@ describe("Component tests: A test App using Redux", () => {
   });
 
   describe('Datatype tests: multiselect', () => {
-    it('displays multiselect options in Question 4', () => {
-      testStore.getState().stage = 3;
+    it('displays four unchecked multiselect options in Question 13', () => {
+      testStore.getState().stage = 12;
       const { rerender, asFragment } = render(
         <Provider store={testStore}>
           <App />
@@ -2285,7 +2406,7 @@ describe("Component tests: A test App using Redux", () => {
       );
 
       expect(screen.getByText("title", { exact: false }).innerHTML).toEqual(
-        expect.stringContaining("Question 4")
+        expect.stringContaining("Question 13")
       );
 
       let checkboxes: HTMLElement[];
@@ -2293,10 +2414,56 @@ describe("Component tests: A test App using Redux", () => {
       expect(() => {
         checkboxes = screen.getAllByRole("checkbox");
       }).not.toThrow();
-
+      expect(checkboxes.length).toEqual(4);
       checkboxes.forEach((cBox) => {
           expect(cBox.type).toEqual("checkbox");
+          expect(cBox.checked).toEqual(false);
       });
+    });
+
+    it('selects a checkbox when it is clicked', () => {
+      const { rerender, asFragment } = render(
+        <Provider store={testStore}>
+          <App />
+        </Provider>
+      );
+
+      const answer1Select = screen.getByLabelText("First answer");
+      
+      expect(answer1Select.checked).toEqual(false);
+
+      fireEvent.click(answer1Select);
+      rerender(
+        <Provider store={testStore}>
+          <App />
+        </Provider>
+      );
+
+      expect(answer1Select.checked).toEqual(true);
+    });
+
+    it('does not de-select a checked checkbox when another is clicked', () => {
+      const { rerender, asFragment } = render(
+        <Provider store={testStore}>
+          <App />
+        </Provider>
+      );
+
+      const answer1Select = screen.getByLabelText("First answer");
+      const answer2Select = screen.getByLabelText("Second answer");
+      
+      expect(answer1Select.checked).toEqual(true);
+      expect(answer2Select.checked).toEqual(false);
+
+      fireEvent.click(answer2Select);
+      rerender(
+        <Provider store={testStore}>
+          <App />
+        </Provider>
+      );
+
+      expect(answer1Select.checked).toEqual(true);
+      expect(answer2Select.checked).toEqual(true);
     });
   });
 
@@ -2321,6 +2488,27 @@ describe("Component tests: A test App using Redux", () => {
       expect(screen.getByText("consent", { exact: false }).innerHTML).toEqual(
         expect.stringContaining("CIC Cancer")
       );
+    });
+
+    it('selects the checkbox when it is clicked', () => {
+      const { rerender, asFragment } = render(
+        <Provider store={testStore}>
+          <App />
+        </Provider>
+      );
+
+      const checkBox = screen.getByRole("checkbox");
+      
+      expect(checkBox.checked).toEqual(false);
+
+      fireEvent.click(checkBox);
+      rerender(
+        <Provider store={testStore}>
+          <App />
+        </Provider>
+      );
+
+      expect(checkBox.checked).toEqual(true);
     });
   });
 });
