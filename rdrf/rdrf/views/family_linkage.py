@@ -10,8 +10,7 @@ from django.db import transaction
 from django.core.management import call_command
 
 from rdrf.models.definition.models import Registry
-from registry.patients.models import Patient, PatientRelative, PatientAddress
-import pycountry
+from registry.patients.models import Patient, PatientRelative, PatientAddress, AddressType
 
 import logging
 
@@ -176,6 +175,12 @@ class FamilyLinkageManager(object):
                     patient_location = PatientAddress.objects.get(patient=patient).country
                 except PatientAddress.DoesNotExist:
                     patient_location = "AU"
+                except PatientAddress.MultipleObjectsReturned:
+                    patient_addresses = PatientAddress.objects.filter(address_type=AddressType.objects.get(type="Home")).filter(patient=patient)
+                    if len(patient_addresses) < 1:
+                        patient_location = "AU"
+                    else:
+                        patient_location = patient_addresses[0].country  # Object at 0 is most recently-added address
 
                 new_patient_relative = PatientRelative()
                 new_patient_relative.date_of_birth = patient.date_of_birth
