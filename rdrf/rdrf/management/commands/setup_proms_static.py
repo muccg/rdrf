@@ -10,18 +10,24 @@ allowed_proms_files = []  # shouldn't need any
 static_dir = "/data/static"
 
 
+def error(msg):
+    print(f"ERROR: {msg}", file=sys.stderr)
+    sys.exit(1)
+
+
 def sanity_check():
     try:
-        r = Registry.objects.get()
+        Registry.objects.get()
     except Registry.DoesNotExist:
-        print("Not an RDRF site")
-        sys.exit(1)
+        error("Not an RDRF site - no registries")
+
+    except Registry.MultipleObjectsReturned:
+        error("Not an PROMS Site - more than one registry on site")
 
     system_role = os.getenv("SYSTEM_ROLE", "")
 
     if system_role != "CIC_PROMS":
-        print("Not a CIC proms site")
-        sys.exit(1)
+        error("CIC Site must have the CIC_PROMS system role")
 
 
 def folder_exists(d):
@@ -51,7 +57,7 @@ def check_proms():
 
     if missing:
         for d in missing:
-            print(f"proms site static folder check failed: {d} is missing")
+            print(f"proms site static folder check failed: {d} is missing", file=sys.stderr)
         sys.exit(1)
 
 
