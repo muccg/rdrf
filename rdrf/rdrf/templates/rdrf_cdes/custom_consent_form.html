@@ -120,20 +120,20 @@
 	{% if patient|has_feature:"consent_lock" %}
 		{% if consent %}
 			<a class="previous-form" href="{{ previous_form_link }}">
-				<span class="glyphicon glyphicon-chevron-left" aria-hidden="true"></span>
+				<span class="glyphicon glyphicon-chevron-left" aria-hidden="true"> < </span>
 			</a>
 
 			<a class="next-form" href="{{ next_form_link }}">
-				<span class="glyphicon glyphicon-chevron-right" aria-hidden="true"></span>
+				<span class="glyphicon glyphicon-chevron-right" aria-hidden="true"> > </span>
 			</a>
 		{% endif %}
 	{% else %}
 		<a class="previous-form" href="{{ previous_form_link }}">
-			<span class="glyphicon glyphicon-chevron-left" aria-hidden="true"></span>
+			<span class="glyphicon glyphicon-chevron-left" aria-hidden="true"> < </span>
 		</a>
 
 		<a class="next-form" href="{{ next_form_link }}">
-			<span class="glyphicon glyphicon-chevron-right" aria-hidden="true"></span>
+			<span class="glyphicon glyphicon-chevron-right" aria-hidden="true"> > </span>
 		</a>
 	{% endif %}
 
@@ -197,14 +197,14 @@
                             {% endfor %}
                         </div>
                         {% for name, section in sections %}
-                            <div class="panel panel-default">
-                                <div class="panel-heading">
+                            <div class="card">
+                                <div class="card-header">
                                     <strong>{{name|translate}}</strong>
                                     <a class="btn btn-info btn-xs pull-right" onclick="add_form('{{form.prefix}}')">
                                         <span class="glyphicon glyphicon-plus" aria-hidden="true"></span> {% trans 'Add' %}
                                     </a>
                                 </div>
-                                <div class="panel-body">
+                                <div class="card-body">
                                     <div id="section_{{form.prefix}}">
                                     <div id="forms_{{form.prefix}}">
                                     {% for f in form %}
@@ -267,8 +267,8 @@
                         {% endfor %}
                     {% else %}
                         {% for name, section in sections %}
-                            <div class="panel panel-default">
-                                <div class="panel-heading"><strong>{{name|translate}}</strong>
+                            <div class="card mb-4">
+                                <div class="card-header"><strong>{{name|translate}}</strong>
                                 {% with link=section|get_information_link %}
                                 {% with info_text_expression=section|get_info_text_expression %}
                                 {% with docfile=link|add_language_modifier %}
@@ -284,7 +284,7 @@
                                 {% endwith %}
 		                {% endwith %}
                                 </div>
-                                <div class="panel-body">
+                                <div class="card-body">
                                     {% for s in section %}
                                         {% get_form_element form s as element %}
                                         {% if element %}

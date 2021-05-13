@@ -40,11 +40,11 @@
 {% block content %}
 
 			<a class="previous-form" href="{{ previous_form_link }}">
-				<span class="glyphicon glyphicon-chevron-left" aria-hidden="true"></span>
+				<span class="fa fa-chevron-left" aria-hidden="true"></span>
 			</a>
 
 			<a class="next-form" href="{{ next_form_link }}">
-				<span class="glyphicon glyphicon-chevron-right" aria-hidden="true"></span>
+				<span class="fa fa-chevron-right" aria-hidden="true"></span>
 			</a>
     <br>
     <div class="row">
@@ -57,13 +57,14 @@
 
     </div>
 
-    <div id="existing_surveys_panel" class="panel panel-default" style="color:#337ab7">
-	    <div class="panel-heading"><strong>{% trans 'Existing Surveys' %}</strong>
-            <a class="btn btn-info btn-xs pull-right" data-toggle="modal" data-target="#new_survey_request_modal">
-                <span class="glyphicon glyphicon-plus" aria-hidden="true"></span> Add 
+    <div id="existing_surveys_panel" class="card">
+	    <div class="card-header">
+            <span class="h3">{% trans 'Existing Surveys' %}</span>
+            <a class="btn btn-success pull-right" data-bs-toggle="modal" data-bs-target="#new_survey_request_modal">
+                <span class="fa fa-plus" aria-hidden="true"></span> Add 
             </a>
 		</div>
-        <div class="panel-body">
+        <div class="card-body">
     	    <table class="table table-striped table-list">
                 <thead>
                     <tr>
@@ -113,9 +114,7 @@
     <div class="modal-content">
       <div class="modal-header">
         <h5 class="modal-title" id="new_survey_request_label">New Survey Request</h5>
-        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-          <span aria-hidden="true">&times;</span>
-        </button>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div id="modal-body" class="modal-body">
 	<form id="survey_request_form" method="POST">{% csrf_token %}
@@ -123,7 +122,7 @@
       </form>
       </div>
       <div class="modal-footer">
-        <button id="close_button" type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+        <button id="close_button" type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
         <button id="save_button" type="button" class="btn btn-primary" onClick="submitNewSurveyRequest()">Save</button>
       </div>
     </div>

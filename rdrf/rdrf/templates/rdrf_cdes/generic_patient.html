@@ -16,7 +16,7 @@
     {{block.super}}
     <link rel="stylesheet" href="{% static 'css/jquery-1.11.4/themes/smoothness/jquery-ui.min.css' %}">
 
-    <script type="text/javascript" src={% static 'js/rpc_module.js' %}></script>
+    <script type="text/javascript" src="{% static 'js/rpc_module.js' %}"></script>
     <script type="text/javascript" src="{% static 'js/vendor/jquery-ui-1.11.4.min.js' %}"></script>
 
     <script>
@@ -146,16 +146,16 @@
     <br>
 	<div class="btn-group" role="group" aria-label="...">
 		<button id="submit-btn" type="submit" class="btn btn-success" value="Save">
-			<span class="glyphicon glyphicon-floppy-save" aria-hidden="true"></span> {% trans "Save" %}
+			<span class="fa fa-floppy-save" aria-hidden="true"></span> {% trans "Save" %}
 		</button>
 
 		<a href="" class="btn btn-danger">
-			<span class="glyphicon glyphicon-remove" aria-hidden="true"></span> {% trans 'Cancel' %}
+			<span class="fa fa-remove" aria-hidden="true"></span> {% trans 'Cancel' %}
 		</a>
 
 		{% if show_print_button %}
 			<a class="btn btn-warning" href="{% url 'registry_form_print' registry_code form_name patient_id %}" target="_blank">
-				<span class="glyphicon glyphicon-print" aria-hidden="true"></span> {% trans "Print" %}
+				<span class="fa fa-print" aria-hidden="true"></span> {% trans "Print" %}
 			</a>
 		{% endif %}
 
@@ -166,8 +166,8 @@
 {% block content %}
     <div class="row">
         <div class="col-md-12">
-            <p><h3><span class="glyphicon glyphicon-list-alt" aria-hidden="true"></span> {% trans "Demographics" %}</h3></p>
-            <i class="text-muted"><span class="glyphicon glyphicon-user" aria-hidden="true"></span> {{ patient_name }}</i>
+            <p><h3><span class="fa fa-list-alt" aria-hidden="true"></span> {% trans "Demographics" %}</h3></p>
+            <i class="text-muted"><span class="fa fa-user" aria-hidden="true"></span> {{ patient_name }}Add Patient</i>
         </div>
     </div>
 
@@ -183,11 +183,11 @@
                 {% endif %}
 
                 {% if registry|has_feature:"family_linkage" %}
-                    <div class="panel panel-default">
-                        <div class="panel-heading">
+                    <div class="card panel-default">
+                        <div class="card-header">
                             <strong>{% trans "Family Linkage" %}</strong>
                         </div>
-                        <div class="panel-body">
+                        <div class="card-body">
                             {% if patient.my_index %}
                                 {% trans 'This patient is a relative of index' %} <a href="{% url 'patient_edit' registry_code patient.my_index.id %}">{{ patient.my_index}} ({% trans 'DOB' %} {{patient.my_index.date_of_birth}})</a>
                             {% else %}
@@ -220,7 +220,7 @@
                             <div class="form-group">
                                 <div class="col-sm-9 col-sm-offset-3">
                                     <a class="btn btn-danger btn-xs pull-right" onclick="delete_form(this, '{{form.prefix}}')">
-                                        <span class="glyphicon glyphicon-minus" aria-hidden="true"></span> {% trans 'Remove' %}
+                                        <span class="fa fa-minus" aria-hidden="true"></span> {% trans 'Remove' %}
                                     </a>
                                 </div>
                             </div>
@@ -235,7 +235,7 @@
                                             <label for="{{ element.id_for_label}}" class="col-sm-3 control-label">
                                                 {{ element.label|translate }}
                                                 {% if  element.field.required %}
-                                                    <span class="glyphicon glyphicon-asterisk" style="color: red;" aria-hidden="true"></span>
+                                                    <span class="fa fa-asterisk" style="color: red;" aria-hidden="true"></span>
                                                 {% endif %}
                                             </label>
                                             <div class="col-sm-9">
@@ -260,14 +260,14 @@
                             {% if name in section_blacklist %}
                             <div class="section_blacklist_hidden">
                             {% endif %}
-                                <div class="panel panel-default">
-                                    <div class="panel-heading">
+                                <div class="card panel-default">
+                                    <div class="card-header">
                                         <strong>{{name}}</strong>
                                         <a class="btn btn-info btn-xs pull-right" onclick="add_form('{{form.prefix}}')">
-                                            <span class="glyphicon glyphicon-plus" aria-hidden="true"></span> {% trans 'Add' %}
+                                            <span class="fa fa-plus" aria-hidden="true"></span> {% trans 'Add' %}
                                         </a>
                                     </div>
-                                    <div class="panel-body">
+                                    <div class="card-body">
                                         <div id="section_{{form.prefix}}">
                                         <div id="forms_{{form.prefix}}">
                                         {% for f in form %}
@@ -289,7 +289,7 @@
                                                                         {% else %}
                                                                             {{ element.label }}
                                                                             {% if  element.field.required %}
-                                                                                <span class="glyphicon glyphicon-asterisk" style="color: red;" aria-hidden="true"></span>
+                                                                                <span class="fa fa-asterisk" style="color: red;" aria-hidden="true"></span>
                                                                             {% endif %}
                                                                         {% endif %}
                                                                     </label>
@@ -339,14 +339,14 @@
                             {% if name in section_blacklist %}
                             <div class="section_blacklist_hidden">
                             {% endif %}
-                                <div class="panel panel-default">
-                                    <div class="panel-heading"><strong>{{name}}</strong>
+                                <div class="card">
+                                    <div class="card-header"><strong>{{name}}</strong>
                                     {% with link=section|get_information_link %}
                                     {% with doc="docs/"|add:link %}
                                         {% if link %}<br><a href="{% static doc %}">Information Sheet - Please Read!</a>{% endif %}
                                     {% endwith %}
                                     </div>
-                                    <div class="panel-body">
+                                    <div class="card-body">
                                         {% for s in section %}
                                             {% get_form_element form s as element %}
                                             {% if element.errors %}
@@ -358,7 +358,7 @@
                                                     <label for="{{ element.id_for_label}}" style="text-align: left" class="col-sm-11 control-label">
                                                         {{ element.label|translate }}
                                                         {% if  element.field.required %}
-                                                            <span class="glyphicon glyphicon-asterisk" style="color: red;" aria-hidden="true"></span>
+                                                            <span class="fa fa-asterisk" style="color: red;" aria-hidden="true"></span>
                                                         {% endif %}
                                                     </label>
                                                     <div class="col-sm-1">
@@ -366,7 +366,7 @@
                                                     <label for="{{ element.id_for_label}}" class="col-sm-3 control-label">
                                                         {{ element.label|translate }}
                                                         {% if  element.field.required %}
-                                                            <span class="glyphicon glyphicon-asterisk" style="color: red;" aria-hidden="true"></span>
+                                                            <span class="fa fa-asterisk" style="color: red;" aria-hidden="true"></span>
                                                         {% endif %}
                                                     </label>
                                                     <div class="col-sm-9">
@@ -376,7 +376,7 @@
                                                     {% else %}
                                                         {{ element }}
                                                         {% if  element.field.required %}
-                                                            <span class="glyphicon glyphicon-asterisk" style="color: red;" aria-hidden="true"></span>
+                                                            <span class="fa fa-asterisk" style="color: red;" aria-hidden="true"></span>
                                                         {% endif %}
                                                     {% endif %}
                             {% if not element.is_hidden %}

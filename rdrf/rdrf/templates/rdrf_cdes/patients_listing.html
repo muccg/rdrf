@@ -175,10 +175,9 @@
 {% endblock %}
 
 {% block formbtns %}
-        <br>
-	<div class="btn-group" role="group" aria-label="...">
-		<button id="add_patient" class="btn btn-success">
-			<span class="glyphicon glyphicon-plus" aria-hidden="true"></span> {% trans 'Add Patient' %}
+	<div class="d-grid gap-2 d-md-flex justify-content-md-end">
+		<button type="button" id="add_patient" class="btn btn-success me-md-2">
+			<span class="fa fa-plus" aria-hidden="true"></span> {% trans 'Add Patient' %}
 		</button>
 	</div>
 {% endblock %}

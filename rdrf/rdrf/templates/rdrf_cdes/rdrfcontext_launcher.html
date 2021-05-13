@@ -2,29 +2,15 @@
 {% load i18n %}
 {% load translate %}
 {% load has_feature %}
-<script>
-  /*
-  var USE_ACCORDION = false;
-  var START_COLLAPSED = false;
-  $(function() {
-  if(USE_ACCORDION) {
-  $(".collapsible" ).accordion({
-  collapsible: true,
-  active: !START_COLLAPSED
-  }}
-  );
-  });
-  */
-</script>
 
 <style>
-  .panel-body  {
+  .card-body  {
     word-break:break-word
   }
 </style>
 
-<div width="100%" class="panel panel-default collapsible">
-  <div class="panel-body">
+<div class="card collapsible mb-2">
+  <div class="card-body">
     {% if current_form_name == "Demographics" %}
     <i>{% trans 'Demographics' %}</i>
     {% else %}
@@ -35,8 +21,8 @@
 
 
 {% if not consent_locked %}
-<div width="100%" class="panel panel-default collapsible">
-  <div class="panel-body">
+<div class="card collapsible mb-2">
+  <div class="card-body">
     {% if current_form_name == "Consents" %}
     <i>{% trans 'Consents' %}</i>
     {% else %}
@@ -47,8 +33,8 @@
 
 
 {% if clinician_form_link %}
-<div width="100%" class="panel panel-default collapsible">
-  <div class="panel-body">
+<div class="card collapsible mb-2">
+  <div class="card-body">
     {% if current_form_name == "Clinician" %}
     <i>{% trans 'Clinician' %}</i>
     {% else %}
@@ -59,8 +45,8 @@
 {% endif %}
 
 {% if proms_link %}
-<div width="100%" class="panel panel-default collapsible">
-  <div class="panel-body">
+<div class="card collapsible mb-2">
+  <div class="card-body">
     {% if current_form_name == "Proms" %}
     <i>{% trans 'Proms' %}</i>
     {% else %}
@@ -72,23 +58,19 @@
 
 
 {% if family_linkage_link %}
-<div width="100%" class="panel panel-default collapsible">
-  <div class="panel-body">
+<div class="card collapsible mb-2">
+  <div class="card-body">
     <a href="{{family_linkage_link}}">{% trans 'Family Linkage' %}</a>
   </div>
 </div>
 {% endif %}
 
-
-
-
-
 {% for fixed_context in fixed_contexts %}
-<div class="panel panel-default collapsible">
-  <div class="panel-heading">
+<div class="card collapsible mb-2">
+  <div class="card-header">
     {{fixed_context.name|translate}}
   </div>
-  <div class="panel-body">
+  <div class="card-body">
     {% for form in fixed_context.forms %}
     <p>
       {% if form.current %}
@@ -102,20 +84,18 @@
 </div>
 {% endfor %}
 
-
-
 {% for multiple_context in multiple_contexts %}
 <!-- START MMMMMM -->
-<div width="100%" class="panel panel-default collapsible">
-  <div class="panel-heading" data-toggle="collapse" data-target="#existing_{{multiple_context.id}}">
+<div class="card collapsible mb-2">
+  <div class="card-header" data-bs-toggle="collapse" data-target="#existing_{{multiple_context.id}}">
     {{multiple_context.heading}}
     {% if can_add_proms %}
     <a class="btn btn-info btn-xs pull-right"
        onclick="location.href='{{multiple_context.add_link_url}}';">
-       <span class="glyphicon glyphicon-plus" aria-hidden="true"></span> Add</a>
+       <span class="fa fa-plus" aria-hidden="true"></span> Add</a>
      {% endif %}
   </div>
-  <div id="existing_{{multiple_context.id}}" class="panel-body">
+  <div id="existing_{{multiple_context.id}}" class="card-body">
     {% for link in multiple_context.existing_links %}
     {% if not link.current %}
     <a href="{{link.url}}">{% trans link.text %}</a>
@@ -143,8 +123,8 @@
 
 {% else %}
 <!-- consent locked -->
-<div width="100%" class="panel panel-default collapsible">
-  <div class="panel-body">
+<div class="card collapsible">
+  <div class="card-body">
     {% if current_form_name == "Consents" %}
     <i>{% trans "Consents" %}</i>
     {% else %}

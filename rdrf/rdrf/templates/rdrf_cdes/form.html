@@ -54,7 +54,7 @@
 
         // show bootstrap tooltips
         $(function () {
-          $('[data-toggle="tooltip"]').tooltip()
+          $('[data-bs-toggle="tooltip"]').tooltip()
         });
     <style>
         .ui-autocomplete {
@@ -244,16 +244,16 @@
 {% block formbtns %}
 	<div class="btn-group" role="group" aria-label="...">
 		<button id="submit-btn" type="submit" class="btn btn-success" value="Save">
-			<span class="glyphicon glyphicon-floppy-save" aria-hidden="true"></span> {% trans "Save" %}
+			<span class="fa fa-floppy-save" aria-hidden="true"></span> {% trans "Save" %}
         </button>
 
 		<a href="" class="btn btn-danger">
-			<span class="glyphicon glyphicon-remove" aria-hidden="true"></span> {% trans "Cancel" %}
+			<span class="fa fa-remove" aria-hidden="true"></span> {% trans "Cancel" %}
 		</a>
 
 		{% if show_print_button %}
 			<a class="btn btn-warning" href="{% url 'registry_form_print' registry_code form_name patient_id context_id %}" target="_blank">
-				<span class="glyphicon glyphicon-print" aria-hidden="true"></span> {% trans "Print" %}
+				<span class="fa fa-print" aria-hidden="true"></span> {% trans "Print" %}
 			</a>
 		{% endif %}
 	</div>
@@ -263,11 +263,11 @@
     {{ block.super }}
 
 	<a class="previous-form" href="{{ previous_form_link }}">
-		<span class="glyphicon glyphicon-chevron-left" aria-hidden="true"></span>
+		<span class="fa fa-chevron-left" aria-hidden="true"></span>
 	</a>
 
 	<a class="next-form" href="{{ next_form_link }}">
-		<span class="glyphicon glyphicon-chevron-right" aria-hidden="true"></span>
+		<span class="fa fa-chevron-right" aria-hidden="true"></span>
 	</a>
 
     <br>
@@ -280,7 +280,7 @@
                     <div id="form-progress">
                         <ul class="list-group">
                             <li class="list-group-item">
-                                <span class="badge" id="show-cdes-btn"><span class="glyphicon glyphicon-sort" aria-hidden="true"></span></span>
+                                <span class="badge" id="show-cdes-btn"><span class="fa fa-sort" aria-hidden="true"></span></span>
                                 <div class="progress">
                                     <div class="progress-bar" role="progressbar" aria-valuenow="{{form_progress|floatformat:'0'}}" aria-valuemin="0" aria-valuemax="100" style="width: {{form_progress|floatformat:'0'}}%;">
                                       {{form_progress|floatformat:"0"}}%
@@ -308,9 +308,9 @@
             {% endif %}
 
             {% for s in sections %}
-                <div class="panel panel-default">
+                <div class="card mb-4">
 
-                    <div class="panel-heading">
+                    <div class="card-header">
                         {% if request.user.is_superuser and settings.DESIGN_MODE %}
                             <a target="_blank" href="{% url 'admin:rdrf_section_change' section_ids|get_section_id:s %}"><strong>{{display_names|get_display_name:s|translate}}</strong></a>
                         {% else %}
@@ -320,13 +320,13 @@
                         {% if forms|is_formset:s %}
                             {% with formset=forms|get_form_object:s %}
                                 <a class="btn btn-primary btn-xs pull-right" onclick="add_form('{{formset.prefix}}');">
-                                    <span class="glyphicon glyphicon-plus" aria-hidden="true"></span> Add
+                                    <span class="fa fa-plus" aria-hidden="true"></span> Add
                                 </a>
                             {% endwith %}
                         {% endif %}
                     </div>
 
-                    <div class="panel-body">
+                    <div class="card-body">
                         {% if forms|is_formset:s %}
                             {% with formset=forms|get_form_object:s %}
                                 <div id="mgmt_{{formset.prefix}}">{{formset.management_form}}</div>
@@ -334,7 +334,7 @@
                                     <div class="form-group">
                                         <div class="col-sm-9 col-sm-offset-3">
                                             <a class="btn btn-danger btn-xs pull-right" onclick="delete_form(this, '{{formset.prefix}}')">
-                                                <span class="glyphicon glyphicon-minus" aria-hidden="true"></span> {% trans "Remove" %}
+                                                <span class="fa fa-minus" aria-hidden="true"></span> {% trans "Remove" %}
                                             </a>
                                         </div>
                                     </div>
@@ -342,17 +342,17 @@
                                         {% if element.errors %}
                                             <div class="form-group has-error">
                                         {% else %}
-                                            <div class="form-group">
+                                            <div class="form-group row mb-3">
                                         {% endif %}
                                                 {% if element.label == "Delete" %}
                                                 {% else %}
-                                                    <label for="{{ element.id_for_label}}" style="display: {{element.is_hidden|yesno:"None,block"}}" class="col-sm-3 control-label">
+                                                    <label for="{{ element.id_for_label}}" style="display: {{element.is_hidden|yesno:"None,block"}}" class="col-sm-3 col-form-label">
                                                         {{ element.label }}
                                                         {% if  element.field.required %}
-                                                            <span class="glyphicon glyphicon-asterisk" style="color: red;" aria-hidden="true"></span>
+                                                            <span class="fa fa-asterisk" style="color: red;" aria-hidden="true"></span>
                                                         {% endif %}
                                                         {% if  element.field.important %}
-                                                            <span class="glyphicon glyphicon-asterisk" style="color: green;" aria-hidden="true"></span>
+                                                            <span class="fa fa-asterisk" style="color: green;" aria-hidden="true"></span>
                                                         {% endif %}
                                                     </label>
                                                     <div class="col-sm-9">
@@ -386,10 +386,10 @@
                                                         {% else %}
                                                             {{ element.label }}
                                                             {% if  element.field.required %}
-                                                                <span class="glyphicon glyphicon-asterisk" style="color: red;" aria-hidden="true"></span>
+                                                                <span class="fa fa-asterisk" style="color: red;" aria-hidden="true"></span>
                                                             {% endif %}
                                                         {% if  element.field.important %}
-                                                            <span class="glyphicon glyphicon-asterisk" style="color: green;" aria-hidden="true"></span>
+                                                            <span class="fa fa-asterisk" style="color: green;" aria-hidden="true"></span>
                                                         {% endif %}
                                                         {% endif %}
                                                     </label>
@@ -417,27 +417,27 @@
                                        {% if field|is_abnormal %}
                                         rdrf-cde-abnormal
                                        {% endif %}">
-                                    <label for="{{field.id_for_label}}" class="col-sm-3 control-label {% if field|is_abnormal %}
-                                        glyphicon glyphicon-warning-sign
+                                    <label for="{{field.id_for_label}}" class="col-sm-12 control-label {% if field|is_abnormal %}
+                                        fa fa-warning-sign
                                        {% endif %}">
                                         {% if field.field.cde.code and not CREATE_MODE and have_dynamic_data %}
                                         <a href="{% url 'registry_form_field_history' registry_code form_name patient_id s context_id field.field.cde.code %}"
                                            onclick="rdrf_click_form_field_history(event, this)"
-                                           class="btn btn-default btn-xs invisibutton pull-left"
-                                           data-toggle="tooltip" title="View previous answers"
+                                           class="btn btn-default btn-xs invisibutton pull-right"
+                                           data-bs-toggle="tooltip" title="View previous answers"
                                            aria-label="Previous answers">
-                                          <i class="glyphicon glyphicon-time" aria-hidden="true"></i>
+                                          <i class="fa fa-time" aria-hidden="true"></i>
                                         </a>
                                         {% endif %}
                                         {{field.label}}
                                         {% if  field.field.required %}
-                                            <span class="glyphicon glyphicon-asterisk" style="color: red;" aria-hidden="true"></span>
+                                            <span class="fa fa-asterisk" style="color: red;" aria-hidden="true"></span>
                                         {% endif %}
                                         {% if  field.field.important %}
-                                           <span class="glyphicon glyphicon-asterisk" style="color: green;" aria-hidden="true"></span>
+                                           <span class="fa fa-asterisk" style="color: green;" aria-hidden="true"></span>
                                         {% endif %}
                                         {% if  field.verification_status == "V" %}
-                                           <span class="glyphicon glyphicon-ok" style="color: green;" aria-hidden="true"></span>
+                                           <span class="fa fa-ok" style="color: green;" aria-hidden="true"></span>
                                         {% endif %}
                                     </label>
                                     <div class="col-sm-9">
