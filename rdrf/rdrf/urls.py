@@ -1,4 +1,4 @@
-from django.urls import re_path, include, path
+from django.urls import re_path, include, path, reverse_lazy
 from django.contrib import admin
 from django.shortcuts import render
 from django.views.generic.base import TemplateView
@@ -172,7 +172,7 @@ normalpatterns += [
             template_name='registration/login_assistance_form.html',
             subject_template_name='registration/login_assistance_subject.txt',
             email_template_name='registration/login_assistance_email.html',
-            success_url='login_assistance_email_sent'
+            success_url=reverse_lazy('login_assistance_email_sent')
             ),
             name='login_assistance'),
     re_path(r'^login_assistance/sent/?$', auth_views.PasswordResetDoneView.as_view(
