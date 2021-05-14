@@ -99,6 +99,17 @@ class FamilyLinkageManager(object):
                     rel.save()
             elif relative_dict['class'] == "Patient":
                 patient = Patient.objects.get(pk=relative_dict["pk"])
+                try:
+                    patient_location = PatientAddress.objects.get(patient=patient).country
+                except PatientAddress.DoesNotExist:
+                    patient_location = "AU"
+                except PatientAddress.MultipleObjectsReturned:
+                    patient_addresses = PatientAddress.objects.filter(address_type=AddressType.objects.get(type="Home")).filter(patient=patient)
+                    if len(patient_addresses) < 1:
+                        patient_location = "AU"
+                    else:
+                        patient_location = patient_addresses[0].country  # Object at 0 is most recently-added address
+
                 rel = PatientRelative()
                 rel.date_of_birth = patient.date_of_birth
                 rel.patient = self.index_patient
@@ -106,6 +117,9 @@ class FamilyLinkageManager(object):
                 rel.family_name = relative_dict["family_name"]
                 rel.relationship = relative_dict["relationship"]
                 rel.relative_patient = patient
+                rel.sex = patient.sex
+                rel.living_status = patient.living_status
+                rel.location = patient_location
                 rel.save()
                 self.set_as_relative(patient)
 
