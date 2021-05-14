@@ -2303,3 +2303,50 @@ class CalculatedFieldSecurityTestCase(RDRFTestCase):
         # 6. Testing if non-FH calculated field exists in FH
         # No non-FH calculated fields in the test data, but have
         # manually tested this in a local build with DD calc fields
+
+
+class FamilyLinkageTestCase(RDRFTestCase):
+
+    def setUp(self):
+        super(FamilyLinkageTestCase, self).setUp()
+
+        self.registry = Registry.objects.get(code='fh')
+        # make FamilyLinkageManager
+        # self.linkage_manager = FamilyLinkageManager(self.registry)
+        # make 3 patients for full tests
+        # self.patient_ids = create_patients()
+        # maybe make non-patient relative for "non-patient to index" use case
+    
+    def create_new_patient(self, given_name, surname, date_of_birth, sex, living_status, p_ids):
+        patient_new = Patient()
+        patient_new.given_names = given_name
+        patient_new.family_name = surname
+        patient_new.date_of_birth = date_of_birth
+        for choice in Patient.SEX_CHOICES:
+            if choice[1] == sex:
+                patient_new.sex = choice[0]
+        for living_state in Patient.LIVING_STATES:
+            if living_state[1] == living_status:
+                patient_new.living_status = living_state[0]
+        
+        patient_new.save()
+        patient_new.rdrf_registry.set([self.registry])
+        p_ids += [patient_new.pk,]
+
+        return patient_new, p_ids
+    
+    def create_patients(self):
+        # each patient needs an address, living status, sex, given name, and surname for full tests
+        # import addresses first
+        from registry.patients.models import PatientAddress
+        # make patients with func, and add pks to list
+        # patient_ids = []
+        # patient_1, patient_ids = create_new_patient("Test", "Test", datetime(1989, 10, 21), "Male", "Living", patient_ids)
+        # patient_2, patient_ids = create_new_patient("Chester", "Test", datetime(1979, 4, 13), "Male", "Living", patient_ids)
+        # patient_3, patient_ids = create_new_patient("Hester", "Test", datetime(1968, 1, 4), "Female", "Living", patient_ids)
+        # make addresses and assign to patients with func - extend later with extra home & some postal addrs
+        # addr1 = create_address("Home", "123 Somewhere Street", "Australia", patient_1)
+        # addr2 = create_address("Home", "99 Unheardof Avenue", "United Kingdom", patient_2)
+        # addr3 = create_address("Home", "5 Goodbye Grange", "Morocco", patient_3)
+        # return patient_ids
+
