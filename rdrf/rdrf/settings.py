@@ -173,6 +173,7 @@ MIDDLEWARE = (
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django_user_agents.middleware.UserAgentMiddleware',
+    'csp.middleware.CSPMiddleware',
 )
 
 PROMS_MIDDLEWARE = (
@@ -188,6 +189,7 @@ PROMS_MIDDLEWARE = (
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django_user_agents.middleware.UserAgentMiddleware',
+    'csp.middleware.CSPMiddleware',
 )
 
 if SYSTEM_ROLE == SystemRoles.CIC_PROMS:
