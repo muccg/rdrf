@@ -4,10 +4,12 @@ import sys
 import shutil
 from django.core.management import BaseCommand
 from rdrf.models.definition.models import Registry
+from django.conf import settings
 
-proms_dirs = ['proms', 'bootstrap-4.0.0']
+
+proms_dirs = ['proms', 'bootstrap-5.0.0']
 allowed_proms_files = []  # shouldn't need any
-static_dir = "/data/static"
+static_dir = settings.STATIC_ROOT
 
 
 def error(msg):
@@ -35,7 +37,7 @@ def folder_exists(d):
 
 
 def rmfol(fol):
-    if not fol.startswith("/data/static"):
+    if not fol.startswith(static_dir):
         print(f"can't remove folder {fol}")
         return
     if folder_exists(fol):
@@ -77,7 +79,7 @@ def remove_non_proms_files():
 
 
 class Command(BaseCommand):
-    help = "setup_proms_static removes directories in /data/static that are not relevant to the working of the proms site"
+    help = f"setup_proms_static removes directories in {static_dir} that are not relevant to the working of the proms site."
 
     def handle(self, *args, **options):
         sanity_check()
