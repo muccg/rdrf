@@ -7,8 +7,10 @@ from rdrf.models.definition.models import Registry
 from django.conf import settings
 
 
-proms_dirs = ['proms', 'bootstrap-5.0.0']
+proms_dirs = ['proms', 'bootstrap-5.0.0', "css"]
 allowed_proms_files = []  # shouldn't need any
+proms_css = ['vendor/font-awesome.min.css', 'rdrf.css']
+
 static_dir = settings.STATIC_ROOT
 
 
@@ -78,6 +80,31 @@ def remove_non_proms_files():
                 os.unlink(full_path)
 
 
+def is_proms_cssfile(filepath):
+    print("css file:")
+    print(filepath)
+    value = any([filepath.endswith(x) for x in proms_css])
+    print(value)
+    return value
+
+
+def prune_css():
+    print("pruning unneeded css files")
+    css_folder = os.path.join(static_dir, "css")
+    dps = []
+    for root, subdirs, files in os.walk(css_folder):
+        for f in files:
+            fp = os.path.join(root, f)
+            if is_proms_cssfile(fp):
+                continue
+            else:
+                os.unlink(fp)
+
+    find_cmd = f"find {css_folder} -type d -empty -delete"
+
+    os.system(find_cmd)
+
+
 class Command(BaseCommand):
     help = f"setup_proms_static removes directories in {static_dir} that are not relevant to the working of the proms site."
 
@@ -86,4 +113,5 @@ class Command(BaseCommand):
         check_proms()
         remove_non_proms_folders()
         remove_non_proms_files()
+        prune_css()
         print("finished cleaning up proms static folder")
