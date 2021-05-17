@@ -5,7 +5,7 @@ package_data = {}
 start_dir = os.getcwd()
 requirements = [
     "ccg-django-utils==0.4.2",
-    "celery==5.0.2",
+    "celery==5.0.5",
     "Django==2.2.20",
     "django-anymail==8.1",
     "django-ajax-selects==2.0.0",
@@ -140,7 +140,7 @@ for package in ['rdrf', 'registry.common', 'registry.genetic',
 
 
 setup(name='django-rdrf',
-      version="6.3.21",
+      version="6.3.22",
       packages=find_packages(),
       description='RDRF',
       long_description='Rare Disease Registry Framework',
