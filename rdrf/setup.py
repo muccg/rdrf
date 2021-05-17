@@ -58,7 +58,8 @@ requirements = [
     "Markdown==3.1.1",
     "xhtml2pdf",
     "django-redis==4.12.1",
-    "kombu==5.0.2"
+    "kombu==5.0.2",
+    "django-csp==3.7"
 ]
 
 
@@ -139,7 +140,7 @@ for package in ['rdrf', 'registry.common', 'registry.genetic',
 
 
 setup(name='django-rdrf',
-      version="6.3.20",
+      version="6.3.21",
       packages=find_packages(),
       description='RDRF',
       long_description='Rare Disease Registry Framework',

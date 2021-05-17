@@ -96,6 +96,14 @@ two_factor_auth_urls = [
     re_path(r'^account/two_factor/disable/?$', DisableView.as_view(), name='disable'),
 ]
 
+proms_site = [
+    re_path(r'^promslanding/?$', PromsLandingPageView.as_view(), name="proms_landing_page"),
+    re_path(r'^proms/?$', PromsView.as_view(), name="proms"),
+    re_path(r'^promscompleted/?$', PromsCompletedPageView.as_view(), name="proms_completed"),
+    re_path(r'^api/proms/v1/', include(('rdrf.services.rest.urls.proms_api_urls', 'proms_api_urls'), namespace=None)),
+
+]
+
 proms_patterns = [
     re_path(r'^promslanding/?$', PromsLandingPageView.as_view(), name="proms_landing_page"),
     re_path(r'^proms/?$', PromsView.as_view(), name="proms"),
@@ -337,7 +345,7 @@ if settings.REGISTRATION_ENABLED:
     normalpatterns = normalpatterns + registry_urls
 
 if settings.SYSTEM_ROLE == SystemRoles.CIC_PROMS:
-    urlpatterns = proms_patterns
+    urlpatterns = proms_site
 else:
     urlpatterns = normalpatterns
 

@@ -15,6 +15,7 @@ from rdrf.system_role import SystemRoles
 
 env = EnvConfig()
 # testing travis 2
+SYSTEM_ROLE = SystemRoles.get_role(env)
 
 SCRIPT_NAME = env.get("script_name", os.environ.get("HTTP_SCRIPT_NAME", ""))
 FORCE_SCRIPT_NAME = env.get("force_script_name", "") or SCRIPT_NAME or None
@@ -173,6 +174,25 @@ MIDDLEWARE = (
     'django.middleware.security.SecurityMiddleware',
     'django_user_agents.middleware.UserAgentMiddleware',
 )
+
+PROMS_MIDDLEWARE = (
+    'useraudit.middleware.RequestToThreadLocalMiddleware',
+    'django.middleware.common.CommonMiddleware',
+    'iprestrict.middleware.IPRestrictMiddleware',
+    'django.contrib.sessions.middleware.SessionMiddleware',
+    'django.middleware.locale.LocaleMiddleware',
+    'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'django_otp.middleware.OTPMiddleware',
+    'django.middleware.csrf.CsrfViewMiddleware',
+    'django.contrib.messages.middleware.MessageMiddleware',
+    'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'django.middleware.security.SecurityMiddleware',
+    'django_user_agents.middleware.UserAgentMiddleware',
+    'csp.middleware.CSPMiddleware',
+)
+
+if SYSTEM_ROLE == SystemRoles.CIC_PROMS:
+    MIDDLEWARE = PROMS_MIDDLEWARE
 
 
 INSTALLED_APPS = [
@@ -696,7 +716,6 @@ REST_FRAMEWORK = {
     'DEFAULT_VERSION': 'v1',
 }
 
-SYSTEM_ROLE = SystemRoles.get_role(env)
 PROJECT_TITLE = env.get("project_title", "Rare Disease Registry Framework")
 PROJECT_TITLE_LINK = "admin:index" if SYSTEM_ROLE == SystemRoles.CIC_PROMS else "patientslisting"
 
