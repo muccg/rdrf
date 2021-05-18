@@ -91,7 +91,6 @@ def is_proms_cssfile(filepath):
 def prune_css():
     print("pruning unneeded css files")
     css_folder = os.path.join(static_dir, "css")
-    dps = []
     for root, subdirs, files in os.walk(css_folder):
         for f in files:
             fp = os.path.join(root, f)
