@@ -77,7 +77,7 @@
 {% block submit_buttons_bottom %}{% submit_row %}{% endblock %}
 
 {% if adminform.first_field and add %}
-   <script type="text/javascript">document.getElementById("{{ adminform.first_field.id_for_label }}").focus();</script>
+   <script type="text/javascript" nonce="{{request.csp_nonce}}">document.getElementById("{{ adminform.first_field.id_for_label }}").focus();</script>
 {% endif %}
 
 {# JavaScript for prepopulated fields #}

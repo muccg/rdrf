@@ -52,7 +52,7 @@
     {% block extrahead %}
     {% endblock %}
 
-    <script>
+    <script nonce="{{request.csp_nonce}}">
         $(document).ready(function () {
             $("#submit-btn").click(function () {
                 $("#main-form").submit();

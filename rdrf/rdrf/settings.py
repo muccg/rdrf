@@ -173,6 +173,7 @@ MIDDLEWARE = (
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django_user_agents.middleware.UserAgentMiddleware',
+    'csp.middleware.CSPMiddleware',
 )
 
 PROMS_MIDDLEWARE = (

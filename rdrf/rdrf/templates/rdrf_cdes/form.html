@@ -29,7 +29,7 @@
     <link rel="stylesheet" href="{% static 'css/jquery-1.11.4/themes/smoothness/jquery-ui.min.css' %}">
 
     <!--[if IE 8]>
-	<script type="text/javascript" src="ie_expand_select_width.js"></script>
+	<script nonce="{{request.csp_nonce}}" type="text/javascript" src="ie_expand_select_width.js"></script>
 	<script type="text/javascript">
 		$(document).ready(function() {
 			$('select').ieExpandSelectWidth();
@@ -48,7 +48,7 @@
         }
     </style>
 
-    <script type="text/javascript">
+    <script type="text/javascript" nonce="{{request.csp_nonce}}" >
         window.IMAGES_URL = "{% static 'images/' %}";
     </script>
 

@@ -15,7 +15,7 @@
 {% block extrahead %}
 
     <script type="text/javascript" src="{% static 'js/lookup.js' %}"></script>
-    <script>
+    <script nonce="{{request.csp_nonce}}">
         var initial_index = '{{ initial_index }}';
         var relationships = [];
         var tmpObject = null;
