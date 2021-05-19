@@ -2309,16 +2309,23 @@ class FamilyLinkageTestCase(RDRFTestCase):
 
     def setUp(self):
         super(FamilyLinkageTestCase, self).setUp()
-
+        # need to import FH to correctly use family linkage
+        this_dir = os.path.dirname(__file__)
+        test_yaml = os.path.abspath(os.path.join(this_dir, "..", "..", "fixtures", "exported_fh_registry.yaml"))
+        importer = Importer()
+        importer.load_yaml(test_yaml)
+        importer.create_registry()
         self.registry = Registry.objects.get(code='fh')
-        # make FamilyLinkageManager
-        # self.linkage_manager = FamilyLinkageManager(self.registry)
+        self.address_type, created = AddressType.objects.get_or_create(pk=1)
         # make 3 patients for full tests
-        # self.patient_ids = create_patients()
+        self.patient_ids = self.create_patients()
         # maybe make non-patient relative for "non-patient to index" use case
-    
+
     def create_new_patient(self, given_name, surname, date_of_birth, sex, living_status, p_ids):
+        from rdrf.db.contexts_api import RDRFContextManager
+
         patient_new = Patient()
+        patient_new.consent = True
         patient_new.given_names = given_name
         patient_new.family_name = surname
         patient_new.date_of_birth = date_of_birth
@@ -2328,25 +2335,158 @@ class FamilyLinkageTestCase(RDRFTestCase):
         for living_state in Patient.LIVING_STATES:
             if living_state[1] == living_status:
                 patient_new.living_status = living_state[0]
-        
+
         patient_new.save()
         patient_new.rdrf_registry.set([self.registry])
-        p_ids += [patient_new.pk,]
+        context_manager = RDRFContextManager(self.registry)
+        default_context = context_manager.get_or_create_default_context(
+            patient_new, new_patient=True)
+        patient_new.save()
+        p_ids += [patient_new.pk, ]
 
-        return patient_new, p_ids
-    
+        return patient_new, p_ids, default_context
+
+    def create_address(self, address_type, street_address, country, patient):
+        address_new = PatientAddress()
+        address_new.address_type = AddressType.objects.get(pk=address_type)
+        address_new.address = street_address
+        address_new.country = country
+        address_new.patient = patient
+        address_new.save()
+
     def create_patients(self):
         # each patient needs an address, living status, sex, given name, and surname for full tests
         # import addresses first
-        from registry.patients.models import PatientAddress
+        # from registry.patients.models import PatientAddress
         # make patients with func, and add pks to list
-        # patient_ids = []
-        # patient_1, patient_ids = create_new_patient("Test", "Test", datetime(1989, 10, 21), "Male", "Living", patient_ids)
-        # patient_2, patient_ids = create_new_patient("Chester", "Test", datetime(1979, 4, 13), "Male", "Living", patient_ids)
-        # patient_3, patient_ids = create_new_patient("Hester", "Test", datetime(1968, 1, 4), "Female", "Living", patient_ids)
+        patient_ids = []
+        patient_1, patient_ids, self.patient_1_context = self.create_new_patient("Test", "Test", datetime(1989, 10, 21), "Male", "Living", patient_ids)
+        patient_2, patient_ids, self.patient_2_context = self.create_new_patient("Chester", "Test", datetime(1979, 4, 13), "Male", "Living", patient_ids)
+        patient_3, patient_ids, self.patient_3_context = self.create_new_patient("Hester", "Test", datetime(1968, 1, 4), "Female", "Living", patient_ids)
         # make addresses and assign to patients with func - extend later with extra home & some postal addrs
-        # addr1 = create_address("Home", "123 Somewhere Street", "Australia", patient_1)
-        # addr2 = create_address("Home", "99 Unheardof Avenue", "United Kingdom", patient_2)
-        # addr3 = create_address("Home", "5 Goodbye Grange", "Morocco", patient_3)
-        # return patient_ids
+        self.create_address(1, "123 Somewhere Street", "Australia", patient_1)
+        self.create_address(1, "99 Unheardof Avenue", "United Kingdom", patient_2)
+        self.create_address(1, "5 Goodbye Grange", "Morocco", patient_3)
+        return patient_ids
 
+    def run_linkage_manager(self, new_packet):
+        from rdrf.views.family_linkage import FamilyLinkageManager
+        self.linkage_manager = FamilyLinkageManager(self.registry, new_packet)
+        self.linkage_manager.run()
+
+    def test_family_linkage_manager(self):
+        from registry.patients.models import PatientRelative
+        # What tests do we need?
+        # First, set index patient
+        index_new = Patient.objects.get(pk=self.patient_ids[0])
+        # make FamilyLinkageManager with initial packet
+        init_packet = {
+            'index': {
+                'pk': index_new.pk,
+                'given_names': index_new.given_names,
+                'family_name': index_new.family_name,
+                'class': 'Patient',
+                'working_group': None,
+                'link': f'/fh/patient/{index_new.pk}/edit'
+            },
+            'relatives': [],
+            'original_index': {
+                'pk': index_new.pk,
+                'given_names': index_new.given_names,
+                'family_name': index_new.family_name,
+                'class': 'Patient',
+                'working_group': None,
+                'link': f'/fh/patient/{index_new.pk}/edit'
+            }
+        }
+        self.run_linkage_manager(init_packet)
+        self.assertTrue(self.linkage_manager.index_patient == index_new)
+        # 1. Link patient to index patient, check that location, living status, and sex carry over
+        link_patient = Patient.objects.get(pk=self.patient_ids[1])
+        link_patient_to_index_packet = {
+            'index': {
+                'pk': index_new.pk,
+                'given_names': index_new.given_names,
+                'family_name': index_new.family_name,
+                'class': 'Patient',
+                'working_group': None,
+                'link': f'/fh/patient/{index_new.pk}/edit'
+            },
+            'relatives': [
+                {
+                    'pk': link_patient.pk,
+                    'given_names': link_patient.given_names,
+                    'family_name': link_patient.family_name,
+                    'class': 'Patient',
+                    'working_group': None,
+                    'link': f'/fh/patient/{link_patient.pk}/edit',
+                    'relationship': 'Sibling (1st degree)'
+                },
+            ],
+            'original_index': {
+                'pk': index_new.pk,
+                'given_names': index_new.given_names,
+                'family_name': index_new.family_name,
+                'class': 'Patient',
+                'working_group': None,
+                'link': f'/fh/patient/{index_new.pk}/edit'
+            }
+        }
+        self.run_linkage_manager(link_patient_to_index_packet)
+
+        link_relative_patient = PatientRelative.objects.get(relative_patient=link_patient)
+        self.assertTrue(link_relative_patient)
+        # more assertions here
+        self.assertTrue(link_relative_patient.sex == link_patient.sex)
+        self.assertTrue(link_relative_patient.living_status == link_patient.living_status)
+        self.assertTrue(link_relative_patient.location == PatientAddress.objects.get(patient=link_patient).country)
+        # 2. Swap relative to index, check that original index's location, living status, and sex are preserved
+        relative_to_index_packet = {
+            'index': {
+                'pk': link_relative_patient.pk,
+                'given_names': link_relative_patient.given_names,
+                'family_name': link_relative_patient.family_name,
+                'class': 'PatientRelative',
+                'working_group': None,
+                'link': f'/fh/patient/{link_relative_patient.relative_patient.pk}/edit'
+            },
+            'relatives': [
+                {
+                    'pk': index_new.pk,
+                    'given_names': index_new.given_names,
+                    'family_name': index_new.family_name,
+                    'class': 'Patient',
+                    'working_group': None,
+                    'link': f'/fh/patient/{index_new.pk}/edit',
+                    'relationship': 'Sibling (1st degree)'
+                },
+            ],
+            'original_index': {
+                'pk': index_new.pk,
+                'given_names': index_new.given_names,
+                'family_name': index_new.family_name,
+                'class': 'Patient',
+                'working_group': None,
+                'link': f'/fh/patient/{index_new.pk}/edit'
+            }
+        }
+        self.run_linkage_manager(relative_to_index_packet)
+
+        rel_patient_deleted = False
+        try:
+            link_relative_patient = PatientRelative.objects.get(relative_patient=link_patient)
+        except PatientRelative.DoesNotExist:
+            rel_patient_deleted = True
+        self.assertTrue(rel_patient_deleted)
+        index_relative_patient = PatientRelative.objects.get(relative_patient=index_new)
+        self.assertTrue(index_relative_patient)
+        # more assertions here
+        self.assertTrue(index_relative_patient.sex == index_new.sex)
+        self.assertTrue(index_relative_patient.living_status == index_new.living_status)
+        self.assertTrue(index_relative_patient.location == PatientAddress.objects.get(patient=index_new).country)
+        # 3. Add non-patient relative, ensure it proceeds correctly
+        # add_non_patient_relative_packet = {}
+        # self.run_linkage_manager(add_non_patient_relative_packet)
+        # 4. Swap non-patient relative to index, check that new patient is created + results of test #2
+        # non_patient_to_index_packet = {}
+        # self.run_linkage_manager(non_patient_to_index_packet)
