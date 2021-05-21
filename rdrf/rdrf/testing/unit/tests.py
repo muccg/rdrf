@@ -2702,14 +2702,14 @@ class FamilyLinkageTestCase(RDRFTestCase):
         self.assertTrue(relative_test_patient.family_name.lower() == relative_test_data['family_name'].lower(),
                         f"{error_string}{test_section_str}: Patient surname {relative_test_patient.family_name} does not match (lowercase) PatientRelative surname {relative_test_data['family_name']}")
         self.assertTrue(relative_test_patient.date_of_birth == relative_test_data['date_of_birth'],
-                        f"{error_string}{test_section_str}: Patient date of birth {relative_test_patient.date_of_birth} does not match PatientRelative date of birth {relative_test_data['data_of_birth']}")
+                        f"{error_string}{test_section_str}: Patient date of birth {relative_test_patient.date_of_birth} does not match PatientRelative date of birth {relative_test_data['date_of_birth']}")
         self.assertTrue(relative_test_patient.sex == relative_test_data['sex'],
                         f"{error_string}{test_section_str}: Patient sex {relative_test_patient.sex} does not match PatientRelative sex {relative_test_data['sex']}")
         self.assertTrue(relative_test_patient.living_status == relative_test_data['living_status'],
                         f"{error_string}{test_section_str}: Patient living status {relative_test_patient.living_status} does not match PatientRelative living status {relative_test_data['living_status']}")
         self.assertTrue(relative_patient1_test.relationship == "1st Cousin (3rd degree)",
                         f"{error_string}{test_section_str}: PatientRelative {relative_patient1_test.given_names} {relative_patient1_test.family_name}'s relationship {relative_patient1_test.relationship} does not match '1st Cousin (3rd degree)'")
-        self.assertTrue(relative_patient2_test.relationship == "1st Cousin (3rd degree)"
+        self.assertTrue(relative_patient2_test.relationship == "1st Cousin (3rd degree)",
                         f"{error_string}{test_section_str}: PatientRelative {relative_patient2_test.given_names} {relative_patient2_test.family_name}'s relationship {relative_patient2_test.relationship} does not match '1st Cousin (3rd degree)'")
         self.assertTrue(relative_patient2_test.sex == patient2_test.sex,
                         f"{error_string}{test_section_str}: PatientRelative sex {relative_patient2_test.sex} does not match Patient {patient2_test} sex '{patient2_test.sex}'")
