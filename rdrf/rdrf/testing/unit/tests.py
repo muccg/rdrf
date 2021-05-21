@@ -2346,6 +2346,25 @@ class FamilyLinkageTestCase(RDRFTestCase):
 
         return patient_new, p_ids, default_context
 
+    def create_new_patient_relative(self, given_name, surname, date_of_birth, sex, living_status, location, index):
+        from registry.patients.models import PatientRelative
+
+        patient_rel_new = PatientRelative()
+        patient_rel_new.given_names = given_name
+        patient_rel_new.family_name = surname
+        patient_rel_new.date_of_birth = date_of_birth
+        for choice in PatientRelative.SEX_CHOICES:
+            if choice[1] == sex:
+                patient_rel_new.sex = choice[0]
+        for living_state in PatientRelative.LIVING_STATES:
+            if living_state[1] == living_status:
+                patient_rel_new.living_status = living_state[0]
+        patient_rel_new.location = location
+        patient_rel_new.patient = index
+        patient_rel_new.save()
+
+        return patient_rel_new
+
     def create_address(self, address_type, street_address, country, patient):
         address_new = PatientAddress()
         address_new.address_type = AddressType.objects.get(pk=address_type)
@@ -2362,11 +2381,11 @@ class FamilyLinkageTestCase(RDRFTestCase):
         patient_ids = []
         patient_1, patient_ids, self.patient_1_context = self.create_new_patient("Test", "Test", datetime(1989, 10, 21), "Male", "Living", patient_ids)
         patient_2, patient_ids, self.patient_2_context = self.create_new_patient("Chester", "Test", datetime(1979, 4, 13), "Male", "Living", patient_ids)
-        patient_3, patient_ids, self.patient_3_context = self.create_new_patient("Hester", "Test", datetime(1968, 1, 4), "Female", "Living", patient_ids)
+        # patient_3, patient_ids, self.patient_3_context = self.create_new_patient("Hester", "Test", datetime(1968, 1, 4), "Female", "Living", patient_ids)
         # make addresses and assign to patients with func - extend later with extra home & some postal addrs
         self.create_address(1, "123 Somewhere Street", "Australia", patient_1)
         self.create_address(1, "99 Unheardof Avenue", "United Kingdom", patient_2)
-        self.create_address(1, "5 Goodbye Grange", "Morocco", patient_3)
+        # self.create_address(1, "5 Goodbye Grange", "Morocco", patient_3)
         return patient_ids
 
     def run_linkage_manager(self, new_packet):
@@ -2374,119 +2393,280 @@ class FamilyLinkageTestCase(RDRFTestCase):
         self.linkage_manager = FamilyLinkageManager(self.registry, new_packet)
         self.linkage_manager.run()
 
+    def patient_is_index(self, patient):
+        is_index = False
+        family_linkage_value = patient.get_form_value(
+            self.registry.code,
+            self.registry.metadata['family_linkage_form_name'],
+            self.registry.metadata['family_linkage_section_code'],
+            self.registry.metadata['family_linkage_cde_code']
+        )
+        if family_linkage_value == 'fh_is_index':
+            is_index = True
+
+        return is_index
+
+    def patient_is_relative(self, patient):
+        is_relative = False
+        family_linkage_value = patient.get_form_value(
+            self.registry.code,
+            self.registry.metadata['family_linkage_form_name'],
+            self.registry.metadata['family_linkage_section_code'],
+            self.registry.metadata['family_linkage_cde_code']
+        )
+        if family_linkage_value == 'fh_is_relative':
+            is_relative = True
+
+        return is_relative
+
     def test_family_linkage_manager(self):
         from registry.patients.models import PatientRelative
         # What tests do we need?
         # First, set index patient
-        index_new = Patient.objects.get(pk=self.patient_ids[0])
+        patient1_test = Patient.objects.get(pk=self.patient_ids[0])
         # make FamilyLinkageManager with initial packet
         init_packet = {
             'index': {
-                'pk': index_new.pk,
-                'given_names': index_new.given_names,
-                'family_name': index_new.family_name,
+                'pk': patient1_test.pk,
+                'given_names': patient1_test.given_names,
+                'family_name': patient1_test.family_name,
                 'class': 'Patient',
                 'working_group': None,
-                'link': f'/fh/patient/{index_new.pk}/edit'
+                'link': f'/fh/patient/{patient1_test.pk}/edit'
             },
             'relatives': [],
             'original_index': {
-                'pk': index_new.pk,
-                'given_names': index_new.given_names,
-                'family_name': index_new.family_name,
+                'pk': patient1_test.pk,
+                'given_names': patient1_test.given_names,
+                'family_name': patient1_test.family_name,
                 'class': 'Patient',
                 'working_group': None,
-                'link': f'/fh/patient/{index_new.pk}/edit'
+                'link': f'/fh/patient/{patient1_test.pk}/edit'
             }
         }
         self.run_linkage_manager(init_packet)
-        self.assertTrue(self.linkage_manager.index_patient == index_new)
+        self.assertTrue(self.linkage_manager.index_patient == patient1_test)
+        self.assertTrue(self.patient_is_index(patient1_test))
+
         # 1. Link patient to index patient, check that location, living status, and sex carry over
-        link_patient = Patient.objects.get(pk=self.patient_ids[1])
+        patient2_test = Patient.objects.get(pk=self.patient_ids[1])
         link_patient_to_index_packet = {
             'index': {
-                'pk': index_new.pk,
-                'given_names': index_new.given_names,
-                'family_name': index_new.family_name,
+                'pk': patient1_test.pk,
+                'given_names': patient1_test.given_names,
+                'family_name': patient1_test.family_name,
                 'class': 'Patient',
                 'working_group': None,
-                'link': f'/fh/patient/{index_new.pk}/edit'
+                'link': f'/fh/patient/{patient1_test.pk}/edit'
             },
             'relatives': [
                 {
-                    'pk': link_patient.pk,
-                    'given_names': link_patient.given_names,
-                    'family_name': link_patient.family_name,
+                    'pk': patient2_test.pk,
+                    'given_names': patient2_test.given_names,
+                    'family_name': patient2_test.family_name,
                     'class': 'Patient',
                     'working_group': None,
-                    'link': f'/fh/patient/{link_patient.pk}/edit',
+                    'link': f'/fh/patient/{patient2_test.pk}/edit',
                     'relationship': 'Sibling (1st degree)'
                 },
             ],
             'original_index': {
-                'pk': index_new.pk,
-                'given_names': index_new.given_names,
-                'family_name': index_new.family_name,
+                'pk': patient1_test.pk,
+                'given_names': patient1_test.given_names,
+                'family_name': patient1_test.family_name,
                 'class': 'Patient',
                 'working_group': None,
-                'link': f'/fh/patient/{index_new.pk}/edit'
+                'link': f'/fh/patient/{patient1_test.pk}/edit'
             }
         }
         self.run_linkage_manager(link_patient_to_index_packet)
 
-        link_relative_patient = PatientRelative.objects.get(relative_patient=link_patient)
-        self.assertTrue(link_relative_patient)
+        relative_patient2_test = PatientRelative.objects.get(relative_patient=patient2_test)
+        self.assertTrue(relative_patient2_test)
         # more assertions here
-        self.assertTrue(link_relative_patient.sex == link_patient.sex)
-        self.assertTrue(link_relative_patient.living_status == link_patient.living_status)
-        self.assertTrue(link_relative_patient.location == PatientAddress.objects.get(patient=link_patient).country)
+        self.assertTrue(relative_patient2_test.sex == patient2_test.sex)
+        self.assertTrue(relative_patient2_test.living_status == patient2_test.living_status)
+        self.assertTrue(relative_patient2_test.location == PatientAddress.objects.get(patient=patient2_test).country)
+        self.assertTrue(relative_patient2_test.patient == patient1_test)
+        self.assertTrue(relative_patient2_test in patient1_test.relatives.all())
+        self.assertTrue(relative_patient2_test.relationship == "Sibling (1st degree)")
+        self.assertTrue(self.patient_is_relative(patient2_test))
+        self.assertFalse(self.patient_is_index(patient2_test))
+
         # 2. Swap relative to index, check that original index's location, living status, and sex are preserved
         relative_to_index_packet = {
             'index': {
-                'pk': link_relative_patient.pk,
-                'given_names': link_relative_patient.given_names,
-                'family_name': link_relative_patient.family_name,
+                'pk': relative_patient2_test.pk,
+                'given_names': relative_patient2_test.given_names,
+                'family_name': relative_patient2_test.family_name,
                 'class': 'PatientRelative',
                 'working_group': None,
-                'link': f'/fh/patient/{link_relative_patient.relative_patient.pk}/edit'
+                'link': f'/fh/patient/{relative_patient2_test.relative_patient.pk}/edit'
             },
             'relatives': [
                 {
-                    'pk': index_new.pk,
-                    'given_names': index_new.given_names,
-                    'family_name': index_new.family_name,
+                    'pk': patient1_test.pk,
+                    'given_names': patient1_test.given_names,
+                    'family_name': patient1_test.family_name,
                     'class': 'Patient',
                     'working_group': None,
-                    'link': f'/fh/patient/{index_new.pk}/edit',
+                    'link': f'/fh/patient/{patient1_test.pk}/edit',
                     'relationship': 'Sibling (1st degree)'
                 },
             ],
             'original_index': {
-                'pk': index_new.pk,
-                'given_names': index_new.given_names,
-                'family_name': index_new.family_name,
+                'pk': patient1_test.pk,
+                'given_names': patient1_test.given_names,
+                'family_name': patient1_test.family_name,
                 'class': 'Patient',
                 'working_group': None,
-                'link': f'/fh/patient/{index_new.pk}/edit'
+                'link': f'/fh/patient/{patient1_test.pk}/edit'
             }
         }
         self.run_linkage_manager(relative_to_index_packet)
 
         rel_patient_deleted = False
         try:
-            link_relative_patient = PatientRelative.objects.get(relative_patient=link_patient)
+            relative_patient2_test = PatientRelative.objects.get(relative_patient=patient2_test)
         except PatientRelative.DoesNotExist:
             rel_patient_deleted = True
         self.assertTrue(rel_patient_deleted)
-        index_relative_patient = PatientRelative.objects.get(relative_patient=index_new)
-        self.assertTrue(index_relative_patient)
+        self.assertTrue(self.patient_is_index(patient2_test))
+        self.assertFalse(self.patient_is_relative(patient2_test))
+        relative_patient1_test = PatientRelative.objects.get(relative_patient=patient1_test)
+        self.assertTrue(relative_patient1_test)
         # more assertions here
-        self.assertTrue(index_relative_patient.sex == index_new.sex)
-        self.assertTrue(index_relative_patient.living_status == index_new.living_status)
-        self.assertTrue(index_relative_patient.location == PatientAddress.objects.get(patient=index_new).country)
+        self.assertTrue(relative_patient1_test.sex == patient1_test.sex)
+        self.assertTrue(relative_patient1_test.living_status == patient1_test.living_status)
+        self.assertTrue(relative_patient1_test.location == PatientAddress.objects.get(patient=patient1_test).country)
+        self.assertTrue(relative_patient1_test.patient == patient2_test)
+        self.assertTrue(relative_patient1_test in patient2_test.relatives.all())
+        self.assertTrue(relative_patient1_test.relationship == "Sibling (1st degree)")
+        self.assertTrue(self.patient_is_relative(patient1_test))
+        self.assertFalse(self.patient_is_index(patient1_test))
+
         # 3. Add non-patient relative, ensure it proceeds correctly
-        # add_non_patient_relative_packet = {}
-        # self.run_linkage_manager(add_non_patient_relative_packet)
+        relative_test = self.create_new_patient_relative("Hester", "Test", datetime(1968, 1, 4), "Female", "Living", "MA", patient2_test)
+        self.assertFalse(relative_test.relationship)
+        add_non_patient_relative_packet = {
+            'index': {
+                'pk': patient2_test.pk,
+                'given_names': patient2_test.given_names,
+                'family_name': patient2_test.family_name,
+                'class': 'Patient',
+                'working_group': None,
+                'link': f'/fh/patient/{patient2_test.pk}/edit'
+            },
+            'relatives': [
+                {
+                    'pk': relative_patient1_test.pk,
+                    'given_names': patient1_test.given_names,
+                    'family_name': patient1_test.family_name,
+                    'class': 'PatientRelative',
+                    'working_group': None,
+                    'link': f'/fh/patient/{patient1_test.pk}/edit',
+                    'relationship': 'Sibling (1st degree)'
+                },
+                {
+                    'pk': relative_test.pk,
+                    'given_names': relative_test.given_names,
+                    'family_name': relative_test.family_name,
+                    'class': 'PatientRelative',
+                    'working_group': None,
+                    'link': None,
+                    'relationship': '1st Cousin (3rd degree)'
+                }
+            ],
+            'original_index': {
+                'pk': patient2_test.pk,
+                'given_names': patient2_test.given_names,
+                'family_name': patient2_test.family_name,
+                'class': 'Patient',
+                'working_group': None,
+                'link': f'/fh/patient/{patient2_test.pk}/edit'
+            }
+        }
+        self.run_linkage_manager(add_non_patient_relative_packet)
+
+        relative_test = PatientRelative.objects.get(pk=relative_test.pk)  # Need to re-get relative for relationship to be tested properly
+        self.assertTrue(self.linkage_manager.relatives[1]['pk'] == relative_test.pk)
+        self.assertFalse(relative_test.relative_patient)
+        self.assertTrue(relative_test.patient == patient2_test)
+        self.assertTrue(relative_test.relationship == "1st Cousin (3rd degree)")
+        self.assertTrue(relative_test in patient2_test.relatives.all())
+
         # 4. Swap non-patient relative to index, check that new patient is created + results of test #2
-        # non_patient_to_index_packet = {}
-        # self.run_linkage_manager(non_patient_to_index_packet)
+        relative_test_data = {
+            'pk': relative_test.pk,
+            'given_names': relative_test.given_names,
+            'family_name': relative_test.family_name,
+            'date_of_birth': relative_test.date_of_birth,
+            'sex': relative_test.sex,
+            'living_status': relative_test.living_status
+        }
+
+        non_patient_to_index_packet = {
+            'index': {
+                'pk': relative_test.pk,
+                'given_names': relative_test.given_names,
+                'family_name': relative_test.family_name,
+                'class': 'PatientRelative',
+                'working_group': None,
+                'link': None
+            },
+            'relatives': [
+                {
+                    'pk': relative_patient1_test.pk,
+                    'given_names': patient1_test.given_names,
+                    'family_name': patient1_test.family_name,
+                    'class': 'PatientRelative',
+                    'working_group': None,
+                    'link': f'/fh/patient/{patient1_test.pk}/edit',
+                    'relationship': '1st Cousin (3rd degree)'
+                },
+                {
+                    'pk': patient2_test.pk,
+                    'given_names': patient2_test.given_names,
+                    'family_name': patient2_test.family_name,
+                    'class': 'Patient',
+                    'working_group': None,
+                    'link': f'/fh/patient/{patient2_test.pk}/edit',
+                    'relationship': '1st Cousin (3rd degree)'
+                }
+            ],
+            'original_index': {
+                'pk': patient2_test.pk,
+                'given_names': patient2_test.given_names,
+                'family_name': patient2_test.family_name,
+                'class': 'Patient',
+                'working_group': None,
+                'link': f'/fh/patient/{patient2_test.pk}/edit'
+            }
+        }
+        self.run_linkage_manager(non_patient_to_index_packet)
+
+        rel_patient_deleted = False
+        try:
+            relative_test = PatientRelative.objects.get(pk=relative_test_data['pk'])
+        except PatientRelative.DoesNotExist:
+            rel_patient_deleted = True
+        self.assertTrue(rel_patient_deleted)
+        relative_patient1_test = PatientRelative.objects.get(relative_patient=patient1_test)
+        relative_patient2_test = PatientRelative.objects.get(relative_patient=patient2_test)
+        relative_test_patient = relative_patient1_test.patient
+        self.assertTrue(self.patient_is_index(relative_test_patient))
+        self.assertTrue(self.patient_is_relative(patient2_test))
+        self.assertTrue(relative_patient1_test in relative_test_patient.relatives.all())
+        self.assertTrue(relative_patient2_test in relative_test_patient.relatives.all())
+        self.assertTrue(relative_test_patient.given_names == relative_test_data['given_names'])
+        self.assertTrue(relative_test_patient.family_name.lower() == relative_test_data['family_name'].lower())
+        self.assertTrue(relative_test_patient.date_of_birth == relative_test_data['date_of_birth'])
+        self.assertTrue(relative_test_patient.sex == relative_test_data['sex'])
+        self.assertTrue(relative_test_patient.living_status == relative_test_data['living_status'])
+        self.assertTrue(relative_patient1_test.relationship == "1st Cousin (3rd degree)")
+        self.assertTrue(relative_patient2_test.relationship == "1st Cousin (3rd degree)")
+        self.assertTrue(relative_patient2_test.sex == patient2_test.sex)
+        self.assertTrue(relative_patient2_test.living_status == patient2_test.living_status)
+        self.assertTrue(relative_patient2_test.location == PatientAddress.objects.get(patient=patient2_test).country)
+        self.assertTrue(self.patient_is_relative(patient2_test))
+        self.assertFalse(self.patient_is_index(patient2_test))
