@@ -186,7 +186,7 @@ class Question extends React.Component<QuestionInterface, object> {
 
     public renderOptions(question: any) {
         return _.map(question.spec.options, (option, index) => (
-                <FormGroup check={true}>
+                <FormGroup check={true} key={index}>
                     <Col sm="12" md={{ size: 6, offset: 3 }}>
                         <Label check={true}>
                             <Input type="radio" name={this.props.questions[this.props.stage].cde} value={option.code}
@@ -201,7 +201,7 @@ class Question extends React.Component<QuestionInterface, object> {
     public renderRange(question: any) {
         return (
             <Form>
-                <FormGroup tag="fieldset">
+                <FormGroup tag="fieldset" key={question.code}>
                     <Col sm="12" md={{ size: 6, offset: 3 }}>
                         <h6>{question.survey_question_instruction}</h6>
                         <h4>{question.title}</h4>
@@ -219,7 +219,7 @@ class Question extends React.Component<QuestionInterface, object> {
             isChecked = true;
         }
         return (
-             <FormGroup check={true}>
+             <FormGroup check={true} key={code}>
                 <Col sm="12" md={{ size: 6, offset: 3 }}>
                     <Label check={true}>
                         <Input type="checkbox"
@@ -351,9 +351,9 @@ class Question extends React.Component<QuestionInterface, object> {
                     <div className='row'>
                         <div className="col">
                             <div className="float-right" style={boxStyle}>
-                                <p className="text-center" style={pStyle}>
+                                <div className="text-center" style={pStyle}>
                                     <p>{question.spec.widget_spec.box_label} <br /> <b>{defaultValue}</b></p>
-                                </p>
+                                </div>
                             </div>
                         </div>
                         <div className="col" style={style}>
@@ -440,7 +440,7 @@ class Question extends React.Component<QuestionInterface, object> {
     }
 
     public renderDate(question: any) {
-        let currentValue = null;
+        let currentValue = "";
         if (this.props.answers[question.cde] !== undefined) {
             currentValue = this.props.answers[question.cde];
         }
@@ -469,6 +469,10 @@ class Question extends React.Component<QuestionInterface, object> {
     }
 
     private renderConsent(question) {
+        let isChecked = false;
+        if(this.props.answers[question.cde] !== undefined){
+            isChecked = this.props.answers[question.cde];
+        }
         const consentText = <span>By ticking this box you:
                                 <ul>
                                     <li>Give consent for the information you provide to be used for the CIC Cancer project; and </li>
@@ -488,7 +492,7 @@ class Question extends React.Component<QuestionInterface, object> {
                     <Col sm="12" md={{ size: 6, offset: 3 }} className="form-check">
                         <Input type="checkbox" className="form-check-inline" name={this.props.questions[this.props.stage].cde}
                             onChange={this.handleConsent}
-                            checked={this.props.answers[question.cde]} />
+                            checked={isChecked} />
                         {consentText}
                     </Col>
                 </FormGroup>
