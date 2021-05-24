@@ -809,3 +809,9 @@ if SYSTEM_ROLE in [SystemRoles.CIC_CLINICAL, SystemRoles.CIC_PROMS, SystemRoles.
     else:
         if len(PROMS_SECRET_TOKEN) < 20:
             raise Exception("PROMS_SECRET_TOKEN length error")
+
+
+# Django CSP settings
+CSP_SCRIPT_SRC = ["'self'"]
+
+CSP_INCLUDE_NONCE_IN = ["script-src"]
