@@ -16,9 +16,9 @@
 {% if request.user.is_authenticated %}
 <div class="row">
   <div class="col-md-10">
-    <div class="panel panel-default">
-      <div class="panel-heading">Your Patients requiring verifications</div>
-      <div class="panel-body">
+    <div class="card card-default">
+      <div class="card-heading">Your Patients requiring verifications</div>
+      <div class="card-body">
 	{% for pv in patient_verifications %}
 	<a href="{{pv.link}}">{{pv.title}} 
 	</a>

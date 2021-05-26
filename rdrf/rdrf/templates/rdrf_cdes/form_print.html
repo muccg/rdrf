@@ -185,9 +185,9 @@
             {% endif %}
 
             {% for s in sections %}
-                <div class="panel panel-default">
+                <div class="card card-default">
     
-                    <div class="panel-heading">
+                    <div class="card-heading">
                         {% if request.user.is_superuser and settings.DESIGN_MODE %}
                             <a target="_blank" href="{% url 'admin:rdrf_section_change' section_ids|get_section_id:s %}"><strong>{{display_names|get_display_name:s}}</strong></a>
                         {% else %}
@@ -203,7 +203,7 @@
                         {% endif %}
                     </div>
     
-                    <div class="panel-body">
+                    <div class="card-body">
                         {% if forms|is_formset:s %}
                             {% with formset=forms|get_form_object:s %}
                                 <div id="mgmt_{{formset.prefix}}">{{formset.management_form}}</div>

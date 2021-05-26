@@ -185,8 +185,8 @@
     <form enctype="multipart/form-data" class="form" method="post" id="questionnaire-form">{% csrf_token %}
 
         {% for consent_wrapper in custom_consent_wrappers %}
-            <div class="panel panel-default">
-                <div class="panel-heading">
+            <div class="card card-default">
+                <div class="card-heading">
                     <b>{{consent_wrapper.label}}</b>
                 </div>
                 {% with consent_error_messages=custom_consent_errors|lookup:consent_wrapper.label  %}
@@ -194,7 +194,7 @@
                    <div class="alert alert-danger">{{ consent_error_message }}</div><br>
                 {% endfor %}
                 {% endwith %}
-                <div class="panel-body">
+                <div class="card-body">
                      <table class="table table-bordered table-hover table-condensed">
                             {% autoescape off %}
                                 {% for field in consent_wrapper.form %}
@@ -212,15 +212,15 @@
         {% endfor %}
     
         {% for s in sections %}
-            <div class="panel panel-default">
-                <div class="panel-heading">
+            <div class="card card-default">
+                <div class="card-heading">
                     <b>{{display_names|get_display_name:s}}</b>
                     {% if s|get_questionnairesection_help %}
                         <span  class="glyphicon glyphicon-question-sign pull-right" title="{{ s|get_questionnairesection_help }}" data-toggle='tooltip'  data-placement='left' data-container='body'></span>
                     {% endif %}
                 </div>
 
-                <div class="panel-body">
+                <div class="card-body">
                     {% if forms|is_formset:s %}
 		    
                         <!-- start management form for {{s}}-->
@@ -280,8 +280,8 @@
             </div>
         {% endfor %}
 
-        <div class="panel panel-default">
-            <div class="panel-body">
+        <div class="card card-default">
+            <div class="card-body">
                 {% blocktrans with registry_name=registry.name %}
                 Thank you for completing the {{ registry_name }} questionnaire. The information you have provided will be reviewed by your clinician and downloaded into the registry.
                 {% endblocktrans %}

@@ -183,7 +183,7 @@
                 {% endif %}
 
                 {% if registry|has_feature:"family_linkage" %}
-                    <div class="card panel-default">
+                    <div class="card card-default">
                         <div class="card-header">
                             <strong>{% trans "Family Linkage" %}</strong>
                         </div>
@@ -260,7 +260,7 @@
                             {% if name in section_blacklist %}
                             <div class="section_blacklist_hidden">
                             {% endif %}
-                                <div class="card panel-default">
+                                <div class="card card-default">
                                     <div class="card-header">
                                         <strong>{{name}}</strong>
                                         <a class="btn btn-info btn-xs pull-right" onclick="add_form('{{form.prefix}}')">

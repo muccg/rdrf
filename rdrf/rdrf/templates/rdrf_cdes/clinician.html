@@ -22,11 +22,11 @@
     <script>
     function showOtherClinicianFields(visible) {
 	if(visible) {
-	    $("#clinician_panel .hideable").show();
+	    $("#clinician_card .hideable").show();
 
 	}
 	else {
-	    $("#clinician_panel .hideable").hide();
+	    $("#clinician_card .hideable").hide();
 
 	}
 
@@ -107,15 +107,15 @@
 
             <form class="form-horizontal" method="post" id="main-form" enctype="multipart/form-data">
 	      {% csrf_token %}
-          <div class="panel panel-info">
-              <div class="panel-body">
+          <div class="card card-info">
+              <div class="card-body">
               Please click the green 'save' button before progressing to the next module.
           </div>
       </div>
 
-              <div id="clinician_panel" class="panel panel-default">
-		<div class="panel-heading"><strong>{{form_name}}</strong></div>
-                <div class="panel-body">
+              <div id="clinician_card" class="card card-default">
+		<div class="card-heading"><strong>{{form_name}}</strong></div>
+                <div class="card-body">
 		   <div class="alert alert-warning">
                             Please select your supervising clinician below. This clinician should be someone that you are able to access through an appointment at a later date for them to verify that the data you have entered is correct. If your clinician is not listed below, please choose ‘other’ and provide their details.
                         </div>
@@ -153,8 +153,8 @@
 
                   </div>  <!-- form group -->
                 {% endfor %}
-	        </div>  <!-- panel body -->
-                </div>  <!-- panel -->
+	        </div>  <!-- card body -->
+                </div>  <!-- card -->
 		</form>
 	    </div>
 	</div>

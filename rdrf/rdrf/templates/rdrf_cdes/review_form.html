@@ -20,19 +20,19 @@
 <div class="row">
   <!-- start column 1 -->
   <div class="col-md-2">
-    <!-- start review item explanation panel -->
-    <div class="panel panel-default">
-      <div class="panel-heading">{{ name }}</div>
-      <div class="panel-body">
+    <!-- start review item explanation card -->
+    <div class="card card-default">
+      <div class="card-heading">{{ name }}</div>
+      <div class="card-body">
         {{ summary }}
       </div>
     </div>
-    <!-- end review item explanation panel -->
+    <!-- end review item explanation card -->
   
-  <!-- start review fields panel -->
-  <div class="panel panel-default">
-    <div class="panel-heading">Review Fields</div>
-    <div class="panel-body">
+  <!-- start review fields card -->
+  <div class="card card-default">
+    <div class="card-heading">Review Fields</div>
+    <div class="card-body">
       {% for field in wizard.form.metadata_fields %}
         <div class="form-group">
           {{ field.errors }}
@@ -44,32 +44,32 @@
       {% endfor %}
     </div>
   </div>
-  <!-- end review fields panel -->
+  <!-- end review fields card -->
   </div>
   <!-- end column 1 -->
 
   <!-- start column 2 -->
   <div class="col-md-6">
-    <!-- start previous responses panel -->
-    <div class="panel panel-default">
-      <div class="panel-heading">Previous Responses</div>
-      <div class="panel-body">
+    <!-- start previous responses card -->
+    <div class="card card-default">
+      <div class="card-heading">Previous Responses</div>
+      <div class="card-body">
         {% for response in responses %}
           {{response.label}}
           <span class="label label-default float-right">{{ response.answer }}</span><br>
         {% endfor %}
       </div>
     </div>
-    <!-- end previous responses panel -->
+    <!-- end previous responses card -->
   </div>
   <!-- end of column 2 -->
 
   <!-- start colummn 3 -->
   <div class="col-md-4">
-    <!-- start data entry panel -->
-    <div id="data-entry" class="panel panel-default">
-      <div class="panel-heading">Data Fields</div>
-      <div class="panel-body">
+    <!-- start data entry card -->
+    <div id="data-entry" class="card card-default">
+      <div class="card-heading">Data Fields</div>
+      <div class="card-body">
         {% for field in wizard.form.data_entry_fields %}
           <!-- start of form group -->
           <div class="form-group">
@@ -82,9 +82,9 @@
           </div>
           <!-- end of form group -->
         {% endfor %}
-      </div> <!-- end of panel body -->
+      </div> <!-- end of card body -->
     </div>
-    <!-- end data entry panel -->
+    <!-- end data entry card -->
   </div> <!-- end of column 3 -->
 
 </div> <!-- end of row -->

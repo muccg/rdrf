@@ -73,9 +73,9 @@
 
               <p></p>
 
-              <div class="panel panel-default">
-              <div class="panel-heading">{{context_name}} Metadata</div>
-              <div class="panel-body">
+              <div class="card card-default">
+              <div class="card-heading">{{context_name}} Metadata</div>
+              <div class="card-body">
 		{% if form.instance.context_form_group %}
 		<div class="form-group">
                     <label for="Form Group" class="col-sm-3 control-label">
@@ -107,9 +107,9 @@
               </div>
               </div>
 
-              <div class="panel panel-default">
-              <div class="panel-heading">{{context_name}} Data</div>
-              <div class="panel-body">
+              <div class="card card-default">
+              <div class="card-heading">{{context_name}} Data</div>
+              <div class="card-body">
                    {% for field in form %}
                             <div class="form-group">
                                 <label for="{{field.id_for_label}}" class="col-sm-3 control-label">
@@ -135,9 +135,9 @@
 
 
 	     {% if form_links %}
-	      <div class="panel panel-default">
-		<div class="panel-heading">Forms in this {{context_name}}</div>
-		<div class="panel-body">
+	      <div class="card card-default">
+		<div class="card-heading">Forms in this {{context_name}}</div>
+		<div class="card-body">
 		
                    {% for form_link in form_links %}
 		 

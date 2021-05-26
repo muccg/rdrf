@@ -308,14 +308,14 @@
                             {% if name in hidden_sectionlist %}
                             <div class="section_hidden">
                             {% endif %}
-                                <div class="panel panel-default">
-                                    <div class="panel-heading">
+                                <div class="card card-default">
+                                    <div class="card-heading">
                                         <strong>{{name|translate}}</strong>
                                         <a class="btn btn-info btn-xs pull-right" onclick="add_form('{{form.prefix}}')">
                                             <span class="fa fa-plus" aria-hidden="true"></span> {% trans 'Add' %}
                                         </a>
                                     </div>
-                                    <div class="panel-body">
+                                    <div class="card-body">
                                         <div id="section_{{form.prefix}}">
                                         <div id="forms_{{form.prefix}}">
                                         {% for f in form %}
@@ -387,8 +387,8 @@
                             <div class="section_hidden">
                             {% endif %}
 
-                                <div class="panel panel-default">
-                                    <div class="panel-heading"><strong>{{name}}</strong>
+                                <div class="card card-default">
+                                    <div class="card-heading"><strong>{{name}}</strong>
                                     {% with link=section|get_information_link %}
                                     {% with info_text_expression=section|get_info_text_expression %}
                                     {% with doc="docs/"|add:link %}
@@ -401,7 +401,7 @@
                                     {% endwith %}
                                     {% endwith %}
                                     </div>
-                                    <div class="panel-body">
+                                    <div class="card-body">
                                         {% for s in section %}
                                             {% get_form_element form s as element %}
                                             {% if element %}

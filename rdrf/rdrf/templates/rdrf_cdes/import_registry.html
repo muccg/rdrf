@@ -43,16 +43,16 @@
     </div>
     
     <form enctype="multipart/form-data" method="post" id="import-form">{% csrf_token %}
-        <div class="panel panel-default">
-            <div class="panel-heading">
+        <div class="card card-default">
+            <div class="card-heading">
                 Registry YAML
             </div>
-            <div class="panel-body">
+            <div class="card-body">
                 <input type="file" class="form-control" id="id_registry_yaml_file" name="registry_yaml_file" accept=".yaml"></input>
                 <p></p>
                 <textarea cols="100" class="form-control" id="id_registry_yaml" name="registry_yaml" rows="10"></textarea>
             </div>
-            <div class="panel-footer">
+            <div class="card-footer">
                 <input type="submit" id="submit-form-btn" class="btn btn-primary pull-right" value="{% trans ' Submit' %}" />
                 <div class="clearfix"></div>
             </div>
