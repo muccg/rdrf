@@ -60,7 +60,7 @@
   <div id="content-main">
     {% if has_add_permission %}
       {% url cl.opts|admin_urlname:'add' as add_url %}
-      <a href="{% add_preserved_filters add_url is_popup %}" class="btn btn-success btn-xs pull-right" style="margin-left: 5px;" id="add_button">
+      <a href="{% add_preserved_filters add_url is_popup %}" class="btn btn-success btn-sm pull-right" style="margin-left: 5px;" id="add_button">
         <span class="glyphicon glyphicon-plus" aria-hidden="true"></span> Add
       </a>
     {% endif %}

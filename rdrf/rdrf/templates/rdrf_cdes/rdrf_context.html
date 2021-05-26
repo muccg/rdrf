@@ -78,7 +78,7 @@
               <div class="card-body">
 		{% if form.instance.context_form_group %}
 		<div class="form-group">
-                    <label for="Form Group" class="col-sm-3 control-label">
+                    <label for="Form Group" class="col-sm-3 col-form-label">
 		      Form Group Type
 		      </label>
                                 <div class="col-sm-9">
@@ -87,7 +87,7 @@
 		</div>
 		{% endif %}
                    <div class="form-group">
-                                <label for="created_at" class="col-sm-3 control-label">
+                                <label for="created_at" class="col-sm-3 col-form-label">
                                     Created At
                                 </label>
                                 <div class="col-sm-9">
@@ -96,7 +96,7 @@
                    </div>
 
                    <div class="form-group">
-                                <label for="created_at" class="col-sm-3 control-label">
+                                <label for="created_at" class="col-sm-3 col-form-label">
                                     Last Updated
                                 </label>
                                 <div class="col-sm-9">
@@ -112,7 +112,7 @@
               <div class="card-body">
                    {% for field in form %}
                             <div class="form-group">
-                                <label for="{{field.id_for_label}}" class="col-sm-3 control-label">
+                                <label for="{{field.id_for_label}}" class="col-sm-3 col-form-label">
                                     {{field.label}}
                                     {% if  field.field.required %}
                                         <span class="glyphicon glyphicon-asterisk" style="color: red;" aria-hidden="true"></span>
@@ -142,7 +142,7 @@
                    {% for form_link in form_links %}
 		 
                             <div class="form-group">
-                                <label for="{{form_link.text}}" class="col-sm-3 control-label">
+                                <label for="{{form_link.text}}" class="col-sm-3 col-form-label">
                                     <a href="{{form_link.url}}">{{form_link.text}}</a>
                                 </label>
                             </div>

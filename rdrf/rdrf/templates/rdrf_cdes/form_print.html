@@ -196,7 +196,7 @@
                         
                         {% if forms|is_formset:s %}
                             {% with formset=forms|get_form_object:s %}
-                                <a class="btn btn-primary btn-xs pull-right" onclick="add_form('{{formset.prefix}}');">
+                                <a class="btn btn-primary btn-sm pull-right" onclick="add_form('{{formset.prefix}}');">
                                     <span class="glyphicon glyphicon-plus" aria-hidden="true"></span> Add
                                 </a>
                             {% endwith %}
@@ -210,7 +210,7 @@
                                 <div style="display: none;" id="empty_{{formset.prefix}}">
                                     <div class="form-group">
                                         <div class="col-sm-9 col-sm-offset-3">
-                                            <a class="btn btn-danger btn-xs pull-right" onclick="delete_form(this, '{{formset.prefix}}')">
+                                            <a class="btn btn-danger btn-sm pull-right" onclick="delete_form(this, '{{formset.prefix}}')">
                                                 <span class="glyphicon glyphicon-minus" aria-hidden="true"></span> Remove
                                             </a>
                                         </div>
@@ -223,7 +223,7 @@
                                         {% endif %}
                                                 {% if element.label == "Delete" %}
                                                 {% else %}
-                                                    <label for="{{ element.id_for_label}}" style="display: {{element.is_hidden|yesno:"None,block"}}" class="col-sm-3 control-label">
+                                                    <label for="{{ element.id_for_label}}" style="display: {{element.is_hidden|yesno:"None,block"}}" class="col-sm-3 col-form-label">
                                                         {{ element.label }}
                                                         {% if  element.field.required %}
                                                             <span class="glyphicon glyphicon-asterisk" style="color: red;" aria-hidden="true"></span>
@@ -254,7 +254,7 @@
                                             {% else %}
                                                 <div class="form-group">
                                             {% endif %}
-                                                    <label for="{{ element.id_for_label}}" style="display: {{element.is_hidden|yesno:"None,block"}}" class="col-sm-3 control-label">
+                                                    <label for="{{ element.id_for_label}}" style="display: {{element.is_hidden|yesno:"None,block"}}" class="col-sm-3 col-form-label">
                                                         {% if element.label == "Delete" %}
                                                             Mark for deletion
                                                         {% else %}
@@ -285,7 +285,7 @@
                         {% else %}
                             {% for field in forms|get_form_object:s %}
                                 <div class="form-group">
-                                    <label for="{{field.id_for_label}}" class="col-md-4 control-label">
+                                    <label for="{{field.id_for_label}}" class="col-md-4 col-form-label">
                                         {{field.label}}
                                         {% if  field.field.required %}
                                             <span class="glyphicon glyphicon-asterisk" style="color: red;" aria-hidden="true"></span>

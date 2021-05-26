@@ -126,7 +126,7 @@
 		       <div class="form-group hideable">
                     {% endif %}
 
-		    <label  style="text-align: left; display: {{field.is_hidden|yesno:"None,block"}}" class="col-sm-3 control-label">
+		    <label  style="text-align: left; display: {{field.is_hidden|yesno:"None,block"}}" class="col-sm-3 col-form-label">
                         {{ field.label|translate }}
 			<br>
 			{% if not field.is_hidden %}

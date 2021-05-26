@@ -219,7 +219,7 @@
                         <div style="display: none;" id="empty_{{form.prefix}}">
                             <div class="form-group">
                                 <div class="col-sm-9 col-sm-offset-3">
-                                    <a class="btn btn-danger btn-xs pull-right" onclick="delete_form(this, '{{form.prefix}}')">
+                                    <a class="btn btn-danger btn-sm pull-right" onclick="delete_form(this, '{{form.prefix}}')">
                                         <span class="fa fa-minus" aria-hidden="true"></span> {% trans 'Remove' %}
                                     </a>
                                 </div>
@@ -232,7 +232,7 @@
                                 {% endif %}
                                         {% if element.label == "Delete" %}
                                         {% else %}
-                                            <label for="{{ element.id_for_label}}" class="col-sm-3 control-label">
+                                            <label for="{{ element.id_for_label}}" class="col-sm-3 col-form-label">
                                                 {{ element.label|translate }}
                                                 {% if  element.field.required %}
                                                     <span class="fa fa-asterisk" style="color: red;" aria-hidden="true"></span>
@@ -263,7 +263,7 @@
                                 <div class="card card-default">
                                     <div class="card-header">
                                         <strong>{{name}}</strong>
-                                        <a class="btn btn-info btn-xs pull-right" onclick="add_form('{{form.prefix}}')">
+                                        <a class="btn btn-info btn-sm pull-right" onclick="add_form('{{form.prefix}}')">
                                             <span class="fa fa-plus" aria-hidden="true"></span> {% trans 'Add' %}
                                         </a>
                                     </div>
@@ -283,7 +283,7 @@
                                                                     {% else %}
                                                                         <div class="form-group" style="display: {{element.is_hidden|yesno:"None,block"}}">
                                                                     {% endif %}
-                                                                    <label for="{{ element.id_for_label}}" class="col-sm-3 control-label">
+                                                                    <label for="{{ element.id_for_label}}" class="col-sm-3 col-form-label">
                                                                         {% if element.label == "Delete" %}
                                                                             Mark for deletion
                                                                         {% else %}
@@ -355,7 +355,7 @@
                                                 <div class="form-group" style="display: {{element.is_hidden|yesno:"None,block"}}">
                                             {% endif %}
                                                 {% if link %}
-                                                    <label for="{{ element.id_for_label}}" style="text-align: left" class="col-sm-11 control-label">
+                                                    <label for="{{ element.id_for_label}}" style="text-align: left" class="col-sm-11 col-form-label">
                                                         {{ element.label|translate }}
                                                         {% if  element.field.required %}
                                                             <span class="fa fa-asterisk" style="color: red;" aria-hidden="true"></span>
@@ -363,7 +363,7 @@
                                                     </label>
                                                     <div class="col-sm-1">
                                                 {% else %}
-                                                    <label for="{{ element.id_for_label}}" class="col-sm-3 control-label">
+                                                    <label for="{{ element.id_for_label}}" class="col-sm-3 col-form-label">
                                                         {{ element.label|translate }}
                                                         {% if  element.field.required %}
                                                             <span class="fa fa-asterisk" style="color: red;" aria-hidden="true"></span>

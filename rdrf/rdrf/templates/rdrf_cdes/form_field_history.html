@@ -47,9 +47,9 @@
                         {{ snapshot.value|cde_display_value:cde }}
                       </td>
 		      <td>{{snapshot.user}}</td>
-                      <td class="text-right">
+                      <td class="text-end">
                         <button type="button" data-id="{{ snapshot.id }}"
-                                class="btn btn-default btn-xs cde-history-restore invisibutton">
+                                class="btn btn-secondary btn-sm cde-history-restore invisibutton">
                           Restore
                         </button>
                       </td>
@@ -78,7 +78,7 @@
         </div>
       </div>
       <div class="modal-footer">
-        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
       </div>
     </div><!-- /.modal-content -->
   </div><!-- /.modal-dialog -->
