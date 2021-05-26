@@ -202,10 +202,10 @@ def click_sidebar_group_item(step, item_name, group_name):
     # E.g. And I click "Clinical Data" in "Main" group in sidebar
     wrap = world.browser.find_element_by_id("wrap")
     sidebar = wrap.find_element_by_xpath('//div[@class="well"]')
-    form_group_panel = sidebar.find_element_by_xpath(
-        '//div[@class="panel-heading"][contains(., "%s")]' %
+    form_group_card = sidebar.find_element_by_xpath(
+        '//div[@class="card-heading"][contains(., "%s")]' %
         group_name).find_element_by_xpath("..")
-    form_link = form_group_panel.find_element_by_partial_link_text(item_name)
+    form_link = form_group_card.find_element_by_partial_link_text(item_name)
     utils.click(form_link)
 
 
@@ -213,10 +213,10 @@ def click_sidebar_group_item(step, item_name, group_name):
 def click_button_sidebar_group(step, button_name, group_name):
     wrap = world.browser.find_element_by_id("wrap")
     sidebar = wrap.find_element_by_xpath('//div[@class="well"]')
-    form_group_panel = sidebar.find_element_by_xpath(
-        '//div[@class="panel-heading"][contains(., "%s")]' %
+    form_group_card = sidebar.find_element_by_xpath(
+        '//div[@class="card-heading"][contains(., "%s")]' %
         group_name).find_element_by_xpath("..")
-    button = form_group_panel.find_element_by_xpath(
+    button = form_group_card.find_element_by_xpath(
         '//a[@class="btn btn-info btn-xs pull-right"]')
     utils.click(button)
 
@@ -228,7 +228,7 @@ def enter_cde_on_form(step, cde_value, form, section, cde):
 
     form_block = world.browser.find_element_by_id("main-form")
     section_div_heading = form_block.find_element_by_xpath(
-        ".//div[@class='panel-heading'][contains(., '%s')]" % section)
+        ".//div[@class='card-heading'][contains(., '%s')]" % section)
     section_div = section_div_heading.find_element_by_xpath("..")
 
     label_expression = ".//label[contains(., '%s')]" % cde
@@ -258,7 +258,7 @@ def enter_cde_on_form_multisection(step, cde_value, form, section, cde, item):
 
     form_block = world.browser.find_element_by_id("main-form")
     section_div_heading = form_block.find_element_by_xpath(
-        ".//div[@class='panel-heading'][contains(., '%s')]" % section)
+        ".//div[@class='card-heading'][contains(., '%s')]" % section)
     section_div = section_div_heading.find_element_by_xpath("..")
 
     label_expression = ".//label[contains(., '%s')]" % cde
@@ -382,7 +382,7 @@ def fill_in_textfield(step, textfield_label, text):
 @step('I click the add button in "(.*)" section')
 def click_add_for_inline(step, section):
     section_div_heading = world.browser.find_element_by_xpath(
-        "//div[@class='panel-heading'][contains(., '%s')]" % section)
+        "//div[@class='card-heading'][contains(., '%s')]" % section)
     add_link_xpath = """//a[starts-with(@onclick,"add_form")]"""
     add_link = section_div_heading.find_element_by_xpath(add_link_xpath)
     utils.click(add_link)
@@ -392,7 +392,7 @@ def click_add_for_inline(step, section):
 @step('fill out "(.*)" textarea in "(.*)" section "(.*)" with "(.*)"')
 def fill_in_inline_textarea(step, textfield_label, section, index, text):
     section_div_heading = world.browser.find_element_by_xpath(
-        ".//div[@class='panel-heading'][contains(., '%s')]" % section)
+        ".//div[@class='card-heading'][contains(., '%s')]" % section)
     section_div = section_div_heading.find_element_by_xpath("..")
 
     label = section_div.find_element_by_xpath(".//label[normalize-space()='%s']" % textfield_label)
@@ -406,7 +406,7 @@ def fill_in_inline_textarea(step, textfield_label, section, index, text):
 @step('fill out "(.*)" in "(.*)" section "(.*)" with "(.*)"')
 def fill_in_inline_textfield(step, textfield_label, section, index, text):
     section_div_heading = world.browser.find_element_by_xpath(
-        ".//div[@class='panel-heading'][contains(., '%s')]" % section)
+        ".//div[@class='card-heading'][contains(., '%s')]" % section)
     section_div = section_div_heading.find_element_by_xpath("..")
 
     label = section_div.find_element_by_xpath('.//label[contains(., "%s")]' % textfield_label)
@@ -419,7 +419,7 @@ def fill_in_inline_textfield(step, textfield_label, section, index, text):
 @step('choose "(.*)" from "(.*)" in "(.*)" section "(.*)"')
 def select_from_inline_list(step, option, dropdown_label_or_id, section, index):
     section_div_heading = world.browser.find_element_by_xpath(
-        ".//div[@class='panel-heading'][contains(., '%s')]" % section)
+        ".//div[@class='card-heading'][contains(., '%s')]" % section)
     section_div = section_div_heading.find_element_by_xpath("..")
     utils.scroll_to(section_div)
     label = section_div.find_element_by_xpath(
@@ -455,7 +455,7 @@ def value_is(step, textfield_label, expected_value):
 def value_is2(step, section, cde, expected_value):
     form_block = world.browser.find_element_by_id("main-form")
     section_div_heading = form_block.find_element_by_xpath(
-        ".//div[@class='panel-heading'][contains(., '%s')]" % section)
+        ".//div[@class='card-heading'][contains(., '%s')]" % section)
     section_div = section_div_heading.find_element_by_xpath("..")
     label_expression = ".//label[contains(., '%s')]" % cde
     label_element = section_div.find_element_by_xpath(label_expression)
@@ -536,7 +536,7 @@ def should_be_logged_in(step):
 @step('should be on the login page')
 def should_be_on_the_login_page(step):
     world.browser.find_element_by_xpath(
-        './/div[@class="panel-heading"][text()[contains(.,"Login")]]')
+        './/div[@class="card-heading"][text()[contains(.,"Login")]]')
     world.browser.find_element_by_xpath('.//label[text()[contains(.,"Username")]]')
     world.browser.find_element_by_xpath('.//label[text()[contains(.,"Password")]]')
 
@@ -607,7 +607,7 @@ def click_radio_button(step, value, section, cde):
     # NB. this is actually just clicking the first radio at the moment
     # and ignores the value
     section_div_heading = world.browser.find_element_by_xpath(
-        "//div[@class='panel-heading'][contains(., '%s')]" % section)
+        "//div[@class='card-heading'][contains(., '%s')]" % section)
     section_div = section_div_heading.find_element_by_xpath("..")
     label_expression = ".//label[contains(., '%s')]" % cde
     label_element = section_div.find_element_by_xpath(label_expression)
@@ -676,7 +676,7 @@ def check_history_popup(step, form, section, cde, history_values_csv):
     history_values = history_values_csv.split(",")
     form_block = world.browser.find_element_by_id("main-form")
     section_div_heading = form_block.find_element_by_xpath(
-        "//div[@class='panel-heading'][contains(., '%s')]" % section)
+        "//div[@class='card-heading'][contains(., '%s')]" % section)
     section_div = section_div_heading.find_element_by_xpath("..")
     label_expression = ".//label[contains(., '%s')]" % cde
     label_element = section_div.find_element_by_xpath(label_expression)
@@ -740,7 +740,7 @@ def scroll_to_section(step, section):
     from selenium.webdriver.common.action_chains import ActionChains
     mover = ActionChains(world.browser)
     print("scrolling to section %s" % section)
-    section_xpath = ".//div[@class='panel panel-default' and contains(.,'%s') and not(contains(., '__prefix__')) and not(contains(.,'View previous values'))]" % section
+    section_xpath = ".//div[@class='panel card-default' and contains(.,'%s') and not(contains(., '__prefix__')) and not(contains(.,'View previous values'))]" % section
     section_element = world.browser.find_element_by_xpath(section_xpath)
     if not section_element:
         raise Exception("could not find section %s" % section)
@@ -751,7 +751,7 @@ def scroll_to_section(step, section):
 
 @step('I click the add button for multisection "(.*)"')
 def add_multisection_item(step, section):
-    xpath = ".//div[@class='panel-heading' and contains(.,'%s') and not(contains(., '__prefix__')) and not(contains(.,'View previous values'))]" % section
+    xpath = ".//div[@class='card-heading' and contains(.,'%s') and not(contains(., '__prefix__')) and not(contains(.,'View previous values'))]" % section
     div = world.browser.find_element_by_xpath(xpath)
     add_link_xpath = """.//a[starts-with(@onclick,"add_form('formset_")]"""
     add_link = div.find_element_by_xpath(add_link_xpath)
@@ -770,11 +770,11 @@ def wait_n_seconds(step, seconds):
 @step(r'I mark multisection "(.*)" item (\d+) for deletion')
 def mark_item_for_deletion(step, multisection, item):
     formset_string = "-%s-" % (int(item) - 1)
-    xpath = "//div[@class='panel-heading' and contains(., '%s')]" % multisection
-    default_panel = world.browser.find_element_by_xpath(xpath).find_element_by_xpath("..")
+    xpath = "//div[@class='card-heading' and contains(., '%s')]" % multisection
+    default_card = world.browser.find_element_by_xpath(xpath).find_element_by_xpath("..")
     # now locate the delete checkbox for the item
     checkbox_xpath = ".//input[@type='checkbox' and contains(@id, '-DELETE') and contains(@id, '%s')]" % formset_string
-    delete_checkbox = default_panel.find_element_by_xpath(checkbox_xpath)
+    delete_checkbox = default_card.find_element_by_xpath(checkbox_xpath)
 
     if delete_checkbox:
         print("found delete_checkbox for multisection %s item %s" % (multisection,
@@ -844,7 +844,7 @@ def sidebar_contains_section(step, name):
         find(
             (
                 "//div[@class='well']"
-                "//div[@class='panel-heading' and contains(., '%s')]"
+                "//div[@class='card-heading' and contains(., '%s')]"
                 % name
             )
         )
@@ -865,7 +865,7 @@ def sidebar_contains_link_in_section(step, sec, name):
     try:
         find(
             (
-                "//div[@class='panel-heading' and contains(., '%s')]"
+                "//div[@class='card-heading' and contains(., '%s')]"
                 "/following-sibling::div//a[contains(., '%s')]"
                 % (sec, name)
             )

@@ -174,7 +174,7 @@ def click(element):
     scrollelementintomiddle = "var viewPortHeight = Math.max(document.documentElement.clientHeight, window.innerHeight || 0);" + \
                               "var elementTop  = arguments[0].getBoundingClientRect().top;" + \
                               "window.scrollBy(0, elementTop-(viewPortHeight/2));"
-    world.browser.execute_script(scrollelementintomiddle, element)
+    #world.browser.execute_script(scrollelementintomiddle, element)
     element.click()
 
 
@@ -202,11 +202,11 @@ def scroll_to_multisection_cde(section, cde, item=1):
                                                                  item))
     formset_string = "-%s-" % (int(item) - 1)
     print("formset_string = %s" % formset_string)
-    xpath = "//div[@class='panel-heading' and contains(., '%s')]" % section
-    default_panel = world.browser.find_element_by_xpath(xpath).find_element_by_xpath("..")
+    xpath = "//div[@class='card-heading' and contains(., '%s')]" % section
+    default_card = world.browser.find_element_by_xpath(xpath).find_element_by_xpath("..")
     label_expression = ".//label[contains(., '%s')]" % cde
 
-    for label_element in default_panel.find_elements_by_xpath(label_expression):
+    for label_element in default_card.find_elements_by_xpath(label_expression):
         print("found a label element for cde %s" % cde)
         input_div = label_element.find_element_by_xpath(".//following-sibling::div")
         # NB. We avoid matching against the clear checkbox for an uploaded file cde
@@ -232,7 +232,7 @@ def scroll_to_cde(section, cde, item=None):
     """
     input_element = None
     section_div_heading = world.browser.find_element_by_xpath(
-        ".//div[@class='panel-heading'][contains(., '%s') and not(contains(.,'__prefix__'))]" % section)
+        ".//div[@class='card-heading'][contains(., '%s') and not(contains(.,'__prefix__'))]" % section)
 
     section_div = section_div_heading.find_element_by_xpath("..")
 
