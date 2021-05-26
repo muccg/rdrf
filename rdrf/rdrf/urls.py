@@ -1,4 +1,4 @@
-from django.urls import re_path, include, path
+from django.urls import re_path, include, path, reverse_lazy
 from django.contrib import admin
 from django.shortcuts import render
 from django.views.generic.base import TemplateView
@@ -96,6 +96,14 @@ two_factor_auth_urls = [
     re_path(r'^account/two_factor/disable/?$', DisableView.as_view(), name='disable'),
 ]
 
+proms_site = [
+    re_path(r'^promslanding/?$', PromsLandingPageView.as_view(), name="proms_landing_page"),
+    re_path(r'^proms/?$', PromsView.as_view(), name="proms"),
+    re_path(r'^promscompleted/?$', PromsCompletedPageView.as_view(), name="proms_completed"),
+    re_path(r'^api/proms/v1/', include(('rdrf.services.rest.urls.proms_api_urls', 'proms_api_urls'), namespace=None)),
+
+]
+
 proms_patterns = [
     re_path(r'^promslanding/?$', PromsLandingPageView.as_view(), name="proms_landing_page"),
     re_path(r'^proms/?$', PromsView.as_view(), name="proms"),
@@ -172,7 +180,7 @@ normalpatterns += [
             template_name='registration/login_assistance_form.html',
             subject_template_name='registration/login_assistance_subject.txt',
             email_template_name='registration/login_assistance_email.html',
-            success_url='login_assistance_email_sent'
+            success_url=reverse_lazy('login_assistance_email_sent')
             ),
             name='login_assistance'),
     re_path(r'^login_assistance/sent/?$', auth_views.PasswordResetDoneView.as_view(
@@ -337,7 +345,7 @@ if settings.REGISTRATION_ENABLED:
     normalpatterns = normalpatterns + registry_urls
 
 if settings.SYSTEM_ROLE == SystemRoles.CIC_PROMS:
-    urlpatterns = proms_patterns
+    urlpatterns = proms_site
 else:
     urlpatterns = normalpatterns
 
