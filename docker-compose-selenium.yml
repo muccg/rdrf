@@ -2,7 +2,8 @@ version: '2'
 services:
 
   hub:
-    image: selenium/hub:3.2
+    image: selenium/hub:4.0.0
+    
     environment:
       - GRID_TIMEOUT=120000
     ports:
