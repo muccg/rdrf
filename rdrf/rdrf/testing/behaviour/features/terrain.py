@@ -32,8 +32,7 @@ def with_browser():
         desired_capabilities=desired_capabilities,
         command_executor=TEST_SELENIUM_HUB
     )
-    if TEST_BROWSER == "chrome":
-        world.browser.options.add_argument("disable-infobars")
+
     world.browser.implicitly_wait(TEST_WAIT)
 
     yield
