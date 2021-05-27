@@ -9,7 +9,7 @@ services:
       - "4444"
 
   chrome:
-    image: selenium/node-chrome-debug:3.2
+    image: selenium/node-chrome-debug:latest
     shm_size: 256M
     environment:
       - SCREEN_WIDTH=1366

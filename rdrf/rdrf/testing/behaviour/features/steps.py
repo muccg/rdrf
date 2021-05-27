@@ -510,7 +510,6 @@ def the_page_header_should_be(step, header):
 @step('I am logged in as (.*)')
 def login_as_role(step, role):
     # Could map from role to user later if required
-
     world.user = role  # ?
     go_to_registry(step, world.registry)
     login_as_user(step, role, role)
