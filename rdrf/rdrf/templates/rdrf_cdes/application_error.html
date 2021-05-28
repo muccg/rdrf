@@ -20,7 +20,6 @@
 	</script>
     <![endif]-->
     <script type="text/javascript" src="{% static 'js/vendor/jquery-ui-1.11.4.min.js' %}"></script>
-    <script type="text/javascript" src="{% static 'bootstrap-5.0.0/js/bootstrap.min.js' %}"></script>
     <script>
         function goBack() {
             var warning = confirm("Are you sure?\nAll entered or amended data will be lost!");
@@ -71,4 +70,5 @@
     <div class="alert alert-error">
     <h3>Error: {% trans application_error %}</h3>
     </div>
+    <script type="text/javascript" src="{% static 'bootstrap-5.0.0/js/bootstrap.bundle.min.js' %}"></script>
 {% endblock %}
