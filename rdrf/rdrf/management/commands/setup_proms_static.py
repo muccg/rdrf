@@ -9,7 +9,7 @@ from django.conf import settings
 
 proms_dirs = ['proms', 'bootstrap-5.0.0', "css"]
 allowed_proms_files = []  # shouldn't need any
-proms_css = ['vendor/font-awesome.min.css', 'rdrf.css']
+proms_css = ['vendor/font-awesome.min.css', 'vendor/font-awesome.css', 'rdrf.css']
 
 static_dir = settings.STATIC_ROOT
 
