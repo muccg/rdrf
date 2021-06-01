@@ -428,14 +428,8 @@ class PromsSystemManager:
             return survey_data.pop("PromsGender")
 
     def _check_sex_mismatch(self, survey_sex, patient_model):
-        if survey_sex == "M":
-            s_sex_code = "1"
-        elif survey_sex == "F":
-            s_sex_code = "2"
-        elif survey_sex == "N":
-            s_sex_code = "3"
-        else:
-            s_sex_code = "0"
+        sex_map = {"M": "1", "F": "2", "N": "3"}
+        s_sex_code = sex_map.get(survey_sex, "0")
 
         if s_sex_code != patient_model.sex and s_sex_code != "0":
             logger.warn("Sex specified in survey does not match patient sex")
