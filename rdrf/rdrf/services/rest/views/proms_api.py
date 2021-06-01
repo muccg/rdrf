@@ -420,14 +420,14 @@ class PromsSystemManager:
                     for cde_model in section_model.cde_models:
                         if cde_model.code == target_cde_model.code:
                             return form_model, section_model
-    
+
     def _remove_sex(self, survey_data):
         # Check if PromsGender exists, check against patient sex, and remove from data before processing
         if "PromsGender" in survey_data:
             logger.info("Removing PromsGender...")
             return survey_data.pop("PromsGender")
 
-    def _check_sex_mismatch(self, survey_sex, patient_model):    
+    def _check_sex_mismatch(self, survey_sex, patient_model):
         if survey_sex == "M":
             s_sex_code = "1"
         elif survey_sex == "F":
@@ -436,6 +436,6 @@ class PromsSystemManager:
             s_sex_code = "3"
         else:
             s_sex_code = "0"
-        
+
         if s_sex_code != patient_model.sex and s_sex_code != "0":
             logger.warn("Sex specified in survey does not match patient sex")
