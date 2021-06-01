@@ -336,24 +336,8 @@ class PromsSystemManager:
             raise Exception("cannot determine proms pull context for patient %s" %
                             getattr(patient_model, settings.LOG_PATIENT_FIELDNAME))
 
-        # Check if PromsGender exists, check against patient sex, and remove from data before processing
-        if "PromsGender" in survey_data.keys():
-            logger.info("Removing PromsGender...")
-            survey_sex = survey_data.get("PromsGender")
-            if survey_sex == "M":
-                s_sex_code = "1"
-            elif survey_sex == "F":
-                s_sex_code = "2"
-            elif survey_sex == "N":
-                s_sex_code = "3"
-            else:
-                s_sex_code = "0"
-            
-            if s_sex_code != patient_model.sex and s_sex_code != "0":
-                logger.warn("Sex specified in survey does not match patient sex")
-            
-            survey_data.pop("PromsGender")
-            logger.info("PromsGender removed")
+        proms_gender = self._remove_sex(survey_data)
+        self._check_sex_mismatch(proms_gender, patient_model)
 
         # Retrieve the cde_path
         cde_paths = {}
@@ -436,3 +420,22 @@ class PromsSystemManager:
                     for cde_model in section_model.cde_models:
                         if cde_model.code == target_cde_model.code:
                             return form_model, section_model
+    
+    def _remove_sex(self, survey_data):
+        # Check if PromsGender exists, check against patient sex, and remove from data before processing
+        if "PromsGender" in survey_data:
+            logger.info("Removing PromsGender...")
+            return survey_data.pop("PromsGender")
+
+    def _check_sex_mismatch(self, survey_sex, patient_model):    
+        if survey_sex == "M":
+            s_sex_code = "1"
+        elif survey_sex == "F":
+            s_sex_code = "2"
+        elif survey_sex == "N":
+            s_sex_code = "3"
+        else:
+            s_sex_code = "0"
+        
+        if s_sex_code != patient_model.sex and s_sex_code != "0":
+            logger.warn("Sex specified in survey does not match patient sex")
