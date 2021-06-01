@@ -337,7 +337,8 @@ class PromsSystemManager:
                             getattr(patient_model, settings.LOG_PATIENT_FIELDNAME))
 
         proms_gender = self._remove_sex(survey_data)
-        self._check_sex_mismatch(proms_gender, patient_model)
+        if proms_gender is not None:
+            self._check_sex_mismatch(proms_gender, patient_model)
 
         # Retrieve the cde_path
         cde_paths = {}
