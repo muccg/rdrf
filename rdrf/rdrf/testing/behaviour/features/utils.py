@@ -202,7 +202,7 @@ def scroll_to_multisection_cde(section, cde, item=1):
                                                                  item))
     formset_string = "-%s-" % (int(item) - 1)
     print("formset_string = %s" % formset_string)
-    xpath = "//div[@class='card-heading' and contains(., '%s')]" % section
+    xpath = "//div[@class='card-header' and contains(., '%s')]" % section
     default_card = world.browser.find_element_by_xpath(xpath).find_element_by_xpath("..")
     label_expression = ".//label[contains(., '%s')]" % cde
 
