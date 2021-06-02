@@ -2,7 +2,7 @@ version: '2'
 services:
 
   hub:
-    image: selenium/hub:4.0.0
+    image: selenium/hub:3.5
     
     environment:
       - GRID_TIMEOUT=120000
@@ -10,7 +10,7 @@ services:
       - "4444"
 
   chrome:
-    image: selenium/node-chrome-debug:latest
+    image: selenium/node-chrome-debug:3.5
     shm_size: 256M
     environment:
       - SCREEN_WIDTH=1366
@@ -27,7 +27,7 @@ services:
       - hub
 
   firefox:
-    image: selenium/node-firefox-debug:3.2
+    image: selenium/node-firefox-debug:3.5
     shm_size: 256M
     environment:
       - SCREEN_WIDTH=1366
