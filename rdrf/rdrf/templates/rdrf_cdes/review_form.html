@@ -67,7 +67,7 @@
   <!-- start colummn 3 -->
   <div class="col-md-4">
     <!-- start data entry card -->
-    <div id="data-entry" class="card card-default">
+    <div id="data-bs-entry" class="card card-default">
       <div class="card-heading">Data Fields</div>
       <div class="card-body">
         {% for field in wizard.form.data_entry_fields %}
@@ -91,13 +91,13 @@
 <script>
   var hasChangedPattern = "metadata_condition_changed_0"; // yes
   $(document).on("ready", function () {
-    $("#data-entry").hide();
+    $("#data-bs-entry").hide();
     var hasChangedId = $("[id$='" + hasChangedPattern + "']").attr("id");
     $(".condition").change(function() {
       if($("#" + hasChangedId).is(":checked")) {
-        $("#data-entry").show();
+        $("#data-bs-entry").show();
       } else {
-        $("#data-entry").hide();
+        $("#data-bs-entry").hide();
       }
     });
 

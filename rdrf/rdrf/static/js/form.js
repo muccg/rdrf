@@ -129,12 +129,18 @@ function rdrf_click_form_field_history(ev, a) {
   var modal;
   ev.preventDefault();
   $.get($(a).attr("href")).then(function(doc) {
-    modal = $("<div></div>").html(doc).find(".modal")
+/*    modal = $("<div></div>").html(doc).find(".modal")
         .appendTo("body")
         .modal()
         .on("hidden.bs.modal", function(e) {
           $(e.target).remove();
-        });
+        }); */
+    $("<div></div>").html(doc).find(".modal").appendTo("body");
+    var modal_el = document.getElementById("history_modal");
+    modal_el.addEventListener("hidden.bs.modal", function(e) {
+      $(e.target).remove();
+    });
+    modal = new bootstrap.Modal("#history_modal");
     rdrf_form_field_history_init(modal, on_restore);
   });
 
@@ -150,7 +156,7 @@ function rdrf_click_form_field_history(ev, a) {
 
 function rdrf_form_field_history_init(modal, restoreCallback) {
   var info = modal.find(".cde-history-data").remove();
-  var label = info.attr("data-label");
+  var label = info.attr("data-bs-label");
   var datatype = info.attr("data-cde-datatype");
   var data = $.parseJSON(info.text());
   var chartCanvas = modal.find(".cde-history-chart");
@@ -225,7 +231,7 @@ function rdrf_form_field_history_init(modal, restoreCallback) {
     // run a callback when one of the restore buttons is clicked
     modal.find("tbody").on("click", ".cde-history-restore", function(ev) {
       ev.stopPropagation();
-      var id = $(this).attr("data-id");
+      var id = $(this).attr("data-bs-id");
       var snapshot = _.find(data, function(s) { return s.id === id });
       if (restoreCallback) {
         restoreCallback(snapshot);

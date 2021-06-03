@@ -87,7 +87,7 @@
 {% for multiple_context in multiple_contexts %}
 <!-- START MMMMMM -->
 <div class="card collapsible mb-2">
-  <div class="card-header" data-bs-toggle="collapse" data-target="#existing_{{multiple_context.id}}">
+  <div class="card-header" data-bs-toggle="collapse" data-bs-target="#existing_{{multiple_context.id}}">
     {{multiple_context.heading}}
     {% if can_add_proms %}
     <a class="btn btn-info btn-sm pull-right"

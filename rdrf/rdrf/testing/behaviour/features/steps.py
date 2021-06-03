@@ -696,7 +696,7 @@ def check_history_popup(step, form, section, cde, history_values_csv):
 
     def find_cell(historical_value):
         element = world.browser.find_element_by_xpath(
-            '//td[@data-value="%s"]' % historical_value)
+            '//td[@data-bs-value="%s"]' % historical_value)
         if element is None:
             raise Exception("Can't locate history value '%s'" % historical_value)
 

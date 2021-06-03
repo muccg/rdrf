@@ -7,7 +7,7 @@
 	  <div class="modal-dialog" role="document">
 	    <div class="modal-content">
 	      <div class="modal-header">
-		<button type="button" class="close" data-dismiss="modal" aria-label="Cancel"><span aria-hidden="true">&times;</span></button>
+		<button type="button" class="close" data-bs-dismiss="modal" aria-label="Cancel"><span aria-hidden="true">&times;</span></button>
 		<h4 class="modal-title" id="archive_button_modal_label">{% trans "Delete Patient" %}</h4>
 	      </div>
 	      <div class="modal-body">
@@ -19,10 +19,10 @@
 	      </div>
 	      <div class="modal-footer">
 		{% if not_linked %}
-		<button type="button" class="btn btn-primary" data-dismiss="modal">{% trans 'No' %}</button>
-		<button type="button" data-dismiss="modal" onclick="deletePatient();" class="btn btn-danger">{% trans "Yes! Do it" %}</button>
+		<button type="button" class="btn btn-primary" data-bs-dismiss="modal">{% trans 'No' %}</button>
+		<button type="button" data-bs-dismiss="modal" onclick="deletePatient();" class="btn btn-danger">{% trans "Yes! Do it" %}</button>
 		{% else %}
-		<button type="button" class="btn btn-primary" data-dismiss="modal">{% trans 'Close' %}</button>
+		<button type="button" class="btn btn-primary" data-bs-dismiss="modal">{% trans 'Close' %}</button>
 		{% endif %}
 	      </div>
 	    </div>

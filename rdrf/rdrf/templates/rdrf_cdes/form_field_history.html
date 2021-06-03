@@ -4,11 +4,11 @@
 {% load cde_display %}
 
 {% block content %}
-<div class="modal fade" tabindex="-1" role="dialog" aria-labelledby="fieldHistoryModalLabel">
+<div class="modal fade" tabindex="-1" role="dialog" aria-labelledby="fieldHistoryModalLabel" id="history_modal">
   <div class="modal-dialog" role="document">
     <div class="modal-content">
       <div class="modal-header">
-        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
         <h4 class="modal-title" id="fieldHistoryModalLabel">
           Previous answers for '{{ cde.name }}'
         </h4>
@@ -18,10 +18,10 @@
           <div class="col-sm-4 col-md-3 col-lg-2">
             <ul class="nav nav-pills nav-stacked">
               <li role="presentation" class="active">
-                <a href="#cde-history-table" data-toggle="pill">Table</a>
+                <a href="#cde-history-table" data-bs-toggle="pill">Table</a>
               </li>
               <li role="presentation">
-                <a href="#cde-history-chart" data-toggle="pill">Chart</a>
+                <a href="#cde-history-chart" data-bs-toggle="pill">Chart</a>
               </li>
             </ul>
           </div>
@@ -43,12 +43,12 @@
                     <tr class="invisibutton-container">
                       <td>{{ snapshot.timestamp|date:"j-n-Y" }}</td>
                       <td>{{ snapshot.timestamp|time:"H:i" }}</td>
-                      <td data-value="{{ snapshot.value }}">
+                      <td data-bs-value="{{ snapshot.value }}">
                         {{ snapshot.value|cde_display_value:cde }}
                       </td>
 		      <td>{{snapshot.user}}</td>
                       <td class="text-end">
-                        <button type="button" data-id="{{ snapshot.id }}"
+                        <button type="button" data-bs-id="{{ snapshot.id }}"
                                 class="btn btn-secondary btn-sm cde-history-restore invisibutton">
                           Restore
                         </button>
@@ -67,7 +67,7 @@
               </div>
               <div role="tabpanel" class="tab-pane" id="cde-history-chart">
                 <pre class="cde-history-data"
-                     data-label="{{ cde.name }}"
+                     data-bs-label="{{ cde.name }}"
                      data-cde-datatype="{{ cde.datatype }}">
                   {{ history|json }}
                 </pre>
@@ -78,7 +78,7 @@
         </div>
       </div>
       <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
       </div>
     </div><!-- /.modal-content -->
   </div><!-- /.modal-dialog -->
@@ -88,7 +88,8 @@
 <script type="text/javascript" src="{% static 'js/form.js' %}"></script>
 <script>
   $(function() {
-    var modal = $(".modal").modal("show");
+    //var modal = $(".modal").modal("show");
+    var modal = new bootstrap.Modal(document.getElementById("history_modal")).show();
     rdrf_form_field_history_init(modal);
   });
 </script>
