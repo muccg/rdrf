@@ -91,7 +91,7 @@ class PatientDetail(generics.RetrieveUpdateDestroyAPIView):
                 request, message='Not allowed to get Patients from this Registry')
 
         if not patient.working_groups.filter(pk__in=request.user.working_groups.all()).exists():
-            self.permission_denied(request, message='Patient not in your working group')
+            self.permission_denied(request, message='Patient not assigned to your medical centre')
 
 
 class PatientList(generics.ListCreateAPIView):
@@ -355,7 +355,7 @@ class CalculatedCdeValue(APIView):
         # check the anonymous_not_allowed decorator
 
         if not same_working_group(patient, request.user, registry):
-            raise BadRequestError("Patient is not in this working group")
+            raise BadRequestError("Patient is not assigned to this medical centre")
         if not is_calculated_cde_in_registry(cde, registry):
             raise BadRequestError("CDE is not a calculated field in this registry")
 
