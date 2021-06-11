@@ -6,14 +6,14 @@
 {% block extrahead %}
     {{ block.super }}
     
-    <style>
+    <style type="text/css" nonce="{{request.csp_nonce}}">
         .modal .modal-dialog { width: 60%; }
     </style>
 
     <link rel="stylesheet" href="{% static 'datatables-1.10.12/css/jquery.dataTables.min.css' %}">
     <script type="text/javascript" src="{% static 'datatables-1.10.12/js/jquery.dataTables.min.js' %}"></script>
 
-    <script>
+    <script type="text/javascript" nonce="{{request.csp_nonce}}">
         $(document).ready(function(){
             $('#list_of_patients').DataTable();
         })

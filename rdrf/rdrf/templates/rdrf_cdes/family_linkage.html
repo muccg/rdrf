@@ -3,7 +3,7 @@
 {% block extrastyle %}
         {{ block.super }}
         <link rel="stylesheet" href="{% static 'css/jquery-1.11.4/themes/smoothness/jquery-ui.min.css' %}">
-    <style>
+    <style type="text/css" nonce="{{request.csp_nonce}}">
 
             .selectable .ui-selecting { border-width: 5px }
             .selectable .ui-selected { border-width: 2px }
@@ -15,7 +15,7 @@
 {% block extrahead %}
 
     <script type="text/javascript" src="{% static 'js/lookup.js' %}"></script>
-    <script nonce="{{request.csp_nonce}}">
+    <script type="text/javascript" nonce="{{request.csp_nonce}}">
         var initial_index = '{{ initial_index }}';
         var relationships = [];
         var tmpObject = null;
@@ -318,7 +318,7 @@
         }
 
     </script>
-    <script type="text/javascript">
+    <script type="text/javascript" nonce="{{request.csp_nonce}}">
         (function($){
            $(document).ready(function() {
 

@@ -10,7 +10,7 @@
 <script type="text/javascript" src="{% static 'js/calculated_field_plugin.js' %}"></script>
 <script type="text/javascript" src="{% static 'js/toggle_disabled.js' %}"></script>
 <script type="text/javascript" src="{% static 'js/dashboard.js' %}"></script>
-<style type="text/css">.required:after { content: '*'; margin: 0 0 0 5px; position: absolute; color: #ccc;}</style>
+<style type="text/css" nonce="{{request.csp_nonce}}">.required:after { content: '*'; margin: 0 0 0 5px; position: absolute; color: #ccc;}</style>
 <!--[if IE 6]>
 <link rel="stylesheet" type="text/css" href="{% static 'css/ie6.css' %}"/>
 <![endif]-->

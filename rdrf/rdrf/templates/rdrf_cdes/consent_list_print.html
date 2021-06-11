@@ -2,7 +2,7 @@
 
 {% block extrahead %}
     {{ block.super }}
-    <script>
+    <script type="text/javascript" nonce="{{request.csp_nonce}}">
         $(document).ready(function(){
             window.print();
             setTimeout(window.close, 0);

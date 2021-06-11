@@ -30,14 +30,14 @@
 
     <!--[if IE 8]>
 	<script nonce="{{request.csp_nonce}}" type="text/javascript" src="ie_expand_select_width.js"></script>
-	<script type="text/javascript">
+	<script type="text/javascript" nonce="{{request.csp_nonce}}">
 		$(document).ready(function() {
 			$('select').ieExpandSelectWidth();
 		});
 	</script>
     <![endif]-->
 
-    <style>
+    <style type="text/css" nonce="{{request.csp_nonce}}">
         .modal .modal-dialog { width: 60%;
                                max-height: 600px;
                                overflow-y: auto;
@@ -56,7 +56,7 @@
         $(function () {
           $('[data-toggle="tooltip"]').tooltip()
         });
-    <style>
+    <style type="text/css" nonce="{{request.csp_nonce}}">
         .ui-autocomplete {
             max-height: 100px;
             overflow-y: auto;
@@ -92,7 +92,7 @@
         }
     </style>
 
-    <script>
+    <script type="text/javascript" nonce="{{request.csp_nonce}}">
         function goBack() {
             var warning = confirm('{% trans "Are you sure?\nAll entered or amended data will be lost!" %}');
             if (warning == true) {
@@ -101,7 +101,7 @@
         }
     </script>
 
-    <script>
+    <script type="text/javascript" nonce="{{request.csp_nonce}}">
     // The following "corrects" the behaviour of the "today" button in the jquery datepicker
     // clicking the today button
     $.datepicker._gotoToday = function(id) {
@@ -464,7 +464,7 @@
  </div>
 
 
-<script>
+<script type="text/javascript" nonce="{{request.csp_nonce}}">
     $(document).ready(function () {
         $(":input").not(':input[type=checkbox], :input[type=radio], :input[type=button], :input[type=submit], :input[type=reset]').addClass("form-control");
         $("textarea").addClass("form-control");

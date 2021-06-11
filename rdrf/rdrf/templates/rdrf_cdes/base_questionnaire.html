@@ -21,7 +21,7 @@
         <script type="text/javascript" src="{% static 'bootstrap-3.3.6/js/bootstrap.min.js' %}"></script>
         
         {% block extrastyle %}
-            <style>
+            <style type="text/css" nonce="{{request.csp_nonce}}">
                 ul {
                     list-style-type: none;
                     margin-left: 0;
@@ -46,7 +46,7 @@
         {% endblock %}
         
     </head>
-    <script>
+    <script type="text/javascript" nonce="{{request.csp_nonce}}">
         $(document).ready(function() {
 
             var delay = 0;

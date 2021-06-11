@@ -12,7 +12,7 @@
   {% endif %}
   {{ media.css }}
   {% if not actions_on_top and not actions_on_bottom %}
-    <style>
+    <style type="text/css" nonce="{{request.csp_nonce}}">
        #changelist table thead th:first-child {width: inherit}
         #changelist .paginator {
           color: #666;

@@ -2,7 +2,7 @@
 {% load i18n %}
 {% load translate %}
 {% load has_feature %}
-<script>
+<script type="text/javascript" nonce="{{request.csp_nonce}}">
   /*
   var USE_ACCORDION = false;
   var START_COLLAPSED = false;
@@ -17,7 +17,7 @@
   */
 </script>
 
-<style>
+<style type="text/css" nonce="{{request.csp_nonce}}">
   .panel-body  {
     word-break:break-word
   }

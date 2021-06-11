@@ -16,7 +16,7 @@
 
 
 
-    <script>
+    <script type="text/javascript" nonce="{{request.csp_nonce}}">
     $.fn.dataTable.ext.errMode = 'throw';
     var COLUMNS = {{columns|safe }};
     var TABLE_ID = "report_table";
