@@ -99,11 +99,10 @@ class FamilyLinkageManager(object):
                     rel.save()
             elif relative_dict['class'] == "Patient":
                 patient = Patient.objects.get(pk=relative_dict["pk"])
-                patient_location = ""
                 try:
                     patient_location = PatientAddress.objects.get(patient=patient).country
                 except PatientAddress.DoesNotExist:
-                    pass
+                    patient_location = ""
                 except PatientAddress.MultipleObjectsReturned:
                     patient_addresses = PatientAddress.objects.filter(address_type=AddressType.objects.get(type="Home")).filter(patient=patient)
                     if len(patient_addresses) > 0:
@@ -185,11 +184,10 @@ class FamilyLinkageManager(object):
             elif relative_dict["class"] == "Patient":
                 # index 'demoted' : create patient rel object
                 patient = Patient.objects.get(pk=relative_dict["pk"])
-                patient_location = ""
                 try:
                     patient_location = PatientAddress.objects.get(patient=patient).country
                 except PatientAddress.DoesNotExist:
-                    pass
+                    patient_location = ""
                 except PatientAddress.MultipleObjectsReturned:
                     patient_addresses = PatientAddress.objects.filter(address_type=AddressType.objects.get(type="Home")).filter(patient=patient)
                     if len(patient_addresses) > 0:
