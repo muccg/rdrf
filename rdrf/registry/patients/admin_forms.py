@@ -379,9 +379,9 @@ class PatientForm(forms.ModelForm):
             del cleaneddata[k]
 
         if "working_groups" not in cleaneddata:
-            raise forms.ValidationError("Patient must be assigned to a medical centre")
+            raise forms.ValidationError("Patient must be assigned to a centre")
         if not cleaneddata["working_groups"]:
-            raise forms.ValidationError("Patient must be assigned to a medical centre")
+            raise forms.ValidationError("Patient must be assigned to a centre")
 
         self._check_working_groups(cleaneddata)
 
@@ -501,7 +501,7 @@ class PatientForm(forms.ModelForm):
         if bad:
             bad_regs = [Registry.objects.get(code=reg_code).name for reg_code in bad]
             raise forms.ValidationError(
-                "Patient can only be assigned to one medical centre per registry. Patient is assigned to more than one centre for %s"
+                "Patient can only be assigned to one centre per registry. Patient is assigned to more than one centre for %s"
                 % ",".join(bad_regs))
 
 
