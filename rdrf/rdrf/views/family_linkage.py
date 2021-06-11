@@ -99,15 +99,14 @@ class FamilyLinkageManager(object):
                     rel.save()
             elif relative_dict['class'] == "Patient":
                 patient = Patient.objects.get(pk=relative_dict["pk"])
+                patient_location = ""
                 try:
                     patient_location = PatientAddress.objects.get(patient=patient).country
                 except PatientAddress.DoesNotExist:
-                    patient_location = "AU"
+                    pass
                 except PatientAddress.MultipleObjectsReturned:
                     patient_addresses = PatientAddress.objects.filter(address_type=AddressType.objects.get(type="Home")).filter(patient=patient)
-                    if len(patient_addresses) < 1:
-                        patient_location = "AU"
-                    else:
+                    if len(patient_addresses) > 0:
                         patient_location = patient_addresses[0].country  # Object at 0 is most recently-added address
 
                 rel = PatientRelative()
@@ -119,7 +118,8 @@ class FamilyLinkageManager(object):
                 rel.relative_patient = patient
                 rel.sex = patient.sex
                 rel.living_status = patient.living_status
-                rel.location = patient_location
+                if patient_location != "":
+                    rel.location = patient_location
                 rel.save()
                 self.set_as_relative(patient)
 
@@ -185,15 +185,14 @@ class FamilyLinkageManager(object):
             elif relative_dict["class"] == "Patient":
                 # index 'demoted' : create patient rel object
                 patient = Patient.objects.get(pk=relative_dict["pk"])
+                patient_location = ""
                 try:
                     patient_location = PatientAddress.objects.get(patient=patient).country
                 except PatientAddress.DoesNotExist:
-                    patient_location = "AU"
+                    pass
                 except PatientAddress.MultipleObjectsReturned:
                     patient_addresses = PatientAddress.objects.filter(address_type=AddressType.objects.get(type="Home")).filter(patient=patient)
-                    if len(patient_addresses) < 1:
-                        patient_location = "AU"
-                    else:
+                    if len(patient_addresses) > 0:
                         patient_location = patient_addresses[0].country  # Object at 0 is most recently-added address
 
                 new_patient_relative = PatientRelative()
@@ -206,7 +205,8 @@ class FamilyLinkageManager(object):
                 new_patient_relative.relationship = relative_dict["relationship"]
                 new_patient_relative.sex = patient.sex
                 new_patient_relative.living_status = patient.living_status
-                new_patient_relative.location = patient_location
+                if patient_location != "":
+                    new_patient_relative.location = patient_location
                 new_patient_relative.save()
                 updated_rels.add(new_patient_relative.patient.id)
                 index_and_rels.add(new_patient_relative.relative_patient.id)
