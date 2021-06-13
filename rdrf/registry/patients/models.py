@@ -1434,6 +1434,7 @@ class PatientRelative(models.Model):
                       )
 
     RELATIVE_LOCATIONS = [
+        ("UKWN", "Unknown"),
         ("AU - WA", "Australia - WA"),
         ("AU - SA", "Australia - SA"),
         ("AU - NSW", "Australia - NSW"),
@@ -1456,7 +1457,7 @@ class PatientRelative(models.Model):
     date_of_birth = models.DateField()
     sex = models.CharField(max_length=1, choices=SEX_CHOICES)
     relationship = models.CharField(choices=RELATIVE_TYPES, max_length=80)
-    location = models.CharField(choices=RELATIVE_LOCATIONS + get_countries(), max_length=80)
+    location = models.CharField(choices=RELATIVE_LOCATIONS + get_countries(), max_length=80, default=RELATIVE_LOCATIONS[0])
     living_status = models.CharField(choices=LIVING_STATES, max_length=80)
     relative_patient = models.OneToOneField(
         to=Patient,
