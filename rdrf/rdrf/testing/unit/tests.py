@@ -2303,3 +2303,421 @@ class CalculatedFieldSecurityTestCase(RDRFTestCase):
         # 6. Testing if non-FH calculated field exists in FH
         # No non-FH calculated fields in the test data, but have
         # manually tested this in a local build with DD calc fields
+
+
+class FamilyLinkageTestCase(RDRFTestCase):
+
+    def setUp(self):
+        super(FamilyLinkageTestCase, self).setUp()
+        # need to import FH to correctly use family linkage
+        this_dir = os.path.dirname(__file__)
+        test_yaml = os.path.abspath(os.path.join(this_dir, "..", "..", "fixtures", "exported_fh_registry.yaml"))
+        importer = Importer()
+        importer.load_yaml(test_yaml)
+        importer.create_registry()
+        self.registry = Registry.objects.get(code='fh')
+        self.address_type, created = AddressType.objects.get_or_create(pk=1)
+        # make 3 patients for full tests
+        self.patient_ids = self.create_patients()
+        # maybe make non-patient relative for "non-patient to index" use case
+
+    def create_new_patient(self, given_name, surname, date_of_birth, sex, living_status, p_ids):
+        from rdrf.db.contexts_api import RDRFContextManager
+
+        patient_new = Patient()
+        patient_new.consent = True
+        patient_new.given_names = given_name
+        patient_new.family_name = surname
+        patient_new.date_of_birth = date_of_birth
+        for choice in Patient.SEX_CHOICES:
+            if choice[1] == sex:
+                patient_new.sex = choice[0]
+        for living_state in Patient.LIVING_STATES:
+            if living_state[1] == living_status:
+                patient_new.living_status = living_state[0]
+
+        patient_new.save()
+        patient_new.rdrf_registry.set([self.registry])
+        context_manager = RDRFContextManager(self.registry)
+        default_context = context_manager.get_or_create_default_context(
+            patient_new, new_patient=True)
+        patient_new.save()
+        p_ids += [patient_new.pk, ]
+
+        return patient_new, p_ids, default_context
+
+    def create_new_patient_relative(self, given_name, surname, date_of_birth, sex, living_status, location, index):
+        from registry.patients.models import PatientRelative
+
+        patient_rel_new = PatientRelative()
+        patient_rel_new.given_names = given_name
+        patient_rel_new.family_name = surname
+        patient_rel_new.date_of_birth = date_of_birth
+        for choice in PatientRelative.SEX_CHOICES:
+            if choice[1] == sex:
+                patient_rel_new.sex = choice[0]
+        for living_state in PatientRelative.LIVING_STATES:
+            if living_state[1] == living_status:
+                patient_rel_new.living_status = living_state[0]
+        patient_rel_new.location = location
+        patient_rel_new.patient = index
+        patient_rel_new.save()
+
+        return patient_rel_new
+
+    def create_address(self, address_type, street_address, country, patient):
+        address_new = PatientAddress()
+        address_new.address_type = AddressType.objects.get(pk=address_type)
+        address_new.address = street_address
+        address_new.country = country
+        address_new.patient = patient
+        address_new.save()
+
+    def create_patients(self):
+        # each patient needs an address, living status, sex, given name, and surname for full tests
+        # import addresses first
+        # from registry.patients.models import PatientAddress
+        # make patients with func, and add pks to list
+        patient_ids = []
+        patient_1, patient_ids, self.patient_1_context = self.create_new_patient("Test", "Test", datetime(1989, 10, 21), "Male", "Living", patient_ids)
+        patient_2, patient_ids, self.patient_2_context = self.create_new_patient("Chester", "Test", datetime(1979, 4, 13), "Male", "Living", patient_ids)
+        # patient_3, patient_ids, self.patient_3_context = self.create_new_patient("Hester", "Test", datetime(1968, 1, 4), "Female", "Living", patient_ids)
+        # make addresses and assign to patients with func - extend later with extra home & some postal addrs
+        self.create_address(1, "123 Somewhere Street", "Australia", patient_1)
+        self.create_address(1, "99 Unheardof Avenue", "United Kingdom", patient_2)
+        # self.create_address(1, "5 Goodbye Grange", "Morocco", patient_3)
+        return patient_ids
+
+    def run_linkage_manager(self, new_packet):
+        from rdrf.views.family_linkage import FamilyLinkageManager
+        self.linkage_manager = FamilyLinkageManager(self.registry, new_packet)
+        self.linkage_manager.run()
+
+    def patient_is_index(self, patient):
+        family_linkage_value = patient.get_form_value(
+            self.registry.code,
+            self.registry.metadata['family_linkage_form_name'],
+            self.registry.metadata['family_linkage_section_code'],
+            self.registry.metadata['family_linkage_cde_code']
+        )
+        return family_linkage_value == 'fh_is_index'
+
+    def patient_is_relative(self, patient):
+        family_linkage_value = patient.get_form_value(
+            self.registry.code,
+            self.registry.metadata['family_linkage_form_name'],
+            self.registry.metadata['family_linkage_section_code'],
+            self.registry.metadata['family_linkage_cde_code']
+        )
+        return family_linkage_value == 'fh_is_relative'
+
+    def test_family_linkage_manager(self):
+        from registry.patients.models import PatientRelative
+        # What tests do we need?
+        # First, set index patient
+        error_string = "Error in section: "
+        test_section_str = "Setting initial index"
+        patient1_test = Patient.objects.get(pk=self.patient_ids[0])
+        # make FamilyLinkageManager with initial packet
+        init_packet = {
+            'index': {
+                'pk': patient1_test.pk,
+                'given_names': patient1_test.given_names,
+                'family_name': patient1_test.family_name,
+                'class': 'Patient',
+                'working_group': None,
+                'link': f'/fh/patient/{patient1_test.pk}/edit'
+            },
+            'relatives': [],
+            'original_index': {
+                'pk': patient1_test.pk,
+                'given_names': patient1_test.given_names,
+                'family_name': patient1_test.family_name,
+                'class': 'Patient',
+                'working_group': None,
+                'link': f'/fh/patient/{patient1_test.pk}/edit'
+            }
+        }
+        logger.info(f"{test_section_str}...")
+        self.run_linkage_manager(init_packet)
+        self.assertTrue(self.linkage_manager.index_patient == patient1_test,
+                        f"{error_string}{test_section_str}: Index in linkage manager does not match Patient {patient1_test} (ID = {patient1_test.pk})")
+        self.assertTrue(self.patient_is_index(patient1_test),
+                        f"{error_string}{test_section_str}: Patient {patient1_test} (ID = {patient1_test.pk}) is not index")
+
+        # 1. Link patient to index patient, check that location, living status, and sex carry over
+        test_section_str = "Linking new patient to index"
+        patient2_test = Patient.objects.get(pk=self.patient_ids[1])
+        link_patient_to_index_packet = {
+            'index': {
+                'pk': patient1_test.pk,
+                'given_names': patient1_test.given_names,
+                'family_name': patient1_test.family_name,
+                'class': 'Patient',
+                'working_group': None,
+                'link': f'/fh/patient/{patient1_test.pk}/edit'
+            },
+            'relatives': [
+                {
+                    'pk': patient2_test.pk,
+                    'given_names': patient2_test.given_names,
+                    'family_name': patient2_test.family_name,
+                    'class': 'Patient',
+                    'working_group': None,
+                    'link': f'/fh/patient/{patient2_test.pk}/edit',
+                    'relationship': 'Sibling (1st degree)'
+                },
+            ],
+            'original_index': {
+                'pk': patient1_test.pk,
+                'given_names': patient1_test.given_names,
+                'family_name': patient1_test.family_name,
+                'class': 'Patient',
+                'working_group': None,
+                'link': f'/fh/patient/{patient1_test.pk}/edit'
+            }
+        }
+        logger.info(f"{test_section_str}...")
+        self.run_linkage_manager(link_patient_to_index_packet)
+
+        # No opposite to assertRaises - this test expects an exception NOT to be raised
+        try:
+            relative_patient2_test = PatientRelative.objects.get(relative_patient=patient2_test)
+        except PatientRelative.DoesNotExist:
+            self.fail(f"{error_string}{test_section_str}: PatientRelative for Patient {patient2_test} (ID = {patient2_test.pk}) has not been created")
+        self.assertTrue(relative_patient2_test.sex == patient2_test.sex,
+                        f"{error_string}{test_section_str}: PatientRelative sex {relative_patient2_test.sex} does not match Patient {patient2_test} sex '{patient2_test.sex}'")
+        self.assertTrue(relative_patient2_test.living_status == patient2_test.living_status,
+                        f"{error_string}{test_section_str}: PatientRelative living status {relative_patient2_test.living_status} does not match Patient {patient2_test} living status '{patient2_test.living_status}'")
+        self.assertTrue(relative_patient2_test.location == PatientAddress.objects.get(patient=patient2_test).country,
+                        f"{error_string}{test_section_str}: PatientRelative location {relative_patient2_test.location} does not match Patient {patient2_test} location '{PatientAddress.objects.get(patient=patient2_test).country}'")
+        self.assertTrue(relative_patient2_test.patient == patient1_test,
+                        f"{error_string}{test_section_str}: PatientRelative index {relative_patient2_test.patient} does not match Patient {patient1_test}")
+        self.assertTrue(relative_patient2_test in patient1_test.relatives.all(),
+                        f"{error_string}{test_section_str}: PatientRelative is not in index {patient1_test}'s relatives")
+        self.assertTrue(relative_patient2_test.relationship == "Sibling (1st degree)",
+                        f"{error_string}{test_section_str}: PatientRelative's relationship {relative_patient2_test.relationship} does not match 'Sibling (1st degree)'")
+        self.assertTrue(self.patient_is_relative(patient2_test),
+                        f"{error_string}{test_section_str}: Patient {patient2_test} is not a relative")
+        self.assertFalse(self.patient_is_index(patient2_test),
+                         f"{error_string}{test_section_str}: Patient {patient2_test} is an index")
+
+        # 2. Swap relative to index, check that original index's location, living status, and sex are preserved
+        test_section_str = "Setting relative to be new index"
+        relative_to_index_packet = {
+            'index': {
+                'pk': relative_patient2_test.pk,
+                'given_names': relative_patient2_test.given_names,
+                'family_name': relative_patient2_test.family_name,
+                'class': 'PatientRelative',
+                'working_group': None,
+                'link': f'/fh/patient/{relative_patient2_test.relative_patient.pk}/edit'
+            },
+            'relatives': [
+                {
+                    'pk': patient1_test.pk,
+                    'given_names': patient1_test.given_names,
+                    'family_name': patient1_test.family_name,
+                    'class': 'Patient',
+                    'working_group': None,
+                    'link': f'/fh/patient/{patient1_test.pk}/edit',
+                    'relationship': 'Sibling (1st degree)'
+                },
+            ],
+            'original_index': {
+                'pk': patient1_test.pk,
+                'given_names': patient1_test.given_names,
+                'family_name': patient1_test.family_name,
+                'class': 'Patient',
+                'working_group': None,
+                'link': f'/fh/patient/{patient1_test.pk}/edit'
+            }
+        }
+        logger.info(f"{test_section_str}...")
+        self.run_linkage_manager(relative_to_index_packet)
+
+        with self.assertRaises(PatientRelative.DoesNotExist, msg=f"{error_string}{test_section_str}: PatientRelative for Patient {patient2_test} exists when it should not"):
+            relative_patient2_test = PatientRelative.objects.get(relative_patient=patient2_test)
+        self.assertTrue(self.patient_is_index(patient2_test),
+                        f"{error_string}{test_section_str}: Patient {patient2_test} is not an index")
+        self.assertFalse(self.patient_is_relative(patient2_test),
+                         f"{error_string}{test_section_str}: Patient {patient2_test} is a relative")
+        try:
+            relative_patient1_test = PatientRelative.objects.get(relative_patient=patient1_test)
+        except PatientRelative.DoesNotExist:
+            self.fail(f"{error_string}{test_section_str}: PatientRelative for Patient {patient1_test} (ID = {patient1_test.pk}) has not been created")
+        self.assertTrue(relative_patient1_test.sex == patient1_test.sex,
+                        f"{error_string}{test_section_str}: PatientRelative sex {relative_patient1_test.sex} does not match Patient {patient1_test} sex '{patient1_test.sex}'")
+        self.assertTrue(relative_patient1_test.living_status == patient1_test.living_status,
+                        f"{error_string}{test_section_str}: PatientRelative living status {relative_patient1_test.living_status} does not match Patient {patient1_test} living status '{patient1_test.living_status}'")
+        self.assertTrue(relative_patient1_test.location == PatientAddress.objects.get(patient=patient1_test).country,
+                        f"{error_string}{test_section_str}: PatientRelative location {relative_patient1_test.location} does not match Patient {patient1_test} location '{PatientAddress.objects.get(patient=patient1_test).country}'")
+        self.assertTrue(relative_patient1_test.patient == patient2_test,
+                        f"{error_string}{test_section_str}: PatientRelative index {relative_patient1_test.patient} does not match Patient {patient2_test}")
+        self.assertTrue(relative_patient1_test in patient2_test.relatives.all(),
+                        f"{error_string}{test_section_str}: PatientRelative is not in index {patient2_test}'s relatives")
+        self.assertTrue(relative_patient1_test.relationship == "Sibling (1st degree)",
+                        f"{error_string}{test_section_str}: PatientRelative's relationship {relative_patient1_test.relationship} does not match 'Sibling (1st degree)'")
+        self.assertTrue(self.patient_is_relative(patient1_test),
+                        f"{error_string}{test_section_str}: Patient {patient1_test} is not a relative")
+        self.assertFalse(self.patient_is_index(patient1_test),
+                         f"{error_string}{test_section_str}: Patient {patient1_test} is an index")
+
+        # 3. Add non-patient relative, ensure it proceeds correctly
+        test_section_str = "Creating non-patient relative"
+        logger.info(f"{test_section_str}...")
+        relative_test = self.create_new_patient_relative("Hester", "Test", datetime(1968, 1, 4), "Female", "Living", "MA", patient2_test)
+        self.assertFalse(relative_test.relationship,
+                         f"{error_string}{test_section_str}: PatientRelative {relative_test.given_names} {relative_test.family_name}'s relationship should not be defined")
+
+        test_section_str = "Linking non-patient relative to index"
+        add_non_patient_relative_packet = {
+            'index': {
+                'pk': patient2_test.pk,
+                'given_names': patient2_test.given_names,
+                'family_name': patient2_test.family_name,
+                'class': 'Patient',
+                'working_group': None,
+                'link': f'/fh/patient/{patient2_test.pk}/edit'
+            },
+            'relatives': [
+                {
+                    'pk': relative_patient1_test.pk,
+                    'given_names': patient1_test.given_names,
+                    'family_name': patient1_test.family_name,
+                    'class': 'PatientRelative',
+                    'working_group': None,
+                    'link': f'/fh/patient/{patient1_test.pk}/edit',
+                    'relationship': 'Sibling (1st degree)'
+                },
+                {
+                    'pk': relative_test.pk,
+                    'given_names': relative_test.given_names,
+                    'family_name': relative_test.family_name,
+                    'class': 'PatientRelative',
+                    'working_group': None,
+                    'link': None,
+                    'relationship': '1st Cousin (3rd degree)'
+                }
+            ],
+            'original_index': {
+                'pk': patient2_test.pk,
+                'given_names': patient2_test.given_names,
+                'family_name': patient2_test.family_name,
+                'class': 'Patient',
+                'working_group': None,
+                'link': f'/fh/patient/{patient2_test.pk}/edit'
+            }
+        }
+        logger.info(f"{test_section_str}...")
+        self.run_linkage_manager(add_non_patient_relative_packet)
+
+        relative_test = PatientRelative.objects.get(pk=relative_test.pk)  # Need to re-get relative for relationship to be tested properly
+        self.assertTrue(relative_test.pk in [rel['pk'] for rel in self.linkage_manager.relatives],
+                        f"{error_string}{test_section_str}: PatientRelative {relative_test.given_names} {relative_test.family_name} is not in linkage manager relative list")
+        self.assertFalse(relative_test.relative_patient,
+                         f"{error_string}{test_section_str}: PatientRelative {relative_test.given_names} {relative_test.family_name} is a non-patient relative and should not be linked to a patient")
+        self.assertTrue(relative_test.patient == patient2_test,
+                        f"{error_string}{test_section_str}: PatientRelative index {relative_test.patient} does not match Patient {patient2_test}")
+        self.assertTrue(relative_test.relationship == "1st Cousin (3rd degree)",
+                        f"{error_string}{test_section_str}: PatientRelative's relationship {relative_test.relationship} does not match '1st Cousin (3rd degree)'")
+        self.assertTrue(relative_test in patient2_test.relatives.all(),
+                        f"{error_string}{test_section_str}: PatientRelative is not in index {patient2_test}'s relatives")
+
+        # 4. Swap non-patient relative to index, check that new patient is created + results of test #2
+        test_section_str = "Setting non-patient relative to be new index"
+        relative_test_data = {
+            'pk': relative_test.pk,
+            'given_names': relative_test.given_names,
+            'family_name': relative_test.family_name,
+            'date_of_birth': relative_test.date_of_birth,
+            'sex': relative_test.sex,
+            'living_status': relative_test.living_status
+        }
+
+        non_patient_to_index_packet = {
+            'index': {
+                'pk': relative_test.pk,
+                'given_names': relative_test.given_names,
+                'family_name': relative_test.family_name,
+                'class': 'PatientRelative',
+                'working_group': None,
+                'link': None
+            },
+            'relatives': [
+                {
+                    'pk': relative_patient1_test.pk,
+                    'given_names': patient1_test.given_names,
+                    'family_name': patient1_test.family_name,
+                    'class': 'PatientRelative',
+                    'working_group': None,
+                    'link': f'/fh/patient/{patient1_test.pk}/edit',
+                    'relationship': '1st Cousin (3rd degree)'
+                },
+                {
+                    'pk': patient2_test.pk,
+                    'given_names': patient2_test.given_names,
+                    'family_name': patient2_test.family_name,
+                    'class': 'Patient',
+                    'working_group': None,
+                    'link': f'/fh/patient/{patient2_test.pk}/edit',
+                    'relationship': '1st Cousin (3rd degree)'
+                }
+            ],
+            'original_index': {
+                'pk': patient2_test.pk,
+                'given_names': patient2_test.given_names,
+                'family_name': patient2_test.family_name,
+                'class': 'Patient',
+                'working_group': None,
+                'link': f'/fh/patient/{patient2_test.pk}/edit'
+            }
+        }
+        logger.info(f"{test_section_str}...")
+        self.run_linkage_manager(non_patient_to_index_packet)
+
+        with self.assertRaises(PatientRelative.DoesNotExist, msg=f"{error_string}{test_section_str}: PatientRelative still exists when it should not"):
+            relative_test = PatientRelative.objects.get(pk=relative_test_data['pk'])
+        try:
+            relative_patient1_test = PatientRelative.objects.get(relative_patient=patient1_test)
+        except PatientRelative.DoesNotExist:
+            self.fail(f"{error_string}{test_section_str}: PatientRelative for Patient {patient1_test} (ID = {patient1_test.pk}) does not exist")
+        try:
+            relative_patient2_test = PatientRelative.objects.get(relative_patient=patient2_test)
+        except PatientRelative.DoesNotExist:
+            self.fail(f"{error_string}{test_section_str}: PatientRelative for Patient {patient2_test} (ID = {patient2_test.pk}) has not been created")
+        relative_test_patient = relative_patient1_test.patient
+        self.assertTrue(relative_test_patient,
+                        f"{error_string}{test_section_str}: New index patient does not exist")
+        self.assertTrue(self.patient_is_index(relative_test_patient),
+                        f"{error_string}{test_section_str}: Patient {relative_test_patient} is not an index")
+        self.assertTrue(self.patient_is_relative(patient2_test),
+                        f"{error_string}{test_section_str}: Patient {patient2_test} is not a relative")
+        self.assertTrue(relative_patient1_test in relative_test_patient.relatives.all(),
+                        f"{error_string}{test_section_str}: PatientRelative {relative_patient1_test.given_names} {relative_patient1_test.family_name} is not in index {relative_test_patient}'s relatives")
+        self.assertTrue(relative_patient2_test in relative_test_patient.relatives.all(),
+                        f"{error_string}{test_section_str}: PatientRelative {relative_patient2_test.given_names} {relative_patient2_test.family_name} is not in index {relative_test_patient}'s relatives")
+        self.assertTrue(relative_test_patient.given_names == relative_test_data['given_names'],
+                        f"{error_string}{test_section_str}: Patient given name {relative_test_patient.given_names} does not match PatientRelative given name {relative_test_data['given_names']}")
+        self.assertTrue(relative_test_patient.family_name.lower() == relative_test_data['family_name'].lower(),
+                        f"{error_string}{test_section_str}: Patient surname {relative_test_patient.family_name} does not match (lowercase) PatientRelative surname {relative_test_data['family_name']}")
+        self.assertTrue(relative_test_patient.date_of_birth == relative_test_data['date_of_birth'],
+                        f"{error_string}{test_section_str}: Patient date of birth {relative_test_patient.date_of_birth} does not match PatientRelative date of birth {relative_test_data['date_of_birth']}")
+        self.assertTrue(relative_test_patient.sex == relative_test_data['sex'],
+                        f"{error_string}{test_section_str}: Patient sex {relative_test_patient.sex} does not match PatientRelative sex {relative_test_data['sex']}")
+        self.assertTrue(relative_test_patient.living_status == relative_test_data['living_status'],
+                        f"{error_string}{test_section_str}: Patient living status {relative_test_patient.living_status} does not match PatientRelative living status {relative_test_data['living_status']}")
+        self.assertTrue(relative_patient1_test.relationship == "1st Cousin (3rd degree)",
+                        f"{error_string}{test_section_str}: PatientRelative {relative_patient1_test.given_names} {relative_patient1_test.family_name}'s relationship {relative_patient1_test.relationship} does not match '1st Cousin (3rd degree)'")
+        self.assertTrue(relative_patient2_test.relationship == "1st Cousin (3rd degree)",
+                        f"{error_string}{test_section_str}: PatientRelative {relative_patient2_test.given_names} {relative_patient2_test.family_name}'s relationship {relative_patient2_test.relationship} does not match '1st Cousin (3rd degree)'")
+        self.assertTrue(relative_patient2_test.sex == patient2_test.sex,
+                        f"{error_string}{test_section_str}: PatientRelative sex {relative_patient2_test.sex} does not match Patient {patient2_test} sex '{patient2_test.sex}'")
+        self.assertTrue(relative_patient2_test.living_status == patient2_test.living_status,
+                        f"{error_string}{test_section_str}: PatientRelative living status {relative_patient2_test.living_status} does not match Patient {patient2_test} living status '{patient2_test.living_status}'")
+        self.assertTrue(relative_patient2_test.location == PatientAddress.objects.get(patient=patient2_test).country,
+                        f"{error_string}{test_section_str}: PatientRelative location {relative_patient2_test.location} does not match Patient {patient2_test} location '{PatientAddress.objects.get(patient=patient2_test).country}'")
+        self.assertTrue(self.patient_is_relative(patient2_test),
+                        f"{error_string}{test_section_str}: Patient {patient2_test} is not a relative")
+        self.assertFalse(self.patient_is_index(patient2_test),
+                         f"{error_string}{test_section_str}: Patient {patient2_test} is an index")

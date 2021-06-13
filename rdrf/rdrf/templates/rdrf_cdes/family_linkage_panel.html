@@ -17,7 +17,7 @@
 		    {% if link_allowed %}
                          {% trans 'This patient is a relative of index' %} <a href="{% url 'patient_edit' registry_code patient.my_index.id %}">{{ patient.my_index}} ({% trans 'DOB' %} {{patient.my_index.date_of_birth}})</a>
 		    {% else %}
-                         {% trans 'This patient is a relative of index' %} {{ patient.my_index}} ({% trans 'DOB' %} {{patient.my_index.date_of_birth}}) {% trans "in working group " %} {{ index_working_groups }}.
+                         {% trans 'This patient is a relative of index' %} {{ patient.my_index}} ({% trans 'DOB' %} {{patient.my_index.date_of_birth}}) {% trans "assigned to centre " %} {{ index_working_groups }}.
 		    {% endif %}
                 {% else %}
                     {% if patient.is_index %}
