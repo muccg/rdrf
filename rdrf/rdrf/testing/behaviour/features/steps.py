@@ -549,7 +549,7 @@ def click_user_menu(step):
 def the_progress_indicator_should_be(step, percentage):
     progress_bar = world.browser.find_element_by_xpath(
         '//div[@class="progress"]/div[@class="progress-bar"]')
-    assert_equal(progress_bar.text.strip(), percentage)
+    assert_equal(progress_bar.get_attribute("innerHTML").strip(), percentage)
 
 
 @step('I go home')
