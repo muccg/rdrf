@@ -11,7 +11,6 @@ Feature: Add a patient and add an address with no country
     And I click "Menu"
     And I click "Patient List"
     And I press the "Add Patient" button
-    # And I select "FH Registry" from "Rdrf Registry"
     And I select "fh Fiona Stanley Hospital" from "Centre"
     And I fill in "Family Name" with "Baston"
     And I fill in "Given Names" with "Billy"

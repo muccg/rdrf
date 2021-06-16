@@ -12,7 +12,6 @@ Feature: Add a patient
     And I click "Menu"
     And I click "Patient List"
     And I press the "Add Patient" button
-    # And I select "Demyelinating Diseases Registry" from "Rdrf Registry"
     And I select "dd WA" from "Centre"
     And I fill in "Family Name" with "Taylor"
     And I fill in "Given Names" with "Tom"
@@ -21,7 +20,6 @@ Feature: Add a patient
     And I press the "Save" button
     Then I should see "Patient added successfully"
     And I should see "TAYLOR Tom"
-    # And option "Demyelinating Diseases Registry" from "Rdrf Registry" should be selected
     And option "dd WA" from "Centre" should be selected
     And value of "Family Name" should be "TAYLOR"
     And value of "Given Names" should be "Tom"

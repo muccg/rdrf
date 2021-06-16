@@ -206,7 +206,6 @@ class PatientForm(forms.ModelForm):
             initial_data["rdrf_registry"] = self.registry_model
         if hasattr(self, "user"):
             user = self.user
-            # initial_data["working_groups"] = user.working_groups.filter(registry=self.registry_model)[0]
             working_groups = user.working_groups.filter(registry=self.registry_model)
             if len(working_groups) == 1:
                 initial_data["working_groups"] = working_groups[0]
@@ -232,13 +231,10 @@ class PatientForm(forms.ModelForm):
             registries = registries.filter(id=self.registry_model.id)
         self.fields["rdrf_registry"].queryset = registries
         if len(registries) == 1:
-            self.fields["rdrf_registry"].widget = forms.SelectMultiple(attrs={"class": "form-control", "style": "display:none"})
+            self.fields["rdrf_registry"].widget.attrs.update({"style": "display:none"})
             self.fields["rdrf_registry"].help_text = ""
             self.fields["rdrf_registry"].label = ""
             self.fields["rdrf_registry"].required = False
-            self.fields["rdrf_registry"].queryset = registries
-
-        logger.info(self.fields["rdrf_registry"].queryset)
 
         if hasattr(self, 'user'):
             user = self.user
