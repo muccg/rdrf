@@ -184,11 +184,13 @@ class Patient(models.Model):
     rdrf_registry = models.ManyToManyField(
         Registry,
         related_name='patients',
-        verbose_name=_("Rdrf Registry"))
+        verbose_name=_("Rdrf Registry"),
+        help_text=_("You must select a registry to save a patient."))
     working_groups = models.ManyToManyField(
         registry.groups.models.WorkingGroup,
         related_name="my_patients",
-        verbose_name=_("Centre"))
+        verbose_name=_("Centre"),
+        help_text=_("You must only select one centre to save a patient."))
     consent = models.BooleanField(
         null=False,
         blank=False,

@@ -353,7 +353,8 @@ def select_from_list(step, option, dropdown_label_or_id):
     option = world.browser.find_element_by_xpath(
         '//select[@id="%s"]/option[contains(., "%s")]' %
         (select_id, option))
-    utils.click(option)
+    if not option.get_attribute('selected'):
+        utils.click(option)
 
 
 @step('option "(.*)" from "(.*)" should be selected')
@@ -968,7 +969,6 @@ def add_new_patient(step, name, sex, birthdate):
         world.site_url + "patientslisting"
     )
     find(Xpath.ADD_PATIENT_BUTTON).click()
-    find(Xpath.REGISTRY_OPTION_FIRST).click()
     find(Xpath.CENTRE_OPTION_FIRST).click()
     find(Xpath.SURNAME_FIELD).send_keys(surname)
     find(Xpath.FIRSTNAME_FIELD).send_keys(firstname)
