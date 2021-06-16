@@ -968,7 +968,7 @@ def add_new_patient(step, name, sex, birthdate):
         world.site_url + "patientslisting"
     )
     find(Xpath.ADD_PATIENT_BUTTON).click()
-    find(Xpath.REGISTRY_OPTION_FIRST).click()
+    # find(Xpath.REGISTRY_OPTION_FIRST).click()
     find(Xpath.CENTRE_OPTION_FIRST).click()
     find(Xpath.SURNAME_FIELD).send_keys(surname)
     find(Xpath.FIRSTNAME_FIELD).send_keys(firstname)
