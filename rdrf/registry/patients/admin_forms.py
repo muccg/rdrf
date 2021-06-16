@@ -231,6 +231,14 @@ class PatientForm(forms.ModelForm):
         if self.registry_model:
             registries = registries.filter(id=self.registry_model.id)
         self.fields["rdrf_registry"].queryset = registries
+        if len(registries) == 1:
+            self.fields["rdrf_registry"].widget = forms.SelectMultiple(attrs={"class": "form-control", "style": "display:none"})
+            self.fields["rdrf_registry"].help_text = ""
+            self.fields["rdrf_registry"].label = ""
+            self.fields["rdrf_registry"].required = False
+            self.fields["rdrf_registry"].queryset = registries
+
+        logger.info(self.fields["rdrf_registry"].queryset)
 
         if hasattr(self, 'user'):
             user = self.user
