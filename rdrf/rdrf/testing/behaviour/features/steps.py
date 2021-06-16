@@ -353,7 +353,8 @@ def select_from_list(step, option, dropdown_label_or_id):
     option = world.browser.find_element_by_xpath(
         '//select[@id="%s"]/option[contains(., "%s")]' %
         (select_id, option))
-    utils.click(option)
+    if not option.get_attribute('selected'):
+        utils.click(option)
 
 
 @step('option "(.*)" from "(.*)" should be selected')
