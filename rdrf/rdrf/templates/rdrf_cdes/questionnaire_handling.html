@@ -21,7 +21,7 @@
 }
 </style>
     <script type="text/javascript" src="{% static 'js/lookup.js' %}"></script>
-    <script type="text/javascript">
+    <script type="text/javascript" nonce="{{request.csp_nonce}}">
 
 function getLoadedPatientId() {
     return $("#patient_lookup").data;

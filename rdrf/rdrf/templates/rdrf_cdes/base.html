@@ -51,9 +51,9 @@
     <script type="text/javascript" src="{% url 'javascript-catalog' %}"></script>
     <script type="text/javascript" src="{% static 'js/rpc_module.js' %}"></script>
     <script type="text/javascript" src="{% static 'js/rdrf.js' %}"></script>
-    <script type="text/javascript">var django = { $: $.noConflict() }; if (!$) $ = django.$; </script>
+    <script type="text/javascript" nonce="{{request.csp_nonce}}">var django = { $: $.noConflict() }; if (!$) $ = django.$; </script>
     {% block extrastyle %}
-    <style nonce="{{request.csp_nonce}}">
+    <style type="text/css" nonce="{{request.csp_nonce}}">
         body {
             padding-top: 60px;
         }
@@ -65,7 +65,7 @@
     {% endblock %}
     {% block extrahead %}{% endblock %}
 
-    <script>
+    <script type="text/javascript" nonce="{{request.csp_nonce}}">
         $(document).ready(function () {
             addExtraValidationMethods();
 
