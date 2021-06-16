@@ -201,6 +201,20 @@ class PatientForm(forms.ModelForm):
         if "user" in kwargs:
             self.user = kwargs.pop("user")
 
+        initial_data = kwargs.get('initial', {})
+        if self.registry_model:
+            initial_data["rdrf_registry"] = self.registry_model
+        if hasattr(self, "user"):
+            user = self.user
+            working_groups = user.working_groups.filter(registry=self.registry_model)
+            if len(working_groups) == 1:
+                initial_data["working_groups"] = working_groups[0]
+
+        if kwargs.get('initial', None) is not None:
+            kwargs["initial"].update(initial_data)
+        else:
+            kwargs['initial'] = initial_data
+
         super(PatientForm, self).__init__(*args, **kwargs)  # NB I have moved the constructor
 
         clinicians_filtered = [c.id for c in clinicians if c.is_clinician]
@@ -216,6 +230,11 @@ class PatientForm(forms.ModelForm):
         if self.registry_model:
             registries = registries.filter(id=self.registry_model.id)
         self.fields["rdrf_registry"].queryset = registries
+        if len(registries) == 1:
+            self.fields["rdrf_registry"].widget.attrs.update({"style": "display:none"})
+            self.fields["rdrf_registry"].help_text = ""
+            self.fields["rdrf_registry"].label = ""
+            self.fields["rdrf_registry"].required = False
 
         if hasattr(self, 'user'):
             user = self.user

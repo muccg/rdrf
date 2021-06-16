@@ -247,6 +247,13 @@
 
             {{ family_linkage_panel|safe }}
 
+            <div class="panel panel-info">
+                <div class="panel-body">
+                    <p>Questions indicated with a red asterisk <strong style="color: red;">*</strong> are <b>core data elements</b> and are required to be answered in order to save this form.<br></p>
+                    <p>Please click the green 'Save' button before progressing to the next form.</p>
+                </div>
+            </div>
+
             <form class="form-horizontal" method="post" id="main-form" enctype="multipart/form-data">
 
                 {% csrf_token %}
