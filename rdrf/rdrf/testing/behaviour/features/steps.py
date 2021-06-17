@@ -1014,7 +1014,7 @@ def is_marked_as(step, cde, no, mark):
             % (cde, xp)
         )
     html_map = {
-        "abnormal": "fa fa-warning-sign",
+        "abnormal": "fa fa-exclamation-triangle",
         "important": (
             "class=\"fa fa-asterisk\" "
             "style=\"color: green;\""

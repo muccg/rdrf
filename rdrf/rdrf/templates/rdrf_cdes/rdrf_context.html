@@ -31,10 +31,10 @@
             <form class="form-horizontal" method="post" enctype="multipart/form-data">
 	<div class="btn-group" role="group" aria-label="...">
 	 <button type="submit" class="btn btn-success" value="Save">
-                    <span class="glyphicon glyphicon-floppy-save" aria-hidden="true"></span> Save
+                    <span class="fa fa-save" aria-hidden="true"></span> Save
                 </button>
                 <a href="" class="btn btn-danger">
-                    <span class="glyphicon glyphicon-remove" aria-hidden="true"></span> Cancel
+                    <span class="fa fa-times" aria-hidden="true"></span> Cancel
                 </a>
 	</div>
 	
@@ -115,7 +115,7 @@
                                 <label for="{{field.id_for_label}}" class="col-sm-3 col-form-label">
                                     {{field.label}}
                                     {% if  field.field.required %}
-                                        <span class="glyphicon glyphicon-asterisk" style="color: red;" aria-hidden="true"></span>
+                                        <span class="fa fa-asterisk" style="color: red;" aria-hidden="true"></span>
                                     {% endif %}
                                 </label>
                                 <div class="col-sm-9">

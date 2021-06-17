@@ -78,11 +78,11 @@
 {% block formbtns %}
 	<div class="btn-group" role="group" aria-label="...">
 		<button id="submit-btn" type="submit" class="btn btn-success" value="Save">
-			<span class="glyphicon glyphicon-floppy-save" aria-hidden="true"></span> {% trans 'Save' %}
+			<span class="fa fa-save" aria-hidden="true"></span> {% trans 'Save' %}
 		</button>
 
 		<a href="" class="btn btn-danger">
-			<span class="glyphicon glyphicon-remove" aria-hidden="true"></span> {% trans 'Cancel' %}
+			<span class="fa fa-times" aria-hidden="true"></span> {% trans 'Cancel' %}
 		</a>
 	</div>
 {% endblock %}
@@ -90,11 +90,11 @@
 {% block content %}
 
 			<a class="previous-form" href="{{ previous_form_link }}">
-				<span class="glyphicon glyphicon-chevron-left" aria-hidden="true"> < </span>
+				<span class="fa fa-chevron-left" aria-hidden="true"> < </span>
 			</a>
 
 			<a class="next-form" href="{{ next_form_link }}">
-				<span class="glyphicon glyphicon-chevron-right" aria-hidden="true"> > </span>
+				<span class="fa fa-chevron-right" aria-hidden="true"> > </span>
 			</a>
     <br>
     <div class="row">
@@ -135,7 +135,7 @@
                           </small>
 		        {% endif %}
                         {% if field.required %}
-                          <span class="glyphicon glyphicon-asterisk" style="color: red;" aria-hidden="true"></span>
+                          <span class="fa fa-asterisk" style="color: red;" aria-hidden="true"></span>
                         {% endif %}
                     </label>
 

@@ -237,8 +237,8 @@ form .aligned ul.errorlist {
     border: 3px solid #ff5700;
     color: #ff5700;
 }
-.rdrf-cde-abnormal label.control-label.glyphicon.glyphicon-warning-sign:before {
-    content: "\e107";
+.rdrf-cde-abnormal label.col-form-label.fa.fa-exclamation-triangle:before {
+    content: "\f071";
     color: #ff5700;
 }
 

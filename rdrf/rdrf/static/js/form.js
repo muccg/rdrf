@@ -269,7 +269,7 @@ function rdrfSetupFileUploads() {
       var clear = copy.find("input[type='checkbox']");
       var input = copy.find("input[type='file']");
       var index = copy.find("input[type='hidden']").attr("value", n);
-      var remove = $('<button class="btn btn-link btn-sm btn-danger multi-file-remove"><i class="glyphicon glyphicon-remove"></i> Remove</button>');
+      var remove = $('<button class="btn btn-link btn-sm btn-danger multi-file-remove"><i class="fa fa-times"></i> Remove</button>');
 
       return copy.empty()
         .append($('<div class="col-xs-9"></div>').append(input).append(index))
@@ -301,7 +301,7 @@ function rdrfSetupFileUploads() {
       widget.children().last().before(makeCopy(nextIndex()));
     };
 
-    $('<button class="btn btn-sm btn-default multi-file-add"><i class="glyphicon glyphicon-plus"></i> Add</button>')
+    $('<button class="btn btn-sm btn-default multi-file-add"><i class="fa fa-plus"></i> Add</button>')
       .attr("id", widget.attr("id").replace(/_id$/, "_add_id"))
       .attr("name", widget.attr("id").replace(/_id$/, "_add"))
       .appendTo(widget)

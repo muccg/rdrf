@@ -36,7 +36,7 @@
         });
 
         $(document).ready(function() {
-            $("glyphicon-question-sign").tooltip({placement: 'top'});
+            $("fa-question-circle").tooltip({placement: 'top'});
             $(":input").not(':input[type=checkbox], :input[type=radio], :input[type=button], :input[type=submit], :input[type=reset]').addClass("form-control");
             var country_selects = $(document).find("select[onchange*='select_country']");
             var country_code = '{{country_code}}';
@@ -179,7 +179,7 @@
     <br>
     <br>
     
-    <div class="text-center alert" id="msg-box"><b>Fields with an asterisk (<span class="glyphicon glyphicon-asterisk" style="color: red;" aria-hidden="true"></span>) are required.</b>
+    <div class="text-center alert" id="msg-box"><b>Fields with an asterisk (<span class="fa fa-asterisk" style="color: red;" aria-hidden="true"></span>) are required.</b>
     </div>
 
     <form enctype="multipart/form-data" class="form" method="post" id="questionnaire-form">{% csrf_token %}
@@ -216,7 +216,7 @@
                 <div class="card-heading">
                     <b>{{display_names|get_display_name:s}}</b>
                     {% if s|get_questionnairesection_help %}
-                        <span  class="glyphicon glyphicon-question-sign pull-right" title="{{ s|get_questionnairesection_help }}" data-bs-toggle='tooltip'  data-bs-placement='left' data-bs-container='body'></span>
+                        <span  class="fa fa-question-circle pull-right" title="{{ s|get_questionnairesection_help }}" data-bs-toggle='tooltip'  data-bs-placement='left' data-bs-container='body'></span>
                     {% endif %}
                 </div>
 
@@ -236,7 +236,7 @@
                            <div class="form-group">
                                         <div class="col-sm-9 col-sm-offset-3">
                                             <a class="btn btn-danger btn-sm pull-right" onclick="delete_form(this, '{{formset.prefix}}')">
-                                                <span class="glyphicon glyphicon-minus" aria-hidden="true"></span> {% trans "Remove" %}
+                                                <span class="fa fa-minus" aria-hidden="true"></span> {% trans "Remove" %}
                                             </a>
                                         </div>
                                     </div>
@@ -264,7 +264,7 @@
                                         <td style="width: 40%; vertical-align: middle;">
                                              {{ field.label }}
                                              {% if  field.field.required %}
-                                                 <span class="glyphicon glyphicon-asterisk" style="color: red;" aria-hidden="true"></span>
+                                                 <span class="fa fa-asterisk" style="color: red;" aria-hidden="true"></span>
                                              {% endif %}
 
                                         </td>

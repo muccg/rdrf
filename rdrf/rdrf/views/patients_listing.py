@@ -471,10 +471,10 @@ class ColumnNonContexts(Column):
         return val
 
     def icon(self, tick):
-        icon = "ok" if tick else "remove"
+        icon = "check" if tick else "times"
         color = "green" if tick else "red"
         # fixme: replace inline style with css class
-        return "<span class='glyphicon glyphicon-%s' style='color:%s'></span>" % (icon, color)
+        return "<span class='fa fa-%s' style='color:%s'></span>" % (icon, color)
 
 
 class ColumnWorkingGroups(Column):

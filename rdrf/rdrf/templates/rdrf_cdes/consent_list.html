@@ -30,9 +30,9 @@
                     var last_update = $("<td>").attr("class", "col-md-2").attr("style", "text-align:center;").text(value.last_update);
                     var question_answer = $("<td>").attr("class", "col-md-1").attr("style", "text-align:center;");
                     if (value.answer == false) {
-                        question_answer.html("<span style='color: red;' class='glyphicon glyphicon-remove' aria-hidden='true'></span>");
+                        question_answer.html("<span style='color: red;' class='fa fa-times' aria-hidden='true'></span>");
                     } else {
-                        question_answer.html("<span style='color: green;' class='glyphicon glyphicon-ok' aria-hidden='true'></span>");
+                        question_answer.html("<span style='color: green;' class='fa fa-check' aria-hidden='true'></span>");
                     }
                     questions.append(row.append(question_cell).append(first_save).append(last_update).append(question_answer));
                     patient_id = value.patient_id;
@@ -56,7 +56,7 @@
 
     <p class="pull-right">
         <a class="btn btn-success" href="{% url 'print_consent_list' registry_code %}" target="_blank">
-            <span class="glyphicon glyphicon-print" aria-hidden="true"></span> {% trans "Print" %}
+            <span class="fa fa-print" aria-hidden="true"></span> {% trans "Print" %}
         </a>
     </p>
     
@@ -78,9 +78,9 @@
                     <td class="col-md-3" style="text-align: center;">{{signed.last_update|date:"d F Y"}}</td>
                     <td class="col-md-1" style="text-align: center;">
                         {% if signed.signed %}
-                            <span class="glyphicon glyphicon-ok" style='color: green;' aria-hidden="true"></span>
+                            <span class="fa fa-check" style='color: green;' aria-hidden="true"></span>
                         {% else %}
-                            <span class="glyphicon glyphicon-remove" style='color: red;' aria-hidden="true"></span>
+                            <span class="fa fa-times" style='color: red;' aria-hidden="true"></span>
                         {% endif %}
                     </td>
                 </tr>

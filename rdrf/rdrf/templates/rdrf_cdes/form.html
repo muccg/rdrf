@@ -244,11 +244,11 @@
 {% block formbtns %}
 	<div class="btn-group" role="group" aria-label="...">
 		<button id="submit-btn" type="submit" class="btn btn-success" value="Save">
-			<span class="fa fa-floppy-save" aria-hidden="true"></span> {% trans "Save" %}
+			<span class="fa fa-save" aria-hidden="true"></span> {% trans "Save" %}
         </button>
 
 		<a href="" class="btn btn-danger">
-			<span class="fa fa-remove" aria-hidden="true"></span> {% trans "Cancel" %}
+			<span class="fa fa-times" aria-hidden="true"></span> {% trans "Cancel" %}
 		</a>
 
 		{% if show_print_button %}
@@ -418,7 +418,7 @@
                                         rdrf-cde-abnormal
                                        {% endif %}">
                                     <label for="{{field.id_for_label}}" class="col-sm-12 col-form-label {% if field|is_abnormal %}
-                                        fa fa-warning-sign
+                                        fa fa-exclamation-triangle
                                        {% endif %}">
                                         {% if field.field.cde.code and not CREATE_MODE and have_dynamic_data %}
                                         <a href="{% url 'registry_form_field_history' registry_code form_name patient_id s context_id field.field.cde.code %}"
@@ -426,7 +426,7 @@
                                            class="btn btn-secondary btn-sm invisibutton pull-right"
                                            data-bs-toggle="tooltip" title="View previous answers"
                                            aria-label="Previous answers">
-                                          <i class="fa fa-time" aria-hidden="true"></i>
+                                          <i class="fa fa-clock-o" aria-hidden="true"></i>
                                         </a>
                                         {% endif %}
                                         {{field.label}}
@@ -437,7 +437,7 @@
                                            <span class="fa fa-asterisk" style="color: green;" aria-hidden="true"></span>
                                         {% endif %}
                                         {% if  field.verification_status == "V" %}
-                                           <span class="fa fa-ok" style="color: green;" aria-hidden="true"></span>
+                                           <span class="fa fa-check" style="color: green;" aria-hidden="true"></span>
                                         {% endif %}
                                     </label>
                                     <div class="col-sm-9">

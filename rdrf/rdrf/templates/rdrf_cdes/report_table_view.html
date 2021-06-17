@@ -84,8 +84,8 @@
                 setUpCSRFToken();
                 var registryCode = "{{ registry_code }}";
                 var initial_length = 10;
-                var resizeExpand = "glyphicon-resize-full";
-                var resizeContract = "glyphicon-resize-small";
+                var resizeExpand = "fa-expand-alt";
+                var resizeContract = "fa-compress-alt";
                 var ContainerStates = { CONTRACTED: 0, EXPANDED: 1};
                 var containerState = ContainerStates.CONTRACTED;
                 $(".container").addClass("container-fluid").removeClass("container");
@@ -101,7 +101,7 @@
         <div class="col-md-12">
           <p>
 	    <h3>
-	      <span class="glyphicon glyphicon-list-alt" aria-hidden="true"></span> Report - {{ report_title }}
+	      <span class="fa fa-list-alt" aria-hidden="true"></span> Report - {{ report_title }}
 	    </h3>
 	    <i> Note: Only the first {{max_items}} items in a multiple section are shown </i>
 	  </p>
