@@ -905,7 +905,7 @@ class RegistryFormManager(models.Manager):
 def applicability_condition_invalid(applicability_condition):
     if applicability_condition:
         return "patient" not in applicability_condition or \
-               any(map(applicability_condition.__contains__, ["socket", "process", "import", "system",
+               any(map(applicability_condition.__contains__, ["socket", "process", "import", "system", "builtin",
                                                               "connect", "spawn", "delete"]))
 
 
