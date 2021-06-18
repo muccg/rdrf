@@ -277,7 +277,7 @@
                             </div>
                             {% for element in form.empty_form %}
                                 {% if element.errors %}
-                                    <div class="form-group has-error" style="display: {{element.is_hidden|yesno:"None,block"}}">
+                                    <div class="form-group was-validated" style="display: {{element.is_hidden|yesno:"None,block"}}">
                                 {% else %}
                                     <div class="form-group" style="display: {{element.is_hidden|yesno:"None,block"}}">
                                 {% endif %}
@@ -297,7 +297,7 @@
                                                 </small>
 						{% endif %}
                                                 {% if element.errors %}
-                                                    <span class="label label-danger">{{ element.errors.as_text }}</span>
+                                                    <span class="badge bg-danger">{{ element.errors.as_text }}</span>
                                                 {% endif %}
                                             </div>
                                         {% endif %}
@@ -327,7 +327,7 @@
                                                                 <!-- Empty in order to skip adding delete field in case of can_delete == False -->
                                                             {% else %}
                                                                     {% if element.errors %}
-                                                                        <div class="form-group has-error" style="display: {{element.is_hidden|yesno:"None,block"}}">
+                                                                        <div class="form-group was-validated" style="display: {{element.is_hidden|yesno:"None,block"}}">
                                                                     {% else %}
                                                                         <div class="form-group" style="display: {{element.is_hidden|yesno:"None,block"}}">
                                                                     {% endif %}
@@ -361,7 +361,7 @@
                                                                         </small>
                                         {% endif %}
                                                                         {% if element.errors %}
-                                                                            <span class="label danger">{{ element.errors.as_text }}</span>
+                                                                            <span class="badge bg-danger">{{ element.errors.as_text }}</span>
                                                                         {% endif %}
                                                                     </div>
                                                                 </div>
@@ -406,7 +406,7 @@
                                             {% get_form_element form s as element %}
                                             {% if element %}
                                                 {% if element.errors %}
-                                                    <div class="form-group has-error">
+                                                    <div class="form-group was-validated">
                                                 {% else %}
                                                     <div class="form-group" style="display: {{element.is_hidden|yesno:'None,block'}}">
                                                 {% endif %}
@@ -438,7 +438,7 @@
                                                         </small>
                                 {% endif %}
                                                         {% if element.errors %}
-                                                            <span class="label danger">{{ element.errors.as_text }}</span>
+                                                            <span class="badge bg-danger">{{ element.errors.as_text }}</span>
                                                         {% endif %}
                                                     </div>
                                                 </div>
