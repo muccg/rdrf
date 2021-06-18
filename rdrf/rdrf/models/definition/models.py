@@ -902,6 +902,13 @@ class RegistryFormManager(models.Manager):
         return self.model.objects.filter(registry__id__in=registry)
 
 
+def applicability_condition_invalid(applicability_condition):
+    if applicability_condition:
+        return "patient" not in applicability_condition or \
+               any(map(applicability_condition.__contains__, ["socket", "process", "import", "system", "builtin",
+                                                              "connect", "spawn", "delete"]))
+
+
 class RegistryForm(models.Model):
     """
     A representation of a form ( a bunch of sections)
@@ -1068,6 +1075,9 @@ class RegistryForm(models.Model):
             self._check_completion_cdes()
 
         self._check_sections()
+
+        if applicability_condition_invalid(self.applicability_condition):
+            raise ValidationError("The applicability condition is invalid")
 
     def _check_sections(self):
         for section_code in self.get_sections():
@@ -1278,6 +1288,10 @@ class ConsentSection(models.Model):
     def save(self, *args, **kwargs):
         self.full_clean()
         super().save(*args, **kwargs)
+
+    def clean(self):
+        if applicability_condition_invalid(self.applicability_condition):
+            raise ValidationError("The applicability condition is invalid")
 
     def applicable_to(self, patient):
         if patient is None:
