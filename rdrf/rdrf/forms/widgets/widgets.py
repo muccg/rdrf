@@ -385,7 +385,7 @@ class ReadOnlySelect(widgets.Select):
         m = pattern.match(html)
         if m:
             option_display_text = m.groups(1)[0]
-            return """<span class="label label-default">%s</span>""" % option_display_text
+            return """<span class="badge bg-secondary">%s</span>""" % option_display_text
         else:
             return html
 

@@ -22,9 +22,9 @@
 	{% for pv in patient_verifications %}
 	<a href="{{pv.link}}">{{pv.title}} 
 	</a>
-	  <span class="label label-pill label-danger">{{pv.number_unverified}} unverified</span>
-	  <span class="label label-pill label-success">{{pv.number_verified}} verified</span>
-	  <span class="label label-pill label-warning">{{pv.number_corrected}} corrected</span>
+	  <span class="badge rounded-pill bg-danger">{{pv.number_unverified}} unverified</span>
+	  <span class="badge rounded-pill bg-success">{{pv.number_verified}} verified</span>
+	  <span class="badge rounded-pill bg-warning text-dark>{{pv.number_corrected}} corrected</span>
 	  <br>
 	{% endfor %}
       </div>

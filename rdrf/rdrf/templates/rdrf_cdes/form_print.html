@@ -237,7 +237,7 @@
                                                         </small>
 							{% endif %}
                                                         {% if element.errors %}
-                                                            <span class="label label-danger">{{ element.errors.as_text }}</span>
+                                                            <span class="badge bg-danger">{{ element.errors.as_text }}</span>
                                                         {% endif %}
                                                     </div>
                                                 {% endif %}
@@ -272,7 +272,7 @@
                                                         </small>
 							{% endif %}
                                                         {% if element.errors %}
-                                                            <span class="label label-danger">{{ element.errors.as_text }}</span>
+                                                            <span class="badge bg-danger">{{ element.errors.as_text }}</span>
                                                         {% endif %}
                                                     </div>
                                                 </div>
@@ -294,7 +294,7 @@
                                     <div class="col-md-8">
                                         {{field|safe}}<p class="text-muted"><i>{{field.help_text}}</i></p>
                                         {% if field.errors %}
-                                            <span class="label label-danger">{{field.errors.as_text}}</span>
+                                            <span class="badge bg-danger">{{field.errors.as_text}}</span>
                                         {% endif %}
                                     </div>
                                 </div>

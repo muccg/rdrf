@@ -1307,7 +1307,7 @@ def postcheck_select_not(step, entry, cde_label):
 @step('should see validation error message "([^\"]+)"')
 def see_validation_error_message(step, message):
     xp = (
-        '//span[@class="label label-danger" and contains(., "{0}")]'
+        '//span[@class="badge bg-danger" and contains(., "{0}")]'
         ''.format(message)
     )
     # Because find raises an exception if the element cannot be found,
@@ -1318,7 +1318,7 @@ def see_validation_error_message(step, message):
 
 @step('the number of validation error messages should be ([^\"]+)')
 def count_validation_error_messages(step, count):
-    messages = world.browser.find_elements_by_xpath('//span[@class="label label-danger"]')
+    messages = world.browser.find_elements_by_xpath('//span[@class="badge bg-danger"]')
     assert_equal(len(messages), int(count))
 
 

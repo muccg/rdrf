@@ -50,7 +50,7 @@ function QuestionnaireHandlerGui(rpc,
     this.cdeRowTemplate = _.template("<tr><td><%= name %></td><td><%= value %></td></tr>");
 }
 
-var InfoSpan = _.template("<span class='label label-info'><%= text %></span><br>");
+var InfoSpan = _.template("<span class='badge bg-info text-dark'><%= text %></span><br>");
 
 QuestionnaireHandlerGui.prototype.wireUp = function () {
     var self = this;
@@ -333,18 +333,18 @@ $(document).ready(function() {
 			           <td>{{question.name}}</td>
 			           <td>
 				     {% if not question.is_multi %}
-				     <span id="existing_{{question.pos}}" class="label label-info">NO DATA</span></td>
+				     <span id="existing_{{question.pos}}" class="badge bg-info text-dark">NO DATA</span></td>
 				   {% else %}
 				   <div id="existing_{{question.pos}}">
-				     <span class="label label-info">NO DATA</span></td>
+				     <span class="badge bg-info text-dark">NO DATA</span></td>
 				   </div>
 				   {% endif %}
 				   {% if not question.is_multi %}
-                                   <td><span class="label label-success">{{question.answer}}</span></td>
+                                   <td><span class="badge bg-success">{{question.answer}}</span></td>
 			           {% else %}
                                    <td>
 				     {% for item in question.items %}
-				     <span class="label label-success">{{item.answer}}</span>
+				     <span class="badge bg-success">{{item.answer}}</span>
 				     {% endfor %}
                                    </td>
 			           {% endif %} 
