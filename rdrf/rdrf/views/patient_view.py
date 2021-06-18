@@ -302,7 +302,7 @@ class PatientFormMixin(PatientMixin):
             "next_of_kin_parent_place_of_birth"
         ])
 
-        rdrf_registry = (_("Registry"), [
+        rdrf_registry = (_("Centres"), [
             "rdrf_registry",
             "working_groups",
             "clinician"
@@ -996,7 +996,7 @@ class PatientEditView(View):
             "next_of_kin_parent_place_of_birth"
         ])
 
-        rdrf_registry = (_("Registry"), [
+        rdrf_registry = (_("Centres"), [
             "rdrf_registry",
             "working_groups",
             "clinician"
