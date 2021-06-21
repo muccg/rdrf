@@ -228,7 +228,7 @@ def enter_cde_on_form(step, cde_value, form, section, cde):
 
     form_block = world.browser.find_element_by_id("main-form")
     section_div_heading = form_block.find_element_by_xpath(
-        ".//div[contains(@class, 'card-head')][contains(., '%s')]" % section)
+        ".//div[@class='card-header'][contains(., '%s')]" % section)
     section_div = section_div_heading.find_element_by_xpath("..")
 
     label_expression = ".//label[contains(., '%s')]" % cde
@@ -419,7 +419,7 @@ def fill_in_inline_textfield(step, textfield_label, section, index, text):
 @step('choose "(.*)" from "(.*)" in "(.*)" section "(.*)"')
 def select_from_inline_list(step, option, dropdown_label_or_id, section, index):
     section_div_heading = world.browser.find_element_by_xpath(
-        ".//div[contains(@class, 'card-head')][contains(., '%s')]" % section)
+        ".//div[@class='card-header'][contains(., '%s')]" % section)
     section_div = section_div_heading.find_element_by_xpath("..")
     utils.scroll_to(section_div)
     label = section_div.find_element_by_xpath(
@@ -535,7 +535,7 @@ def should_be_logged_in(step):
 @step('should be on the login page')
 def should_be_on_the_login_page(step):
     world.browser.find_element_by_xpath(
-        './/div[@class="card-heading"][text()[contains(.,"Login")]]')
+        './/div[@class="card-header"][text()[contains(.,"Login")]]')
     world.browser.find_element_by_xpath('.//label[text()[contains(.,"Username")]]')
     world.browser.find_element_by_xpath('.//label[text()[contains(.,"Password")]]')
 

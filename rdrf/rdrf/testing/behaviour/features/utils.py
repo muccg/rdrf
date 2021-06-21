@@ -232,7 +232,7 @@ def scroll_to_cde(section, cde, item=None):
     """
     input_element = None
     section_div_heading = world.browser.find_element_by_xpath(
-        ".//div[@class='card-heading'][contains(., '%s') and not(contains(.,'__prefix__'))]" % section)
+        ".//div[@class='card-header'][contains(., '%s') and not(contains(.,'__prefix__'))]" % section)
 
     section_div = section_div_heading.find_element_by_xpath("..")
 

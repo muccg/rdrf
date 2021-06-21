@@ -22,7 +22,7 @@
   <div class="col-md-2">
     <!-- start review item explanation card -->
     <div class="card card-default">
-      <div class="card-heading">{{ name }}</div>
+      <div class="card-header">{{ name }}</div>
       <div class="card-body">
         {{ summary }}
       </div>
@@ -31,7 +31,7 @@
   
   <!-- start review fields card -->
   <div class="card card-default">
-    <div class="card-heading">Review Fields</div>
+    <div class="card-header">Review Fields</div>
     <div class="card-body">
       {% for field in wizard.form.metadata_fields %}
         <div class="form-group">
@@ -52,7 +52,7 @@
   <div class="col-md-6">
     <!-- start previous responses card -->
     <div class="card card-default">
-      <div class="card-heading">Previous Responses</div>
+      <div class="card-header">Previous Responses</div>
       <div class="card-body">
         {% for response in responses %}
           {{response.label}}
@@ -68,7 +68,7 @@
   <div class="col-md-4">
     <!-- start data entry card -->
     <div id="data-bs-entry" class="card card-default">
-      <div class="card-heading">Data Fields</div>
+      <div class="card-header">Data Fields</div>
       <div class="card-body">
         {% for field in wizard.form.data_entry_fields %}
           <!-- start of form group -->

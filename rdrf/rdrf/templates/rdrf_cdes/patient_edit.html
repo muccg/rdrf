@@ -309,7 +309,7 @@
                             <div class="section_hidden">
                             {% endif %}
                                 <div class="card card-default">
-                                    <div class="card-heading">
+                                    <div class="card-header">
                                         <strong>{{name|translate}}</strong>
                                         <a class="btn btn-info btn-sm pull-right" onclick="add_form('{{form.prefix}}')">
                                             <span class="fa fa-plus" aria-hidden="true"></span> {% trans 'Add' %}
@@ -388,7 +388,7 @@
                             {% endif %}
 
                                 <div class="card card-default">
-                                    <div class="card-heading"><strong>{{name}}</strong>
+                                    <div class="card-header"><strong>{{name}}</strong>
                                     {% with link=section|get_information_link %}
                                     {% with info_text_expression=section|get_info_text_expression %}
                                     {% with doc="docs/"|add:link %}

@@ -187,7 +187,7 @@
             {% for s in sections %}
                 <div class="card card-default">
     
-                    <div class="card-heading">
+                    <div class="card-header">
                         {% if request.user.is_superuser and settings.DESIGN_MODE %}
                             <a target="_blank" href="{% url 'admin:rdrf_section_change' section_ids|get_section_id:s %}"><strong>{{display_names|get_display_name:s}}</strong></a>
                         {% else %}

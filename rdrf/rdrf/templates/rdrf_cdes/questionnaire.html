@@ -186,7 +186,7 @@
 
         {% for consent_wrapper in custom_consent_wrappers %}
             <div class="card card-default">
-                <div class="card-heading">
+                <div class="card-header">
                     <b>{{consent_wrapper.label}}</b>
                 </div>
                 {% with consent_error_messages=custom_consent_errors|lookup:consent_wrapper.label  %}
@@ -213,7 +213,7 @@
     
         {% for s in sections %}
             <div class="card card-default">
-                <div class="card-heading">
+                <div class="card-header">
                     <b>{{display_names|get_display_name:s}}</b>
                     {% if s|get_questionnairesection_help %}
                         <span  class="fa fa-question-circle pull-right" title="{{ s|get_questionnairesection_help }}" data-bs-toggle='tooltip'  data-bs-placement='left' data-bs-container='body'></span>
