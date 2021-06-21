@@ -129,20 +129,14 @@ function rdrf_click_form_field_history(ev, a) {
   var modal;
   ev.preventDefault();
   $.get($(a).attr("href")).then(function(doc) {
-/*    modal = $("<div></div>").html(doc).find(".modal")
+      modal = $("<div></div>").html(doc).find(".modal")
         .appendTo("body")
-        .modal()
+        .modal('show')
         .on("hidden.bs.modal", function(e) {
           $(e.target).remove();
-        }); */
-    $("<div></div>").html(doc).find(".modal").appendTo("body");
-    var modal_el = document.getElementById("history_modal");
-    modal_el.addEventListener("hidden.bs.modal", function(e) {
-      $(e.target).remove();
+        });
+      rdrf_form_field_history_init(modal, on_restore);
     });
-    modal = new bootstrap.Modal("#history_modal");
-    rdrf_form_field_history_init(modal, on_restore);
-  });
 
   var on_restore = function(snapshot) {
     // fixme: restoring a value will depend on the type of cde
