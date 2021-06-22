@@ -265,17 +265,11 @@
 
         <div class="container-fluid" style="padding-top: 110px;">
             {% if messages %}
-            <div class="header">
-                <div class="row">
-                    <div class="offset-md-3 col-md-6">
-                        {% for message in messages %}
-                        <div {% if message.tags %} class="alert alert-{{ message.tags }}" {% endif %}>
-                            {{ message }}
-                        </div>
-                        {% endfor %}
+                {% for message in messages %}
+                    <div {% if message.tags %} class="alert alert-{{ message.tags }}" {% endif %}>
+                        {{ message }}
                     </div>
-                </div>
-            </div>
+                {% endfor %}
             {% endif %}
 
             <div class="row">

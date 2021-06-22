@@ -215,15 +215,9 @@
 
         <div class="container" style="padding-top: 110px;">
             {% if messages %}
-            <div class="header">
-                <div class="row">
-                    <div class="col-md-offset-3 col-md-6">
-                        {% for message in messages %}
-                        <div {% if message.tags %} class="alert alert-{{ message.tags }}" {% endif %}>{{ message }}</div>
-                        {% endfor %}
-                    </div>
-                </div>
-            </div>
+                {% for message in messages %}
+                    <div {% if message.tags %} class="alert alert-{{ message.tags }}" {% endif %}>{{ message }}</div>
+                {% endfor %}
             {% endif %}
 
             <div class="row">

@@ -372,15 +372,15 @@
     {% if request.user.is_authenticated %}
         {{ block.super }}
         <div class="row">
-            <div class="col-md-10">
+            <div class="col-md-12">
 
-             <div class="card card-info">
-               <div class="card-header">Index Lookup <i>Type name to find an index. Drag and drop rows to reassign</i></div>
+             <div class="card mb-3 border-info">
+               <div class="card-header alert-info border-info">Index Lookup <i>Type name to find an index. Drag and drop rows to reassign</i></div>
                     <div class="card-body">
                         <div class="row">
-                            Lookup Index: <input id="index_lookup" name="index_lookup" value=""/>
-                            <button onclick="load_index(this);">Load this index and family</button>
-                            <button onclick="add_patient(this);">Add looked up patient to family</button>
+                            Lookup Index: <input class="col-sm-3 mx-1" id="index_lookup" name="index_lookup" value=""/>
+                            <button class="col-auto mx-1" onclick="load_index(this);">Load this index and family</button>
+                            <button class="col-auto mx-1" onclick="add_patient(this);">Add looked up patient to family</button>
                         </div>
                     </div>
 
