@@ -267,7 +267,7 @@
             {% if messages %}
             <div class="header">
                 <div class="row">
-                    <div class="offset-md-2 col-md-6">
+                    <div class="offset-md-3 col-md-6">
                         {% for message in messages %}
                         <div {% if message.tags %} class="alert alert-{{ message.tags }}" {% endif %}>
                             {{ message }}
@@ -279,7 +279,7 @@
             {% endif %}
 
             <div class="row">
-                <div class="col-md-2 offset-md-2">
+                <div class="col-md-2 offset-md-1">
                     <div class="p-4 border mt-4" style="background-color: #eeeeee;">
                         {% block sidebar %}
                         {% endblock %}

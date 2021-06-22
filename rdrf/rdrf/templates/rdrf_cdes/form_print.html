@@ -208,8 +208,8 @@
                             {% with formset=forms|get_form_object:s %}
                                 <div id="mgmt_{{formset.prefix}}">{{formset.management_form}}</div>
                                 <div style="display: none;" id="empty_{{formset.prefix}}">
-                                    <div class="form-group">
-                                        <div class="col-sm-9 col-sm-offset-3">
+                                    <div class="row mb-3">
+                                        <div class="col">
                                             <a class="btn btn-danger btn-sm pull-right" onclick="delete_form(this, '{{formset.prefix}}')">
                                                 <span class="fa fa-minus" aria-hidden="true"></span> Remove
                                             </a>
@@ -217,13 +217,13 @@
                                     </div>
                                     {% for element in formset.empty_form %}
                                         {% if element.errors %}
-                                            <div class="form-group has-error">
+                                            <div class="row mb-3 was-validated">
                                         {% else %}
-                                            <div class="form-group">
+                                            <div class="row mb-3">
                                         {% endif %}
                                                 {% if element.label == "Delete" %}
                                                 {% else %}
-                                                    <label for="{{ element.id_for_label}}" style="display: {{element.is_hidden|yesno:"None,block"}}" class="col-sm-3 col-form-label">
+                                                    <label for="{{ element.id_for_label}}" {% if element.is_hidden %} style="display: None" {% endif %} class="col-sm-3 col-form-label">
                                                         {{ element.label }}
                                                         {% if  element.field.required %}
                                                             <span class="fa fa-asterisk" style="color: red;" aria-hidden="true"></span>
@@ -250,11 +250,11 @@
                                     <div>
                                         {% for element in f %}
                                             {% if element.errors %}
-                                                <div class="form-group has-error">
+                                                <div class="row mb-3 was-validated">
                                             {% else %}
-                                                <div class="form-group">
+                                                <div class="row mb-3">
                                             {% endif %}
-                                                    <label for="{{ element.id_for_label}}" style="display: {{element.is_hidden|yesno:"None,block"}}" class="col-sm-3 col-form-label">
+                                                    <label for="{{ element.id_for_label}}" {% if element.is_hidden %} style="display: None" {% endif %} class="col-sm-3 col-form-label">
                                                         {% if element.label == "Delete" %}
                                                             Mark for deletion
                                                         {% else %}
@@ -284,7 +284,7 @@
                             {% endwith%}
                         {% else %}
                             {% for field in forms|get_form_object:s %}
-                                <div class="form-group">
+                                <div class="row mb-3">
                                     <label for="{{field.id_for_label}}" class="col-md-4 col-form-label">
                                         {{field.label}}
                                         {% if  field.field.required %}

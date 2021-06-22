@@ -247,7 +247,7 @@
 
             {{ family_linkage_panel|safe }}
 
-            <form class="form-horizontal" method="post" id="main-form" enctype="multipart/form-data">
+            <form method="post" id="main-form" enctype="multipart/form-data">
 
                 {% csrf_token %}
 
@@ -268,8 +268,8 @@
                         {% if form|is_formset_obj %}
                         <div id="mgmt_{{form.prefix}}">{{form.management_form}}</div>
                         <div style="display: none;" id="empty_{{form.prefix}}">
-                            <div class="form-group">
-                                <div class="col-sm-9 col-sm-offset-3">
+                            <div class="row mb-3">
+                                <div class="col">
                                     <a class="btn btn-danger btn-sm pull-right" onclick="delete_form(this, '{{form.prefix}}')">
                                         <span class="fa fa-minus" aria-hidden="true"></span> {% trans 'Remove' %}
                                     </a>
@@ -277,9 +277,9 @@
                             </div>
                             {% for element in form.empty_form %}
                                 {% if element.errors %}
-                                    <div class="form-group was-validated" style="display: {{element.is_hidden|yesno:"None,block"}}">
+                                    <div class="row mb-3 was-validated" {% if element.is_hidden %} style="display: None" {% endif %}>
                                 {% else %}
-                                    <div class="form-group" style="display: {{element.is_hidden|yesno:"None,block"}}">
+                                    <div class="row mb-3" {% if element.is_hidden %} style="display: None" {% endif %}>
                                 {% endif %}
                                         {% if element.label == "Delete" %}
                                         {% else %}
@@ -308,7 +308,7 @@
                             {% if name in hidden_sectionlist %}
                             <div class="section_hidden">
                             {% endif %}
-                                <div class="card card-default">
+                                <div class="card mb-3">
                                     <div class="card-header">
                                         <strong>{{name|translate}}</strong>
                                         <a class="btn btn-info btn-sm pull-right" onclick="add_form('{{form.prefix}}')">
@@ -327,9 +327,9 @@
                                                                 <!-- Empty in order to skip adding delete field in case of can_delete == False -->
                                                             {% else %}
                                                                     {% if element.errors %}
-                                                                        <div class="form-group was-validated" style="display: {{element.is_hidden|yesno:"None,block"}}">
+                                                                        <div class="row mb-3 was-validated" {% if element.is_hidden %} style="display: None" {% endif %}>
                                                                     {% else %}
-                                                                        <div class="form-group" style="display: {{element.is_hidden|yesno:"None,block"}}">
+                                                                        <div class="row mb-3" {% if element.is_hidden %} style="display: None" {% endif %}>
                                                                     {% endif %}
                                                                     <label for="{{ element.id_for_label}}" class="col-sm-3 col-form-label">
                                                                         {% if element.label == "Delete" %}
@@ -387,7 +387,7 @@
                             <div class="section_hidden">
                             {% endif %}
 
-                                <div class="card card-default">
+                                <div class="card mb-3">
                                     <div class="card-header"><strong>{{name}}</strong>
                                     {% with link=section|get_information_link %}
                                     {% with info_text_expression=section|get_info_text_expression %}
@@ -406,9 +406,9 @@
                                             {% get_form_element form s as element %}
                                             {% if element %}
                                                 {% if element.errors %}
-                                                    <div class="form-group was-validated">
+                                                    <div class="row mb-3 was-validated">
                                                 {% else %}
-                                                    <div class="form-group" style="display: {{element.is_hidden|yesno:'None,block'}}">
+                                                    <div class="row mb-3" {% if element.is_hidden %} style="display: None" {% endif %}>
                                                 {% endif %}
                                                     {% if link %}
                                                         <label for="{{ element.id_for_label}}" style="text-align: left" class="col-sm-11 col-form-label">
@@ -419,7 +419,7 @@
                                                         </label>
                                                         <div class="col-sm-1">
                                                     {% else %}
-                                                        <label for="{{ element.id_for_label}}" style="display: {{element.is_hidden|yesno:"None,block"}}" class="col-sm-3 col-form-label">
+                                                        <label for="{{ element.id_for_label}}" {% if element.is_hidden %} style="display: None" {% endif %} class="col-sm-3 col-form-label">
                                                             {{ element.label|translate }}
                                                             {% if  element.field.required %}
                                                                 <span class="fa fa-asterisk" style="color: red;" aria-hidden="true"></span>

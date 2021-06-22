@@ -233,8 +233,8 @@
 			<!-- start of hidden empty form for {{s}} -->
 			<div style="display: none;" id="empty_{{formset.prefix}}">
 			  {{formset.empty_form.as_table}}
-                           <div class="form-group">
-                                        <div class="col-sm-9 col-sm-offset-3">
+                           <div class="row mb-3">
+                                        <div class="col">
                                             <a class="btn btn-danger btn-sm pull-right" onclick="delete_form(this, '{{formset.prefix}}')">
                                                 <span class="fa fa-minus" aria-hidden="true"></span> {% trans "Remove" %}
                                             </a>

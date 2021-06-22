@@ -331,8 +331,8 @@
                             {% with formset=forms|get_form_object:s %}
                                 <div id="mgmt_{{formset.prefix}}">{{formset.management_form}}</div>
                                 <div style="display: none;" id="empty_{{formset.prefix}}">
-                                    <div class="form-group">
-                                        <div class="col-sm-9 col-sm-offset-3">
+                                    <div class="row mb-3">
+                                        <div class="col">
                                             <a class="btn btn-danger btn-sm pull-right" onclick="delete_form(this, '{{formset.prefix}}')">
                                                 <span class="fa fa-minus" aria-hidden="true"></span> {% trans "Remove" %}
                                             </a>
@@ -340,13 +340,13 @@
                                     </div>
                                     {% for element in formset.empty_form %}
                                         {% if element.errors %}
-                                            <div class="form-group has-error">
+                                            <div class="row mb-3 was-validated">
                                         {% else %}
-                                            <div class="form-group row mb-3">
+                                            <div class="row mb-3">
                                         {% endif %}
                                                 {% if element.label == "Delete" %}
                                                 {% else %}
-                                                    <label for="{{ element.id_for_label}}" style="display: {{element.is_hidden|yesno:"None,block"}}" class="col-sm-3 col-form-label">
+                                                    <label for="{{ element.id_for_label}}" {% if element.is_hidden %} style="display: None" {% endif %} class="col-sm-3 col-form-label">
                                                         {{ element.label }}
                                                         {% if  element.field.required %}
                                                             <span class="fa fa-asterisk" style="color: red;" aria-hidden="true"></span>
@@ -376,11 +376,11 @@
                                     <div>
                                         {% for element in f %}
                                             {% if element.errors %}
-                                                <div class="form-group has-error">
+                                                <div class="row mb-3 was-validated">
                                             {% else %}
-                                                <div class="form-group">
+                                                <div class="row mb-3">
                                             {% endif %}
-                                                    <label for="{{ element.id_for_label}}" style="display: {{element.is_hidden|yesno:"None,block"}}" class="col-sm-3 col-form-label">
+                                                    <label for="{{ element.id_for_label}}" {% if element.is_hidden %} style="display: None" {% endif %} class="col-sm-3 col-form-label">
                                                         {% if element.label == "Delete" %}
                                                             Mark for deletion
                                                         {% else %}
@@ -413,17 +413,17 @@
                             {% endwith%}
                         {% else %}
                             {% for field in forms|get_form_object:s %}
-                                <div class="form-group rdrf-cde-field invisibutton-container
+                                <div class="row mb-3 rdrf-cde-field invisibutton-container
                                        {% if field|is_abnormal %}
                                         rdrf-cde-abnormal
                                        {% endif %}">
-                                    <label for="{{field.id_for_label}}" class="col-sm-12 col-form-label {% if field|is_abnormal %}
+                                    <label for="{{field.id_for_label}}" class="col col-form-label {% if field|is_abnormal %}
                                         fa fa-exclamation-triangle
                                        {% endif %}">
                                         {% if field.field.cde.code and not CREATE_MODE and have_dynamic_data %}
                                         <a href="{% url 'registry_form_field_history' registry_code form_name patient_id s context_id field.field.cde.code %}"
                                            onclick="rdrf_click_form_field_history(event, this)"
-                                           class="btn btn-secondary btn-sm invisibutton pull-right"
+                                           class="btn btn-light border btn-sm invisibutton pull-left me-3"
                                            data-bs-toggle="tooltip" title="View previous answers"
                                            aria-label="Previous answers">
                                           <i class="fa fa-clock-o" aria-hidden="true"></i>
@@ -440,7 +440,7 @@
                                            <span class="fa fa-check" style="color: green;" aria-hidden="true"></span>
                                         {% endif %}
                                     </label>
-                                    <div class="col-sm-9">
+                                    <div class="col-sm-8">
                                         {{field|safe}}<p class="text-muted"><i>{{field.help_text}}</i></p>
                                         {% if field.errors %}
                                             <span class="badge bg-danger">{{field.errors.as_text}}</span>

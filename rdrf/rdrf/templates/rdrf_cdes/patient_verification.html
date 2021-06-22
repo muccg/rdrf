@@ -65,7 +65,7 @@
 	</div>
       </td>
       <td>
-	<div id="id_new_value_container_{{field.name}}" class="form-group" >{{field|safe}}
+	<div id="id_new_value_container_{{field.name}}" class="row mb-3" >{{field|safe}}
 	  <p class="text-muted"><i>{{field.help_text}}</i></p>
           {% if field.errors %}
               <span class="wrap badge bg-danger">{{field.errors.as_text}}</span>

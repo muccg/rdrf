@@ -121,9 +121,9 @@
                         </div>
                     {% for field in form %}
                     {% if field.name == "user" %}
-		       <div class="form-group">
+		       <div class="row mb-3">
 		    {% else %}
-		       <div class="form-group hideable">
+		       <div class="row mb-3 hideable">
                     {% endif %}
 
 		    <label  style="text-align: left; display: {{field.is_hidden|yesno:"None,block"}}" class="col-sm-3 col-form-label">
