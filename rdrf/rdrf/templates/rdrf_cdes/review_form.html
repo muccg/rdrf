@@ -21,7 +21,7 @@
   <!-- start column 1 -->
   <div class="col-md-2">
     <!-- start review item explanation card -->
-    <div class="card card-default">
+    <div class="card mb-3">
       <div class="card-header">{{ name }}</div>
       <div class="card-body">
         {{ summary }}
@@ -30,7 +30,7 @@
     <!-- end review item explanation card -->
   
   <!-- start review fields card -->
-  <div class="card card-default">
+  <div class="card mb-3">
     <div class="card-header">Review Fields</div>
     <div class="card-body">
       {% for field in wizard.form.metadata_fields %}
@@ -51,7 +51,7 @@
   <!-- start column 2 -->
   <div class="col-md-6">
     <!-- start previous responses card -->
-    <div class="card card-default">
+    <div class="card mb-3">
       <div class="card-header">Previous Responses</div>
       <div class="card-body">
         {% for response in responses %}
@@ -67,7 +67,7 @@
   <!-- start colummn 3 -->
   <div class="col-md-4">
     <!-- start data entry card -->
-    <div id="data-bs-entry" class="card card-default">
+    <div id="data-bs-entry" class="card mb-3">
       <div class="card-header">Data Fields</div>
       <div class="card-body">
         {% for field in wizard.form.data_entry_fields %}

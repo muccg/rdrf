@@ -185,7 +185,7 @@
     <form enctype="multipart/form-data" class="form" method="post" id="questionnaire-form">{% csrf_token %}
 
         {% for consent_wrapper in custom_consent_wrappers %}
-            <div class="card card-default">
+            <div class="card mb-3">
                 <div class="card-header">
                     <b>{{consent_wrapper.label}}</b>
                 </div>
@@ -212,7 +212,7 @@
         {% endfor %}
     
         {% for s in sections %}
-            <div class="card card-default">
+            <div class="card mb-3">
                 <div class="card-header">
                     <b>{{display_names|get_display_name:s}}</b>
                     {% if s|get_questionnairesection_help %}
@@ -280,7 +280,7 @@
             </div>
         {% endfor %}
 
-        <div class="card card-default">
+        <div class="card mb-3">
             <div class="card-body">
                 {% blocktrans with registry_name=registry.name %}
                 Thank you for completing the {{ registry_name }} questionnaire. The information you have provided will be reviewed by your clinician and downloaded into the registry.
