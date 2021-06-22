@@ -739,7 +739,7 @@ def scroll_to_section(step, section):
     from selenium.webdriver.common.action_chains import ActionChains
     mover = ActionChains(world.browser)
     print("scrolling to section %s" % section)
-    section_xpath = ".//div[@class='panel card-default' and contains(.,'%s') and not(contains(., '__prefix__')) and not(contains(.,'View previous values'))]" % section
+    section_xpath = ".//div[@class='card mb-3' and contains(.,'%s') and not(contains(., '__prefix__')) and not(contains(.,'View previous values'))]" % section
     section_element = world.browser.find_element_by_xpath(section_xpath)
     if not section_element:
         raise Exception("could not find section %s" % section)
