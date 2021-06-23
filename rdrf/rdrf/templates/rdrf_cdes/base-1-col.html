@@ -155,7 +155,7 @@
                                 {% if request.user.is_superuser %}
                                 <li><a class="dropdown-item" href="{% url 'admin:index' %}"><span class="fa fa-wrench"></span>
                                         {% trans 'Admin Page' %}</a></li>
-                                <li class="divider"></li>
+                                <li class="dropdown-divider"></li>
                                 {% endif %}
                                 {% if request.user.is_parent and registry_code %}
                                 <li><a class="dropdown-item" href="{% url 'parent_edit' registry_code parent.id %}"><span class="fa fa-wrench"></span>

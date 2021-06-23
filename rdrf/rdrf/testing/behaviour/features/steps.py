@@ -293,9 +293,9 @@ def click_submit_button(step, value):
 
 @step('error message is "(.*)"')
 def error_message_is(step, error_message):
-    # <div class="alert alert-alert alert-danger">Patient Fred SMITH not saved due to validation errors</div>
+    # <div class="alert alert-danger">Patient Fred SMITH not saved due to validation errors</div>
     world.browser.find_element_by_xpath(
-        '//div[@class="alert alert-alert alert-danger" and contains(text(), "%s")]' %
+        '//div[@class="alert alert-danger" and contains(text(), "%s")]' %
         error_message)
 
 
@@ -1382,7 +1382,7 @@ def check_alert_type(step, message):
     msg_type = {
         "success": "alert alert-success",
         "error": "alert alert-danger",
-        "info": "alert alert-alert alert-info",
+        "info": "alert alert-info",
     }
 
     xp = '//*[contains(@class, "{0}")]'.format(msg_type[message])
@@ -1394,7 +1394,7 @@ def check_alert_msg(step, mtype, message):
     msg_type = {
         "success": "alert alert-success",
         "error": "alert alert-danger",
-        "info": "alert alert-alert alert-info",
+        "info": "alert alert-info",
     }
 
     xp = '//*[contains(@class, "{0}")]'.format(msg_type[mtype])

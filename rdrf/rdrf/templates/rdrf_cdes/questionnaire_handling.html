@@ -185,10 +185,10 @@ $(document).ready(function() {
 
     function displayMessage(succeeded, message) {
 	if (succeeded) {
-	    $("#patient-info").append("<div class='alert alert-alert alert-success'>" + message +"</div>");
+	    $("#patient-info").append("<div class='alert alert-success'>" + message +"</div>");
 	}
 	else {
-	    $("#patient-info").append("<div class='alert alert-alert alert-danger'>" + message + "</div>");
+	    $("#patient-info").append("<div class='alert alert-danger'>" + message + "</div>");
 	}
 
 	$(".alert").fadeOut(3000, function () {

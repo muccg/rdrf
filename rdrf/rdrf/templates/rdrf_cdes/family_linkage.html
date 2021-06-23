@@ -280,7 +280,7 @@
                         data: {packet_json: JSON.stringify(data)},
                         success: function(data) {
                            if (data == "OK") {
-                                $(".container-fluid").eq(0).prepend("<div class='alert alert-alert alert-success'>Linkages updated successfully</div>");
+                                $(".container-fluid").eq(0).prepend("<div class='alert alert-success'>Linkages updated successfully</div>");
                                 var family_data = getFamilyData()
                                 if (family_data.index.pk !==  family_data.original_index.pk) {
                                     // Redirecting to the new Family linkage link (current one is not working anymore)
@@ -290,7 +290,7 @@
                                 } 
                            }
                            else {
-                                $(".container-fluid").eq(0).prepend("<div class='alert alert-alert alert-danger'>" + data + "</div>");
+                                $(".container-fluid").eq(0).prepend("<div class='alert alert-danger'>" + data + "</div>");
 
 
                            }
