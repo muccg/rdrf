@@ -128,7 +128,7 @@
                                 aria-expanded="false">
                                 <span class="fa fa-tasks"></span> {% trans 'Menu' %}<span class="caret"></span>
                             </a>
-                            <ul class="dropdown-menu">
+                            <ul class="dropdown-menu dropdown-menu-end">
                                 {% for quick_link in request.user.menu_links %}
                                     <li><a class="dropdown-item" href="{{quick_link.url}}">{% trans quick_link.text %}</a></li>
                                 {% endfor %}
@@ -147,7 +147,7 @@
                                 <span class="fa fa-wrench"></span> {% trans 'Settings' %}<span
                                     class="caret"></span>
                             </a>
-                            <ul class="dropdown-menu" role="menu">
+                            <ul class="dropdown-menu dropdown-menu-end" role="menu">
                                 {% for quick_link in request.user.settings_links %}
                                 <li><a class="dropdown-item" href="{{quick_link.url}}">{{quick_link.text|translate}}</a></li>
                                 {% endfor %}
@@ -166,7 +166,7 @@
                             {{ request.user.first_name }} {{ request.user.last_name }}
                             <span class="caret"></span></a>
                             {% endif %}
-                            <ul class="dropdown-menu">
+                            <ul class="dropdown-menu dropdown-menu-end">
                                 {% if request.user.is_superuser %}
                                 <li><a class="dropdown-item" href="{% url 'admin:index' %}"><span class="fa fa-wrench"></span>
                                         {% trans 'Admin Page' %}</a></li>
@@ -279,7 +279,7 @@
                         {% endblock %}
                     </div>
                 </div>
-                <div class="col-md-6">
+                <div class="col-md-8">
                     {% block content %}
 
                     {% include 'rdrf_cdes/archive_modal.html' %}

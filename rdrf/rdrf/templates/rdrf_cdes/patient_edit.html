@@ -188,7 +188,7 @@
     <li class="dropdown">
         <a href="#" class="dropdown-toggle" data-bs-toggle="dropdown" role="button" aria-expanded="false">
         <span class="fa fa-list-alt"></span> {% trans "Actions" %}<span class="caret"></span></a>
-        <ul class="dropdown-menu" role="menu">
+        <ul class="dropdown-menu dropdown-menu-end" role="menu">
                     {% for action in actions %}
                         <li><a href="{{action.link}}"><span class="fa fa-minus"></span> {{action.title|translate}}</a></li>
                     {% endfor %}
@@ -283,7 +283,7 @@
                                 {% endif %}
                                         {% if element.label == "Delete" %}
                                         {% else %}
-                                            <label for="{{ element.id_for_label}}" class="col-sm-3 col-form-label">
+                                            <label for="{{ element.id_for_label}}" class="col-sm-3 col-form-label text-end">
                                                 {{ element.label|translate}}
                                                 {% if  element.field.required %}
                                                     <span class="fa fa-asterisk" style="color: red;" aria-hidden="true"></span>
@@ -331,7 +331,7 @@
                                                                     {% else %}
                                                                         <div class="row mb-3" {% if element.is_hidden %} style="display: None" {% endif %}>
                                                                     {% endif %}
-                                                                    <label for="{{ element.id_for_label}}" class="col-sm-3 col-form-label">
+                                                                    <label for="{{ element.id_for_label}}" class="col-sm-3 col-form-label text-end">
                                                                         {% if element.label == "Delete" %}
                                                                             {% trans 'Mark for deletion' %}
                                                                         {% else %}
@@ -419,7 +419,7 @@
                                                         </label>
                                                         <div class="col-sm-1">
                                                     {% else %}
-                                                        <label for="{{ element.id_for_label}}" {% if element.is_hidden %} style="display: None" {% endif %} class="col-sm-3 col-form-label">
+                                                        <label for="{{ element.id_for_label}}" {% if element.is_hidden %} style="display: None" {% endif %} class="col-sm-3 col-form-label text-end">
                                                             {{ element.label|translate }}
                                                             {% if  element.field.required %}
                                                                 <span class="fa fa-asterisk" style="color: red;" aria-hidden="true"></span>

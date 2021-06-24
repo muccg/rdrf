@@ -120,20 +120,20 @@
 	{% if patient|has_feature:"consent_lock" %}
 		{% if consent %}
 			<a class="previous-form" href="{{ previous_form_link }}">
-				<span class="fa fa-chevron-left" aria-hidden="true"> < </span>
+				<span class="fa fa-chevron-left" aria-hidden="true"></span>
 			</a>
 
 			<a class="next-form" href="{{ next_form_link }}">
-				<span class="fa fa-chevron-right" aria-hidden="true"> > </span>
+				<span class="fa fa-chevron-right" aria-hidden="true"></span>
 			</a>
 		{% endif %}
 	{% else %}
 		<a class="previous-form" href="{{ previous_form_link }}">
-			<span class="fa fa-chevron-left" aria-hidden="true"> < </span>
+			<span class="fa fa-chevron-left" aria-hidden="true"></span>
 		</a>
 
 		<a class="next-form" href="{{ next_form_link }}">
-			<span class="fa fa-chevron-right" aria-hidden="true"> > </span>
+			<span class="fa fa-chevron-right" aria-hidden="true"></span>
 		</a>
 	{% endif %}
 
@@ -175,7 +175,7 @@
                                 {% endif %}
                                         {% if element.label == "Delete" %}
                                         {% else %}
-                                            <label for="{{ element.id_for_label}}" {% if element.is_hidden %} style="display: None" {% endif %} class="col-sm-3 col-form-label">
+                                            <label for="{{ element.id_for_label}}" {% if element.is_hidden %} style="display: None" {% endif %} class="col-sm-3 col-form-label text-end">
                                                 {{ element.label|translate }}
                                                 {% if  element.field.required %}
                                                     <span class="fa fa-asterisk" style="color: red;" aria-hidden="true"></span>
@@ -220,7 +220,7 @@
                                                                 {% else %}
                                                                     <div class="row mb-3">
                                                                 {% endif %}
-                                                                <label for="{{ element.id_for_label}}" {% if element.is_hidden %} style="display: None" {% endif %} class="col-sm-3 col-form-label">
+                                                                <label for="{{ element.id_for_label}}" {% if element.is_hidden %} style="display: None" {% endif %} class="col-sm-3 col-form-label text-end">
                                                                     {% if element.label == "Delete" %}
                                                                         {% trans 'Mark for deletion' %}
                                                                     {% else %}
