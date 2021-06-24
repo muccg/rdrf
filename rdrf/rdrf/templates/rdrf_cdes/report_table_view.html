@@ -6,15 +6,15 @@
 {%  endblock %}
 {% block extrastyle %}
     {{ block.super }}
-    <link rel="stylesheet" type="text/css" href="{% static 'datatables-1.10.12\/css\/datatables.min.css' %}"/>
-
+    <link rel="stylesheet" type="text/css" href="{% static 'DataTables/datatables.min.css' %}"/>
+    <link rel="stylesheet" type="text/css" href="{% static 'DataTables/Buttons-1.7.1/css/buttons.dataTables.min.css' %}"/>
+    <link rel="stylesheet" type="text/css" href="{% static 'DataTables/FixedHeader-3.1.9/css/fixedHeader.dataTables.min.css' %}"/>
 {% endblock %}
 
 {% block extrahead %}
-<script type="text/javascript" src="{% static 'datatables-1.10.12\/js\/datatables.min.js' %}"></script>
-
-
-
+    <script type="text/javascript" src="{% static 'DataTables/datatables.min.js' %}"></script>
+    <script type="text/javascript" src="{% static 'DataTables/Buttons-1.7.1/js/buttons.dataTables.min.js' %}"></script>
+    <script type="text/javascript" src="{% static 'DataTables/FixedHeader-3.1.9/js/fixedHeader.dataTables.min.js' %}"></script>
 
     <script>
     $.fn.dataTable.ext.errMode = 'throw';
