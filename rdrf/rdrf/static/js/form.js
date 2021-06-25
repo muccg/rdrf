@@ -239,7 +239,7 @@ function rdrf_form_field_history_init(modal, restoreCallback) {
     setupChart(chartCanvas);
   } else {
     chartCanvas.replaceWith("<p>This type of data element can't be plotted.</p>");
-    modal.find("a[href='#cde-history-chart']").parent().addClass("disabled");
+    modal.find("a[href='#cde-history-chart']").addClass("disabled");
   }
 }
 

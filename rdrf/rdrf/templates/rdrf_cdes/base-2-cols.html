@@ -205,7 +205,7 @@
         <div class="banner">
             <!-- base 2 cols banner -->
             <div class="container">
-                <div class="row p-2">
+                <div class="row p-2 align-items-center">
                     <!-- name row -->
                     <div class="col-md-4 col-sm-4 col-xs-4" style="text-align: left">
                         <h3><span class="fa fa-list-alt" aria-hidden="true"></span>
@@ -218,12 +218,10 @@
                         {{ patient_info }} 
 
                         {% if patient.deident %}
-                            <p>
-                                <i class="text-muted">
-                                    <span class="fa fa-tag" aria-hidden="true"></span>
-                                    {{ patient.deident }}
-                                </i>
-                            </p>
+                            <i class="text-muted">
+                                <span class="fa fa-tag" aria-hidden="true"></span>
+                                {{ patient.deident }}
+                            </i>
                         {% endif %}
                     </div>
                     <div class="col-md-4 col-sm-4 col-xs-4" style="text-align: right">
@@ -266,9 +264,11 @@
         <div class="container-fluid" style="padding-top: 110px;">
             {% if messages %}
                 {% for message in messages %}
+                <div class="col-md-6 offset-md-3">
                     <div {% if message.tags %} class="alert alert-{{ message.tags }}" {% endif %}>
                         {{ message }}
                     </div>
+                </div>
                 {% endfor %}
             {% endif %}
 
@@ -284,8 +284,10 @@
 
                     {% include 'rdrf_cdes/archive_modal.html' %}
                     {% if header %}
-                    <div class="h3 mt-4">
-                        {% include header_expression %}
+                    <div class="card mt-4 p-3 border-info">
+                        <div>
+                            {% include header_expression %}
+                        </div>
                     </div>
                     {% else %}
                         {{ header }}
