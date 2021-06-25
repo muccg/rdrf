@@ -212,7 +212,7 @@ class CountryWidget(widgets.Select):
     def render(self, name, value, attrs, renderer=None):
         final_attrs = self.build_attrs(attrs, {
             "name": name,
-            "class": "form-control",
+            "class": "form-select",
             "onchange": "select_country(this)",
         })
         output = [format_html("<select{}>", flatatt(final_attrs))]
@@ -245,7 +245,7 @@ class StateWidget(widgets.Select):
 
         final_attrs = self.build_attrs(attrs, {
             "name": name,
-            "class": "form-control",
+            "class": "form-select",
         })
         output = [format_html("<select{}>", flatatt(final_attrs))]
         empty_option = "<option value=' '>---------</option>"
@@ -284,7 +284,7 @@ class ParametrisedSelectWidget(widgets.Select):
 
         final_attrs = self.build_attrs(attrs, {
             "name": name,
-            "class": "form-control",
+            "class": "form-select",
         })
         output = [format_html("<select{}>", flatatt(final_attrs))]
         output.append("<option value='---'>---------</option>")
@@ -306,7 +306,7 @@ class StateListWidget(ParametrisedSelectWidget):
     def render(self, name, value, attrs, renderer=None):
         country_states = pycountry.subdivisions.get(
             country_code=self._widget_context['questionnaire_context'].upper())
-        output = ["<select class='form-control' id='%s' name='%s'>" % (name, name)]
+        output = ["<select class='form-select' id='%s' name='%s'>" % (name, name)]
         empty_option = "<option value='---'>---------</option>"
         output.append(empty_option)
         for state in country_states:
@@ -385,7 +385,7 @@ class ReadOnlySelect(widgets.Select):
         m = pattern.match(html)
         if m:
             option_display_text = m.groups(1)[0]
-            return """<span class="label label-default">%s</span>""" % option_display_text
+            return """<span class="badge bg-secondary">%s</span>""" % option_display_text
         else:
             return html
 

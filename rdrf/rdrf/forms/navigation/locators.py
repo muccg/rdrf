@@ -2,7 +2,7 @@ from django.urls import reverse
 
 
 class Locator(object):
-    GLYPHICON = "glyphicon-user"
+    GLYPHICON = "fa-user"
 
     def __init__(self, registry_model, instance):
         self.registry_model = registry_model
@@ -19,7 +19,7 @@ class Locator(object):
         descriptor = self.get_description()
         link = self.get_link()
         location_link = "<a href='%s'>%s</a>" % (link, descriptor)
-        return """<i class="text-muted"><span class="glyphicon {0}" aria-hidden="true"></span> {1}</i>""".format(
+        return """<i class="text-muted"><span class="fa {0}" aria-hidden="true"></span> {1}</i>""".format(
             self.GLYPHICON, location_link)
 
     def get_description(self):

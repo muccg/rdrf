@@ -97,11 +97,11 @@ class PatientContextMenu(object):
         button_caption = "Show" if not self.has_contexts else self.context_name
         button_html = """<button type="button"
                           class="contextmenu btn btn-primary btn-xs"
-                          data-toggle="popover"
-                          data-html="true"
-                          data-content="%s"
+                          data-bs-toggle="popover"
+                          data-bs-html="true"
+                          data-bs-content="%s"
                           id="patientcontextmenu"
-                          data-original-title=""
+                          data-bs-original-title=""
                           title=""
                           aria-describedby="">%s</button>""" % (escape(popup_content_html), button_caption)
 

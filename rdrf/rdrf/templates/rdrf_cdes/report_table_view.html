@@ -6,15 +6,15 @@
 {%  endblock %}
 {% block extrastyle %}
     {{ block.super }}
-    <link rel="stylesheet" type="text/css" href="{% static 'datatables-1.10.12\/css\/datatables.min.css' %}"/>
-
+    <link rel="stylesheet" type="text/css" href="{% static 'DataTables/datatables.min.css' %}"/>
+    <link rel="stylesheet" type="text/css" href="{% static 'DataTables/Buttons-1.7.1/css/buttons.dataTables.min.css' %}"/>
+    <link rel="stylesheet" type="text/css" href="{% static 'DataTables/FixedHeader-3.1.9/css/fixedHeader.dataTables.min.css' %}"/>
 {% endblock %}
 
 {% block extrahead %}
-<script type="text/javascript" src="{% static 'datatables-1.10.12\/js\/datatables.min.js' %}"></script>
-
-
-
+    <script type="text/javascript" src="{% static 'DataTables/datatables.min.js' %}"></script>
+    <script type="text/javascript" src="{% static 'DataTables/Buttons-1.7.1/js/buttons.dataTables.min.js' %}"></script>
+    <script type="text/javascript" src="{% static 'DataTables/FixedHeader-3.1.9/js/fixedHeader.dataTables.min.js' %}"></script>
 
     <script>
     $.fn.dataTable.ext.errMode = 'throw';
@@ -84,8 +84,8 @@
                 setUpCSRFToken();
                 var registryCode = "{{ registry_code }}";
                 var initial_length = 10;
-                var resizeExpand = "glyphicon-resize-full";
-                var resizeContract = "glyphicon-resize-small";
+                var resizeExpand = "fa-expand-alt";
+                var resizeContract = "fa-compress-alt";
                 var ContainerStates = { CONTRACTED: 0, EXPANDED: 1};
                 var containerState = ContainerStates.CONTRACTED;
                 $(".container").addClass("container-fluid").removeClass("container");
@@ -101,7 +101,7 @@
         <div class="col-md-12">
           <p>
 	    <h3>
-	      <span class="glyphicon glyphicon-list-alt" aria-hidden="true"></span> Report - {{ report_title }}
+	      <span class="fa fa-list-alt" aria-hidden="true"></span> Report - {{ report_title }}
 	    </h3>
 	    <i> Note: Only the first {{max_items}} items in a multiple section are shown </i>
 	  </p>
@@ -110,7 +110,7 @@
 
     <br>
 
-    <div class="well">
+    <div class="card p-3 mb-3">
         <table id="report_table" class="display table table-striped table-hover">
         <thead>
             <tr>

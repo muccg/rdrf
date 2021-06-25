@@ -27,18 +27,18 @@
     <form name="params-form" class="form-horizontal" method="post">
         {% csrf_token %}
         {% for param in query_params %}
-            <div class="form-group">
+            <div class="row mb-3">
                 <label for="id_{{param}}" class="col-sm-2 control-label">{{param|capfirst}}</label>
                 <div class="col-sm-10">
                     {% if param == 'registry' %}
-                        <select id="id_{{param}}" name="{{param}}" class="form-control">
+                        <select id="id_{{param}}" name="{{param}}" class="form-select">
                             <option value=-1>...</option>
                             {% for reg in registry %}
                                 <option value={{reg.id}}>{{reg.name}}</option>
                             {% endfor %}
                         </select>
                     {% elif param == 'working_group' %}
-                        <select id="id_{{param}}" name="{{param}}" class="form-control">
+                        <select id="id_{{param}}" name="{{param}}" class="form-select">
                             <option value=-1>...</option>
                             {% for wg in working_group %}
                                 <option value={{wg.id}}>{{wg.name}}</option>
@@ -50,7 +50,7 @@
                 </div>
             </div>
         {% endfor %}
-        <div class="form-group">
+        <div class="row mb-3">
 
             {%  if action == "download" %}
             <div class="col-sm-offset-2 col-sm-10">
