@@ -122,7 +122,7 @@
 
             $(":input").not(':input[type=checkbox], :input[type=radio], :input[type=button], :input[type=submit], :input[type=reset]').addClass("form-control");
             $("textarea").addClass("form-control");
-            $("select").addClass("form-control");
+            $("select").addClass("form-select");
             $('#main-form').data('serialize', $('#main-form').serialize());
 
             $(window).bind('beforeunload', function(e){

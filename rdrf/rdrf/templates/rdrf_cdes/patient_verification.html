@@ -53,7 +53,7 @@
       <td>{{field.patient_answer}}<input type="hidden" name="patient_data_{{field.name}}" value="{{field.patient_data}}"></td>
       <td>
 	<div class="col-sm-9">
-	<select id="id_status_{{field.name}}" name="status_{{field.name}}" style="width: 110px !important;" class="form-control">
+	<select id="id_status_{{field.name}}" name="status_{{field.name}}" style="width: 110px !important;" class="form-select">
 	  {% for option in options %}
 	      {% if option.0 == field.status %}
 	          <option value="{{option.0}}" selected>{{option.1}}</option>
