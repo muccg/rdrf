@@ -6,8 +6,8 @@
 
 {% block extrastyle %}
     {{ block.super }}
-    <link rel="stylesheet" href="{% static 'datatables-1.10.12/css/jquery.dataTables.min.css' %}">
-    <script type="text/javascript" src="{% static 'datatables-1.10.12/js/jquery.dataTables.min.js' %}"></script>
+    <link rel="stylesheet" href="{% static 'DataTables/DataTables-1.10.25/css/jquery.dataTables.min.css' %}">
+    <script type="text/javascript" src="{% static 'DataTables/DataTables-1.10.25/js/jquery.dataTables.min.js' %}"></script>
     <script>
         $(document).ready(function () {
             $.fn.dataTable.ext.errMode = 'throw';
@@ -121,7 +121,7 @@
                     columns: {{columns|safe }}
                     }).on("draw", function () {
                         $("#loading_text").hide();
-                        $('button[data-toggle=popover]').popover({
+                        $('button[data-bs-toggle=popover]').popover({
                             'html': true,
                             'title': '',
                             'trigger': 'click',
@@ -175,10 +175,9 @@
 {% endblock %}
 
 {% block formbtns %}
-        <br>
-	<div class="btn-group" role="group" aria-label="...">
-		<button id="add_patient" class="btn btn-success">
-			<span class="glyphicon glyphicon-plus" aria-hidden="true"></span> {% trans 'Add Patient' %}
+	<div class="d-grid gap-2 d-md-flex justify-content-md-end">
+		<button type="button" id="add_patient" class="btn btn-success me-md-2">
+			<span class="fa fa-plus" aria-hidden="true"></span> {% trans 'Add Patient' %}
 		</button>
 	</div>
 {% endblock %}

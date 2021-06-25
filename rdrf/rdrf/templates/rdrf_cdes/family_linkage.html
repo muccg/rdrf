@@ -280,7 +280,7 @@
                         data: {packet_json: JSON.stringify(data)},
                         success: function(data) {
                            if (data == "OK") {
-                                $(".container-fluid").eq(0).prepend("<div class='alert alert-alert alert-success'>Linkages updated successfully</div>");
+                                $(".container-fluid").eq(0).prepend("<div class='alert alert-success'>Linkages updated successfully</div>");
                                 var family_data = getFamilyData()
                                 if (family_data.index.pk !==  family_data.original_index.pk) {
                                     // Redirecting to the new Family linkage link (current one is not working anymore)
@@ -290,7 +290,7 @@
                                 } 
                            }
                            else {
-                                $(".container-fluid").eq(0).prepend("<div class='alert alert-alert alert-danger'>" + data + "</div>");
+                                $(".container-fluid").eq(0).prepend("<div class='alert alert-danger'>" + data + "</div>");
 
 
                            }
@@ -359,10 +359,10 @@
 {% block formbtns %}
 	<div class="btn-group" role="group" aria-label="...">
 		<button id="savebutton" type="submit" class="btn btn-success" value="Save">
-                    <span class="glyphicon glyphicon-floppy-save" aria-hidden="true"></span> Save
+                    <span class="fa fa-save" aria-hidden="true"></span> Save
                 </button>
                 <a href="" class="btn btn-danger">
-                    <span class="glyphicon glyphicon-remove" aria-hidden="true"></span> Cancel
+                    <span class="fa fa-times" aria-hidden="true"></span> Cancel
                 </a>
 	</div>
 {% endblock %}	
@@ -372,25 +372,25 @@
     {% if request.user.is_authenticated %}
         {{ block.super }}
         <div class="row">
-            <div class="col-md-10">
+            <div class="col-md-12">
 
-             <div class="panel panel-info">
-               <div class="panel-heading">Index Lookup <i>Type name to find an index. Drag and drop rows to reassign</i></div>
-                    <div class="panel-body">
+             <div class="card mb-3 border-info">
+               <div class="card-header alert-info border-info">Index Lookup <i>Type name to find an index. Drag and drop rows to reassign</i></div>
+                    <div class="card-body">
                         <div class="row">
-                            Lookup Index: <input id="index_lookup" name="index_lookup" value=""/>
-                            <button onclick="load_index(this);">Load this index and family</button>
-                            <button onclick="add_patient(this);">Add looked up patient to family</button>
+                            Lookup Index: <input class="col-sm-3 mx-1" id="index_lookup" name="index_lookup" value=""/>
+                            <button class="col-auto mx-1" onclick="load_index(this);">Load this index and family</button>
+                            <button class="col-auto mx-1" onclick="add_patient(this);">Add looked up patient to family</button>
                         </div>
                     </div>
 
                 </div>
 
                <div>
-                        <div class="panel panel-default">
-                            <div class="panel-heading">Index Patient</div>
+                        <div class="card mb-3">
+                            <div class="card-header">Index Patient</div>
 
-                            <div class="panel-body">
+                            <div class="card-body">
                                 <div id="indexpatient" >
                                     <table class="table table-bordered droppable">
                                         <tbody>
@@ -406,9 +406,9 @@
                         </div>
 
 
-                        <div class="panel panel-default">
-                                <div class="panel panel-heading">Relatives</div>
-                                <div class="panel panel-body">
+                        <div class="card mb-3">
+                                <div class="card card-header">Relatives</div>
+                                <div class="card card-body">
                                      <div id="relatives">
                                         <table class="table table-bordered table-striped">
                                         <tbody>
@@ -435,7 +435,7 @@
 
              <div class="col-md-2">
 
-            <div data-spy="affix" style="width: 150px;">
+            <div data-bs-spy="affix" style="width: 150px;">
                       </div>
 
 

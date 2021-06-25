@@ -14,11 +14,11 @@
 {% block formbtns %}
 	<div class="btn-group" role="group" aria-label="...">
 		<button id="submit-btn" type="submit" class="btn btn-success" value="Save">
-			<span class="glyphicon glyphicon-floppy-save" aria-hidden="true"></span> {% trans "Save" %}
+			<span class="fa fa-save" aria-hidden="true"></span> {% trans "Save" %}
 		</button>
 
 		<a href="" class="btn btn-danger">
-			<span class="glyphicon glyphicon-remove" aria-hidden="true"></span> {% trans "Cancel" %}
+			<span class="fa fa-times" aria-hidden="true"></span> {% trans "Cancel" %}
 		</a>
 
 	</div>
@@ -49,11 +49,11 @@
     {% for field in form %}
     <tr>
       <td scope="row">{{forloop.counter}}<input type="hidden" name="pos_{{field.name}}" value={{forloop.counter}}></td>
-      <td><div class="control-label" style="display: block"> {{field.label}}</div></td>
+      <td><div class="col-form-label" style="display: block"> {{field.label}}</div></td>
       <td>{{field.patient_answer}}<input type="hidden" name="patient_data_{{field.name}}" value="{{field.patient_data}}"></td>
       <td>
 	<div class="col-sm-9">
-	<select id="id_status_{{field.name}}" name="status_{{field.name}}" style="width: 110px !important;" class="form-control">
+	<select id="id_status_{{field.name}}" name="status_{{field.name}}" style="width: 110px !important;" class="form-select">
 	  {% for option in options %}
 	      {% if option.0 == field.status %}
 	          <option value="{{option.0}}" selected>{{option.1}}</option>
@@ -65,10 +65,10 @@
 	</div>
       </td>
       <td>
-	<div id="id_new_value_container_{{field.name}}" class="form-group" >{{field|safe}}
+	<div id="id_new_value_container_{{field.name}}" class="row mb-3" >{{field|safe}}
 	  <p class="text-muted"><i>{{field.help_text}}</i></p>
           {% if field.errors %}
-              <span class="wrap label label-danger">{{field.errors.as_text}}</span>
+              <span class="wrap badge bg-danger">{{field.errors.as_text}}</span>
           {% endif %}
 	</div> 
       </td>

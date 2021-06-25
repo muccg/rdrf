@@ -150,9 +150,9 @@ TEMPLATES = [
 ]
 
 MESSAGE_TAGS = {
-    message_constants.ERROR: 'alert alert-danger',
-    message_constants.SUCCESS: 'alert alert-success',
-    message_constants.INFO: 'alert alert-info'
+    message_constants.ERROR: 'danger',
+    message_constants.SUCCESS: 'success',
+    message_constants.INFO: 'info'
 }
 
 # Always store messages in the session, as the default storage sometimes

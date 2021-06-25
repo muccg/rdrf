@@ -10,14 +10,14 @@
 
     <div class="row">
         <div class="col-md-12">
-            <p><h3><span class="glyphicon glyphicon-list-alt" aria-hidden="true"></span> {% trans 'RDRF Reports' %}</h3></p>
-            <i class="text-muted"><span class="glyphicon glyphicon-user" aria-hidden="true"></span> {{user.first_name}} {{user.last_name}} ({{user.title}})</i>
+            <p><h3><span class="fa fa-list-alt" aria-hidden="true"></span> {% trans 'RDRF Reports' %}</h3></p>
+            <i class="text-muted"><span class="fa fa-user" aria-hidden="true"></span> {{user.first_name}} {{user.last_name}} ({{user.title}})</i>
         </div>
     </div>
 
     <br>
 
-    <div class="well">
+    <div class="card p-3 mb-3">
         {% if reports %}
         <table class="table table-hover">
             <thead>
@@ -33,11 +33,11 @@
                     <tr>
                         <td>{{report.registry.name}}</td>
                         <td>{{report.title}}</td>
-                        <td><a href="{% url 'rdrf:explorer_query_download' report.id 'download' %}" target="_blank"><span class="glyphicon glyphicon-download-alt" aria-hidden="true"></span></a></td>
+                        <td><a href="{% url 'rdrf:explorer_query_download' report.id 'download' %}" target="_blank"><span class="fa fa-download" aria-hidden="true"></span></a></td>
 			{% if  report.mongo_search_type != "M" %}
-                            <td><a href="{% url 'rdrf:explorer_query_download' report.id 'view' %}" target="_blank"><span class="glyphicon glyphicon-eye-open" aria-hidden="true"></span></a></td>
+                            <td><a href="{% url 'rdrf:explorer_query_download' report.id 'view' %}" target="_blank"><span class="fa fa-eye" aria-hidden="true"></span></a></td>
 			{% else %}
-                            <td><span class="glyphicon glyphicon glyphicon-remove" style="color: red;font-size:1.5em;" aria-hidden="true"></span></td>
+                            <td><span class="fa fa-times" style="color: red;font-size:1.5em;" aria-hidden="true"></span></td>
 			{% endif %}
                     </tr>
                 {% endfor %}

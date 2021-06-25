@@ -9,15 +9,13 @@
         <meta http-equiv="X-UA-Compatible" content="IE=edge">
 
         <script type="text/javascript" src="{% static 'js/vendor/codemirror-3.21.0.min.js' %}"></script>
-        <script type="text/javascript" src="{% static 'js/vendor/jquery-1.11.3.min.js' %}"></script>
+        <script type="text/javascript" src="{% static 'js/vendor/jquery-3.6.0.min.js' %}"></script>
         <script type="text/javascript" src="{% static 'js/vendor/jquery-ui-1.11.4.min.js' %}"></script>
-        <script type="text/javascript" src="{% static 'bootstrap-3.3.6/js/bootstrap.min.js' %}"></script>
         <script type="text/javascript" src="{% static 'js/vendor/underscore-1.5.2.min.js' %}"></script>
 
         <link rel="stylesheet" href="{% static 'css/jquery-1.11.4/themes/smoothness/jquery-ui.min.css' %}">
         <link rel="stylesheet" href="{% static 'css/vendor/font-awesome.css' %}">
-        <link rel="stylesheet" href="{% static 'bootstrap-3.3.6/css/bootstrap.min.css' %}">
-        <link rel="stylesheet" href="{% static 'bootstrap-3.3.6/css/bootstrap-theme.min.css' %}">
+        <link rel="stylesheet" href="{% static 'bootstrap-5.0.0/css/bootstrap.min.css' %}">
 
         <link rel="stylesheet" href="{% static 'css/explorer.css' %}">
         <script type="text/javascript" src="{% static 'js/rpc_module.js' %}"></script>
@@ -31,25 +29,27 @@
 
     <body>
 
-        <nav class="navbar navbar-inverse" role="navigation">
+        <nav class="navbar navbar-expand-lg navbar-dark bg-dark" role="navigation">
             <div class="container">
-                <p class="navbar-brand" href="explorer">{% trans "RDRF Reporting Tool" %} <sup>{{version}}</sup></p>
-                <ul class="nav navbar-nav">
-                    <li><a href="{% url 'rdrf:explorer_main' %}">{% trans "List" %}</a></li>
-                    {% if request.user.is_superuser %}
-                    <li><a href="{% url 'rdrf:explorer_new' %}">{% trans "New" %}</a></li>
-                    {% endif %}
-                </ul>
+                <div class="d-flex">
+                    <p class="navbar-brand" href="explorer">{% trans "RDRF Reporting Tool" %} <sup>{{version}}</sup></p>
+                    <ul class="navbar-nav">
+                        <li class="nav-item"><a class="nav-link" href="{% url 'rdrf:explorer_main' %}">{% trans "List" %}</a></li>
+                        {% if request.user.is_superuser %}
+                        <li class="nav-item"><a class="nav-link" href="{% url 'rdrf:explorer_new' %}">{% trans "New" %}</a></li>
+                        {% endif %}
+                    </ul>
+                </div>
 
                 {% if status %}
-                <p class="navbar-text pull-right"><b><font color="green">{% trans "Connected" %}</font></p>
+                <p class="navbar-text pull-right"><b><font color="green">{% trans "Connected" %}</font></b></p>
                 {% else %}
                 <p class="navbar-text pull-right"><b><font color="red">{% trans "Not connected" %}</font></b></p>
                 {% endif%}
             </div>
         </nav>
 
-        <div class="container">
+        <div class="container mt-3">
             <div class="alert alert-danger" id="response_error" style="display: none;"></div>
             {% if success_msg %}
             <div class="alert alert-success">{{success_msg}}</div>
@@ -184,6 +184,6 @@
                 });
             });
         </script>
-
+        <script type="text/javascript" src="{% static 'bootstrap-5.0.0/js/bootstrap.min.js' %}"></script>
     </body>
 </html>
