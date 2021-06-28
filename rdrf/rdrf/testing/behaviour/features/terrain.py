@@ -32,6 +32,7 @@ def with_browser():
         desired_capabilities=desired_capabilities,
         command_executor=TEST_SELENIUM_HUB
     )
+
     world.browser.implicitly_wait(TEST_WAIT)
 
     yield

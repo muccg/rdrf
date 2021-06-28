@@ -890,11 +890,20 @@ def check_suspicious_sql(sql_query, user):
         logger.warning(
             f"User {user} tries to write/validate a SQL request not starting by SELECT p.id: {sql_query_lowercase}")
         securityerrors.append("The SQL query must start with SELECT p.id")
-    if any(sql_command in sql_query_lowercase for sql_command in ["drop", "delete", "update"]):
+    if any(sql_command in sql_query_lowercase for sql_command in ["insert", "drop", "delete", "update"]):
         logger.warning(
-            f"User {user} tries to write/validate a suspicious SQL request containing DROP, DELETE or UPDATE: {sql_query_lowercase}")
-        securityerrors.append("The SQL query must not contain any of these keywords: DROP, DELETE, UPDATE")
+            f"User {user} tries to write/validate a suspicious SQL request containing INSERT, DROP, DELETE or UPDATE: {sql_query_lowercase}")
+        securityerrors.append("The SQL query must not contain any of these keywords: INSERT, DROP, DELETE, UPDATE")
+    if "<script" in sql_query_lowercase:
+        logger.warning(
+            f"User {user} tries to inject script in to SQL field: {sql_query_lowercase}")
+        securityerrors.append("The SQL query field must not contain script")
     return securityerrors
+
+
+def contains_blacklisted_words(text):
+    return any(map(text.__contains__, ["socket", "process", "import", "system", "builtin",
+                                       "connect", "spawn", "delete"]))
 
 
 def is_filled(cde_model, value):

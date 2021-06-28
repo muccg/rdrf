@@ -9,12 +9,12 @@
   {% trans "Trouble signing in? Did you forget your username or password? Enter your email address below and we'll email you instructions on what to do." %}
 </div>
 
-<form class="form-inline" action="" method="post">{% csrf_token %}
+<form class="row mb-3" action="" method="post">{% csrf_token %}
     {{ form.email.errors }}
-    <div class="form-group">
+    <div class="col-auto">
         <input id="id_email" maxlength="254" name="email" type="email" class="form-control" placeholder="Email address">
     </div>
-    <input type="submit" class="btn btn-warning" value="{% trans "Send" %}" />
+    <input type="submit" class="col-auto btn btn-warning" value="{% trans "Send" %}" />
 </form>
 
 {% endblock %}

@@ -20,7 +20,7 @@ from django.forms.models import model_to_dict
 from django.utils.safestring import mark_safe
 from django.core.exceptions import PermissionDenied
 
-from rdrf.helpers.utils import format_date, parse_iso_datetime
+from rdrf.helpers.utils import format_date, parse_iso_datetime, contains_blacklisted_words
 from rdrf.helpers.utils import LinkWrapper
 from rdrf.events.events import EventType
 
@@ -883,6 +883,10 @@ class CdePolicy(models.Model):
         verbose_name = "CDE Policy"
         verbose_name_plural = "CDE Policies"
 
+    def clean(self):
+        if self.condition and contains_blacklisted_words(self.condition):
+            raise ValidationError("The condition is invalid")
+
     def evaluate_condition(self, patient_model):
         if not self.condition:
             return True
@@ -904,9 +908,7 @@ class RegistryFormManager(models.Manager):
 
 def applicability_condition_invalid(applicability_condition):
     if applicability_condition:
-        return "patient" not in applicability_condition or \
-               any(map(applicability_condition.__contains__, ["socket", "process", "import", "system", "builtin",
-                                                              "connect", "spawn", "delete"]))
+        return "patient" not in applicability_condition or contains_blacklisted_words(applicability_condition)
 
 
 class RegistryForm(models.Model):

@@ -36,7 +36,7 @@
         });
 
         $(document).ready(function() {
-            $("glyphicon-question-sign").tooltip({placement: 'top'});
+            $("fa-question-circle").tooltip({placement: 'top'});
             $(":input").not(':input[type=checkbox], :input[type=radio], :input[type=button], :input[type=submit], :input[type=reset]').addClass("form-control");
             var country_selects = $(document).find("select[onchange*='select_country']");
             var country_code = '{{country_code}}';
@@ -179,14 +179,14 @@
     <br>
     <br>
     
-    <div class="text-center alert" id="msg-box"><b>Fields with an asterisk (<span class="glyphicon glyphicon-asterisk" style="color: red;" aria-hidden="true"></span>) are required.</b>
+    <div class="text-center alert" id="msg-box"><b>Fields with an asterisk (<span class="fa fa-asterisk" style="color: red;" aria-hidden="true"></span>) are required.</b>
     </div>
 
     <form enctype="multipart/form-data" class="form" method="post" id="questionnaire-form">{% csrf_token %}
 
         {% for consent_wrapper in custom_consent_wrappers %}
-            <div class="panel panel-default">
-                <div class="panel-heading">
+            <div class="card mb-3">
+                <div class="card-header">
                     <b>{{consent_wrapper.label}}</b>
                 </div>
                 {% with consent_error_messages=custom_consent_errors|lookup:consent_wrapper.label  %}
@@ -194,7 +194,7 @@
                    <div class="alert alert-danger">{{ consent_error_message }}</div><br>
                 {% endfor %}
                 {% endwith %}
-                <div class="panel-body">
+                <div class="card-body">
                      <table class="table table-bordered table-hover table-condensed">
                             {% autoescape off %}
                                 {% for field in consent_wrapper.form %}
@@ -212,15 +212,15 @@
         {% endfor %}
     
         {% for s in sections %}
-            <div class="panel panel-default">
-                <div class="panel-heading">
+            <div class="card mb-3">
+                <div class="card-header">
                     <b>{{display_names|get_display_name:s}}</b>
                     {% if s|get_questionnairesection_help %}
-                        <span  class="glyphicon glyphicon-question-sign pull-right" title="{{ s|get_questionnairesection_help }}" data-toggle='tooltip'  data-placement='left' data-container='body'></span>
+                        <span  class="fa fa-question-circle pull-right" title="{{ s|get_questionnairesection_help }}" data-bs-toggle='tooltip'  data-bs-placement='left' data-bs-container='body'></span>
                     {% endif %}
                 </div>
 
-                <div class="panel-body">
+                <div class="card-body">
                     {% if forms|is_formset:s %}
 		    
                         <!-- start management form for {{s}}-->
@@ -233,10 +233,10 @@
 			<!-- start of hidden empty form for {{s}} -->
 			<div style="display: none;" id="empty_{{formset.prefix}}">
 			  {{formset.empty_form.as_table}}
-                           <div class="form-group">
-                                        <div class="col-sm-9 col-sm-offset-3">
-                                            <a class="btn btn-danger btn-xs pull-right" onclick="delete_form(this, '{{formset.prefix}}')">
-                                                <span class="glyphicon glyphicon-minus" aria-hidden="true"></span> {% trans "Remove" %}
+                           <div class="row mb-3">
+                                        <div class="col">
+                                            <a class="btn btn-danger btn-sm pull-right" onclick="delete_form(this, '{{formset.prefix}}')">
+                                                <span class="fa fa-minus" aria-hidden="true"></span> {% trans "Remove" %}
                                             </a>
                                         </div>
                                     </div>
@@ -264,7 +264,7 @@
                                         <td style="width: 40%; vertical-align: middle;">
                                              {{ field.label }}
                                              {% if  field.field.required %}
-                                                 <span class="glyphicon glyphicon-asterisk" style="color: red;" aria-hidden="true"></span>
+                                                 <span class="fa fa-asterisk" style="color: red;" aria-hidden="true"></span>
                                              {% endif %}
 
                                         </td>
@@ -280,8 +280,8 @@
             </div>
         {% endfor %}
 
-        <div class="panel panel-default">
-            <div class="panel-body">
+        <div class="card mb-3">
+            <div class="card-body">
                 {% blocktrans with registry_name=registry.name %}
                 Thank you for completing the {{ registry_name }} questionnaire. The information you have provided will be reviewed by your clinician and downloaded into the registry.
                 {% endblocktrans %}
