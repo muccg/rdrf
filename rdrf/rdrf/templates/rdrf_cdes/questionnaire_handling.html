@@ -2,7 +2,7 @@
 {% load static %}
 
 {% block extrahead %}
-   <style>
+   <style type="text/css" nonce="{{request.csp_nonce}}">
     td {
 	word-wrap:break-word;
 	word-break:break-all;
@@ -21,7 +21,7 @@
 }
 </style>
     <script type="text/javascript" src="{% static 'js/lookup.js' %}"></script>
-    <script type="text/javascript">
+    <script type="text/javascript" nonce="{{request.csp_nonce}}">
 
 function getLoadedPatientId() {
     return $("#patient_lookup").data;

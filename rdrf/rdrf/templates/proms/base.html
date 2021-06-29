@@ -32,11 +32,11 @@
         {% endblock %}
     </div>
 
-    <script src="{% static 'proms/js/runtime-bundle.min.js' %}"></script>
-    <script src="{% static 'proms/js/vendors-bundle.min.js' %}"></script>
-    <script src="{% static 'proms/js/main-page.js' %}"></script>
+    <script type="text/javascript" src="{% static 'proms/js/runtime-bundle.min.js' %}"></script>
+    <script type="text/javascript" src="{% static 'proms/js/vendors-bundle.min.js' %}"></script>
+    <script type="text/javascript" src="{% static 'proms/js/main-page.js' %}"></script>
 
-    <script nonce="{{ request.csp_nonce }}">
+    <script type="text/javascript" nonce="{{request.csp_nonce}}">
       addPromsConfigToWindow('{{ questions | safe }}',
 			     '{{ patient_token }}',
                              '{{ registry_code }}',

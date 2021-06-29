@@ -2,8 +2,22 @@
 {% load i18n %}
 {% load translate %}
 {% load has_feature %}
+<script type="text/javascript" nonce="{{request.csp_nonce}}">
+  /*
+  var USE_ACCORDION = false;
+  var START_COLLAPSED = false;
+  $(function() {
+  if(USE_ACCORDION) {
+  $(".collapsible" ).accordion({
+  collapsible: true,
+  active: !START_COLLAPSED
+  }}
+  );
+  });
+  */
+</script>
 
-<style>
+<style type="text/css" nonce="{{request.csp_nonce}}">
   .card-body  {
     word-break:break-word
   }

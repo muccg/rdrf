@@ -13,7 +13,7 @@
 
 {% block extrahead %}
     {{ block.super }}
-    <script>
+    <script type="text/javascript" nonce="{{request.csp_nonce}}">
         $(document).ready(function(){
             window.print();
             setTimeout(window.close, 0);
@@ -33,7 +33,7 @@
     <link rel="stylesheet" type="text/css" href="{% static 'css/variation/variation.css' %}" media="all">
     <link rel="stylesheet" href="{% static 'css/jquery-1.11.4/themes/smoothness/jquery-ui.min.css' %}">
    
-    <script>
+    <script type="text/javascript" nonce="{{request.csp_nonce}}">
     // The following "corrects" the behaviour of the "today" button in the jquery datepicker
     // clicking the today button
     $.datepicker._gotoToday = function(id) {
@@ -310,7 +310,7 @@
  </div>
 
 
-<script>
+<script type="text/javascript" nonce="{{request.csp_nonce}}">
     $(document).ready(function () {
         $(":input").not(':input[type=checkbox], :input[type=radio], :input[type=button], :input[type=submit], :input[type=reset]').addClass("form-control");
         $("textarea").addClass("form-control");

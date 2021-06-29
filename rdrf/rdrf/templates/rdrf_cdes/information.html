@@ -20,7 +20,7 @@
 	</script>
     <![endif]-->
     <script type="text/javascript" src="{% static 'js/vendor/jquery-ui-1.11.4.min.js' %}"></script>
-    <script>
+    <script nonce="{{request.csp_nonce}}">
         function goBack() {
             var warning = confirm("Are you sure?\nAll entered or amended data will be lost!");
             if (warning == true) {
@@ -28,7 +28,7 @@
             }
         }
     </script>
-  <script>
+  <script nonce="{{request.csp_nonce}}">
   $(function() {
     $( ".datepicker" ).datepicker({
       showOn: "button",

@@ -19,7 +19,7 @@
     <script type="text/javascript" src={% static 'js/rpc_module.js' %}></script>
     <script type="text/javascript" src="{% static 'js/vendor/jquery-ui-1.11.4.min.js' %}"></script>
 
-    <script>
+    <script type="text/javascript" nonce="{{request.csp_nonce}}">
     function showOtherClinicianFields(visible) {
 	if(visible) {
 	    $("#clinician_card .hideable").show();

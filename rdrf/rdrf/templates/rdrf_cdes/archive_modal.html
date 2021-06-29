@@ -29,7 +29,7 @@
 	  </div>
 	</div>
 	{% if not_linked %}
-	<script>
+	<script type="text/javascript" nonce="{{request.csp_nonce}}">
 	  function deletePatient() {
 	      var url = "{{ archive_patient_url }}";
 	      if (url != "") {

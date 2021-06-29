@@ -7,7 +7,7 @@
 
 {% block extrastyle %}
     {{ block.super }}
-    <script>
+    <script type="text/javascript" nonce="{{request.csp_nonce}}">
         $(document).ready(function() {
             $('#reject-btn').click(function() {
                 $('<input>').attr({
