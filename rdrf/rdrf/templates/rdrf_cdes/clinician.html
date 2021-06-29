@@ -126,7 +126,7 @@
 		       <div class="row mb-3 hideable">
                     {% endif %}
 
-		    <label  style="text-align: left; display: {{field.is_hidden|yesno:"None,block"}}" class="col-sm-3 col-form-label">
+		    <label class="col-sm-3 col-form-label text-start{% if field.is_hidden %} d-none {% endif %}">
                         {{ field.label|translate }}
 			<br>
 			{% if not field.is_hidden %}
@@ -135,7 +135,7 @@
                           </small>
 		        {% endif %}
                         {% if field.required %}
-                          <span class="fa fa-asterisk" style="color: red;" aria-hidden="true"></span>
+                          <span class="fa fa-asterisk text-danger" aria-hidden="true"></span>
                         {% endif %}
                     </label>
 

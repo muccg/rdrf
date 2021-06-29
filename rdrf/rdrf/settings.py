@@ -814,5 +814,6 @@ if SYSTEM_ROLE in [SystemRoles.CIC_CLINICAL, SystemRoles.CIC_PROMS, SystemRoles.
 
 # Django CSP settings
 CSP_SCRIPT_SRC = ["'self'"]
+CSP_STYLE_SRC = ["'self'"]
 
-CSP_INCLUDE_NONCE_IN = ["script-src"]
+CSP_INCLUDE_NONCE_IN = ["script-src", "style-src"]

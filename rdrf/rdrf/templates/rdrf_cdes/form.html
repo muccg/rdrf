@@ -330,7 +330,7 @@
                         {% if forms|is_formset:s %}
                             {% with formset=forms|get_form_object:s %}
                                 <div id="mgmt_{{formset.prefix}}">{{formset.management_form}}</div>
-                                <div style="display: none;" id="empty_{{formset.prefix}}">
+                                <div class="d-none" id="empty_{{formset.prefix}}">
                                     <div class="row mb-3">
                                         <div class="col">
                                             <a class="btn btn-danger btn-sm pull-right" onclick="delete_form(this, '{{formset.prefix}}')">
@@ -346,13 +346,13 @@
                                         {% endif %}
                                                 {% if element.label == "Delete" %}
                                                 {% else %}
-                                                    <label for="{{ element.id_for_label}}" {% if element.is_hidden %} style="display: None" {% endif %} class="col-sm-3 col-form-label text-end">
+                                                    <label for="{{ element.id_for_label}}" class="col-sm-3 col-form-label text-end{% if element.is_hidden %} d-none {% endif %}">
                                                         {{ element.label }}
                                                         {% if  element.field.required %}
-                                                            <span class="fa fa-asterisk" style="color: red;" aria-hidden="true"></span>
+                                                            <span class="fa fa-asterisk text-danger" aria-hidden="true"></span>
                                                         {% endif %}
                                                         {% if  element.field.important %}
-                                                            <span class="fa fa-asterisk" style="color: green;" aria-hidden="true"></span>
+                                                            <span class="fa fa-asterisk text-success" aria-hidden="true"></span>
                                                         {% endif %}
                                                     </label>
                                                     <div class="col-sm-9">
@@ -380,16 +380,16 @@
                                             {% else %}
                                                 <div class="row mb-3">
                                             {% endif %}
-                                                    <label for="{{ element.id_for_label}}" {% if element.is_hidden %} style="display: None" {% endif %} class="col-sm-3 col-form-label text-end">
+                                                    <label for="{{ element.id_for_label}}" class="col-sm-3 col-form-label text-end{% if element.is_hidden %} d-none {% endif %}">
                                                         {% if element.label == "Delete" %}
                                                             Mark for deletion
                                                         {% else %}
                                                             {{ element.label }}
                                                             {% if  element.field.required %}
-                                                                <span class="fa fa-asterisk" style="color: red;" aria-hidden="true"></span>
+                                                                <span class="fa fa-asterisk text-danger" aria-hidden="true"></span>
                                                             {% endif %}
                                                         {% if  element.field.important %}
-                                                            <span class="fa fa-asterisk" style="color: green;" aria-hidden="true"></span>
+                                                            <span class="fa fa-asterisk text-success" aria-hidden="true"></span>
                                                         {% endif %}
                                                         {% endif %}
                                                     </label>
@@ -431,13 +431,13 @@
                                         {% endif %}
                                         {{field.label}}
                                         {% if  field.field.required %}
-                                            <span class="fa fa-asterisk" style="color: red;" aria-hidden="true"></span>
+                                            <span class="fa fa-asterisk text-danger" aria-hidden="true"></span>
                                         {% endif %}
                                         {% if  field.field.important %}
-                                           <span class="fa fa-asterisk" style="color: green;" aria-hidden="true"></span>
+                                           <span class="fa fa-asterisk text-success" aria-hidden="true"></span>
                                         {% endif %}
                                         {% if  field.verification_status == "V" %}
-                                           <span class="fa fa-check" style="color: green;" aria-hidden="true"></span>
+                                           <span class="fa fa-check text-success" aria-hidden="true"></span>
                                         {% endif %}
                                     </label>
                                     <div class="col-sm-9">

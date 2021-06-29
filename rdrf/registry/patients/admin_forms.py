@@ -231,7 +231,7 @@ class PatientForm(forms.ModelForm):
             registries = registries.filter(id=self.registry_model.id)
         self.fields["rdrf_registry"].queryset = registries
         if len(registries) == 1:
-            self.fields["rdrf_registry"].widget.attrs.update({"style": "display:none"})
+            self.fields["rdrf_registry"].widget.attrs.update({"class": " d-none"})
             self.fields["rdrf_registry"].help_text = ""
             self.fields["rdrf_registry"].label = ""
             self.fields["rdrf_registry"].required = False
@@ -274,7 +274,7 @@ class PatientForm(forms.ModelForm):
                     if hidden:
                         if field in ["date_of_birth", "date_of_death", "date_of_migration"]:
                             self.fields[field].widget = forms.DateInput(
-                                attrs={'class': 'datepicker', 'style': 'display:none;'}, format='%d-%m-%Y')
+                                attrs={'class': 'datepicker d-none'}, format='%d-%m-%Y')
                             self.fields[field].label = ""
                             self.fields[field].help_text = ""
                         else:

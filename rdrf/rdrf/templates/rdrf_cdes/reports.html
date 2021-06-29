@@ -37,7 +37,7 @@
 			{% if  report.mongo_search_type != "M" %}
                             <td><a href="{% url 'rdrf:explorer_query_download' report.id 'view' %}" target="_blank"><span class="fa fa-eye" aria-hidden="true"></span></a></td>
 			{% else %}
-                            <td><span class="fa fa-times" style="color: red;font-size:1.5em;" aria-hidden="true"></span></td>
+                            <td><span class="fa fa-times text-danger fs-4" aria-hidden="true"></span></td>
 			{% endif %}
                     </tr>
                 {% endfor %}

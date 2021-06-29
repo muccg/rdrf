@@ -50,7 +50,7 @@
         </nav>
 
         <div class="container mt-3">
-            <div class="alert alert-danger" id="response_error" style="display: none;"></div>
+            <div class="alert alert-danger d-none" id="response_error"></div>
             {% if success_msg %}
             <div class="alert alert-success">{{success_msg}}</div>
             {% endif %}
@@ -60,7 +60,7 @@
             {% endif %}
 
             <!-- For Javascript errors -->
-            <div id="js-errors" class="alert alert-danger" style="display: none"></div>
+            <div id="js-errors" class="alert alert-danger d-none"></div>
 
             {% block content %}
             {% endblock %}

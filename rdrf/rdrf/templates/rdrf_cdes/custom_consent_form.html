@@ -159,7 +159,7 @@
                 {% for form, sections in forms %}
                     {% if form|is_formset_obj %}
                         <div id="mgmt_{{form.prefix}}">{{form.management_form}}</div>
-                        <div style="display: none;" id="empty_{{form.prefix}}">
+                        <div class="d-none" id="empty_{{form.prefix}}">
                             <div class="row mb-3">
                                 <div class="col">
                                     <a class="btn btn-danger btn-sm pull-right" onclick="delete_form(this, '{{form.prefix}}')">
@@ -175,10 +175,10 @@
                                 {% endif %}
                                         {% if element.label == "Delete" %}
                                         {% else %}
-                                            <label for="{{ element.id_for_label}}" {% if element.is_hidden %} style="display: None" {% endif %} class="col-sm-3 col-form-label text-end">
+                                            <label for="{{ element.id_for_label}}" class="col-sm-3 col-form-label text-end{% if element.is_hidden %} d-none {% endif %}">
                                                 {{ element.label|translate }}
                                                 {% if  element.field.required %}
-                                                    <span class="fa fa-asterisk" style="color: red;" aria-hidden="true"></span>
+                                                    <span class="fa fa-asterisk text-danger" aria-hidden="true"></span>
                                                 {% endif %}
                                             </label>
                                             <div class="col-sm-9">
@@ -220,13 +220,13 @@
                                                                 {% else %}
                                                                     <div class="row mb-3">
                                                                 {% endif %}
-                                                                <label for="{{ element.id_for_label}}" {% if element.is_hidden %} style="display: None" {% endif %} class="col-sm-3 col-form-label text-end">
+                                                                <label for="{{ element.id_for_label}}" class="col-sm-3 col-form-label text-end{% if element.is_hidden %} d-none {% endif %}">
                                                                     {% if element.label == "Delete" %}
                                                                         {% trans 'Mark for deletion' %}
                                                                     {% else %}
                                                                         {{ element.label|translate }}
                                                                         {% if  element.field.required %}
-                                                                            <span class="fa fa-asterisk" style="color: red;" aria-hidden="true"></span>
+                                                                            <span class="fa fa-asterisk text-danger" aria-hidden="true"></span>
                                                                         {% endif %}
                                                                     {% endif %}
                                                                 </label>
@@ -297,12 +297,12 @@
                                                     <label for="{{ element.id_for_label}}" style="text-align: left" class="col-sm-11 col-form-label">
                                                         {{ element.label|translate }}
                                                         {% if  element.field.required %}
-                                                            <span class="fa fa-asterisk" style="color: red;" aria-hidden="true"></span>
+                                                            <span class="fa fa-asterisk text-danger" aria-hidden="true"></span>
                                                         {% endif %}
                                                     </label>
                                                     <div class="col-sm-1">
                                                 {% else %}
-                                                    <label for="{{ element.id_for_label}}" style="text-align: left; display: {{element.is_hidden|yesno:"None,block"}}" class="col-sm-11 col-form-label">
+                                                    <label for="{{ element.id_for_label}}" class="col-sm-11 col-form-label text-start{% if element.is_hidden %} d-none {% endif %}">
                                                         {{ element.label|translate }}
 							<br>
 						    {% if not element.is_hidden %}
@@ -311,7 +311,7 @@
                                                     </small>
 						    {% endif %}
                                                         {% if  element.field.required %}
-                                                            <span class="fa fa-asterisk" style="color: red;" aria-hidden="true"></span>
+                                                            <span class="fa fa-asterisk text-danger" aria-hidden="true"></span>
                                                         {% endif %}
                                                     </label>
                                                     <div class="col-sm-1">

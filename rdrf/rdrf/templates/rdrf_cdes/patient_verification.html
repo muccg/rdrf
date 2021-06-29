@@ -49,7 +49,7 @@
     {% for field in form %}
     <tr>
       <td scope="row">{{forloop.counter}}<input type="hidden" name="pos_{{field.name}}" value={{forloop.counter}}></td>
-      <td><div class="col-form-label" style="display: block"> {{field.label}}</div></td>
+      <td><div class="col-form-label d-block"> {{field.label}}</div></td>
       <td>{{field.patient_answer}}<input type="hidden" name="patient_data_{{field.name}}" value="{{field.patient_data}}"></td>
       <td>
 	<div class="col-sm-9">

@@ -26,13 +26,13 @@
 		   {% if object.has_view %}
                    <a href="{% url 'rdrf:explorer_query_download' object.id "view" %}"><i class="fa fa-eye" style="font-size: 20px;"></i></a>
 		   {% else %}
-		   <span class="fa fa-2x fa-times" style="color: red;font-size:1.5em;" aria-hidden="true"></span>
+		   <span class="fa fa-2x fa-times fs-4 text-danger" aria-hidden="true"></span>
 		   {% endif %}
                 </td>
                 <td>
                     {% if request.user.is_superuser %}
                         <i class="fa fa-trash-o" style="font-size: 18px;" onclick="$('#confirm_' + {{object.id}}).toggle()"></i>
-                        <div style="display: none;" id="confirm_{{object.id}}">
+                        <div class="d-none" id="confirm_{{object.id}}">
                             Are you sure?
                             <a href="{% url 'rdrf:explorer_query_delete' object.id %}">Yes</a> |
                             <a onclick="$('#confirm_' + {{object.id}}).toggle()">No</a>
