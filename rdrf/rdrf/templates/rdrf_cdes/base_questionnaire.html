@@ -29,16 +29,27 @@
                     table-layout: fixed;
                 }
 
-		ul.errorlist {
-		    display: block;
-		    padding: 15px;
-		    margin-bottom: 20px;
-		    border: 1px solid transparent;
-		    border-radius: 4px;
-		    color: #a94442;
-		    background-color: #f2dede;
-		    border-color: #ebccd1;
-		}
+                ul.errorlist {
+                    display: block;
+                    padding: 15px;
+                    margin-bottom: 20px;
+                    border: 1px solid transparent;
+                    border-radius: 4px;
+                    color: #a94442;
+                    background-color: #f2dede;
+                    border-color: #ebccd1;
+                }
+
+                .questionnaire-body {
+                    background-color: #edeff1;
+                    padding-top: 80px;
+                    padding-bottom: 30px;
+                }
+
+                .questionnaire-table-col {
+                    width: 40%;
+                    vertical-align: middle;
+                }
             </style>
 
         {% endblock %}
@@ -72,7 +83,7 @@
         });
     </script>
 
-    <body style="background-color: #edeff1; padding-top: 80px; padding-bottom: 30px;">
+    <body class="questionnaire-body">
 
         <div class="navbar navbar-inverse navbar-fixed-top">
             <div class="container">

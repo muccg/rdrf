@@ -20,18 +20,18 @@
                     <td>{{object}}</td>
                 {% endif %}
                 <td>
-                    <a href="{% url 'rdrf:explorer_query_download' object.id "download" %}"><i class="fa fa-download" style="font-size: 20px;"></i></a>
+                    <a href="{% url 'rdrf:explorer_query_download' object.id "download" %}"><i class="fa fa-download fs-5"></i></a>
                 </td>
                  <td>
 		   {% if object.has_view %}
-                   <a href="{% url 'rdrf:explorer_query_download' object.id "view" %}"><i class="fa fa-eye" style="font-size: 20px;"></i></a>
+                   <a href="{% url 'rdrf:explorer_query_download' object.id "view" %}"><i class="fa fa-eye fs-5"></i></a>
 		   {% else %}
 		   <span class="fa fa-2x fa-times fs-4 text-danger" aria-hidden="true"></span>
 		   {% endif %}
                 </td>
                 <td>
                     {% if request.user.is_superuser %}
-                        <i class="fa fa-trash-o" style="font-size: 18px;" onclick="$('#confirm_' + {{object.id}}).toggle()"></i>
+                        <i class="fa fa-trash-o fs-5" onclick="$('#confirm_' + {{object.id}}).toggle()"></i>
                         <div class="d-none" id="confirm_{{object.id}}">
                             Are you sure?
                             <a href="{% url 'rdrf:explorer_query_delete' object.id %}">Yes</a> |

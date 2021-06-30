@@ -56,7 +56,7 @@
     <script type="text/javascript" src="{% static 'js/rpc_module.js' %}"></script>
     <script type="text/javascript" src="{% url 'javascript-catalog' %}"></script>
     <script type="text/javascript" src="{% static 'js/rdrf.js' %}"></script>
-    <script type="text/javascript">var django = { $: $.noConflict() }; if (!$) $ = django.$; </script>
+    <script type="text/javascript" nonce="{{request.csp_nonce}}">var django = { $: $.noConflict() }; if (!$) $ = django.$; </script>
 
     {% block extrastyle %}
     {% endblock %}
@@ -102,7 +102,7 @@
 
                 <!-- Collect the nav links, forms, and other content for toggling -->
                 <div class="navbar-expanded-lg">
-                    <ul class="navbar-nav me-auto my-2 my-lg-0 navbar-nav-scroll" style="--bs-scroll-height: 100px;">
+                    <ul class="navbar-nav me-auto my-2 my-lg-0 navbar-nav-scroll">
                         {% if request.user.is_authenticated %}
                         {% block parent_menu %}
                         {% endblock %}
@@ -207,7 +207,7 @@
             <div class="container">
                 <div class="row p-2 align-items-center">
                     <!-- name row -->
-                    <div class="col-md-4 col-sm-4 col-xs-4" style="text-align: left">
+                    <div class="col-md-4 col-sm-4 col-xs-4 text-start">
                         <h3><span class="fa fa-list-alt" aria-hidden="true"></span>
                             {% block location %}
                             {{ location|safe|translate }}
@@ -224,7 +224,7 @@
                             </i>
                         {% endif %}
                     </div>
-                    <div class="col-md-4 col-sm-4 col-xs-4" style="text-align: right">
+                    <div class="col-md-4 col-sm-4 col-xs-4 text-end">
                         <h3>
 
                             {% if patient_link %}
@@ -242,7 +242,7 @@
                 </div>
                 <div class="row">
                     <!-- command button row -->
-                    <div class="col-md-6 col-sm-6 col-xs-6" style="text-align: left">
+                    <div class="col-md-6 col-sm-6 col-xs-6 text-start">
                         {% if show_archive_button %}
                         <div class="btn-group" role="group" aria-label="...">
                             <a class="btn btn-danger" href="" data-bs-toggle="modal" data-bs-target="#archive_modal" target="_blank">
@@ -252,7 +252,7 @@
                         </div>
                         {% endif %}
                     </div>
-                    <div class="col-md-6 col-sm-6 col-xs-6" style="text-align: right">
+                    <div class="col-md-6 col-sm-6 col-xs-6 text-end">
                         {% block formbtns %}
                         {% endblock %}
                     </div>
@@ -261,7 +261,7 @@
         </div>
         {% endif %}
 
-        <div class="container-fluid" style="padding-top: 110px;">
+        <div class="container-fluid rdrf-content">
             {% if messages %}
                 {% for message in messages %}
                 <div class="col-md-6 offset-md-3">
@@ -274,7 +274,7 @@
 
             <div class="row">
                 <div class="col-md-2 offset-md-1">
-                    <div class="p-4 border mt-4" style="background-color: #eeeeee;">
+                    <div class="p-4 border mt-4 sidebar-bg">
                         {% block sidebar %}
                         {% endblock %}
                     </div>

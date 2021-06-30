@@ -360,7 +360,7 @@
                                                 <div class="row mb-3{% if element.is_hidden %} d-none {% endif %}">
                                             {% endif %}
                                                 {% if link %}
-                                                    <label for="{{ element.id_for_label}}" style="text-align: left" class="col-sm-11 col-form-label">
+                                                    <label for="{{ element.id_for_label}}" class="col-sm-11 col-form-label text-start">
                                                         {{ element.label|translate }}
                                                         {% if  element.field.required %}
                                                             <span class="fa fa-asterisk text-danger" aria-hidden="true"></span>

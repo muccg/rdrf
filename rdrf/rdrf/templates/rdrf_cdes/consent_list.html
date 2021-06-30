@@ -64,9 +64,9 @@
         <thead>
             <tr>
                 <th class="col-md-5">{% trans "Patient - Consent Type" %}</th>
-                <th class="col-md-3" style="text-align: center;">{% trans "First Save" %}</th>
-                <th class="col-md-3" style="text-align: center;">{% trans "Last Update" %}</th>
-                <th class="col-md-1" style="text-align: center;">{% trans "Status" %}</th>
+                <th class="col-md-3 text-center">{% trans "First Save" %}</th>
+                <th class="col-md-3 text-center">{% trans "Last Update" %}</th>
+                <th class="col-md-1 text-center">{% trans "Status" %}</th>
             </tr>
         </thead>
         <tbody>
@@ -74,9 +74,9 @@
             {% for section, signed in sections.items %}
                 <tr onclick="get_consent_details('{% url 'consent_details' registry_code section.id patient.id %}', '{{patient}}', '{{section.section_label|translate}}')">
                     <td class="col-md-5"><strong>{{patient}}</strong> - {{section.section_label|translate}}</td>
-                    <td class="col-md-3" style="text-align: center;">{{signed.first_save|date:"d F Y"}}</td>
-                    <td class="col-md-3" style="text-align: center;">{{signed.last_update|date:"d F Y"}}</td>
-                    <td class="col-md-1" style="text-align: center;">
+                    <td class="col-md-3 text-center">{{signed.first_save|date:"d F Y"}}</td>
+                    <td class="col-md-3 text-center">{{signed.last_update|date:"d F Y"}}</td>
+                    <td class="col-md-1 text-center">
                         {% if signed.signed %}
                             <span class="fa fa-check text-success" aria-hidden="true"></span>
                         {% else %}

@@ -89,7 +89,7 @@
 
                 <!-- Collect the nav links, forms, and other content for toggling -->
                 <div class="navbar-expanded-lg">
-                    <ul class="navbar-nav me-auto my-2 my-lg-0 navbar-nav-scroll" style="--bs-scroll-height: 100px;">
+                    <ul class="navbar-nav me-auto my-2 my-lg-0 navbar-nav-scroll">
                         {% if request.user.is_authenticated %}
                         {% block parent_menu %}
                         {% endblock %}
@@ -213,7 +213,7 @@
         </div>
         {% endif %}
 
-        <div class="container" style="padding-top: 110px;">
+        <div class="container rdrf-content">
             {% if messages %}
                 {% for message in messages %}
                     <div {% if message.tags %} class="alert alert-{{ message.tags }}" {% endif %}>{{ message }}</div>

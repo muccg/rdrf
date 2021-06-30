@@ -199,7 +199,7 @@
                             {% autoescape off %}
                                 {% for field in consent_wrapper.form %}
                                     <tr class="">
-                                        <td style="width: 40%; vertical-align: middle;">{{ field.label }}</td>
+                                        <td class="questionnaire-table-col">{{ field.label }}</td>
                                         <td>
                                                 {{field}}
                                         </td>
@@ -261,7 +261,7 @@
                                 {% get_form_var forms s as form %}
                                 {% for field in form %}
                                     <tr>
-                                        <td style="width: 40%; vertical-align: middle;">
+                                        <td class="questionnaire-table-col">
                                              {{ field.label }}
                                              {% if  field.field.required %}
                                                  <span class="fa fa-asterisk text-danger" aria-hidden="true"></span>

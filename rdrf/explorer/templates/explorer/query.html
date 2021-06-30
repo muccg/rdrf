@@ -1,7 +1,7 @@
 {% extends "explorer/base.html" %}
 {% load i18n %}
 {% block content %}
-<script>
+<script type="text/javascript" nonce="{{request.csp_nonce}}">
 
 
     $(document).ready(function () {
@@ -202,7 +202,7 @@
 
         <div id="query-description">
             <hr>
-            <div class="row mb-3" style="margin-top: 30px;">
+            <div class="row mb-3 mt-4">
                 <input type="text" class="form-control" id="title" name='title' placeholder="Title" value="{{form.title.value|default_if_none:""}}">
             </div>
             
