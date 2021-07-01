@@ -72,7 +72,7 @@
         <tbody>
         {% for patient, sections in consents.items %}
             {% for section, signed in sections.items %}
-                <tr onclick="get_consent_details('{% url 'consent_details' registry_code section.id patient.id %}', '{{patient}}', '{{section.section_label|translate}}')">
+                <tr id="consent_details_{{patient.id}}_{{section.id}}">
                     <td class="col-md-5"><strong>{{patient}}</strong> - {{section.section_label|translate}}</td>
                     <td class="col-md-3 text-center">{{signed.first_save|date:"d F Y"}}</td>
                     <td class="col-md-3 text-center">{{signed.last_update|date:"d F Y"}}</td>
@@ -84,6 +84,11 @@
                         {% endif %}
                     </td>
                 </tr>
+                <script type="text/javascript" nonce="{{request.csp_nonce}}">
+                    $("#consent_details_{{patient.id}}_{{section.id}}").click(function() {
+                        get_consent_details("{% url 'consent_details' registry_code section.id patient.id %}", "{{patient}}", "{{section.section_label|translate}}");
+                    });
+                </script>
             {% endfor %}
         {% endfor%}
         </tbody>

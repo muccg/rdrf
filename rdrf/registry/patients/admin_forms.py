@@ -231,7 +231,7 @@ class PatientForm(forms.ModelForm):
             registries = registries.filter(id=self.registry_model.id)
         self.fields["rdrf_registry"].queryset = registries
         if len(registries) == 1:
-            self.fields["rdrf_registry"].widget.attrs.update({"class": " d-none"})
+            self.fields["rdrf_registry"].widget.attrs = {"hidden": True}
             self.fields["rdrf_registry"].help_text = ""
             self.fields["rdrf_registry"].label = ""
             self.fields["rdrf_registry"].required = False

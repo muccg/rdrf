@@ -319,9 +319,14 @@
 
                         {% if forms|is_formset:s %}
                             {% with formset=forms|get_form_object:s %}
-                                <a class="btn btn-primary btn-sm pull-right" onclick="add_form('{{formset.prefix}}');">
+                                <a id="add_{{formset.prefix}}" class="btn btn-primary btn-sm pull-right">
                                     <span class="fa fa-plus" aria-hidden="true"></span> Add
                                 </a>
+                                <script type="text/javascript" nonce="{{request.csp_nonce}}">
+                                    $("#add_{{formset.prefix}}").click(function() {
+                                        add_form('{{formset.prefix}}');
+                                    });
+                                </script>
                             {% endwith %}
                         {% endif %}
                     </div>
@@ -333,9 +338,14 @@
                                 <div class="d-none" id="empty_{{formset.prefix}}">
                                     <div class="row mb-3">
                                         <div class="col">
-                                            <a class="btn btn-danger btn-sm pull-right" onclick="delete_form(this, '{{formset.prefix}}')">
+                                            <a id="delete_{{formset.prefix}}" class="btn btn-danger btn-sm pull-right">
                                                 <span class="fa fa-minus" aria-hidden="true"></span> {% trans "Remove" %}
                                             </a>
+                                            <script type="text/javascript" nonce="{{request.csp_nonce}}">
+                                                $("#delete_{{formset.prefix}}").click(function() {
+                                                    delete_form(this, '{{formset.prefix}}');
+                                                });
+                                            </script>
                                         </div>
                                     </div>
                                     {% for element in formset.empty_form %}
@@ -422,12 +432,17 @@
                                        {% endif %}">
                                         {% if field.field.cde.code and not CREATE_MODE and have_dynamic_data %}
                                         <a href="{% url 'registry_form_field_history' registry_code form_name patient_id s context_id field.field.cde.code %}"
-                                           onclick="rdrf_click_form_field_history(event, this)"
+                                           id="cde_history_{{patient_id}}_{{s}}_{{context_id}}_{{field.field.cde.code}}"
                                            class="btn btn-light border btn-sm invisibutton pull-left me-3"
                                            data-bs-toggle="tooltip" title="View previous answers"
                                            aria-label="Previous answers">
                                           <i class="fa fa-clock-o" aria-hidden="true"></i>
                                         </a>
+                                        <script type="text/javascript" nonce="{{request.csp_nonce}}">
+                                            $("#cde_history_{{patient_id}}_{{s}}_{{context_id}}_{{field.field.cde.code}}").click(function() {
+                                                rdrf_click_form_field_history(event, this);
+                                            });
+                                        </script>
                                         {% endif %}
                                         {{field.label}}
                                         {% if  field.field.required %}

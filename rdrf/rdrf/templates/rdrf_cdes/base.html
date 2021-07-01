@@ -42,7 +42,7 @@
     <script src="{{ baseUrl }}/js/vendor/i18n/datepicker-{{ request.LANGUAGE_CODE }}.js"></script>
     {% endif %}
 
-    <script src="https://ajax.aspnetcdn.com/ajax/jquery.validate/1.13.1/jquery.validate.min.js"></script>
+    <script type="text/javascript" src="{% static 'js/vendor/jquery.validate-1.13.1.min.js'%}"></script>
     <script type="text/javascript" src="{% static 'js/date_validation.js' %}"></script>
     <script type="text/javascript" src="{% static 'js/calculated_field_plugin.js' %}"></script>
     <script type="text/javascript" src="{% static 'js/toggle_disabled.js' %}"></script>

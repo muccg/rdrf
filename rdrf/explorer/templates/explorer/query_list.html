@@ -31,12 +31,17 @@
                 </td>
                 <td>
                     {% if request.user.is_superuser %}
-                        <i class="fa fa-trash-o fs-5" onclick="$('#confirm_' + {{object.id}}).toggle()"></i>
+                        <i class="fa fa-trash-o fs-5" id="delete_{{object.id}}"></i>
                         <div class="d-none" id="confirm_{{object.id}}">
                             Are you sure?
                             <a href="{% url 'rdrf:explorer_query_delete' object.id %}">Yes</a> |
-                            <a onclick="$('#confirm_' + {{object.id}}).toggle()">No</a>
+                            <a class="link" id="dismiss_{{object.id}}">No</a>
                         </div>
+                        <script type="text/javascript" nonce="{{request.csp_nonce}}">
+                            $("#delete_{{object.id}}, #dismiss_{{object.id}}").click(function() {
+                                $("#confirm_{{object.id}}").toggleClass("d-none d-block");
+                            });
+                        </script>
                     {% else %}
                         N/A
                     {% endif %}

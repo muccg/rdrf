@@ -105,9 +105,14 @@
     {{multiple_context.heading}}
     {% if can_add_proms %}
     <a class="btn btn-info btn-sm pull-right"
-       onclick="location.href='{{multiple_context.add_link_url}}';">
+       id="add_{{multiple_context.id}}">
        <span class="fa fa-plus" aria-hidden="true"></span> Add</a>
-     {% endif %}
+    <script type="text/javascript" nonce="{{request.csp_nonce}}">
+      $("#add_{{multiple_context.id}}").click(function() {
+        location.href='{{multiple_context.add_link_url}}';
+      });
+    </script>
+    {% endif %}
   </div>
   <div id="existing_{{multiple_context.id}}" class="card-body">
     {% for link in multiple_context.existing_links %}

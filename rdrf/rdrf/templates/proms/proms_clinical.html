@@ -119,7 +119,7 @@
       </div>
       <div class="modal-footer">
         <button id="close_button" type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-        <button id="save_button" type="button" class="btn btn-primary" onClick="submitNewSurveyRequest()">Save</button>
+        <button id="save_button" type="button" class="btn btn-primary">Save</button>
       </div>
     </div>
   </div>
@@ -149,6 +149,8 @@
         }
     });
   }
+
+  $("#save_button").click(submitNewSurveyRequest);
 </script>
 
 

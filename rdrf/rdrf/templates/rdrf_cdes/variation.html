@@ -235,6 +235,11 @@
                 window.onload = init;
             }
         })();
+
+        $("#save").click(function() {
+            Entry.Save(this);
+        });
+        $("#close").click(window.close);
     </script>
 </head>
 <body class="ps-5">
@@ -302,8 +307,8 @@
         </fieldset>
 
         <div class="submit-row">
-            <input type="submit" id="save" value="Save" class="default" onclick="Entry.Save(this);">
-            <input type="button" id="close" value="Close" onclick="window.close();">
+            <input type="submit" id="save" value="Save" class="default">
+            <input type="button" id="close" value="Close">
         </div>
     </form>
 <script type="text/javascript" src="{% static 'bootstrap-5.0.0/js/bootstrap.bundle.min.js' %}"></script>

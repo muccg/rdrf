@@ -343,6 +343,13 @@
            });
 
         })(jQuery);
+
+        $("#id_load_index").click(function() {
+            load_index(this);
+        });
+        $("#id_add_patient").click(function() {
+            add_patient(this);
+        });
     </script>
 {% endblock %}
 
@@ -379,8 +386,8 @@
                     <div class="card-body">
                         <div class="row">
                             Lookup Index: <input class="col-sm-3 mx-1" id="index_lookup" name="index_lookup" value=""/>
-                            <button class="col-auto mx-1" onclick="load_index(this);">Load this index and family</button>
-                            <button class="col-auto mx-1" onclick="add_patient(this);">Add looked up patient to family</button>
+                            <button id="id_load_index" class="col-auto mx-1">Load this index and family</button>
+                            <button id="id_add_patient" class="col-auto mx-1">Add looked up patient to family</button>
                         </div>
                     </div>
 

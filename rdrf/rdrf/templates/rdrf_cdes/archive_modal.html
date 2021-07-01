@@ -20,7 +20,7 @@
 	      <div class="modal-footer">
 		{% if not_linked %}
 		<button type="button" class="btn btn-primary" data-bs-dismiss="modal">{% trans 'No' %}</button>
-		<button type="button" data-bs-dismiss="modal" onclick="deletePatient();" class="btn btn-danger">{% trans "Yes! Do it" %}</button>
+		<button id="delete_patient" type="button" data-bs-dismiss="modal" class="btn btn-danger">{% trans "Yes! Do it" %}</button>
 		{% else %}
 		<button type="button" class="btn btn-primary" data-bs-dismiss="modal">{% trans 'Close' %}</button>
 		{% endif %}
@@ -48,6 +48,8 @@
 	  error: function() {
             alert("{% trans "An error occurred deleting patient" %}");
           }});}}
+	  
+	  $("#delete_patient").click(deletePatient);
 	</script>
 	{% endif %}
 {% endif %}

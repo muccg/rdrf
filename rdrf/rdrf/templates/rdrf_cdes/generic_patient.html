@@ -224,9 +224,14 @@
                         <div class="d-none" id="empty_{{form.prefix}}">
                             <div class="row mb-3">
                                 <div class="col">
-                                    <a class="btn btn-danger btn-sm pull-right" onclick="delete_form(this, '{{form.prefix}}')">
+                                    <a id="delete_{{form.prefix}}" class="btn btn-danger btn-sm pull-right">
                                         <span class="fa fa-minus" aria-hidden="true"></span> {% trans 'Remove' %}
                                     </a>
+                                    <script type="text/javascript" nonce="{{request.csp_nonce}}">
+                                        $("#delete_{{form.prefix}}").click(function() {
+                                            delete_form(this, '{{form.prefix}}');
+                                        });
+                                    </script>
                                 </div>
                             </div>
                             {% for element in form.empty_form %}
@@ -268,9 +273,14 @@
                                 <div class="card mb-3">
                                     <div class="card-header">
                                         <strong>{{name}}</strong>
-                                        <a class="btn btn-info btn-sm pull-right" onclick="add_form('{{form.prefix}}')">
+                                        <a id="add_{{form.prefix}}" class="btn btn-info btn-sm pull-right">
                                             <span class="fa fa-plus" aria-hidden="true"></span> {% trans 'Add' %}
                                         </a>
+                                        <script type="text/javascript" nonce="{{request.csp_nonce}}">
+                                            $("#add_{{form.prefix}}").click(function() {
+                                                add_form('{{form.prefix}}');
+                                            });
+                                        </script>
                                     </div>
                                     <div class="card-body">
                                         <div id="section_{{form.prefix}}">
