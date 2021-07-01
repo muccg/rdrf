@@ -177,6 +177,12 @@
     }
 
     </script>
+
+    <style type="text/css" nonce="{{request.csp_nonce}}">
+        .progress-bar {
+            width: {{form_progress|floatformat:'0'}}%;
+        }
+    </style>
 {% endblock %}
 
 
@@ -236,7 +242,7 @@
                             <li class="list-group-item">
                                 <span class="badge bg-secondary pull-right" id="show-cdes-btn"><span class="fa fa-sort" aria-hidden="true"></span></span>
                                 <div class="progress">
-                                    <div class="progress-bar" role="progressbar" aria-valuenow="{{form_progress|floatformat:'0'}}" aria-valuemin="0" aria-valuemax="100" style="width: {{form_progress|floatformat:'0'}}%;">
+                                    <div class="progress-bar" role="progressbar" aria-valuenow="{{form_progress|floatformat:'0'}}" aria-valuemin="0" aria-valuemax="100">
                                       {{form_progress|floatformat:"0"}}%
                                     </div>
                                 </div>
