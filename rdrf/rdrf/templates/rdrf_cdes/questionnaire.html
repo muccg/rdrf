@@ -111,15 +111,15 @@
             var total_forms_inc = parseInt(total_forms.val()) + 1;
             total_forms.attr("value", total_forms_inc);
 
-            $("<hr>").attr("style", "border: solid 1px gray").appendTo(new_form);
+            $("<hr>").addClass("border border-2").appendTo(new_form);
 
 	    if(total_forms_inc == 2) {
-		$("<hr>").attr("style", "border: solid 1px gray").prependTo(new_form);
+		$("<hr>").addClass("border border-2").prependTo(new_form);
 	    }
 
 	    var nodes = $(new_form).children().detach();
 	    var new_item = $("<div class='item'>").append(nodes);
-	    new_item.appendTo(forms).show("fast");
+	    new_item.appendTo(forms).toggleClass("d-none d-block");
     }
 
     function delete_form(form_div, prefix) {

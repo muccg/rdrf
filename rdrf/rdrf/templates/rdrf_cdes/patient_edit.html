@@ -121,8 +121,8 @@
             var total_forms_inc = parseInt(total_forms.val()) + 1;
             total_forms.attr("value", total_forms_inc);
 
-            $("<hr>").attr("style", "border: solid 1px gray").appendTo(new_form);
-            new_form.prependTo(forms).slideDown("fast");
+            $("<hr>").addClass("border border-2").appendTo(new_form);
+            new_form.prependTo(forms).toggleClass("d-none d-block");
         }
 
         function delete_form(form_div, prefix) {

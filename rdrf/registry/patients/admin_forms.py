@@ -274,7 +274,7 @@ class PatientForm(forms.ModelForm):
                     if hidden:
                         if field in ["date_of_birth", "date_of_death", "date_of_migration"]:
                             self.fields[field].widget = forms.DateInput(
-                                attrs={'class': 'datepicker d-none'}, format='%d-%m-%Y')
+                                attrs={'class': 'datepicker', 'hidden': True}, format='%d-%m-%Y')
                             self.fields[field].label = ""
                             self.fields[field].help_text = ""
                         else:

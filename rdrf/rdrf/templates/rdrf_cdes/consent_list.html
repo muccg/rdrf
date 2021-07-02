@@ -26,9 +26,9 @@
                 $.each(data, function(key, value) {
                     var row = $("<tr>");
                     var question_cell = $("<td>").attr("class", "col-md-7").text(value.question);
-                    var first_save = $("<td>").attr("class", "col-md-2").attr("style", "text-align:center;").text(value.first_save);
-                    var last_update = $("<td>").attr("class", "col-md-2").attr("style", "text-align:center;").text(value.last_update);
-                    var question_answer = $("<td>").attr("class", "col-md-1").attr("style", "text-align:center;");
+                    var first_save = $("<td>").attr("class", "col-md-2").addClass("text-center").text(value.first_save);
+                    var last_update = $("<td>").attr("class", "col-md-2").addClass("text-center").text(value.last_update);
+                    var question_answer = $("<td>").attr("class", "col-md-1").addClass("text-center");
                     if (value.answer == false) {
                         question_answer.html("<span class='fa fa-times text-danger' aria-hidden='true'></span>");
                     } else {
