@@ -13,15 +13,15 @@
 	  <h1><i>Welcome to Rare Disease Registry Framework!</i></h1>
 	</div>
     
-	<div class="well">
+	<div class="card">
 	<p class="text-justify">
     {{ blocktrans }}
 	  RDRF ( Rare Disease Registry Framework ) is a tool for the creation of web-based data entry forms and questionnaires based on reusable data element definitions ( "Common Data Elements" ) which can be created and/or loaded into the system at runtime without changes to the source code. RDRF has been developed at the Centre for Comparative Genomics
     {{ endblocktrans }}
 	</p>
 	</div>
-	<div class="panel panel-info">
-	    <div class="panel-heading"><h3>{% trans 'The following registries are defined on this site' %}</h3></div>
+	<div class="card">
+	    <div class="card-header"><h3>{% trans 'The following registries are defined on this site' %}</h3></div>
 	    <table class="table table-hover">
         <thead>
         <th>{% trans 'Registry' %}</th>
@@ -40,7 +40,7 @@
 		    <td>{{ reg.desc }}</td>
 		    <td>
 			{% if reg.splash_screen %}
-			    <a href="{% url 'registry' reg.code %}" target="_blank"><span class="glyphicon glyphicon-hand-right"></span> {% trans 'Go to the registry' %}</a>
+			    <a href="{% url 'registry' reg.code %}" target="_blank"><span class="fa fa-hand-right"></span> {% trans 'Go to the registry' %}</a>
 			{% else %}
 			    {% trans 'No further information is available' %}
 			{% endif %}

@@ -474,7 +474,7 @@ class FormProgress(object):
                     content += "<img src=%s> %s</br>" % (static(flag), to_form)
 
         html = "<button type='button' class='btn btn-primary btn-xs' " + \
-               "data-toggle='popover' data-content='%s' id='data-modules-btn'>Show</button>" % content
+               "data-bs-toggle='popover' data-bs-content='%s' id='data-modules-btn'>Show</button>" % content
         return html
 
     #########################################################################################

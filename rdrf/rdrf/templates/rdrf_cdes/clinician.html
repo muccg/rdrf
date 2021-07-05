@@ -14,19 +14,19 @@
 
 {% block extrastyle %}
     {{block.super}}
-    <link rel="stylesheet" href="{% static 'css/jquery-1.11.4/themes/smoothness/jquery-ui.min.css' %}">
+    <link rel="stylesheet" href="{% static 'css/jquery-1.12.1/themes/smoothness/jquery-ui.min.css' %}">
 
     <script type="text/javascript" src={% static 'js/rpc_module.js' %}></script>
-    <script type="text/javascript" src="{% static 'js/vendor/jquery-ui-1.11.4.min.js' %}"></script>
+    <script type="text/javascript" src="{% static 'js/vendor/jquery-ui-1.12.1.min.js' %}"></script>
 
     <script>
     function showOtherClinicianFields(visible) {
 	if(visible) {
-	    $("#clinician_panel .hideable").show();
+	    $("#clinician_card .hideable").show();
 
 	}
 	else {
-	    $("#clinician_panel .hideable").hide();
+	    $("#clinician_card .hideable").hide();
 
 	}
 
@@ -40,7 +40,7 @@
     $(document).ready(function(){
             $(":input").not(':input[type=checkbox], :input[type=radio], :input[type=button], :input[type=submit], :input[type=reset]').addClass("form-control");
             $("textarea").addClass("form-control");
-            $("select").addClass("form-control");
+            $("select").addClass("form-select");
 
             $(window).bind('beforeunload', function(e){
                 if($('#main-form').serialize()!=$('#main-form').data('serialize')) {
@@ -78,11 +78,11 @@
 {% block formbtns %}
 	<div class="btn-group" role="group" aria-label="...">
 		<button id="submit-btn" type="submit" class="btn btn-success" value="Save">
-			<span class="glyphicon glyphicon-floppy-save" aria-hidden="true"></span> {% trans 'Save' %}
+			<span class="fa fa-save" aria-hidden="true"></span> {% trans 'Save' %}
 		</button>
 
 		<a href="" class="btn btn-danger">
-			<span class="glyphicon glyphicon-remove" aria-hidden="true"></span> {% trans 'Cancel' %}
+			<span class="fa fa-times" aria-hidden="true"></span> {% trans 'Cancel' %}
 		</a>
 	</div>
 {% endblock %}
@@ -90,11 +90,11 @@
 {% block content %}
 
 			<a class="previous-form" href="{{ previous_form_link }}">
-				<span class="glyphicon glyphicon-chevron-left" aria-hidden="true"></span>
+				<span class="fa fa-chevron-left" aria-hidden="true"></span>
 			</a>
 
 			<a class="next-form" href="{{ next_form_link }}">
-				<span class="glyphicon glyphicon-chevron-right" aria-hidden="true"></span>
+				<span class="fa fa-chevron-right" aria-hidden="true"></span>
 			</a>
     <br>
     <div class="row">
@@ -107,26 +107,26 @@
 
             <form class="form-horizontal" method="post" id="main-form" enctype="multipart/form-data">
 	      {% csrf_token %}
-          <div class="panel panel-info">
-              <div class="panel-body">
+          <div class="card alert-info border-info">
+              <div class="card-body">
               Please click the green 'save' button before progressing to the next module.
           </div>
       </div>
 
-              <div id="clinician_panel" class="panel panel-default">
-		<div class="panel-heading"><strong>{{form_name}}</strong></div>
-                <div class="panel-body">
+              <div id="clinician_card" class="card mb-3">
+		<div class="card-header"><strong>{{form_name}}</strong></div>
+                <div class="card-body">
 		   <div class="alert alert-warning">
                             Please select your supervising clinician below. This clinician should be someone that you are able to access through an appointment at a later date for them to verify that the data you have entered is correct. If your clinician is not listed below, please choose ‘other’ and provide their details.
                         </div>
                     {% for field in form %}
                     {% if field.name == "user" %}
-		       <div class="form-group">
+		       <div class="row mb-3">
 		    {% else %}
-		       <div class="form-group hideable">
+		       <div class="row mb-3 hideable">
                     {% endif %}
 
-		    <label  style="text-align: left; display: {{field.is_hidden|yesno:"None,block"}}" class="col-sm-3 control-label">
+		    <label  style="text-align: left; display: {{field.is_hidden|yesno:"None,block"}}" class="col-sm-3 col-form-label">
                         {{ field.label|translate }}
 			<br>
 			{% if not field.is_hidden %}
@@ -135,7 +135,7 @@
                           </small>
 		        {% endif %}
                         {% if field.required %}
-                          <span class="glyphicon glyphicon-asterisk" style="color: red;" aria-hidden="true"></span>
+                          <span class="fa fa-asterisk" style="color: red;" aria-hidden="true"></span>
                         {% endif %}
                     </label>
 
@@ -147,14 +147,14 @@
                         {% endif %}
 
 			{% if field.errors %}
-                          <span class="label label-danger">{{ field.errors.as_text }}</span>
+                          <span class="badge bg-danger">{{ field.errors.as_text }}</span>
                         {% endif %}
                     </div>
 
                   </div>  <!-- form group -->
                 {% endfor %}
-	        </div>  <!-- panel body -->
-                </div>  <!-- panel -->
+	        </div>  <!-- card body -->
+                </div>  <!-- card -->
 		</form>
 	    </div>
 	</div>

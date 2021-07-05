@@ -129,14 +129,14 @@ function rdrf_click_form_field_history(ev, a) {
   var modal;
   ev.preventDefault();
   $.get($(a).attr("href")).then(function(doc) {
-    modal = $("<div></div>").html(doc).find(".modal")
+      modal = $("<div></div>").html(doc).find(".modal")
         .appendTo("body")
-        .modal()
+        .modal('show')
         .on("hidden.bs.modal", function(e) {
           $(e.target).remove();
         });
-    rdrf_form_field_history_init(modal, on_restore);
-  });
+      rdrf_form_field_history_init(modal, on_restore);
+    });
 
   var on_restore = function(snapshot) {
     // fixme: restoring a value will depend on the type of cde
@@ -150,7 +150,7 @@ function rdrf_click_form_field_history(ev, a) {
 
 function rdrf_form_field_history_init(modal, restoreCallback) {
   var info = modal.find(".cde-history-data").remove();
-  var label = info.attr("data-label");
+  var label = info.attr("data-bs-label");
   var datatype = info.attr("data-cde-datatype");
   var data = $.parseJSON(info.text());
   var chartCanvas = modal.find(".cde-history-chart");
@@ -225,7 +225,7 @@ function rdrf_form_field_history_init(modal, restoreCallback) {
     // run a callback when one of the restore buttons is clicked
     modal.find("tbody").on("click", ".cde-history-restore", function(ev) {
       ev.stopPropagation();
-      var id = $(this).attr("data-id");
+      var id = $(this).attr("data-bs-id");
       var snapshot = _.find(data, function(s) { return s.id === id });
       if (restoreCallback) {
         restoreCallback(snapshot);
@@ -239,7 +239,7 @@ function rdrf_form_field_history_init(modal, restoreCallback) {
     setupChart(chartCanvas);
   } else {
     chartCanvas.replaceWith("<p>This type of data element can't be plotted.</p>");
-    modal.find("a[href='#cde-history-chart']").parent().addClass("disabled");
+    modal.find("a[href='#cde-history-chart']").addClass("disabled");
   }
 }
 
@@ -263,7 +263,7 @@ function rdrfSetupFileUploads() {
       var clear = copy.find("input[type='checkbox']");
       var input = copy.find("input[type='file']");
       var index = copy.find("input[type='hidden']").attr("value", n);
-      var remove = $('<button class="btn btn-link btn-sm btn-danger multi-file-remove"><i class="glyphicon glyphicon-remove"></i> Remove</button>');
+      var remove = $('<button class="btn btn-link btn-sm btn-danger multi-file-remove"><i class="fa fa-times"></i> Remove</button>');
 
       return copy.empty()
         .append($('<div class="col-xs-9"></div>').append(input).append(index))
@@ -295,7 +295,7 @@ function rdrfSetupFileUploads() {
       widget.children().last().before(makeCopy(nextIndex()));
     };
 
-    $('<button class="btn btn-sm btn-default multi-file-add"><i class="glyphicon glyphicon-plus"></i> Add</button>')
+    $('<button class="btn btn-sm btn-default multi-file-add"><i class="fa fa-plus"></i> Add</button>')
       .attr("id", widget.attr("id").replace(/_id$/, "_add_id"))
       .attr("name", widget.attr("id").replace(/_id$/, "_add"))
       .appendTo(widget)

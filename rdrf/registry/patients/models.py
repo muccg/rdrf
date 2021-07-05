@@ -184,11 +184,13 @@ class Patient(models.Model):
     rdrf_registry = models.ManyToManyField(
         Registry,
         related_name='patients',
-        verbose_name=_("Rdrf Registry"))
+        verbose_name=_("Rdrf Registry"),
+        help_text=_("You must select a registry to save a patient."))
     working_groups = models.ManyToManyField(
         registry.groups.models.WorkingGroup,
         related_name="my_patients",
-        verbose_name=_("Centre"))
+        verbose_name=_("Centre"),
+        help_text=_("You must only select one centre to save a patient."))
     consent = models.BooleanField(
         null=False,
         blank=False,
@@ -1434,6 +1436,7 @@ class PatientRelative(models.Model):
                       )
 
     RELATIVE_LOCATIONS = [
+        ("UKWN", "Unknown"),
         ("AU - WA", "Australia - WA"),
         ("AU - SA", "Australia - SA"),
         ("AU - NSW", "Australia - NSW"),
@@ -1456,7 +1459,7 @@ class PatientRelative(models.Model):
     date_of_birth = models.DateField()
     sex = models.CharField(max_length=1, choices=SEX_CHOICES)
     relationship = models.CharField(choices=RELATIVE_TYPES, max_length=80)
-    location = models.CharField(choices=RELATIVE_LOCATIONS + get_countries(), max_length=80)
+    location = models.CharField(choices=RELATIVE_LOCATIONS + get_countries(), max_length=80, default=RELATIVE_LOCATIONS[0])
     living_status = models.CharField(choices=LIVING_STATES, max_length=80)
     relative_patient = models.OneToOneField(
         to=Patient,

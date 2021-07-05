@@ -202,11 +202,11 @@
 
         <div id="query-description">
             <hr>
-            <div class="form-group" style="margin-top: 30px;">
+            <div class="row mb-3" style="margin-top: 30px;">
                 <input type="text" class="form-control" id="title" name='title' placeholder="Title" value="{{form.title.value|default_if_none:""}}">
             </div>
             
-            <div class="form-group">
+            <div class="row mb-3">
                 <textarea  placeholder="Description" class="form-control" cols="40" id="description" name="description" rows="3">{{form.description.value}}</textarea>
             </div>
         </div>
@@ -216,27 +216,33 @@
     
             <div class="row">
                 <div class="col-md-12">    
-                    <div class="form-group">
-                        <label for="registry">{% trans "Registry" %}</label>
-                            {{form.registry}}
+                    <div class="row mb-3 align-items-center">
+                        <label class="col-md-3 col-form-label" for="registry">{% trans "Registry" %}</label>
+						<div class="col">
+	                        {{form.registry}}
+						</div>
                     </div>
                 </div>
             </div>
 
             <div class="row">
                 <div class="col-md-12">    
-                    <div class="form-group">
-                        <label for="registry">{% trans "Access" %}</label>
+                    <div class="row mb-3 align-items-center">
+                        <label class="col-md-3 col-form-label" for="registry">{% trans "Access" %}</label>
+						<div class="col">
                             {{form.access_group}}
+						</div>
                     </div>
                 </div>
             </div>
     
             <div id="search_type" class="row">
                 <div class="col-md-12">
-                    <div class="form-group">
-                        <label for="mongo_search_type">{% trans "Report Type" %}</label>
+                    <div class="row mb-3 align-items-center">
+                        <label class="col-md-3 col-form-label" for="mongo_search_type">{% trans "Report Type" %}</label>
+						<div class="col">
                             {{form.mongo_search_type}}
+						</div>
                     </div>
                 </div>
             </div>
@@ -269,9 +275,11 @@
 
 	     <div id="max_items" class="row">
 	       <div class="col-md-12">
-                    <div class="form-group">
-                        <label for="max_items">{% trans 'Maximum number of items in multisection to return' %}</label>
+                    <div class="row mb-3 align-items-center">
+                        <label class="col-md-3 col-form-label" for="max_items">{% trans 'Maximum number of items in multisection to return' %}</label>
+						<div class="col">
                             {{form.max_items}}
+						</div>
                     </div>
                 </div>
 

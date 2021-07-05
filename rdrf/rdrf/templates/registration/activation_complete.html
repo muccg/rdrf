@@ -6,17 +6,14 @@
 <head>
     <title>RDRF | Patient registration</title>
 
-    <script type="text/javascript" src="{% static 'js/vendor/jquery-1.11.3.min.js' %}"></script>
+    <script type="text/javascript" src="{% static 'js/vendor/jquery-3.6.0.min.js' %}"></script>
 
     <!-- Latest compiled and minified CSS -->
     <link rel="stylesheet" href="{% static 'css/vendor/font-awesome.css' %}">
-    <link rel="stylesheet" href="{% static 'bootstrap-3.3.6/css/bootstrap.min.css' %}">
+    <link rel="stylesheet" href="{% static 'bootstrap-5.0.0/css/bootstrap.min.css' %}">
 
     <!-- Optional theme -->
     <link rel="stylesheet" href="{% static 'bootstrap-3.3.6/css/bootstrap-theme.min.css' %}">
-
-    <!-- Latest compiled and minified JavaScript -->
-    <script type="text/javascript" src="{% static 'bootstrap-3.3.6/js/bootstrap.min.js' %}"></script>
 
     <style>
         body {
@@ -33,6 +30,8 @@
             {% trans 'Please proceed to' %} <a href="{% url 'two_factor:login' %}?next={% url 'login_router' %}">{% trans 'login page' %}</a>.
         </div>
     </div>
+    <!-- Latest compiled and minified JavaScript -->
+    <script type="text/javascript" src="{% static 'bootstrap-5.0.0/js/bootstrap.bundle.min.js' %}"></script>
 </body>
 
 </html>

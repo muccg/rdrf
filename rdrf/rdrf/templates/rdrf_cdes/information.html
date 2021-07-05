@@ -2,8 +2,8 @@
 {% load static %}
 {% load i18n admin_static %}
 {% block extrastyle %}
-    <link rel="stylesheet" href="{% static 'css/jquery-1.11.4/themes/smoothness/jquery-ui.min.css' %}">
-    <script type="text/javascript" src="{% static 'js/vendor/jquery-1.11.3.min.js' %}" ></script>
+    <link rel="stylesheet" href="{% static 'css/jquery-1.12.1/themes/smoothness/jquery-ui.min.css' %}">
+    <script type="text/javascript" src="{% static 'js/vendor/jquery-3.6.0.min.js' %}" ></script>
     <script type="text/javascript" src="{% static 'js/vendor/underscore-1.5.2.min.js' %}"></script>
     <script type="text/javascript" src="{% static 'js/form.js' %}"></script>
     <script type="text/javascript" src="{% static 'js/calculated_field_plugin.js' %}"></script>
@@ -19,8 +19,7 @@
 		});
 	</script>
     <![endif]-->
-    <script type="text/javascript" src="{% static 'js/vendor/jquery-ui-1.11.4.min.js' %}"></script>
-    <script type="text/javascript" src="{% static 'bootstrap-3.3.6/js/bootstrap.min.js' %}"></script>
+    <script type="text/javascript" src="{% static 'js/vendor/jquery-ui-1.12.1.min.js' %}"></script>
     <script>
         function goBack() {
             var warning = confirm("Are you sure?\nAll entered or amended data will be lost!");
@@ -71,4 +70,5 @@
     <div class="alert alert-success">
     <h3>Information: {% trans message %}</h3>
     </div>
+    <script type="text/javascript" src="{% static 'bootstrap-5.0.0/js/bootstrap.bundle.min.js' %}"></script>
 {% endblock %}

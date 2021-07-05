@@ -10,7 +10,7 @@ from django.db import transaction
 from django.core.management import call_command
 
 from rdrf.models.definition.models import Registry
-from registry.patients.models import Patient, PatientRelative
+from registry.patients.models import Patient, PatientRelative, PatientAddress, AddressType
 
 import logging
 
@@ -99,6 +99,15 @@ class FamilyLinkageManager(object):
                     rel.save()
             elif relative_dict['class'] == "Patient":
                 patient = Patient.objects.get(pk=relative_dict["pk"])
+                try:
+                    patient_location = PatientAddress.objects.get(patient=patient).country
+                except PatientAddress.DoesNotExist:
+                    patient_location = ""
+                except PatientAddress.MultipleObjectsReturned:
+                    patient_addresses = PatientAddress.objects.filter(address_type=AddressType.objects.get(type="Home")).filter(patient=patient)
+                    if len(patient_addresses) > 0:
+                        patient_location = patient_addresses[0].country  # Object at 0 is most recently-added address
+
                 rel = PatientRelative()
                 rel.date_of_birth = patient.date_of_birth
                 rel.patient = self.index_patient
@@ -106,6 +115,10 @@ class FamilyLinkageManager(object):
                 rel.family_name = relative_dict["family_name"]
                 rel.relationship = relative_dict["relationship"]
                 rel.relative_patient = patient
+                rel.sex = patient.sex
+                rel.living_status = patient.living_status
+                if patient_location != "":
+                    rel.location = patient_location
                 rel.save()
                 self.set_as_relative(patient)
 
@@ -171,6 +184,14 @@ class FamilyLinkageManager(object):
             elif relative_dict["class"] == "Patient":
                 # index 'demoted' : create patient rel object
                 patient = Patient.objects.get(pk=relative_dict["pk"])
+                try:
+                    patient_location = PatientAddress.objects.get(patient=patient).country
+                except PatientAddress.DoesNotExist:
+                    patient_location = ""
+                except PatientAddress.MultipleObjectsReturned:
+                    patient_addresses = PatientAddress.objects.filter(address_type=AddressType.objects.get(type="Home")).filter(patient=patient)
+                    if len(patient_addresses) > 0:
+                        patient_location = patient_addresses[0].country  # Object at 0 is most recently-added address
 
                 new_patient_relative = PatientRelative()
                 new_patient_relative.date_of_birth = patient.date_of_birth
@@ -180,6 +201,10 @@ class FamilyLinkageManager(object):
                 new_patient_relative.family_name = relative_dict["family_name"]
                 self.set_as_relative(patient)
                 new_patient_relative.relationship = relative_dict["relationship"]
+                new_patient_relative.sex = patient.sex
+                new_patient_relative.living_status = patient.living_status
+                if patient_location != "":
+                    new_patient_relative.location = patient_location
                 new_patient_relative.save()
                 updated_rels.add(new_patient_relative.patient.id)
                 index_and_rels.add(new_patient_relative.relative_patient.id)

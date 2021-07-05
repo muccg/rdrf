@@ -100,3 +100,8 @@
         }
     </script>
 {% endblock %}
+
+{% block morescripts %}
+    {{ block.super }}
+    setDTypeVal();
+{% endblock %}

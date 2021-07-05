@@ -34,18 +34,17 @@
 
     <script src="{% static 'proms/js/runtime-bundle.min.js' %}"></script>
     <script src="{% static 'proms/js/vendors-bundle.min.js' %}"></script>
+    <script src="{% static 'proms/js/main-page.js' %}"></script>
 
-    <script>
-        var questions = JSON.parse('{{ questions | safe }}');
-        window.proms_config = {
-            patient_token: '{{ patient_token }}',
-            questions: questions,
-            registry_code: '{{ registry_code }}',
-            survey_endpoint: "{% url 'proms:survey_endpoint' %}",
-            survey_name: '{{ survey_name }}',
-            completed_page: '{{ completed_page }}',
-        };
+    <script nonce="{{ request.csp_nonce }}">
+      addPromsConfigToWindow('{{ questions | safe }}',
+			     '{{ patient_token }}',
+                             '{{ registry_code }}',
+                             "{% url 'proms:survey_endpoint' %}",
+                             '{{ survey_name }}',
+                             '{{ completed_page }}');
     </script>
+    
     <script src="{% static 'proms/js/main-bundle.min.js' %}"></script>
 </body>
 
