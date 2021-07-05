@@ -60,6 +60,7 @@ requirements = [
     "django-redis==4.12.1",
     "kombu==5.0.2",
     "django-csp==3.7"
+    "hl7==0.4.2",
 ]
 
 
