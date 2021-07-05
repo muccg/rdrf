@@ -100,7 +100,8 @@ class RDRFContextLauncherComponent(RDRFComponent):
                  patient_model,
                  current_form_name="Demographics",
                  current_rdrf_context_model=None,
-                 registry_form=None):
+                 registry_form=None,
+                 rdrf_nonce=None):
         self.user = user
         self.registry_model = registry_model
         self.patient_model = patient_model
@@ -111,6 +112,7 @@ class RDRFContextLauncherComponent(RDRFComponent):
         self.current_rdrf_context_model = current_rdrf_context_model
         self.consent_locked = self._is_consent_locked()
         self.registry_form = registry_form
+        self.rdrf_nonce = rdrf_nonce
 
     @property
     def form_name_for_template(self):
@@ -137,7 +139,8 @@ class RDRFContextLauncherComponent(RDRFComponent):
             "clinician_form_link": self._get_clinician_form_link(),
             "proms_link": self._get_proms_link(),
             "can_add_proms": not self._proms_adding_disabled(),
-            "registry": self.registry_model
+            "registry": self.registry_model,
+            "csp_nonce": self.rdrf_nonce
         }
 
         return data

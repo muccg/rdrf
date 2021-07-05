@@ -181,7 +181,8 @@ class PromsClinicalView(View):
         context_launcher = RDRFContextLauncherComponent(user,
                                                         registry_model,
                                                         patient_model,
-                                                        "PROMS")
+                                                        "PROMS",
+                                                        rdrf_nonce=request.csp_nonce)
 
         survey_request_form = self._build_survey_request_form(registry_model,
                                                               patient_model,

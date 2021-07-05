@@ -2,7 +2,7 @@
 {% load i18n %}
 {% load translate %}
 {% load has_feature %}
-<script type="text/javascript" nonce="{{request.csp_nonce}}">
+<script type="text/javascript" nonce="{{csp_nonce}}">
   /*
   var USE_ACCORDION = false;
   var START_COLLAPSED = false;
@@ -17,7 +17,7 @@
   */
 </script>
 
-<style type="text/css" nonce="{{request.csp_nonce}}">
+<style type="text/css" nonce="{{csp_nonce}}">
   .card-body  {
     word-break:break-word
   }
@@ -107,7 +107,7 @@
     <a class="btn btn-info btn-sm pull-right"
        id="add_{{multiple_context.id}}">
        <span class="fa fa-plus" aria-hidden="true"></span> Add</a>
-    <script type="text/javascript" nonce="{{request.csp_nonce}}">
+    <script type="text/javascript" nonce="{{csp_nonce}}">
       $("#add_{{multiple_context.id}}").click(function() {
         location.href='{{multiple_context.add_link_url}}';
       });

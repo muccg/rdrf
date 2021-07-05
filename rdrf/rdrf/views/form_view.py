@@ -393,7 +393,8 @@ class FormView(View):
                                                         patient_model,
                                                         self.registry_form.name,
                                                         self.rdrf_context,
-                                                        registry_form=self.registry_form)
+                                                        registry_form=self.registry_form,
+                                                        rdrf_nonce=request.csp_nonce)
 
         # Retrieve locking information
         if self.rdrf_context:
@@ -647,7 +648,8 @@ class FormView(View):
                                                         patient,
                                                         self.registry_form.name,
                                                         self.rdrf_context,
-                                                        registry_form=self.registry_form)
+                                                        registry_form=self.registry_form,
+                                                        rdrf_nonce=request.csp_nonce)
 
         patient_info_component = RDRFPatientInfoComponent(registry, patient)
 
@@ -1650,7 +1652,8 @@ class CustomConsentFormView(View):
         context_launcher = RDRFContextLauncherComponent(request.user,
                                                         registry_model,
                                                         patient_model,
-                                                        current_form_name="Consents")
+                                                        current_form_name="Consents",
+                                                        rdrf_nonce=request.csp_nonce)
 
         patient_info = RDRFPatientInfoComponent(registry_model,
                                                 patient_model)
@@ -1766,7 +1769,8 @@ class CustomConsentFormView(View):
         context_launcher = RDRFContextLauncherComponent(request.user,
                                                         registry_model,
                                                         patient_model,
-                                                        current_form_name="Consents")
+                                                        current_form_name="Consents",
+                                                        rdrf_nonce=request.csp_nonce)
 
         wizard = NavigationWizard(request.user,
                                   registry_model,
