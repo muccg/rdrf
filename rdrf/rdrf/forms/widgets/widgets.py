@@ -214,6 +214,7 @@ class CountryWidget(widgets.Select):
             "name": name,
             "class": "form-select",
             "onchange": "select_country(this)",
+            "id": f"id_{name}"
         })
         output = [format_html("<select{}>", flatatt(final_attrs))]
         empty_option = "<option value=''>---------</option>"
