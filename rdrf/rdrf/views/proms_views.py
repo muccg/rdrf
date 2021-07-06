@@ -171,18 +171,19 @@ class PromsClinicalView(View):
 
         context = self._build_context(request.user,
                                       registry_model,
-                                      patient_model)
+                                      patient_model,
+                                      request.csp_nonce)
 
         return render(request, "proms/proms_clinical.html", context)
 
-    def _build_context(self, user, registry_model, patient_model):
+    def _build_context(self, user, registry_model, patient_model, request_nonce):
         survey_requests = self._get_survey_requests(registry_model,
                                                     patient_model)
         context_launcher = RDRFContextLauncherComponent(user,
                                                         registry_model,
                                                         patient_model,
                                                         "PROMS",
-                                                        rdrf_nonce=request.csp_nonce)
+                                                        rdrf_nonce=request_nonce)
 
         survey_request_form = self._build_survey_request_form(registry_model,
                                                               patient_model,

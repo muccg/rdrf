@@ -212,9 +212,7 @@ class CountryWidget(widgets.Select):
     def render(self, name, value, attrs, renderer=None):
         final_attrs = self.build_attrs(attrs, {
             "name": name,
-            "class": "form-select",
-            "onchange": "select_country(this)",
-            "id": f"id_{name}"
+            "class": "form-select country-select"
         })
         output = [format_html("<select{}>", flatatt(final_attrs))]
         empty_option = "<option value=''>---------</option>"

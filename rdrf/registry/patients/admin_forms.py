@@ -125,10 +125,8 @@ class PatientAddressForm(forms.ModelForm):
         model = PatientAddress
         fields = ('address_type', 'address', 'country', 'state', 'suburb', 'postcode')
 
-    country = forms.ChoiceField(required=True,
-                                widget=CountryWidget(attrs={'onChange': 'select_country(this);'}))
-    state = forms.ChoiceField(required=True,
-                              widget=StateWidget())
+    country = forms.ChoiceField(required=True, widget=CountryWidget())
+    state = forms.ChoiceField(required=True, widget=StateWidget())
     address = forms.CharField(widget=forms.Textarea(attrs={'rows': 5}))
 
     def clean_state(self):
@@ -168,8 +166,7 @@ class PatientForm(forms.ModelForm):
         "cols": 30,
     }
 
-    next_of_kin_country = forms.ChoiceField(required=False,
-                                            widget=CountryWidget(attrs={'onChange': 'select_country(this);'}))
+    next_of_kin_country = forms.ChoiceField(required=False, widget=CountryWidget())
     next_of_kin_state = forms.ChoiceField(required=False, widget=StateWidget())
     country_of_birth = forms.ChoiceField(required=False, widget=CountryWidget())
     cic_id = forms.CharField(required=False, widget=forms.HiddenInput())

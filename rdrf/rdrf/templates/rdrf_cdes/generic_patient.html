@@ -136,6 +136,10 @@
             $("#main-form").submit(function() {
                 $(window).unbind("beforeunload");
             });
+
+            $(".country-select").change(function() {
+                select_country(this);
+            });
         });
     </script>
 
