@@ -413,7 +413,7 @@ class FormView(View):
             # Not context (for example clicking on add a FollowUp)
             metadata_locking = False
 
-        context = self._build_context(user=request.user, patient_model=patient_model)
+        context = self._build_context(user=request.user, patient_model=patient_model, rdrf_nonce=request.csp_nonce)
         context["location"] = location_name(self.registry_form, self.rdrf_context)
         # we provide a "path" to the header field which contains an embedded Django template
         context["header"] = self.registry_form.header
@@ -547,7 +547,8 @@ class FormView(View):
                 injected_model_id=self.patient_id,
                 is_superuser=self.user.is_superuser,
                 user_groups=self.user.groups.all(),
-                patient_model=patient)
+                patient_model=patient,
+                csp_nonce=request.csp_nonce)
             section_elements = section_model.get_elements()
             section_element_map[s] = section_elements
             section_field_ids_map[s] = self._get_field_ids(form_class)
@@ -849,7 +850,7 @@ class FormView(View):
     def get_registry_form(self, form_id):
         return RegistryForm.objects.get(id=form_id)
 
-    def _get_form_class_for_section(self, registry, registry_form, section):
+    def _get_form_class_for_section(self, registry, registry_form, section, rdrf_nonce=None):
         return create_form_class_for_section(
             registry,
             registry_form,
@@ -857,7 +858,8 @@ class FormView(View):
             injected_model="Patient",
             injected_model_id=self.patient_id,
             is_superuser=self.request.user.is_superuser,
-            user_groups=self.request.user.groups.all())
+            user_groups=self.request.user.groups.all(),
+            csp_nonce=rdrf_nonce)
 
     def _get_formlinks(self, user, context_model=None):
         container_model = self.registry
@@ -892,6 +894,7 @@ class FormView(View):
         formset_prefixes = {}
         section_field_ids_map = {}
         form_links = self._get_formlinks(user, self.rdrf_context)
+        rdrf_nonce = kwargs.get("rdrf_nonce", None)
         if self.dynamic_data:
             if 'questionnaire_context' in kwargs:
                 self.dynamic_data['questionnaire_context'] = kwargs['questionnaire_context']
@@ -901,7 +904,7 @@ class FormView(View):
         for s in sections:
             section_model = Section.objects.get(code=s)
             form_class = self._get_form_class_for_section(
-                self.registry, self.registry_form, section_model)
+                self.registry, self.registry_form, section_model, rdrf_nonce)
             section_elements = section_model.get_elements()
             section_element_map[s] = section_elements
             section_field_ids_map[s] = self._get_field_ids(form_class)
@@ -1144,7 +1147,7 @@ class QuestionnaireView(FormView):
                 raise RegistryForm.DoesNotExist()
 
             self.registry_form = form
-            context = self._build_context(questionnaire_context=questionnaire_context)
+            context = self._build_context(questionnaire_context=questionnaire_context, rdrf_nonce=request.csp_nonce)
 
             custom_consent_helper = CustomConsentHelper(self.registry)
             custom_consent_helper.create_custom_consent_wrappers()
@@ -1244,7 +1247,8 @@ class QuestionnaireView(FormView):
                 registry,
                 questionnaire_form,
                 section_model,
-                questionnaire_context=self.questionnaire_context)
+                questionnaire_context=self.questionnaire_context,
+                csp_nonce=request.csp_nonce)
             section_field_ids_map[section] = self._get_field_ids(form_class)
 
             if not section_model.allow_multiple:
@@ -1464,9 +1468,9 @@ class QuestionnaireView(FormView):
     def _get_patient_name(self):
         return "questionnaire"
 
-    def _get_form_class_for_section(self, registry, registry_form, section):
+    def _get_form_class_for_section(self, registry, registry_form, section, rdrf_nonce=None):
         return create_form_class_for_section(
-            registry, registry_form, section, questionnaire_context=self.questionnaire_context)
+            registry, registry_form, section, questionnaire_context=self.questionnaire_context, csp_nonce=rdrf_nonce)
 
 
 class QuestionnaireHandlingView(View):

@@ -61,7 +61,8 @@ class FieldFactory(object):
     UNSET_CHOICE = ""
 
     def __init__(self, registry, registry_form, section, cde, questionnaire_context=None,
-                 injected_model=None, injected_model_id=None, is_superuser=False, is_verification=False):
+                 injected_model=None, injected_model_id=None, is_superuser=False, is_verification=False,
+                 csp_nonce=None):
         """
         :param cde: Common Data Element model instance
         """
@@ -81,6 +82,7 @@ class FieldFactory(object):
         self.primary_model = injected_model
         self.primary_id = injected_model_id
         self.is_superuser = is_superuser
+        self.csp_nonce = csp_nonce
 
     def _customisation_module_exists(self):
         try:
@@ -407,7 +409,8 @@ class FieldFactory(object):
                             self.section,
                             self.cde,
                             injected_model=self.primary_model,
-                            injected_model_id=self.primary_id)
+                            injected_model_id=self.primary_id,
+                            csp_nonce=self.csp_nonce)
                         script = parser.get_script()
                         from rdrf.forms.widgets.widgets import CalculatedFieldWidget
                         options['widget'] = CalculatedFieldWidget(script)
