@@ -47,10 +47,10 @@ function QuestionnaireHandlerGui(rpc,
     this.patientDataTable = $("#" + patientDataTableId);
     this.questionnaieContainer = $("#" + questionnaireContainerId);
     this.questionnaireDataPanel = $("#" + questionnaireDataCardId);
-    this.cdeRowTemplate = _.template("<tr><td><%= name %></td><td><%= value %></td></tr>");
+	this.cdeRowTemplate = function(name, value) { return ("<tr><td>" + name + "</td><td>" + value + "</td></tr>"); };
 }
 
-var InfoSpan = _.template("<span class='badge bg-info text-dark'><%= text %></span><br>");
+var InfoSpan = function(text) { return ("<span class='badge bg-info text-dark'>" + text + "</span><br>"); };
 
 QuestionnaireHandlerGui.prototype.wireUp = function () {
     var self = this;
@@ -89,7 +89,7 @@ QuestionnaireHandlerGui.prototype.loadPatientData = function (data) {
 }
 
 function createSpan(answer) {
-    return InfoSpan({text:answer});
+    return InfoSpan(answer);
 }
 
 function successMessage(msg) {
