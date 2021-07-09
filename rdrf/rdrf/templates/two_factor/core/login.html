@@ -9,7 +9,7 @@
       <div class="card mb-3">
         <div class="card-header">{% trans "Login" %}</div>
         <div class="card-body">
-          <div class="row">
+          <div class="row mb-2">
             <div class="col-xs-12 text-center">
               {% if wizard.steps.current == 'auth' %}
                 {% blocktrans %}Please enter your credentials.{% endblocktrans %}
@@ -56,18 +56,18 @@
           {% if wizard.steps.current == 'auth' %}
             <input type="hidden" name="login_view-current_step" value="auth" id="id_login_view-current_step">
 
-            <div class="row mb-3">
-              <label for="id_auth-username">{{ form.username.label }}:</label>
+            <div class="row mb-3 px-3">
+              <label class="px-0" for="id_auth-username"><strong>{{ form.username.label }}:</strong></label>
               <input type="text" name="auth-username" class="form-control" autofocus="autofocus" value="{{ form.username.value|default:"" }}"maxlength="254" required="required" id="id_auth-username">
             </div>
-            <div class="row mb-3">
-              <label for="id_auth-password">{{ form.password.label }}:</label>
+            <div class="row mb-3 px-3">
+              <label class="px-0" for="id_auth-password"><strong>{{ form.password.label }}:</strong></label>
               <input type="password" name="auth-password" class="form-control" value="{{ form.password.value|default:"" }}" required="required" id="id_auth-password">
             </div>
           {% elif wizard.steps.current == 'token' %}
             <input type="hidden" name="login_view-current_step" value="token" id="id_login_view-current_step">
-            <div class="row mb-3">
-              <label for="id_token-otp_token">Token:</label>
+            <div class="row mb-3 px-3">
+              <label class="px-0" for="id_token-otp_token"><strong>Token:</strong></label>
               <input type="number" name="token-otp_token" class="form-control" autofocus="autofocus" value="{{ form.otp_token.value|default:"" }}" min="1" max="99999999" id="id_token-otp_token">
             </div>
           {% else %}
@@ -77,8 +77,8 @@
           {# hidden submit button to enable [enter] key #}
           <div style="display: none"><input type="submit" value=""/></div>
 
-          <div class="row">
-            <div class="col-sm-12">
+          <div class="row px-3">
+            <div class="col-sm-12 px-0">
               {% include "two_factor/_wizard_actions.html" %}
             </div>
           </div>

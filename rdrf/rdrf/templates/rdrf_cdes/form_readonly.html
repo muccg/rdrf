@@ -184,7 +184,7 @@
     <li class="dropdown">
         <a href="#" class="dropdown-toggle" data-bs-toggle="dropdown" role="button" aria-expanded="false">
         <span class="fa fa-list-alt"></span> Modules<span class="caret"></span></a>
-        <ul class="dropdown-menu dropdown-menu-end" role="menu">
+        <ul class="dropdown-menu dropdown-menu-end" data-bs-display="static" role="menu">
             <li><a href="{% url 'patient_edit' registry patient_id %}"><span class="fa fa-minus"></span>Demographics</a></li>
             <li><a href="{% url 'consent_form_view' registry patient_id %}"><span class="fa fa-minus"></span>Consents</a></li>
             {% for form_link in form_links %}
@@ -301,7 +301,7 @@
                                                 {% if element.label == "Delete" %}
                                                 {% else %}
                                                     <label for="{{ element.id_for_label}}" {% if element.is_hidden %} style="display: None" {% endif %} class="col-sm-3 col-form-label text-end">
-                                                        {{ element.label }}
+                                                        <strong>{{ element.label }}</strong>
                                                         {% if  element.field.required %}
                                                             <span class="fa fa-asterisk" style="color: red;" aria-hidden="true"></span>
                                                         {% endif %}
@@ -333,9 +333,9 @@
                                             {% endif %}
                                                     <label for="{{ element.id_for_label}}" {% if element.is_hidden %} style="display: None" {% endif %} class="col-sm-3 col-form-label text-end">
                                                         {% if element.label == "Delete" %}
-                                                            Mark for deletion
+                                                            <strong>Mark for deletion</strong>
                                                         {% else %}
-                                                            {{ element.label }}
+                                                            <strong>{{ element.label }}</strong>
                                                             {% if  element.field.required %}
                                                                 <span class="fa fa-asterisk" style="color: red;" aria-hidden="true"></span>
                                                             {% endif %}
@@ -363,7 +363,7 @@
                             {% for field in forms|get_form_object:s %}
                                 <div class="row mb-3">
                                     <label for="{{field.id_for_label}}" class="col-md-4 col-form-label">
-                                        {{field.label}}
+                                        <strong>{{field.label}}</strong>
                                         {% if  field.field.required %}
                                             <span class="fa fa-asterisk" style="color: red;" aria-hidden="true"></span>
                                         {% endif %}

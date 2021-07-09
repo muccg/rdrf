@@ -173,7 +173,7 @@
     <br>
 
     <div class="row">
-        <div class="col-md-10">
+        <div class="col-md-12">
 
                 {% if message %}
                     <div class="alert alert-success" role="alert">
@@ -198,10 +198,10 @@
                     </div>
                 {% endif %}
 
-            <div class="panel panel-info">
-                <div class="panel-body">
+            <div class="card border-info mb-3">
+                <div class="card-body">
                     <p>Questions indicated with a red asterisk <strong style="color: red;">*</strong> are <b>core data elements</b> and are required to be answered in order to save this form.<br></p>
-                    <p>Please click the green 'Save' button to save the new patient and progress.</p>
+                    Please click the green 'Save' button to save the new patient and progress.
                 </div>
             </div>
 
@@ -238,7 +238,7 @@
                                         {% if element.label == "Delete" %}
                                         {% else %}
                                             <label for="{{ element.id_for_label}}" class="col-sm-3 col-form-label text-end">
-                                                {{ element.label|translate }}
+                                                <strong>{{ element.label|translate }}</strong>
                                                 {% if  element.field.required %}
                                                     <span class="fa fa-asterisk" style="color: red;" aria-hidden="true"></span>
                                                 {% endif %}
@@ -290,9 +290,9 @@
                                                                     {% endif %}
                                                                     <label for="{{ element.id_for_label}}" class="col-sm-3 col-form-label text-end">
                                                                         {% if element.label == "Delete" %}
-                                                                            Mark for deletion
+                                                                            <strong>Mark for deletion</strong>
                                                                         {% else %}
-                                                                            {{ element.label }}
+                                                                            <strong>{{ element.label }}</strong>
                                                                             {% if  element.field.required %}
                                                                                 <span class="fa fa-asterisk" style="color: red;" aria-hidden="true"></span>
                                                                             {% endif %}
@@ -361,7 +361,7 @@
                                             {% endif %}
                                                 {% if link %}
                                                     <label for="{{ element.id_for_label}}" style="text-align: left" class="col-sm-11 col-form-label">
-                                                        {{ element.label|translate }}
+                                                        <strong>{{ element.label|translate }}</strong>
                                                         {% if  element.field.required %}
                                                             <span class="fa fa-asterisk" style="color: red;" aria-hidden="true"></span>
                                                         {% endif %}
@@ -369,7 +369,7 @@
                                                     <div class="col-sm-1">
                                                 {% else %}
                                                     <label for="{{ element.id_for_label}}" class="col-sm-3 col-form-label text-end">
-                                                        {{ element.label|translate }}
+                                                        <strong>{{ element.label|translate }}</strong>
                                                         {% if  element.field.required %}
                                                             <span class="fa fa-asterisk" style="color: red;" aria-hidden="true"></span>
                                                         {% endif %}

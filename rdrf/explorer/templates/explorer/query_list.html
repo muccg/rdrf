@@ -35,7 +35,7 @@
                         <div style="display: none;" id="confirm_{{object.id}}">
                             Are you sure?
                             <a href="{% url 'rdrf:explorer_query_delete' object.id %}">Yes</a> |
-                            <a onclick="$('#confirm_' + {{object.id}}).toggle()">No</a>
+                            <a class="link" onclick="$('#confirm_' + {{object.id}}).toggle()">No</a>
                         </div>
                     {% else %}
                         N/A
