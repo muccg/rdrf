@@ -237,8 +237,8 @@
                                 {% endif %}
                                         {% if element.label == "Delete" %}
                                         {% else %}
-                                            <label for="{{ element.id_for_label}}" class="col-sm-3 col-form-label text-end">
-                                                <strong>{{ element.label|translate }}</strong>
+                                            <label for="{{ element.id_for_label}}" class="col-sm-3 col-form-label text-end fw-bold">
+                                                {{ element.label|translate }}
                                                 {% if  element.field.required %}
                                                     <span class="fa fa-asterisk" style="color: red;" aria-hidden="true"></span>
                                                 {% endif %}
@@ -288,11 +288,11 @@
                                                                     {% else %}
                                                                         <div class="row mb-3" {% if element.is_hidden %} style="display: None" {% endif %}>
                                                                     {% endif %}
-                                                                    <label for="{{ element.id_for_label}}" class="col-sm-3 col-form-label text-end">
+                                                                    <label for="{{ element.id_for_label}}" class="col-sm-3 col-form-label text-end fw-bold">
                                                                         {% if element.label == "Delete" %}
-                                                                            <strong>Mark for deletion</strong>
+                                                                            Mark for deletion
                                                                         {% else %}
-                                                                            <strong>{{ element.label }}</strong>
+                                                                            {{ element.label }}
                                                                             {% if  element.field.required %}
                                                                                 <span class="fa fa-asterisk" style="color: red;" aria-hidden="true"></span>
                                                                             {% endif %}
@@ -360,16 +360,16 @@
                                                 <div class="row mb-3" {% if element.is_hidden %} style="display: None" {% endif %}>
                                             {% endif %}
                                                 {% if link %}
-                                                    <label for="{{ element.id_for_label}}" style="text-align: left" class="col-sm-11 col-form-label">
-                                                        <strong>{{ element.label|translate }}</strong>
+                                                    <label for="{{ element.id_for_label}}" style="text-align: left" class="col-sm-11 col-form-label fw-bold">
+                                                        {{ element.label|translate }}
                                                         {% if  element.field.required %}
                                                             <span class="fa fa-asterisk" style="color: red;" aria-hidden="true"></span>
                                                         {% endif %}
                                                     </label>
                                                     <div class="col-sm-1">
                                                 {% else %}
-                                                    <label for="{{ element.id_for_label}}" class="col-sm-3 col-form-label text-end">
-                                                        <strong>{{ element.label|translate }}</strong>
+                                                    <label for="{{ element.id_for_label}}" class="col-sm-3 col-form-label text-end fw-bold">
+                                                        {{ element.label|translate }}
                                                         {% if  element.field.required %}
                                                             <span class="fa fa-asterisk" style="color: red;" aria-hidden="true"></span>
                                                         {% endif %}

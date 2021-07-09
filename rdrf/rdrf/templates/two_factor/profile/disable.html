@@ -22,9 +22,9 @@
           </div>
 
           <div class="row mb-3">
-            <label class="form-check-label">
+            <label class="form-check-label fw-bold">
               <input type="checkbox" class="form-check-input me-2" name="understand" />
-              <strong>{% trans "Yes, I am sure" %}</strong>
+              {% trans "Yes, I am sure" %}
             </label>
             {% if request.user.is_authenticated %}
                 {% if request.user.registry_code %}

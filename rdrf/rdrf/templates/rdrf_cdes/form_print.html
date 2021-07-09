@@ -223,8 +223,8 @@
                                         {% endif %}
                                                 {% if element.label == "Delete" %}
                                                 {% else %}
-                                                    <label for="{{ element.id_for_label}}" {% if element.is_hidden %} style="display: None" {% endif %} class="col-sm-3 col-form-label text-end">
-                                                        <strong>{{ element.label }}</strong>
+                                                    <label for="{{ element.id_for_label}}" {% if element.is_hidden %} style="display: None" {% endif %} class="col-sm-3 col-form-label text-end fw-bold">
+                                                        {{ element.label }}
                                                         {% if  element.field.required %}
                                                             <span class="fa fa-asterisk" style="color: red;" aria-hidden="true"></span>
                                                         {% endif %}
@@ -254,11 +254,11 @@
                                             {% else %}
                                                 <div class="row mb-3">
                                             {% endif %}
-                                                    <label for="{{ element.id_for_label}}" {% if element.is_hidden %} style="display: None" {% endif %} class="col-sm-3 col-form-label text-end">
+                                                    <label for="{{ element.id_for_label}}" {% if element.is_hidden %} style="display: None" {% endif %} class="col-sm-3 col-form-label text-end fw-bold">
                                                         {% if element.label == "Delete" %}
-                                                            <strong>Mark for deletion</strong>
+                                                            Mark for deletion
                                                         {% else %}
-                                                            <strong>{{ element.label }}</strong>
+                                                            {{ element.label }}
                                                             {% if  element.field.required %}
                                                                 <span class="fa fa-asterisk" style="color: red;" aria-hidden="true"></span>
                                                             {% endif %}
@@ -285,8 +285,8 @@
                         {% else %}
                             {% for field in forms|get_form_object:s %}
                                 <div class="row mb-3">
-                                    <label for="{{field.id_for_label}}" class="col-md-4 col-form-label">
-                                        <strong>{{field.label}}</strong>
+                                    <label for="{{field.id_for_label}}" class="col-md-4 col-form-label fw-bold">
+                                        {{field.label}}
                                         {% if  field.field.required %}
                                             <span class="fa fa-asterisk" style="color: red;" aria-hidden="true"></span>
                                         {% endif %}
