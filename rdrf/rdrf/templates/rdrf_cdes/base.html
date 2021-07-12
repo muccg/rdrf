@@ -64,6 +64,7 @@
     {% endblock %}
     {% block extrahead %}{% endblock %}
 
+    {% project_logo as PL %}
     <script>
         $(document).ready(function () {
             addExtraValidationMethods();
@@ -80,6 +81,7 @@
                 container: 'body'
             });
 
+            $(".navbar .dropdown-menu").addClass("mt-{% if PL %}3{% else %}2{% endif %}");
         });
     </script>
 </head>
@@ -96,8 +98,6 @@
             <div class="container">
                 <div class="navbar-header">
                     <div class="col_project_header">
-                        {% project_logo as PL %}
-
                         {% if PL %}
                         {% static "" as baseUrl %}
                         <a href="{% project_logo_link %}" target="_blank">
