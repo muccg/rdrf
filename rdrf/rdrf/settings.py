@@ -188,12 +188,12 @@ PROMS_MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django_user_agents.middleware.UserAgentMiddleware',
+    'csp.middleware.CSPMiddleware'
 ]
 
 if SYSTEM_ROLE == SystemRoles.CIC_PROMS:
     MIDDLEWARE = PROMS_MIDDLEWARE
-
-if env.get("enable_csp", False):
+elif env.get("enable_csp", False):
     MIDDLEWARE.append('csp.middleware.CSPMiddleware')
 
 INSTALLED_APPS = [
