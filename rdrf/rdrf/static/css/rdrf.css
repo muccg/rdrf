@@ -275,3 +275,13 @@ form .aligned ul.errorlist {
 .verification-status {
     width: 110px !important;
 }
+
+.btn-close {
+    background-image: url("../icons/bootstrap/x-square.svg");
+    background-size: 24px 24px;
+}
+
+.form-select {
+    background-image: url("../icons/bootstrap/chevron-down.svg");
+    background-size: 16px 16px;
+}
