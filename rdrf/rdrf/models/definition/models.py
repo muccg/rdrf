@@ -791,7 +791,7 @@ class CommonDataElement(models.Model):
                                                      else "" for section in sections]])
         form_links = "<br>".join([link for link in [section.get_form_links() if self.code in section.get_elements()
                                                     else "" for section in sections]])
-        return "<br>Sections:<br>{0}<br>Forms:<br>{1}".format(section_links, form_links)
+        return "<br>Sections:<br>{0}<br>Forms:{1}".format(section_links, form_links)
 
     def get_admin_url(self):
         return reverse('admin:{0}_{1}_change'.format(self._meta.app_label, self._meta.model_name), args=(self.pk,))

@@ -23,7 +23,7 @@
 {% block content %}<div id="content-main">
 {% block object-tools %}
 {% if change %}{% if not is_popup %}
-  <ul class="object-tools list-group">
+  <ul class="object-tools list-group mb-3">
     {% block object-tools-items %}
     <li class="list-group-item">
         {% url opts|admin_urlname:'history' original.pk|admin_urlquote as history_url %}
@@ -35,13 +35,17 @@
 {% endif %}{% endif %}
 {% endblock %}
 
-<h2>{{ original }}</h2>
-<p class="card">
+<h2>{{ original }}</h2><br>
+<div class="card mb-3">
+  <div class="card-body">
     {% block usage %}{% endblock %}
-</p>
-<p class="card">
+  </div>
+</div>
+<div class="card mb-3">
+  <div class="card-body">
     {% block valdesc %}{% endblock %}
-</p>
+  </div>
+</div>
 
 <form {% if has_file_field %}enctype="multipart/form-data" {% endif %}action="{{ form_url }}" method="post" id="{{ opts.model_name }}_form">{% csrf_token %}{% block form_top %}{% endblock %}
 <div>

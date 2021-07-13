@@ -346,7 +346,7 @@
                                         {% endif %}
                                                 {% if element.label == "Delete" %}
                                                 {% else %}
-                                                    <label for="{{ element.id_for_label}}" {% if element.is_hidden %} style="display: None" {% endif %} class="col-sm-3 col-form-label text-end">
+                                                    <label for="{{ element.id_for_label}}" {% if element.is_hidden %} style="display: None" {% endif %} class="col-sm-3 col-form-label text-end fw-bold">
                                                         {{ element.label }}
                                                         {% if  element.field.required %}
                                                             <span class="fa fa-asterisk" style="color: red;" aria-hidden="true"></span>
@@ -380,7 +380,7 @@
                                             {% else %}
                                                 <div class="row mb-3">
                                             {% endif %}
-                                                    <label for="{{ element.id_for_label}}" {% if element.is_hidden %} style="display: None" {% endif %} class="col-sm-3 col-form-label text-end">
+                                                    <label for="{{ element.id_for_label}}" {% if element.is_hidden %} style="display: None" {% endif %} class="col-sm-3 col-form-label text-end fw-bold">
                                                         {% if element.label == "Delete" %}
                                                             Mark for deletion
                                                         {% else %}
@@ -417,7 +417,7 @@
                                        {% if field|is_abnormal %}
                                         rdrf-cde-abnormal
                                        {% endif %}">
-                                    <label for="{{field.id_for_label}}" class="col-sm-3 col-form-label text-end {% if field|is_abnormal %}
+                                    <label for="{{field.id_for_label}}" class="col-sm-3 col-form-label text-end fw-bold {% if field|is_abnormal %}
                                         fa fa-exclamation-triangle
                                        {% endif %}">
                                         {% if field.field.cde.code and not CREATE_MODE and have_dynamic_data %}

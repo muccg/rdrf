@@ -144,7 +144,7 @@
                             <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                                 <span class="fa fa-tasks"></span> {% trans "Menu" %}<span class="caret"></span>
                             </a>
-                            <ul class="dropdown-menu dropdown-menu-end">
+                            <ul class="dropdown-menu dropdown-menu-end" data-bs-display="static">
                                 {% for quick_link in request.user.menu_links %}
                                 <li><a class="dropdown-item" href="{{quick_link.url}}">{% trans quick_link.text %}</a></li>
                                 {% endfor %}
@@ -158,7 +158,7 @@
                             <a href="#" class="nav-link dropdown-toggle" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                                 <span class="fa fa-wrench"></span> {% trans "Settings" %}<span class="caret"></span>
                             </a>
-                            <ul class="dropdown-menu dropdown-menu-end">
+                            <ul class="dropdown-menu dropdown-menu-end" data-bs-display="static">
                                 {% for quick_link in request.user.settings_links %}
                                 <li><a class="dropdown-item" href="{{quick_link.url}}">{% trans quick_link.text %}</a></li>
                                 {% endfor %}
@@ -171,7 +171,7 @@
                                 <span class="fa fa-user"></span> {{ request.user.first_name }}
                                 {{ request.user.last_name }} <span class="caret"></span></a>
 
-                            <ul class="dropdown-menu dropdown-menu-end">
+                            <ul class="dropdown-menu dropdown-menu-end" data-bs-display="static">
                                 {% if request.user.is_superuser %}
                                 <li><a class="dropdown-item" href="{% url 'admin:index' %}"><span class="fa fa-wrench"></span>
                                         {% trans "Admin Page" %}</a></li>

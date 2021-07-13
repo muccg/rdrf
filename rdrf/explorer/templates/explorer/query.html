@@ -217,7 +217,7 @@
             <div class="row">
                 <div class="col-md-12">    
                     <div class="row mb-3 align-items-center">
-                        <label class="col-md-3 col-form-label" for="registry">{% trans "Registry" %}</label>
+                        <label class="col-md-3 col-form-label fw-bold" for="registry">{% trans "Registry" %}</label>
 						<div class="col">
 	                        {{form.registry}}
 						</div>
@@ -228,7 +228,7 @@
             <div class="row">
                 <div class="col-md-12">    
                     <div class="row mb-3 align-items-center">
-                        <label class="col-md-3 col-form-label" for="registry">{% trans "Access" %}</label>
+                        <label class="col-md-3 col-form-label fw-bold" for="registry">{% trans "Access" %}</label>
 						<div class="col">
                             {{form.access_group}}
 						</div>
@@ -239,7 +239,7 @@
             <div id="search_type" class="row">
                 <div class="col-md-12">
                     <div class="row mb-3 align-items-center">
-                        <label class="col-md-3 col-form-label" for="mongo_search_type">{% trans "Report Type" %}</label>
+                        <label class="col-md-3 col-form-label fw-bold" for="mongo_search_type">{% trans "Report Type" %}</label>
 						<div class="col">
                             {{form.mongo_search_type}}
 						</div>
@@ -276,7 +276,7 @@
 	     <div id="max_items" class="row">
 	       <div class="col-md-12">
                     <div class="row mb-3 align-items-center">
-                        <label class="col-md-3 col-form-label" for="max_items">{% trans 'Maximum number of items in multisection to return' %}</label>
+                        <label class="col-md-3 col-form-label fw-bold" for="max_items">{% trans 'Maximum number of items in multisection to return' %}</label>
 						<div class="col">
                             {{form.max_items}}
 						</div>
@@ -297,7 +297,7 @@
 
             <p></p>
 
-            <label for="mongo_field_selection">{% trans "Clinical Fields Selection" %}</label>
+            <label class="fw-bold" for="mongo_field_selection">{% trans "Clinical Fields Selection" %}</label>
 
             <div class="row" id="mongo_field_selection">
                 <table class ="table table-striped" id="mongo-fields">

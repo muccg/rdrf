@@ -175,7 +175,7 @@
                                 {% endif %}
                                         {% if element.label == "Delete" %}
                                         {% else %}
-                                            <label for="{{ element.id_for_label}}" {% if element.is_hidden %} style="display: None" {% endif %} class="col-sm-3 col-form-label text-end">
+                                            <label for="{{ element.id_for_label}}" {% if element.is_hidden %} style="display: None" {% endif %} class="col-sm-3 col-form-label text-end fw-bold">
                                                 {{ element.label|translate }}
                                                 {% if  element.field.required %}
                                                     <span class="fa fa-asterisk" style="color: red;" aria-hidden="true"></span>
@@ -220,7 +220,7 @@
                                                                 {% else %}
                                                                     <div class="row mb-3">
                                                                 {% endif %}
-                                                                <label for="{{ element.id_for_label}}" {% if element.is_hidden %} style="display: None" {% endif %} class="col-sm-3 col-form-label text-end">
+                                                                <label for="{{ element.id_for_label}}" {% if element.is_hidden %} style="display: None" {% endif %} class="col-sm-3 col-form-label text-end fw-bold">
                                                                     {% if element.label == "Delete" %}
                                                                         {% trans 'Mark for deletion' %}
                                                                     {% else %}
@@ -230,7 +230,7 @@
                                                                         {% endif %}
                                                                     {% endif %}
                                                                 </label>
-                                                                <div class="col-sm-9">
+                                                                <div class="col-sm-9{% if element|is_checkbox %} pt-2{% endif %}">
                                                                     {% if not element|is_checkbox %}
                                                                         {% if element|is_patient_relative_widget %}
                                                                             {{ element | add_attr:"class,form-control" | safe}}
@@ -294,15 +294,14 @@
                                                 <div class="row mb-3">
                                             {% endif %}
                                                 {% if link %}
-                                                    <label for="{{ element.id_for_label}}" style="text-align: left" class="col-sm-11 col-form-label">
+                                                    <label for="{{ element.id_for_label}}" style="text-align: left" class="col-sm-11 col-form-label fw-bold">
                                                         {{ element.label|translate }}
                                                         {% if  element.field.required %}
                                                             <span class="fa fa-asterisk" style="color: red;" aria-hidden="true"></span>
                                                         {% endif %}
                                                     </label>
-                                                    <div class="col-sm-1">
                                                 {% else %}
-                                                    <label for="{{ element.id_for_label}}" style="text-align: left; display: {{element.is_hidden|yesno:"None,block"}}" class="col-sm-11 col-form-label">
+                                                    <label for="{{ element.id_for_label}}" style="text-align: left; display: {{element.is_hidden|yesno:"None,block"}}" class="col-sm-11 col-form-label fw-bold">
                                                         {{ element.label|translate }}
 							<br>
 						    {% if not element.is_hidden %}
@@ -314,8 +313,8 @@
                                                             <span class="fa fa-asterisk" style="color: red;" aria-hidden="true"></span>
                                                         {% endif %}
                                                     </label>
-                                                    <div class="col-sm-1">
                                                 {% endif %}
+                                                <div class="col-sm-1{% if element|is_checkbox %} pt-2{% endif %}">
                                                     {% if not element|is_checkbox %}
                                                         {{ element | add_attr:"class,form-control" }}
                                                     {% else %}
