@@ -193,7 +193,7 @@ PROMS_MIDDLEWARE = [
 if SYSTEM_ROLE == SystemRoles.CIC_PROMS:
     MIDDLEWARE = PROMS_MIDDLEWARE
 
-if env.get("enable_csp", True):
+if env.get("enable_csp", False):
     MIDDLEWARE.append('csp.middleware.CSPMiddleware')
 
 INSTALLED_APPS = [
