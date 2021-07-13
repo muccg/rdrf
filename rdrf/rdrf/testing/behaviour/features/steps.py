@@ -302,7 +302,7 @@ def error_message_is(step, error_message):
 @step('location is "(.*)"')
 def location_is(step, location_name):
     world.browser.find_element_by_xpath(
-        '//div[@class="banner"]').find_element_by_xpath('//h3[contains(., "%s")]' % location_name)
+        '//nav[contains(@class, "location-navbar")]').find_element_by_xpath('//h3[contains(., "%s")]' % location_name)
 
 
 @step('When I click Module "(.*)" for patient "(.*)" on patientlisting')
