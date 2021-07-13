@@ -211,7 +211,7 @@
                     {{ location|safe|translate }}
                     {% endblock %}
                 </h3>
-                <div class="navbar-nav col-md-6 justify-content-start">
+                <div class="navbar-nav flex-fill justify-content-start">
                     <h3 class="nav-item me-5">
                         {% if patient_link %}
                         {{ patient_link | safe}}
@@ -221,7 +221,7 @@
                         </i>
                         {% endif %}
                     </h3>
-                    <span class="navbar-text nav-item offset-md-2 offset-sm-1 offset-xs-1">
+                    <span class="navbar-text nav-item">
                         {{ patient_info }} 
                         {% if patient.deident %}
                             <i class="text-muted">
@@ -231,7 +231,7 @@
                         {% endif %}
                     </span>
                 </div>
-                <div class="navbar-nav col-md-3 justify-content-end">
+                <div class="navbar-nav col-md-auto justify-content-end">
                     {% block formbtns %}
                     {% endblock %}
                     {% if show_archive_button %}
