@@ -42,7 +42,13 @@
     {% endif %}
 
     <script type="text/javascript" src="{% static 'js/vendor/jquery-3.6.0.min.js' %}"></script>
+<<<<<<< HEAD
     <script type="text/javascript" src="{% static 'js/vendor/jquery-ui-1.12.1.min.js' %}"></script>
+=======
+    <script type="text/javascript" src="{% static 'js/vendor/jquery-ui-1.11.4.min.js' %}"></script>
+    <!-- jquery-migrate can be removed with jquery-ui-1.12 -->
+    <script type="text/javascript" src="{% static 'js/jquery-migrate-3.0.0.min.js' %}"></script>
+>>>>>>> rdrf-1801-django_csp
 
     {% if request.LANGUAGE_CODE.lower != "en" %}
     {% static "" as baseUrl %}
@@ -286,6 +292,12 @@
 
     {% include 'rdrf_cdes/footer.html' %}
     <script type="text/javascript" src="{% static 'bootstrap-5.0.0/js/bootstrap.bundle.min.js' %}"></script>
+    <style type="text/css" nonce="{{request.csp_nonce}}">
+        .ui-menu .ui-menu-item {
+           list-style-image: none;
+           list-style: none;
+        }
+    </style>
 </body>
 
 </html>
