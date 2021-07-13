@@ -25,7 +25,7 @@
 
     <!--[if IE 8]>
 	<script type="text/javascript" src="ie_expand_select_width.js"></script>
-	<script type="text/javascript">
+	<script nonce="{{request.csp_nonce}}" type="text/javascript">
 		$(document).ready(function() {
 			$('select').ieExpandSelectWidth();
 		});
@@ -33,11 +33,11 @@
     <![endif]-->
 
 
-    <script type="text/javascript">
+    <script type="text/javascript" nonce="{{request.csp_nonce}}">
         window.IMAGES_URL = "{% static 'images/' %}";
     </script>
 
-    <style>
+    <style type="text/css" nonce="{{request.csp_nonce}}">
         .ui-autocomplete {
             max-height: 100px;
             overflow-y: auto;
@@ -73,7 +73,7 @@
         }
     </style>
 
-    <script>
+    <script type="text/javascript" nonce="{{request.csp_nonce}}">
         function goBack() {
             var warning = confirm("Are you sure?\nAll entered or amended data will be lost!");
             if (warning == true) {
@@ -82,7 +82,7 @@
         }
     </script>
 
-    <script>
+    <script type="text/javascript" nonce="{{request.csp_nonce}}">
     // The following "corrects" the behaviour of the "today" button in the jquery datepicker
     // clicking the today button
     $.datepicker._gotoToday = function(id) {
@@ -163,8 +163,8 @@
         var total_forms_inc = parseInt(total_forms.val()) + 1;
         total_forms.attr("value", total_forms_inc);
 
-        $("<hr>").attr("style", "border: solid 1px gray").appendTo(new_form);
-        new_form.appendTo(forms).show("fast");
+        $("<hr>").addClass("border border-2").appendTo(new_form);
+        new_form.appendTo(forms).toggleClass("d-none d-block");
     }
 
     function delete_form(form_div, prefix) {
@@ -177,6 +177,12 @@
     }
 
     </script>
+
+    <style type="text/css" nonce="{{request.csp_nonce}}">
+        .progress-bar {
+            width: {{form_progress|floatformat:'0'}}%;
+        }
+    </style>
 {% endblock %}
 
 
@@ -236,7 +242,7 @@
                             <li class="list-group-item">
                                 <span class="badge bg-secondary pull-right" id="show-cdes-btn"><span class="fa fa-sort" aria-hidden="true"></span></span>
                                 <div class="progress">
-                                    <div class="progress-bar" role="progressbar" aria-valuenow="{{form_progress|floatformat:'0'}}" aria-valuemin="0" aria-valuemax="100" style="width: {{form_progress|floatformat:'0'}}%;">
+                                    <div class="progress-bar" role="progressbar" aria-valuenow="{{form_progress|floatformat:'0'}}" aria-valuemin="0" aria-valuemax="100">
                                       {{form_progress|floatformat:"0"}}%
                                     </div>
                                 </div>
@@ -273,9 +279,14 @@
 
                         {% if forms|is_formset:s %}
                             {% with formset=forms|get_form_object:s %}
-                                <a class="btn btn-primary btn-sm pull-right" onclick="add_form('{{formset.prefix}}');">
+                                <a id="add_{{formset.prefix}}" class="btn btn-primary btn-sm pull-right">
                                     <span class="fa fa-plus" aria-hidden="true"></span> Add
                                 </a>
+                                <script type="text/javascript" nonce="{{request.csp_nonce}}">
+                                    $("#add_{{formset.prefix}}").click(function() {
+                                        add_form('{{formset.prefix}}');
+                                    });
+                                </script>
                             {% endwith %}
                         {% endif %}
                     </div>
@@ -284,12 +295,17 @@
                         {% if forms|is_formset:s %}
                             {% with formset=forms|get_form_object:s %}
                                 <div id="mgmt_{{formset.prefix}}">{{formset.management_form}}</div>
-                                <div style="display: none;" id="empty_{{formset.prefix}}">
+                                <div class="d-none" id="empty_{{formset.prefix}}">
                                     <div class="row mb-3">
                                         <div class="col">
-                                            <a class="btn btn-danger btn-sm pull-right" onclick="delete_form(this, '{{formset.prefix}}')">
+                                            <a id="delete_{{formset.prefix}}" class="btn btn-danger btn-sm pull-right">
                                                 <span class="fa fa-minus" aria-hidden="true"></span> Remove
                                             </a>
+                                            <script type="text/javascript" nonce="{{request.csp_nonce}}">
+                                                $("#delete_{{formset.prefix}}").click(function() {
+                                                    delete_form(this, '{{formset.prefix}}');
+                                                });
+                                            </script>
                                         </div>
                                     </div>
                                     {% for element in formset.empty_form %}
@@ -300,10 +316,10 @@
                                         {% endif %}
                                                 {% if element.label == "Delete" %}
                                                 {% else %}
-                                                    <label for="{{ element.id_for_label}}" {% if element.is_hidden %} style="display: None" {% endif %} class="col-sm-3 col-form-label text-end fw-bold">
+                                                    <label for="{{ element.id_for_label}}" class="col-sm-3 col-form-label text-end {% if element.is_hidden %}d-none {% endif %}fw-bold">
                                                         {{ element.label }}
                                                         {% if  element.field.required %}
-                                                            <span class="fa fa-asterisk" style="color: red;" aria-hidden="true"></span>
+                                                            <span class="fa fa-asterisk text-danger" aria-hidden="true"></span>
                                                         {% endif %}
                                                     </label>
                                                     <div class="col-sm-9">
@@ -331,13 +347,13 @@
                                             {% else %}
                                                 <div class="row mb-3">
                                             {% endif %}
-                                                    <label for="{{ element.id_for_label}}" {% if element.is_hidden %} style="display: None" {% endif %} class="col-sm-3 col-form-label text-end fw-bold">
+                                                    <label for="{{ element.id_for_label}}" class="col-sm-3 col-form-label text-end {% if element.is_hidden %}d-none {% endif %}fw-bold">
                                                         {% if element.label == "Delete" %}
                                                             Mark for deletion
                                                         {% else %}
                                                             {{ element.label }}
                                                             {% if  element.field.required %}
-                                                                <span class="fa fa-asterisk" style="color: red;" aria-hidden="true"></span>
+                                                                <span class="fa fa-asterisk text-danger" aria-hidden="true"></span>
                                                             {% endif %}
                                                         {% endif %}
                                                     </label>
@@ -354,7 +370,7 @@
                                                     </div>
                                                 </div>
                                         {% endfor %}
-                                        <p><hr style="border: solid 1px gray"></p>
+                                        <p><hr class="border border-1"></p>
                                     </div>
                                 {% endfor %}
                                 </div>
@@ -365,7 +381,7 @@
                                     <label for="{{field.id_for_label}}" class="col-md-4 col-form-label fw-bold">
                                         {{field.label}}
                                         {% if  field.field.required %}
-                                            <span class="fa fa-asterisk" style="color: red;" aria-hidden="true"></span>
+                                            <span class="fa fa-asterisk text-danger" aria-hidden="true"></span>
                                         {% endif %}
                                     </label>
                                     <div class="col-md-8">
@@ -392,7 +408,7 @@
  </div>
 
 
-<script>
+<script type="text/javascript" nonce="{{request.csp_nonce}}">
     $(document).ready(function () {
         $(":input").not(':input[type=checkbox], :input[type=radio], :input[type=button], :input[type=submit], :input[type=reset]').addClass("form-control");
         $("textarea").addClass("form-control");

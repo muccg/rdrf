@@ -19,7 +19,8 @@ class CalculatedFieldScriptCreator(object):
             section,
             cde,
             injected_model=None,
-            injected_model_id=None):
+            injected_model_id=None,
+            csp_nonce=None):
 
         self.registry_form = registry_form
         self.section = section
@@ -28,6 +29,7 @@ class CalculatedFieldScriptCreator(object):
         self.observer = self.cde.code
         self.script = None
         self.injected_model_id = injected_model_id
+        self.csp_nonce = csp_nonce
 
     def get_script(self):
         prefix = self.registry_form.name + settings.FORM_SECTION_DELIMITER + \
@@ -48,7 +50,7 @@ class CalculatedFieldScriptCreator(object):
         patient_date_of_birth = patient_model.date_of_birth.__format__("%Y-%m-%d")
         wsurl = reverse("v1:calculatedcde-list")
         javascript = """
-            <script>
+            <script type="text/javascript" nonce="%s">
             $(document).ready(function(){
                  const inputid = '#id_%s%s';
 
@@ -63,6 +65,6 @@ class CalculatedFieldScriptCreator(object):
                     });
                 });
 
-            </script>""" % (prefix, observer_code, cde_inputs, patient_model.id, registry_model.code, patient_model.sex, patient_date_of_birth, observer_code, wsurl)
+            </script>""" % (self.csp_nonce, prefix, observer_code, cde_inputs, patient_model.id, registry_model.code, patient_model.sex, patient_date_of_birth, observer_code, wsurl)
 
         return javascript

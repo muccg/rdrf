@@ -227,7 +227,7 @@ class ClinicianFormView(View):
                         "patient": patient_id})
 
         self.context_launcher = RDRFContextLauncherComponent(
-            self.user, self.registry_model, self.patient_model, "Clinician")
+            self.user, self.registry_model, self.patient_model, "Clinician", rdrf_nonce=request.csp_nonce)
 
         self.wizard = self._get_navigation_wizard()
 

@@ -1,7 +1,7 @@
 {% extends "explorer/base.html" %}
 {% load i18n %}
 {% block content %}
-<script>
+<script type="text/javascript" nonce="{{request.csp_nonce}}">
 
 
     $(document).ready(function () {
@@ -88,18 +88,15 @@
 		});
 	
 		$("#id_registry").bind("change", function () {
-	
-			var fieldRowTemplate = _.template(
-					"<tr><td><%= form %></td>" +
-					"<td><%= section %></td>" +
-					"<td><%= fieldLabel %></td>" +
-					"<td><%= checkBox %></td>" +
-					"<td><%= longitudinalCheckBox %></td></tr>"
-			);
-	
-			var checkBoxTemplate = _.template('<input type="checkbox" name="<%= name %>" id="<%= id %>" ' +
-												"<%= checked %> />");
-	
+
+			function fieldRowTemplate(form, section, fieldLabel, checkBox, longitudinalCheckBox) {
+				return ("<tr><td>" + form + "</td><td>" + section + "</td><td>" + fieldLabel +
+						"</td><td>" + checkBox + "</td><td>" + longitudinalCheckBox + "</td></tr>");
+			}
+
+			function checkBoxTemplate(name, id, checked) {
+				return ("<input type='checkbox' name='" + name + "' id='" + id + "' " + checked + " />");
+			}
 	
 			function clearFieldsTable() {
 				$(FIELDS_TABLE + " tr").has("td").remove();
@@ -118,25 +115,11 @@
 					longChecked = "checked";
 				}
 				
-				var checkBoxHtml = checkBoxTemplate({
-					id: fieldId,
-					name: fieldId,
-					checked: checked
-				});
+				var checkBoxHtml = checkBoxTemplate(fieldId, fieldId, checked);
 	
-				var longitudinalCheckBoxHtml = checkBoxTemplate({
-					id: longitudinalFieldId,
-					name: longitudinalFieldId,
-					checked: longChecked
-				});
+				var longitudinalCheckBoxHtml = checkBoxTemplate(longitudinalFieldId, longitudinalFieldId, longChecked);
 	
-				var fieldRow = $(fieldRowTemplate({
-					form: formName,
-					section: section,
-					fieldLabel: fieldLabel,
-					checkBox: checkBoxHtml,
-					longitudinalCheckBox: longitudinalCheckBoxHtml
-				}));
+				var fieldRow = $(fieldRowTemplate(formName, section, fieldLabel, checkBoxHtml, longitudinalCheckBoxHtml));
 	
 				$(FIELDS_TABLE).append(fieldRow);
 			}
@@ -202,7 +185,7 @@
 
         <div id="query-description">
             <hr>
-            <div class="row mb-3" style="margin-top: 30px;">
+            <div class="row mb-3 mt-4">
                 <input type="text" class="form-control" id="title" name='title' placeholder="Title" value="{{form.title.value|default_if_none:""}}">
             </div>
             
@@ -257,7 +240,7 @@
                 <div class="col-md-12">
                     <div>
                         <textarea placeholder="{% trans 'Patient SQL query' %}" class="form-control" rows="15" id="sql_query" name="sql_query">{{ form.sql_query.value }}</textarea>
-                        <div class="pull-left" id="query-result-count" style="color: green;">
+                        <div class="pull-left text-success" id="query-result-count">
                         </div>
                     </div>    
                 </div>
@@ -288,10 +271,10 @@
     
             <div class="row" id="mongo-parameters-find">
                 <div class="col-md-6">
-                    <textarea style="display:none;" class="form-control" cols="40" id="criteria" name="criteria" rows="10">{{form.criteria.value}}</textarea>
+                    <textarea class="form-control d-none" cols="40" id="criteria" name="criteria" rows="10">{{form.criteria.value}}</textarea>
                 </div>
                 <div class="col-md-6">
-                    <textarea style="display:none;" class="form-control" cols="40" id="projection" name="projection" rows="10">{{form.projection.value}}</textarea>
+                    <textarea class="form-control d-none" cols="40" id="projection" name="projection" rows="10">{{form.projection.value}}</textarea>
                 </div>
             </div>
 
