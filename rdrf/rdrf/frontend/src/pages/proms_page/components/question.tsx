@@ -184,6 +184,63 @@ class Question extends React.Component<QuestionInterface, object> {
         return handle;
     }
 
+    public addOptionText(question: any, optionText: string) : string {
+        if(question.spec.options.length !== 11) {
+            return optionText;
+        } else {
+            let returnText = optionText;
+            if(question.spec.options[0].text === "0") {
+                switch(optionText) {
+                    case "0":
+                        returnText += "\t - No trouble at all";
+                        break;
+                    case "1":
+                        returnText += "\t - Mild";
+                        break;
+                    case "4":
+                        returnText += "\t - Moderate";
+                        break;
+                    case "7":
+                        returnText += "\t - Severe";
+                        break;
+                    case "10":
+                        returnText += "\t - Worst I can imagine";
+                        break;
+                    default:
+                        break;
+                }
+            } else {
+                switch(optionText) {
+                    case "10":
+                        returnText += "\t - Best possible";
+                        break;
+                    case "9":
+                        returnText += "\t - Very good";
+                        break;
+                    case "7":
+                        returnText += "\t - Good";
+                        break;
+                    case "5":
+                        returnText += "\t - Fair";
+                        break;
+                    case "4":
+                        returnText += "\t - Poor";
+                        break;
+                    case "2":
+                        returnText += "\t - Very poor";
+                        break;
+                    case "0":
+                        returnText += "\t - Worst possible";
+                        break;
+                    default:
+                        break;
+                }
+            }
+
+            return returnText;
+        }
+    }
+
     public renderOptions(question: any) {
         return _.map(question.spec.options, (option, index) => (
                 <FormGroup check={true} key={index}>
@@ -191,7 +248,7 @@ class Question extends React.Component<QuestionInterface, object> {
                         <Label check={true}>
                             <Input type="radio" name={this.props.questions[this.props.stage].cde} value={option.code}
                                 onChange={this.handleChange}
-                                checked={option.code === this.props.answers[question.cde]} />{option.text}
+                                checked={option.code === this.props.answers[question.cde]} />{this.addOptionText(question, option.text)}
                         </Label>
                     </Col>
                 </FormGroup>
