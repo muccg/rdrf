@@ -74,6 +74,10 @@ a:hover {
     font-size: 0.8em;
 }
 
+.navbar-nav-scroll {
+    --bs-scroll-height: 100px;
+}
+
 /**************************************************************************
  * CSS button utils                                                       */
 
@@ -250,4 +254,26 @@ form .aligned ul.errorlist {
 .rdrf-form_lock_icon {
     color: #9d9d9d;
     margin-left: 7px;
+}
+
+.rdrf-content {
+    padding-top: 110px;
+}
+
+.sidebar-bg {
+    background-color: #eeeeee;
+}
+
+.verification-status {
+    width: 110px !important;
+}
+
+.btn-close {
+    background-image: url("../icons/bootstrap/x-square.svg");
+    background-size: 24px 24px;
+}
+
+.form-select {
+    background-image: url("../icons/bootstrap/chevron-down.svg");
+    background-size: 16px 16px;
 }

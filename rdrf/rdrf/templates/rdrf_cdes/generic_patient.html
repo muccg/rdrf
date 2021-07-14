@@ -19,7 +19,7 @@
     <script type="text/javascript" src="{% static 'js/rpc_module.js' %}"></script>
     <script type="text/javascript" src="{% static 'js/vendor/jquery-ui-1.12.1.min.js' %}"></script>
 
-    <script>
+    <script type="text/javascript" nonce="{{request.csp_nonce}}">
         function setPatientRelativeFormVisiblity(visible) {
             var rpc = new RPC.RPC("{% url 'rpc' %}", "{{csrf_token}}");
             if (visible) {
@@ -92,8 +92,8 @@
             var total_forms_inc = parseInt(total_forms.val()) + 1;
             total_forms.attr("value", total_forms_inc);
 
-            $("<hr>").attr("style", "border: solid 1px gray").appendTo(new_form);
-            new_form.appendTo(forms).show("fast");
+            $("<hr>").addClass("border border-2").appendTo(new_form);
+            new_form.appendTo(forms).toggleClass("d-none d-block");
         }
 
         function delete_form(form_div, prefix) {
@@ -135,6 +135,10 @@
 
             $("#main-form").submit(function() {
                 $(window).unbind("beforeunload");
+            });
+
+            $(".country-select").change(function() {
+                select_country(this);
             });
         });
     </script>
@@ -200,7 +204,7 @@
 
             <div class="card border-info mb-3">
                 <div class="card-body">
-                    <p>Questions indicated with a red asterisk <strong style="color: red;">*</strong> are <b>core data elements</b> and are required to be answered in order to save this form.<br></p>
+                    <p>Questions indicated with a red asterisk <strong class="text-danger">*</strong> are <b>core data elements</b> and are required to be answered in order to save this form.<br></p>
                     Please click the green 'Save' button to save the new patient and progress.
                 </div>
             </div>
@@ -221,26 +225,31 @@
                 {% for form, sections in forms %}
                     {% if form|is_formset_obj %}
                         <div id="mgmt_{{form.prefix}}">{{form.management_form}}</div>
-                        <div style="display: none;" id="empty_{{form.prefix}}">
+                        <div class="d-none" id="empty_{{form.prefix}}">
                             <div class="row mb-3">
                                 <div class="col">
-                                    <a class="btn btn-danger btn-sm pull-right" onclick="delete_form(this, '{{form.prefix}}')">
+                                    <a id="delete_{{form.prefix}}" class="btn btn-danger btn-sm pull-right">
                                         <span class="fa fa-minus" aria-hidden="true"></span> {% trans 'Remove' %}
                                     </a>
+                                    <script type="text/javascript" nonce="{{request.csp_nonce}}">
+                                        $("#delete_{{form.prefix}}").click(function() {
+                                            delete_form(this, '{{form.prefix}}');
+                                        });
+                                    </script>
                                 </div>
                             </div>
                             {% for element in form.empty_form %}
                                 {% if element.errors %}
-                                    <div class="row mb-3 was-validated" {% if element.is_hidden %} style="display: None" {% endif %}>
+                                    <div class="row mb-3 was-validated{% if element.is_hidden %} d-none {% endif %}">
                                 {% else %}
-                                    <div class="row mb-3" {% if element.is_hidden %} style="display: None" {% endif %}>
+                                    <div class="row mb-3{% if element.is_hidden %} d-none {% endif %}">
                                 {% endif %}
                                         {% if element.label == "Delete" %}
                                         {% else %}
                                             <label for="{{ element.id_for_label}}" class="col-sm-3 col-form-label text-end fw-bold">
                                                 {{ element.label|translate }}
                                                 {% if  element.field.required %}
-                                                    <span class="fa fa-asterisk" style="color: red;" aria-hidden="true"></span>
+                                                    <span class="fa fa-asterisk text-danger" aria-hidden="true"></span>
                                                 {% endif %}
                                             </label>
                                             <div class="col-sm-9">
@@ -268,9 +277,14 @@
                                 <div class="card mb-3">
                                     <div class="card-header">
                                         <strong>{{name}}</strong>
-                                        <a class="btn btn-info btn-sm pull-right" onclick="add_form('{{form.prefix}}')">
+                                        <a id="add_{{form.prefix}}" class="btn btn-info btn-sm pull-right">
                                             <span class="fa fa-plus" aria-hidden="true"></span> {% trans 'Add' %}
                                         </a>
+                                        <script type="text/javascript" nonce="{{request.csp_nonce}}">
+                                            $("#add_{{form.prefix}}").click(function() {
+                                                add_form('{{form.prefix}}');
+                                            });
+                                        </script>
                                     </div>
                                     <div class="card-body">
                                         <div id="section_{{form.prefix}}">
@@ -284,9 +298,9 @@
                                                                 <!-- Empty in order to skip adding delete field in case of can_delete == False -->
                                                             {% else %}
                                                                     {% if element.errors %}
-                                                                        <div class="row mb-3 was-validated" {% if element.is_hidden %} style="display: None" {% endif %}>
+                                                                        <div class="row mb-3 was-validated{% if element.is_hidden %} d-none {% endif %}">
                                                                     {% else %}
-                                                                        <div class="row mb-3" {% if element.is_hidden %} style="display: None" {% endif %}>
+                                                                        <div class="row mb-3{% if element.is_hidden %} d-none {% endif %}">
                                                                     {% endif %}
                                                                     <label for="{{ element.id_for_label}}" class="col-sm-3 col-form-label text-end fw-bold">
                                                                         {% if element.label == "Delete" %}
@@ -294,7 +308,7 @@
                                                                         {% else %}
                                                                             {{ element.label }}
                                                                             {% if  element.field.required %}
-                                                                                <span class="fa fa-asterisk" style="color: red;" aria-hidden="true"></span>
+                                                                                <span class="fa fa-asterisk text-danger" aria-hidden="true"></span>
                                                                             {% endif %}
                                                                         {% endif %}
                                                                     </label>
@@ -355,15 +369,15 @@
                                         {% for s in section %}
                                             {% get_form_element form s as element %}
                                             {% if element.errors %}
-                                                <div class="row mb-3 was-validated" {% if element.is_hidden %} style="display: None" {% endif %}>
+                                                <div class="row mb-3 was-validated{% if element.is_hidden %} d-none {% endif %}">
                                             {% else %}
-                                                <div class="row mb-3" {% if element.is_hidden %} style="display: None" {% endif %}>
+                                                <div class="row mb-3{% if element.is_hidden %} d-none {% endif %}">
                                             {% endif %}
                                                 {% if link %}
-                                                    <label for="{{ element.id_for_label}}" style="text-align: left" class="col-sm-11 col-form-label fw-bold">
+                                                    <label for="{{ element.id_for_label}}" class="col-sm-11 col-form-label text-start fw-bold">
                                                         {{ element.label|translate }}
                                                         {% if  element.field.required %}
-                                                            <span class="fa fa-asterisk" style="color: red;" aria-hidden="true"></span>
+                                                            <span class="fa fa-asterisk text-danger" aria-hidden="true"></span>
                                                         {% endif %}
                                                     </label>
                                                     <div class="col-sm-1">
@@ -371,7 +385,7 @@
                                                     <label for="{{ element.id_for_label}}" class="col-sm-3 col-form-label text-end fw-bold">
                                                         {{ element.label|translate }}
                                                         {% if  element.field.required %}
-                                                            <span class="fa fa-asterisk" style="color: red;" aria-hidden="true"></span>
+                                                            <span class="fa fa-asterisk text-danger" aria-hidden="true"></span>
                                                         {% endif %}
                                                     </label>
                                                     <div class="col-sm-9">
@@ -381,7 +395,7 @@
                                                     {% else %}
                                                         {{ element }}
                                                         {% if  element.field.required %}
-                                                            <span class="fa fa-asterisk" style="color: red;" aria-hidden="true"></span>
+                                                            <span class="fa fa-asterisk text-danger" aria-hidden="true"></span>
                                                         {% endif %}
                                                     {% endif %}
                             {% if not element.is_hidden %}

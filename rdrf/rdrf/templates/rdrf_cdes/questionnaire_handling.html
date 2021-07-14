@@ -2,7 +2,7 @@
 {% load static %}
 
 {% block extrahead %}
-   <style>
+   <style type="text/css" nonce="{{request.csp_nonce}}">
     td {
 	word-wrap:break-word;
 	word-break:break-all;
@@ -21,7 +21,7 @@
 }
 </style>
     <script type="text/javascript" src="{% static 'js/lookup.js' %}"></script>
-    <script type="text/javascript">
+    <script type="text/javascript" nonce="{{request.csp_nonce}}">
 
 function getLoadedPatientId() {
     return $("#patient_lookup").data;
@@ -47,10 +47,10 @@ function QuestionnaireHandlerGui(rpc,
     this.patientDataTable = $("#" + patientDataTableId);
     this.questionnaieContainer = $("#" + questionnaireContainerId);
     this.questionnaireDataPanel = $("#" + questionnaireDataCardId);
-    this.cdeRowTemplate = _.template("<tr><td><%= name %></td><td><%= value %></td></tr>");
+	this.cdeRowTemplate = function(name, value) { return ("<tr><td>" + name + "</td><td>" + value + "</td></tr>"); };
 }
 
-var InfoSpan = _.template("<span class='badge bg-info text-dark'><%= text %></span><br>");
+var InfoSpan = function(text) { return ("<span class='badge bg-info text-dark'>" + text + "</span><br>"); };
 
 QuestionnaireHandlerGui.prototype.wireUp = function () {
     var self = this;
@@ -89,7 +89,7 @@ QuestionnaireHandlerGui.prototype.loadPatientData = function (data) {
 }
 
 function createSpan(answer) {
-    return InfoSpan({text:answer});
+    return InfoSpan(answer);
 }
 
 function successMessage(msg) {
@@ -363,7 +363,7 @@ $(document).ready(function() {
 	    </div>  <!-- col10 -->
 
 	      <div class="col-md-2">
-              <div data-bs-spy="affix" style="width: 150px;">
+              <div data-bs-spy="affix" class="w-100">
                 <button id="createbutton" type="submit" class="btn btn-success btn-block" value="Save">
                   <span class="fa fa-save" aria-hidden="true"></span> Create
                 </button>

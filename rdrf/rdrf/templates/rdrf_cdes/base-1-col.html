@@ -43,7 +43,7 @@
     <script type="text/javascript" src="{% url 'javascript-catalog' %}"></script>
     <script type="text/javascript" src="{% static 'js/rpc_module.js' %}"></script>
     <script type="text/javascript" src="{% static 'js/rdrf.js' %}"></script>
-    <script type="text/javascript">var django = { $: $.noConflict() }; if (!$) $ = django.$; </script>
+    <script type="text/javascript" nonce="{{request.csp_nonce}}">var django = { $: $.noConflict() }; if (!$) $ = django.$; </script>
 
     {% block extrastyle %}
     {% endblock %}
@@ -52,7 +52,7 @@
     {% endblock %}
 
     {% project_logo as PL %}
-    <script>
+    <script nonce="{{request.csp_nonce}}">
         $(document).ready(function () {
             $("#submit-btn").click(function () {
                 $("#main-form").submit();
@@ -91,7 +91,7 @@
 
                 <!-- Collect the nav links, forms, and other content for toggling -->
                 <div class="navbar-expanded-lg">
-                    <ul class="navbar-nav me-auto my-2 my-lg-0 navbar-nav-scroll" style="--bs-scroll-height: 100px;">
+                    <ul class="navbar-nav me-auto my-2 my-lg-0 navbar-nav-scroll">
                         {% if request.user.is_authenticated %}
                         {% block parent_menu %}
                         {% endblock %}
@@ -210,7 +210,7 @@
         </nav>
         {% endif %}
 
-        <div class="container" style="padding-top: 110px;">
+        <div class="container rdrf-content">
             {% if messages %}
                 {% for message in messages %}
                     <div {% if message.tags %} class="alert alert-{{ message.tags }}" {% endif %}>{{ message }}</div>

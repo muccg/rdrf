@@ -2,7 +2,7 @@
 {% load static %}
 
 {% block extrahead %}
-<script>
+<script type="text/javascript" nonce="{{request.csp_nonce}}">
   $(document).ready(function () {
      $(".well").hide();
   });

@@ -12,7 +12,7 @@
   {% endif %}
   {{ media.css }}
   {% if not actions_on_top and not actions_on_bottom %}
-    <style>
+    <style type="text/css" nonce="{{request.csp_nonce}}">
        #changelist table thead th:first-child {width: inherit}
         #changelist .paginator {
           color: #666;
@@ -29,7 +29,7 @@
 {{ block.super }}
 {{ media.js }}
 {% if action_form %}{% if actions_on_top or actions_on_bottom %}
-<script type="text/javascript">
+<script type="text/javascript" nonce="{{request.csp_nonce}}">
 (function($) {
     $(document).ready(function($) {
         $("tr input.action-select").actions();
@@ -60,7 +60,7 @@
   <div id="content-main">
     {% if has_add_permission %}
       {% url cl.opts|admin_urlname:'add' as add_url %}
-      <a href="{% add_preserved_filters add_url is_popup %}" class="btn btn-success btn-sm pull-right" style="margin-left: 5px;" id="add_button">
+      <a href="{% add_preserved_filters add_url is_popup %}" class="btn btn-success btn-sm pull-right ms-2" id="add_button">
         <span class="fa fa-plus" aria-hidden="true"></span> Add
       </a>
     {% endif %}
@@ -107,10 +107,10 @@
     </div>
   </div>
 
-    <script>
+    <script nonce="{{request.csp_nonce}}">
         $(document).ready(function($) {
             $("#add_button").insertAfter($("input[value='Search']"));
-            $("#toolbar").attr("style", "text-align:right");
+            $("#toolbar").attr("class", "text-end");
         });
     </script>
 {% endblock %}
