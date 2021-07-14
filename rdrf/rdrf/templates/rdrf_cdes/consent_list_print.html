@@ -2,7 +2,7 @@
 
 {% block extrahead %}
     {{ block.super }}
-    <script>
+    <script type="text/javascript" nonce="{{request.csp_nonce}}">
         $(document).ready(function(){
             window.print();
             setTimeout(window.close, 0);
@@ -19,9 +19,9 @@
         <thead>
             <tr>
                 <th class="col-md-5">Patient - Consent Type</th>
-                <th class="col-md-3" style="text-align: center;">First Save</th>
-                <th class="col-md-3" style="text-align: center;">Last Update</th>
-                <th class="col-md-1" style="text-align: center;">Status</th>
+                <th class="col-md-3 text-center">First Save</th>
+                <th class="col-md-3 text-center">Last Update</th>
+                <th class="col-md-1 text-center">Status</th>
             </tr>
         </thead>
         <tbody>
@@ -29,13 +29,13 @@
             {% for section, signed in sections.items %}
                 <tr class="warning">
                     <td class="col-md-5"><strong>{{patient}}</strong> - {{section.section_label}}</td>
-                    <td class="col-md-3" style="text-align: center;">{{signed.first_save|date:"Y-m-d"}}</td>
-                    <td class="col-md-3" style="text-align: center;">{{signed.last_update|date:"Y-m-d"}}</td>
-                    <td class="col-md-1" style="text-align: center;">
+                    <td class="col-md-3 text-center">{{signed.first_save|date:"Y-m-d"}}</td>
+                    <td class="col-md-3 text-center">{{signed.last_update|date:"Y-m-d"}}</td>
+                    <td class="col-md-1 text-center">
                         {% if signed.signed %}
-                            <span class="fa fa-check" style='color: green;' aria-hidden="true"></span>
+                            <span class="fa fa-check text-success" aria-hidden="true"></span>
                         {% else %}
-                            <span class="fa fa-times" style='color: red;' aria-hidden="true"></span>
+                            <span class="fa fa-times text-danger" aria-hidden="true"></span>
                         {% endif %}
                     </td>
                 </tr>

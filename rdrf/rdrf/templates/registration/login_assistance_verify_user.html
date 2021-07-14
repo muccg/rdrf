@@ -14,17 +14,17 @@
               {% csrf_token %}
               {{ form.non_field_errors }}
               <div class="col mb-3">
-                  <label class="form-label" for="first_name">{% trans "First Name:" %}</label>
+                  <label class="form-label fw-bold" for="first_name">{% trans "First Name:" %}</label>
                   {{ form.first_name.errors }}
                   <input id="first_name" name="first_name" type="text" value="{{ form.first_name.value }}" class="form-control" required />
               </div>
               <div class="col mb-3">
-                  <label class="form-label" for="last_name">{% trans "Surname:" %}</label>
+                  <label class="form-label fw-bold" for="last_name">{% trans "Surname:" %}</label>
                   {{ form.last_name.errors }}
                   <input id="last_name" name="last_name" type="text" value="{{ form.last_name.value }}" class="form-control" required />
               </div>
                <div class="col mb-3">
-                  <label class="form-label" for="date_of_birth">{% trans "Date of Birth:" %}</label>
+                  <label class="form-label fw-bold" for="date_of_birth">{% trans "Date of Birth:" %}</label>
                   {{ form.date_of_birth.errors }}
                   <input id="date_of_birth" name="date_of_birth" type="text" value="{{ form.date_of_birth.value }}" placeholder="{% trans 'YYYY-MM-DD' %}" class="form-control" required />
               </div>

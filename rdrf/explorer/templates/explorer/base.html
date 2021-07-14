@@ -22,7 +22,7 @@
 
         <script type="text/javascript" src="{% static 'js/jquery.cookies.js' %}"></script>
 
-        <script>
+        <script type="text/javascript" nonce="{{request.csp_nonce}}">
             var rpc = new RPC.RPC("{% url 'rpc' %}", "{{csrf_token}}");
         </script>
     </head>
@@ -50,7 +50,7 @@
         </nav>
 
         <div class="container mt-3">
-            <div class="alert alert-danger" id="response_error" style="display: none;"></div>
+            <div class="alert alert-danger d-none" id="response_error"></div>
             {% if success_msg %}
             <div class="alert alert-success">{{success_msg}}</div>
             {% endif %}
@@ -60,7 +60,7 @@
             {% endif %}
 
             <!-- For Javascript errors -->
-            <div id="js-errors" class="alert alert-danger" style="display: none"></div>
+            <div id="js-errors" class="alert alert-danger d-none"></div>
 
             {% block content %}
             {% endblock %}
@@ -68,11 +68,11 @@
 
         <div id="footer">
             <div class="container">
-                <h6 class="text-muted">{% trans "Project developed at" %} <a href="https://www.murdoch.edu.au/research/anpc" target="_blank">Australian National Phenome Centre</a>, <a href="http://www.murdoch.edu.au" target="_blank">Murdoch University</a> &copy <script>document.write(new Date().getFullYear())</script></h6>
+                <h6 class="text-muted">{% trans "Project developed at" %} <a href="https://www.murdoch.edu.au/research/anpc" target="_blank">Australian National Phenome Centre</a>, <a href="http://www.murdoch.edu.au" target="_blank">Murdoch University</a> &copy <script type="text/javascript" nonce="{{request.csp_nonce}}">document.write(new Date().getFullYear())</script></h6>
             </div>
         </div>
 
-        <script>
+        <script type="text/javascript" nonce="{{request.csp_nonce}}">
             $(document).ready(function() {
                 if('{{form.mongo_search_type.value}}' == 'F') {
                     $("#mongo-parameters-aggregation").hide();

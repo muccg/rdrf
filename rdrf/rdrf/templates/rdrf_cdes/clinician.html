@@ -19,7 +19,7 @@
     <script type="text/javascript" src={% static 'js/rpc_module.js' %}></script>
     <script type="text/javascript" src="{% static 'js/vendor/jquery-ui-1.12.1.min.js' %}"></script>
 
-    <script>
+    <script type="text/javascript" nonce="{{request.csp_nonce}}">
     function showOtherClinicianFields(visible) {
 	if(visible) {
 	    $("#clinician_card .hideable").show();
@@ -126,7 +126,7 @@
 		       <div class="row mb-3 hideable">
                     {% endif %}
 
-		    <label  style="text-align: left; display: {{field.is_hidden|yesno:"None,block"}}" class="col-sm-3 col-form-label">
+		    <label class="col-sm-3 col-form-label text-start{% if field.is_hidden %} d-none {% endif %}">
                         {{ field.label|translate }}
 			<br>
 			{% if not field.is_hidden %}
@@ -135,7 +135,7 @@
                           </small>
 		        {% endif %}
                         {% if field.required %}
-                          <span class="fa fa-asterisk" style="color: red;" aria-hidden="true"></span>
+                          <span class="fa fa-asterisk text-danger" aria-hidden="true"></span>
                         {% endif %}
                     </label>
 

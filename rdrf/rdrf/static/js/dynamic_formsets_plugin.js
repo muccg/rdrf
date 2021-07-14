@@ -137,9 +137,7 @@
                     })
                 .find("td")
                 .each(function() {
-                    $(this).attr({
-                        "onclick" : function(_, old_onclick) { return old_onclick;}
-                    });
+                    $(this).click(function(_, old_onclick) { return old_onclick; });
                 })
                 .end()
                 .insertAfter("#" + settings.table_id + " tr:last");

@@ -49,12 +49,13 @@ class ContextFormGroupHelperMixin(object):
             else:
                 return registry_model.metadata.get("context_name", "Context")
 
-    def get_context_launcher(self, user, registry_model, patient_model, context_model=None):
+    def get_context_launcher(self, user, registry_model, patient_model, context_model=None, request_nonce=None):
         context_launcher = RDRFContextLauncherComponent(user,
                                                         registry_model,
                                                         patient_model,
                                                         '',
-                                                        context_model)
+                                                        context_model,
+                                                        rdrf_nonce=request_nonce)
 
         return context_launcher.html
 
@@ -154,7 +155,8 @@ class RDRFContextCreateView(View, ContextFormGroupHelperMixin):
                    "patient_name": patient_model.display_name,
                    "context_launcher": self.get_context_launcher(request.user,
                                                                  registry_model,
-                                                                 patient_model),
+                                                                 patient_model,
+                                                                 request_nonce=request.csp_nonce),
                    "naming_info": naming_info,
                    "form": ContextForm(initial=default_values)}
 
@@ -199,7 +201,8 @@ class RDRFContextCreateView(View, ContextFormGroupHelperMixin):
                        "naming_info": naming_info,
                        "context_launcher": self.get_context_launcher(request.user,
                                                                      registry_model,
-                                                                     patient_model),
+                                                                     patient_model,
+                                                                     request_nonce=request.csp_nonce),
                        "patient_name": patient_model.display_name,
                        "form": ContextForm(request.POST)}
 
@@ -249,7 +252,8 @@ class RDRFContextEditView(View, ContextFormGroupHelperMixin):
                    'patient_link': PatientLocator(registry_model, patient_model).link,
                    "context_launcher": self.get_context_launcher(request.user,
                                                                  registry_model,
-                                                                 patient_model),
+                                                                 patient_model,
+                                                                 request_nonce=request.csp_nonce),
                    "context_name": context_name,
                    "registry": registry_model.code,
                    "naming_info": naming_info,
@@ -289,7 +293,8 @@ class RDRFContextEditView(View, ContextFormGroupHelperMixin):
                        "form_links": form_links,
                        "context_launcher": self.get_context_launcher(request.user,
                                                                      registry_model,
-                                                                     patient_model),
+                                                                     patient_model,
+                                                                     request_nonce=request.csp_nonce),
                        "message": "%s saved successfully" % context_name,
                        "error_messages": [],
                        "registry": registry_model.code,
@@ -311,7 +316,8 @@ class RDRFContextEditView(View, ContextFormGroupHelperMixin):
                        'patient_link': PatientLocator(registry_model, patient_model).link,
                        "context_launcher": self.get_context_launcher(request.user,
                                                                      registry_model,
-                                                                     patient_model),
+                                                                     patient_model,
+                                                                     request_nonce=request.csp_nonce),
                        "error_messages": error_messages,
                        "naming_info": naming_info,
                        "patient_name": patient_model.display_name,

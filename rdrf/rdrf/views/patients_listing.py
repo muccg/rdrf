@@ -472,9 +472,9 @@ class ColumnNonContexts(Column):
 
     def icon(self, tick):
         icon = "check" if tick else "times"
-        color = "green" if tick else "red"
+        color = "success" if tick else "danger"
         # fixme: replace inline style with css class
-        return "<span class='fa fa-%s' style='color:%s'></span>" % (icon, color)
+        return "<span class='fa fa-%s text-%s'></span>" % (icon, color)
 
 
 class ColumnWorkingGroups(Column):

@@ -636,6 +636,7 @@ class FormTestCase(RDRFTestCase):
 
         request = self.request_factory.post(url, form_data)
         request.user = get_user_model().objects.get(username="curator")
+        request.csp_nonce = None
         return request
 
     def create_sections(self):

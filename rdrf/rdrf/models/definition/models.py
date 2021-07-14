@@ -791,7 +791,7 @@ class CommonDataElement(models.Model):
                                                      else "" for section in sections]])
         form_links = "<br>".join([link for link in [section.get_form_links() if self.code in section.get_elements()
                                                     else "" for section in sections]])
-        return "<br>Sections:<br>{0}<br>Forms:<br>{1}".format(section_links, form_links)
+        return "<br>Sections:<br>{0}<br>Forms:{1}".format(section_links, form_links)
 
     def get_admin_url(self):
         return reverse('admin:{0}_{1}_change'.format(self._meta.app_label, self._meta.model_name), args=(self.pk,))
@@ -1116,9 +1116,12 @@ class RegistryForm(models.Model):
         evaluation_context = {"patient": patient}
 
         try:
-            is_applicable = eval(self.applicability_condition,
-                                 {"__builtins__": None},
-                                 evaluation_context)
+            if applicability_condition_invalid(self.applicability_condition):
+                return False
+            else:
+                is_applicable = eval(self.applicability_condition,
+                                     {"__builtins__": None},
+                                     evaluation_context)
         except BaseException:
             # allows us to filter out forms for patients
             # which are not related with the assumed structure
@@ -1316,8 +1319,14 @@ class ConsentSection(models.Model):
 
             function_context = {"patient": patient, "self_patient": self_patient}
 
-            is_applicable = eval(
-                self.applicability_condition, {"__builtins__": None}, function_context)
+            try:
+                if applicability_condition_invalid(self.applicability_condition):
+                    return False
+                else:
+                    is_applicable = eval(
+                        self.applicability_condition, {"__builtins__": None}, function_context)
+            except BaseException:
+                return False
 
             return is_applicable
 

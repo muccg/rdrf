@@ -1,7 +1,7 @@
 {% extends "explorer/base.html" %}
 
 {% block content %}
-    <script>
+    <script type="text/javascript" nonce="{{request.csp_nonce}}">
         $(document).ready(function() {
             $('input[id*=date_]').each(function() {
                 $(this).prop('readonly', true);
