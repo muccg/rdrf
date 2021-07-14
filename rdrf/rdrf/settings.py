@@ -196,6 +196,8 @@ if SYSTEM_ROLE == SystemRoles.CIC_PROMS:
     MIDDLEWARE = PROMS_MIDDLEWARE
 elif env.get("enable_csp", False):
     MIDDLEWARE.append('csp.middleware.CSPMiddleware')
+else:
+    MIDDLEWARE.append('rdrf.middleware.DummyCSPMiddleware')
 
 INSTALLED_APPS = [
     'django.contrib.contenttypes',
