@@ -102,6 +102,20 @@ class Section(models.Model):
                     "section %s refers to CDE with code %s which doesn't exist" %
                     (self.display_name, code)) for code in missing]
 
+        seen_elements = set()
+        duplicates = {element for element in self.get_elements() if element in seen_elements or (seen_elements.add(element) or False)}
+
+        if len(duplicates) != 0:
+            if "elements" in list(errors.keys()):
+                errors["elements"].extend([ValidationError(
+                    "The CDE with code %s is already referred to in section %s" %
+                    (code, self.code)) for code in duplicates]
+                )
+            else:
+                errors["elements"] = [ValidationError(
+                    "The CDE with code %s is already referred to in section %s" %
+                    (code, self.code)) for code in duplicates]
+
         if any(x in self.code for x in (" ", "&")):
             errors["code"] = ValidationError(
                 "Section %s code '%s' should not contain spaces or &" %
