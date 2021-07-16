@@ -13,13 +13,13 @@
 
 {% block extrastyle %}
     {{block.super}}
-    <link rel="stylesheet" href="{% static 'css/jquery-1.11.4/themes/smoothness/jquery-ui.min.css' %}">
+    <link rel="stylesheet" href="{% static 'css/jquery-1.12.1/themes/smoothness/jquery-ui.min.css' %}">
     <link rel="stylesheet" type="text/css" href="{% static 'css/rdrf.css' %}" media="all">
 
     <script type="text/javascript" src="{% static 'js/rpc_module.js' %}"></script>
-    <script type="text/javascript" src="{% static 'js/vendor/jquery-ui-1.11.4.min.js' %}"></script>
+    <script type="text/javascript" src="{% static 'js/vendor/jquery-ui-1.12.1.min.js' %}"></script>
 
-    <script>
+    <script type="text/javascript" nonce="{{request.csp_nonce}}">
        $(document).ready(function(){
             $(":input").not(':input[type=checkbox], :input[type=radio], :input[type=button], :input[type=submit], :input[type=reset]').addClass("form-control");
             $("textarea").addClass("form-control");
@@ -119,14 +119,14 @@
       </div>
       <div class="modal-footer">
         <button id="close_button" type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-        <button id="save_button" type="button" class="btn btn-primary" onClick="submitNewSurveyRequest()">Save</button>
+        <button id="save_button" type="button" class="btn btn-primary">Save</button>
       </div>
     </div>
   </div>
 </div>
 
 
-<script>
+<script type="text/javascript" nonce="{{request.csp_nonce}}">
   function submitNewSurveyRequest() {
    console.log("new survey request");
    var frm = $("#survey_request_form");
@@ -149,6 +149,8 @@
         }
     });
   }
+
+  $("#save_button").click(submitNewSurveyRequest);
 </script>
 
 

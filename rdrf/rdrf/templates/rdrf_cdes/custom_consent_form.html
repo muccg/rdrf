@@ -17,12 +17,12 @@
 
 {% block extrastyle %}
     {{block.super}}
-    <link rel="stylesheet" href="{% static 'css/jquery-1.11.4/themes/smoothness/jquery-ui.min.css' %}">
+    <link rel="stylesheet" href="{% static 'css/jquery-1.12.1/themes/smoothness/jquery-ui.min.css' %}">
 
     <script type="text/javascript" src={% static 'js/rpc_module.js' %}></script>
-    <script type="text/javascript" src="{% static 'js/vendor/jquery-ui-1.11.4.min.js' %}"></script>
+    <script type="text/javascript" src="{% static 'js/vendor/jquery-ui-1.12.1.min.js' %}"></script>
 
-    <script>
+    <script type="text/javascript" nonce="{{request.csp_nonce}}">
 
         function add_form(prefix) {
             var mgmt_form = $("#mgmt_" + prefix);
@@ -52,8 +52,8 @@
             var total_forms_inc = parseInt(total_forms.val()) + 1;
             total_forms.attr("value", total_forms_inc);
 
-            $("<hr>").attr("style", "border: solid 1px gray").appendTo(new_form);
-            new_form.appendTo(forms).show("fast");
+            $("<hr>").addClass("border border-2").appendTo(new_form);
+            new_form.appendTo(forms).toggleClass("d-none d-block");
         }
 
         function delete_form(form_div, prefix) {
@@ -159,12 +159,17 @@
                 {% for form, sections in forms %}
                     {% if form|is_formset_obj %}
                         <div id="mgmt_{{form.prefix}}">{{form.management_form}}</div>
-                        <div style="display: none;" id="empty_{{form.prefix}}">
+                        <div class="d-none" id="empty_{{form.prefix}}">
                             <div class="row mb-3">
                                 <div class="col">
-                                    <a class="btn btn-danger btn-sm pull-right" onclick="delete_form(this, '{{form.prefix}}')">
+                                    <a id="delete_{{form.prefix}}" class="btn btn-danger btn-sm pull-right">
                                         <span class="fa fa-minus" aria-hidden="true"></span> {% trans 'Remove' %}
                                     </a>
+                                    <script type="text/javascript" nonce="{{request.csp_nonce}}">
+                                        $("#delete_{{form.prefix}}").click(function() {
+                                            delete_form(this, '{{form.prefix}}');
+                                        });
+                                    </script>
                                 </div>
                             </div>
                             {% for element in form.empty_form %}
@@ -175,10 +180,10 @@
                                 {% endif %}
                                         {% if element.label == "Delete" %}
                                         {% else %}
-                                            <label for="{{ element.id_for_label}}" {% if element.is_hidden %} style="display: None" {% endif %} class="col-sm-3 col-form-label text-end">
+                                            <label for="{{ element.id_for_label}}" class="col-sm-3 col-form-label text-end {% if element.is_hidden %}d-none {% endif %}fw-bold">
                                                 {{ element.label|translate }}
                                                 {% if  element.field.required %}
-                                                    <span class="fa fa-asterisk" style="color: red;" aria-hidden="true"></span>
+                                                    <span class="fa fa-asterisk text-danger" aria-hidden="true"></span>
                                                 {% endif %}
                                             </label>
                                             <div class="col-sm-9">
@@ -200,9 +205,14 @@
                             <div class="card">
                                 <div class="card-header">
                                     <strong>{{name|translate}}</strong>
-                                    <a class="btn btn-info btn-sm pull-right" onclick="add_form('{{form.prefix}}')">
+                                    <a id="add_{{form.prefix}}" class="btn btn-info btn-sm pull-right">
                                         <span class="fa fa-plus" aria-hidden="true"></span> {% trans 'Add' %}
                                     </a>
+                                    <script type="text/javascript" nonce="{{request.csp_nonce}}">
+                                        $("#add_{{form.prefix}}").click(function() {
+                                            add_form('{{form.prefix}}');
+                                        });
+                                    </script>
                                 </div>
                                 <div class="card-body">
                                     <div id="section_{{form.prefix}}">
@@ -220,17 +230,17 @@
                                                                 {% else %}
                                                                     <div class="row mb-3">
                                                                 {% endif %}
-                                                                <label for="{{ element.id_for_label}}" {% if element.is_hidden %} style="display: None" {% endif %} class="col-sm-3 col-form-label text-end">
+                                                                <label for="{{ element.id_for_label}}" class="col-sm-3 col-form-label text-end {% if element.is_hidden %}d-none {% endif %}fw-bold">
                                                                     {% if element.label == "Delete" %}
                                                                         {% trans 'Mark for deletion' %}
                                                                     {% else %}
                                                                         {{ element.label|translate }}
                                                                         {% if  element.field.required %}
-                                                                            <span class="fa fa-asterisk" style="color: red;" aria-hidden="true"></span>
+                                                                            <span class="fa fa-asterisk text-danger" aria-hidden="true"></span>
                                                                         {% endif %}
                                                                     {% endif %}
                                                                 </label>
-                                                                <div class="col-sm-9">
+                                                                <div class="col-sm-9{% if element|is_checkbox %} pt-2{% endif %}">
                                                                     {% if not element|is_checkbox %}
                                                                         {% if element|is_patient_relative_widget %}
                                                                             {{ element | add_attr:"class,form-control" | safe}}
@@ -294,15 +304,14 @@
                                                 <div class="row mb-3">
                                             {% endif %}
                                                 {% if link %}
-                                                    <label for="{{ element.id_for_label}}" style="text-align: left" class="col-sm-11 col-form-label">
+                                                    <label for="{{ element.id_for_label}}" class="col-sm-11 col-form-label text-start fw-bold">
                                                         {{ element.label|translate }}
                                                         {% if  element.field.required %}
-                                                            <span class="fa fa-asterisk" style="color: red;" aria-hidden="true"></span>
+                                                            <span class="fa fa-asterisk text-danger" aria-hidden="true"></span>
                                                         {% endif %}
                                                     </label>
-                                                    <div class="col-sm-1">
                                                 {% else %}
-                                                    <label for="{{ element.id_for_label}}" style="text-align: left; display: {{element.is_hidden|yesno:"None,block"}}" class="col-sm-11 col-form-label">
+                                                    <label for="{{ element.id_for_label}}" class="col-sm-11 col-form-label text-start {% if element.is_hidden %}d-none {% endif %}fw-bold">
                                                         {{ element.label|translate }}
 							<br>
 						    {% if not element.is_hidden %}
@@ -311,11 +320,11 @@
                                                     </small>
 						    {% endif %}
                                                         {% if  element.field.required %}
-                                                            <span class="fa fa-asterisk" style="color: red;" aria-hidden="true"></span>
+                                                            <span class="fa fa-asterisk text-danger" aria-hidden="true"></span>
                                                         {% endif %}
                                                     </label>
-                                                    <div class="col-sm-1">
                                                 {% endif %}
+                                                <div class="col-sm-1{% if element|is_checkbox %} pt-2{% endif %}">
                                                     {% if not element|is_checkbox %}
                                                         {{ element | add_attr:"class,form-control" }}
                                                     {% else %}

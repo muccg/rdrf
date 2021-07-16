@@ -42,7 +42,7 @@
     {% endif %}
 
     <script type="text/javascript" src="{% static 'js/vendor/jquery-3.6.0.min.js' %}"></script>
-    <script type="text/javascript" src="{% static 'js/vendor/jquery-ui-1.11.4.min.js' %}"></script>
+    <script type="text/javascript" src="{% static 'js/vendor/jquery-ui-1.12.1.min.js' %}"></script>
 
     {% if request.LANGUAGE_CODE.lower != "en" %}
     {% static "" as baseUrl %}
@@ -56,7 +56,7 @@
     <script type="text/javascript" src="{% static 'js/rpc_module.js' %}"></script>
     <script type="text/javascript" src="{% url 'javascript-catalog' %}"></script>
     <script type="text/javascript" src="{% static 'js/rdrf.js' %}"></script>
-    <script type="text/javascript">var django = { $: $.noConflict() }; if (!$) $ = django.$; </script>
+    <script type="text/javascript" nonce="{{request.csp_nonce}}">var django = { $: $.noConflict() }; if (!$) $ = django.$; </script>
 
     {% block extrastyle %}
     {% endblock %}
@@ -64,13 +64,16 @@
     {% block extrahead %}
     {% endblock %}
 
-    <script>
+    {% project_logo as PL %}
+    <script nonce="{{request.csp_nonce}}">
         $(document).ready(function () {
             $("#submit-btn").click(function () {
                 $("#main-form").submit();
             });
 
             hide_empty_menu();
+
+            $(".navbar .dropdown-menu").addClass("mt-{% if PL %}3{% else %}2{% endif %}");
         });
     </script>
 
@@ -81,7 +84,6 @@
         <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
             <div class="container">
                 <div class="navbar-header">
-                    {% project_logo as PL %}
                     {% if PL %}
                     {% static "" as baseUrl %}
                     <a href="{% project_logo_link %}" target="_blank">
@@ -102,7 +104,7 @@
 
                 <!-- Collect the nav links, forms, and other content for toggling -->
                 <div class="navbar-expanded-lg">
-                    <ul class="navbar-nav me-auto my-2 my-lg-0 navbar-nav-scroll" style="--bs-scroll-height: 100px;">
+                    <ul class="navbar-nav me-auto my-2 my-lg-0 navbar-nav-scroll">
                         {% if request.user.is_authenticated %}
                         {% block parent_menu %}
                         {% endblock %}
@@ -128,7 +130,7 @@
                                 aria-expanded="false">
                                 <span class="fa fa-tasks"></span> {% trans 'Menu' %}<span class="caret"></span>
                             </a>
-                            <ul class="dropdown-menu dropdown-menu-end">
+                            <ul class="dropdown-menu dropdown-menu-end" data-bs-display="static">
                                 {% for quick_link in request.user.menu_links %}
                                     <li><a class="dropdown-item" href="{{quick_link.url}}">{% trans quick_link.text %}</a></li>
                                 {% endfor %}
@@ -147,7 +149,7 @@
                                 <span class="fa fa-wrench"></span> {% trans 'Settings' %}<span
                                     class="caret"></span>
                             </a>
-                            <ul class="dropdown-menu dropdown-menu-end" role="menu">
+                            <ul class="dropdown-menu dropdown-menu-end" data-bs-display="static" role="menu">
                                 {% for quick_link in request.user.settings_links %}
                                 <li><a class="dropdown-item" href="{{quick_link.url}}">{{quick_link.text|translate}}</a></li>
                                 {% endfor %}
@@ -166,7 +168,7 @@
                             {{ request.user.first_name }} {{ request.user.last_name }}
                             <span class="caret"></span></a>
                             {% endif %}
-                            <ul class="dropdown-menu dropdown-menu-end">
+                            <ul class="dropdown-menu dropdown-menu-end" data-bs-display="static">
                                 {% if request.user.is_superuser %}
                                 <li><a class="dropdown-item" href="{% url 'admin:index' %}"><span class="fa fa-wrench"></span>
                                         {% trans 'Admin Page' %}</a></li>
@@ -202,66 +204,50 @@
         </nav>
 
         {% if location %}
-        <div class="banner">
-            <!-- base 2 cols banner -->
-            <div class="container">
-                <div class="row p-2 align-items-center">
-                    <!-- name row -->
-                    <div class="col-md-4 col-sm-4 col-xs-4" style="text-align: left">
-                        <h3><span class="fa fa-list-alt" aria-hidden="true"></span>
-                            {% block location %}
-                            {{ location|safe|translate }}
-                            {% endblock %}
-                        </h3>
-                    </div>
-                    <div class="col-md-4">
+        <nav class="navbar navbar-expand-lg navbar-light bg-light fixed-top border-bottom border-2 pb-0 pt-{% if PL %}2{% else %}1{% endif %} location-navbar">
+            <div class="container-fluid{% if PL %} mt-3{% endif %}">
+                <h3 class="navbar-brand fs-3 flex-fill"><span class="fa fa-list-alt" aria-hidden="true"></span>
+                    {% block location %}
+                    {{ location|safe|translate }}
+                    {% endblock %}
+                </h3>
+                <div class="navbar-nav flex-fill justify-content-start">
+                    <h3 class="nav-item me-5">
+                        {% if patient_link %}
+                        {{ patient_link | safe}}
+                        {% elif patient %}
+                        <i class="text-muted"><span class="fa fa-user" aria-hidden="true"></span>
+                            {{ patient }}
+                        </i>
+                        {% endif %}
+                    </h3>
+                    <span class="navbar-text nav-item">
                         {{ patient_info }} 
-
                         {% if patient.deident %}
                             <i class="text-muted">
                                 <span class="fa fa-tag" aria-hidden="true"></span>
                                 {{ patient.deident }}
                             </i>
                         {% endif %}
-                    </div>
-                    <div class="col-md-4 col-sm-4 col-xs-4" style="text-align: right">
-                        <h3>
-
-                            {% if patient_link %}
-                            {{ patient_link | safe}}
-                            {% elif patient %}
-                            <i class="text-muted"><span class="fa fa-user" aria-hidden="true"></span>
-                                {{ patient }}
-                            </i>
-
-                            {% endif %}
-			    
-			    
-                        </h3>
-                    </div>
+                    </span>
                 </div>
-                <div class="row">
-                    <!-- command button row -->
-                    <div class="col-md-6 col-sm-6 col-xs-6" style="text-align: left">
-                        {% if show_archive_button %}
-                        <div class="btn-group" role="group" aria-label="...">
-                            <a class="btn btn-danger" href="" data-bs-toggle="modal" data-bs-target="#archive_modal" target="_blank">
-                                <span class="fa fa-times" aria-hidden="true"></span>
-                                {% trans "Delete " %}
-                            </a>
-                        </div>
-                        {% endif %}
+                <div class="navbar-nav col-md-auto justify-content-end">
+                    {% block formbtns %}
+                    {% endblock %}
+                    {% if show_archive_button %}
+                    <div class="btn-group ms-5" role="group" aria-label="...">
+                        <a class="btn btn-danger" href="" data-bs-toggle="modal" data-bs-target="#archive_modal" target="_blank">
+                            <span class="fa fa-times" aria-hidden="true"></span>
+                            {% trans "Delete " %}
+                        </a>
                     </div>
-                    <div class="col-md-6 col-sm-6 col-xs-6" style="text-align: right">
-                        {% block formbtns %}
-                        {% endblock %}
-                    </div>
+                    {% endif %}
                 </div>
             </div>
-        </div>
+        </nav>
         {% endif %}
 
-        <div class="container-fluid" style="padding-top: 110px;">
+        <div class="container-fluid rdrf-content">
             {% if messages %}
                 {% for message in messages %}
                 <div class="col-md-6 offset-md-3">
@@ -274,7 +260,7 @@
 
             <div class="row">
                 <div class="col-md-2 offset-md-1">
-                    <div class="p-4 border mt-4" style="background-color: #eeeeee;">
+                    <div class="p-4 border mt-4 sidebar-bg">
                         {% block sidebar %}
                         {% endblock %}
                     </div>
@@ -300,6 +286,12 @@
 
     {% include 'rdrf_cdes/footer.html' %}
     <script type="text/javascript" src="{% static 'bootstrap-5.0.0/js/bootstrap.bundle.min.js' %}"></script>
+    <style type="text/css" nonce="{{request.csp_nonce}}">
+        .ui-menu .ui-menu-item {
+           list-style-image: none;
+           list-style: none;
+        }
+    </style>
 </body>
 
 </html>

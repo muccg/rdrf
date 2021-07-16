@@ -86,7 +86,7 @@
 <script type="text/javascript" src="{% static 'js/vendor/moment.min.js' %}"></script>
 <script type="text/javascript" src="{% static 'js/vendor/Chart.min.js' %}"></script>
 <script type="text/javascript" src="{% static 'js/form.js' %}"></script>
-<script>
+<script type="text/javascript" nonce="{{request.csp_nonce}}">
   $(function() {
     //var modal = $(".modal").modal("show");
     var modal = new bootstrap.Modal(document.getElementById("history_modal")).show();

@@ -159,7 +159,7 @@ MESSAGE_TAGS = {
 # shows up messages addressed to other users.
 MESSAGE_STORAGE = 'django.contrib.messages.storage.session.SessionStorage'
 
-MIDDLEWARE = (
+MIDDLEWARE = [
     'useraudit.middleware.RequestToThreadLocalMiddleware',
     'django.middleware.common.CommonMiddleware',
     'iprestrict.middleware.IPRestrictMiddleware',
@@ -173,9 +173,10 @@ MIDDLEWARE = (
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django_user_agents.middleware.UserAgentMiddleware',
-)
+]
 
-PROMS_MIDDLEWARE = (
+
+PROMS_MIDDLEWARE = [
     'useraudit.middleware.RequestToThreadLocalMiddleware',
     'django.middleware.common.CommonMiddleware',
     'iprestrict.middleware.IPRestrictMiddleware',
@@ -189,11 +190,14 @@ PROMS_MIDDLEWARE = (
     'django.middleware.security.SecurityMiddleware',
     'django_user_agents.middleware.UserAgentMiddleware',
     'csp.middleware.CSPMiddleware',
-)
+]
 
 if SYSTEM_ROLE == SystemRoles.CIC_PROMS:
     MIDDLEWARE = PROMS_MIDDLEWARE
-
+elif env.get("enable_csp", False):
+    MIDDLEWARE.append('csp.middleware.CSPMiddleware')
+else:
+    MIDDLEWARE.append('rdrf.middleware.DummyCSPMiddleware')
 
 INSTALLED_APPS = [
     'django.contrib.contenttypes',
@@ -760,9 +764,7 @@ if SESSION_SECURITY_ENABLE:
     SESSION_SECURITY_WARN_AFTER = env.get("session_security_warn_after", 480)
     SESSION_SECURITY_EXPIRE_AFTER = env.get("session_security_expire_after", 600)
 
-    middleware_list = list(MIDDLEWARE)
-    middleware_list.append('session_security.middleware.SessionSecurityMiddleware')
-    MIDDLEWARE = tuple(middleware_list)
+    MIDDLEWARE.append('session_security.middleware.SessionSecurityMiddleware')
     INSTALLED_APPS.append('session_security')
 
 # Enable user password change
@@ -812,6 +814,8 @@ if SYSTEM_ROLE in [SystemRoles.CIC_CLINICAL, SystemRoles.CIC_PROMS, SystemRoles.
 
 
 # Django CSP settings
-CSP_SCRIPT_SRC = ["'self'"]
+CSP_SCRIPT_SRC = ["'self'", "'sha256-r8Ei+YwP2DFcnblmk8Dzmb7Kh1iRT/3fv8R9JsfGd/Y='"]
+CSP_STYLE_SRC = ["'self'", "'unsafe-hashes'", "'sha256-aqNNdDLnnrDOnTNdkJpYlAxKVJtLt9CtFLklmInuUAE='"]
+CSP_IMG_SRC = ["'self'"]
 
-CSP_INCLUDE_NONCE_IN = ["script-src"]
+CSP_INCLUDE_NONCE_IN = ["script-src", "style-src"]

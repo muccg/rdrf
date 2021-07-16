@@ -302,7 +302,7 @@ def error_message_is(step, error_message):
 @step('location is "(.*)"')
 def location_is(step, location_name):
     world.browser.find_element_by_xpath(
-        '//div[@class="banner"]').find_element_by_xpath('//h3[contains(., "%s")]' % location_name)
+        '//nav[contains(@class, "location-navbar")]').find_element_by_xpath('//h3[contains(., "%s")]' % location_name)
 
 
 @step('When I click Module "(.*)" for patient "(.*)" on patientlisting')
@@ -384,7 +384,7 @@ def fill_in_textfield(step, textfield_label, text):
 def click_add_for_inline(step, section):
     section_div_heading = world.browser.find_element_by_xpath(
         "//div[@class='card-header'][contains(., '%s')]" % section)
-    add_link_xpath = """//a[starts-with(@onclick,"add_form")]"""
+    add_link_xpath = """//a[starts-with(@id,"add_")]"""
     add_link = section_div_heading.find_element_by_xpath(add_link_xpath)
     utils.click(add_link)
     wait_n_seconds(step, 5)
@@ -683,7 +683,7 @@ def check_history_popup(step, form, section, cde, history_values_csv):
     input_div = label_element.find_element_by_xpath(".//following-sibling::div")
     input_element = input_div.find_element_by_xpath(".//input")
     history_widget = label_element.find_elements_by_xpath(
-        ".//a[@onclick='rdrf_click_form_field_history(event, this)']")[0]
+        ".//a[starts-with(@id, 'cde_history_')]")[0]
 
     utils.scroll_to(input_element)
 
@@ -753,7 +753,7 @@ def scroll_to_section(step, section):
 def add_multisection_item(step, section):
     xpath = ".//div[@class='card-header' and contains(.,'%s') and not(contains(., '__prefix__')) and not(contains(.,'View previous values'))]" % section
     div = world.browser.find_element_by_xpath(xpath)
-    add_link_xpath = """.//a[starts-with(@onclick,"add_form('formset_")]"""
+    add_link_xpath = """.//a[starts-with(@id,"add_formset_")]"""
     add_link = div.find_element_by_xpath(add_link_xpath)
     # using utils.click to ensure button is visible and clickable
     utils.click(add_link)
@@ -1016,12 +1016,10 @@ def is_marked_as(step, cde, no, mark):
     html_map = {
         "abnormal": "fa fa-exclamation-triangle",
         "important": (
-            "class=\"fa fa-asterisk\" "
-            "style=\"color: green;\""
+            "class=\"fa fa-asterisk text-success\" "
         ),
         "required": (
-            "class=\"fa fa-asterisk\" "
-            "style=\"color: red;\""
+            "class=\"fa fa-asterisk text-danger\" "
         )
     }
     if no:

@@ -476,7 +476,7 @@ class Question extends React.Component<QuestionInterface, object> {
         const consentText = <span>By ticking this box you:
                                 <ul>
                                     <li>Give consent for the information you provide to be used for the CIC Cancer project; and </li>
-                                    <li>Will receive a reminder when the next survey is due.</li>
+                                    <li>Will receive a reminder when the next survey is due. {question.spec.survey_consent_information}</li>
                                 </ul>
                             </span>;
         return (

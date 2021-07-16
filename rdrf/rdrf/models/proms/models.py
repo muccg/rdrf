@@ -171,10 +171,17 @@ class SurveyQuestion(models.Model):
         else:
             return []
 
+    def _get_survey_consent_information(self):
+        if "survey_consent_information" in self.survey.registry.metadata:
+            return self.survey.registry.metadata["survey_consent_information"]
+        else:
+            return ""
+
     def _get_cde_specification(self):
         if self.cde.code == "PROMSConsent":
             return {
                 "ui": "consent",
+                "survey_consent_information": self._get_survey_consent_information()
             }
         elif self.cde.datatype == "range":
             ui = "range"  # select single

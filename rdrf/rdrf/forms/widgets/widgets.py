@@ -212,8 +212,7 @@ class CountryWidget(widgets.Select):
     def render(self, name, value, attrs, renderer=None):
         final_attrs = self.build_attrs(attrs, {
             "name": name,
-            "class": "form-select",
-            "onchange": "select_country(this)",
+            "class": "form-select country-select"
         })
         output = [format_html("<select{}>", flatatt(final_attrs))]
         empty_option = "<option value=''>---------</option>"
@@ -529,9 +528,9 @@ class SliderWidget(widgets.TextInput):
              </script>
              <input type="hidden" id="%s" name="%s" value="%s"/>
              <p>
-                 <div class='col-md-2' style="color: green; font-size: x-small"><strong><i>No pain</i></strong></div>
+                 <div class='col-md-2 text-success fs-6'><strong><i>No pain</i></strong></div>
                  <div class='col-md-7' id='%s'></div>
-                 <div class='col-md-3' style="color: red; font-size: x-small"><strong><i>Worst possible pain</i></strong></div>
+                 <div class='col-md-3 text-danger fs-6'><strong><i>Worst possible pain</i></strong></div>
              </p>
          """ % (name, value, attrs['id'], attrs['id'], name, value, name)
 

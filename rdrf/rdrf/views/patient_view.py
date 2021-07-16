@@ -626,7 +626,7 @@ class PatientEditView(View):
                                  "see_patient"):
                 raise PermissionDenied
 
-        context_launcher = RDRFContextLauncherComponent(request.user, registry_model, patient)
+        context_launcher = RDRFContextLauncherComponent(request.user, registry_model, patient, rdrf_nonce=request.csp_nonce)
         patient_info = RDRFPatientInfoComponent(registry_model, patient)
 
         family_linkage_panel = FamilyLinkagePanel(request.user,
@@ -704,7 +704,7 @@ class PatientEditView(View):
 
         registry_model = Registry.objects.get(code=registry_code)
 
-        context_launcher = RDRFContextLauncherComponent(request.user, registry_model, patient)
+        context_launcher = RDRFContextLauncherComponent(request.user, registry_model, patient, rdrf_nonce=request.csp_nonce)
         patient_info = RDRFPatientInfoComponent(registry_model, patient)
 
         if registry_model.patient_fields:

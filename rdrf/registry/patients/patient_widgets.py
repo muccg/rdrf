@@ -33,7 +33,7 @@ class PatientRelativeLinkWidget(widgets.Widget):
             else:
                 raise Exception("Patient not in a registry with family linkage")
 
-            html = """<a  href='%s'>Patient in registry</a>%s""" % (patient_url, hidden_field)
+            html = """<a class='align-text-top' href='%s'>Patient in registry</a>%s""" % (patient_url, hidden_field)
             return html
 
     def _get_default_context(self, reg_code, patient_id):

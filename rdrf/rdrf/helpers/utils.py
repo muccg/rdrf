@@ -903,7 +903,7 @@ def check_suspicious_sql(sql_query, user):
 
 def contains_blacklisted_words(text):
     return any(map(text.__contains__, ["socket", "process", "import", "system", "builtin",
-                                       "connect", "spawn", "delete"]))
+                                       "connect", "spawn", "delete", "eval"]))
 
 
 def is_filled(cde_model, value):
