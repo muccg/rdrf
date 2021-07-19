@@ -1,5 +1,5 @@
 
-j = django.jQuery;
+var j = jQuery.noConflict();
 
 
 function show_hide_data() {
