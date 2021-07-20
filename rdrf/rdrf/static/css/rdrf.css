@@ -277,3 +277,17 @@ form .aligned ul.errorlist {
     background-image: url("../icons/bootstrap/chevron-down.svg");
     background-size: 16px 16px;
 }
+
+.form-control.is-valid, .was-validated .form-control:valid {
+    background-image: url("../icons/bootstrap/green-tick.svg");
+    background-size: 16px 16px;
+}
+.form-control.is-invalid, .was-validated .form-control:invalid {
+    background-image: url("../icons/bootstrap/red-exclamation.svg");
+    background-size: 16px 16px;
+}
+
+.form-select.is-invalid:not([multiple]):not([size]), .form-select.is-invalid:not([multiple])[size="1"], .was-validated .form-select:invalid:not([multiple]):not([size]), .was-validated .form-select:invalid:not([multiple])[size="1"] {
+    background-image: url("../icons/bootstrap/red-exclamation.svg");
+    background-size: 16px 16px;
+}
