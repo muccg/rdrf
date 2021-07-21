@@ -2,6 +2,8 @@ from django.conf import settings
 from django.contrib.auth.models import Permission
 from django.contrib.auth.decorators import user_passes_test, REDIRECT_FIELD_NAME
 from django.contrib.contenttypes.models import ContentType
+from django.core.cache import caches
+from functools import wraps
 from django.core.files.uploadedfile import InMemoryUploadedFile, TemporaryUploadedFile
 from django.urls import reverse
 from django.db import IntegrityError
@@ -202,6 +204,21 @@ def cached(func):
 @cached
 def get_cached_instance(klass, *args, **kwargs):
     return klass.objects.get(*args, **kwargs)
+
+
+def use_cache(key=None):
+    def decorator(function):
+        @wraps(function)
+        def wrapper(*args, **kwargs):
+            query_cache = caches["queries"]
+            if key in query_cache:
+                return query_cache.get(key)
+            else:
+                result = function(*args, **kwargs)
+                query_cache.set(key, result)
+            return result
+        return wrapper
+    return decorator
 
 
 def is_multisection(code):
