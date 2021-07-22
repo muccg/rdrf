@@ -91,6 +91,8 @@ class Survey(models.Model):
             if has_bad_settings_for_followup or has_bad_settings_for_module:
                 raise ValidationError("The 'is followup' checkbox does not match the 'context form group' input.")
 
+        self.recalc_client_rep()
+
 
 class Precondition(models.Model):
     survey = models.ForeignKey(Survey, on_delete=models.CASCADE)
