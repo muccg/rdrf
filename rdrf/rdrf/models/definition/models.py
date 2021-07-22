@@ -223,7 +223,6 @@ class Registry(models.Model):
         return self.registry_type == RegistryType.NORMAL
 
     @property
-    @use_cache
     def metadata(self):
         if self.metadata_json:
             try:

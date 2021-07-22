@@ -18,3 +18,16 @@ def use_cache(function):
             query_cache.set(key, result)
             return result
     return wrapper
+
+
+def get_cache(key=None):
+    query_cache = caches["queries"]
+    if key in query_cache:
+        return query_cache.get(key)
+    else:
+        return None
+
+
+def set_cache(key=None, value=None):
+    query_cache = caches["queries"]
+    query_cache.set(key, value)
