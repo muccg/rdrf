@@ -1,11 +1,7 @@
 /* modules */
 /* this mixin makes possible to add transition to a specific vendor, example: */
 /* -webkit-transition: -webkit-transform 0.5s linear; */
-@import url(../../bootstrap-3.3.6/css/bootstrap.min.css);
-@import url(https://fonts.googleapis.com/css?family=Roboto:400,100,100italic,300italic,300,400italic,500,500italic,700,700italic,900,900italic);
-@import url(https://fonts.googleapis.com/css?family=Source+Sans+Pro:200,300,400,600,700,900,200italic,300italic,400italic,600italic,700italic,900italic);
-@import url(https://fonts.googleapis.com/css?family=Lato:100,300,400,700,900,100italic,300italic,400italic,700italic,900italic);
-@import url(https://fonts.googleapis.com/css?family=Merriweather:400,300italic,300,400italic,700,700italic);
+
 *:focus {
   outline: 0; }
 
@@ -223,11 +219,6 @@ a {
   -o-transition: all 0.25s linear;
   transition: all 0.25s linear; }
 
-/* config variables */
-/* roboto font */
-/* source sans pro */
-/* lato */
-/* merriweather */
 /* layout */
 a:focus, button:focus {
   outline: none; }
@@ -317,7 +308,7 @@ a:focus, button:focus {
     color: #fff;
     font-weight: 500;
     font-size: 26px;
-    font-family: "Lato", "Helvetica Neue", Arial; }
+    font-family: "Helvetica Neue", Arial; }
   .navbar.hero .navbar-nav > li.dropdown > a .caret {
     border-top-color: #EBEBEB; }
   .navbar.hero .navbar-nav > li > a {
@@ -372,7 +363,7 @@ a:focus, button:focus {
     color: #333;
     font-weight: bold;
     font-size: 30px;
-    font-family: "Lato", "Helvetica Neue", Arial;
+    font-family: "Helvetica Neue", Arial;
     padding-top: 24px; }
     @media (max-width: 767px) {
       .navbar.white .navbar-header .navbar-brand {
@@ -554,7 +545,7 @@ a:focus, button:focus {
           #footer-white .menu ul li a {
             padding: 0; } }
       #footer-white .menu ul li .hiring {
-        font-family: "Lato", "Helvetica Neue", Arial;
+        font-family: "Helvetica Neue", Arial;
         font-weight: 700;
         letter-spacing: .3px;
         text-transform: uppercase;
@@ -696,7 +687,7 @@ a:focus, button:focus {
     position: relative;
     z-index: 33; }
   #home #hero h1.hero-text {
-    font-family: "Lato", "Helvetica Neue", Arial;
+    font-family: "Helvetica Neue", Arial;
     line-height: 52px;
     text-align: left;
     font-size: 37px;
@@ -716,7 +707,7 @@ a:focus, button:focus {
     -webkit-font-smoothing: antialiased;
     width: 50%;
     margin-top: 25px;
-    font-family: "Lato", "Helvetica Neue", Arial;
+    font-family: "Helvetica Neue", Arial;
     color: #fff;
     font-weight: 400;
     font-size: 18px;
@@ -857,7 +848,7 @@ a:focus, button:focus {
   padding-bottom: 70px; }
   #home #pricing .header {
     text-align: center;
-    font-family: "Lato", "Helvetica Neue", Arial; }
+    font-family: "Helvetica Neue", Arial; }
     @media (max-width: 991px) {
       #home #pricing .header {
         margin-bottom: 25px; } }
@@ -972,7 +963,7 @@ a:focus, button:focus {
     text-align: center;
     -webkit-font-smoothing: antialiased; }
     #home #slider .header h3 {
-      font-family: "Lato", "Helvetica Neue", Arial;
+      font-family: "Helvetica Neue", Arial;
       font-size: 25px;
       color: #555;
       line-height: 25px;
@@ -1085,7 +1076,7 @@ a:focus, button:focus {
   #home #testimonials .header {
     text-align: center; }
     #home #testimonials .header h3 {
-      font-family: "Lato", "Helvetica Neue", Arial;
+      font-family: "Helvetica Neue", Arial;
       font-size: 23px;
       color: #656565;
       line-height: 25px;
@@ -1155,7 +1146,7 @@ a:focus, button:focus {
   text-align: center;
   margin-top: 120px; }
   #home #cta p {
-    font-family: "Lato", "Helvetica Neue", Arial;
+    font-family: "Helvetica Neue", Arial;
     font-size: 17px;
     color: #7A7D81;
     letter-spacing: 0.1px; }
@@ -1168,7 +1159,7 @@ a:focus, button:focus {
     font-size: 17px;
     letter-spacing: 0.7px;
     font-weight: 300;
-    font-family: Lato;
+    font-family: "Helvetica Neue", Arial;
     text-transform: uppercase;
     border-radius: 5px;
     -webkit-transition: all 0.2s linear;
@@ -1188,7 +1179,7 @@ a:focus, button:focus {
   #home #clients h3 {
     color: #FFF;
     margin-top: 0;
-    font-family: "Lato", "Helvetica Neue", Arial;
+    font-family: "Helvetica Neue", Arial;
     font-weight: 300;
     font-size: 35px;
     letter-spacing: .3px;
@@ -1196,7 +1187,7 @@ a:focus, button:focus {
   #home #clients p {
     font-size: 16px;
     color: #f8f8f8;
-    font-family: "Lato", "Helvetica Neue", Arial;
+    font-family: "Helvetica Neue", Arial;
     margin-top: 17px;
     font-weight: 300;
     line-height: 25px;
@@ -1391,7 +1382,7 @@ a:focus, button:focus {
           background: rgba(52, 52, 58, 0.6); }
       #home2 #hero .slides .slide.first .info h1.hero-text {
         margin-top: 65px;
-        font-family: "Lato", "Helvetica Neue", Arial;
+        font-family: "Helvetica Neue", Arial;
         font-size: 44px;
         line-height: 42px;
         letter-spacing: 0.7px;
@@ -1404,7 +1395,7 @@ a:focus, button:focus {
             text-align: center; } }
       #home2 #hero .slides .slide.first .info p {
         color: rgba(255, 255, 255, 0.94);
-        font-family: "Lato", "Helvetica Neue", Arial;
+        font-family: "Helvetica Neue", Arial;
         letter-spacing: 0.4px;
         margin-top: 15px;
         font-size: 18px;
@@ -1425,7 +1416,7 @@ a:focus, button:focus {
           margin: 0px 30px 0 0;
           padding: 16px 25px;
           letter-spacing: 0.3px;
-          font-family: "Lato", "Helvetica Neue", Arial;
+          font-family: "Helvetica Neue", Arial;
           text-transform: uppercase;
           border: 2px solid rgba(255, 255, 255, 0.8);
           background: rgba(0, 0, 0, 0.4); }
@@ -1470,7 +1461,7 @@ a:focus, button:focus {
           background: rgba(5, 11, 29, 0.55); }
       #home2 #hero .slides .slide.second h1.hero-text {
         text-align: center;
-        font-family: "Lato", "Helvetica Neue", Arial;
+        font-family: "Helvetica Neue", Arial;
         font-size: 37px;
         font-weight: 300;
         color: #fff;
@@ -1486,7 +1477,7 @@ a:focus, button:focus {
         -ms-animation-delay: 0.6s;
         animation-delay: 0.6s;
         margin: 0 auto;
-        font-family: "Lato", "Helvetica Neue", Arial;
+        font-family: "Helvetica Neue", Arial;
         line-height: 29px;
         margin-top: 25px;
         text-align: center;
@@ -1539,7 +1530,7 @@ a:focus, button:focus {
           animation-duration: 1s; }
         #home2 #hero .slides .slide.third h1.hero-text {
           text-align: center;
-          font-family: "Roboto";
+          font-family: "Helvetica Neue", Arial;
           font-size: 38px;
           font-weight: 300;
           color: #fff;
@@ -1724,7 +1715,7 @@ a:focus, button:focus {
   padding-bottom: 70px; }
   #home2 #pricing .header {
     text-align: center;
-    font-family: "Lato", "Helvetica Neue", Arial; }
+    font-family: "Helvetica Neue", Arial; }
     @media (max-width: 991px) {
       #home2 #pricing .header {
         margin-bottom: 25px; } }
@@ -1952,7 +1943,7 @@ a:focus, button:focus {
   text-align: center;
   margin-top: 120px; }
   #home2 #cta p {
-    font-family: "Lato", "Helvetica Neue", Arial;
+    font-family: "Helvetica Neue", Arial;
     font-size: 17px;
     color: #7A7D81;
     letter-spacing: 0.1px; }
@@ -1965,7 +1956,7 @@ a:focus, button:focus {
     font-size: 17px;
     letter-spacing: 0.7px;
     font-weight: 300;
-    font-family: Lato;
+    font-family: "Helvetica Neue", Arial;
     text-transform: uppercase;
     border-radius: 5px;
     -webkit-transition: all 0.2s linear;
@@ -1985,7 +1976,7 @@ a:focus, button:focus {
   #home2 #clients h3 {
     color: #FFF;
     margin-top: 0;
-    font-family: "Lato", "Helvetica Neue", Arial;
+    font-family: "Helvetica Neue", Arial;
     font-weight: 300;
     font-size: 35px;
     letter-spacing: .3px;
@@ -1993,7 +1984,7 @@ a:focus, button:focus {
   #home2 #clients p {
     font-size: 16px;
     color: #f8f8f8;
-    font-family: "Lato", "Helvetica Neue", Arial;
+    font-family: "Helvetica Neue", Arial;
     margin-top: 17px;
     font-weight: 300;
     line-height: 25px;
@@ -2193,7 +2184,7 @@ a:focus, button:focus {
     height: 100%; }
   #home3 #hero h1.hero-text {
     text-align: center;
-    font-family: "Roboto";
+    font-family: "Helvetica Neue", Arial;
     font-size: 35px;
     font-weight: 300;
     color: #fff;
@@ -2628,7 +2619,7 @@ a:focus, button:focus {
       padding-top: 105px; } }
   #home4 #hero h1.hero-text {
     text-align: center;
-    font-family: "Roboto";
+    font-family: "Helvetica Neue", Arial ;
     font-size: 36px;
     font-weight: 300;
     color: #fff;
@@ -3249,7 +3240,7 @@ a:focus, button:focus {
     text-align: center;
     -webkit-font-smoothing: antialiased; }
     #features #slider .header h3 {
-      font-family: "Lato", "Helvetica Neue", Arial;
+      font-family: "Helvetica Neue", Arial;
       font-size: 25px;
       color: #555;
       line-height: 25px;
@@ -3410,7 +3401,7 @@ a:focus, button:focus {
         margin: 0 auto;
         border-radius: 5px; }
       #features #showcase .pics .pic p {
-        font-family: Myriad Pro, Lato, Helvetica Neue, Arial;
+        font-family: Helvetica Neue, Arial;
         text-align: left;
         color: #fff;
         font-size: 22px;
@@ -3438,7 +3429,7 @@ a:focus, button:focus {
       #services #hero .info {
         text-align: center; } }
     #services #hero .info h3 {
-      font-family: Myriad Pro, Lato, Helvetica Neue, Arial;
+      font-family: Helvetica Neue, Arial;
       font-weight: 500;
       margin-top: 70px;
       font-size: 28px; }
@@ -3549,7 +3540,7 @@ a:focus, button:focus {
       margin-bottom: 35px; }
       #services #grid-second .header h3 {
         font-size: 27px;
-        font-family: Myriad Pro, Lato, Helvetica Neue, Arial;
+        font-family: Helvetica Neue, Arial;
         color: #444;
         line-height: 25px;
         font-weight: 500;
@@ -3693,7 +3684,7 @@ a:focus, button:focus {
     #signup .header .logo a {
       color: #fff;
       font-size: 31px;
-      font-family: "Lato", "Helvetica Neue", Arial;
+      font-family: "Helvetica Neue", Arial;
       text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.6);
       -webkit-transition: color 0.25s linear;
       -moz-transition: color 0.25s linear;
@@ -3708,7 +3699,7 @@ a:focus, button:focus {
     text-align: center;
     font-size: 28px;
     font-weight: 400;
-    font-family: Myriad Pro, Lato, Helvetica Neue, Arial;
+    font-family: Helvetica Neue, Arial;
     margin-top: 45px;
     margin-bottom: 5px; }
   #signup .header p {
@@ -3809,7 +3800,7 @@ a:focus, button:focus {
     #signup-rotate .header .logo a {
       color: #fff;
       font-size: 31px;
-      font-family: "Lato", "Helvetica Neue", Arial;
+      font-family: "Helvetica Neue", Arial;
       text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.6);
       -webkit-transition: color 0.25s linear;
       -moz-transition: color 0.25s linear;
@@ -3824,7 +3815,7 @@ a:focus, button:focus {
     text-align: center;
     font-size: 28px;
     font-weight: 400;
-    font-family: Myriad Pro, Lato, Helvetica Neue, Arial;
+    font-family: Helvetica Neue, Arial;
     margin-top: 45px;
     margin-bottom: 5px; }
   #signup-rotate .header p {
@@ -3971,7 +3962,7 @@ a:focus, button:focus {
             width: 100%;
             height: 100%; }
       #blog #posts .post .title {
-        font-family: Myriad Pro, Lato, Helvetica Neue, Arial;
+        font-family: Helvetica Neue, Arial;
         font-size: 28px;
         font-weight: 600;
         margin-top: 33px; }
@@ -4004,7 +3995,7 @@ a:focus, button:focus {
           top: -15px;
           border: 1px solid #e0e0e0; }
       #blog #posts .post .intro {
-        font-family: Source Sans Pro, Helvetica Neue, Arial;
+        font-family: Helvetica Neue, Arial;
         margin-top: 18px;
         font-size: 16px;
         line-height: 27px;
@@ -4013,7 +4004,7 @@ a:focus, button:focus {
           #blog #posts .post .intro {
             width: 90%; } }
       #blog #posts .post .continue-reading {
-        font-family: Source Sans Pro, Helvetica Neue, Arial;
+        font-family: Helvetica Neue, Arial;
         font-size: 15px;
         display: inline-block;
         margin-top: 8px;
@@ -4136,7 +4127,7 @@ a:focus, button:focus {
       margin-top: 35px;
       margin-bottom: 50px; }
       #blogpost #blogpost-wrapper .post .title {
-        font-family: Myriad Pro, Lato, Helvetica Neue, Arial;
+        font-family: Helvetica Neue, Arial;
         font-size: 31px;
         font-weight: 600;
         margin-top: 40px;
@@ -4163,7 +4154,7 @@ a:focus, button:focus {
           border: 1px solid #e0e0e0; }
       #blogpost #blogpost-wrapper .post .content {
         margin-top: 35px;
-        font-family: "Merriweather", Georgia;
+        font-family: "Helvetica Neue", Arial;
         font-size: 15px;
         line-height: 30px;
         color: #353535;
@@ -4877,7 +4868,7 @@ a:focus, button:focus {
     text-align: left; }
     #about-us #slider .header h3 {
       font-size: 26px;
-      font-family: Myriad Pro, Lato, Helvetica Neue, Arial;
+      font-family: Helvetica Neue, Arial;
       color: #444;
       line-height: 25px;
       font-weight: 600;
@@ -4915,7 +4906,7 @@ a:focus, button:focus {
   -webkit-font-smoothing: antialiased; }
   #about-us #info h1 {
     font-size: 24px;
-    font-family: Myriad Pro, Lato, Helvetica Neue, Arial;
+    font-family: Helvetica Neue, Arial;
     color: #444;
     line-height: 25px;
     font-weight: 500;
@@ -5086,7 +5077,7 @@ a:focus, button:focus {
       #contact-us #map #directions {
         display: none; } }
     #contact-us #map #directions p {
-      font-family: Myriad Pro, Lato, Helvetica Neue, Arial;
+      font-family: Helvetica Neue, Arial;
       font-size: 19px;
       color: #333; }
     #contact-us #map #directions button {
@@ -5096,7 +5087,7 @@ a:focus, button:focus {
   margin-top: 15px;
   margin-bottom: 100px; }
   #contact-us #info .message h3 {
-    font-family: Myriad Pro, Lato, Helvetica Neue, Arial;
+    font-family: Helvetica Neue, Arial;
     color: #444;
     font-size: 26px;
     font-weight: 600; }
@@ -5155,7 +5146,7 @@ a:focus, button:focus {
   #contact-us #info .contact .address {
     margin-bottom: 30px; }
   #contact-us #info .contact h3 {
-    font-family: Myriad Pro, Lato, Helvetica Neue, Arial;
+    font-family: Helvetica Neue, Arial;
     color: #252525;
     font-size: 18px;
     font-weight: 500; }
@@ -5448,7 +5439,7 @@ a:focus, button:focus {
     text-align: left; }
     #gallery #showcase .header h3 {
       font-size: 26px;
-      font-family: Myriad Pro, Lato, Helvetica Neue, Arial;
+      font-family: Helvetica Neue, Arial;
       color: #596166;
       line-height: 25px;
       font-weight: 600;
@@ -5654,7 +5645,7 @@ html.bg {
       margin-bottom: 40px; }
       #portfolio #showcase .header h3 {
         font-size: 30px;
-        font-family: Myriad Pro, Lato, Helvetica Neue, Arial;
+        font-family: Helvetica Neue, Arial;
         color: #596166;
         line-height: 25px;
         font-weight: 600;
@@ -5811,7 +5802,7 @@ html.bg {
     #portfolio-item #showcase .header h3 {
       display: inline-block;
       font-size: 17px;
-      font-family: Myriad Pro, Lato, Helvetica Neue, Arial;
+      font-family: Helvetica Neue, Arial;
       color: #53A6DA;
       margin-top: 0px;
       line-height: 25px;
@@ -6188,7 +6179,7 @@ html.bg {
     #coming-soon .info a {
       color: #5F5F5F;
       text-decoration: none;
-      font-family: Myriad Pro, Lato, Helvetica Neue, Arial;
+      font-family: Helvetica Neue, Arial;
       font-size: 46px; }
       #coming-soon .info a:hover {
         text-decoration: none; }
@@ -6288,7 +6279,7 @@ html.bg {
     font-size: 29px; }
     #docs #guide .logo a {
       color: #000;
-      font-family: Myriad Pro, Lato, Helvetica Neue, Arial;
+      font-family: Helvetica Neue, Arial;
       padding: 20px 0 15px 23px;
       display: block;
       border-bottom: 1px solid #D6DCE0;
@@ -6478,7 +6469,7 @@ html.bg {
     text-align: center;
     margin-top: 50px; }
     #invoice .logo a {
-      font-family: Myriad Pro, Lato, Helvetica Neue, Arial;
+      font-family: Helvetica Neue, Arial;
       font-size: 36px;
       letter-spacing: .1px;
       color: #555;

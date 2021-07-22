@@ -22,7 +22,7 @@
     
     <link rel="stylesheet" href="{% static 'css/jquery-1.12.1/themes/smoothness/jquery-ui.min.css' %}">
     <script type="text/javascript" src="{% static 'js/vendor/jquery-ui-1.12.1.min.js' %}"></script>
-    <script>
+    <script type="text/javascript" nonce="{{request.csp_nonce}}">
         $(document).ready(function() {
           $( ".datepicker" ).datepicker({
             showOn: "button",
@@ -111,15 +111,15 @@
             var total_forms_inc = parseInt(total_forms.val()) + 1;
             total_forms.attr("value", total_forms_inc);
 
-            $("<hr>").attr("style", "border: solid 1px gray").appendTo(new_form);
+            $("<hr>").addClass("border border-2").appendTo(new_form);
 
 	    if(total_forms_inc == 2) {
-		$("<hr>").attr("style", "border: solid 1px gray").prependTo(new_form);
+		$("<hr>").addClass("border border-2").prependTo(new_form);
 	    }
 
 	    var nodes = $(new_form).children().detach();
 	    var new_item = $("<div class='item'>").append(nodes);
-	    new_item.appendTo(forms).show("fast");
+	    new_item.appendTo(forms).toggleClass("d-none d-block");
     }
 
     function delete_form(form_div, prefix) {
@@ -179,7 +179,7 @@
     <br>
     <br>
     
-    <div class="text-center alert" id="msg-box"><b>Fields with an asterisk (<span class="fa fa-asterisk" style="color: red;" aria-hidden="true"></span>) are required.</b>
+    <div class="text-center alert" id="msg-box"><b>Fields with an asterisk (<span class="fa fa-asterisk text-danger" aria-hidden="true"></span>) are required.</b>
     </div>
 
     <form enctype="multipart/form-data" class="form" method="post" id="questionnaire-form">{% csrf_token %}
@@ -199,7 +199,7 @@
                             {% autoescape off %}
                                 {% for field in consent_wrapper.form %}
                                     <tr class="">
-                                        <td style="width: 40%; vertical-align: middle;">{{ field.label }}</td>
+                                        <td class="questionnaire-table-col">{{ field.label }}</td>
                                         <td>
                                                 {{field}}
                                         </td>
@@ -231,20 +231,30 @@
                         <!-- end management form for {{s}} -->
 			
 			<!-- start of hidden empty form for {{s}} -->
-			<div style="display: none;" id="empty_{{formset.prefix}}">
+			<div class="d-none" id="empty_{{formset.prefix}}">
 			  {{formset.empty_form.as_table}}
                            <div class="row mb-3">
                                         <div class="col">
-                                            <a class="btn btn-danger btn-sm pull-right" onclick="delete_form(this, '{{formset.prefix}}')">
+                                            <a id="delete_{{formset.prefix}}" class="btn btn-danger btn-sm pull-right">
                                                 <span class="fa fa-minus" aria-hidden="true"></span> {% trans "Remove" %}
                                             </a>
+                                            <script type="text/javascript" nonce="{{request.csp_nonce}}">
+                                                $("#delete_{{formset.prefix}}").click(function() {
+                                                    delete_form(this, '{{formset.prefix}}');
+                                                });
+                                            </script>
                                         </div>
                                     </div>
 
 			</div>
 			<!-- end of hidden empty form for {{s}} -->
 
-                        <button id="add_button_for_section_{{s}}" type="button" class="btn btn-success btn-small" onclick="add_form('{{formset.prefix}}');"><i class="icon-white icon-plus"></i> {% trans 'Add' %}</button>
+                        <button id="add_button_for_section_{{s}}" type="button" class="btn btn-success btn-small"><i class="icon-white icon-plus"></i> {% trans 'Add' %}</button>
+                        <script type="text/javascript" nonce="{{request.csp_nonce}}">
+                            $("#add_button_for_section_{{s}}").click(function() {
+                                add_form('{{formset.prefix}}');
+                            });
+                        </script>
 			<div id="forms_{{formset.prefix}}">
 
                             {% for f in forms|get_forms:s %}
@@ -261,10 +271,10 @@
                                 {% get_form_var forms s as form %}
                                 {% for field in form %}
                                     <tr>
-                                        <td style="width: 40%; vertical-align: middle;">
+                                        <td class="questionnaire-table-col">
                                              {{ field.label }}
                                              {% if  field.field.required %}
-                                                 <span class="fa fa-asterisk" style="color: red;" aria-hidden="true"></span>
+                                                 <span class="fa fa-asterisk text-danger" aria-hidden="true"></span>
                                              {% endif %}
 
                                         </td>

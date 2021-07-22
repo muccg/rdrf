@@ -1,9 +1,9 @@
 {% extends "rdrf_cdes/base-2-cols.html" %}
 {% load static %}
 {% block extrastyle %}
-        {{ block.super }}
-        <link rel="stylesheet" href="{% static 'css/jquery-1.12.1/themes/smoothness/jquery-ui.min.css' %}">
-    <style>
+    {{ block.super }}
+    <link rel="stylesheet" href="{% static 'css/jquery-1.12.1/themes/smoothness/jquery-ui.min.css' %}">
+    <style type="text/css" nonce="{{request.csp_nonce}}">
 
             .selectable .ui-selecting { border-width: 5px }
             .selectable .ui-selected { border-width: 2px }
@@ -15,7 +15,7 @@
 {% block extrahead %}
 
     <script type="text/javascript" src="{% static 'js/lookup.js' %}"></script>
-    <script>
+    <script type="text/javascript" nonce="{{request.csp_nonce}}">
         var initial_index = '{{ initial_index }}';
         var relationships = [];
         var tmpObject = null;
@@ -34,12 +34,18 @@
             return el;
         }
 
-        var link = _.template("<a href='<%= url %>'><%= text %></a>");
+        function linkTemplate(url, text) {
+            return ("<a href='" + url + "'>" + text + "</a>")
+        }
 
-        var index_row = _.template("<tr class='selectable draggable'><td><%= given_names %></td><td><%= family_name %></td><td><%= link %></td></tr>");
+        function indexRowTemplate(given_names, family_name, link) {
+            return ("<tr class='selectable draggable'><td>" + given_names + "</td><td>" + family_name + "</td><td>" + link + "</td></tr>")
+        }
 
-        var relative_row = _.template("<tr class='draggable selectable'><td><%= given_names %></td><td><%= family_name %></td>" +
-                                        "<td><%= relationship %></td><td><%= link %></td></tr>");
+        function relativeRowTemplate(given_names, family_name, relationship, link) {
+            return ("<tr class='draggable selectable'><td>" + given_names + "</td><td>" + family_name + "</td><td>" +
+                    relationship + "</td><td>" + link + "</td></tr>")
+        }
 
         function getIndexPatient() {
             if ($("#indexpatient table tr").length == 2){
@@ -136,16 +142,14 @@
             clearTableData("#indexpatient table");
 
             if (patient.link) {
-               patient_link = link({url: patient.link, text: "Demographics"});
+               patient_link = linkTemplate(patient.link, "Demographics");
             }
 	
-	    if (patient.working_group) {
-	        patient_link = patient.working_group;
-	    }
+            if (patient.working_group) {
+                patient_link = patient.working_group;
+            }
 
-            $("#indexpatient table").append(index_row({given_names: patient.given_names,
-                                                       family_name: patient.family_name,
-                                                       link: patient_link}));
+            $("#indexpatient table").append(indexRowTemplate(patient.given_names, patient.family_name, patient_link));
 
             $("#indexpatient table tr:last").data("object", patient);
 
@@ -154,37 +158,40 @@
         }
 
         function createRelationshipSelect(relationships, relative) {
-            var select = _.template("<select><%= options %></select>");
-            var option = _.template("<option <%= selected %> value='<%= value %>'><%= text %></option>");
+            function selectTemplate(options) {
+                return ("<select>" + options + "</select>");
+            }
+
+            function optionTemplate(selected, value, text) {
+                return ("<option " + selected + " value='" + value + "'>" + text + "</option>");
+            }
             var options = [];
 
             _.each(relationships, function (rel) {
                 if(rel==relative.relationship) {
-                    options.push(option({selected: "selected", value: rel, text: rel}));
+                    options.push(optionTemplate("selected", rel, rel));
                 }
                 else {
-                    options.push(option({selected: "", value: rel, text: rel}));
+                    options.push(optionTemplate("", rel, rel));
                 }
             });
 
-            return select({options: options.join("")})
+            return selectTemplate(options.join(""))
         }
 
         function addRelativeRow(relationships, relative) {
             var relative_link = "Not in registry";
             if (relative.link) {
-                relative_link = link({url: relative.link, text: "Demographics"});
+                relative_link = linkTemplate(relative.link, "Demographics");
             }
-	    if (relative.working_group) {
-	        relative_link = relative.working_group;
-	    }
+
+            if (relative.working_group) {
+                relative_link = relative.working_group;
+            }
 	
             var relationship_select = createRelationshipSelect(relationships, relative);
 
-            var table_row = relative_row({given_names: relative.given_names,
-                                          family_name: relative.family_name,
-                                          relationship: relationship_select,
-                                          link: relative_link});
+            var table_row = relativeRowTemplate(relative.given_names, relative.family_name, relationship_select, relative_link);
 
             $("#relatives table").append(table_row);
             $("#relatives table tr:last").data("object", relative);
@@ -318,7 +325,7 @@
         }
 
     </script>
-    <script type="text/javascript">
+    <script type="text/javascript" nonce="{{request.csp_nonce}}">
         (function($){
            $(document).ready(function() {
 
@@ -333,13 +340,21 @@
                     xhr.setRequestHeader('X-CSRFToken', csrfToken);
                 }});
 
-               $("#index_lookup").keyup(function() {
-                                         lookupIndex($(this), '{{index_lookup_url}}');
-               });
+                $("#index_lookup").keyup(function() {
+                                            lookupIndex($(this), '{{index_lookup_url}}');
+                });
 
-               if (initial_index != 'None') {
-                   loadInitial();
-               }
+                if (initial_index != 'None') {
+                    loadInitial();
+                }
+
+                $("#id_load_index").click(function() {
+                    load_index(this);
+                });
+
+                $("#id_add_patient").click(function() {
+                    add_patient(this);
+                });
            });
 
         })(jQuery);
@@ -379,8 +394,8 @@
                     <div class="card-body">
                         <div class="row">
                             Lookup Index: <input class="col-sm-3 mx-1" id="index_lookup" name="index_lookup" value=""/>
-                            <button class="col-auto mx-1" onclick="load_index(this);">Load this index and family</button>
-                            <button class="col-auto mx-1" onclick="add_patient(this);">Add looked up patient to family</button>
+                            <button id="id_load_index" class="col-auto mx-1">Load this index and family</button>
+                            <button id="id_add_patient" class="col-auto mx-1">Add looked up patient to family</button>
                         </div>
                     </div>
 
@@ -435,7 +450,7 @@
 
              <div class="col-md-2">
 
-            <div data-bs-spy="affix" style="width: 150px;">
+            <div data-bs-spy="affix" class="w-100">
                       </div>
 
 

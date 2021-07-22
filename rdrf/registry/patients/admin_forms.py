@@ -125,10 +125,8 @@ class PatientAddressForm(forms.ModelForm):
         model = PatientAddress
         fields = ('address_type', 'address', 'country', 'state', 'suburb', 'postcode')
 
-    country = forms.ChoiceField(required=True,
-                                widget=CountryWidget(attrs={'onChange': 'select_country(this);'}))
-    state = forms.ChoiceField(required=True,
-                              widget=StateWidget())
+    country = forms.ChoiceField(required=True, widget=CountryWidget())
+    state = forms.ChoiceField(required=True, widget=StateWidget())
     address = forms.CharField(widget=forms.Textarea(attrs={'rows': 5}))
 
     def clean_state(self):
@@ -168,8 +166,7 @@ class PatientForm(forms.ModelForm):
         "cols": 30,
     }
 
-    next_of_kin_country = forms.ChoiceField(required=False,
-                                            widget=CountryWidget(attrs={'onChange': 'select_country(this);'}))
+    next_of_kin_country = forms.ChoiceField(required=False, widget=CountryWidget())
     next_of_kin_state = forms.ChoiceField(required=False, widget=StateWidget())
     country_of_birth = forms.ChoiceField(required=False, widget=CountryWidget())
     cic_id = forms.CharField(required=False, widget=forms.HiddenInput())
@@ -231,7 +228,7 @@ class PatientForm(forms.ModelForm):
             registries = registries.filter(id=self.registry_model.id)
         self.fields["rdrf_registry"].queryset = registries
         if len(registries) == 1:
-            self.fields["rdrf_registry"].widget.attrs.update({"style": "display:none"})
+            self.fields["rdrf_registry"].widget.attrs = {"hidden": True}
             self.fields["rdrf_registry"].help_text = ""
             self.fields["rdrf_registry"].label = ""
             self.fields["rdrf_registry"].required = False
@@ -274,7 +271,7 @@ class PatientForm(forms.ModelForm):
                     if hidden:
                         if field in ["date_of_birth", "date_of_death", "date_of_migration"]:
                             self.fields[field].widget = forms.DateInput(
-                                attrs={'class': 'datepicker', 'style': 'display:none;'}, format='%d-%m-%Y')
+                                attrs={'class': 'datepicker', 'hidden': True}, format='%d-%m-%Y')
                             self.fields[field].label = ""
                             self.fields[field].help_text = ""
                         else:

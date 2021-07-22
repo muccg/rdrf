@@ -10,7 +10,7 @@
 
 {% block extrahead %}
     {{ block.super }}
-    <script>
+    <script type="text/javascript" nonce="{{request.csp_nonce}}">
         function setDTypeVal () {
             function validatorsString () {
                 $("#id_pv_group").prop("selectedIndex", 0);

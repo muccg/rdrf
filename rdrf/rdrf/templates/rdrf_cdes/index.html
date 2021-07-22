@@ -24,7 +24,7 @@
     <![endif]-->
 </head>
 <body id="home">
-    <nav class="navbar navbar-expand-lg navbar-dark hero">
+    <nav class="navbar navbar-expand-lg navbar-dark hero pt-0">
         <div class="container">
             <div class="navbar-header">
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".bs-navbar-collapse">
@@ -35,7 +35,7 @@
                 <a href="{% url 'landing' %}" class="navbar-brand">RDRF {% version_number %}</a>
             </div>
             <div class="navbar-expanded-lg">
-                <ul class="navbar-nav me-auto my-2 my-lg-0 navbar-nav-scroll" style="--bs-scroll-height: 100px;">
+                <ul class="navbar-nav me-auto my-2 my-lg-0 navbar-nav-scroll">
                     <li class="nav-item">
                         <a class="nav-link" href="https://muccg.github.io/rdrf/">{% trans "Project" %}</a>
                     </li>
@@ -46,7 +46,7 @@
                         <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown">
                             {% trans "Registries on this site" %}
                         </a>
-                        <ul class="dropdown-menu dropdown-menu-end">
+                        <ul class="dropdown-menu dropdown-menu-end" data-bs-display="static">
                             {% for reg in registries %}
                             <li>
                                 <a class="dropdown-item" href="{% url 'registry' reg.code %}">
@@ -79,14 +79,14 @@
     <div id="features">
         <div class="container">
             <div class="row header">
-                <div class="col-md-12">
+                <div class="col-md-12 mb-4">
                     <h3>{% trans "Need a patient registry for your department, clinic or community?" %}</h3>
                     <p>{% trans "RDRF allows for rapid creation of patient registries" %}.</p>
                 </div>
             </div>
             <div class="dropdown-divider"></div>
             <div class="row header">
-                <div class="col-md-12">
+                <div class="col-md-12 my-4">
                     <h3>{% trans "What is the Rare Disease Registry Framework?" %}</h3>
                     <p>{% blocktrans %}
               The Rare Disease Registry Framework (RDRF) is an open source tool for the creation of web-based patient registries. What makes it unique is that data entry forms and questionnaires are
@@ -97,7 +97,7 @@
             </div>
             <div class="dropdown-divider"></div>
             <div class="row header">
-                <div class="col-md-12">
+                <div class="col-md-12 mt-4">
                     <h3>{% trans "Publications" %}</h3>
                     <p>
 M.I. Bellgard, L. Render, M. Radochonski, and A. Hunter, Second generation registry framework, Source Code for Biology and Medicine, 9 (2014), 14.
@@ -131,31 +131,31 @@ M. Rodrigues, G. Hammond-Tooke, A. Kidd, D. Love, R. Patel, H. Dawkins, M. Bellg
 
     <div id="footer">
         <div class="container">
-            <div class="row">
+            <div class="row mb-2">
                 <div class="col-sm-12 menu">
-                    <ul>
-                        <li>
+                    <ul class="list-group list-group-horizontal text-center">
+                        <li class="col-sm-3 flex-fill">
                             <a href="mailto:rdrf@ccg.murdoch.edu.au">rdrf@ccg.murdoch.edu.au</a>
                         </li>
-                        <li>
+                        <li class="col-sm-3 flex-fill">
                             <a href="https://www.murdoch.edu.au/research/anpc">Australian National Phenome Centre</a>
                         </li>
-                        <li>
+                        <li class="col-sm-3 flex-fill">
                             <a href="http://www.genomics.health.wa.gov.au/">Office of Population Health Genomics</a>
                         </li>
                     </ul>
                 </div>
             </div>
-            <div class="row">
+            <div class="row mb-3">
                 <div class="col-sm-12 menu">
-                    <ul>
-                        <li>
+                    <ul class="list-group list-group-horizontal text-center">
+                        <li class="col-sm-3 flex-fill">
                             <a href="https://muccg.github.io/rdrf/">{% trans "Project" %}</a>
                         </li>
-                        <li>
+                        <li class="col-sm-3 flex-fill">
                             <a href="https://muccg.github.io/rdrf/docs/">{% trans "Documentation" %}</a>
                         </li>
-                        <li>
+                        <li class="col-sm-3 flex-fill">
                             <a href="https://github.com/muccg/rdrf/">{% trans "Source code" %}</a>
                         </li>
                     </ul>

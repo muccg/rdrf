@@ -19,7 +19,7 @@ def security_check(custom_action, user):
 class SQL:
     clinical_data_query = "SELECT django_id as pid, data, context_id, collection FROM rdrf_clinicaldata WHERE collection='cdes'"
     id_query = "SELECT id, deident from patients_patient WHERE deident IS NOT NULL AND active IS NOT FALSE"
-    sr_query = "SELECT p.deident as id, sr.survey_name, to_char(sr.updated,'YYYY-MM-DD HH24:MI:SS') , sr.communication_type, sr.state from rdrf_surveyrequest sr inner join patients_patient p on p.id = sr.patient_id"
+    sr_query = "SELECT p.deident as id, sr.survey_name, to_char(sr.updated,'YYYY-MM-DD HH24:MI:SS'), sr.communication_type, sr.state, sr.response from rdrf_surveyrequest sr inner join patients_patient p on p.id = sr.patient_id"
 
 
 class PipeLine:
@@ -74,7 +74,9 @@ class PipeLine:
                     "survey_name": row[1],
                     "updated": row[2],
                     "channel": row[3],
-                    "state": row[4]}
+                    "state": row[4],
+                    "response": row[5]
+                    }
 
         self.srs = [make_dict(row) for row in self._raw_sql(self.conn_demo, SQL.sr_query)]
 

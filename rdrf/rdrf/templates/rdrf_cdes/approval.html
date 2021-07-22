@@ -7,7 +7,7 @@
 
 {% block extrastyle %}
     {{ block.super }}
-    <script>
+    <script type="text/javascript" nonce="{{request.csp_nonce}}">
         $(document).ready(function() {
             $('#reject-btn').click(function() {
                 $('<input>').attr({
@@ -51,6 +51,6 @@
     <button type="button" class="btn btn-info" id="admin-btn">Back to admin</button>
     
     <button type="button" class="btn btn-danger pull-right" id="reject-btn">Reject</button>
-    <button type="submit" class="btn btn-success pull-right" style="">Approve</button>
+    <button type="submit" class="btn btn-success pull-right">Approve</button>
 </form>
 {% endblock %}

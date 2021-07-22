@@ -8,14 +8,14 @@ from rdrf.models.definition.models import CdePolicy
 logger = logging.getLogger(__name__)
 
 
-def create_form_class(owner_class_name):
+def create_form_class(owner_class_name, csp_nonce=None):
     from rdrf.models.definition.models import CommonDataElement
     form_class_name = "CDEForm"
     cde_map = {}
     base_fields = {}
 
     for cde in CommonDataElement.objects.all().filter(owner=owner_class_name):
-        cde_field = FieldFactory(cde).create_field()
+        cde_field = FieldFactory(cde, csp_nonce=csp_nonce).create_field()
         field_name = cde.code
         # e.g.  "CDE0023" --> the cde element corresponding to this code
         cde_map[field_name] = cde
@@ -50,7 +50,8 @@ def create_form_class_for_section(
         injected_model_id=None,
         is_superuser=None,
         user_groups=None,
-        patient_model=None):
+        patient_model=None,
+        csp_nonce=None):
 
     base_fields = OrderedDict()
     for cde in section.cde_models:
@@ -69,7 +70,8 @@ def create_form_class_for_section(
             questionnaire_context,
             injected_model=injected_model,
             injected_model_id=injected_model_id,
-            is_superuser=is_superuser).create_field()
+            is_superuser=is_superuser,
+            csp_nonce=csp_nonce).create_field()
 
         cde_field.important = cde.important
 

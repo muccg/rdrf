@@ -3,7 +3,7 @@
 {% load i18n %}
 
 {% block extrahead %}
-<script>
+<script type="text/javascript" nonce="{{request.csp_nonce}}">
   $(document).ready(function () {
      $(".well").hide();
   });
@@ -49,11 +49,11 @@
     {% for field in form %}
     <tr>
       <td scope="row">{{forloop.counter}}<input type="hidden" name="pos_{{field.name}}" value={{forloop.counter}}></td>
-      <td><div class="col-form-label" style="display: block"> {{field.label}}</div></td>
+      <td><div class="col-form-label d-block"> {{field.label}}</div></td>
       <td>{{field.patient_answer}}<input type="hidden" name="patient_data_{{field.name}}" value="{{field.patient_data}}"></td>
       <td>
 	<div class="col-sm-9">
-	<select id="id_status_{{field.name}}" name="status_{{field.name}}" style="width: 110px !important;" class="form-select">
+	<select id="id_status_{{field.name}}" name="status_{{field.name}}" class="form-select verification-status">
 	  {% for option in options %}
 	      {% if option.0 == field.status %}
 	          <option value="{{option.0}}" selected>{{option.1}}</option>

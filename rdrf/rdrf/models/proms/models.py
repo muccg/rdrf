@@ -56,9 +56,20 @@ class Survey(models.Model):
                              null=True,
                              on_delete=models.SET_NULL)
 
+    client_rep_json = models.TextField(blank=True, null=True)
+
     @property
     def client_rep(self):
-        return [sq.client_rep for sq in self.survey_questions.all().order_by('position')]
+        if self.client_rep_json:
+            return self.client_rep_json
+        else:
+            self.recalc_client_rep()
+            self.save()
+            return self.client_rep_json
+
+    def recalc_client_rep(self):
+        values = [sq.client_rep for sq in self.survey_questions.all().order_by('position')]
+        self.client_rep_json = json.dumps(values)
 
     def __str__(self):
         return "%s Survey: %s" % (self.registry.code, self.name)
@@ -79,6 +90,8 @@ class Survey(models.Model):
             has_bad_settings_for_followup = self.context_form_group.context_type == 'M' and self.is_followup is False
             if has_bad_settings_for_followup or has_bad_settings_for_module:
                 raise ValidationError("The 'is followup' checkbox does not match the 'context form group' input.")
+
+        self.recalc_client_rep()
 
 
 class Precondition(models.Model):
@@ -171,10 +184,17 @@ class SurveyQuestion(models.Model):
         else:
             return []
 
+    def _get_survey_consent_information(self):
+        if "survey_consent_information" in self.survey.registry.metadata:
+            return self.survey.registry.metadata["survey_consent_information"]
+        else:
+            return ""
+
     def _get_cde_specification(self):
         if self.cde.code == "PROMSConsent":
             return {
                 "ui": "consent",
+                "survey_consent_information": self._get_survey_consent_information()
             }
         elif self.cde.datatype == "range":
             ui = "range"  # select single

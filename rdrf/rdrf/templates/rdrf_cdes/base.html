@@ -34,7 +34,7 @@
     <script type="text/javascript" src="{% static 'js/vendor/jquery-ui-1.12.1.min.js' %}"></script>
 
     {% if session_security_enabled %}
-        {% include 'session_security/all.html' %}
+        {% include 'rdrf_cdes/session_security_template.html' %}
     {% endif %}
 
     {% if request.LANGUAGE_CODE.lower != "en" %}
@@ -42,7 +42,7 @@
     <script src="{{ baseUrl }}/js/vendor/i18n/datepicker-{{ request.LANGUAGE_CODE }}.js"></script>
     {% endif %}
 
-    <script src="https://ajax.aspnetcdn.com/ajax/jquery.validate/1.13.1/jquery.validate.min.js"></script>
+    <script type="text/javascript" src="{% static 'js/vendor/jquery.validate-1.13.1.min.js'%}"></script>
     <script type="text/javascript" src="{% static 'js/date_validation.js' %}"></script>
     <script type="text/javascript" src="{% static 'js/calculated_field_plugin.js' %}"></script>
     <script type="text/javascript" src="{% static 'js/toggle_disabled.js' %}"></script>
@@ -50,9 +50,9 @@
     <script type="text/javascript" src="{% url 'javascript-catalog' %}"></script>
     <script type="text/javascript" src="{% static 'js/rpc_module.js' %}"></script>
     <script type="text/javascript" src="{% static 'js/rdrf.js' %}"></script>
-    <script type="text/javascript">var django = { $: $.noConflict() }; if (!$) $ = django.$; </script>
+    <script type="text/javascript" nonce="{{request.csp_nonce}}">var django = { $: $.noConflict() }; if (!$) $ = django.$; </script>
     {% block extrastyle %}
-    <style>
+    <style type="text/css" nonce="{{request.csp_nonce}}">
         body {
             padding-top: 60px;
         }
@@ -64,7 +64,8 @@
     {% endblock %}
     {% block extrahead %}{% endblock %}
 
-    <script>
+    {% project_logo as PL %}
+    <script type="text/javascript" nonce="{{request.csp_nonce}}">
         $(document).ready(function () {
             addExtraValidationMethods();
 
@@ -80,6 +81,7 @@
                 container: 'body'
             });
 
+            $(".navbar .dropdown-menu").addClass("mt-{% if PL %}3{% else %}2{% endif %}");
         });
     </script>
 </head>
@@ -96,8 +98,6 @@
             <div class="container">
                 <div class="navbar-header">
                     <div class="col_project_header">
-                        {% project_logo as PL %}
-
                         {% if PL %}
                         {% static "" as baseUrl %}
                         <a href="{% project_logo_link %}" target="_blank">
@@ -119,7 +119,7 @@
 
                 <!-- Collect the nav links, forms, and other content for toggling -->
                 <div class="navbar-expanded-lg">
-                    <ul class="navbar-nav me-auto my-2 my-lg-0 navbar-nav-scroll" style="--bs-scroll-height: 100px;">
+                    <ul class="navbar-nav me-auto my-2 my-lg-0 navbar-nav-scroll">
                         {% if request.user.is_authenticated %}
                         {% block parent_menu %}
                         {% endblock %}
@@ -144,7 +144,7 @@
                             <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                                 <span class="fa fa-tasks"></span> {% trans "Menu" %}<span class="caret"></span>
                             </a>
-                            <ul class="dropdown-menu dropdown-menu-end">
+                            <ul class="dropdown-menu dropdown-menu-end" data-bs-display="static">
                                 {% for quick_link in request.user.menu_links %}
                                 <li><a class="dropdown-item" href="{{quick_link.url}}">{% trans quick_link.text %}</a></li>
                                 {% endfor %}
@@ -158,7 +158,7 @@
                             <a href="#" class="nav-link dropdown-toggle" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                                 <span class="fa fa-wrench"></span> {% trans "Settings" %}<span class="caret"></span>
                             </a>
-                            <ul class="dropdown-menu dropdown-menu-end">
+                            <ul class="dropdown-menu dropdown-menu-end" data-bs-display="static">
                                 {% for quick_link in request.user.settings_links %}
                                 <li><a class="dropdown-item" href="{{quick_link.url}}">{% trans quick_link.text %}</a></li>
                                 {% endfor %}
@@ -171,7 +171,7 @@
                                 <span class="fa fa-user"></span> {{ request.user.first_name }}
                                 {{ request.user.last_name }} <span class="caret"></span></a>
 
-                            <ul class="dropdown-menu dropdown-menu-end">
+                            <ul class="dropdown-menu dropdown-menu-end" data-bs-display="static">
                                 {% if request.user.is_superuser %}
                                 <li><a class="dropdown-item" href="{% url 'admin:index' %}"><span class="fa fa-wrench"></span>
                                         {% trans "Admin Page" %}</a></li>
