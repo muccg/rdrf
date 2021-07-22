@@ -51,7 +51,7 @@ class PromsView(View):
                                          registry=registry_model,
                                          name=survey_name)
 
-        survey_questions = survey_model.client_rep
+        survey_questions_json = survey_model.client_rep
 
         completed_page = reverse("proms_completed")
 
@@ -60,7 +60,7 @@ class PromsView(View):
                    "registry_code": registry_model.code,
                    "survey_name": survey_name,
                    "completed_page": completed_page,
-                   "questions": json.dumps(survey_questions),
+                   "questions": survey_questions_json,
                    }
 
         if hasattr(settings, "PROMS_TEMPLATE"):
@@ -87,15 +87,10 @@ class PromsLandingPageView(View):
         patient_token = request.GET.get("t", None)
         registry_code = request.GET.get("r", None)
         survey_name = request.GET.get("s", None)
-        if not self._is_valid(patient_token,
-                              registry_code,
-                              survey_name):
-            raise Http404
-
         registry_model = get_object_or_404(Registry, code=registry_code)
-        check_login = registry_model.has_feature("proms_landing_login")
 
         survey_assignment = get_object_or_404(SurveyAssignment,
+                                              registry=registry_model,
                                               patient_token=patient_token,
                                               state=SurveyStates.REQUESTED)
         survey_display_name = survey_assignment.survey.display_name
@@ -105,27 +100,19 @@ class PromsLandingPageView(View):
             "survey_name": survey_display_name
         }
 
-        if check_login:
-            if request.user.is_anonymous:
-                logger.warning(f"User id {request.user.id} not authorised to see survey (user is anonymous)")
-                raise Http404
-            else:
-                from rdrf.helpers.utils import is_authorised
-                # NB this will only work if proms on same site
-                t = survey_assignment.patient_token
-                survey_request = get_object_or_404(SurveyRequest,
-                                                   patient_token=t,
-                                                   state="requested")
-                patient_model = survey_request.patient
-
-                if not is_authorised(request.user, patient_model):
-                    logger.warning(f"User id {request.user.id} not authorised to see survey")
-                    raise Http404
-
         return render(request, "proms/preamble.html", context)
 
     def _is_valid(self, patient_token, registry_code, survey_name):
-        return True
+        try:
+            _ = SurveyAssignment.objects.get(registry__code=registry_code,
+                                             survey_name=survey_name,
+                                             patient_token=patient_token,
+                                             state="requested")
+            return True
+        except SurveyAssignment.DoesNotExist:
+            return False
+        except SurveyAssignment.MultipleObjectsReturned:
+            return False
 
     def post(self, request):
         patient_token = request.GET.get("t", None)
