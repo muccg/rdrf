@@ -22,10 +22,10 @@ def use_cache(function):
 
 def use_object_cache(method):
     def wrapper(*args, **kwargs):
-        self = args[0]
-        obj = re.sub(illegal_characters, '', str(self))
+        obj = args[0]
+        obj_str = re.sub(illegal_characters, '', str(obj))
         kw = re.sub(illegal_characters, '', str(kwargs))
-        key = f"{method.__qualname__}_{obj}_id{str(self.pk)}_{kw}"
+        key = f"{method.__qualname__}_{obj_str}_id{str(obj.pk)}_{kw}"
         query_cache = caches["queries"]
         if key in query_cache:
             logger.info(f"Fetching from Cache: {key}")
