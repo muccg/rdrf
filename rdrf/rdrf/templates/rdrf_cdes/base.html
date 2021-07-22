@@ -34,7 +34,7 @@
     <script type="text/javascript" src="{% static 'js/vendor/jquery-ui-1.12.1.min.js' %}"></script>
 
     {% if session_security_enabled %}
-        {% include 'session_security/all.html' %}
+        {% include 'rdrf_cdes/session_security_template.html' %}
     {% endif %}
 
     {% if request.LANGUAGE_CODE.lower != "en" %}
