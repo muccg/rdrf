@@ -4,12 +4,14 @@ from django.core.cache import caches
 
 logger = logging.getLogger(__name__)
 
-illegal_characters = r"[:\"{}' ]"
+illegal_characters = r"[:\"{}' <>,]"
 
 
 def use_cache(function):
     def wrapper(*args, **kwargs):
-        key = f"{function.__name__}_{re.sub(illegal_characters, '', str(kwargs))}"
+        kwargs_str = re.sub(illegal_characters, '', str(kwargs))
+        args_str = re.sub(illegal_characters, '', str(args))
+        key = f"{function.__name__}_{kwargs_str}_{args_str}"
         query_cache = caches["queries"]
         if key in query_cache:
             return query_cache.get(key)
@@ -24,8 +26,9 @@ def use_object_cache(method):
     def wrapper(*args, **kwargs):
         obj = args[0]
         obj_str = re.sub(illegal_characters, '', str(obj))
-        kw = re.sub(illegal_characters, '', str(kwargs))
-        key = f"{method.__qualname__}_{obj_str}_id{str(obj.pk)}_{kw}"
+        kwargs_str = re.sub(illegal_characters, '', str(kwargs))
+        args_str = re.sub(illegal_characters, '', str(args))
+        key = f"{method.__qualname__}_{obj_str}_id{str(obj.pk)}_{kwargs_str}_{args_str}"
         query_cache = caches["queries"]
         if key in query_cache:
             logger.info(f"Fetching from Cache: {key}")
