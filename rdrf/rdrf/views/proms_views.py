@@ -17,7 +17,6 @@ from rdrf.models.proms.models import SurveyRequest
 from rdrf.models.proms.models import SurveyRequestStates
 from django.http import JsonResponse
 from django.conf import settings
-import json
 import qrcode
 from django.utils.decorators import method_decorator
 from django.contrib.auth.decorators import login_required
@@ -86,7 +85,6 @@ class PromsLandingPageView(View):
     def get(self, request):
         patient_token = request.GET.get("t", None)
         registry_code = request.GET.get("r", None)
-        survey_name = request.GET.get("s", None)
         registry_model = get_object_or_404(Registry, code=registry_code)
 
         survey_assignment = get_object_or_404(SurveyAssignment,

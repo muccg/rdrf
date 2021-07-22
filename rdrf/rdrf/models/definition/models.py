@@ -20,7 +20,6 @@ from django.forms.models import model_to_dict
 from django.utils.safestring import mark_safe
 from django.core.exceptions import PermissionDenied
 
-from rdrf.helpers.decorators import use_cache
 from rdrf.helpers.utils import format_date, parse_iso_datetime, contains_blacklisted_words
 from rdrf.helpers.utils import LinkWrapper
 from rdrf.events.events import EventType
