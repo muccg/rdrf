@@ -102,8 +102,8 @@ class Section(models.Model):
                     "section %s refers to CDE with code %s which doesn't exist" %
                     (self.display_name, code)) for code in missing]
 
-        seen_elements = set()
-        duplicates = {element for element in self.get_elements() if element in seen_elements or (seen_elements.add(element) or False)}
+        element_list = self.get_elements()
+        duplicates = [elem for elem in set(element_list) if element_list.count(elem) > 1]
 
         if len(duplicates) != 0:
             if "elements" in list(errors.keys()):
