@@ -17,3 +17,4 @@ GHERKIN_TEST_CLASS = 'aloe.testclass.TestCase'
 
 MIGRATION_MODULES = {"iprestrict": None}
 IPRESTRICT_GEOIP_ENABLED = False
+CACHE_DISABLED = True

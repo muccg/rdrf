@@ -650,6 +650,8 @@ class Importer(object):
                 if sq_model.precondition:
                     logger.info("Imported precondition: %s = %s" % (sq_model.precondition.cde.code,
                                                                     sq_model.precondition.value))
+            survey_model.recalc_client_rep()
+            survey_model.save()
             logger.info("Imported Survey %s" % survey_model.name)
 
     def _create_reviews(self, registry_model):

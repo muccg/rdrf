@@ -20,6 +20,7 @@ from django.forms.models import model_to_dict
 from django.utils.safestring import mark_safe
 from django.core.exceptions import PermissionDenied
 
+from rdrf.helpers.cache_utils import use_query_cache
 from rdrf.helpers.utils import format_date, parse_iso_datetime, contains_blacklisted_words
 from rdrf.helpers.utils import LinkWrapper
 from rdrf.events.events import EventType
@@ -77,6 +78,7 @@ class Section(models.Model):
         return [code.strip() for code in self.elements.split(",")]
 
     @property
+    @use_query_cache
     def cde_models(self):
         codes = self.get_elements()
         qs = CommonDataElement.objects.filter(code__in=codes)
@@ -101,6 +103,20 @@ class Section(models.Model):
                 ValidationError(
                     "section %s refers to CDE with code %s which doesn't exist" %
                     (self.display_name, code)) for code in missing]
+
+        element_list = self.get_elements()
+        duplicates = [elem for elem in set(element_list) if element_list.count(elem) > 1]
+
+        if len(duplicates) != 0:
+            if "elements" in list(errors.keys()):
+                errors["elements"].extend([ValidationError(
+                    "The CDE with code %s is already referred to in section %s" %
+                    (code, self.code)) for code in duplicates]
+                )
+            else:
+                errors["elements"] = [ValidationError(
+                    "The CDE with code %s is already referred to in section %s" %
+                    (code, self.code)) for code in duplicates]
 
         if any(x in self.code for x in (" ", "&")):
             errors["code"] = ValidationError(
@@ -437,6 +453,7 @@ class Registry(models.Model):
         )
 
     @property
+    @use_query_cache
     def forms(self):
         return [f for f in RegistryForm.objects.filter(registry=self).order_by('position')]
 
@@ -995,6 +1012,7 @@ class RegistryForm(models.Model):
         return list(filter(bool, map(str.strip, self.questionnaire_questions.split(","))))
 
     @property
+    @use_query_cache
     def section_models(self):
         models = []
         for section_code in self.get_sections():
