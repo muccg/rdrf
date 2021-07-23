@@ -78,6 +78,7 @@ class Section(models.Model):
         return [code.strip() for code in self.elements.split(",")]
 
     @property
+    @use_object_cache
     def cde_models(self):
         codes = self.get_elements()
         qs = CommonDataElement.objects.filter(code__in=codes)
@@ -237,7 +238,6 @@ class Registry(models.Model):
         return self.registry_type == RegistryType.NORMAL
 
     @property
-    @use_object_cache
     def metadata(self):
         if self.metadata_json:
             try:
@@ -453,10 +453,10 @@ class Registry(models.Model):
         )
 
     @property
+    @use_object_cache
     def forms(self):
         return [f for f in RegistryForm.objects.filter(registry=self).order_by('position')]
 
-    @use_object_cache
     def has_feature(self, feature):
         if "features" in self.metadata:
             return feature in self.metadata["features"]
@@ -1012,6 +1012,7 @@ class RegistryForm(models.Model):
         return list(filter(bool, map(str.strip, self.questionnaire_questions.split(","))))
 
     @property
+    @use_object_cache
     def section_models(self):
         models = []
         for section_code in self.get_sections():

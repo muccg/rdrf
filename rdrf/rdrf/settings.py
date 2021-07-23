@@ -495,6 +495,7 @@ ALLOWED_HOSTS = env.getlist("allowed_hosts", ["localhost"])
 # see: https://docs.djangoproject.com/en/1.4/ref/settings/#use-x-forwarded-host
 USE_X_FORWARDED_HOST = env.get("use_x_forwarded_host", True)
 
+CACHE_DISABLED = False
 if env.get("memcache", ""):
     backend = 'django.core.cache.backends.memcached.MemcachedCache'
     location = env.getlist("memcache")
