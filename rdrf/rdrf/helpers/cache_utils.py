@@ -1,5 +1,4 @@
 import logging
-import re
 from django.conf import settings
 from django.core.cache import caches
 from ccg_django_utils.conf import EnvConfig
