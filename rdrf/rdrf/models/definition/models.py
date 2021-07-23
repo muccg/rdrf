@@ -20,7 +20,7 @@ from django.forms.models import model_to_dict
 from django.utils.safestring import mark_safe
 from django.core.exceptions import PermissionDenied
 
-from rdrf.helpers.cache_utils import use_object_cache
+from rdrf.helpers.cache_utils import use_query_cache
 from rdrf.helpers.utils import format_date, parse_iso_datetime, contains_blacklisted_words
 from rdrf.helpers.utils import LinkWrapper
 from rdrf.events.events import EventType
@@ -78,7 +78,7 @@ class Section(models.Model):
         return [code.strip() for code in self.elements.split(",")]
 
     @property
-    @use_object_cache
+    @use_query_cache
     def cde_models(self):
         codes = self.get_elements()
         qs = CommonDataElement.objects.filter(code__in=codes)
@@ -453,7 +453,7 @@ class Registry(models.Model):
         )
 
     @property
-    @use_object_cache
+    @use_query_cache
     def forms(self):
         return [f for f in RegistryForm.objects.filter(registry=self).order_by('position')]
 
@@ -1012,7 +1012,7 @@ class RegistryForm(models.Model):
         return list(filter(bool, map(str.strip, self.questionnaire_questions.split(","))))
 
     @property
-    @use_object_cache
+    @use_query_cache
     def section_models(self):
         models = []
         for section_code in self.get_sections():

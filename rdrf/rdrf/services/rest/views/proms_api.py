@@ -19,7 +19,6 @@ from rdrf.services.io.defs.exporter import Exporter
 from rdrf.services.io.defs.importer import Importer
 from rdrf.services.rest.serializers import SurveyAssignmentSerializer, RegistryYamlSerializer
 from rdrf.services.rest.auth import PromsAuthentication
-from rdrf.helpers.cache_utils import use_cache
 from rest_framework.permissions import AllowAny
 import requests
 import json
@@ -33,16 +32,6 @@ logger = logging.getLogger(__name__)
 def multicde(cde_model):
     datatype = cde_model.datatype.lower().strip()
     return datatype == "range" and cde_model.allow_multiple
-
-
-@use_cache
-def get_registry(code=None):
-    return Registry.objects.get(code=code)
-
-
-@use_cache
-def get_survey(registry=None, name=None):
-    return Survey.objects.get(registry=registry, name=name)
 
 
 @method_decorator(csrf_exempt, name='dispatch')
@@ -145,7 +134,7 @@ class RegistryYamlAPIView(APIView):
         version_before = None
         current_metadata = None
         try:
-            registry = get_registry(code=importer.data['code'])
+            registry = Registry.objects.get(code=importer.data['code'])
             version_before = registry.version
         except Registry.DoesNotExist:
             pass
@@ -158,7 +147,7 @@ class RegistryYamlAPIView(APIView):
             try:
                 importer.create_registry()
                 if not override_metadata and current_metadata is not None:  # restore metadata
-                    registry = get_registry(code=importer.data['code'])
+                    registry = Registry.objects.get(code=importer.data['code'])
                     registry.metadata_json = current_metadata
                     try:
                         registry.save()

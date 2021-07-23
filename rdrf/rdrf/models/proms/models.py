@@ -12,7 +12,7 @@ from rdrf.models.definition.models import Registry, RegistryForm, Section
 from rdrf.models.definition.models import CommonDataElement
 from rdrf.models.definition.models import ContextFormGroup
 from rdrf.helpers.utils import generate_token
-from rdrf.helpers.cache_utils import use_object_cache
+from rdrf.helpers.cache_utils import use_query_cache
 from rdrf.events.events import EventType
 from rdrf.services.io.notifications.email_notification import process_notification
 from registry.patients.models import Patient
@@ -60,7 +60,7 @@ class Survey(models.Model):
     client_rep_json = models.TextField(blank=True, null=True)
 
     @property
-    @use_object_cache
+    @use_query_cache
     def client_rep(self):
         if self.client_rep_json:
             return self.client_rep_json
