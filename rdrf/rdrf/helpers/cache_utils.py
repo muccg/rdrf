@@ -2,14 +2,16 @@ import logging
 import re
 from django.conf import settings
 from django.core.cache import caches
+from ccg_django_utils.conf import EnvConfig
 
 logger = logging.getLogger(__name__)
+env = EnvConfig()
 
 
 def use_cache(function):
     def wrapper(*args, **kwargs):
 
-        if settings.CACHE_DISABLED:
+        if settings.CACHE_DISABLED or env.get("CACHE_DISABLED", False):
             return function(*args, **kwargs)
 
         key = f"{function.__name__}"
@@ -26,7 +28,7 @@ def use_cache(function):
 def use_object_cache(method):
     def wrapper(*args, **kwargs):
 
-        if settings.CACHE_DISABLED:
+        if settings.CACHE_DISABLED or env.get("CACHE_DISABLED", False):
             return method(*args, **kwargs)
 
         obj = args[0]
