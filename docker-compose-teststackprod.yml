@@ -102,5 +102,30 @@ services:
           - uwsgitest
           - uwsgi
 
+  runservertest:
+    extends:
+      file: docker-compose-common.yml
+      service: runserver
+    volumes_from:
+      - datatest
+    command: runserver
+    environment:
+      - DJANGO_FIXTURES=test
+      - ALLOWED_HOSTS=*
+      - CACHESERVER=cachetest
+      - DBSERVER=dbtest
+      - CLINICAL_DBSERVER=dbclinicaltest
+      - REPORTING_DBSERVER=dbreportingtest
+      - DESIGN_MODE=1
+      - CACHE_DISABLED=1
+    depends_on:
+      - dbtest
+      - dbclinicaltest
+      - dbreportingtest
+      - cachetest
+    ports:
+      - "18000:8000"
+
+
 volumes:
   uwsgi-prod-data:
