@@ -14,5 +14,5 @@ fi
 ./develop.sh run-builder releasetarball
 sudo chown -R 1000 build
 ./develop.sh build prod
-./develop.sh aloe teststackprod
+./develop.sh aloe prod
 ./develop.sh push prod
