@@ -7,6 +7,13 @@ logger = logging.getLogger(__name__)
 env = EnvConfig()
 
 
+def get_attrib(obj):
+    if hasattr(obj, 'code'):
+        return obj.code
+    if hasattr(obj, 'name'):
+        return obj.name
+
+
 def use_query_cache(method):
     def wrapper(*args, **kwargs):
 
@@ -14,7 +21,7 @@ def use_query_cache(method):
             return method(*args, **kwargs)
 
         obj = args[0]
-        key = f"{method.__qualname__}_id{str(obj.pk)}"
+        key = f"{get_attrib(obj)}_{method.__qualname__}_id{str(obj.pk)}"
         query_cache = caches["queries"]
         if key in query_cache:
             return query_cache.get(key)

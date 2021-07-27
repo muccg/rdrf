@@ -158,9 +158,11 @@ def load_development_fixtures(step):
 
 @step('export "(.*)"')
 def load_export(step, export_name):
+    from django.core.cache import caches
     utils.load_export(export_name)
     utils.reset_password_change_date()
     utils.reset_last_login_date()
+    caches['queries'].clear()
 
 
 @step('should see "([^"]+)"$')
