@@ -12,7 +12,6 @@ from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
 from django.shortcuts import render
 from django.conf import settings
-from django.core.cache import caches
 from django.db import transaction
 from django.http import HttpResponseBadRequest
 from rest_framework import status
