@@ -12,6 +12,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
 from django.shortcuts import render
 from django.conf import settings
+from django.core.cache import caches
 from django.db import transaction
 from django.http import HttpResponseBadRequest
 from rest_framework import status
@@ -34,6 +35,17 @@ def multicde(cde_model):
     return datatype == "range" and cde_model.allow_multiple
 
 
+def get_registry(code):
+    query_cache = caches["queries"]
+    key = f"Registry_{code}"
+    if key in query_cache:
+        return query_cache.get(key)
+    else:
+        registry = Registry.objects.get(code=code)
+        query_cache.set(key, registry)
+        return registry
+
+
 @method_decorator(csrf_exempt, name='dispatch')
 class SurveyEndpoint(View):
 
@@ -45,13 +57,9 @@ class SurveyEndpoint(View):
         survey_name = data.get("survey_name")
 
         try:
-            registry_model = Registry.objects.get(code=registry_code)
-
-            survey_model = Survey.objects.get(registry=registry_model,
-                                              name=survey_name)
-
-            survey_assignment = SurveyAssignment.objects.get(registry=survey_model.registry,
-                                                             survey_name=survey_model.name,
+            registry_model = get_registry(registry_code)
+            survey_assignment = SurveyAssignment.objects.get(registry=registry_model,
+                                                             survey_name=survey_name,
                                                              patient_token=patient_token,
                                                              state=SurveyStates.REQUESTED)
         except (Registry.DoesNotExist, Survey.DoesNotExist, SurveyAssignment.DoesNotExist):
