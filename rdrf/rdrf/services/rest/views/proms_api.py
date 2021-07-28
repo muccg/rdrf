@@ -15,6 +15,7 @@ from django.conf import settings
 from django.db import transaction
 from django.http import HttpResponseBadRequest
 from rest_framework import status
+from rdrf.helpers.cache_utils import get_rdrf_model_id
 from rdrf.services.io.defs.exporter import Exporter
 from rdrf.services.io.defs.importer import Importer
 from rdrf.services.rest.serializers import SurveyAssignmentSerializer, RegistryYamlSerializer
@@ -45,13 +46,9 @@ class SurveyEndpoint(View):
         survey_name = data.get("survey_name")
 
         try:
-            registry_model = Registry.objects.get(code=registry_code)
-
-            survey_model = Survey.objects.get(registry=registry_model,
-                                              name=survey_name)
-
-            survey_assignment = SurveyAssignment.objects.get(registry=survey_model.registry,
-                                                             survey_name=survey_model.name,
+            registry_id = get_rdrf_model_id(Registry, "code", registry_code)
+            survey_assignment = SurveyAssignment.objects.get(registry=registry_id,
+                                                             survey_name=survey_name,
                                                              patient_token=patient_token,
                                                              state=SurveyStates.REQUESTED)
         except (Registry.DoesNotExist, Survey.DoesNotExist, SurveyAssignment.DoesNotExist):
