@@ -46,7 +46,7 @@ class SurveyEndpoint(View):
         survey_name = data.get("survey_name")
 
         try:
-            registry_id = get_rdrf_model_id("registry", registry_code)
+            registry_id = get_rdrf_model_id(Registry, "code", registry_code)
             survey_assignment = SurveyAssignment.objects.get(registry=registry_id,
                                                              survey_name=survey_name,
                                                              patient_token=patient_token,

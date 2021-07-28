@@ -1,5 +1,4 @@
 import logging
-from django.apps import apps
 from django.conf import settings
 from django.core.cache import caches
 from ccg_django_utils.conf import EnvConfig
@@ -38,8 +37,10 @@ def use_query_cache_for_model(function):
 
         if settings.CACHE_DISABLED or env.get("CACHE_DISABLED", False):
             return function(*args, **kwargs)
-
-        key = f"{args[0]}_{args[1]}"
+        model_class = args[0].__name__
+        field = args[1]
+        value = args[2]
+        key = f"{model_class}_{field}_{value}"
         query_cache = caches["queries"]
         if key in query_cache:
             return query_cache.get(key)
@@ -51,9 +52,6 @@ def use_query_cache_for_model(function):
 
 
 @use_query_cache_for_model
-def get_rdrf_model_id(class_name, value):
-    model_class = apps.get_model("rdrf", class_name)
-    try:
-        return model_class.objects.filter(id=value).values_list('id', flat=True)[0]
-    except Exception:
-        return model_class.objects.filter(code=value).values_list('id', flat=True)[0]
+def get_rdrf_model_id(model_class, field, value):
+    filter_condition = f"{field}__iexact"
+    return model_class.objects.filter(**{filter_condition: value}).values_list('id', flat=True)[0]
