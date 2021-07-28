@@ -16,6 +16,7 @@ from django.core.cache import caches
 from django.db import transaction
 from django.http import HttpResponseBadRequest
 from rest_framework import status
+from rdrf.helpers.cache_utils import get_rdrf_model_id
 from rdrf.services.io.defs.exporter import Exporter
 from rdrf.services.io.defs.importer import Importer
 from rdrf.services.rest.serializers import SurveyAssignmentSerializer, RegistryYamlSerializer
@@ -35,17 +36,6 @@ def multicde(cde_model):
     return datatype == "range" and cde_model.allow_multiple
 
 
-def get_registry(code):
-    query_cache = caches["queries"]
-    key = f"Registry_{code}"
-    if key in query_cache:
-        return query_cache.get(key)
-    else:
-        registry = Registry.objects.get(code=code)
-        query_cache.set(key, registry)
-        return registry
-
-
 @method_decorator(csrf_exempt, name='dispatch')
 class SurveyEndpoint(View):
 
@@ -57,8 +47,8 @@ class SurveyEndpoint(View):
         survey_name = data.get("survey_name")
 
         try:
-            registry_model = get_registry(registry_code)
-            survey_assignment = SurveyAssignment.objects.get(registry=registry_model,
+            registry_id = get_rdrf_model_id("registry", registry_code)
+            survey_assignment = SurveyAssignment.objects.get(registry=registry_id,
                                                              survey_name=survey_name,
                                                              patient_token=patient_token,
                                                              state=SurveyStates.REQUESTED)
