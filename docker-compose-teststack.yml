@@ -41,6 +41,7 @@ services:
       - CLINICAL_DBSERVER=dbclinicaltest
       - REPORTING_DBSERVER=dbreportingtest
       - DESIGN_MODE=1
+      - CACHE_DISABLED=1
     depends_on:
       - dbtest
       - dbclinicaltest

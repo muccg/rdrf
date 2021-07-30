@@ -495,12 +495,21 @@ ALLOWED_HOSTS = env.getlist("allowed_hosts", ["localhost"])
 # see: https://docs.djangoproject.com/en/1.4/ref/settings/#use-x-forwarded-host
 USE_X_FORWARDED_HOST = env.get("use_x_forwarded_host", True)
 
+CACHE_DISABLED = False
 if env.get("memcache", ""):
+    backend = 'django.core.cache.backends.memcached.MemcachedCache'
+    location = env.getlist("memcache")
+    key_prefix = env.get("key_prefix", "rdrf")
     CACHES = {
         'default': {
-            'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache',
-            'LOCATION': env.getlist("memcache"),
-            'KEY_PREFIX': env.get("key_prefix", "rdrf")
+            'BACKEND': backend,
+            'LOCATION': location,
+            'KEY_PREFIX': key_prefix
+        },
+        'queries': {
+            'BACKEND': backend,
+            'LOCATION': location,
+            'KEY_PREFIX': f"{key_prefix}_queries"
         }
     }
 
