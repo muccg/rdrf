@@ -1138,3 +1138,26 @@ class PatientEditView(View):
                                                          hidden=True)
 
         return (len(fieldlist) == hidden_fields.count())
+
+
+class QueryPatientView(View):
+    @method_decorator(anonymous_not_allowed)
+    @method_decorator(login_required)
+    def get(self, request, registry_code):
+        context = {'registry_code': registry_code}
+        return render(request, "rdrf_cdes/patient_query.html", context)
+
+
+# to be deleted - STARTS #
+from django.core.serializers.json import DjangoJSONEncoder
+
+
+class PatientQueryResponseView(View):
+    @method_decorator(anonymous_not_allowed)
+    @method_decorator(login_required)
+    def post(self, request, registry_code):
+        values = {"request_token": "this_is_a_dummy_token"}
+        return HttpResponse(json.dumps(values, cls=DjangoJSONEncoder))
+
+
+# to be deleted - ENDS #

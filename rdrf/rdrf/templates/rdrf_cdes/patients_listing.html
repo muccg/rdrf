@@ -102,6 +102,10 @@
                 $("#add_patient").hide();
             }
 
+            if ({{ registries.0| has_feature:"show_query_patient_button" | yesno:"true,false" }} == true) {
+                $("#query_patient").removeClass("invisible");
+            }
+
             var registryCode = getSelectedRegistry();
 
             var load_contexts_list;
@@ -146,6 +150,12 @@
                 wireUpFormsButtons();
             });
 
+            $("#query_patient").click(function () {
+                var registryCode = $("#registry_options option:selected").attr('id');
+                var addPatientUrl = '{% url "patient_query" "xxx" %}';
+                var location = addPatientUrl.replace("xxx", registryCode);
+                window.location.replace(location);
+            });
 
             $("#add_patient").click(function () {
                 var registryCode = null;
@@ -176,7 +186,10 @@
 
 {% block formbtns %}
 	<div class="d-grid gap-2 d-md-flex justify-content-md-end">
-		<button type="button" id="add_patient" class="btn btn-success me-md-2">
+		<button type="button" id="query_patient" class="btn btn-primary me-md-2 invisible">
+			<span class="fa fa-search" aria-hidden="true"></span> {% trans 'Query Patient' %}
+		</button>
+        <button type="button" id="add_patient" class="btn btn-success me-md-2">
 			<span class="fa fa-plus" aria-hidden="true"></span> {% trans 'Add Patient' %}
 		</button>
 	</div>

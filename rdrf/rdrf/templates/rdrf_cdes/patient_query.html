@@ -1,0 +1,62 @@
+{% extends "rdrf_cdes/base-1-col.html" %}
+{% load static from staticfiles %}
+{% load has_feature %}
+{% load i18n %}
+{% load translate %}
+
+{% block content %}
+    <div class="row">
+        <div class="col-md-12">
+            <p><h3><span class="fa fa-list-alt" aria-hidden="true"></span> {% trans 'Query Patient' %}</h3></p>
+            <i class="text-muted"><span class="fa fa-user" aria-hidden="true"></span> {{user.first_name}} {{user.last_name}} ({{user.title}})</i>
+        </div>
+    </div>
+
+    <form>
+        <label for="id_umrn">Patient Identifier</label>
+        <input type="text" name="umrn" id="id_umrn" placeholder="UMRN or Patient Id"/>
+        <button type="button" id="query_patient" class="btn btn-primary me-md-2">
+			<span class="fa fa-search" aria-hidden="true"></span> {% trans 'Query Patient' %}
+		</button>
+    </form>
+
+    <div id="response_div"></div>
+{% endblock %}
+
+<script type="text/javascript" nonce="{{request.csp_nonce}}">
+    var request_token;
+
+    $("#query_patient").click(function(){
+        $.ajax({url: "{% url 'patient_query_response' registry_code %}",
+                type: "POST",
+                data: {
+                    "umrn": $("#id_umrn").val(),
+                    "registry_code": {{ registry_code }}
+                },
+                success: function(result_json) {
+                    result  = jQuery.parseJSON(result_json);
+                    request_token = result.request_token;
+                }
+        });
+    });
+
+    var dataReceived = false;
+
+    function getResponse() {
+        console.log("polling IF ...");
+        const url = "{% url 'patient_query_response' %}";
+        $.getJSON(url, function(result) {
+            if (result.state == "???????") {
+                $("#reponse_div").html(result.data);
+                dataReceived = true;
+            } else if (result.state == "??????????") {
+                $("#status_div").html("????????");
+            } else {
+                $("#status_div").html("waiting response...");
+            }
+        });
+        if (dataReceived == false){
+            setTimeout(getResponse, 5000);
+        }
+    }
+</script>

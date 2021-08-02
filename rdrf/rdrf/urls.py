@@ -247,6 +247,13 @@ normalpatterns += [
     re_path(r"^(?P<registry_code>\w+)/patient/add/?$",
             patient_view.AddPatientView.as_view(), name='patient_add'),
 
+    re_path(r"^(?P<registry_code>\w+)/patient/query/?$",
+            patient_view.QueryPatientView.as_view(), name='patient_query'),
+
+    # to be deleted
+    re_path(r"^(?P<registry_code>\w+)/patient/query/response/?$",
+            patient_view.PatientQueryResponseView.as_view(), name='patient_query_response'),
+
     re_path(r"^(?P<registry_code>\w+)/patient/(?P<patient_id>\d+)/edit$",
             patient_view.PatientEditView.as_view(), name='patient_edit'),
 
