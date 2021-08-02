@@ -824,7 +824,13 @@ if SYSTEM_ROLE in [SystemRoles.CIC_CLINICAL, SystemRoles.CIC_PROMS, SystemRoles.
 
 # Django CSP settings
 CSP_SCRIPT_SRC = ["'self'", "'sha256-r8Ei+YwP2DFcnblmk8Dzmb7Kh1iRT/3fv8R9JsfGd/Y='"]
-CSP_STYLE_SRC = ["'self'", "'unsafe-hashes'", "'sha256-aqNNdDLnnrDOnTNdkJpYlAxKVJtLt9CtFLklmInuUAE='"]
+CSP_STYLE_SRC = [
+    "'self'",
+    "'unsafe-hashes'",
+    "'sha256-aqNNdDLnnrDOnTNdkJpYlAxKVJtLt9CtFLklmInuUAE='",
+    "'sha256-ILezS+pYH/m5JXDQav+PE/702qHfcybyTQN3LgCWO8Y='",
+    "'sha256-95UDRqT5lxsVhRRfuJa6qGWsZAFhKXqS7cvo1bxVHcE='"
+]
 CSP_IMG_SRC = ["'self'"]
 
 CSP_INCLUDE_NONCE_IN = ["script-src", "style-src"]
