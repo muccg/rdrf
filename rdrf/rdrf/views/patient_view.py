@@ -1149,14 +1149,24 @@ class QueryPatientView(View):
 
 
 # to be deleted - STARTS #
+import json
 from django.core.serializers.json import DjangoJSONEncoder
+from django.http import HttpResponse
 
 
-class PatientQueryResponseView(View):
+class DataRequestView(View):
     @method_decorator(anonymous_not_allowed)
     @method_decorator(login_required)
-    def post(self, request, registry_code):
-        values = {"request_token": "this_is_a_dummy_token"}
+    def post(self, request, registry_code, umrn):
+        response_data = {"request_token": "this_is_a_dummy_token"}
+        return HttpResponse(json.dumps(response_data, cls=DjangoJSONEncoder))
+
+
+class DataRequestDataView(View):
+    @method_decorator(anonymous_not_allowed)
+    @method_decorator(login_required)
+    def get(self, request, registry_code, token):
+        values = {"state": "received", "data": "dummy", "request_token": token}
         return HttpResponse(json.dumps(values, cls=DjangoJSONEncoder))
 
 

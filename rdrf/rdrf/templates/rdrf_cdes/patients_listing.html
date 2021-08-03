@@ -152,8 +152,8 @@
 
             $("#query_patient").click(function () {
                 var registryCode = $("#registry_options option:selected").attr('id');
-                var addPatientUrl = '{% url "patient_query" "xxx" %}';
-                var location = addPatientUrl.replace("xxx", registryCode);
+                var patientQueryUrl = '{% url "patient_query" "registry_code" %}';
+                var location = patientQueryUrl.replace("registry_code", registryCode);
                 window.location.replace(location);
             });
 

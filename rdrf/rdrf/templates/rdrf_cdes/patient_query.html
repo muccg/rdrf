@@ -19,44 +19,66 @@
 			<span class="fa fa-search" aria-hidden="true"></span> {% trans 'Query Patient' %}
 		</button>
     </form>
-
+    Status:
+    <div id="status_div"></div>
+    Response:
     <div id="response_div"></div>
-{% endblock %}
 
-<script type="text/javascript" nonce="{{request.csp_nonce}}">
-    var request_token;
-
-    $("#query_patient").click(function(){
-        $.ajax({url: "{% url 'patient_query_response' registry_code %}",
-                type: "POST",
-                data: {
-                    "umrn": $("#id_umrn").val(),
-                    "registry_code": {{ registry_code }}
-                },
-                success: function(result_json) {
-                    result  = jQuery.parseJSON(result_json);
-                    request_token = result.request_token;
-                }
-        });
-    });
-
-    var dataReceived = false;
-
-    function getResponse() {
-        console.log("polling IF ...");
-        const url = "{% url 'patient_query_response' %}";
-        $.getJSON(url, function(result) {
-            if (result.state == "???????") {
-                $("#reponse_div").html(result.data);
-                dataReceived = true;
-            } else if (result.state == "??????????") {
-                $("#status_div").html("????????");
-            } else {
-                $("#status_div").html("waiting response...");
+    <script type="text/javascript" nonce="{{request.csp_nonce}}">
+        $.ajaxSetup({
+            beforeSend: function (xhr) {
+                var csrfToken = '{{ csrf_token }}';
+                xhr.setRequestHeader('X-CSRFToken', csrfToken);
             }
         });
-        if (dataReceived == false){
-            setTimeout(getResponse, 5000);
+
+        var request_token = "";
+        var dataRequestUrl = '{% url "patient_data_request" "registry_code" "umrn" %}';
+        dataRequestUrl = dataRequestUrl.replace("registry_code", "{{ registry_code }}");
+
+        var dataRequestDataUrl = '{% url "patient_data_request_data" "registry_code" "token" %}';
+        dataRequestDataUrl = dataRequestDataUrl.replace("registry_code", "{{ registry_code }}");
+
+        $dataReceived = false;
+
+        function getResponse() {
+            $.ajax({url: dataRequestDataUrl,
+                    type: "GET",
+                    success: function(result_json) {
+                        var result  = jQuery.parseJSON(result_json);
+                        if (result.state == "received") {
+                            $("#response_div").html(result.data);
+                            $("#status_div").html("Received.");
+                            $dataReceived = true;
+                        } else if (result.state == "requested") {
+                            $("#status_div").html("Requested...");
+                        } else {
+                            $("#status_div").html("Waiting response...");
+                        }
+                    }
+                  });
+            if ($dataReceived == false){
+                setTimeout(getResponse, 15000);
+            }
         }
-    }
-</script>
+
+        $(document).ready(function() {
+            $("#query_patient").click(function(){
+                $("#status_div").html("Waiting response...");
+                dataRequestUrl.replace("umrn", $("#id_umrn").val());
+                $.ajax({url: dataRequestUrl,
+                        type: "POST",
+                        success: function(result_json) {
+                            var result  = jQuery.parseJSON(result_json);
+                            request_token = result.request_token;
+                            dataRequestDataUrl = dataRequestDataUrl.replace("token", request_token);
+                            setTimeout(getResponse, 5000);
+                        }
+                });
+            });
+        });
+    </script>
+
+{% endblock %}
+
+
