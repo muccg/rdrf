@@ -2,7 +2,7 @@
 from django.views.generic.base import View
 from django.shortcuts import get_object_or_404
 from django.http import HttpResponseBadRequest
-from .. models.py import DataRequest
+from .. models.py import DataRequest, DATAREQUEST_STATES
 from rdrf.models.definition.models import Registry
 
 
