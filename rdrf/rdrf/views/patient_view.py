@@ -1166,8 +1166,21 @@ class DataRequestDataView(View):
     @method_decorator(anonymous_not_allowed)
     @method_decorator(login_required)
     def get(self, request, registry_code, token):
-        values = {"state": "received", "data": "dummy", "request_token": token}
-        return HttpResponse(json.dumps(values, cls=DjangoJSONEncoder))
+        response_data = {"status": "received", "data": "dummy", "request_token": token}
+        return HttpResponse(json.dumps(response_data, cls=DjangoJSONEncoder))
+
+
+class DataIntegrationActionView(View):
+    def post(self, request, token):
+        state = "completed"
+        if state != "completed":
+            return HttpResponseBadRequest()
+        if state == "completed":
+            response_data = {"request_token": token, "status": "succeeded"}
+            return HttpResponse(json.dumps(response_data, cls=DjangoJSONEncoder))
+        if state == "failed":
+            response_data = {"request_token": token, "status": "failed", "error": "An error occurred"}
+            return HttpResponse(json.dumps(response_data, cls=DjangoJSONEncoder), status=500)
 
 
 # to be deleted - ENDS #

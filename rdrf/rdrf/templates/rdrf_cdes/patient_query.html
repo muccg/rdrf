@@ -12,17 +12,31 @@
         </div>
     </div>
 
-    <form>
-        <label for="id_umrn">Patient Identifier</label>
-        <input type="text" name="umrn" id="id_umrn" placeholder="UMRN or Patient Id"/>
-        <button type="button" id="query_patient" class="btn btn-primary me-md-2">
-			<span class="fa fa-search" aria-hidden="true"></span> {% trans 'Query Patient' %}
-		</button>
-    </form>
-    Status:
-    <div id="status_div"></div>
-    Response:
-    <div id="response_div"></div>
+    <div class="row">
+        <form>
+            <label for="id_umrn">Patient Identifier:</label>
+            <input type="text" name="umrn" id="id_umrn" placeholder="UMRN or Patient Id"/>
+            <button type="button" id="query_patient" class="btn btn-primary me-md-2">
+                <span class="fa fa-search" aria-hidden="true"></span> {% trans 'Query Patient' %}
+            </button>
+            <span id="status_div"></span>
+        </form>
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            <span class="h5">Patient Details</span>
+        </div>
+        <div class="card-body" id="response_div"></div>
+        <div class="card-footer invisible" id="submit_div">
+            <button type="button" id="accept_button" class="btn btn-success me-md-2">
+                <span class="fa fa-thumbs-o-up" aria-hidden="true"></span> {% trans 'Accept' %}
+            </button>
+            <button type="button" id="reject_button" class="btn btn-danger me-md-2">
+                <span class="fa fa-thumbs-o-down" aria-hidden="true"></span> {% trans 'Reject' %}
+            </button>
+        </div>
+    </div>
 
     <script type="text/javascript" nonce="{{request.csp_nonce}}">
         $.ajaxSetup({
@@ -32,33 +46,34 @@
             }
         });
 
-        var request_token = "";
+        var requestToken = "";
         var dataRequestUrl = '{% url "patient_data_request" "registry_code" "umrn" %}';
         dataRequestUrl = dataRequestUrl.replace("registry_code", "{{ registry_code }}");
 
         var dataRequestDataUrl = '{% url "patient_data_request_data" "registry_code" "token" %}';
         dataRequestDataUrl = dataRequestDataUrl.replace("registry_code", "{{ registry_code }}");
 
-        $dataReceived = false;
+        var $dataReceived = false;
 
         function getResponse() {
             $.ajax({url: dataRequestDataUrl,
                     type: "GET",
-                    success: function(result_json) {
-                        var result  = jQuery.parseJSON(result_json);
-                        if (result.state == "received") {
-                            $("#response_div").html(result.data);
+                    success: function(resultJson) {
+                        var result  = jQuery.parseJSON(resultJson);
+                        if (result.status == "received") {
+                            $("#response_div").html(result.data).removeClass("invisible");
                             $("#status_div").html("Received.");
+                            $("#submit_div").removeClass("invisible");
                             $dataReceived = true;
-                        } else if (result.state == "requested") {
+                        } else if (result.status == "requested") {
                             $("#status_div").html("Requested...");
                         } else {
                             $("#status_div").html("Waiting response...");
                         }
                     }
                   });
-            if ($dataReceived == false){
-                setTimeout(getResponse, 15000);
+            if (!$dataReceived){
+                setTimeout(getResponse, 1000);
             }
         }
 
@@ -68,13 +83,21 @@
                 dataRequestUrl.replace("umrn", $("#id_umrn").val());
                 $.ajax({url: dataRequestUrl,
                         type: "POST",
-                        success: function(result_json) {
-                            var result  = jQuery.parseJSON(result_json);
-                            request_token = result.request_token;
-                            dataRequestDataUrl = dataRequestDataUrl.replace("token", request_token);
+                        success: function(resultJson) {
+                            var result  = jQuery.parseJSON(resultJson);
+                            requestToken = result.request_token;
+                            dataRequestDataUrl = dataRequestDataUrl.replace("token", requestToken);
                             setTimeout(getResponse, 5000);
                         }
                 });
+            });
+
+            $("#accept_button").click(function(){
+                console.log("accept");
+            });
+
+            $("#reject_button").click(function(){
+                console.log("reject");
             });
         });
     </script>
