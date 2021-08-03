@@ -6,6 +6,18 @@ from .. models.py import DataRequest
 from rdrf.models.definition.models import Registry
 
 
+class IntegrationError(Exception):
+    pass
+
+
+class JSONParseError(IntegrationError):
+    pass
+
+
+class DataApplicationError(IntegrationError):
+    pass
+
+
 class DataRequestView(View):
     def post(self, request, registry_code, umrn):
 
@@ -73,6 +85,13 @@ class DataIntegrationUpdate(View):
 
     def post(self, request, umrn):
         external_data_json = request.body
+
+        try:
+            external_data = self._parse_json(external_data_json)
+
+        except JSONParseError as jpe:
+            pass
+
         try:
             dr = DataRequest.objects.get(umrn=umrn,
                                          state="requested")
@@ -98,3 +117,10 @@ class DataIntegrationUpdate(View):
                 dsi.external_data_json = external_data_json
                 dsi.state = "received"
                 dsi.save()
+
+    def _parse_json(self, json_data):
+        try:
+            data = json.loads(json_data)
+            return data
+        except Exception as ex:
+            raise JSONParseError(ex)
