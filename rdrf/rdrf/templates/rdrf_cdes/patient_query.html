@@ -12,7 +12,7 @@
         </div>
     </div>
 
-    <div class="row">
+    <p>
         <form>
             <label for="id_umrn">Patient Identifier:</label>
             <input type="text" name="umrn" id="id_umrn" placeholder="UMRN or Patient Id"/>
@@ -21,14 +21,14 @@
             </button>
             <span id="status_div"></span>
         </form>
-    </div>
+    </p>
 
-    <div class="card">
+    <div class="card invisible" id="data_received">
         <div class="card-header">
-            <span class="h5">Patient Details</span>
+            <span class="h5">Data Received</span>
         </div>
         <div class="card-body" id="response_div">
-              <table id="patient_table" class="table table-striped table-hover invisible">
+              <table id="patient_table" class="table table-striped table-hover">
                   <tbody>
                       <tr>
                           <td>Given Names</td><td id="given_names"></td>
@@ -38,6 +38,12 @@
                       </tr>
                       <tr>
                           <td>Date of Birth</td><td id="dob"></td>
+                      </tr>
+                      <tr>
+                          <td>Home Phone</td><td id="home_phone"></td>
+                      </tr>
+                      <tr>
+                          <td>email</td><td id="email"></td>
                       </tr>
                   </tbody>
               </table>
@@ -75,11 +81,13 @@
                     success: function(resultJson) {
                         var result  = jQuery.parseJSON(resultJson);
                         if (result.status == "received") {
-                            $("#patient_table").removeClass("invisible");
+                            $("#data_received").removeClass("invisible");
                             $("#given_names").html(result.data.given_names);
                             $("#last_name").html(result.data.last_name);
                             $("#dob").html(result.data.dob);
-                            $("#status_div").html("Received.");
+                            $("#email").html(result.data.email);
+                            $("#home_phone").html(result.data.home_phone);
+                            $("#status_div").html("");
                             $("#submit_div").removeClass("invisible");
                             $dataReceived = true;
                         } else if (result.status == "requested") {

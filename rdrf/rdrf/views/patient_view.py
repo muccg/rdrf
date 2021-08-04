@@ -1166,7 +1166,8 @@ class DataRequestDataView(View):
     @method_decorator(anonymous_not_allowed)
     @method_decorator(login_required)
     def get(self, request, registry_code, token):
-        patient_data = {"given_names": "Clark S", "last_name": "Kent", "dob": "2000-06-23"}
+        patient_data = {"given_names": "Clark S", "last_name": "Kent", "dob": "2000-06-23",
+                        "email": "clarksk@email.com", "home_phone": "+61 565 878 9090"}
         response_data = {"status": "received", "data": patient_data, "request_token": token}
         return HttpResponse(json.dumps(response_data, cls=DjangoJSONEncoder))
 
