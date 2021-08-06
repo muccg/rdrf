@@ -3,6 +3,7 @@ from sqlalchemy import create_engine, MetaData
 from rdrf.helpers.utils import timed
 from datetime import datetime
 from django.conf import settings
+from rdrf.models.definition.models import ClinicalData
 
 import logging
 logger = logging.getLogger(__name__)
@@ -353,10 +354,23 @@ class ReportingTableGenerator(object):
         else:
             generate_func = database_utils.generate_results
 
+        collection = ClinicalData.objects.collection(database_utils.registry_model.code, database_utils.collection)
+        history = ClinicalData.objects.collection(database_utils.registry_model.code, "history")
+
+        if database_utils.projection:
+            dynamic_data = [model_triple for model_triple in database_utils._get_mongo_fields()]
+        else:
+            dynamic_data = []
+
+        sql_only = len(dynamic_data) == 0
+
         values = []
         for row in generate_func(self.reverse_map,
                                  self.col_map,
-                                 max_items=self.max_items):
+                                 max_items=self.max_items,
+                                 collection=collection,
+                                 history=history,
+                                 sql_only=sql_only):
             new_row = copy(blank_row)
             new_row.update(row)
             values.append(new_row)

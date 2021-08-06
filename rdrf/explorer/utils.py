@@ -7,7 +7,7 @@ from django.db import connection
 from rdrf.helpers.utils import get_cached_instance
 from rdrf.helpers.utils import timed
 from rdrf.models.definition.models import Registry, RegistryForm, Section
-from rdrf.models.definition.models import CommonDataElement, ClinicalData
+from rdrf.models.definition.models import CommonDataElement
 
 from .models import Query
 from .models import FieldValue
@@ -230,43 +230,30 @@ class DatabaseUtils(object):
             row[fv.column_name] = fv.get_calculated_value()
 
     @timed
-    def generate_results(self, reverse_column_map, col_map, max_items):
-        self.reverse_map = reverse_column_map
-        self.col_map = col_map
-
-        collection = ClinicalData.objects.collection(self.registry_model.code, self.collection)
-        history = ClinicalData.objects.collection(self.registry_model.code, "history")
-
-        if self.projection:
-            self.mongo_models = [model_triple for model_triple in self._get_mongo_fields()]
-        else:
-            self.mongo_models = []
-
-        sql_only = len(self.mongo_models) == 0
-
-        def full_c2():
+    def generate_results(self, reverse_column_map, col_map, max_items, collection=None, history=None, sql_only=False):
+        def full_c2(reverse_map):
             for row in self.cursor:
                 sql_columns_dict = {}
                 for i, item in enumerate(row):
-                    sql_column_name = self.reverse_map[i]
+                    sql_column_name = reverse_map[i]
                     sql_columns_dict[sql_column_name] = item
 
-        def sql_only_c():
+        def sql_only_c(reverse_map):
             for row in self.cursor:
                 sql_columns_dict = {}
                 for i, item in enumerate(row):
-                    sql_column_name = self.reverse_map[i]
+                    sql_column_name = reverse_map[i]
                     sql_columns_dict[sql_column_name] = item
                 yield sql_columns_dict
 
-        def full_c():
+        def full_c(reverse_map):
             for row in self.cursor:
                 sql_columns_dict = {}
                 for i, item in enumerate(row):
-                    sql_column_name = self.reverse_map[i]
+                    sql_column_name = reverse_map[i]
                     sql_columns_dict[sql_column_name] = item
 
-                for mongo_columns_dict in self.run_mongo_one_row(sql_columns_dict, collection, max_items):
+                for mongo_columns_dict in self.run_mongo_one_row(sql_columns_dict, collection, max_items, col_map):
                     if mongo_columns_dict is None:
                         sql_columns_dict["snapshot"] = False
                         yield sql_columns_dict
@@ -275,14 +262,14 @@ class DatabaseUtils(object):
                         for combined_dict in self._combine_sql_and_mongo(sql_columns_dict, mongo_columns_dict):
                             yield combined_dict
 
-        def longitudinal():
+        def longitudinal(reverse_map):
             for row in self.cursor:
                 sql_columns_dict = {}
                 for i, item in enumerate(row):
-                    sql_column_name = self.reverse_map[i]
+                    sql_column_name = reverse_map[i]
                     sql_columns_dict[sql_column_name] = item
 
-                    for mongo_columns_dict in self.run_mongo_one_row(sql_columns_dict, collection, max_items):
+                    for mongo_columns_dict in self.run_mongo_one_row(sql_columns_dict, collection, max_items, col_map):
                         if mongo_columns_dict is None:
                             sql_columns_dict["snapshot"] = False
                             yield sql_columns_dict
@@ -292,7 +279,7 @@ class DatabaseUtils(object):
                                 yield combined_dict
 
                     for mongo_columns_dict in self.run_mongo_one_row_longitudinal(
-                            sql_columns_dict, history, max_items):
+                            sql_columns_dict, history, max_items, col_map):
                         if mongo_columns_dict is None:
                             yield None
                         else:
@@ -303,19 +290,19 @@ class DatabaseUtils(object):
         if self.mongo_search_type == "C":
             # current data - no longitudinal snapshots
             if sql_only:
-                for d in sql_only_c():
+                for d in sql_only_c(reverse_column_map):
                     yield d
             else:
-                for d in full_c():
+                for d in full_c(reverse_column_map):
                     yield d
 
         else:
             # include longitudinal ( snapshot) data
             if sql_only:
-                for d in sql_only_c():
+                for d in sql_only_c(reverse_column_map):
                     yield d
             else:
-                for d in longitudinal():
+                for d in longitudinal(reverse_column_map):
                     yield d
 
     def _combine_sql_and_mongo(self, sql_result_dict, mongo_result_dict):
@@ -424,7 +411,7 @@ class DatabaseUtils(object):
 
             yield form_model, section_model, cde_model
 
-    def run_mongo_one_row(self, sql_column_data, collection, max_items):
+    def run_mongo_one_row(self, sql_column_data, collection, max_items, col_map):
         mongo_query = {
             "django_model": "Patient",
             "django_id": sql_column_data["id"],  # convention?
@@ -436,18 +423,18 @@ class DatabaseUtils(object):
             yield None
         else:
             for mongo_document in records:
-                yield self._get_result_map(mongo_document, max_items=max_items)
+                yield self._get_result_map(mongo_document, max_items=max_items, col_map=col_map)
 
-    def _process_all_rows(self, collection, max_items=3):
+    def _process_all_rows(self, collection, max_items=3, col_map={}):
 
         qry = collection.filter(django_model="Patient")
         # list of clinical data
         data = qry.values('django_id', 'context_id', 'data')
         for item in data:
-            result_map = self._get_result_map(item['data'], max_items=max_items)
+            result_map = self._get_result_map(item['data'], max_items=max_items, col_map=col_map)
             result_map['id'] = item['django_id']
 
-    def _get_result_map(self, mongo_document, is_snapshot=False, max_items=3):
+    def _get_result_map(self, mongo_document, is_snapshot=False, max_items=3, col_map={}):
         result = {}
         if is_snapshot:
             # snapshots copy entire patient record into record field
@@ -459,7 +446,7 @@ class DatabaseUtils(object):
         # timestamp from top level in for current and snapshot
         result['timestamp'] = mongo_document.get("timestamp", None)
 
-        for key, column_name in self.col_map.items():
+        for key, column_name in col_map.items():
             if isinstance(key, tuple):
                 if len(key) == 4:
                     # NB section index is 1 based in report
@@ -495,12 +482,12 @@ class DatabaseUtils(object):
                 result[column_name] = value
         return result
 
-    def run_mongo_one_row_longitudinal(self, sql_column_data, history, max_items):
+    def run_mongo_one_row_longitudinal(self, sql_column_data, history, max_items, col_map):
         mongo_query = {"django_id": sql_column_data["id"],
                        "django_model": "Patient",
                        "record_type": "snapshot"}
         for snapshot in history.find(**mongo_query).data():
-            yield self._get_result_map(snapshot, is_snapshot=True, max_items=max_items)
+            yield self._get_result_map(snapshot, is_snapshot=True, max_items=max_items, col_map=col_map)
 
     def _get_cde_value(self, form_model, section_model, cde_model, mongo_document):
         # retrieve value of cde
