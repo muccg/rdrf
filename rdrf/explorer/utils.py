@@ -478,6 +478,36 @@ class DatabaseUtils(object):
         for snapshot in history.find(**mongo_query).data():
             yield self._get_result_map(snapshot, is_snapshot=True, max_items=max_items, col_map=col_map)
 
+    def _build_dictionary(self, mongo_document):
+        d = {}
+        for form_dict in mongo_document["forms"]:
+            form_name = form_dict['name']
+            for section_dict in form_dict["sections"]:
+                section_code = section_dict['code']
+                if not section_dict["allow_multiple"]:
+                    for cde_dict in section_dict["cdes"]:
+                        cde_code = cde_dict["code"]
+                        cde_value = cde_dict["value"]
+                        t = (form_name, section_code, cde_code)
+                        cde_model = CommonDataElement.objects.get(code=cde_code)
+                        d[t] = self._get_sensible_value_from_cde(cde_model, cde_value)
+                else:
+                    items = section_dict["cdes"]
+                    cde_data = {}
+                    for item in items:
+                        for cde_dict in item:
+                            cde_code = cde_dict["code"]
+                            cde_value = cde_dict["value"]
+                            if cde_code in cde_data:
+                                cde_data[cde_code].append(cde_value)
+                            else:
+                                cde_data[cde_code] = [cde_value]
+                    for cde_code in cde_data:
+                        cde_model = CommonDataElement.objects.get(code=cde_code)
+                        t = (form_name, section_code, cde_code)
+                        d[t] = [self._get_sensible_value_from_cde(cde_model, value) for value in cde_data[cde_code]]
+        return d
+
     def _get_cde_value(self, form_model, section_model, cde_model, mongo_document):
         # retrieve value of cde
         for form_dict in mongo_document["forms"]:
