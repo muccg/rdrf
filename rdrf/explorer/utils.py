@@ -138,7 +138,7 @@ class DatabaseUtils(object):
             raise
 
     @timed
-    def generate_results2(self, reverse_column_map, col_map, max_items):
+    def generate_results2(self, reverse_column_map, col_map, max_items, collection=None, history=None, sql_only=False):
         from registry.patients.models import Patient
         self.reverse_map = reverse_column_map
         self.col_map = col_map
@@ -229,29 +229,45 @@ class DatabaseUtils(object):
         for fv in query.filter(datatype='calculated'):
             row[fv.column_name] = fv.get_calculated_value()
 
-    @timed
-    def generate_results(self, reverse_column_map, col_map, max_items, collection=None, history=None, sql_only=False):
-        def full_c2(reverse_map):
-            for row in self.cursor:
-                sql_columns_dict = {}
-                for i, item in enumerate(row):
-                    sql_column_name = reverse_map[i]
-                    sql_columns_dict[sql_column_name] = item
+    """
+    def full_c2(self, reverse_map):
+        for row in self.cursor:
+            sql_columns_dict = {}
+            for i, item in enumerate(row):
+                sql_column_name = reverse_map[i]
+                sql_columns_dict[sql_column_name] = item
+    """
 
-        def sql_only_c(reverse_map):
-            for row in self.cursor:
-                sql_columns_dict = {}
-                for i, item in enumerate(row):
-                    sql_column_name = reverse_map[i]
-                    sql_columns_dict[sql_column_name] = item
-                yield sql_columns_dict
+    def sql_only_c(self, reverse_map):
+        for row in self.cursor:
+            sql_columns_dict = {}
+            for i, item in enumerate(row):
+                sql_column_name = reverse_map[i]
+                sql_columns_dict[sql_column_name] = item
+            yield sql_columns_dict
 
-        def full_c(reverse_map):
-            for row in self.cursor:
-                sql_columns_dict = {}
-                for i, item in enumerate(row):
-                    sql_column_name = reverse_map[i]
-                    sql_columns_dict[sql_column_name] = item
+    def full_c(self, reverse_map):
+        for row in self.cursor:
+            sql_columns_dict = {}
+            for i, item in enumerate(row):
+                sql_column_name = reverse_map[i]
+                sql_columns_dict[sql_column_name] = item
+
+            for mongo_columns_dict in self.run_mongo_one_row(sql_columns_dict, collection, max_items, col_map):
+                if mongo_columns_dict is None:
+                    sql_columns_dict["snapshot"] = False
+                    yield sql_columns_dict
+                else:
+                    mongo_columns_dict["snapshot"] = False
+                    for combined_dict in self._combine_sql_and_mongo(sql_columns_dict, mongo_columns_dict):
+                        yield combined_dict
+
+    def longitudinal(self, reverse_map):
+        for row in self.cursor:
+            sql_columns_dict = {}
+            for i, item in enumerate(row):
+                sql_column_name = reverse_map[i]
+                sql_columns_dict[sql_column_name] = item
 
                 for mongo_columns_dict in self.run_mongo_one_row(sql_columns_dict, collection, max_items, col_map):
                     if mongo_columns_dict is None:
@@ -262,47 +278,28 @@ class DatabaseUtils(object):
                         for combined_dict in self._combine_sql_and_mongo(sql_columns_dict, mongo_columns_dict):
                             yield combined_dict
 
-        def longitudinal(reverse_map):
-            for row in self.cursor:
-                sql_columns_dict = {}
-                for i, item in enumerate(row):
-                    sql_column_name = reverse_map[i]
-                    sql_columns_dict[sql_column_name] = item
+                for mongo_columns_dict in self.run_mongo_one_row_longitudinal(
+                        sql_columns_dict, history, max_items, col_map):
+                    if mongo_columns_dict is None:
+                        yield None
+                    else:
+                        mongo_columns_dict["snapshot"] = True
+                        for combined_dict in self._combine_sql_and_mongo(sql_columns_dict, mongo_columns_dict):
+                            yield combined_dict
 
-                    for mongo_columns_dict in self.run_mongo_one_row(sql_columns_dict, collection, max_items, col_map):
-                        if mongo_columns_dict is None:
-                            sql_columns_dict["snapshot"] = False
-                            yield sql_columns_dict
-                        else:
-                            mongo_columns_dict["snapshot"] = False
-                            for combined_dict in self._combine_sql_and_mongo(sql_columns_dict, mongo_columns_dict):
-                                yield combined_dict
-
-                    for mongo_columns_dict in self.run_mongo_one_row_longitudinal(
-                            sql_columns_dict, history, max_items, col_map):
-                        if mongo_columns_dict is None:
-                            yield None
-                        else:
-                            mongo_columns_dict["snapshot"] = True
-                            for combined_dict in self._combine_sql_and_mongo(sql_columns_dict, mongo_columns_dict):
-                                yield combined_dict
-
-        if self.mongo_search_type == "C":
-            # current data - no longitudinal snapshots
-            if sql_only:
-                for d in sql_only_c(reverse_column_map):
-                    yield d
-            else:
-                for d in full_c(reverse_column_map):
-                    yield d
-
+    @timed
+    def generate_results(self, reverse_column_map, col_map, max_items, collection=None, history=None, sql_only=False):
+        if sql_only:
+            for d in self.sql_only_c(reverse_column_map):
+                yield d
         else:
-            # include longitudinal ( snapshot) data
-            if sql_only:
-                for d in sql_only_c(reverse_column_map):
+            if self.mongo_search_type == "C":
+                # current data - no longitudinal snapshots
+                for d in self.full_c(reverse_column_map):
                     yield d
             else:
-                for d in longitudinal(reverse_column_map):
+                # include longitudinal (snapshot) data
+                for d in self.longitudinal(reverse_column_map):
                     yield d
 
     def _combine_sql_and_mongo(self, sql_result_dict, mongo_result_dict):
@@ -359,16 +356,7 @@ class DatabaseUtils(object):
         if cursor is None:
             return []
 
-        type_info = self._get_sql_type_info()
-
-        def get_info(item):
-            name = item.name
-            type_code = item.type_code
-            type_name = type_info.get(type_code, "varchar")
-
-            return {"name": name, "type_name": type_name}
-
-        return [get_info(item) for item in cursor.description]
+        return [{"name": item.name, "type_name": self._get_sql_type_info().get(item.type_code, "varchar")} for item in cursor.description]
 
     @timed
     def create_cursor(self):
