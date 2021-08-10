@@ -430,6 +430,7 @@ class DatabaseUtils(object):
             record = mongo_document["record"]
         else:
             record = mongo_document
+        record_dict = self._build_dictionary(record)
         result["context_id"] = record.get("context_id", None)
 
         # timestamp from top level in for current and snapshot
@@ -447,11 +448,10 @@ class DatabaseUtils(object):
                 continue
 
             if section_model.allow_multiple:
-                values = self._get_cde_value(form_model,
+                values = self._get_cde_value2(form_model,
                                              section_model,
                                              cde_model,
-
-                                             record)
+                                             record_dict)
 
                 if len(values) > max_items:
                     self.warning_messages.append(
@@ -464,10 +464,10 @@ class DatabaseUtils(object):
                     result[column_name] = None
 
             else:
-                value = self._get_cde_value(form_model,
+                value = self._get_cde_value2(form_model,
                                             section_model,
                                             cde_model,
-                                            record)
+                                            record_dict)
                 result[column_name] = value
         return result
 
@@ -508,6 +508,17 @@ class DatabaseUtils(object):
                         d[t] = [self._get_sensible_value_from_cde(cde_model, value) for value in cde_data[cde_code]]
         return d
 
+    def _get_cde_value2(self, form_model, section_model, cde_model, record_dict):
+        t = (form_model.name, section_model.code, cde_model.code)
+        if t in record_dict:
+            return record_dict[t]
+        else:
+            if section_model.allow_multiple:
+                return [None]
+            else:
+                return None
+
+    """
     def _get_cde_value(self, form_model, section_model, cde_model, mongo_document):
         # retrieve value of cde
         for form_dict in mongo_document["forms"]:
@@ -536,6 +547,7 @@ class DatabaseUtils(object):
             return [None]
         else:
             return None
+    """
 
     def _get_sensible_value_from_cde(self, cde_model, stored_value):
         datatype = cde_model.datatype.strip().lower()
@@ -587,14 +599,14 @@ class DatabaseUtils(object):
             for row in cursor.fetchall()
         ]
 
-
+"""
 class ParseQuery(object):
     def get_parameters(self):
         pass
 
     def set_parameters(self):
         pass
-
+"""
 
 def create_field_values(registry_model, patient_model, context_model, remove_existing=False, form_model=None):
     """
