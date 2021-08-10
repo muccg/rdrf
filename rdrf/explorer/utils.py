@@ -449,9 +449,9 @@ class DatabaseUtils(object):
 
             if section_model.allow_multiple:
                 values = self._get_cde_value2(form_model,
-                                             section_model,
-                                             cde_model,
-                                             record_dict)
+                                              section_model,
+                                              cde_model,
+                                              record_dict)
 
                 if len(values) > max_items:
                     self.warning_messages.append(
@@ -465,9 +465,9 @@ class DatabaseUtils(object):
 
             else:
                 value = self._get_cde_value2(form_model,
-                                            section_model,
-                                            cde_model,
-                                            record_dict)
+                                             section_model,
+                                             cde_model,
+                                             record_dict)
                 result[column_name] = value
         return result
 
@@ -599,6 +599,7 @@ class DatabaseUtils(object):
             for row in cursor.fetchall()
         ]
 
+
 """
 class ParseQuery(object):
     def get_parameters(self):
@@ -607,6 +608,7 @@ class ParseQuery(object):
     def set_parameters(self):
         pass
 """
+
 
 def create_field_values(registry_model, patient_model, context_model, remove_existing=False, form_model=None):
     """
