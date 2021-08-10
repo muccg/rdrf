@@ -108,7 +108,8 @@ class DatabaseUtils(object):
             raise
 
         try:
-            sql_metadata = self._get_sql_metadata(self.cursor)
+            type_info = self._get_sql_type_info()
+            sql_metadata = self._get_sql_metadata(self.cursor, type_info)
         except Exception as ex:
             logger.error("Report Error: getting sql metadata: %s" % ex)
             raise
@@ -341,7 +342,7 @@ class DatabaseUtils(object):
         return type_dict
 
     @timed
-    def _get_sql_metadata(self, cursor):
+    def _get_sql_metadata(self, cursor, type_info):
         # type_code is looked up in the oid map
         # cursor description gives list:
         # [Column(name='id', type_code=23, display_size=None, internal_size=4, precision=None, scale=None, null_ok=None),
@@ -355,8 +356,7 @@ class DatabaseUtils(object):
 
         if cursor is None:
             return []
-
-        return [{"name": item.name, "type_name": self._get_sql_type_info().get(item.type_code, "varchar")} for item in cursor.description]
+        return [{"name": item.name, "type_name": type_info.get(item.type_code, "varchar")} for item in cursor.description]
 
     @timed
     def create_cursor(self):
