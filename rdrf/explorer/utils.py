@@ -17,6 +17,18 @@ import logging
 logger = logging.getLogger(__name__)
 
 
+def memoize(func):
+    memo = {}
+
+    def wrapper(*args, **kwargs):
+        key = (args, frozenset(sorted(kwargs.items())))
+        if key not in memo:
+            memo[key] = func(*args, **kwargs)
+        return memo[key]
+
+    return wrapper
+
+
 class MissingDataError(Exception):
     pass
 
@@ -448,10 +460,10 @@ class DatabaseUtils(object):
                 continue
 
             if section_model.allow_multiple:
-                values = self._get_cde_value2(form_model,
-                                              section_model,
-                                              cde_model,
-                                              record_dict)
+                values = self._get_cde_value(form_model,
+                                             section_model,
+                                             cde_model,
+                                             record_dict)
 
                 if len(values) > max_items:
                     self.warning_messages.append(
@@ -464,10 +476,10 @@ class DatabaseUtils(object):
                     result[column_name] = None
 
             else:
-                value = self._get_cde_value2(form_model,
-                                             section_model,
-                                             cde_model,
-                                             record_dict)
+                value = self._get_cde_value(form_model,
+                                            section_model,
+                                            cde_model,
+                                            record_dict)
                 result[column_name] = value
         return result
 
@@ -477,6 +489,10 @@ class DatabaseUtils(object):
                        "record_type": "snapshot"}
         for snapshot in history.find(**mongo_query).data():
             yield self._get_result_map(snapshot, is_snapshot=True, max_items=max_items, col_map=col_map)
+
+    @memoize
+    def get_cde_model(self, cde_code):
+        return CommonDataElement.objects.get(code=cde_code)
 
     def _build_dictionary(self, mongo_document):
         d = {}
@@ -489,7 +505,7 @@ class DatabaseUtils(object):
                         cde_code = cde_dict["code"]
                         cde_value = cde_dict["value"]
                         t = (form_name, section_code, cde_code)
-                        cde_model = CommonDataElement.objects.get(code=cde_code)
+                        cde_model = self.get_cde_model(cde_code)
                         d[t] = self._get_sensible_value_from_cde(cde_model, cde_value)
                 else:
                     items = section_dict["cdes"]
@@ -508,7 +524,7 @@ class DatabaseUtils(object):
                         d[t] = [self._get_sensible_value_from_cde(cde_model, value) for value in cde_data[cde_code]]
         return d
 
-    def _get_cde_value2(self, form_model, section_model, cde_model, record_dict):
+    def _get_cde_value(self, form_model, section_model, cde_model, record_dict):
         t = (form_model.name, section_model.code, cde_model.code)
         if t in record_dict:
             return record_dict[t]
@@ -518,37 +534,7 @@ class DatabaseUtils(object):
             else:
                 return None
 
-    """
-    def _get_cde_value(self, form_model, section_model, cde_model, mongo_document):
-        # retrieve value of cde
-        for form_dict in mongo_document["forms"]:
-            if form_dict["name"] == form_model.name:
-                for section_dict in form_dict["sections"]:
-                    if section_dict["code"] == section_model.code:
-                        if section_dict["allow_multiple"]:
-                            values = []
-                            for section_item in section_dict["cdes"]:
-                                for cde_dict in section_item:
-                                    if cde_dict["code"] == cde_model.code:
-                                        values.append(
-                                            self._get_sensible_value_from_cde(
-                                                cde_model, cde_dict["value"]))
-
-                            return values
-                        else:
-                            for cde_dict in section_dict["cdes"]:
-                                if cde_dict["code"] == cde_model.code:
-                                    value = self._get_sensible_value_from_cde(
-                                        cde_model, cde_dict["value"])
-                                    return value
-
-        if section_model.allow_multiple:
-            # no data filled in?
-            return [None]
-        else:
-            return None
-    """
-
+    @memoize
     def _get_sensible_value_from_cde(self, cde_model, stored_value):
         datatype = cde_model.datatype.strip().lower()
         if datatype == "calculated" and stored_value == "NaN":
