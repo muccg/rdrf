@@ -247,7 +247,7 @@ class DatabaseUtils(object):
                 sql_columns_dict[sql_column_name] = item
             yield sql_columns_dict
 
-    def full_c(self, reverse_map):
+    def full_c(self, reverse_map, collection, max_items, col_map):
         for row in self.cursor:
             sql_columns_dict = {}
             for i, item in enumerate(row):
@@ -263,7 +263,7 @@ class DatabaseUtils(object):
                     for combined_dict in self._combine_sql_and_mongo(sql_columns_dict, mongo_columns_dict):
                         yield combined_dict
 
-    def longitudinal(self, reverse_map):
+    def longitudinal(self, reverse_map, collection, max_items, col_map, history):
         for row in self.cursor:
             sql_columns_dict = {}
             for i, item in enumerate(row):
@@ -296,11 +296,11 @@ class DatabaseUtils(object):
         else:
             if self.mongo_search_type == "C":
                 # current data - no longitudinal snapshots
-                for d in self.full_c(reverse_column_map):
+                for d in self.full_c(reverse_column_map, collection, max_items, col_map):
                     yield d
             else:
                 # include longitudinal (snapshot) data
-                for d in self.longitudinal(reverse_column_map):
+                for d in self.longitudinal(reverse_column_map, collection, max_items, col_map, history):
                     yield d
 
     def _combine_sql_and_mongo(self, sql_result_dict, mongo_result_dict):
@@ -356,6 +356,7 @@ class DatabaseUtils(object):
 
         if cursor is None:
             return []
+
         return [{"name": item.name, "type_name": type_info.get(item.type_code, "varchar")} for item in cursor.description]
 
     @timed
