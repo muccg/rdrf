@@ -7,7 +7,7 @@ from django.db import connection
 from rdrf.helpers.utils import get_cached_instance
 from rdrf.helpers.utils import timed
 from rdrf.models.definition.models import Registry, RegistryForm, Section
-from rdrf.models.definition.models import CommonDataElement, ClinicalData
+from rdrf.models.definition.models import CommonDataElement
 
 from .models import Query
 from .models import FieldValue
@@ -15,6 +15,33 @@ from .forms import QueryForm
 
 import logging
 logger = logging.getLogger(__name__)
+
+
+def memoize(func):
+    memo = {}
+
+    def wrapper(*args, **kwargs):
+        key = (args, frozenset(sorted(kwargs.items())))
+        if key not in memo:
+            memo[key] = func(*args, **kwargs)
+        return memo[key]
+
+    return wrapper
+
+
+@memoize
+def get_cde_model(cde_code):
+    return CommonDataElement.objects.get(code=cde_code)
+
+
+@memoize
+def get_section_model(section_code):
+    return Section.objects.get(code=section_code)
+
+
+@memoize
+def get_form_model(form_name, registry_model):
+    return RegistryForm.objects.get(name=form_name, registry=registry_model)
 
 
 class MissingDataError(Exception):
@@ -28,6 +55,7 @@ class DatabaseUtils(object):
     def __init__(self, form_object=None, verify=False):
         self.error_messages = []
         self.warning_messages = []
+        self.cursor = None
 
         if form_object and isinstance(form_object, QueryForm):
             self.form_object = form_object
@@ -108,7 +136,8 @@ class DatabaseUtils(object):
             raise
 
         try:
-            sql_metadata = self._get_sql_metadata(self.cursor)
+            type_info = self._get_sql_type_info()
+            sql_metadata = self._get_sql_metadata(self.cursor, type_info)
         except Exception as ex:
             logger.error("Report Error: getting sql metadata: %s" % ex)
             raise
@@ -138,7 +167,7 @@ class DatabaseUtils(object):
             raise
 
     @timed
-    def generate_results2(self, reverse_column_map, col_map, max_items):
+    def generate_results2(self, reverse_column_map, col_map, max_items, collection=None, history=None, sql_only=False):
         from registry.patients.models import Patient
         self.reverse_map = reverse_column_map
         self.col_map = col_map
@@ -229,44 +258,38 @@ class DatabaseUtils(object):
         for fv in query.filter(datatype='calculated'):
             row[fv.column_name] = fv.get_calculated_value()
 
-    @timed
-    def generate_results(self, reverse_column_map, col_map, max_items):
-        self.reverse_map = reverse_column_map
-        self.col_map = col_map
+    def sql_only_c(self, reverse_map):
+        for row in self.cursor:
+            sql_columns_dict = {}
+            for i, item in enumerate(row):
+                sql_column_name = reverse_map[i]
+                sql_columns_dict[sql_column_name] = item
+            yield sql_columns_dict
 
-        collection = ClinicalData.objects.collection(self.registry_model.code, self.collection)
-        history = ClinicalData.objects.collection(self.registry_model.code, "history")
+    def full_c(self, reverse_map, collection, max_items, col_map):
+        for row in self.cursor:
+            sql_columns_dict = {}
+            for i, item in enumerate(row):
+                sql_column_name = reverse_map[i]
+                sql_columns_dict[sql_column_name] = item
 
-        if self.projection:
-            self.mongo_models = [model_triple for model_triple in self._get_mongo_fields()]
-        else:
-            self.mongo_models = []
+            for mongo_columns_dict in self.run_mongo_one_row(sql_columns_dict, collection, max_items, col_map):
+                if mongo_columns_dict is None:
+                    sql_columns_dict["snapshot"] = False
+                    yield sql_columns_dict
+                else:
+                    mongo_columns_dict["snapshot"] = False
+                    for combined_dict in self._combine_sql_and_mongo(sql_columns_dict, mongo_columns_dict):
+                        yield combined_dict
 
-        sql_only = len(self.mongo_models) == 0
+    def longitudinal(self, reverse_map, collection, max_items, col_map, history):
+        for row in self.cursor:
+            sql_columns_dict = {}
+            for i, item in enumerate(row):
+                sql_column_name = reverse_map[i]
+                sql_columns_dict[sql_column_name] = item
 
-        def full_c2():
-            for row in self.cursor:
-                sql_columns_dict = {}
-                for i, item in enumerate(row):
-                    sql_column_name = self.reverse_map[i]
-                    sql_columns_dict[sql_column_name] = item
-
-        def sql_only_c():
-            for row in self.cursor:
-                sql_columns_dict = {}
-                for i, item in enumerate(row):
-                    sql_column_name = self.reverse_map[i]
-                    sql_columns_dict[sql_column_name] = item
-                yield sql_columns_dict
-
-        def full_c():
-            for row in self.cursor:
-                sql_columns_dict = {}
-                for i, item in enumerate(row):
-                    sql_column_name = self.reverse_map[i]
-                    sql_columns_dict[sql_column_name] = item
-
-                for mongo_columns_dict in self.run_mongo_one_row(sql_columns_dict, collection, max_items):
+                for mongo_columns_dict in self.run_mongo_one_row(sql_columns_dict, collection, max_items, col_map):
                     if mongo_columns_dict is None:
                         sql_columns_dict["snapshot"] = False
                         yield sql_columns_dict
@@ -275,47 +298,28 @@ class DatabaseUtils(object):
                         for combined_dict in self._combine_sql_and_mongo(sql_columns_dict, mongo_columns_dict):
                             yield combined_dict
 
-        def longitudinal():
-            for row in self.cursor:
-                sql_columns_dict = {}
-                for i, item in enumerate(row):
-                    sql_column_name = self.reverse_map[i]
-                    sql_columns_dict[sql_column_name] = item
+                for mongo_columns_dict in self.run_mongo_one_row_longitudinal(
+                        sql_columns_dict, history, max_items, col_map):
+                    if mongo_columns_dict is None:
+                        yield None
+                    else:
+                        mongo_columns_dict["snapshot"] = True
+                        for combined_dict in self._combine_sql_and_mongo(sql_columns_dict, mongo_columns_dict):
+                            yield combined_dict
 
-                    for mongo_columns_dict in self.run_mongo_one_row(sql_columns_dict, collection, max_items):
-                        if mongo_columns_dict is None:
-                            sql_columns_dict["snapshot"] = False
-                            yield sql_columns_dict
-                        else:
-                            mongo_columns_dict["snapshot"] = False
-                            for combined_dict in self._combine_sql_and_mongo(sql_columns_dict, mongo_columns_dict):
-                                yield combined_dict
-
-                    for mongo_columns_dict in self.run_mongo_one_row_longitudinal(
-                            sql_columns_dict, history, max_items):
-                        if mongo_columns_dict is None:
-                            yield None
-                        else:
-                            mongo_columns_dict["snapshot"] = True
-                            for combined_dict in self._combine_sql_and_mongo(sql_columns_dict, mongo_columns_dict):
-                                yield combined_dict
-
-        if self.mongo_search_type == "C":
-            # current data - no longitudinal snapshots
-            if sql_only:
-                for d in sql_only_c():
-                    yield d
-            else:
-                for d in full_c():
-                    yield d
-
+    @timed
+    def generate_results(self, reverse_column_map, col_map, max_items, collection=None, history=None, sql_only=False):
+        if sql_only:
+            for d in self.sql_only_c(reverse_column_map):
+                yield d
         else:
-            # include longitudinal ( snapshot) data
-            if sql_only:
-                for d in sql_only_c():
+            if self.mongo_search_type == "C":
+                # current data - no longitudinal snapshots
+                for d in self.full_c(reverse_column_map, collection, max_items, col_map):
                     yield d
             else:
-                for d in longitudinal():
+                # include longitudinal (snapshot) data
+                for d in self.longitudinal(reverse_column_map, collection, max_items, col_map, history):
                     yield d
 
     def _combine_sql_and_mongo(self, sql_result_dict, mongo_result_dict):
@@ -357,7 +361,7 @@ class DatabaseUtils(object):
         return type_dict
 
     @timed
-    def _get_sql_metadata(self, cursor):
+    def _get_sql_metadata(self, cursor, type_info):
         # type_code is looked up in the oid map
         # cursor description gives list:
         # [Column(name='id', type_code=23, display_size=None, internal_size=4, precision=None, scale=None, null_ok=None),
@@ -372,16 +376,7 @@ class DatabaseUtils(object):
         if cursor is None:
             return []
 
-        type_info = self._get_sql_type_info()
-
-        def get_info(item):
-            name = item.name
-            type_code = item.type_code
-            type_name = type_info.get(type_code, "varchar")
-
-            return {"name": name, "type_name": type_name}
-
-        return [get_info(item) for item in cursor.description]
+        return [{"name": item.name, "type_name": type_info.get(item.type_code, "varchar")} for item in cursor.description]
 
     @timed
     def create_cursor(self):
@@ -399,10 +394,9 @@ class DatabaseUtils(object):
             return data
 
         for cde_dict in self.projection:
-            form_model = RegistryForm.objects.get(
-                name=cde_dict["formName"], registry=self.registry_model)
-            section_model = Section.objects.get(code=cde_dict["sectionCode"])
-            cde_model = CommonDataElement.objects.get(code=cde_dict["cdeCode"])
+            form_model = get_form_model(cde_dict["formName"], self.registry_model)
+            section_model = get_section_model(cde_dict["sectionCode"])
+            cde_model = get_cde_model(cde_dict["cdeCode"])
             column_name = self._get_database_column_name(form_model, section_model, cde_model)
             data["multisection_column_map"][(
                 form_model, section_model, cde_model)] = column_name
@@ -424,7 +418,7 @@ class DatabaseUtils(object):
 
             yield form_model, section_model, cde_model
 
-    def run_mongo_one_row(self, sql_column_data, collection, max_items):
+    def run_mongo_one_row(self, sql_column_data, collection, max_items, col_map):
         mongo_query = {
             "django_model": "Patient",
             "django_id": sql_column_data["id"],  # convention?
@@ -435,31 +429,32 @@ class DatabaseUtils(object):
         if num_records == 0:
             yield None
         else:
-            for mongo_document in records:
-                yield self._get_result_map(mongo_document, max_items=max_items)
+            for clinical_data in records:
+                yield self._get_result_map(clinical_data, max_items=max_items, col_map=col_map)
 
-    def _process_all_rows(self, collection, max_items=3):
+    def _process_all_rows(self, collection, max_items=3, col_map={}):
 
         qry = collection.filter(django_model="Patient")
         # list of clinical data
         data = qry.values('django_id', 'context_id', 'data')
         for item in data:
-            result_map = self._get_result_map(item['data'], max_items=max_items)
+            result_map = self._get_result_map(item['data'], max_items=max_items, col_map=col_map)
             result_map['id'] = item['django_id']
 
-    def _get_result_map(self, mongo_document, is_snapshot=False, max_items=3):
+    def _get_result_map(self, clinical_data, is_snapshot=False, max_items=3, col_map={}):
         result = {}
         if is_snapshot:
             # snapshots copy entire patient record into record field
-            record = mongo_document["record"]
+            record = clinical_data["record"]
         else:
-            record = mongo_document
+            record = clinical_data
+        record_dict = self._build_dictionary(record)
         result["context_id"] = record.get("context_id", None)
 
         # timestamp from top level in for current and snapshot
-        result['timestamp'] = mongo_document.get("timestamp", None)
+        result['timestamp'] = clinical_data.get("timestamp", None)
 
-        for key, column_name in self.col_map.items():
+        for key, column_name in col_map.items():
             if isinstance(key, tuple):
                 if len(key) == 4:
                     # NB section index is 1 based in report
@@ -474,8 +469,7 @@ class DatabaseUtils(object):
                 values = self._get_cde_value(form_model,
                                              section_model,
                                              cde_model,
-
-                                             record)
+                                             record_dict)
 
                 if len(values) > max_items:
                     self.warning_messages.append(
@@ -491,46 +485,58 @@ class DatabaseUtils(object):
                 value = self._get_cde_value(form_model,
                                             section_model,
                                             cde_model,
-                                            record)
+                                            record_dict)
                 result[column_name] = value
         return result
 
-    def run_mongo_one_row_longitudinal(self, sql_column_data, history, max_items):
-        mongo_query = {"django_id": sql_column_data["id"],
-                       "django_model": "Patient",
-                       "record_type": "snapshot"}
-        for snapshot in history.find(**mongo_query).data():
-            yield self._get_result_map(snapshot, is_snapshot=True, max_items=max_items)
+    def run_mongo_one_row_longitudinal(self, sql_column_data, history, max_items, col_map):
+        query = {"django_id": sql_column_data["id"],
+                 "django_model": "Patient",
+                 "record_type": "snapshot"}
+        for snapshot in history.find(**query).data():
+            yield self._get_result_map(snapshot, is_snapshot=True, max_items=max_items, col_map=col_map)
 
-    def _get_cde_value(self, form_model, section_model, cde_model, mongo_document):
-        # retrieve value of cde
-        for form_dict in mongo_document["forms"]:
-            if form_dict["name"] == form_model.name:
-                for section_dict in form_dict["sections"]:
-                    if section_dict["code"] == section_model.code:
-                        if section_dict["allow_multiple"]:
-                            values = []
-                            for section_item in section_dict["cdes"]:
-                                for cde_dict in section_item:
-                                    if cde_dict["code"] == cde_model.code:
-                                        values.append(
-                                            self._get_sensible_value_from_cde(
-                                                cde_model, cde_dict["value"]))
+    def _build_dictionary(self, clinical_data):
+        d = {}
+        for form_dict in clinical_data["forms"]:
+            form_name = form_dict['name']
+            for section_dict in form_dict["sections"]:
+                section_code = section_dict['code']
+                if not section_dict["allow_multiple"]:
+                    for cde_dict in section_dict["cdes"]:
+                        cde_code = cde_dict["code"]
+                        cde_value = cde_dict["value"]
+                        t = (form_name, section_code, cde_code)
+                        cde_model = get_cde_model(cde_code)
+                        d[t] = self._get_sensible_value_from_cde(cde_model, cde_value)
+                else:
+                    items = section_dict["cdes"]
+                    cde_data = {}
+                    for item in items:
+                        for cde_dict in item:
+                            cde_code = cde_dict["code"]
+                            cde_value = cde_dict["value"]
+                            if cde_code in cde_data:
+                                cde_data[cde_code].append(cde_value)
+                            else:
+                                cde_data[cde_code] = [cde_value]
+                    for cde_code in cde_data:
+                        cde_model = get_cde_model(cde_code)
+                        t = (form_name, section_code, cde_code)
+                        d[t] = [self._get_sensible_value_from_cde(cde_model, value) for value in cde_data[cde_code]]
+        return d
 
-                            return values
-                        else:
-                            for cde_dict in section_dict["cdes"]:
-                                if cde_dict["code"] == cde_model.code:
-                                    value = self._get_sensible_value_from_cde(
-                                        cde_model, cde_dict["value"])
-                                    return value
-
-        if section_model.allow_multiple:
-            # no data filled in?
-            return [None]
+    def _get_cde_value(self, form_model, section_model, cde_model, record_dict):
+        t = (form_model.name, section_model.code, cde_model.code)
+        if t in record_dict:
+            return record_dict[t]
         else:
-            return None
+            if section_model.allow_multiple:
+                return [None]
+            else:
+                return None
 
+    @memoize
     def _get_sensible_value_from_cde(self, cde_model, stored_value):
         datatype = cde_model.datatype.strip().lower()
         if datatype == "calculated" and stored_value == "NaN":
@@ -580,14 +586,6 @@ class DatabaseUtils(object):
             dict(zip([col[0] for col in desc], row))
             for row in cursor.fetchall()
         ]
-
-
-class ParseQuery(object):
-    def get_parameters(self):
-        pass
-
-    def set_parameters(self):
-        pass
 
 
 def create_field_values(registry_model, patient_model, context_model, remove_existing=False, form_model=None):
