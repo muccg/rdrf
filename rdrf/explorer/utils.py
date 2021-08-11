@@ -607,18 +607,19 @@ def create_field_values(registry_model, patient_model, context_model, remove_exi
     if dynamic_data:
         for form_dict in dynamic_data["forms"]:
             try:
-                form_model = get_form_model(form_dict["name"], registry_model)
+                form_model = RegistryForm.objects.get(name=form_dict["name"],
+                                                      registry=registry_model)
             except RegistryForm.DoesNotExist:
                 continue
             for section_dict in form_dict["sections"]:
                 try:
-                    section_model = get_section_model(section_dict["code"])
+                    section_model = Section.objects.get(code=section_dict["code"])
                 except Section.DoesNotExist:
                     continue
                 if not section_dict["allow_multiple"]:
                     for cde_dict in section_dict["cdes"]:
                         try:
-                            cde_model = get_cde_model(cde_dict["code"])
+                            cde_model = CommonDataElement.objects.get(code=cde_dict["code"])
                         except CommonDataElement.DoesNotExist:
                             continue
 
@@ -634,7 +635,7 @@ def create_field_values(registry_model, patient_model, context_model, remove_exi
                     for index, item in enumerate(section_dict["cdes"]):
                         for cde_dict in item:
                             try:
-                                cde_model = get_cde_model(cde_dict["code"])
+                                cde_model = CommonDataElement.objects.get(code=cde_dict["code"])
                             except CommonDataElement.DoesNotExist:
                                 continue
 
