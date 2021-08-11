@@ -1,6 +1,6 @@
 from collections import OrderedDict
 import json
-
+import pickle
 from django.db import ProgrammingError
 from django.db import connection
 
@@ -21,7 +21,7 @@ def memoize(func):
     memo = {}
 
     def wrapper(*args, **kwargs):
-        key = (args, frozenset(sorted(kwargs.items())))
+        key = pickle.dumps(args, 1) + pickle.dumps(kwargs, 1)
         if key not in memo:
             memo[key] = func(*args, **kwargs)
         return memo[key]
@@ -42,6 +42,20 @@ def get_section_model(section_code):
 @memoize
 def get_form_model(form_name, registry_model):
     return RegistryForm.objects.get(name=form_name, registry=registry_model)
+
+
+@memoize
+def _get_sensible_value_from_cde(cde_model, stored_value):
+    datatype = cde_model.datatype.strip().lower()
+    if datatype == "calculated" and stored_value == "NaN":
+        return None
+    if datatype != 'string' and stored_value in ['', ' ', None]:
+        # ensure we don't pass empty string back for numeric fields.
+        # range fields will always be non-blank, non-whitespace
+        return None
+    if datatype == "file":
+        return "FILE"
+    return cde_model.get_display_value(stored_value)
 
 
 class MissingDataError(Exception):
@@ -508,7 +522,7 @@ class DatabaseUtils(object):
                         cde_value = cde_dict["value"]
                         t = (form_name, section_code, cde_code)
                         cde_model = get_cde_model(cde_code)
-                        d[t] = self._get_sensible_value_from_cde(cde_model, cde_value)
+                        d[t] = _get_sensible_value_from_cde(cde_model, cde_value)
                 else:
                     items = section_dict["cdes"]
                     cde_data = {}
@@ -523,7 +537,7 @@ class DatabaseUtils(object):
                     for cde_code in cde_data:
                         cde_model = get_cde_model(cde_code)
                         t = (form_name, section_code, cde_code)
-                        d[t] = [self._get_sensible_value_from_cde(cde_model, value) for value in cde_data[cde_code]]
+                        d[t] = [_get_sensible_value_from_cde(cde_model, value) for value in cde_data[cde_code]]
         return d
 
     def _get_cde_value(self, form_model, section_model, cde_model, record_dict):
@@ -535,19 +549,6 @@ class DatabaseUtils(object):
                 return [None]
             else:
                 return None
-
-    @memoize
-    def _get_sensible_value_from_cde(self, cde_model, stored_value):
-        datatype = cde_model.datatype.strip().lower()
-        if datatype == "calculated" and stored_value == "NaN":
-            return None
-        if datatype != 'string' and stored_value in ['', ' ', None]:
-            # ensure we don't pass empty string back for numeric fields.
-            # range fields will always be non-blank, non-whitespace
-            return None
-        if datatype == "file":
-            return "FILE"
-        return cde_model.get_display_value(stored_value)
 
     def run_mongo(self):
         raise NotImplementedError("MongoDB is no longer supported in the RDRF")
