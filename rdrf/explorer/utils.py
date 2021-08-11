@@ -29,6 +29,21 @@ def memoize(func):
     return wrapper
 
 
+@memoize
+def get_cde_model(cde_code):
+    return CommonDataElement.objects.get(code=cde_code)
+
+
+@memoize
+def get_section_model(section_code):
+    return Section.objects.get(code=section_code)
+
+
+@memoize
+def get_form_model(form_name, registry_model):
+    return RegistryForm.objects.get(name=form_name, registry=registry_model)
+
+
 class MissingDataError(Exception):
     pass
 
@@ -40,6 +55,7 @@ class DatabaseUtils(object):
     def __init__(self, form_object=None, verify=False):
         self.error_messages = []
         self.warning_messages = []
+        self.cursor = None
 
         if form_object and isinstance(form_object, QueryForm):
             self.form_object = form_object
@@ -242,15 +258,6 @@ class DatabaseUtils(object):
         for fv in query.filter(datatype='calculated'):
             row[fv.column_name] = fv.get_calculated_value()
 
-    """
-    def full_c2(self, reverse_map):
-        for row in self.cursor:
-            sql_columns_dict = {}
-            for i, item in enumerate(row):
-                sql_column_name = reverse_map[i]
-                sql_columns_dict[sql_column_name] = item
-    """
-
     def sql_only_c(self, reverse_map):
         for row in self.cursor:
             sql_columns_dict = {}
@@ -387,10 +394,9 @@ class DatabaseUtils(object):
             return data
 
         for cde_dict in self.projection:
-            form_model = RegistryForm.objects.get(
-                name=cde_dict["formName"], registry=self.registry_model)
-            section_model = Section.objects.get(code=cde_dict["sectionCode"])
-            cde_model = CommonDataElement.objects.get(code=cde_dict["cdeCode"])
+            form_model = get_form_model(cde_dict["formName"], self.registry_model)
+            section_model = get_section_model(cde_dict["sectionCode"])
+            cde_model = get_cde_model(cde_dict["cdeCode"])
             column_name = self._get_database_column_name(form_model, section_model, cde_model)
             data["multisection_column_map"][(
                 form_model, section_model, cde_model)] = column_name
@@ -423,8 +429,8 @@ class DatabaseUtils(object):
         if num_records == 0:
             yield None
         else:
-            for mongo_document in records:
-                yield self._get_result_map(mongo_document, max_items=max_items, col_map=col_map)
+            for clinical_data in records:
+                yield self._get_result_map(clinical_data, max_items=max_items, col_map=col_map)
 
     def _process_all_rows(self, collection, max_items=3, col_map={}):
 
@@ -435,18 +441,18 @@ class DatabaseUtils(object):
             result_map = self._get_result_map(item['data'], max_items=max_items, col_map=col_map)
             result_map['id'] = item['django_id']
 
-    def _get_result_map(self, mongo_document, is_snapshot=False, max_items=3, col_map={}):
+    def _get_result_map(self, clinical_data, is_snapshot=False, max_items=3, col_map={}):
         result = {}
         if is_snapshot:
             # snapshots copy entire patient record into record field
-            record = mongo_document["record"]
+            record = clinical_data["record"]
         else:
-            record = mongo_document
+            record = clinical_data
         record_dict = self._build_dictionary(record)
         result["context_id"] = record.get("context_id", None)
 
         # timestamp from top level in for current and snapshot
-        result['timestamp'] = mongo_document.get("timestamp", None)
+        result['timestamp'] = clinical_data.get("timestamp", None)
 
         for key, column_name in col_map.items():
             if isinstance(key, tuple):
@@ -484,19 +490,15 @@ class DatabaseUtils(object):
         return result
 
     def run_mongo_one_row_longitudinal(self, sql_column_data, history, max_items, col_map):
-        mongo_query = {"django_id": sql_column_data["id"],
-                       "django_model": "Patient",
-                       "record_type": "snapshot"}
-        for snapshot in history.find(**mongo_query).data():
+        query = {"django_id": sql_column_data["id"],
+                 "django_model": "Patient",
+                 "record_type": "snapshot"}
+        for snapshot in history.find(**query).data():
             yield self._get_result_map(snapshot, is_snapshot=True, max_items=max_items, col_map=col_map)
 
-    @memoize
-    def get_cde_model(self, cde_code):
-        return CommonDataElement.objects.get(code=cde_code)
-
-    def _build_dictionary(self, mongo_document):
+    def _build_dictionary(self, clinical_data):
         d = {}
-        for form_dict in mongo_document["forms"]:
+        for form_dict in clinical_data["forms"]:
             form_name = form_dict['name']
             for section_dict in form_dict["sections"]:
                 section_code = section_dict['code']
@@ -505,7 +507,7 @@ class DatabaseUtils(object):
                         cde_code = cde_dict["code"]
                         cde_value = cde_dict["value"]
                         t = (form_name, section_code, cde_code)
-                        cde_model = self.get_cde_model(cde_code)
+                        cde_model = get_cde_model(cde_code)
                         d[t] = self._get_sensible_value_from_cde(cde_model, cde_value)
                 else:
                     items = section_dict["cdes"]
@@ -519,7 +521,7 @@ class DatabaseUtils(object):
                             else:
                                 cde_data[cde_code] = [cde_value]
                     for cde_code in cde_data:
-                        cde_model = CommonDataElement.objects.get(code=cde_code)
+                        cde_model = get_cde_model(cde_code)
                         t = (form_name, section_code, cde_code)
                         d[t] = [self._get_sensible_value_from_cde(cde_model, value) for value in cde_data[cde_code]]
         return d
@@ -586,16 +588,6 @@ class DatabaseUtils(object):
         ]
 
 
-"""
-class ParseQuery(object):
-    def get_parameters(self):
-        pass
-
-    def set_parameters(self):
-        pass
-"""
-
-
 def create_field_values(registry_model, patient_model, context_model, remove_existing=False, form_model=None):
     """
     Create faster representations of the clinical data for reporting
@@ -615,19 +607,18 @@ def create_field_values(registry_model, patient_model, context_model, remove_exi
     if dynamic_data:
         for form_dict in dynamic_data["forms"]:
             try:
-                form_model = RegistryForm.objects.get(name=form_dict["name"],
-                                                      registry=registry_model)
+                form_model = get_form_model(form_dict["name"], registry_model)
             except RegistryForm.DoesNotExist:
                 continue
             for section_dict in form_dict["sections"]:
                 try:
-                    section_model = Section.objects.get(code=section_dict["code"])
+                    section_model = get_section_model(section_dict["code"])
                 except Section.DoesNotExist:
                     continue
                 if not section_dict["allow_multiple"]:
                     for cde_dict in section_dict["cdes"]:
                         try:
-                            cde_model = CommonDataElement.objects.get(code=cde_dict["code"])
+                            cde_model = get_cde_model(cde_dict["code"])
                         except CommonDataElement.DoesNotExist:
                             continue
 
@@ -643,7 +634,7 @@ def create_field_values(registry_model, patient_model, context_model, remove_exi
                     for index, item in enumerate(section_dict["cdes"]):
                         for cde_dict in item:
                             try:
-                                cde_model = CommonDataElement.objects.get(code=cde_dict["code"])
+                                cde_model = get_cde_model(cde_dict["code"])
                             except CommonDataElement.DoesNotExist:
                                 continue
 
