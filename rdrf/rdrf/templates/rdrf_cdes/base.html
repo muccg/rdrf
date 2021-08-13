@@ -126,10 +126,10 @@
 
                         {% if request.user.registry_code %}
                         {% if request.user.is_parent %}
-                        <li class="nav-item"><a class="nav-link" href="{% url 'parent_page' request.user.registry_code %}"><span class="fa fa-home-alt"></span>
+                        <li class="nav-item"><a class="nav-link" href="{% url 'parent_page' request.user.registry_code %}"><span class="fa fa-home"></span>
                                 {% trans "Home Page" %}</a></li>
                         {% elif request.user.is_patient %}
-                        <li class="nav-item"><a class="nav-link" href="{% url 'patient_page' request.user.registry_code %}"><span class="fa fa-home-alt"></span>
+                        <li class="nav-item"><a class="nav-link" href="{% url 'patient_page' request.user.registry_code %}"><span class="fa fa-home"></span>
                                 {% trans "Home Page" %}</a></li>
                         {% endif %}
                         {% endif %}
