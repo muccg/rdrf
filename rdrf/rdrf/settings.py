@@ -793,6 +793,16 @@ CACHES['redis'] = {
     "KEY_PREFIX": "celery_cache_"
 }
 
+CACHES['blackboard'] = {
+    "BACKEND": "django_redis.cache.RedisCache",
+    "LOCATION": env.getlist("cache", ["redis://rediscache:6379/9"]),
+    "TIMEOUT": 3600,
+    "OPTIONS": {
+        "CLIENT_CLASS": "django_redis.client.DefaultClient"
+    },
+    "KEY_PREFIX": "rdrf_if_"
+}
+
 CELERY_BROKER_URL = env.get('CELERY_BROKER_URL', 'redis://rediscache')
 CELERY_RESULT_BACKEND = CELERY_BROKER_URL
 CELERY_ACCEPT_CONTENT = ['json']

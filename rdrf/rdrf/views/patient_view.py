@@ -1,3 +1,4 @@
+import os
 from collections import OrderedDict
 
 from django.shortcuts import render, redirect
@@ -38,7 +39,7 @@ from rdrf.security.security_checks import security_check_user_patient
 from django.core.exceptions import PermissionDenied
 from django.utils.decorators import method_decorator
 from django.contrib.auth.decorators import login_required
-
+from django_redis import get_redis_connection
 
 import logging
 logger = logging.getLogger(__name__)
@@ -1158,6 +1159,14 @@ class DataRequestView(View):
     @method_decorator(anonymous_not_allowed)
     @method_decorator(login_required)
     def post(self, request, registry_code, umrn):
+        conn = get_redis_connection("blackboard")
+        container_id = os.environ["HOSTNAME"]
+        conn.hmset("patient_query", {"host": request.get_host(),
+                                     "container_id": container_id,
+                                     "registry_code": registry_code,
+                                     "umrn": umrn})
+        # host = conn.hget("patient_query", "host")
+        # host = host.decode("utf-8")
         response_data = {"request_token": "this_is_a_dummy_token"}
         return HttpResponse(json.dumps(response_data, cls=DjangoJSONEncoder))
 
