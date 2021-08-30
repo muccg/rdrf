@@ -1160,13 +1160,7 @@ class DataRequestView(View):
     @method_decorator(login_required)
     def post(self, request, registry_code, umrn):
         conn = get_redis_connection("blackboard")
-        container_id = os.environ["HOSTNAME"]
-        conn.hmset("patient_query", {"host": request.get_host(),
-                                     "container_id": container_id,
-                                     "registry_code": registry_code,
-                                     "umrn": umrn})
-        # host = conn.hget("patient_query", "host")
-        # host = host.decode("utf-8")
+        conn.sadd(f"{registry_code}:umrns", umrn)
         response_data = {"request_token": "this_is_a_dummy_token"}
         return HttpResponse(json.dumps(response_data, cls=DjangoJSONEncoder))
 

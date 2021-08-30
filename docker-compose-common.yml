@@ -49,6 +49,11 @@ services:
 
   rediscache:
     image: redis:3-alpine
+    command: ["redis-server", "--appendonly", "yes"]
+    environment:
+      - REDIS_DISABLE_COMMANDS=FLUSHDB,FLUSHALL
+    volumes:
+      - ./data/redis:/data
 
   cache:
     image: memcached:1.4
@@ -76,7 +81,14 @@ services:
       - WAIT_FOR_CACHE=1
       - DEIDENTIFIED_SITE_ID=testing
       - DJANGO_MAILGUN_API_KEY=${DJANGO_MAILGUN_API_KEY}
-      #- USE_CELERY=1
+      - USE_CELERY=1
+      # these are added for local dev setup
+      - PROMS_SECRET_TOKEN=kjhsdfkhjdfjdhfsdfjshdfkjsdhfkjsdhf987
+      # - ENABLE_CSP=0
+      # - KEY_PREFIX=ICHOMCRC
+      - DEIDENTIFIED_SITE_ID=crcloc-ccg
+      - TASK_FILE_DIRECTORY=/data/static/tasks/
+      # - SYSTEM_ROLE=CIC_PROMS
 
   celeryworker:
     image: muccg/rdrf-dev
