@@ -81,14 +81,7 @@ services:
       - WAIT_FOR_CACHE=1
       - DEIDENTIFIED_SITE_ID=testing
       - DJANGO_MAILGUN_API_KEY=${DJANGO_MAILGUN_API_KEY}
-      - USE_CELERY=1
-      # these are added for local dev setup
-      - PROMS_SECRET_TOKEN=kjhsdfkhjdfjdhfsdfjshdfkjsdhfkjsdhf987
-      # - ENABLE_CSP=0
-      # - KEY_PREFIX=ICHOMCRC
-      - DEIDENTIFIED_SITE_ID=crcloc-ccg
-      - TASK_FILE_DIRECTORY=/data/static/tasks/
-      # - SYSTEM_ROLE=CIC_PROMS
+      #- USE_CELERY=1
 
   celeryworker:
     image: muccg/rdrf-dev
