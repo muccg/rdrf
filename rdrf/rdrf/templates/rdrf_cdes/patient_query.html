@@ -105,7 +105,7 @@
         $(document).ready(function() {
             $("#query_patient").click(function(){
                 $("#status_div").html("Waiting response...");
-                dataRequestUrl.replace("umrn", $("#id_umrn").val());
+                dataRequestUrl = dataRequestUrl.replace("umrn", $("#id_umrn").val());
                 $.ajax({url: dataRequestUrl,
                         type: "POST",
                         success: function(resultJson) {
