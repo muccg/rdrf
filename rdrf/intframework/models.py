@@ -39,8 +39,8 @@ class HL7Mapping(models.Model):
         event_map = self.load()
         event_code = self._get_event_code(hl7_message)
         value_map = {}
-        if event_code in message_map:
-            mapping_map = message_map[event_code]
+        if event_code in event_map:
+            mapping_map = event_map[event_code]
             for field_moniker, mapping_data in mapping_map.items():
                 hl7_path = mapping_data["path"]
                 hl7_value = self._get_hl7_value(hl7_path, hl7_message)
@@ -58,8 +58,10 @@ class HL7Mapping(models.Model):
     def _apply_transform(self, transform_name, hl7_value):
         if hasattr(utils, transform_name):
             func = getattr(utils, transform_name)
-            if callable(func) and hasattr(func, "hl7_transform_function"):
-                rdrf_value = func(hl7_value)
+            if not callable(func):
+                raise TransformFunctionError(f"{transform_name} is not a function")
+            if not hasattr(func, "hl7_transform_function"):
+                raise TransformFunctionError(f"{transform_name} is not a HL7 transform")
 
 
 class HL7Message(models.Model):
