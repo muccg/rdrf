@@ -1,6 +1,8 @@
-from django.db import models
 import logging
-from rdrf.models.definition.models import Registry
+import json
+from django.db import models
+from intframework import utils
+from utils import TransformFunctionError
 
 
 class DataRequestState:
@@ -11,6 +13,63 @@ class DataRequestState:
 
 
 logger = logging.getLogger(__name__)
+
+
+class HL7Mapping(models.Model):
+    event_map = models.TextField(blank=True, null=True)
+
+    def load(self):
+        try:
+            return json.loads(self.event_map)
+        except ValueError:
+            return {}
+
+    def parse(self, hl7_message):
+        """
+        Rather than have lots of models specifying the hl7 translations
+        We have a block of JSON
+        Something like 
+
+        {"QRY_A19": {"BaseLineClinical/TestSection/CDEName": { "path": "OBX.3.4", "transform": "foobar" },
+                    ."<FieldMoniker> : { "path" : <path into hl7 message>,
+                                         "transform": "<functionname>" } , }
+
+
+        """
+        event_map = self.load()
+        event_code = self._get_event_code(hl7_message)
+        value_map = {}
+        if event_code in message_map:
+            mapping_map = message_map[event_code]
+            for field_moniker, mapping_data in mapping_map.items():
+                hl7_path = mapping_data["path"]
+                hl7_value = self._get_hl7_value(hl7_path, hl7_message)
+                transform_name = mapping_data["transform"]
+                try:
+                    rdrf_value = self._apply_transform(transform_name, hl7_value)
+                    value_map[field_moniker] = rdrf_value
+                except TransformFunctionError as tfe:
+                    logger.error("Error transforming HL7 field")
+            return value_map
+
+    def _get_hl7_value(self, path, message):
+        return "TODO"
+
+    def _apply_transform(self, transform_name, hl7_value):
+        if hasattr(utils, transform_name):
+            func = getattr(utils, transform_name)
+            if callable(func) and hasattr(func, "hl7_transform_function"):
+                rdrf_value = func(hl7_value)
+
+
+class HL7Message(models.Model):
+    code = models.CharField(max_length=80)
+    hl7 = models.TextField()
+
+    def build(self, template_data):
+        from django.template import Template, Context
+        context = Context(template_data)
+        return Template(self.hl7).render(context)
 
 
 class DataRequest(models.Model):
