@@ -5,15 +5,18 @@ from django.db import models
 from intframework import utils
 from utils import TransformFunctionError
 
+logger = logging.getLogger(__name__)
+
+
+class HL7:
+    MESSAGE_TYPE_PATH = "MSH.9"
+
 
 class DataRequestState:
     REQUESTED = "REC"
     ERROR = "ERR"
     APPLIED = "APP"
     RECEIVED = "REC"
-
-
-logger = logging.getLogger(__name__)
 
 
 class HL7Mapping(models.Model):
@@ -32,7 +35,7 @@ class HL7Mapping(models.Model):
         """
         Rather than have lots of models specifying the hl7 translations
         We have a block of JSON
-        Something like 
+        Something like
 
         The keys are HL7 event types ( MSH.9.1 ? )
 
@@ -43,7 +46,6 @@ class HL7Mapping(models.Model):
 
         """
         event_map = self.load()
-        event_code = self._get_event_code(hl7_message)
         value_map = {}
 
         try:
@@ -51,6 +53,8 @@ class HL7Mapping(models.Model):
         except hl7.ParseException as pex:
             # what to do?
             return {}
+
+        event_code = self._get_event_code(msg)
 
         if event_code in event_map:
             mapping_map = event_map[event_code]
@@ -64,6 +68,9 @@ class HL7Mapping(models.Model):
                 except TransformFunctionError as tfe:
                     logger.error("Error transforming HL7 field")
             return value_map
+
+    def _get_event_code(self, parsed_message):
+        return self._get_hl7_value(HL7.MESSAGE_TYPE_PATH, parsed_message)
 
     def _get_hl7_value(self, path, parsed_message):
         # the path notation is understood by python hl7 library
