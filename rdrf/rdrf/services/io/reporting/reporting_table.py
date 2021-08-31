@@ -1,8 +1,10 @@
+from copy import copy
 import sqlalchemy as alc
 from sqlalchemy import create_engine, MetaData
 from rdrf.helpers.utils import timed
 from datetime import datetime
 from django.conf import settings
+from rdrf.models.definition.models import ClinicalData
 
 import logging
 logger = logging.getLogger(__name__)
@@ -28,7 +30,6 @@ class ColumnLabeller(object):
 
     def get_label(self, column_name):
         s = self._get_label(column_name)
-
         return s.upper()
 
     def _get_label(self, column_name):
@@ -129,12 +130,11 @@ class ReportingTableGenerator(object):
     @timed
     def drop_table(self):
         drop_table_sql = "DROP TABLE %s" % self.table_name
-        conn = self.engine.connect()
-        try:
-            conn.execute(drop_table_sql)
-        except BaseException:
-            pass
-        conn.close()
+        with self.engine.connect() as conn:
+            try:
+                conn.execute(drop_table_sql)
+            except BaseException:
+                pass
 
     def set_table_name(self, obj):
         self.table_name = temporary_table_name(obj, self.user)
@@ -342,10 +342,9 @@ class ReportingTableGenerator(object):
 
     @timed
     def run_explorer_query(self, database_utils):
-        from copy import copy
         self.create_table()
         errors = 0
-        row_num = 0
+        # row_num = 0
         blank_row = self._get_blank_row()
 
         if self.use_field_values:
@@ -353,14 +352,27 @@ class ReportingTableGenerator(object):
         else:
             generate_func = database_utils.generate_results
 
+        collection = ClinicalData.objects.collection(database_utils.registry_model.code, database_utils.collection)
+        history = ClinicalData.objects.collection(database_utils.registry_model.code, "history")
+
+        if database_utils.projection:
+            dynamic_data = [model_triple for model_triple in database_utils._get_mongo_fields()]
+        else:
+            dynamic_data = []
+
+        sql_only = len(dynamic_data) == 0
+
         values = []
         for row in generate_func(self.reverse_map,
                                  self.col_map,
-                                 max_items=self.max_items):
+                                 max_items=self.max_items,
+                                 collection=collection,
+                                 history=history,
+                                 sql_only=sql_only):
             new_row = copy(blank_row)
             new_row.update(row)
             values.append(new_row)
-            row_num += 1
+            # row_num += 1
 
         self.engine.execute(self.table.insert(), values)
 
@@ -378,12 +390,12 @@ class ReportingTableGenerator(object):
         return column
 
     def create_schema(self):
-        self.drop_table()
+        # self.drop_table()
         self.table = alc.Table(self.table_name, MetaData(
             self.engine), *self.columns, schema=None)
 
-    def _generate_temporary_table_name(self):
-        return "reporting_table" + self.user.username
+    # def _generate_temporary_table_name(self):
+    #     return "reporting_table" + self.user.username
 
     def _get_sql_alchemy_datatype(self, cde_model):
         if cde_model.code in self.type_overrides:
@@ -397,12 +409,11 @@ class ReportingTableGenerator(object):
         import csv
         writer = csv.writer(stream)
         select_query = alc.sql.select([self.table])
-        db_connection = self.engine.connect()
-        result = db_connection.execute(select_query)
-        writer.writerow([self.column_labeller.get_label(key)
-                         for key in list(result.keys())])
-        writer.writerows(result)
-        db_connection.close()
+        with self.engine.connect() as db_connection:
+            result = db_connection.execute(select_query)
+            writer.writerow([self.column_labeller.get_label(key)
+                             for key in list(result.keys())])
+            writer.writerows(result)
         return stream
 
 
