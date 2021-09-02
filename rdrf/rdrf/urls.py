@@ -95,47 +95,16 @@ two_factor_auth_urls = [
     re_path(r'^account/two_factor/disable/?$', DisableView.as_view(), name='disable'),
 ]
 
-proms_site = [
-    re_path(r'^promslanding/?$', PromsLandingPageView.as_view(), name="proms_landing_page"),
-    re_path(r'^proms/?$', PromsView.as_view(), name="proms"),
-    re_path(r'^promscompleted/?$', PromsCompletedPageView.as_view(), name="proms_completed"),
-    re_path(r'^api/proms/v1/', include(('rdrf.services.rest.urls.proms_api_urls', 'proms_api_urls'), namespace=None)),
-
-]
-
 proms_patterns = [
     re_path(r'^promslanding/?$', PromsLandingPageView.as_view(), name="proms_landing_page"),
     re_path(r'^proms/?$', PromsView.as_view(), name="proms"),
-    re_path(r'^promsqrcode/(?P<patient_token>[0-9A-Za-z_\-]+)/?$', PromsQRCodeImageView.as_view(), name="promsqrcode"),
     re_path(r'^promscompleted/?$', PromsCompletedPageView.as_view(), name="proms_completed"),
-    re_path(r'^translations/jsi18n/$', JavaScriptCatalog.as_view(), name='javascript-catalog'),
     re_path(r'^api/proms/v1/', include(('rdrf.services.rest.urls.proms_api_urls', 'proms_api_urls'), namespace=None)),
-    path('admin/', admin.site.urls),
-    re_path(r'', include((two_factor_auth_urls, 'two_factor'), namespace=None)),
+]
 
-    re_path(r'^logout/?$', auth_views.LogoutView.as_view(), name='logout'),
-    re_path(r'^password_change/?$', ChangePasswordView.as_view(), name='password_change'),
-    re_path(r'^password_change/done/?$', auth_views.PasswordChangeDoneView.as_view(), name='password_change_done'),
-
-    re_path(r'^login_assistance/?$', auth_views.PasswordResetView.as_view(
-            form_class=RDRFLoginAssistanceForm,
-            template_name='registration/login_assistance_form.html',
-            subject_template_name='registration/login_assistance_subject.txt',
-            email_template_name='registration/login_assistance_email.html',
-            success_url='login_assistance_email_sent'
-            ),
-            name='login_assistance'),
-
-    re_path(r"^copyright/?$", CopyrightView.as_view(), name="copyright"),
-    re_path(r'^$', landing_view.LandingView.as_view(), name='landing'),
-
-    re_path(r'^import/?', import_registry_view.ImportRegistryView.as_view(),
-            name='import_registry'),
-    re_path(r'^router/', login_router.RouterView.as_view(), name="login_router"),
-
-    re_path(r"^(?P<registry_code>\w+)/?$",
-            registry_view.RegistryView.as_view(), name='registry'),
-    re_path(r'session_security/', include('session_security.urls')),
+report_patterns = [
+    re_path(r'^reports/?', report_view.ReportView.as_view(), name="reports"),
+    re_path(r'^explorer/', include(('explorer.urls', 'explorer_urls'), namespace=None))
 ]
 
 normalpatterns += [
@@ -193,10 +162,7 @@ normalpatterns += [
             template_name='registration/login_assistance_complete.html'),
             name='login_assistance_complete'),
 
-    re_path(r'^promslanding/?$', PromsLandingPageView.as_view(), name="proms_landing_page"),
-    re_path(r'^proms/?$', PromsView.as_view(), name="proms"),
     re_path(r'^promsqrcode/(?P<patient_token>[0-9A-Za-z_\-]+)/?$', PromsQRCodeImageView.as_view(), name="promsqrcode"),
-    re_path(r'^promscompleted/?$', PromsCompletedPageView.as_view(), name="proms_completed"),
 
     # ------ Copyright URL -----------
     re_path(r"^copyright/?$", CopyrightView.as_view(), name="copyright"),
@@ -212,10 +178,10 @@ normalpatterns += [
 
     re_path(r'^import/?', import_registry_view.ImportRegistryView.as_view(),
             name='import_registry'),
-    re_path(r'^reports/?', report_view.ReportView.as_view(), name="reports"),
+
     re_path(r'^reportdatatable/(?P<query_model_id>\d+)/?$', report_view.ReportDataTableView.as_view(),
             name="report_datatable"),
-    re_path(r'^explorer/', include(('explorer.urls', 'explorer_urls'), namespace=None)),
+
     re_path(r'^patientslisting/?', patients_listing.PatientsListingView.as_view(),
             name="patientslisting"),
     re_path(r'^contexts/(?P<registry_code>\w+)/(?P<patient_id>\d+)/add/(?P<context_form_group_id>\d+)?$',
@@ -343,19 +309,11 @@ if settings.REGISTRATION_ENABLED:
                              name='registration_disallowed')]
     normalpatterns = normalpatterns + registry_urls
 
-if settings.SYSTEM_ROLE == SystemRoles.CIC_PROMS:
-    urlpatterns = proms_site
-else:
+if settings.SYSTEM_ROLE == SystemRoles.CIC_DEV:
+    urlpatterns = proms_patterns + normalpatterns
+elif settings.SYSTEM_ROLE == SystemRoles.CIC_PROMS:
+    urlpatterns = proms_patterns
+elif settings.SYSTEM_ROLE == SystemRoles.CIC_CLINICAL:
     urlpatterns = normalpatterns
-
-blacklisted_patterns = [
-    r'^explorer/',
-    r'^reports/?'
-]
-
-if settings.SYSTEM_ROLE != SystemRoles.NORMAL:
-    new_patterns = []
-    for url_pattern in urlpatterns:
-        if url_pattern.pattern.regex.pattern not in blacklisted_patterns:
-            new_patterns.append(url_pattern)
-    urlpatterns = new_patterns
+else:
+    urlpatterns = normalpatterns + report_patterns
