@@ -85,7 +85,6 @@ if settings.DEBUG is True:
         re_path(r'^raise', handler_exceptions, name='test exception'),
     ]
 
-
 two_factor_auth_urls = [
     re_path(r'^account/login/?$', twv.LoginView.as_view(), name='login'),
     re_path(r'^account/two_factor/setup/?$', SetupView.as_view(), name='setup'),
@@ -120,7 +119,6 @@ normalpatterns += [
     re_path(r'^rpc', form_view.RPCHandler.as_view(), name='rpc'),
 
     path('admin/', admin.site.urls),
-
 
     re_path(r'', include((two_factor_auth_urls, 'two_factor'), namespace=None)),
 
@@ -234,8 +232,6 @@ normalpatterns += [
 
     re_path(r"^(?P<registry_code>\w+)/(?P<patient_id>\d+)/consents/print/?$",
             consent_view.ConsentDetailsPrint.as_view(), name="print_consent_details"),
-
-
 
     # ---- Clinician related URLs -----------------
     re_path(r"^(?P<registry_code>\w+)/(?P<patient_id>\d+)/clinician/?$",
