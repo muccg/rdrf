@@ -101,6 +101,10 @@ proms_patterns = [
     re_path(r'^api/proms/v1/', include(('rdrf.services.rest.urls.proms_api_urls', 'proms_api_urls'), namespace=None)),
 ]
 
+proms_site_patterns = [
+    re_path(r'^promsqrcode/(?P<patient_token>[0-9A-Za-z_\-]+)/?$', PromsQRCodeImageView.as_view(), name="promsqrcode"),
+]
+
 report_patterns = [
     re_path(r'^reports/?', report_view.ReportView.as_view(), name="reports"),
     re_path(r'^explorer/', include(('explorer.urls', 'explorer_urls'), namespace=None))
@@ -115,7 +119,7 @@ normalpatterns += [
     re_path(r'^customactions/(?P<action_id>\d+)/(?P<patient_id>\d+)/?$',
             CustomActionView.as_view(), name='custom_action'),
     re_path(r'^api/v1/', include(('rdrf.services.rest.urls.api_urls', 'api_urls'), namespace='v1')),
-    re_path(r'^api/proms/v1/', include(('rdrf.services.rest.urls.proms_api_urls', 'proms_api_urls'), namespace=None)),
+
     re_path(r'^rpc', form_view.RPCHandler.as_view(), name='rpc'),
 
     path('admin/', admin.site.urls),
@@ -159,8 +163,6 @@ normalpatterns += [
     re_path(r'^login_assistance/complete/?$', auth_views.PasswordResetCompleteView.as_view(
             template_name='registration/login_assistance_complete.html'),
             name='login_assistance_complete'),
-
-    re_path(r'^promsqrcode/(?P<patient_token>[0-9A-Za-z_\-]+)/?$', PromsQRCodeImageView.as_view(), name="promsqrcode"),
 
     # ------ Copyright URL -----------
     re_path(r"^copyright/?$", CopyrightView.as_view(), name="copyright"),
@@ -310,6 +312,6 @@ if settings.SYSTEM_ROLE == SystemRoles.CIC_DEV:
 elif settings.SYSTEM_ROLE == SystemRoles.CIC_PROMS:
     urlpatterns = proms_patterns
 elif settings.SYSTEM_ROLE == SystemRoles.CIC_CLINICAL:
-    urlpatterns = normalpatterns
+    urlpatterns = normalpatterns + proms_site_patterns
 else:
     urlpatterns = normalpatterns + report_patterns
