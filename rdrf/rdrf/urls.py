@@ -102,7 +102,7 @@ proms_patterns = [
 ]
 
 proms_site_patterns = [
-    re_path(r'^promsqrcode/(?P<patient_token>[0-9A-Za-z_\-]+)/?$', PromsQRCodeImageView.as_view(), name="promsqrcode"),
+    re_path(r'^promsqrcode/(?P<patient_token>[0-9A-Za-z_\-]+)/?$', PromsQRCodeImageView.as_view(), name="promsqrcode")
 ]
 
 report_patterns = [
