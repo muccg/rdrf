@@ -44,6 +44,7 @@ from rdrf.system_role import SystemRoles
 from rdrf.views.copyright_view import CopyrightView
 from rdrf.views.review_views import ReviewWizardLandingView
 from rdrf.views.custom_actions import CustomActionView
+from rdrf.views.test_view import TestView, TestDBView
 
 from rdrf.views.actions import ActionExecutorView
 import logging
@@ -308,10 +309,18 @@ if settings.REGISTRATION_ENABLED:
     normalpatterns = normalpatterns + registry_urls
 
 if settings.SYSTEM_ROLE == SystemRoles.CIC_DEV:
-    urlpatterns = proms_patterns + normalpatterns
+    urlpatterns = proms_patterns + normalpatterns + proms_site_patterns
 elif settings.SYSTEM_ROLE == SystemRoles.CIC_PROMS:
     urlpatterns = proms_patterns
 elif settings.SYSTEM_ROLE == SystemRoles.CIC_CLINICAL:
     urlpatterns = normalpatterns + proms_site_patterns
 else:
     urlpatterns = normalpatterns + report_patterns
+
+
+test_urls = [
+    re_path(r'^testdb/', TestDBView.as_view(), name='test-db'),
+    re_path(r'^test/', TestView.as_view(), name='test'),
+]
+
+urlpatterns = test_urls + urlpatterns
