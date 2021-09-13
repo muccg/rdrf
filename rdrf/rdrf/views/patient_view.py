@@ -1,3 +1,4 @@
+import os
 from collections import OrderedDict
 
 from django.shortcuts import render, redirect
@@ -38,7 +39,7 @@ from rdrf.security.security_checks import security_check_user_patient
 from django.core.exceptions import PermissionDenied
 from django.utils.decorators import method_decorator
 from django.contrib.auth.decorators import login_required
-
+from django_redis import get_redis_connection
 
 import logging
 logger = logging.getLogger(__name__)
@@ -1138,3 +1139,53 @@ class PatientEditView(View):
                                                          hidden=True)
 
         return (len(fieldlist) == hidden_fields.count())
+
+
+class QueryPatientView(View):
+    @method_decorator(anonymous_not_allowed)
+    @method_decorator(login_required)
+    def get(self, request, registry_code):
+        context = {'registry_code': registry_code}
+        return render(request, "rdrf_cdes/patient_query.html", context)
+
+
+# to be deleted - STARTS #
+import json
+from django.core.serializers.json import DjangoJSONEncoder
+from django.http import HttpResponse
+
+
+class DataRequestView(View):
+    @method_decorator(anonymous_not_allowed)
+    @method_decorator(login_required)
+    def post(self, request, registry_code, umrn):
+        conn = get_redis_connection("blackboard")
+        conn.sadd(f"{registry_code}:umrns", umrn)
+        response_data = {"request_token": "this_is_a_dummy_token"}
+        return HttpResponse(json.dumps(response_data, cls=DjangoJSONEncoder))
+
+
+class DataRequestDataView(View):
+    @method_decorator(anonymous_not_allowed)
+    @method_decorator(login_required)
+    def get(self, request, registry_code, token):
+        patient_data = {"given_names": "Clark S", "last_name": "Kent", "dob": "2000-06-23",
+                        "email": "clarksk@email.com", "home_phone": "+61 565 878 9090"}
+        response_data = {"status": "received", "data": patient_data, "request_token": token}
+        return HttpResponse(json.dumps(response_data, cls=DjangoJSONEncoder))
+
+
+class DataIntegrationActionView(View):
+    def post(self, request, token):
+        state = "completed"
+        if state != "completed":
+            return HttpResponseBadRequest()
+        if state == "completed":
+            response_data = {"request_token": token, "status": "succeeded"}
+            return HttpResponse(json.dumps(response_data, cls=DjangoJSONEncoder))
+        if state == "failed":
+            response_data = {"request_token": token, "status": "failed", "error": "An error occurred"}
+            return HttpResponse(json.dumps(response_data, cls=DjangoJSONEncoder), status=500)
+
+
+# to be deleted - ENDS #

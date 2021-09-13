@@ -49,6 +49,11 @@ services:
 
   rediscache:
     image: redis:3-alpine
+    command: ["redis-server", "--appendonly", "yes"]
+    environment:
+      - REDIS_DISABLE_COMMANDS=FLUSHDB,FLUSHALL
+    volumes:
+      - ./data/redis:/data
 
   cache:
     image: memcached:1.4

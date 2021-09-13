@@ -1,0 +1,132 @@
+{% extends "rdrf_cdes/base-1-col.html" %}
+{% load static from staticfiles %}
+{% load has_feature %}
+{% load i18n %}
+{% load translate %}
+
+{% block content %}
+    <div class="row">
+        <div class="col-md-12">
+            <p><h3><span class="fa fa-list-alt" aria-hidden="true"></span> {% trans 'Query Patient' %}</h3></p>
+            <i class="text-muted"><span class="fa fa-user" aria-hidden="true"></span> {{user.first_name}} {{user.last_name}} ({{user.title}})</i>
+        </div>
+    </div>
+
+    <p>
+        <form>
+            <label for="id_umrn">Patient Identifier:</label>
+            <input type="text" name="umrn" id="id_umrn" placeholder="UMRN or Patient Id"/>
+            <button type="button" id="query_patient" class="btn btn-primary me-md-2">
+                <span class="fa fa-search" aria-hidden="true"></span> {% trans 'Query Patient' %}
+            </button>
+            <span id="status_div"></span>
+        </form>
+    </p>
+
+    <div class="card invisible" id="data_received">
+        <div class="card-header">
+            <span class="h5">Data Received</span>
+        </div>
+        <div class="card-body" id="response_div">
+              <table id="patient_table" class="table table-striped table-hover">
+                  <tbody>
+                      <tr>
+                          <td>Given Names</td><td id="given_names"></td>
+                      </tr>
+                      <tr>
+                          <td>Last Name</td><td id="last_name"></td>
+                      </tr>
+                      <tr>
+                          <td>Date of Birth</td><td id="dob"></td>
+                      </tr>
+                      <tr>
+                          <td>Home Phone</td><td id="home_phone"></td>
+                      </tr>
+                      <tr>
+                          <td>email</td><td id="email"></td>
+                      </tr>
+                  </tbody>
+              </table>
+        </div>
+        <div class="card-footer invisible" id="submit_div">
+            <button type="button" id="accept_button" class="btn btn-success me-md-2">
+                <span class="fa fa-thumbs-o-up" aria-hidden="true"></span> {% trans 'Accept' %}
+            </button>
+            <button type="button" id="reject_button" class="btn btn-danger me-md-2">
+                <span class="fa fa-thumbs-o-down" aria-hidden="true"></span> {% trans 'Reject' %}
+            </button>
+        </div>
+    </div>
+
+    <script type="text/javascript" nonce="{{request.csp_nonce}}">
+        $.ajaxSetup({
+            beforeSend: function (xhr) {
+                var csrfToken = '{{ csrf_token }}';
+                xhr.setRequestHeader('X-CSRFToken', csrfToken);
+            }
+        });
+
+        var requestToken = "";
+        var dataRequestUrl = '{% url "patient_data_request" "registry_code" "umrn" %}';
+        dataRequestUrl = dataRequestUrl.replace("registry_code", "{{ registry_code }}");
+
+        var dataRequestDataUrl = '{% url "patient_data_request_data" "registry_code" "token" %}';
+        dataRequestDataUrl = dataRequestDataUrl.replace("registry_code", "{{ registry_code }}");
+
+        var $dataReceived = false;
+
+        function getResponse() {
+            $.ajax({url: dataRequestDataUrl,
+                    type: "GET",
+                    success: function(resultJson) {
+                        var result  = jQuery.parseJSON(resultJson);
+                        if (result.status == "received") {
+                            $("#data_received").removeClass("invisible");
+                            $("#given_names").html(result.data.given_names);
+                            $("#last_name").html(result.data.last_name);
+                            $("#dob").html(result.data.dob);
+                            $("#email").html(result.data.email);
+                            $("#home_phone").html(result.data.home_phone);
+                            $("#status_div").html("");
+                            $("#submit_div").removeClass("invisible");
+                            $dataReceived = true;
+                        } else if (result.status == "requested") {
+                            $("#status_div").html("Requested...");
+                        } else {
+                            $("#status_div").html("Waiting response...");
+                        }
+                    }
+                  });
+            if (!$dataReceived){
+                setTimeout(getResponse, 1000);
+            }
+        }
+
+        $(document).ready(function() {
+            $("#query_patient").click(function(){
+                $("#status_div").html("Waiting response...");
+                dataRequestUrl = dataRequestUrl.replace("umrn", $("#id_umrn").val());
+                $.ajax({url: dataRequestUrl,
+                        type: "POST",
+                        success: function(resultJson) {
+                            var result  = jQuery.parseJSON(resultJson);
+                            requestToken = result.request_token;
+                            dataRequestDataUrl = dataRequestDataUrl.replace("token", requestToken);
+                            setTimeout(getResponse, 5000);
+                        }
+                });
+            });
+
+            $("#accept_button").click(function(){
+                console.log("accept");
+            });
+
+            $("#reject_button").click(function(){
+                console.log("reject");
+            });
+        });
+    </script>
+
+{% endblock %}
+
+
