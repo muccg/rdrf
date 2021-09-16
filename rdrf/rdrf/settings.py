@@ -217,6 +217,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'anymail',
     'rdrf',
+    'intframework',
     'registry.groups',
     'registry.patients',
     'registry.common',

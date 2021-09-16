@@ -113,10 +113,11 @@ packages = ['rdrf',
             'registry.groups',
             'registry.genetic',
             'explorer',
+            'intframework',
             ]
 
 for package in ['rdrf', 'registry.common', 'registry.genetic',
-                'registry.groups', 'registry.patients', 'registry.humangenome', 'explorer']:
+                'registry.groups', 'registry.patients', 'registry.humangenome', 'explorer', 'intframework']:
     package_data[package] = []
     if "." in package:
         base_dir, package_dir = package.split(".")

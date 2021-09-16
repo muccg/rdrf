@@ -3,7 +3,7 @@ import json
 import hl7
 from django.db import models
 from intframework import utils
-from utils import TransformFunctionError
+from intframework.utils import TransformFunctionError
 
 logger = logging.getLogger(__name__)
 
@@ -23,6 +23,7 @@ class HL7Mapping(models.Model):
     """
     Facilitate HL7 --> RDRF conversions
     """
+    event_code = models.CharField(max_length=20)
     event_map = models.TextField(blank=True, null=True)
 
     def load(self):
@@ -45,7 +46,7 @@ class HL7Mapping(models.Model):
 
 
         """
-        event_map = self.load()
+        mapping_map = self.load()
         value_map = {}
 
         try:
@@ -54,20 +55,22 @@ class HL7Mapping(models.Model):
             # what to do?
             return {}
 
-        event_code = self._get_event_code(msg)
-
-        if event_code in event_map:
-            mapping_map = event_map[event_code]
-            for field_moniker, mapping_data in mapping_map.items():
-                hl7_path = mapping_data["path"]
+        for field_moniker, mapping_data in mapping_map.items():
+            hl7_path = mapping_data["path"]
+            try:
                 hl7_value = self._get_hl7_value(hl7_path, msg)
-                transform_name = mapping_data["transform"]
-                try:
-                    rdrf_value = self._apply_transform(transform_name, hl7_value)
-                    value_map[field_moniker] = rdrf_value
-                except TransformFunctionError as tfe:
-                    logger.error("Error transforming HL7 field")
-            return value_map
+                if "transform" in mapping_data.keys():
+                    transform_name = mapping_data["transform"]
+                    try:
+                        rdrf_value = self._apply_transform(transform_name, hl7_value)
+                        value_map[field_moniker] = rdrf_value
+                    except TransformFunctionError as tfe:
+                        logger.error("Error transforming HL7 field")
+                else:
+                    value_map[field_moniker] = hl7_value
+            except KeyError:
+                pass
+        return value_map
 
     def _get_event_code(self, parsed_message):
         return self._get_hl7_value(HL7.MESSAGE_TYPE_PATH, parsed_message)
