@@ -1,4 +1,3 @@
-import os
 from collections import OrderedDict
 
 from django.shortcuts import render, redirect
@@ -40,6 +39,12 @@ from django.core.exceptions import PermissionDenied
 from django.utils.decorators import method_decorator
 from django.contrib.auth.decorators import login_required
 from django_redis import get_redis_connection
+
+# to be deleted - STARTS #
+import json
+from django.core.serializers.json import DjangoJSONEncoder
+from django.http import HttpResponse, HttpResponseBadRequest
+# to be deleted - ENDS #
 
 import logging
 logger = logging.getLogger(__name__)
@@ -1150,11 +1155,6 @@ class QueryPatientView(View):
 
 
 # to be deleted - STARTS #
-import json
-from django.core.serializers.json import DjangoJSONEncoder
-from django.http import HttpResponse
-
-
 class DataRequestView(View):
     @method_decorator(anonymous_not_allowed)
     @method_decorator(login_required)

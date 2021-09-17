@@ -1,4 +1,4 @@
-from django.urls import re_path, include, path, reverse_lazy
+from django.urls import re_path
 from .. views import DataRequestView
 
 urlpatterns = [

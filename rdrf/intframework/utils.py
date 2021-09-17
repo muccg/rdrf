@@ -13,3 +13,8 @@ def transform(func):
 @transform
 def identity(hl7_value):
     return hl7_value
+
+
+@transform
+def date(hl7_value):
+    return f"{hl7_value[:8]}"

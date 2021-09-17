@@ -9,7 +9,7 @@ logger = logging.getLogger(__name__)
 
 
 class HL7:
-    MESSAGE_TYPE_PATH = "MSH.9"
+    MESSAGE_TYPE_PATH = "MSH.F9.R1.C1"
 
 
 class DataRequestState:
@@ -52,11 +52,13 @@ class HL7Mapping(models.Model):
         try:
             msg = hl7.parse(hl7_message)
         except hl7.ParseException as pex:
+            logger.error(f"{pex}")
             # what to do?
             return {}
 
         for field_moniker, mapping_data in mapping_map.items():
             hl7_path = mapping_data["path"]
+            logger.info(f"... Extracting {field_moniker} - {hl7_path}")
             try:
                 hl7_value = self._get_hl7_value(hl7_path, msg)
                 if "transform" in mapping_data.keys():
@@ -65,10 +67,9 @@ class HL7Mapping(models.Model):
                         rdrf_value = self._apply_transform(transform_name, hl7_value)
                         value_map[field_moniker] = rdrf_value
                     except TransformFunctionError as tfe:
-                        logger.error("Error transforming HL7 field")
-                else:
-                    value_map[field_moniker] = hl7_value
-            except KeyError:
+                        logger.error(F"--- Error transforming HL7 field {tfe}")
+            except KeyError as e:
+                logger.error(f"Error extracting the field. {e}")
                 pass
         return value_map
 
@@ -141,3 +142,4 @@ class DataRequest(models.Model):
 
             datasource = external_data["datasource"]
             data = external_data["data"]
+            logger.info(datasource, data)

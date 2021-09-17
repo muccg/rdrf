@@ -1,7 +1,7 @@
 from django.db import models
 from django.core.exceptions import ValidationError
 import logging
-from rdrf.models.definition.models import Registry
+from rdrf.models.definition.models import CommonDataElement, Registry
 from registry.patients.models import Patient
 
 logger = logging.getLogger(__name__)
@@ -102,7 +102,7 @@ class IntegrationField(models.Model):
         if get_field:
             raw_value = get_field(patient_id, self.external_id, packet)
             if conversion_function:
-                value = conversion_function(raw_value)
+                converted_value = conversion_function(raw_value)
                 return converted_value
             else:
                 value = raw_value
@@ -133,6 +133,6 @@ class IntegrationField(models.Model):
         """
         from rdrf.forms.dynamic import validation
         cde_model = CommonDataElement.objects.get(code=self.cde_code)
-        validator == validation.ValidatorFactory(cde_model)
+        validator = validation.ValidatorFactory(cde_model)
 
         return validator.create_validators()

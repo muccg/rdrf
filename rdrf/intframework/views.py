@@ -1,12 +1,19 @@
-# views
+import json
 from django.views.generic.base import View
 from django.shortcuts import get_object_or_404
-from django.http import HttpResponseBadRequest
-from .. models.py import DataRequest, DATAREQUEST_STATES
+from django.http import HttpResponse, HttpResponseBadRequest
+from .. models.py import DataRequest  # , DATAREQUEST_STATES
 from rdrf.models.definition.models import Registry
+
+import logging
+logger = logging.getLogger(__name__)
 
 
 class IntegrationError(Exception):
+    pass
+
+
+class DataIntegrationException(Exception):
     pass
 
 
@@ -23,13 +30,13 @@ class DataRequestView(View):
 
         try:
             registry = get_object_or_404(Registry, code=registry_code)
-            dr = DataRequest.objects.get(umrn=umrn, state="requested", registry=registry_model)
+            dr = DataRequest.objects.get(umrn=umrn, state="requested", registry=registry)
             token = dr.token
         except DataRequest.DoesNotExist:
             # good
             dr = DataRequest(umrn=umrn,
                              state="requested",
-                             registry=registry_model)
+                             registry=registry)
             dr.save()
             dr.send()
             token = dr.token
@@ -90,6 +97,7 @@ class DataIntegrationUpdate(View):
             external_data = self._parse_json(external_data_json)
 
         except JSONParseError as jpe:
+            logger.error(jpe)
             pass
 
         try:
@@ -111,12 +119,18 @@ class DataIntegrationUpdate(View):
         except DataRequest.DoesNotExist:
             # a subscription?
             try:
+                logger.info("TODO: get DataSubscription object")
+                """
                 ds = DataSubscription.objects.get(umrn=umrn)
 
                 dsi = DataSubcriptionItem(subcription=ds)
                 dsi.external_data_json = external_data_json
                 dsi.state = "received"
                 dsi.save()
+                """
+            except Exception as ex:
+                logger.error(ex)
+                pass
 
     def _parse_json(self, json_data):
         try:
