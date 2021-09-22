@@ -19,6 +19,28 @@ class DataRequestState:
     RECEIVED = "REC"
 
 
+class HL7Message(models.Model):
+    MESSAGE_STATES = (("C", "created"),
+                      ("S" "sent"),
+                      ("E", "error"))
+
+    created = models.DateTimeField(auto_now_add=True)
+    username = models.CharField(max_length=80)
+    registry_code = models.CharField(max_length=80)
+    content = models.TextField()
+    state = models.CharField(choices=MESSAGE_STATES, max_length=1, default="C")
+
+    def parse(self):
+        return hl7.parse(self.content)
+
+    def valid(self):
+        try:
+            _ = self.parse()
+            return True
+        except hl7.exceptions.ParseException:
+            return False
+
+
 class HL7Mapping(models.Model):
     """
     Facilitate HL7 --> RDRF conversions
