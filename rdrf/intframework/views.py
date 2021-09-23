@@ -9,80 +9,32 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-class IntegrationError(Exception):
-    pass
+class IntegrationHubRequestView(View):
+    @method_decorator(anonymous_not_allowed)
+    @method_decorator(login_required)
+    def get(self, request, registry_code, umrn):
+        response_data = self._get_hub_response(umrn)
+        if response_data["status"] == "success":
+            self._setup_message_router_subscription(umrn)
+        return HttpResponse(json.dumps(response_data, cls=DjangoJSONEncoder))
 
+    def _get_hub_response(self, umrn: str) -> dict:
+        from intframework.hub import Client
+        from intframework.hl7 import Hl7Transformer
+        hub = Client()
+        hl7_response = hub.get_data(umrn)
+        if hl7_response["status"] == "success":
+            transformer = Hl7Transformer()
+            response_data = transformer.transform(hl7_response)
+            response_data["status"] = "success"
+        else:
+            response_data = {"status": "fail"}
+        return response_data
 
-class DataIntegrationException(Exception):
-    pass
-
-
-class JSONParseError(IntegrationError):
-    pass
-
-
-class DataApplicationError(IntegrationError):
-    pass
-
-
-class DataRequestView(View):
-    def post(self, request, registry_code, umrn):
-
-        try:
-            registry = get_object_or_404(Registry, code=registry_code)
-            dr = DataRequest.objects.get(umrn=umrn, state="requested", registry=registry)
-            token = dr.token
-        except DataRequest.DoesNotExist:
-            # good
-            dr = DataRequest(umrn=umrn,
-                             state="requested",
-                             registry=registry)
-            dr.save()
-            dr.send()
-            token = dr.token
-
-        response_data = {"request_token": token}
-
-        return HttpResponse(response_data,
-                            content_type='application/json')
-
-
-class DataRequestDataView(View):
-    def get(self, request, token):
-        dr = get_object_or_404(DataRequest, token=token)
-        response_data = {"request_token": token,
-                         "data": dr.get_data(),
-                         "state": dr.state}
-
-        return HttpResponse(response_data,
-                            content_type='application/json')
-
-
-class DataIntegrationActionView(View):
-    def post(self, token):
-        dr = get_object_or_404(DataRequest, token=token)
-        if dr.state != "completed":
-            return HttpResponseBadRequest()
-        try:
-            dr.apply()
-            json_response = {"request_token": token,
-                             "status": "succeeded"}
-            dr.state = "applied"
-            dr.save()
-
-            return HttpResponse(json_response,
-                                content_type="application/json")
-
-        except DataIntegrationException as diex:
-            dr.state = "error"
-            dr.error = diex.message
-            dr.save()
-            json_response = {"request_token": token,
-                             "status": "failed",
-                             "error": "An error occurred"}
-            return HttpResponse(json_response,
-                                status=500,
-                                content_type="application/json")
+    def _setup_message_router_subscription(self, umrm):
+        logger.info("setting up hub subscription for umrn {umrn}")
+        conn = get_redis_connection("blackboard")
+        conn.sadd(f"{registry_code}:umrns", umrn)
 
 
 class DataIntegrationUpdate(View):

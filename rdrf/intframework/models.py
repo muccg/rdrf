@@ -2,6 +2,7 @@ import logging
 import json
 import hl7
 from django.db import models
+from django.conf import settings
 from intframework import utils
 from intframework.utils import TransformFunctionError
 
@@ -21,7 +22,7 @@ class DataRequestState:
 
 class HL7Message(models.Model):
     MESSAGE_STATES = (("C", "created"),
-                      ("S" "sent"),
+                      ("S", "sent"),
                       ("E", "error"))
 
     created = models.DateTimeField(auto_now_add=True)
@@ -29,6 +30,7 @@ class HL7Message(models.Model):
     registry_code = models.CharField(max_length=80)
     content = models.TextField()
     state = models.CharField(choices=MESSAGE_STATES, max_length=1, default="C")
+    error_message = models.TextField()  # save any error message on sending
 
     def parse(self):
         return hl7.parse(self.content)
@@ -39,6 +41,10 @@ class HL7Message(models.Model):
             return True
         except hl7.exceptions.ParseException:
             return False
+
+    @property
+    def message_control_id(self):
+        return f"{settings.HL7_APPLICATION_ID}.{self.registry_code}.{self.id}"
 
 
 class HL7Mapping(models.Model):

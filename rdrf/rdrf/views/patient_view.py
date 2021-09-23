@@ -632,7 +632,8 @@ class PatientEditView(View):
                                  "see_patient"):
                 raise PermissionDenied
 
-        context_launcher = RDRFContextLauncherComponent(request.user, registry_model, patient, rdrf_nonce=request.csp_nonce)
+        context_launcher = RDRFContextLauncherComponent(
+            request.user, registry_model, patient, rdrf_nonce=request.csp_nonce)
         patient_info = RDRFPatientInfoComponent(registry_model, patient)
 
         family_linkage_panel = FamilyLinkagePanel(request.user,
@@ -710,7 +711,8 @@ class PatientEditView(View):
 
         registry_model = Registry.objects.get(code=registry_code)
 
-        context_launcher = RDRFContextLauncherComponent(request.user, registry_model, patient, rdrf_nonce=request.csp_nonce)
+        context_launcher = RDRFContextLauncherComponent(
+            request.user, registry_model, patient, rdrf_nonce=request.csp_nonce)
         patient_info = RDRFPatientInfoComponent(registry_model, patient)
 
         if registry_model.patient_fields:
@@ -1154,27 +1156,6 @@ class QueryPatientView(View):
         return render(request, "rdrf_cdes/patient_query.html", context)
 
 
-# to be deleted - STARTS #
-class DataRequestView(View):
-    @method_decorator(anonymous_not_allowed)
-    @method_decorator(login_required)
-    def post(self, request, registry_code, umrn):
-        conn = get_redis_connection("blackboard")
-        conn.sadd(f"{registry_code}:umrns", umrn)
-        response_data = {"request_token": "this_is_a_dummy_token"}
-        return HttpResponse(json.dumps(response_data, cls=DjangoJSONEncoder))
-
-
-class DataRequestDataView(View):
-    @method_decorator(anonymous_not_allowed)
-    @method_decorator(login_required)
-    def get(self, request, registry_code, token):
-        patient_data = {"given_names": "Clark S", "last_name": "Kent", "dob": "2000-06-23",
-                        "email": "clarksk@email.com", "home_phone": "+61 565 878 9090"}
-        response_data = {"status": "received", "data": patient_data, "request_token": token}
-        return HttpResponse(json.dumps(response_data, cls=DjangoJSONEncoder))
-
-
 class DataIntegrationActionView(View):
     def post(self, request, token):
         state = "completed"
@@ -1186,6 +1167,3 @@ class DataIntegrationActionView(View):
         if state == "failed":
             response_data = {"request_token": token, "status": "failed", "error": "An error occurred"}
             return HttpResponse(json.dumps(response_data, cls=DjangoJSONEncoder), status=500)
-
-
-# to be deleted - ENDS #

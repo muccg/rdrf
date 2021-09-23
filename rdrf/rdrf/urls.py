@@ -217,11 +217,9 @@ normalpatterns += [
     re_path(r"^(?P<registry_code>\w+)/patient/query/?$",
             patient_view.QueryPatientView.as_view(), name='patient_query'),
 
-    # to be deleted
-    re_path(r"^(?P<registry_code>\w+)/patient/data/request/(?P<umrn>\w+)?$",
-            patient_view.DataRequestView.as_view(), name='patient_data_request'),
-    re_path(r"^(?P<registry_code>\w+)/patient/data/request/data/(?P<token>\w+)?$",
-            patient_view.DataRequestDataView.as_view(), name='patient_data_request_data'),
+    re_path(r"^(?P<registry_code>\w+)/patient/data/request/data/(?P<umrn>\w+)?$",
+            patient_view.IntegrationHubRequestView.as_view(), name='hub_request'),
+
     re_path(r"^(?P<registry_code>\w+)/patient/data/integration/(?P<token>\w+)?$",
             patient_view.DataIntegrationActionView.as_view(), name='patient_data_integration'),
 

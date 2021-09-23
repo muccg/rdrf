@@ -11,6 +11,11 @@ class Sep:
     CR = "\r"
 
 
+class MessageType:
+    # MSH.xxx
+    PATIENT_QUERY = "QRY^A19^QRY_A19"
+
+
 def DTM():
     return datetime.now().strftime("%Y%m%d%H%M%S")
 
@@ -27,14 +32,15 @@ def message_control_id():
 class MessageBuilder:
     def __init__(self, registry_model, user_model):
         # MSH fields
+        from django.conf import setings
         self.seps = "^~\&"
-        self.sending_app = "CIC^HdwaApplication.CIC^L"
-        self.sending_facility = "9999^HdwaMedicalFacility.9999^L"
-        self.receiving_app = "ESB^HdwaApplication.ESB^L"
-        self.receiving_facility = "ESB^HdwaApplication.ESB^L"
+        self.sending_app = settings.HL7_HUB_SENDING_APP  # "CIC^HdwaApplication.CIC^L"
+        self.sending_facility = settings.HL7_HUB_SENDING_FACILITY  # "9999^HdwaMedicalFacility.9999^L"
+        self.receiving_app = settings.HL7_HUB_RECEIVING_APP  # "ESB^HdwaApplication.ESB^L"
+        self.receiving_facility = settings.HL7_HUB_RECEIVING_FACILITY  # "ESB^HdwaApplication.ESB^L"
         self.dtm = DTM()
-        self.security = ""
-        self.message_type = "QRY^A19^QRY_A19"
+        self.security = ""  # meant to be empty ..
+        self.message_type = MessageType.PATIENT_QUERY
         self.message_model = self._create_message_model(registry_model.code, user_model.username)
         self.message_control_id = self.message_model.message_control_id
 
