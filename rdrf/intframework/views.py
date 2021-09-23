@@ -1,9 +1,17 @@
 import json
 from django.views.generic.base import View
-from django.shortcuts import get_object_or_404
-from django.http import HttpResponse, HttpResponseBadRequest
+from django.http import HttpResponse, Http404
+from django.core.serializers.json import DjangoJSONEncoder
+from django.conf import settings
+from django.utils.decorators import method_decorator
+from django.contrib.auth.decorators import login_required
 from .. models.py import DataRequest  # , DATAREQUEST_STATES
 from rdrf.models.definition.models import Registry
+from rdrf.helpers.utils import anonymous_not_allowed
+from intframework.hub import Client
+from intframework.hl7 import Hl7Transformer
+from django_redis import get_redis_connection
+
 
 import logging
 logger = logging.getLogger(__name__)
@@ -13,15 +21,20 @@ class IntegrationHubRequestView(View):
     @method_decorator(anonymous_not_allowed)
     @method_decorator(login_required)
     def get(self, request, registry_code, umrn):
-        response_data = self._get_hub_response(umrn)
+        if not settings.HL7_ENABLED:
+            raise Http404
+        registry_model = Registry.objects.get(code=registry_code)
+        user_model = request.user
+        response_data = self._get_hub_response(registry_model, user_model, umrn)
         if response_data["status"] == "success":
-            self._setup_message_router_subscription(umrn)
+            self._setup_message_router_subscription(registry_model.code, umrn)
         return HttpResponse(json.dumps(response_data, cls=DjangoJSONEncoder))
 
-    def _get_hub_response(self, umrn: str) -> dict:
-        from intframework.hub import Client
-        from intframework.hl7 import Hl7Transformer
-        hub = Client()
+    def _get_hub_response(self, registry_model, user_model, umrn: str) -> dict:
+        hub = Client(registry_model,
+                     user_model,
+                     settings.HL7_HUB_ENDPOINT,
+                     settings.HL7_HUB_PORT)
         hl7_response = hub.get_data(umrn)
         if hl7_response["status"] == "success":
             transformer = Hl7Transformer()
@@ -31,7 +44,7 @@ class IntegrationHubRequestView(View):
             response_data = {"status": "fail"}
         return response_data
 
-    def _setup_message_router_subscription(self, umrm):
+    def _setup_message_router_subscription(self, registry_code, umrn):
         logger.info("setting up hub subscription for umrn {umrn}")
         conn = get_redis_connection("blackboard")
         conn.sadd(f"{registry_code}:umrns", umrn)

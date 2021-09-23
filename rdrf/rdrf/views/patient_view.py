@@ -38,7 +38,6 @@ from rdrf.security.security_checks import security_check_user_patient
 from django.core.exceptions import PermissionDenied
 from django.utils.decorators import method_decorator
 from django.contrib.auth.decorators import login_required
-from django_redis import get_redis_connection
 
 # to be deleted - STARTS #
 import json
