@@ -66,6 +66,7 @@ class MessageBuilder:
         self.message_model.save()  # creates id
         self.message_control_id = self.message_model.message_control_id
         logger.debug(f"message control id = {self.message_control_id}")
+        self.query_id = self.message_control_id + ".query"
 
     def _create_message_model(self, registry_code, username):
         from intframework.models import HL7Message
@@ -86,7 +87,7 @@ class MessageBuilder:
         # commented with comment(<page reference in SPEC>)
         # date time format (DTM)  YYYYMMDDHHMMSS[.S[S[S[S]]]]
         msh = self.build_msh()
-        qrd = self.build_qrd()
+        qrd = self.build_qrd(umrn)
         msg = hl7.parse("\r".join([msh, qrd]))
         logger.info(f"built message = {msg}")
         return msg
@@ -124,9 +125,18 @@ class MessageBuilder:
 
         return msh.s
 
-    def build_qrd(self):
-        # qrd = f"QRD | {timestamp() | R | I |
-        # qrd = "QRD|200811111016|R|I|Q1004|||1^RD|10000437363|DEM|||"
+    def build_qrd(self, umrn):
+        qrd = Seg("QRD")
+        qrd.add_field(self.dtm)
+        qrd.add_field("R")
+        qrd.add_field("I")
+        qrd.add_field(self.query_id)
+        qrd.add_field("")
+        qrd.add_field("")
+        qrd.add_field("")
+        QUERY_FILTER = f"{umrn}^^^^^^^^HDWA^^^^MR^0917"
+        qrd.add_field(QUERY_FILTER)
+
         return "QRD"
 
 
