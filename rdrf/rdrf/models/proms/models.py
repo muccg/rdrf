@@ -7,6 +7,8 @@ from django.db import models
 from django.urls import reverse
 from django.forms import ValidationError
 from django.utils.encoding import escape_uri_path
+from django.dispatch import receiver
+from django.db.models.signals import post_save
 
 from rdrf.models.definition.models import Registry, RegistryForm, Section
 from rdrf.models.definition.models import CommonDataElement
@@ -92,8 +94,6 @@ class Survey(models.Model):
             has_bad_settings_for_followup = self.context_form_group.context_type == 'M' and self.is_followup is False
             if has_bad_settings_for_followup or has_bad_settings_for_module:
                 raise ValidationError("The 'is followup' checkbox does not match the 'context form group' input.")
-
-        self.recalc_client_rep()
 
 
 class Precondition(models.Model):
@@ -515,3 +515,10 @@ class SurveyRequest(models.Model):
                                       name=self.survey_name)
         except Survey.DoesNotExist:
             logger.error("No survey with name %s " % self.survey_name)
+
+
+@receiver(post_save, sender=SurveyQuestion)
+def recalc_client_rep(sender, instance, **kwargs):
+    if instance.survey:
+        instance.survey.recalc_client_rep()
+        instance.survey.save()
