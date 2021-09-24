@@ -20,8 +20,32 @@ class MessageType:
     PATIENT_QUERY = "QRY^A19^QRY_A19"
 
 
+def fld(components):
+    if type(components) is type(str):
+        return hl7.Field("^", components.split("^"))
+
+    return hl7.Field("^", components)
+
+
+def seg(name, fields):
+    return hl7.Segment("|", [name, *fields])
+
+
 def DTM():
     return datetime.now().strftime("%Y%m%d%H%M%S")
+
+
+class Seg:
+    def __init__(self, name):
+        self.s = f"{name}"
+
+    def add_field(self, x):
+        if not self.s.endswith("|"):
+            self.s += "|"
+        self.s += x
+        if x == "":
+            # we allow empty fields
+            self.s += "|"
 
 
 class MessageBuilder:
@@ -64,17 +88,45 @@ class MessageBuilder:
         msh = self.build_msh()
         qrd = self.build_qrd()
         msg = hl7.parse("\r".join([msh, qrd]))
+        logger.info(f"built message = {msg}")
         return msg
 
     def build_msh(self):
-        # MSH|^~\&|CIC^HdwaApplication.CIC^L|9999^HdwaMedicalFacility.9999^L|ESB^HdwaApplication.ESB^L|0917^HdwaMedicalFacility.0917^L|20140415092747||QRY^A19^QRY_A19|MOSIAQ.0106.13391835|D^T            |2.6|||AL|NE|AUS|ASCII|en^English^ISO 639-1||HihHL7v26_4.1^HDWA^^L
-        #                      seg seps(285)  sending app(285)     sending facility(285)          receiving app(286)         receiving facility(287)        DTM  of message|S| msg type(289) | msg control id(290)| proc id(290)| vers
-        # NB.  S ( security ) is empty reserved for future use
-        return "MSH"
+        # the hardcoded fields are those which are given in the
+        # "Population Notes" in the SPEC as being always the value indicated
+        msh = Seg("MSH")
+        msh.add_field("^~\&")
+        msh.add_field(self.sending_app)
+        msh.add_field(self.sending_facility)
+        msh.add_field(self.receiving_app)
+        msh.add_field(self.receiving_facility)
+        msh.add_field(self.dtm)
+        msh.add_field("")  # security blank
+        msh.add_field(MessageType.PATIENT_QUERY)
+        msh.add_field(self.message_control_id)
+        msh.add_field("D^T")
+        msh.add_field(settings.HL7_VERSION)
+        msh.add_field("")
+        msh.add_field("")  # continuation pointer???
+        msh.add_field("AL")
+        msh.add_field("NE")
+        msh.add_field("AUS")
+        msh.add_field("ASCII")
+        msh.add_field("en^English^ISO 639-1")
+        msh.add_field("")
+        msh.add_field("HihHL7v26_3.1^HDWA^^L")
+        msh.add_field("")
+        msh.add_field("")
+        msh.add_field("")
+        msh.add_field("")
+
+        logger.debug(f"MSH = {msh.s}")
+
+        return msh.s
 
     def build_qrd(self):
         # qrd = f"QRD | {timestamp() | R | I |
-        #qrd = "QRD|200811111016|R|I|Q1004|||1^RD|10000437363|DEM|||"
+        # qrd = "QRD|200811111016|R|I|Q1004|||1^RD|10000437363|DEM|||"
         return "QRD"
 
 
@@ -101,6 +153,9 @@ class Client:
 
 class MockClient(Client):
     MOCK_MESSAGE = "/data/mock-hl7-message.txt"
+
+    def __init__(self, registry_model, user_model, hub_endpoint, hub_port):
+        self.builder = MessageBuilder(registry_model, user_model)
 
     def send_message(self, message: hl7.Message) -> dict:
         import os

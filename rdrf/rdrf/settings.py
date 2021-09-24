@@ -849,6 +849,7 @@ CSP_INCLUDE_NONCE_IN = ["script-src", "style-src"]
 HUB_ENABLED = env.get("hub_enabled", True)
 
 if HUB_ENABLED:
+    HL7_VERSION = env.get("hl7_version", "2.6")
     # sender app ( us )
     APP_ID = env.get("app_id", "CIC")
     SENDING_FACILITY = env.get("sending_facility", "9999^cicfacility.9999^L")
@@ -857,3 +858,4 @@ if HUB_ENABLED:
     HUB_FACILITY = env.get("hub_facility", "ESB^HdwaApplication.ESB^L")
     HUB_ENDPOINT = env.get("hub_endpoint", "mock")
     HUB_PORT = env.get("hub_port", 30000)
+    HUB_MOCKED = HUB_ENDPOINT == "mock"
