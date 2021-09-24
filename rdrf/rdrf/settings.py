@@ -846,13 +846,14 @@ CSP_IMG_SRC = ["'self'"]
 
 CSP_INCLUDE_NONCE_IN = ["script-src", "style-src"]
 
-# --add-host=host.docker.internal:host-gateway
-# see https://stackoverflow.com/questions/31324981/how-to-access-host-port-from-docker-container
+HUB_ENABLED = env.get("hub_enabled", True)
 
-
-HL7_ENABLED = env.get("hl7_enabled", False)
-HL7_APPLICATION_ID = env.get("hl7_application_id", "CIC")
-
-if HL7_ENABLED:
-    HL7_HUB_ENDPOINT = env.get("hl7_hub_endpoint", "")
-    HL7_HUB_PORT = env.get("hl7_hub_port", 30000)
+if HUB_ENABLED:
+    # sender app ( us )
+    APP_ID = env.get("app_id", "CIC")
+    SENDING_FACILITY = env.get("sending_facility", "9999^cicfacility.9999^L")
+    # receiver app ( the hub)
+    HUB_APP_ID = env.get("hub_app_id", "ESB^HdwaApplication.ESB^L")
+    HUB_FACILITY = env.get("hub_facility", "ESB^HdwaApplication.ESB^L")
+    HUB_ENDPOINT = env.get("hub_endpoint", "mock")
+    HUB_PORT = env.get("hub_port", 30000)

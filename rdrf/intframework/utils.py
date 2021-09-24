@@ -1,3 +1,7 @@
+class Hl7Transformer:
+    pass
+
+
 class TransformFunctionError(Exception):
     pass
 

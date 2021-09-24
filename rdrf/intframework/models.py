@@ -44,7 +44,7 @@ class HL7Message(models.Model):
 
     @property
     def message_control_id(self):
-        return f"{settings.HL7_APPLICATION_ID}.{self.registry_code}.{self.id}"
+        return f"{settings.APP_ID}.{self.registry_code}.{self.id}"
 
 
 class HL7Mapping(models.Model):

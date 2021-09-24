@@ -5,11 +5,11 @@ from django.core.serializers.json import DjangoJSONEncoder
 from django.conf import settings
 from django.utils.decorators import method_decorator
 from django.contrib.auth.decorators import login_required
-from .. models.py import DataRequest  # , DATAREQUEST_STATES
+from intframework.models import DataRequest  # , DATAREQUEST_STATES
 from rdrf.models.definition.models import Registry
 from rdrf.helpers.utils import anonymous_not_allowed
-from intframework.hub import Client
-from intframework.hl7 import Hl7Transformer
+from intframework.hub import Client, MockClient
+from intframework.utils import Hl7Transformer
 from django_redis import get_redis_connection
 
 
@@ -21,8 +21,9 @@ class IntegrationHubRequestView(View):
     @method_decorator(anonymous_not_allowed)
     @method_decorator(login_required)
     def get(self, request, registry_code, umrn):
-        if not settings.HL7_ENABLED:
+        if not settings.HUB_ENABLED:
             raise Http404
+        logger.debug(f"received request {registry_code} {umrn}")
         registry_model = Registry.objects.get(code=registry_code)
         user_model = request.user
         response_data = self._get_hub_response(registry_model, user_model, umrn)
@@ -31,10 +32,17 @@ class IntegrationHubRequestView(View):
         return HttpResponse(json.dumps(response_data, cls=DjangoJSONEncoder))
 
     def _get_hub_response(self, registry_model, user_model, umrn: str) -> dict:
-        hub = Client(registry_model,
-                     user_model,
-                     settings.HL7_HUB_ENDPOINT,
-                     settings.HL7_HUB_PORT)
+
+        if settings.HUB_ENDPOINT == "mock":
+            client_class = MockClient
+            logger.info("using mock hub client")
+        else:
+            client_class = Client
+
+        hub = client_class(registry_model,
+                           user_model,
+                           settings.HUB_ENDPOINT,
+                           settings.HUB_PORT)
         hl7_response = hub.get_data(umrn)
         if hl7_response["status"] == "success":
             transformer = Hl7Transformer()

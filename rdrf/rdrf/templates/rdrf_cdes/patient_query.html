@@ -67,16 +67,13 @@
         });
 
         var requestToken = "";
-        var dataRequestUrl = '{% url "patient_data_request" "registry_code" "umrn" %}';
-        dataRequestUrl = dataRequestUrl.replace("registry_code", "{{ registry_code }}");
-
-        var dataRequestDataUrl = '{% url "patient_data_request_data" "registry_code" "token" %}';
-        dataRequestDataUrl = dataRequestDataUrl.replace("registry_code", "{{ registry_code }}");
+        var hubUrl = '{% url "integrations:hub" "registry_code" "umrn" %}';
+        hubUrl = hubUrl.replace("registry_code", "{{ registry_code }}");
 
         var $dataReceived = false;
 
         function getResponse() {
-            $.ajax({url: dataRequestDataUrl,
+            $.ajax({url: hubUrl,
                     type: "GET",
                     success: function(resultJson) {
                         var result  = jQuery.parseJSON(resultJson);
@@ -105,14 +102,27 @@
         $(document).ready(function() {
             $("#query_patient").click(function(){
                 $("#status_div").html("Waiting response...");
-                dataRequestUrl = dataRequestUrl.replace("umrn", $("#id_umrn").val());
-                $.ajax({url: dataRequestUrl,
-                        type: "POST",
+                hubUrl = hubUrl.replace("umrn", $("#id_umrn").val());
+                $.ajax({url: hubUrl,
+                        type: "GET",
                         success: function(resultJson) {
                             var result  = jQuery.parseJSON(resultJson);
-                            requestToken = result.request_token;
-                            dataRequestDataUrl = dataRequestDataUrl.replace("token", requestToken);
-                            setTimeout(getResponse, 5000);
+			    if (result.status == "received") {
+                                $("#data_received").removeClass("invisible");
+                                $("#given_names").html(result.data.given_names);
+                                $("#last_name").html(result.data.last_name);
+                                $("#dob").html(result.data.dob);
+                                $("#email").html(result.data.email);
+                                $("#home_phone").html(result.data.home_phone);
+                                $("#status_div").html("");
+                                $("#submit_div").removeClass("invisible");
+                                $dataReceived = true;
+                            } else if (result.status == "requested") {
+                                $("#status_div").html("Requested...");
+                            } else {
+                                $("#status_div").html("Waiting response...");
+                            }
+			    
                         }
                 });
             });
