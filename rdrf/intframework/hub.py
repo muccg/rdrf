@@ -92,7 +92,7 @@ class MessageBuilder:
         logger.info(f"built message = {msg}")
         return msg
 
-    def build_msh(self):
+    def build_msh(self) -> str:
         # the hardcoded fields are those which are given in the
         # "Population Notes" in the SPEC as being always the value indicated
         msh = Seg("MSH")
@@ -125,7 +125,7 @@ class MessageBuilder:
 
         return msh.s
 
-    def build_qrd(self, umrn):
+    def build_qrd(self, umrn: str) -> str:
         qrd = Seg("QRD")
         qrd.add_field(self.dtm)
         qrd.add_field("R")
@@ -136,7 +136,7 @@ class MessageBuilder:
         qrd.add_field("")
         QUERY_FILTER = f"{umrn}^^^^^^^^HDWA^^^^MR^0917"
         qrd.add_field(QUERY_FILTER)
-        return "QRD"
+        return qrd.s
 
 
 class Client:
