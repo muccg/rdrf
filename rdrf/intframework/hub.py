@@ -136,7 +136,6 @@ class MessageBuilder:
         qrd.add_field("")
         QUERY_FILTER = f"{umrn}^^^^^^^^HDWA^^^^MR^0917"
         qrd.add_field(QUERY_FILTER)
-
         return "QRD"
 
 
