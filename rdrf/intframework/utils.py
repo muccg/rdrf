@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import Optional
 import hl7
 
@@ -25,4 +26,5 @@ def identity(hl7_value):
 
 @ transform
 def date(hl7_value):
-    return f"{hl7_value[:8]}"
+    datetime_object = datetime.strptime(hl7_value, '%Y%m%d')
+    return datetime_object
