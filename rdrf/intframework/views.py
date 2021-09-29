@@ -36,7 +36,10 @@ class IntegrationHubRequestView(View):
         return HttpResponse(json.dumps(response_data, cls=DjangoJSONEncoder))
 
     def _setup_redis_config(self, registry_code):
-        pass
+        from rdrf.helpers.blackboard_utils import has_registry_config
+        from rdrf.helpers.blackboard_utils import set_registry_config
+        if not has_registry_config(registry_code):
+            set_registry_config(registry_code)
 
     def _get_hub_response(self, registry_model, user_model, umrn: str) -> dict:
         client_class: Any
