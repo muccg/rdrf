@@ -1,5 +1,9 @@
-class Hl7Transformer:
-    pass
+from typing import Optional
+import hl7
+
+
+def get_event_code(message: hl7.Message) -> str:
+    return message["MSH.9."]
 
 
 class TransformFunctionError(Exception):
@@ -14,11 +18,11 @@ def transform(func):
     return func
 
 
-@transform
+@ transform
 def identity(hl7_value):
     return hl7_value
 
 
-@transform
+@ transform
 def date(hl7_value):
     return f"{hl7_value[:8]}"

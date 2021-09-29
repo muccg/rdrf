@@ -70,34 +70,7 @@
         var hubUrl = '{% url "integrations:hub" "registry_code" "umrn" %}';
         hubUrl = hubUrl.replace("registry_code", "{{ registry_code }}");
 
-        var $dataReceived = false;
-
-        function getResponse() {
-            $.ajax({url: hubUrl,
-                    type: "GET",
-                    success: function(resultJson) {
-                        var result  = jQuery.parseJSON(resultJson);
-                        if (result.status == "received") {
-                            $("#data_received").removeClass("invisible");
-                            $("#given_names").html(result.data.given_names);
-                            $("#last_name").html(result.data.last_name);
-                            $("#dob").html(result.data.dob);
-                            $("#email").html(result.data.email);
-                            $("#home_phone").html(result.data.home_phone);
-                            $("#status_div").html("");
-                            $("#submit_div").removeClass("invisible");
-                            $dataReceived = true;
-                        } else if (result.status == "requested") {
-                            $("#status_div").html("Requested...");
-                        } else {
-                            $("#status_div").html("Waiting response...");
-                        }
-                    }
-                  });
-            if (!$dataReceived){
-                setTimeout(getResponse, 1000);
-            }
-        }
+        var dataReceived = false;
 
         $(document).ready(function() {
             $("#query_patient").click(function(){
@@ -107,7 +80,7 @@
                         type: "GET",
                         success: function(resultJson) {
                             var result  = jQuery.parseJSON(resultJson);
-			    if (result.status == "received") {
+			    if (result.status == "success") {
                                 $("#data_received").removeClass("invisible");
                                 $("#given_names").html(result.data.given_names);
                                 $("#last_name").html(result.data.last_name);
@@ -116,11 +89,9 @@
                                 $("#home_phone").html(result.data.home_phone);
                                 $("#status_div").html("");
                                 $("#submit_div").removeClass("invisible");
-                                $dataReceived = true;
-                            } else if (result.status == "requested") {
-                                $("#status_div").html("Requested...");
-                            } else {
-                                $("#status_div").html("Waiting response...");
+                                dataReceived = true;
+                            } else  {
+                                $("#status_div").html("The query failed - please try again.");
                             }
 			    
                         }

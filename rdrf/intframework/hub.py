@@ -154,7 +154,7 @@ class Client:
         logger.debug("sending message")
         try:
             result_message = self.hl7_client.send_message(message)
-            return {"result": result_message}
+            return {"hl7_message": result_message}
         except Exception as ex:
             logger.error("error sending message: {ex}")
         return {}
@@ -171,8 +171,16 @@ class MockClient(Client):
         if os.path.exists(self.MOCK_MESSAGE):
             response_dict = self._load_mock(self.MOCK_MESSAGE)
         else:
+            logger.info("no mock file")
             response_dict = {}
         return response_dict
 
     def _load_mock(self, mock_message):
-        return {}
+
+        try:
+            message = hl7.parse_file(mock_message)
+            return {"hl7_message": message}
+
+        except hl7.ParseException as pex:
+            logger.error(f"error parsing mock message: {pex}")
+            return {}

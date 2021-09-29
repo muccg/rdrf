@@ -9,9 +9,8 @@ from intframework.models import DataRequest  # , DATAREQUEST_STATES
 from rdrf.models.definition.models import Registry
 from rdrf.helpers.utils import anonymous_not_allowed
 from intframework.hub import Client, MockClient
-from intframework.utils import Hl7Transformer
 from django_redis import get_redis_connection
-
+from typing import Any, Optional
 
 import logging
 logger = logging.getLogger(__name__)
@@ -21,17 +20,26 @@ class IntegrationHubRequestView(View):
     @method_decorator(anonymous_not_allowed)
     @method_decorator(login_required)
     def get(self, request, registry_code, umrn):
+        logger.info(f"hub request from {request.user} for {umrn}")
         if not settings.HUB_ENABLED:
+            logger.info("hub not enabled - returning 404")
             raise Http404
-        logger.debug(f"received request {registry_code} {umrn}")
+        logger.debug(f"hub request {registry_code} {umrn}")
         registry_model = Registry.objects.get(code=registry_code)
         user_model = request.user
         response_data = self._get_hub_response(registry_model, user_model, umrn)
         if response_data["status"] == "success":
+            self._setup_redis_config(registry_code)
+            logger.info("hub request returned data so subscribing in redis")
             self._setup_message_router_subscription(registry_model.code, umrn)
+        logger.debug(f"response data = {response_data}")
         return HttpResponse(json.dumps(response_data, cls=DjangoJSONEncoder))
 
+    def _setup_redis_config(self, registry_code):
+        pass
+
     def _get_hub_response(self, registry_model, user_model, umrn: str) -> dict:
+        client_class: Any
 
         if settings.HUB_ENDPOINT == "mock":
             client_class = MockClient
@@ -44,13 +52,36 @@ class IntegrationHubRequestView(View):
                            settings.HUB_ENDPOINT,
                            settings.HUB_PORT)
         hl7_response = hub.get_data(umrn)
-        if hl7_response["status"] == "success":
-            transformer = Hl7Transformer()
-            response_data = transformer.transform(hl7_response)
-            response_data["status"] = "success"
+
+        if "status" in hl7_response and hl7_response["status"] == "success":
+            response: Optional[dict] = self._get_response_dict(hl7_response)
+            if response is None:
+                response_dict = {"status": "fail"}
+            else:
+                response["status"] = "success"
+                response_dict = response
+                logger.info("hub request succeeded")
         else:
-            response_data = {"status": "fail"}
-        return response_data
+            logger.info("hub request failed")
+            response_dict = {"status": "fail"}
+        return response_dict
+
+    def _get_response_dict(self, hl7_response: dict) -> Optional[dict]:
+        from intframework.models import HL7Mapping
+        from intframework.utils import get_event_code
+        hl7_message = hl7_response["hl7_message"]
+        event_code = get_event_code(hl7_message)
+        try:
+            hl7_mapping = HL7Mapping.objects.get(event_code=event_code)
+            update_dict = hl7_mapping.parse(hl7_message)
+            return update_dict
+
+        except HL7Mapping.DoesNotExist:
+            logger.error(" mapping doesn't exist Unknown message event code: {event_code}")
+            return None
+        except HL7Mapping.MultipleObjectsReturned:
+            logger.error("Multiple message mappings for event code: {event_code}")
+            return None
 
     def _setup_message_router_subscription(self, registry_code, umrn):
         logger.info("setting up hub subscription for umrn {umrn}")

@@ -81,7 +81,6 @@ class HL7Mapping(models.Model):
             msg = hl7.parse(hl7_message)
         except hl7.ParseException as pex:
             logger.error(f"{pex}")
-            # what to do?
             return {}
 
         for field_moniker, mapping_data in mapping_map.items():
