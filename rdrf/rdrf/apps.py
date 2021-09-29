@@ -2,7 +2,7 @@
 # ignoring the linting because of all unused imports which were necessary for missed migrations.
 
 from django.apps import AppConfig
-from rdrf.helpers.blackboard_utils import set_registry_config
+
 
 class RDRFConfig(AppConfig):
     name = 'rdrf'
@@ -16,4 +16,3 @@ class RDRFConfig(AppConfig):
         import rdrf.models.definition.review_models
         import rdrf.models.definition.verification_models
         import rdrf.models.task_models
-        set_registry_config()

@@ -74,13 +74,17 @@ class IntegrationHubRequestView(View):
         from intframework.utils import get_event_code
         hl7_message = hl7_response["hl7_message"]
         event_code = get_event_code(hl7_message)
+        logger.debug(f"event code = {event_code}")
         try:
             hl7_mapping = HL7Mapping.objects.get(event_code=event_code)
+            logger.info("got mapping")
             update_dict = hl7_mapping.parse(hl7_message)
+            logger.info("parsed message to create update_dict")
+            logger.info(f"update_dict = {update_dict}")
             return update_dict
 
         except HL7Mapping.DoesNotExist:
-            logger.error(" mapping doesn't exist Unknown message event code: {event_code}")
+            logger.error(f"mapping doesn't exist Unknown message event code: {event_code}")
             return None
         except HL7Mapping.MultipleObjectsReturned:
             logger.error("Multiple message mappings for event code: {event_code}")

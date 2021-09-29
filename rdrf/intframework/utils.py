@@ -3,7 +3,7 @@ import hl7
 
 
 def get_event_code(message: hl7.Message) -> str:
-    return message["MSH.9."]
+    return message["MSH.9.3"]
 
 
 class TransformFunctionError(Exception):

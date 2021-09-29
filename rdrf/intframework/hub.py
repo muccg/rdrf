@@ -1,5 +1,6 @@
 import hl7
-from hl7.client import MLLPClient
+from hl7.client import MLLPClient, read_loose
+import io
 from datetime import datetime
 from django.conf import settings
 import logging
@@ -148,6 +149,8 @@ class Client:
     def get_data(self, umrn: str) -> dict:
         qry_a19_message = self.builder.build_qry_a19(umrn)
         response_dict = self.send_message(qry_a19_message)
+        logger.debug(response_dict)
+        response_dict["status"] = "success"
         return response_dict
 
     def send_message(self, message: hl7.Message) -> dict:
@@ -161,7 +164,7 @@ class Client:
 
 
 class MockClient(Client):
-    MOCK_MESSAGE = "/data/mock-hl7-message.txt"
+    MOCK_MESSAGE = "/data/mock-message.txt"
 
     def __init__(self, registry_model, user_model, hub_endpoint, hub_port):
         self.builder = MessageBuilder(registry_model, user_model)
@@ -169,7 +172,9 @@ class MockClient(Client):
     def send_message(self, message: hl7.Message) -> dict:
         import os
         if os.path.exists(self.MOCK_MESSAGE):
+            logger.info("using mock file")
             response_dict = self._load_mock(self.MOCK_MESSAGE)
+            response_dict["status"] = "success"
         else:
             logger.info("no mock file")
             response_dict = {}
@@ -178,9 +183,20 @@ class MockClient(Client):
     def _load_mock(self, mock_message):
 
         try:
-            message = hl7.parse_file(mock_message)
-            return {"hl7_message": message}
+            binary_data = open(mock_message, "rb").read()
+            stream = io.BytesIO(binary_data)
+            raw_messages = [raw_message for raw_message in read_loose(stream)]
+            decoded_messages = [rm.decode("utf-8") for rm in raw_messages]
+
+            messages = [hl7.parse(dm) for dm in decoded_messages]
+            for message in messages:
+                logger.debug(f"message\n: {message}")
+
+            return {"hl7_message": messages[1]}
 
         except hl7.ParseException as pex:
             logger.error(f"error parsing mock message: {pex}")
             return {}
+
+        except Exception as ex:
+            logger.error(f"error loading mock: {ex}")
