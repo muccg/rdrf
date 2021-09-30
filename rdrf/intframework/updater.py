@@ -1,11 +1,16 @@
 from registry.patients.models import Patient
 # from rdrf.models import *
-# from rdrf.models.definition.models import *
+from rdrf.models.definition.models import Registry
 from registry.patients.models import Patient
 from registry.groups.models import WorkingGroup
 
 
 class IntegrationTool:
+    def __init__(self):
+        pass
+
+
+class PatientCreator:
     def __init__(self):
         pass
 
@@ -50,6 +55,6 @@ class IntegrationTool:
 
         registry = Registry.objects.get(registry_code=value_map[registry_code])
         p.rdrf_registry.set([registry])
-        wg = WorkingGroup.objects.get(name=value_map[name], registry=registry)
+        wg = WorkingGroup.objects.get(name=value_map[working_group_name], registry=registry)
         p.working_groups.set([wg])
         p.save()
