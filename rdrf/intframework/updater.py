@@ -1,20 +1,10 @@
 from registry.patients.models import Patient
-# from rdrf.models import *
 from rdrf.models.definition.models import Registry
-from registry.patients.models import Patient
 from registry.groups.models import WorkingGroup
-
-
-class IntegrationTool:
-    def __init__(self):
-        pass
 
 
 class PatientCreator:
     def __init__(self):
-        pass
-
-    def process(self, hl7_message):
         pass
 
     def _parse_moniker(self, moniker):
@@ -23,7 +13,7 @@ class PatientCreator:
             _, field = moniker.split("/")
         return field
 
-    def parse_map(self, value_map: dict):
+    def _parse_map(self, value_map: dict):
         field_values = {}
         for key, value in value_map.items():
             field_name = self._parse_moniker(key)
@@ -32,7 +22,7 @@ class PatientCreator:
         return field_values
 
     """
-    the creation map keys:
+    the creation value map keys:
     "Demographics/family_name"
     "Demographics/given_names"
     "Demographics/umrn"
@@ -46,15 +36,23 @@ class PatientCreator:
     "Demographics/work_phone"
     """
 
-    def create_patient(self, value_map: dict):
-        patient_attributes = self.parse_map(value_map)
+    def create_patient(self, value_map: dict) -> Patient:
+        patient_attributes = self._parse_map(value_map)
         patient = Patient(**patient_attributes)
-        patient.consent = True
-        patient.active = True
+        patient.consent = False
         patient.save()
 
-        registry = Registry.objects.get(registry_code=value_map[registry_code])
-        p.rdrf_registry.set([registry])
-        wg = WorkingGroup.objects.get(name=value_map[working_group_name], registry=registry)
-        p.working_groups.set([wg])
-        p.save()
+        registry = Registry.objects.get()
+        patient.rdrf_registry.set([registry])
+        wg = WorkingGroup.objects.get(registry=registry)
+        patient.working_groups.set([wg])
+        patient.save()
+
+        return patient
+
+
+class PatientUpdator:
+    def __init__(self):
+        pass
+
+    # TODO: this class to be used for subscription updates
