@@ -7,13 +7,13 @@ class PatientCreator:
     def __init__(self):
         pass
 
-    def _parse_moniker(self, moniker):
+    def _parse_moniker(self, moniker: str) -> str:
         field = None
         if "/" in moniker:
             _, field = moniker.split("/")
         return field
 
-    def _parse_map(self, value_map: dict):
+    def _parse_map(self, value_map: dict) -> dict:
         field_values = {}
         for key, value in value_map.items():
             field_name = self._parse_moniker(key)
