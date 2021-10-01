@@ -49,8 +49,6 @@ O	    Other
 U	    Unknown
 A	    Ambiguous
 N	    Not applicable
-
-TODO: the mapping is to be finalised after consulting with CIC team  
 """
 SEX_MAP = {"M": 1, "F": 2, "U": 3, "O": 3, "A": 3, "N": 3}
 

@@ -17,6 +17,12 @@ class Sep:
     CR = "\r"
 
 
+class MLLProtocol:
+    VT = 11
+    FS = 28
+    CONTROL_BYTES = [11, 28]
+
+
 class MessageType:
     PATIENT_QUERY = "QRY^A19^QRY_A19"
 
@@ -214,10 +220,7 @@ class MockClient(Client):
         logger.debug(f"parsing mock file {mock_message_file}")
         # see https://www.hl7.org/documentcenter/public/wg/inm/mllp_transport_specification.PDF
         binary_data = open(mock_message_file, "rb").read()
-        VT = 11
-        FS = 28
-        CONTROL_BYTES = [VT, FS]
-        data = [b for b in binary_data if b not in CONTROL_BYTES]
+        data = [b for b in binary_data if b not in MLLProtocol.CONTROL_BYTES]
         ascii_data = "".join(map(chr, data))
         logger.debug(f"ascii data = {ascii_data}")
         try:
