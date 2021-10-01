@@ -69,7 +69,8 @@ def identity(hl7_value):
 
 @transform
 def date(hl7_value):
-    datetime_object = datetime.strptime(hl7_value, '%Y%m%d')
+    # this assumes that the dattime string will be in the form yyyymmddHHMMSS
+    datetime_object = datetime.strptime(hl7_value, '%Y%m%d%H%M%S')
     return datetime_object
 
 
