@@ -212,19 +212,18 @@ class MockClient(Client):
 
     def _parse_mock_message_file2(self, mock_message_file: str) -> Optional[hl7.Message]:
         logger.debug(f"parsing mock file {mock_message_file}")
-        binary_data = open(mock_message_file, "rb").read()
-        logger.debug(f"binary = {binary_data}")
         # see https://www.hl7.org/documentcenter/public/wg/inm/mllp_transport_specification.PDF
-        actual_data = binary_data[2:-2]  # strip off first byte and last three
-        decoded_data = actual_data.decode("ascii").replace('\r\n', '\r').replace('\n', '\r')
-        logger.debug(f"decoded = {decoded_data}")
+        binary_data = open(mock_message_file, "rb").read()
+        VT = 11
+        FS = 28
+        CONTROL_BYTES = [VT, FS]
+        data = [b for b in binary_data if b not in CONTROL_BYTES]
+        ascii_data = "".join(map(chr, data))
+        logger.debug(f"ascii data = {ascii_data}")
         try:
-            parsed_message = hl7.parse(decoded_data)
-            from intframework.utils import inspect_msg
-            for seg in ["MSH", "PID"]:
-                inspect_msg(parsed_message, seg)
+            msg = hl7.parse(ascii_data)
             logger.debug("parsed data")
-            return parsed_message
+            return msg
         except Exception as ex:
             logger.error("error parsing: %s" % ex)
             return None

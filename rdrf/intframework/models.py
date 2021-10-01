@@ -74,30 +74,34 @@ class HL7Mapping(models.Model):
 
 
         """
+        logger.debug("in mapping parse...")
         mapping_map = self.load()
-        value_map = {}
+        logger.debug(f"loaded mappings: {mapping_map}")
 
-        try:
-            msg = hl7.parse(hl7_message)
-        except hl7.ParseException as pex:
-            logger.error(f"{pex}")
-            return {}
+        value_map = {}
 
         for field_moniker, mapping_data in mapping_map.items():
             hl7_path = mapping_data["path"]
             logger.info(f"... Extracting {field_moniker} - {hl7_path}")
             try:
-                hl7_value = self._get_hl7_value(hl7_path, msg)
+                hl7_value = self._get_hl7_value(hl7_path, hl7_message)
+                logger.debug(f"hl7 value = {hl7_value}")
                 if "transform" in mapping_data.keys():
                     transform_name = mapping_data["transform"]
                     try:
                         rdrf_value = self._apply_transform(transform_name, hl7_value)
+                        logger.debug(f"rdrf_value = {rdrf_value}")
                         value_map[field_moniker] = rdrf_value
+                        logger.debug(f"{field_moniker} is {hl7_path} = {rdrf_value}")
                     except TransformFunctionError as tfe:
                         logger.error(F"--- Error transforming HL7 field {tfe}")
+                    except Exception as ex:
+                        logger.error(f"Unhandled field error: {ex}")
             except KeyError as e:
-                logger.error(f"Error extracting the field. {e}")
+                logger.error(f"KeyError extracting the field. {e}")
                 pass
+            except Exception as ex:
+                logger.error(f"Error: {ex}")
         return value_map
 
     def _get_event_code(self, parsed_message):

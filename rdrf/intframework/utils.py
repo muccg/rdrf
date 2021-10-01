@@ -40,7 +40,7 @@ def t(msg, seg, i, j=None):
 def get_event_code(message: hl7.Message) -> str:
     logger.debug("event code ")
     try:
-        ec = message["MSH.9.1"]
+        ec = message["MSH.F9.R1.C3"]  # ADR_A19  message structure
         logger.debug("event code = %s" % ec)
         return ec
     except Exception as ex:
