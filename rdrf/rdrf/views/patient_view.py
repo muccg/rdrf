@@ -39,6 +39,11 @@ from django.core.exceptions import PermissionDenied
 from django.utils.decorators import method_decorator
 from django.contrib.auth.decorators import login_required
 
+# to be deleted - STARTS #
+import json
+from django.core.serializers.json import DjangoJSONEncoder
+from django.http import HttpResponse, HttpResponseBadRequest
+# to be deleted - ENDS #
 
 import logging
 logger = logging.getLogger(__name__)
@@ -626,7 +631,8 @@ class PatientEditView(View):
                                  "see_patient"):
                 raise PermissionDenied
 
-        context_launcher = RDRFContextLauncherComponent(request.user, registry_model, patient, rdrf_nonce=request.csp_nonce)
+        context_launcher = RDRFContextLauncherComponent(
+            request.user, registry_model, patient, rdrf_nonce=request.csp_nonce)
         patient_info = RDRFPatientInfoComponent(registry_model, patient)
 
         family_linkage_panel = FamilyLinkagePanel(request.user,
@@ -704,7 +710,8 @@ class PatientEditView(View):
 
         registry_model = Registry.objects.get(code=registry_code)
 
-        context_launcher = RDRFContextLauncherComponent(request.user, registry_model, patient, rdrf_nonce=request.csp_nonce)
+        context_launcher = RDRFContextLauncherComponent(
+            request.user, registry_model, patient, rdrf_nonce=request.csp_nonce)
         patient_info = RDRFPatientInfoComponent(registry_model, patient)
 
         if registry_model.patient_fields:
@@ -1138,3 +1145,24 @@ class PatientEditView(View):
                                                          hidden=True)
 
         return (len(fieldlist) == hidden_fields.count())
+
+
+class QueryPatientView(View):
+    @method_decorator(anonymous_not_allowed)
+    @method_decorator(login_required)
+    def get(self, request, registry_code):
+        context = {'registry_code': registry_code}
+        return render(request, "rdrf_cdes/patient_query.html", context)
+
+
+class DataIntegrationActionView(View):
+    def post(self, request, token):
+        state = "completed"
+        if state != "completed":
+            return HttpResponseBadRequest()
+        if state == "completed":
+            response_data = {"request_token": token, "status": "succeeded"}
+            return HttpResponse(json.dumps(response_data, cls=DjangoJSONEncoder))
+        if state == "failed":
+            response_data = {"request_token": token, "status": "failed", "error": "An error occurred"}
+            return HttpResponse(json.dumps(response_data, cls=DjangoJSONEncoder), status=500)

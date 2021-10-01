@@ -95,6 +95,11 @@ two_factor_auth_urls = [
     re_path(r'^account/two_factor/disable/?$', DisableView.as_view(), name='disable'),
 ]
 
+integration_patterns = [
+    re_path(r'^integrations/', include(('intframework.urls', 'integrations')))
+]
+
+
 proms_patterns = [
     re_path(r'^promslanding/?$', PromsLandingPageView.as_view(), name="proms_landing_page"),
     re_path(r'^proms/?$', PromsView.as_view(), name="proms"),
@@ -214,6 +219,12 @@ normalpatterns += [
     re_path(r"^(?P<registry_code>\w+)/patient/add/?$",
             patient_view.AddPatientView.as_view(), name='patient_add'),
 
+    re_path(r"^(?P<registry_code>\w+)/patient/query/?$",
+            patient_view.QueryPatientView.as_view(), name='patient_query'),
+
+    re_path(r"^(?P<registry_code>\w+)/patient/data/integration/(?P<token>\w+)?$",
+            patient_view.DataIntegrationActionView.as_view(), name='patient_data_integration'),
+
     re_path(r"^(?P<registry_code>\w+)/patient/(?P<patient_id>\d+)/edit$",
             patient_view.PatientEditView.as_view(), name='patient_edit'),
 
@@ -324,3 +335,6 @@ test_urls = [
 ]
 
 urlpatterns = test_urls + urlpatterns
+
+if settings.HUB_ENABLED:
+    urlpatterns += integration_patterns

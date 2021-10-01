@@ -1,0 +1,116 @@
+{% extends "rdrf_cdes/base-1-col.html" %}
+{% load static from staticfiles %}
+{% load has_feature %}
+{% load i18n %}
+{% load translate %}
+
+{% block content %}
+    <div class="row">
+        <div class="col-md-12">
+            <p><h3><span class="fa fa-list-alt" aria-hidden="true"></span> {% trans 'Hub Query' %}</h3></p>
+            <i class="text-muted"><span class="fa fa-user" aria-hidden="true"></span> {{user.first_name}} {{user.last_name}} ({{user.title}})</i>
+        </div>
+    </div>
+
+    <p>
+        <form>
+            <label for="id_umrn">Patient UMRN:</label>
+            <input type="text" name="umrn" id="id_umrn" placeholder="UMRN"/>
+            <button type="button" id="query_patient" class="btn btn-primary me-md-2">
+                <span class="fa fa-search" aria-hidden="true"></span> {% trans 'Load Patient from Hub' %}
+            </button>
+            <span id="status_div"></span>
+        </form>
+    </p>
+
+    <div class="card invisible" id="data_received">
+        <div class="card-header">
+            <span class="h5">Patient Created</span>
+        </div>
+        <div class="card-body" id="response_div">
+              <table id="patient_table" class="table table-striped table-hover">
+                  <tbody>
+		     <tr>
+                          <td>UMRN</td><td id="umrn"></td>
+                      </tr>
+
+                      <tr>
+                          <td>Given Names</td><td id="given_names"></td>
+                      </tr>
+                      <tr>
+                          <td>Last Name</td><td id="last_name"></td>
+                      </tr>
+                      <tr>
+                          <td>Date of Birth</td><td id="dob"></td>
+                      </tr>
+                  </tbody>
+              </table>
+        </div>
+	<!--
+        <div class="card-footer invisible" id="submit_div">
+            <button type="button" id="accept_button" class="btn btn-success me-md-2">
+                <span class="fa fa-thumbs-o-up" aria-hidden="true"></span> {% trans 'Accept' %}
+            </button>
+            <button type="button" id="reject_button" class="btn btn-danger me-md-2">
+                <span class="fa fa-thumbs-o-down" aria-hidden="true"></span> {% trans 'Reject' %}
+            </button>
+        </div>
+	-->
+    </div>
+
+    <script type="text/javascript" nonce="{{request.csp_nonce}}">
+        $.ajaxSetup({
+            beforeSend: function (xhr) {
+                var csrfToken = '{{ csrf_token }}';
+                xhr.setRequestHeader('X-CSRFToken', csrfToken);
+            }
+        });
+
+        var requestToken = "";
+        var hubUrl = '{% url "integrations:hub" "registry_code" "umrn" %}';
+        hubUrl = hubUrl.replace("registry_code", "{{ registry_code }}");
+
+        var dataReceived = false;
+
+        $(document).ready(function() {
+            $("#query_patient").click(function(){
+                $("#status_div").html("Waiting response...");
+                hubUrl = hubUrl.replace("umrn", $("#id_umrn").val());
+                $.ajax({url: hubUrl,
+                        type: "GET",
+                        success: function(resultJson) {
+                            var result  = jQuery.parseJSON(resultJson);
+			    //{"Demographics/family_name": "UNDERWOOD", "Demographics/given_names": "FRANCIS", "Demographics/umrn": "A4376449",
+			    // "Demographics/date_of_birth": "1969-10-10T00:00:00",
+			    //"Demographics/place_of_birth": "1101", "Demographics/country_of_birth": "", "Demographics/sex": "1",
+			    //"Demographics/home_phone": "", "Demographics/work_phone": ""}
+			    if (result.status == "success") {
+                                $("#data_received").removeClass("invisible");
+                                $("#umrn").html(result['Demographics/umrn']);
+                                $("#given_names").html(result['Demographics/given_names']);
+                                $("#last_name").html(result["Demographics/family_name"]);
+                                $("#dob").html(result["Demographics/date_of_birth"]);
+                                $("#status_div").html("");
+                                $("#submit_div").removeClass("invisible");
+                                dataReceived = true;
+                            } else  {
+                                $("#status_div").html("The query failed - please try again.");
+                            }
+			    
+                        }
+                });
+            });
+
+            $("#accept_button").click(function(){
+                console.log("accept");
+            });
+
+            $("#reject_button").click(function(){
+                console.log("reject");
+            });
+        });
+    </script>
+
+{% endblock %}
+
+

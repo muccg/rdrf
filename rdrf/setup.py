@@ -59,7 +59,8 @@ requirements = [
     "xhtml2pdf",
     "django-redis==4.12.1",
     "kombu==5.0.2",
-    "django-csp==3.7"
+    "django-csp==3.7",
+    "hl7==0.4.2"
 ]
 
 
@@ -112,10 +113,11 @@ packages = ['rdrf',
             'registry.groups',
             'registry.genetic',
             'explorer',
+            'intframework',
             ]
 
 for package in ['rdrf', 'registry.common', 'registry.genetic',
-                'registry.groups', 'registry.patients', 'registry.humangenome', 'explorer']:
+                'registry.groups', 'registry.patients', 'registry.humangenome', 'explorer', 'intframework']:
     package_data[package] = []
     if "." in package:
         base_dir, package_dir = package.split(".")
