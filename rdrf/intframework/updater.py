@@ -1,6 +1,11 @@
 from registry.patients.models import Patient
 from rdrf.models.definition.models import Registry
 from registry.groups.models import WorkingGroup
+from typing import Optional
+
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 class PatientCreator:
@@ -36,11 +41,17 @@ class PatientCreator:
     "Demographics/work_phone"
     """
 
-    def create_patient(self, value_map: dict) -> Patient:
-        patient_attributes = self._parse_map(value_map)
-        patient = Patient(**patient_attributes)
-        patient.consent = False
-        patient.save()
+    def create_patient(self, value_map: dict) -> Optional[Patient]:
+        logger.debug("creating patient ...")
+        try:
+            patient_attributes = self._parse_map(value_map)
+            patient = Patient(**patient_attributes)
+            patient.consent = False
+            patient.save()
+            logger.debug(f"patient created!: {patient.id} {patient} {patient.umrn} ")
+        except Exception as ex:
+            logger.error(f"Error creating patient: {ex}")
+            return None
 
         registry = Registry.objects.get()
         patient.rdrf_registry.set([registry])

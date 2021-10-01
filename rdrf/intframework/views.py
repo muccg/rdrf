@@ -29,13 +29,15 @@ class IntegrationHubRequestView(View):
         registry_model = Registry.objects.get(code=registry_code)
         user_model = request.user
         response_data = self._get_hub_response(registry_model, user_model, umrn)
-        if response_data["status"] == "success":
+        if response_data:
+            logger.debug(f"response data = {response_data}")
             patient_creator = PatientCreator()
             patient = patient_creator.create_patient(response_data)
             self._setup_redis_config(registry_code)
             logger.info("hub request returned data so subscribing in redis")
             self._setup_message_router_subscription(registry_model.code, umrn)
-        logger.debug(f"response data = {response_data}")
+        else:
+            logger.error("Could not create patient")
         return HttpResponse(json.dumps(response_data, cls=DjangoJSONEncoder))
 
     def _setup_redis_config(self, registry_code):
@@ -62,7 +64,8 @@ class IntegrationHubRequestView(View):
 
         if "status" in hub_data and hub_data["status"] == "success":
             logger.info("got hl7 message from hub - creating update dictionary")
-            return self._get_update_dict(hub_data)
+            update_dict = self._get_update_dict(hub_data)
+            return update_dict
         else:
             logger.info("hub request failed")
             return None
