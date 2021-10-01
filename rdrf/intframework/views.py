@@ -9,6 +9,7 @@ from intframework.models import DataRequest  # , DATAREQUEST_STATES
 from rdrf.models.definition.models import Registry
 from rdrf.helpers.utils import anonymous_not_allowed
 from intframework.hub import Client, MockClient
+from intframework.updater import PatientCreator
 from django_redis import get_redis_connection
 from typing import Any, Optional
 
@@ -29,6 +30,8 @@ class IntegrationHubRequestView(View):
         user_model = request.user
         response_data = self._get_hub_response(registry_model, user_model, umrn)
         if response_data["status"] == "success":
+            patient_creator = PatientCreator()
+            patient = patient_creator.create_patient(response_data)
             self._setup_redis_config(registry_code)
             logger.info("hub request returned data so subscribing in redis")
             self._setup_message_router_subscription(registry_model.code, umrn)
