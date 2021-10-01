@@ -36,9 +36,13 @@ class IntegrationHubRequestView(View):
             self._setup_redis_config(registry_code)
             logger.info("hub request returned data so subscribing in redis")
             self._setup_message_router_subscription(registry_model.code, umrn)
+            client_response_dict = response_data
+            client_response_dict["status"] = "success"
+
         else:
+            client_response_dict = {"status": "fail"}
             logger.error("Could not create patient")
-        return HttpResponse(json.dumps(response_data, cls=DjangoJSONEncoder))
+        return HttpResponse(json.dumps(client_response_dict, cls=DjangoJSONEncoder))
 
     def _setup_redis_config(self, registry_code):
         from rdrf.helpers.blackboard_utils import has_registry_config
