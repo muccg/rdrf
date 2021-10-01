@@ -13,6 +13,7 @@ from .models import (
     ParentGuardian,
     PatientDoctor)
 from rdrf.db.dynamic_data import DynamicDataWrapper
+from rdrf.helpers.utils import cic_system_role
 from rdrf.models.definition.models import ConsentQuestion, ConsentSection, DemographicFields
 from rdrf.forms.widgets.widgets import CountryWidget, StateWidget, ConsentFileInput
 from registry.groups.models import CustomUser, WorkingGroup
@@ -166,6 +167,8 @@ class PatientForm(forms.ModelForm):
         "cols": 30,
     }
 
+    cic_system_role = cic_system_role()
+
     next_of_kin_country = forms.ChoiceField(required=False, widget=CountryWidget())
     next_of_kin_state = forms.ChoiceField(required=False, widget=StateWidget())
     country_of_birth = forms.ChoiceField(required=False, widget=CountryWidget())
@@ -260,11 +263,13 @@ class PatientForm(forms.ModelForm):
                     logger.debug("field = %s" % field)
                     hidden = False
                     readonly = False
+                    custom_label = ""
                     for wg in working_groups:
                         try:
                             field_config = DemographicFields.objects.get(registry=registry, group=wg, field=field)
                             hidden = hidden or field_config.hidden
                             readonly = readonly or field_config.readonly
+                            custom_label = "" or field_config.custom_label
                         except DemographicFields.DoesNotExist:
                             pass
 
@@ -277,6 +282,9 @@ class PatientForm(forms.ModelForm):
                         else:
                             self.fields[field].widget = forms.HiddenInput()
                             self.fields[field].label = ""
+                    else:
+                        if custom_label and cic_system_role:
+                            self.fields[field].label = custom_label
 
                     if readonly and not hidden:
                         if field in ["date_of_birth", "date_of_death", "date_of_migration"]:

@@ -1473,6 +1473,8 @@ class DemographicFields(models.Model):
     field = models.CharField(max_length=50, choices=FIELD_CHOICES)
     readonly = models.NullBooleanField(null=True, blank=True)
     hidden = models.NullBooleanField(null=True, blank=True)
+    custom_label = models.CharField(max_length=50, blank=True, null=True,
+                                    help_text="This will be used for CIC demographics")
 
     class Meta:
         verbose_name_plural = "Demographic Fields"
