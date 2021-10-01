@@ -1153,16 +1153,3 @@ class QueryPatientView(View):
     def get(self, request, registry_code):
         context = {'registry_code': registry_code}
         return render(request, "rdrf_cdes/patient_query.html", context)
-
-
-class DataIntegrationActionView(View):
-    def post(self, request, token):
-        state = "completed"
-        if state != "completed":
-            return HttpResponseBadRequest()
-        if state == "completed":
-            response_data = {"request_token": token, "status": "succeeded"}
-            return HttpResponse(json.dumps(response_data, cls=DjangoJSONEncoder))
-        if state == "failed":
-            response_data = {"request_token": token, "status": "failed", "error": "An error occurred"}
-            return HttpResponse(json.dumps(response_data, cls=DjangoJSONEncoder), status=500)

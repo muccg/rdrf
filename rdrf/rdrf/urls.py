@@ -222,9 +222,6 @@ normalpatterns += [
     re_path(r"^(?P<registry_code>\w+)/patient/query/?$",
             patient_view.QueryPatientView.as_view(), name='patient_query'),
 
-    re_path(r"^(?P<registry_code>\w+)/patient/data/integration/(?P<token>\w+)?$",
-            patient_view.DataIntegrationActionView.as_view(), name='patient_data_integration'),
-
     re_path(r"^(?P<registry_code>\w+)/patient/(?P<patient_id>\d+)/edit$",
             patient_view.PatientEditView.as_view(), name='patient_edit'),
 
