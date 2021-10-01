@@ -70,7 +70,9 @@ class IntegrationHubRequestView(View):
     def _get_update_dict(self, hub_data: dict) -> Optional[dict]:
         from intframework.models import HL7Mapping
         from intframework.utils import get_event_code
+        logger.debug("in _get_update_dict")
         hl7_message = hub_data["message"]
+        logger.debug(f"hl7 message = {hl7_message}")
         event_code = get_event_code(hl7_message)
         logger.debug(f"event code = {event_code}")
         try:

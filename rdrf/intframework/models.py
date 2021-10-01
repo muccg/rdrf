@@ -86,17 +86,16 @@ class HL7Mapping(models.Model):
             try:
                 hl7_value = self._get_hl7_value(hl7_path, hl7_message)
                 logger.debug(f"hl7 value = {hl7_value}")
-                if "transform" in mapping_data.keys():
-                    transform_name = mapping_data["transform"]
-                    try:
-                        rdrf_value = self._apply_transform(transform_name, hl7_value)
-                        logger.debug(f"rdrf_value = {rdrf_value}")
-                        value_map[field_moniker] = rdrf_value
-                        logger.debug(f"{field_moniker} is {hl7_path} = {rdrf_value}")
-                    except TransformFunctionError as tfe:
-                        logger.error(F"--- Error transforming HL7 field {tfe}")
-                    except Exception as ex:
-                        logger.error(f"Unhandled field error: {ex}")
+                transform_name = mapping_data.get("transform", "identity")
+                try:
+                    rdrf_value = self._apply_transform(transform_name, hl7_value)
+                    logger.debug(f"rdrf_value = {rdrf_value}")
+                    value_map[field_moniker] = rdrf_value
+                    logger.debug(f"{field_moniker} is {hl7_path} = {rdrf_value}")
+                except TransformFunctionError as tfe:
+                    logger.error(F"--- Error transforming HL7 field {tfe}")
+                except Exception as ex:
+                    logger.error(f"Unhandled field error: {ex}")
             except KeyError as e:
                 logger.error(f"KeyError extracting the field. {e}")
                 pass
@@ -113,11 +112,13 @@ class HL7Mapping(models.Model):
         return parsed_message[path]
 
     def _apply_transform(self, transform_name, hl7_value):
+        if transform_name == "identity":
+            return hl7_value
         if hasattr(utils, transform_name):
             func = getattr(utils, transform_name)
             if not callable(func):
                 raise TransformFunctionError(f"{transform_name} is not a function")
-            if not hasattr(func, "hl7_transform_function"):
+            if not hasattr(func, "hl7_transform_func"):
                 raise TransformFunctionError(f"{transform_name} is not a HL7 transform")
             try:
                 return func(hl7_value)

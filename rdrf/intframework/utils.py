@@ -62,12 +62,12 @@ def transform(func):
     return func
 
 
-@ transform
+@transform
 def identity(hl7_value):
     return hl7_value
 
 
-@ transform
+@transform
 def date(hl7_value):
     datetime_object = datetime.strptime(hl7_value, '%Y%m%d')
     return datetime_object
@@ -88,6 +88,6 @@ TODO: the mapping is to be finalised after consulting with CIC team
 SEX_MAP = {"M": 1, "F": 2, "U": 3, "O": 3, "A": 3, "N": 3}
 
 
-@ transform
+@transform
 def sex(hl7_value):
     return f"{SEX_MAP[hl7_value]}"
