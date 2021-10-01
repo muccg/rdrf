@@ -1,3 +1,5 @@
+from datetime import datetime
+from typing import Optional
 import hl7
 import logging
 
@@ -67,4 +69,25 @@ def identity(hl7_value):
 
 @ transform
 def date(hl7_value):
-    return f"{hl7_value[:8]}"
+    datetime_object = datetime.strptime(hl7_value, '%Y%m%d')
+    return datetime_object
+
+
+"""
+HL7 values
+Value	Description
+F	    Female
+M	    Male
+O	    Other
+U	    Unknown
+A	    Ambiguous
+N	    Not applicable
+
+TODO: the mapping is to be finalised after consulting with CIC team  
+"""
+SEX_MAP = {"M": 1, "F": 2, "U": 3, "O": 3, "A": 3, "N": 3}
+
+
+@ transform
+def sex(hl7_value):
+    return f"{SEX_MAP[hl7_value]}"
