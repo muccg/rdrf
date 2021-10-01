@@ -41,7 +41,7 @@ class IntegrationHubRequestView(View):
         if not has_registry_config(registry_code):
             set_registry_config(registry_code)
 
-    def _get_hub_response(self, registry_model, user_model, umrn: str) -> dict:
+    def _get_hub_response(self, registry_model, user_model, umrn: str) -> Optional[dict]:
         client_class: Any
 
         if settings.HUB_ENDPOINT == "mock":
@@ -54,25 +54,20 @@ class IntegrationHubRequestView(View):
                            user_model,
                            settings.HUB_ENDPOINT,
                            settings.HUB_PORT)
-        hl7_response = hub.get_data(umrn)
 
-        if "status" in hl7_response and hl7_response["status"] == "success":
-            response: Optional[dict] = self._get_response_dict(hl7_response)
-            if response is None:
-                response_dict = {"status": "fail"}
-            else:
-                response["status"] = "success"
-                response_dict = response
-                logger.info("hub request succeeded")
+        hub_data: dict = hub.get_data(umrn)
+
+        if "status" in hub_data and hub_data["status"] == "success":
+            logger.info("got hl7 message from hub - creating update dictionary")
+            return self._get_update_dict(hub_data)
         else:
             logger.info("hub request failed")
-            response_dict = {"status": "fail"}
-        return response_dict
+            return None
 
-    def _get_response_dict(self, hl7_response: dict) -> Optional[dict]:
+    def _get_update_dict(self, hub_data: dict) -> Optional[dict]:
         from intframework.models import HL7Mapping
         from intframework.utils import get_event_code
-        hl7_message = hl7_response["hl7_message"]
+        hl7_message = hub_data["message"]
         event_code = get_event_code(hl7_message)
         logger.debug(f"event code = {event_code}")
         try:
