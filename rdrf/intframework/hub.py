@@ -1,5 +1,5 @@
 import hl7
-from hl7.client import MLLPClient, read_loose, read_stream
+from hl7.client import MLLPClient, read_loose
 import io
 from datetime import datetime
 from django.conf import settings
@@ -17,6 +17,12 @@ class Sep:
     CR = "\r"
 
 
+class MLLProtocol:
+    VT = 11
+    FS = 28
+    CONTROL_BYTES = [11, 28]
+
+
 class MessageType:
     PATIENT_QUERY = "QRY^A19^QRY_A19"
 
@@ -32,7 +38,7 @@ def seg(name, fields):
     return hl7.Segment("|", [name, *fields])
 
 
-def DTM():
+def get_dtm():
     return datetime.now().strftime("%Y%m%d%H%M%S")
 
 
@@ -53,14 +59,14 @@ class MessageBuilder:
     def __init__(self, registry_model, user_model):
         # MSH fields
         logger.debug(f"initialising MessageBuilder {registry_model} {user_model}")
-        self.seps = "^~\&"
+        self.seps = r"^~\&"  # noqa: W605
         # sender ( us )
         self.sending_app = settings.APP_ID  # "CIC^HdwaApplication.CIC^L"
         self.sending_facility = settings.SENDING_FACILITY  # "9999^HdwaMedicalFacility.9999^L"
         # receiver ( hub )
         self.receiving_app = settings.HUB_APP_ID  # "ESB^HdwaApplication.ESB^L"
         self.receiving_facility = settings.HUB_FACILITY  # "ESB^HdwaApplication.ESB^L"
-        self.dtm = DTM()
+        self.dtm = get_dtm()
         self.security = ""  # meant to be empty ..
         self.message_type = MessageType.PATIENT_QUERY
         self.message_model = self._create_message_model(registry_model.code, user_model.username)
@@ -97,7 +103,7 @@ class MessageBuilder:
         # the hardcoded fields are those which are given in the
         # "Population Notes" in the SPEC as being always the value indicated
         msh = Seg("MSH")
-        msh.add_field("^~\&")
+        msh.add_field("^~\&")  # noqa: W605
         msh.add_field(self.sending_app)
         msh.add_field(self.sending_facility)
         msh.add_field(self.receiving_app)
@@ -135,8 +141,8 @@ class MessageBuilder:
         qrd.add_field("")
         qrd.add_field("")
         qrd.add_field("")
-        QUERY_FILTER = f"{umrn}^^^^^^^^HDWA^^^^MR^0917"
-        qrd.add_field(QUERY_FILTER)
+        query_filter = f"{umrn}^^^^^^^^HDWA^^^^MR^0917"
+        qrd.add_field(query_filter)
         return qrd.s
 
 
@@ -156,7 +162,7 @@ class Client:
             result_message = self.hl7_client.send_message(message)
             return {"message": result_message, "status": "success"}
         except Exception as ex:
-            logger.error("error sending message: {ex}")
+            logger.error(f"error sending message: {ex}")
         return {"status": "fail"}
 
 
@@ -214,10 +220,7 @@ class MockClient(Client):
         logger.debug(f"parsing mock file {mock_message_file}")
         # see https://www.hl7.org/documentcenter/public/wg/inm/mllp_transport_specification.PDF
         binary_data = open(mock_message_file, "rb").read()
-        VT = 11
-        FS = 28
-        CONTROL_BYTES = [VT, FS]
-        data = [b for b in binary_data if b not in CONTROL_BYTES]
+        data = [b for b in binary_data if b not in MLLProtocol.CONTROL_BYTES]
         ascii_data = "".join(map(chr, data))
         logger.debug(f"ascii data = {ascii_data}")
         try:

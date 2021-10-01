@@ -39,11 +39,6 @@ from django.core.exceptions import PermissionDenied
 from django.utils.decorators import method_decorator
 from django.contrib.auth.decorators import login_required
 
-# to be deleted - STARTS #
-import json
-from django.core.serializers.json import DjangoJSONEncoder
-from django.http import HttpResponse, HttpResponseBadRequest
-# to be deleted - ENDS #
 
 import logging
 logger = logging.getLogger(__name__)

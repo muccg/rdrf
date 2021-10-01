@@ -5,7 +5,6 @@ from django.core.serializers.json import DjangoJSONEncoder
 from django.conf import settings
 from django.utils.decorators import method_decorator
 from django.contrib.auth.decorators import login_required
-from intframework.models import DataRequest  # , DATAREQUEST_STATES
 from rdrf.models.definition.models import Registry
 from rdrf.helpers.utils import anonymous_not_allowed
 from intframework.hub import Client, MockClient
@@ -30,9 +29,10 @@ class IntegrationHubRequestView(View):
         user_model = request.user
         response_data = self._get_hub_response(registry_model, user_model, umrn)
         if response_data:
-            logger.debug(f"response data = {response_data}")
+            logger.info(f"response data = {response_data}")
             patient_creator = PatientCreator()
             patient = patient_creator.create_patient(response_data)
+            logger.info(f"IF created patient {patient}")
             self._setup_redis_config(registry_code)
             logger.info("hub request returned data so subscribing in redis")
             self._setup_message_router_subscription(registry_model.code, umrn)
