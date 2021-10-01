@@ -1,9 +1,10 @@
 import hl7
-from hl7.client import MLLPClient
+from hl7.client import MLLPClient, read_loose, read_stream
+import io
 from datetime import datetime
 from django.conf import settings
 import logging
-
+from typing import Optional
 logger = logging.getLogger(__name__)
 
 
@@ -147,21 +148,20 @@ class Client:
 
     def get_data(self, umrn: str) -> dict:
         qry_a19_message = self.builder.build_qry_a19(umrn)
-        response_dict = self.send_message(qry_a19_message)
-        return response_dict
+        return self.send_message(qry_a19_message)
 
     def send_message(self, message: hl7.Message) -> dict:
         logger.debug("sending message")
         try:
             result_message = self.hl7_client.send_message(message)
-            return {"hl7_message": result_message}
+            return {"message": result_message, "status": "success"}
         except Exception as ex:
             logger.error("error sending message: {ex}")
-        return {}
+        return {"status": "fail"}
 
 
 class MockClient(Client):
-    MOCK_MESSAGE = "/data/mock-hl7-message.txt"
+    MOCK_MESSAGE = "/data/mock-message.txt"
 
     def __init__(self, registry_model, user_model, hub_endpoint, hub_port):
         self.builder = MessageBuilder(registry_model, user_model)
@@ -169,18 +169,62 @@ class MockClient(Client):
     def send_message(self, message: hl7.Message) -> dict:
         import os
         if os.path.exists(self.MOCK_MESSAGE):
-            response_dict = self._load_mock(self.MOCK_MESSAGE)
+            logger.info("using mock file")
+            response_dict = {}
+            response_message = self._parse_mock_message_file2(self.MOCK_MESSAGE)
+            if response_message is None:
+                response_dict["status"] = "fail"
+            else:
+                response_dict["status"] = "success"
+                response_dict["message"] = response_message
         else:
             logger.info("no mock file")
             response_dict = {}
+
+        logger.debug(f"mock response dict = {response_dict}")
         return response_dict
 
-    def _load_mock(self, mock_message):
+    def _parse_mock_message_file(self, mock_message_file: str) -> Optional[hl7.Message]:
 
         try:
-            message = hl7.parse_file(mock_message)
-            return {"hl7_message": message}
+            binary_data = open(mock_message_file, "rb").read()
+            stream = io.BytesIO(binary_data)
+
+            raw_messages = [raw_message for raw_message in read_loose(stream)]
+            decoded_messages = [rm.decode("ascii") for rm in raw_messages]
+
+            messages = [hl7.parse(dm) for dm in decoded_messages]
+            from intframework.utils import inspect_msg
+            for msg_num, message in enumerate(messages):
+                for seg in ["MSH", "PID"]:
+                    logger.debug(f"{msg_num} {seg}")
+                    inspect_msg(message, seg)
+
+            return messages[1]
 
         except hl7.ParseException as pex:
             logger.error(f"error parsing mock message: {pex}")
-            return {}
+            return None
+
+        except Exception as ex:
+            logger.error(f"error loading mock: {ex}")
+            return None
+
+    def _parse_mock_message_file2(self, mock_message_file: str) -> Optional[hl7.Message]:
+        logger.debug(f"parsing mock file {mock_message_file}")
+        binary_data = open(mock_message_file, "rb").read()
+        logger.debug(f"binary = {binary_data}")
+        # see https://www.hl7.org/documentcenter/public/wg/inm/mllp_transport_specification.PDF
+        actual_data = binary_data[2:-2]  # strip off first byte and last three
+        decoded_data = actual_data.decode("ascii").replace('\r\n', '\r').replace('\n', '\r')
+        logger.debug(f"decoded = {decoded_data}")
+        try:
+            parsed_message = hl7.parse(decoded_data)
+            from intframework.utils import inspect_msg
+            for seg in ["MSH", "PID"]:
+                inspect_msg(parsed_message, seg)
+            logger.debug("parsed data")
+            return parsed_message
+        except Exception as ex:
+            logger.error("error parsing: %s" % ex)
+            return None
