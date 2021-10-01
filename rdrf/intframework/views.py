@@ -107,7 +107,8 @@ class DataIntegrationUpdate(View):
     """
     Message Router will send HL7 data for the right URMN here
     """
-
+    @method_decorator(anonymous_not_allowed)
+    @method_decorator(login_required)
     def post(self, request, umrn):
         external_data_json = request.body
 
