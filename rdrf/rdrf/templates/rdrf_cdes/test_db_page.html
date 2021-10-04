@@ -1,0 +1,12 @@
+{% extends "rdrf_cdes/base.html" %}
+
+{% block content %}
+    <h2>Database Query Test Page</h2>
+
+    <table cellpadding="10">
+        <tr><td>Get request handler entry:</td><td><b>{{ entry }}</b></td></tr>
+        <tr><td>Registry: {{ registry }}</td><td><b>{{ registry_query_time }}</b> (response time)</td></tr>
+        <tr><td>Form: {{ form }}</td><td><b>{{ form_query_time }}</b> (response time)</td></tr>
+        <tr><td>Get request handler exit: </td><td><b>{{ exit }}</b></td></tr>
+    </table>
+{% endblock %}

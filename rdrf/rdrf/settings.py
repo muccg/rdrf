@@ -217,6 +217,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'anymail',
     'rdrf',
+    'intframework',
     'registry.groups',
     'registry.patients',
     'registry.common',
@@ -793,6 +794,16 @@ CACHES['redis'] = {
     "KEY_PREFIX": "celery_cache_"
 }
 
+CACHES['blackboard'] = {
+    "BACKEND": "django_redis.cache.RedisCache",
+    "LOCATION": env.getlist("cache", ["redis://rediscache:6379/9"]),
+    "TIMEOUT": 3600,
+    "OPTIONS": {
+        "CLIENT_CLASS": "django_redis.client.DefaultClient"
+    },
+    "KEY_PREFIX": "rdrf_if_"
+}
+
 CELERY_BROKER_URL = env.get('CELERY_BROKER_URL', 'redis://rediscache')
 CELERY_RESULT_BACKEND = CELERY_BROKER_URL
 CELERY_ACCEPT_CONTENT = ['json']
@@ -834,3 +845,17 @@ CSP_STYLE_SRC = [
 CSP_IMG_SRC = ["'self'"]
 
 CSP_INCLUDE_NONCE_IN = ["script-src", "style-src"]
+
+HUB_ENABLED = env.get("hub_enabled", True)
+
+if HUB_ENABLED:
+    HL7_VERSION = env.get("hl7_version", "2.6")
+    # sender app ( us )
+    APP_ID = env.get("app_id", "CIC")
+    SENDING_FACILITY = env.get("sending_facility", "9999^cicfacility.9999^L")
+    # receiver app ( the hub)
+    HUB_APP_ID = env.get("hub_app_id", "ESB^HdwaApplication.ESB^L")
+    HUB_FACILITY = env.get("hub_facility", "ESB^HdwaApplication.ESB^L")
+    HUB_ENDPOINT = env.get("hub_endpoint", "mock")
+    HUB_PORT = env.get("hub_port", 30000)
+    HUB_MOCKED = HUB_ENDPOINT == "mock"

@@ -626,7 +626,8 @@ class PatientEditView(View):
                                  "see_patient"):
                 raise PermissionDenied
 
-        context_launcher = RDRFContextLauncherComponent(request.user, registry_model, patient, rdrf_nonce=request.csp_nonce)
+        context_launcher = RDRFContextLauncherComponent(
+            request.user, registry_model, patient, rdrf_nonce=request.csp_nonce)
         patient_info = RDRFPatientInfoComponent(registry_model, patient)
 
         family_linkage_panel = FamilyLinkagePanel(request.user,
@@ -704,7 +705,8 @@ class PatientEditView(View):
 
         registry_model = Registry.objects.get(code=registry_code)
 
-        context_launcher = RDRFContextLauncherComponent(request.user, registry_model, patient, rdrf_nonce=request.csp_nonce)
+        context_launcher = RDRFContextLauncherComponent(
+            request.user, registry_model, patient, rdrf_nonce=request.csp_nonce)
         patient_info = RDRFPatientInfoComponent(registry_model, patient)
 
         if registry_model.patient_fields:
@@ -1138,3 +1140,11 @@ class PatientEditView(View):
                                                          hidden=True)
 
         return (len(fieldlist) == hidden_fields.count())
+
+
+class QueryPatientView(View):
+    @method_decorator(anonymous_not_allowed)
+    @method_decorator(login_required)
+    def get(self, request, registry_code):
+        context = {'registry_code': registry_code}
+        return render(request, "rdrf_cdes/patient_query.html", context)
