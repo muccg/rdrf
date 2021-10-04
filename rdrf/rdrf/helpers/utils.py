@@ -1034,6 +1034,9 @@ def integration_function(func):
 
 
 def cic_system_role():
+    """
+    Is the system role any of CIC related
+    """
     return settings.SYSTEM_ROLE in (SystemRoles.CIC_CLINICAL,
                                     SystemRoles.CIC_DEV,
                                     SystemRoles.CIC_PROMS)
