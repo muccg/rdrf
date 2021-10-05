@@ -67,8 +67,9 @@ class PatientUpdator:
     For HL7 subscription updates
     """
 
-    def __init__(self):
-        pass
+    def __init__(self, patient: Patient, value_map: dict):
+        self.patient = patient
+        self.value_map = value_map
 
     def _parse_moniker(self, moniker: str):
         form = None
@@ -78,33 +79,32 @@ class PatientUpdator:
             form, section, cde = moniker.split("/")
         return form, section, cde
 
-    def _parse_map(self, value_map: dict) -> list:
+    def _parse_map(self) -> list:
         cde_dicts = []
-        for key, value in value_map.items():
+        for key, value in self.value_map.items():
             form, section, cde = self._parse_moniker(key)
             if form:
                 cde_dicts.append({"form": form, "section": section, "cde": cde, "value": value})
         return cde_dicts
 
-    def _set_cde_values(self, cde_dicts, patient) -> Patient:
+    def _set_cde_values(self, cde_dicts: dict()):
         registry = Registry.objects.get()
         registry_code = registry.code
-        context = patient.default_context(patient)
+        context = self.patient.default_context()
         for cde_dict in cde_dicts:
             form_name = cde_dict["form"]
             section_code = cde_dict["section"]
             cde_code = cde_dict["cde"]
             value = cde_dict["value"]
 
-            patient.set_form_value(registry_code,
-                                   form_name,
-                                   section_code,
-                                   cde_code,
-                                   value,
-                                   context_model=context)
-        return patient
+            self.patient.set_form_value(registry_code,
+                                        form_name,
+                                        section_code,
+                                        cde_code,
+                                        value,
+                                        context_model=context)
 
-    def update_patient(self, patient, value_map: dict) -> Patient:
-        cde_dicts = self._parse_map(value_map)
-        patient = self._set_cde_values(cde_dicts, patient)
-        return patient
+    def update_patient(self) -> Patient:
+        cde_dicts = self._parse_map()
+        self._set_cde_values(cde_dicts)
+        return self.patient

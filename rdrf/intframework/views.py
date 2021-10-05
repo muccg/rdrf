@@ -1,18 +1,20 @@
 import json
-from django.views.generic.base import View
-from django.http import HttpResponse, Http404
-from django.core.serializers.json import DjangoJSONEncoder
+import logging
 from django.conf import settings
-from django.utils.decorators import method_decorator
 from django.contrib.auth.decorators import login_required
-from rdrf.models.definition.models import Registry
-from rdrf.helpers.utils import anonymous_not_allowed
-from intframework.hub import Client, MockClient
-from intframework.updater import PatientCreator
+from django.core.serializers.json import DjangoJSONEncoder
+from django.http import HttpResponse, Http404
+from django.utils.decorators import method_decorator
+from django.views.generic.base import View
 from django_redis import get_redis_connection
+from intframework.hub import Client, MockClient
+from intframework.models import HL7Mapping
+from intframework.updater import PatientCreator, PatientUpdator
+from intframework.utils import get_event_code
+from rdrf.helpers.utils import anonymous_not_allowed
+from rdrf.models.definition.models import Registry
 from typing import Any, Optional
 
-import logging
 logger = logging.getLogger(__name__)
 
 
@@ -75,8 +77,6 @@ class IntegrationHubRequestView(View):
             return None
 
     def _get_update_dict(self, hub_data: dict) -> Optional[dict]:
-        from intframework.models import HL7Mapping
-        from intframework.utils import get_event_code
         logger.debug("in _get_update_dict")
         hl7_message = hub_data["message"]
         logger.debug(f"hl7 message = {hl7_message}")
@@ -101,3 +101,31 @@ class IntegrationHubRequestView(View):
         logger.info("setting up hub subscription for umrn {umrn}")
         conn = get_redis_connection("blackboard")
         conn.sadd(f"{registry_code}:umrns", umrn)
+
+
+class HL7Receiver(View):
+    def _get_update_dict(self, hub_data: dict) -> Optional[dict]:
+        hl7_message = hub_data["message"]
+        logger.debug(f"hl7 message = {hl7_message}")
+        event_code = get_event_code(hl7_message)
+        logger.debug(f"event code = {event_code}")
+        try:
+            hl7_mapping = HL7Mapping.objects.get(event_code=event_code)
+            update_dict = hl7_mapping.parse(hl7_message)
+            logger.info(f"update_dict = {update_dict}")
+            return update_dict
+        except HL7Mapping.DoesNotExist:
+            logger.error(f"mapping doesn't exist Unknown message event code: {event_code}")
+            return None
+        except HL7Mapping.MultipleObjectsReturned:
+            logger.error("Multiple message mappings for event code: {event_code}")
+            return None
+
+    def post(self, request, *args, **kwargs):
+        data = kwargs.get('data')
+        # umrn = kwargs.get('umrn')
+        patient_id = kwargs.get('patient_id')
+        patient = Patient.objects.get(patient_id)
+        update_dict = self._get_update_dict(data)
+        patient_updator = PatientUpdator(patient, update_dict)
+        patient = patient_updator.update_patient()
