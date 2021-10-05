@@ -13,7 +13,6 @@ from .models import (
     ParentGuardian,
     PatientDoctor)
 from rdrf.db.dynamic_data import DynamicDataWrapper
-from rdrf.helpers.utils import cic_system_role
 from rdrf.models.definition.models import ConsentQuestion, ConsentSection, DemographicFields
 from rdrf.forms.widgets.widgets import CountryWidget, StateWidget, ConsentFileInput
 from registry.groups.models import CustomUser, WorkingGroup
@@ -167,8 +166,6 @@ class PatientForm(forms.ModelForm):
         "cols": 30,
     }
 
-    cic_system_role = cic_system_role()
-
     next_of_kin_country = forms.ChoiceField(required=False, widget=CountryWidget())
     next_of_kin_state = forms.ChoiceField(required=False, widget=StateWidget())
     country_of_birth = forms.ChoiceField(required=False, widget=CountryWidget())
@@ -283,7 +280,7 @@ class PatientForm(forms.ModelForm):
                             self.fields[field].widget = forms.HiddenInput()
                             self.fields[field].label = ""
                     else:
-                        if custom_label and cic_system_role:
+                        if custom_label:
                             self.fields[field].label = custom_label
 
                     if readonly and not hidden:
