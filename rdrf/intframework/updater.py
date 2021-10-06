@@ -1,4 +1,5 @@
 import logging
+from rdrf.db.contexts_api import RDRFContextManager
 from rdrf.helpers.utils import check_models
 from rdrf.models.definition.models import Registry
 from registry.groups.models import WorkingGroup
@@ -62,7 +63,7 @@ class PatientCreator:
         return patient
 
 
-class PatientUpdator:
+class PatientUpdater:
     """
     For HL7 subscription updates
     """
@@ -90,7 +91,11 @@ class PatientUpdator:
     def _set_cde_values(self, cde_dicts: dict()):
         registry = Registry.objects.get()
         registry_code = registry.code
+
         context = self.patient.default_context()
+        context_manager = RDRFContextManager(self.registry)
+        context = context_manager.get_or_create_default_context(self.patient, new_patient=False)
+
         for cde_dict in cde_dicts:
             form_name = cde_dict["form"]
             section_code = cde_dict["section"]

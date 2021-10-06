@@ -1,39 +1,36 @@
 # -*- encoding: utf-8 -*-
+import json
 import logging
 import os
 import subprocess
 import yaml
+from copy import deepcopy
 from datetime import datetime
 from datetime import timedelta
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth import get_user_model
+from django.contrib.auth.models import Group
+from django.core.management import call_command
 from django.forms.models import model_to_dict
 from django.test import TestCase, RequestFactory
-
+from rdrf.forms.fields import calculated_functions
+from rdrf.helpers.transform_cd_dict import get_cd_form, get_section, transform_cd_dict
+from rdrf.helpers.utils import de_camelcase, TimeStripper
+from rdrf.models.definition.models import CDEPermittedValueGroup, CDEPermittedValue
+from rdrf.models.definition.models import ClinicalData
+from rdrf.models.definition.models import CommonDataElement, InvalidAbnormalityConditionError, ValidationError
+from rdrf.models.definition.models import EmailNotification
+from rdrf.models.definition.models import EmailNotificationHistory
+from rdrf.models.definition.models import EmailTemplate
+from rdrf.models.definition.models import Registry, RegistryForm, Section
+from rdrf.models.proms.models import Survey, SurveyQuestion, Precondition
 from rdrf.services.io.defs.exporter import Exporter, ExportType
 from rdrf.services.io.defs.importer import Importer, ImportState
-from rdrf.models.definition.models import Registry, RegistryForm, Section
-from rdrf.models.definition.models import CDEPermittedValueGroup, CDEPermittedValue
-from rdrf.models.definition.models import CommonDataElement, InvalidAbnormalityConditionError, ValidationError
-from rdrf.models.definition.models import ClinicalData
-from rdrf.models.proms.models import Survey, SurveyQuestion, Precondition
 from rdrf.views.form_view import FormView
+from registry.groups.models import WorkingGroup, CustomUser
 from registry.patients.models import Patient
 from registry.patients.models import State, PatientAddress, AddressType
-from django.contrib.auth.models import Group
-from registry.groups.models import WorkingGroup, CustomUser
-from rdrf.helpers.utils import de_camelcase, TimeStripper
-from copy import deepcopy
-
-from rdrf.models.definition.models import EmailNotification
-from rdrf.models.definition.models import EmailTemplate
-from rdrf.models.definition.models import EmailNotificationHistory
-from django.core.management import call_command
-import json
-
-from rdrf.helpers.transform_cd_dict import get_cd_form, get_section, transform_cd_dict
-from rdrf.forms.fields import calculated_functions
 
 logger = logging.getLogger(__name__)
 
@@ -2304,6 +2301,53 @@ class CalculatedFieldSecurityTestCase(RDRFTestCase):
         # 6. Testing if non-FH calculated field exists in FH
         # No non-FH calculated fields in the test data, but have
         # manually tested this in a local build with DD calc fields
+
+
+class PatientUpdaterTestCase(RDRFTestCase):
+
+    def _get_yaml_file(self, suffix='original'):
+        this_dir = os.path.dirname(__file__)
+        test_yaml = os.path.abspath(os.path.join(this_dir, "..", "..", "fixtures", f"cic_crc_{suffix}.yaml"))
+        return test_yaml
+
+    def setUp(self):
+        importer = Importer()
+
+        self.yaml_file = self._get_yaml_file()
+        with open(self.yaml_file) as yf:
+            self.yaml_data = yaml.load(yf, Loader=yaml.FullLoader)
+
+        importer.load_yaml(self.yaml_file)
+        importer.create_registry()
+
+        self.registry = Registry.objects.get(code=self.yaml_data["code"])
+        self.working_group, _ = WorkingGroup.objects.get_or_create(name="WA")
+
+    def create_patient(self):
+        from rdrf.db.contexts_api import RDRFContextManager
+
+        p = Patient()
+        p.consent = True
+        p.name = "Harry"
+        p.date_of_birth = datetime(1950, 1, 31)
+        p.working_group = self.working_group
+        p.save()
+        p.rdrf_registry.set([self.registry])
+
+        context_manager = RDRFContextManager(self.registry)
+        self.default_context = context_manager.get_or_create_default_context(p, new_patient=True)
+
+        return p
+
+    def test_update_patient(self):
+        from intframework.updater import PatientUpdater
+        map = {"Pathology/Histology/DIAGDATE": "22-02-2021"}
+        self.patient = self.create_patient()
+        patient_updater = PatientUpdater(self.patient, map)
+        p = patient_updater.update_patient()
+        registry_code = self.yaml_data["code"]
+        diag_date = p.get_form_value(registry_code, "Pathology", "Histology", "DIAGDATE")
+        self.assertEqual(diag_date, "2021-02-22")
 
 
 class FamilyLinkageTestCase(RDRFTestCase):

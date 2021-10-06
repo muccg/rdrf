@@ -9,7 +9,7 @@ from django.views.generic.base import View
 from django_redis import get_redis_connection
 from intframework.hub import Client, MockClient
 from intframework.models import HL7Mapping
-from intframework.updater import PatientCreator, PatientUpdator
+from intframework.updater import PatientCreator, PatientUpdater
 from intframework.utils import get_event_code
 from rdrf.helpers.utils import anonymous_not_allowed
 from rdrf.models.definition.models import Registry
@@ -104,6 +104,10 @@ class IntegrationHubRequestView(View):
 
 
 class HL7Receiver(View):
+    """
+    Receive HL7 subscription messages from CICMR
+    """
+
     def _get_update_dict(self, hub_data: dict) -> Optional[dict]:
         hl7_message = hub_data["message"]
         logger.debug(f"hl7 message = {hl7_message}")
@@ -121,11 +125,15 @@ class HL7Receiver(View):
             logger.error("Multiple message mappings for event code: {event_code}")
             return None
 
+    @method_decorator(anonymous_not_allowed)
+    @method_decorator(login_required)
     def post(self, request, *args, **kwargs):
         data = kwargs.get('data')
-        # umrn = kwargs.get('umrn')
-        patient_id = kwargs.get('patient_id')
-        patient = Patient.objects.get(patient_id)
+        umrn = kwargs.get('umrn')
+        patient = Patient.objects.get(umrn=umrn)
+        # patient_id = kwargs.get('patient_id')
+        # patient = Patient.objects.get(patient_id)
         update_dict = self._get_update_dict(data)
-        patient_updator = PatientUpdator(patient, update_dict)
-        patient = patient_updator.update_patient()
+        patient_updater = PatientUpdater(patient, update_dict)
+        patient = patient_updater.update_patient()
+        return HttpResponse("success")
