@@ -151,19 +151,25 @@ class Client:
         self.builder = MessageBuilder(registry_model, user_model)
         self.hl7_client = MLLPClient(hub_endpoint,
                                      hub_port)
+        self.umrn = None
 
     def get_data(self, umrn: str) -> dict:
+        self.umrn = umrn
         qry_a19_message = self.builder.build_qry_a19(umrn)
         return self.send_message(qry_a19_message)
 
     def send_message(self, message: hl7.Message) -> dict:
-        logger.debug("sending message")
+        logger.info(f"hub query for {self.umrn} ..")
         try:
-            result_message = self.hl7_client.send_message(message)
+            result_message = hl7.parse(self.hl7_client.send_message(message))
+            logger.info(f"hub query success {self.umrn}")
             return {"message": result_message, "status": "success"}
+        except hl7.ParseException as pex:
+            logger.error(f"hub query fail {self.umrn}: {pex}")
+            return {"status": "fail"}
         except Exception as ex:
-            logger.error(f"error sending message: {ex}")
-        return {"status": "fail"}
+            logger.error(f"hub query fail {self.umrn}: {ex}")
+            return {"status": "fail"}
 
 
 class MockClient(Client):
@@ -171,6 +177,10 @@ class MockClient(Client):
 
     def __init__(self, registry_model, user_model, hub_endpoint, hub_port):
         self.builder = MessageBuilder(registry_model, user_model)
+
+    def get_data(self, umrn: str) -> dict:
+        qry_a19_message = self.builder.build_qry_a19(umrn)
+        return self.send_message(qry_a19_message)
 
     def send_message(self, message: hl7.Message) -> dict:
         import os
@@ -200,12 +210,6 @@ class MockClient(Client):
             decoded_messages = [rm.decode("ascii") for rm in raw_messages]
 
             messages = [hl7.parse(dm) for dm in decoded_messages]
-            from intframework.utils import inspect_msg
-            for msg_num, message in enumerate(messages):
-                for seg in ["MSH", "PID"]:
-                    logger.debug(f"{msg_num} {seg}")
-                    inspect_msg(message, seg)
-
             return messages[1]
 
         except hl7.ParseException as pex:
