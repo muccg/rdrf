@@ -260,11 +260,13 @@ class PatientForm(forms.ModelForm):
                     logger.debug("field = %s" % field)
                     hidden = False
                     readonly = False
+                    custom_label = ""
                     for wg in working_groups:
                         try:
                             field_config = DemographicFields.objects.get(registry=registry, group=wg, field=field)
                             hidden = hidden or field_config.hidden
                             readonly = readonly or field_config.readonly
+                            custom_label = "" or field_config.custom_label
                         except DemographicFields.DoesNotExist:
                             pass
 
@@ -277,6 +279,9 @@ class PatientForm(forms.ModelForm):
                         else:
                             self.fields[field].widget = forms.HiddenInput()
                             self.fields[field].label = ""
+                    else:
+                        if custom_label:
+                            self.fields[field].label = custom_label
 
                     if readonly and not hidden:
                         if field in ["date_of_birth", "date_of_death", "date_of_migration"]:
