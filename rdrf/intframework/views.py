@@ -13,6 +13,7 @@ from intframework.updater import PatientCreator, PatientUpdater
 from intframework.utils import get_event_code
 from rdrf.helpers.utils import anonymous_not_allowed
 from rdrf.models.definition.models import Registry
+from registry.patients.models import Patient
 from typing import Any, Optional
 
 logger = logging.getLogger(__name__)

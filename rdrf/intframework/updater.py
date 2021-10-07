@@ -1,7 +1,5 @@
 import logging
 from intframework.utils import parse_demographics_moniker
-from rdrf.db.contexts_api import RDRFContextManager
-from rdrf.helpers.utils import check_models
 from rdrf.models.definition.models import Registry
 from registry.groups.models import WorkingGroup
 from registry.patients.models import Patient
