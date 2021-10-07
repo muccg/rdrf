@@ -256,6 +256,9 @@
                 <div class="card-body">
                     <p>Questions indicated with a red asterisk <strong class="text-danger">*</strong> are <b>core data elements</b> and are required to be answered in order to save this form.<br></p>
                     Please click the green 'Save' button before progressing to the next form.
+		    {% if hub_enabled %}
+		    Fields marked as <b>External</b> are updated from external systems.
+		    {% endif %}
                 </div>
             </div>
 
@@ -453,11 +456,7 @@
                                                         <div class="col-sm-9{% if element|is_checkbox %} pt-2{% endif %}">
                                                     {% endif %}
                                                         {% if not element|is_checkbox %}
-						            {% if element|is_external %}
-                                                               {{ element | add_attr:"class,external-form-control" }}
-						            {% else %}
-                                                               {{ element | add_attr:"class,form-control" }}
-						            {% endif %}
+                                                            {{ element | add_attr:"class,form-control" }}
                                                         {% else %}
                                                             {{ element }}
                                                         {% endif %}
