@@ -2341,13 +2341,13 @@ class PatientUpdaterTestCase(RDRFTestCase):
 
     def test_update_patient(self):
         from intframework.updater import PatientUpdater
-        map = {"Pathology/Histology/DIAGDATE": "22-02-2021"}
+        map = {"Demographics/given_names": "NewName"}
         self.patient = self.create_patient()
         patient_updater = PatientUpdater(self.patient, map)
-        p = patient_updater.update_patient()
-        registry_code = self.yaml_data["code"]
-        diag_date = p.get_form_value(registry_code, "Pathology", "Histology", "DIAGDATE")
-        self.assertEqual(diag_date, "2021-02-22")
+        result = patient_updater.update_patient()
+        updated_patient = Patient.objects.get(pk=self.patient.id)
+        self.assertEqual(result, "success")
+        self.assertEqual(updated_patient.given_names, "NewName")
 
 
 class FamilyLinkageTestCase(RDRFTestCase):

@@ -1,6 +1,6 @@
-from datetime import datetime
 import hl7
 import logging
+from datetime import datetime
 
 logger = logging.getLogger(__name__)
 
@@ -56,3 +56,10 @@ SEX_MAP = {"M": 1, "F": 2, "U": 3, "O": 3, "A": 3, "N": 3}
 @transform
 def sex(hl7_value):
     return f"{SEX_MAP[hl7_value]}"
+
+
+def parse_demographics_moniker(moniker: str) -> str:
+    field = None
+    if "/" in moniker:
+        _, field = moniker.split("/")
+    return field

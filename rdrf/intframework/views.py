@@ -131,8 +131,6 @@ class HL7Receiver(View):
         data = kwargs.get('data')
         umrn = kwargs.get('umrn')
         patient = Patient.objects.get(umrn=umrn)
-        # patient_id = kwargs.get('patient_id')
-        # patient = Patient.objects.get(patient_id)
         update_dict = self._get_update_dict(data)
         patient_updater = PatientUpdater(patient, update_dict)
         patient = patient_updater.update_patient()

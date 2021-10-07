@@ -1,4 +1,5 @@
 import logging
+from intframework.utils import parse_demographics_moniker
 from rdrf.db.contexts_api import RDRFContextManager
 from rdrf.helpers.utils import check_models
 from rdrf.models.definition.models import Registry
@@ -13,16 +14,10 @@ class PatientCreator:
     def __init__(self):
         pass
 
-    def _parse_moniker(self, moniker: str) -> str:
-        field = None
-        if "/" in moniker:
-            _, field = moniker.split("/")
-        return field
-
     def _parse_map(self, value_map: dict) -> dict:
         field_values = {}
         for key, value in value_map.items():
-            field_name = self._parse_moniker(key)
+            field_name = parse_demographics_moniker(key)
             if field_name:
                 field_values[field_name] = value
         return field_values
@@ -72,44 +67,18 @@ class PatientUpdater:
         self.patient = patient
         self.value_map = value_map
 
-    def _parse_moniker(self, moniker: str):
-        form = None
-        section = None
-        cde = None
-        if "/" in moniker:
-            form, section, cde = moniker.split("/")
-        return form, section, cde
-
-    def _parse_map(self) -> list:
-        cde_dicts = []
+    def _parse_map(self) -> dict:
+        field_values = {}
         for key, value in self.value_map.items():
-            form, section, cde = self._parse_moniker(key)
-            if form:
-                cde_dicts.append({"form": form, "section": section, "cde": cde, "value": value})
-        return cde_dicts
-
-    def _set_cde_values(self, cde_dicts: dict()):
-        registry = Registry.objects.get()
-        registry_code = registry.code
-
-        context = self.patient.default_context()
-        context_manager = RDRFContextManager(self.registry)
-        context = context_manager.get_or_create_default_context(self.patient, new_patient=False)
-
-        for cde_dict in cde_dicts:
-            form_name = cde_dict["form"]
-            section_code = cde_dict["section"]
-            cde_code = cde_dict["cde"]
-            value = cde_dict["value"]
-
-            self.patient.set_form_value(registry_code,
-                                        form_name,
-                                        section_code,
-                                        cde_code,
-                                        value,
-                                        context_model=context)
+            field_name = parse_demographics_moniker(key)
+            if field_name:
+                field_values[field_name] = value
+        return field_values
 
     def update_patient(self) -> Patient:
-        cde_dicts = self._parse_map()
-        self._set_cde_values(cde_dicts)
-        return self.patient
+        field_values = self._parse_map()
+        updated = Patient.objects.filter(pk=self.patient.id).update(**field_values)
+        result = "failure"
+        if updated:
+            result = "success"
+        return result
