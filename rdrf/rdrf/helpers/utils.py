@@ -15,6 +15,8 @@ import logging
 import re
 import uuid
 
+from rdrf.system_role import SystemRoles
+
 logger = logging.getLogger(__name__)
 
 
@@ -1029,3 +1031,12 @@ def integration_function(func):
         return func(*args, **kwargs)
 
     return wrapper
+
+
+def cic_system_role():
+    """
+    Is the system role any of CIC related
+    """
+    return settings.SYSTEM_ROLE in (SystemRoles.CIC_CLINICAL,
+                                    SystemRoles.CIC_DEV,
+                                    SystemRoles.CIC_PROMS)

@@ -86,9 +86,9 @@ class HL7Mapping(models.Model):
             try:
                 hl7_value = self._get_hl7_value(hl7_path, hl7_message)
                 logger.debug(f"hl7 value = {hl7_value}")
-                transform_name = mapping_data.get("transform", "identity")
+                transform = mapping_data.get("transform", "identity")
                 try:
-                    rdrf_value = self._apply_transform(transform_name, hl7_value)
+                    rdrf_value = self._apply_transform(transform, hl7_value)
                     logger.debug(f"rdrf_value = {rdrf_value}")
                     value_map[field_moniker] = rdrf_value
                     logger.debug(f"{field_moniker} is {hl7_path} = {rdrf_value}")
@@ -111,20 +111,37 @@ class HL7Mapping(models.Model):
         # see https://python-hl7.readthedocs.io/en/latest/accessors.html
         return parsed_message[path]
 
-    def _apply_transform(self, transform_name, hl7_value):
-        if transform_name == "identity":
+    def _apply_transform(self, transform, hl7_value):
+        if type(transform) is dict:
+            return self._apply_transform_dict(transform, hl7_value)
+        if transform == "identity":
             return hl7_value
-        if hasattr(utils, transform_name):
-            func = getattr(utils, transform_name)
+        if hasattr(utils, transform):
+            func = getattr(utils, transform)
             if not callable(func):
-                raise TransformFunctionError(f"{transform_name} is not a function")
+                raise TransformFunctionError(f"{transform} is not a function")
             if not hasattr(func, "hl7_transform_func"):
-                raise TransformFunctionError(f"{transform_name} is not a HL7 transform")
+                raise TransformFunctionError(f"{transform} is not a HL7 transform")
             try:
                 return func(hl7_value)
             except Exception as ex:
-                raise TransformFunctionError(f"{transform_name} inner exception: {ex}")
-        raise TransformFunctionError(f"Unknown transform function: {transform_name}")
+                raise TransformFunctionError(f"{transform} inner exception: {ex}")
+        raise TransformFunctionError(f"Unknown transform function: {transform}")
+
+    def _apply_transform_dict(self, transform_dict, hl7_value):
+        if not "tag" in transform_dict:
+            logger.error("transform error: transform dict does not have tag key: {transform_dict}")
+            raise TransformFunctionError("tag key not present in transform dictionary")
+        tag = transform_dict["tag"]
+        if tag == "transform":
+            transform_func_name = transform_dict["function"]
+            return self._apply_transform(transform_func_name, hl7_value)
+        elif tag == "mapping":
+            mapping = transform_dict["map"]
+            return mapping[hl7_value]
+        else:
+            logger.error(f"Unknown tag in transform dict: {tag}")
+            raise TransformFunctionError(f"Unknown transform tag: {tag}")
 
 
 class DataRequest(models.Model):
