@@ -2303,7 +2303,7 @@ class CalculatedFieldSecurityTestCase(RDRFTestCase):
         # manually tested this in a local build with DD calc fields
 
 
-class PatientUpdaterTestCase(RDRFTestCase):
+class HL7HandlerTestCase(RDRFTestCase):
 
     def _get_yaml_file(self, suffix='original'):
         this_dir = os.path.dirname(__file__)
@@ -2340,11 +2340,11 @@ class PatientUpdaterTestCase(RDRFTestCase):
         return p
 
     def test_update_patient(self):
-        from intframework.updater import PatientUpdater
-        map = {"Demographics/given_names": "NewName"}
+        from intframework.updater import HL7Handler
+        field_dict = {"Demographics/given_names": "NewName"}
         self.patient = self.create_patient()
-        patient_updater = PatientUpdater(self.patient, map)
-        result = patient_updater.update_patient()
+        hl7_handler = HL7Handler(patient=self.patient, field_dict=field_dict)
+        result = hl7_handler.update_patient()
         updated_patient = Patient.objects.get(pk=self.patient.id)
         self.assertEqual(result, "success")
         self.assertEqual(updated_patient.given_names, "NewName")

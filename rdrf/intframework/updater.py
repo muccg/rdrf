@@ -8,37 +8,23 @@ from typing import Optional
 logger = logging.getLogger(__name__)
 
 
-class PatientCreator:
-    def __init__(self):
-        pass
+class HL7Handler:
+    def __init__(self, *args, **kwargs):
+        self.patient = kwargs.get("patient", None)
+        self.field_dict = kwargs.get("field_dict", None)
 
-    def _parse_map(self, value_map: dict) -> dict:
+    def _parse_field_dict(self) -> dict:
         field_values = {}
-        for key, value in value_map.items():
+        for key, value in self.field_dict.items():
             field_name = parse_demographics_moniker(key)
             if field_name:
                 field_values[field_name] = value
         return field_values
 
-    """
-    the creation value map keys:
-    "Demographics/family_name"
-    "Demographics/given_names"
-    "Demographics/umrn"
-    "Demographics/date_of_birth"
-    "Demographics/date_of_death"
-    "Demographics/place_of_birth"
-    "Demographics/country_of_birth"
-    "Demographics/ethnic_origin"
-    "Demographics/sex"
-    "Demographics/home_phone"
-    "Demographics/work_phone"
-    """
-
-    def create_patient(self, value_map: dict) -> Optional[Patient]:
+    def create_patient(self) -> Optional[Patient]:
         logger.debug("creating patient ...")
         try:
-            patient_attributes = self._parse_map(value_map)
+            patient_attributes = self._parse_field_dict()
             patient = Patient(**patient_attributes)
             patient.consent = False
             patient.save()
@@ -55,26 +41,8 @@ class PatientCreator:
 
         return patient
 
-
-class PatientUpdater:
-    """
-    For HL7 subscription updates
-    """
-
-    def __init__(self, patient: Patient, value_map: dict):
-        self.patient = patient
-        self.value_map = value_map
-
-    def _parse_map(self) -> dict:
-        field_values = {}
-        for key, value in self.value_map.items():
-            field_name = parse_demographics_moniker(key)
-            if field_name:
-                field_values[field_name] = value
-        return field_values
-
     def update_patient(self) -> Patient:
-        field_values = self._parse_map()
+        field_values = self._parse_field_dict()
         updated = Patient.objects.filter(pk=self.patient.id).update(**field_values)
         result = "failure"
         if updated:
