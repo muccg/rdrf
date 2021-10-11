@@ -22,6 +22,12 @@ class HL7Handler:
                 field_values[field_name] = value
         return field_values
 
+    def _populate_pmi(self, regsitry_code: str, patient: Patient, umrn: str):
+        form_name = "Patientinformation"
+        section_code = "PtIdentifiers1"
+        cde_code = "PMI"
+        patient.set_form_value(registry_code, form_name, section_code, cde_code, umrn)
+
     def _umrn_exists(self, umrn: str) -> bool:
         return Patient.objects.filter(umrn=umrn).count() > 0
 
@@ -45,7 +51,7 @@ class HL7Handler:
         wg = WorkingGroup.objects.get(registry=registry)
         patient.working_groups.set([wg])
         patient.save()
-
+        self._populate_pmi(registry.code, patient, umrn)
         return patient
 
     def update_patient(self) -> Patient:
