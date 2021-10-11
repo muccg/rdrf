@@ -23,7 +23,7 @@ class HL7Handler:
         return field_values
 
     def _umrn_exists(self, umrn: str) -> bool:
-        return Patient.object.filter(umrn=umrn).count() > 0
+        return Patient.objects.filter(umrn=umrn).count() > 0
 
     def create_patient(self, field_dict: dict) -> Optional[Patient]:
         logger.debug("creating patient ...")
