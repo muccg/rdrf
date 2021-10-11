@@ -1,4 +1,5 @@
 import logging
+from intframework.models import HL7Mapping
 from intframework.utils import parse_demographics_moniker
 from rdrf.models.definition.models import Registry
 from registry.groups.models import WorkingGroup
@@ -21,10 +22,16 @@ class HL7Handler:
                 field_values[field_name] = value
         return field_values
 
+    def _umrn_exists(self, umrn: str) -> bool:
+        return Patient.object.filter(umrn=umrn).count() > 0
+
     def create_patient(self, field_dict: dict) -> Optional[Patient]:
         logger.debug("creating patient ...")
         try:
             patient_attributes = self._parse_field_dict(field_dict)
+            umrn = patient_attributes["umrn"]
+            if self._umrn_exists():
+                raise Exception(f"Patient with this UMRN {umrn} exists")
             patient = Patient(**patient_attributes)
             patient.consent = False
             patient.save()
