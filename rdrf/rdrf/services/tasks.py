@@ -1,4 +1,7 @@
 from rdrf.celery import app
+from intframework.utils import get_event_code
+import hl7
+
 import logging
 
 logger = logging.getLogger(__name__)
@@ -27,3 +30,11 @@ def run_custom_action(custom_action_id, user_id, patient_id, input_data):
 
     logger.debug("running custom action execute")
     return custom_action.execute(user, patient_model, input_data)
+
+
+@app.task(name="rdrf.services.tasks.handle_hl7_message")
+def handle_hl7_message(umrn, message: hl7.Message):
+    event_code = get_event_code(message)
+    logger.info(f"HL7 Message {event_code} for UMRM: {umrn}")
+    # now process the message
+    # call Jith code here
