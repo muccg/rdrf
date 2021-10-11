@@ -27,13 +27,14 @@ class IntegrationHubRequestView(View):
         logger.debug(f"hub request {registry_code} {umrn}")
         registry_model = Registry.objects.get(code=registry_code)
         user_model = request.user
+        # ensure we always have redis url in redis
+        self._setup_redis_config(registry_code)
         response_data = self._get_hub_response(registry_model, user_model, umrn)
         if response_data:
             logger.info(f"response data = {response_data}")
             patient_creator = PatientCreator()
             patient = patient_creator.create_patient(response_data)
             logger.info(f"IF created patient {patient}")
-            self._setup_redis_config(registry_code)
             logger.info("hub request returned data so subscribing in redis")
             self._setup_message_router_subscription(registry_model.code, umrn)
             client_response_dict = response_data
@@ -45,10 +46,8 @@ class IntegrationHubRequestView(View):
         return HttpResponse(json.dumps(client_response_dict, cls=DjangoJSONEncoder))
 
     def _setup_redis_config(self, registry_code):
-        from rdrf.helpers.blackboard_utils import has_registry_config
         from rdrf.helpers.blackboard_utils import set_registry_config
-        if not has_registry_config(registry_code):
-            set_registry_config(registry_code)
+        set_registry_config(registry_code)
 
     def _get_hub_response(self, registry_model, user_model, umrn: str) -> Optional[dict]:
         client_class: Any
@@ -98,6 +97,6 @@ class IntegrationHubRequestView(View):
             return None
 
     def _setup_message_router_subscription(self, registry_code, umrn):
-        logger.info("setting up hub subscription for umrn {umrn}")
+        logger.info(f"setting up hub subscription for registry code {registry_code} umrn {umrn}")
         conn = get_redis_connection("blackboard")
-        conn.sadd(f"{registry_code}:umrns", umrn)
+        conn.sadd(f"umrns:{registry_code}", umrn)
