@@ -22,7 +22,7 @@ class HL7Handler:
                 field_values[field_name] = value
         return field_values
 
-    def _populate_pmi(self, regsitry_code: str, patient: Patient, umrn: str):
+    def _populate_pmi(self, registry_code: str, patient: Patient, umrn: str):
         form_name = "Patientinformation"
         section_code = "PtIdentifiers1"
         cde_code = "PMI"
