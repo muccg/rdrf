@@ -10,10 +10,10 @@ logger = logging.getLogger(__name__)
 
 class HL7Handler:
     def __init__(self, *args, **kwargs):
-        self.patient = kwargs.get("patient", None)
-        self.field_dict = kwargs.get("field_dict", None)
+        self.umrn = kwargs.get("umrn", None)
+        self.hl7message = kwargs.get("hl7message", None)
 
-    def _parse_field_dict(self) -> dict:
+    def _parse_field_dict(self, field_dict) -> dict:
         field_values = {}
         for key, value in self.field_dict.items():
             field_name = parse_demographics_moniker(key)
@@ -21,10 +21,10 @@ class HL7Handler:
                 field_values[field_name] = value
         return field_values
 
-    def create_patient(self) -> Optional[Patient]:
+    def create_patient(self, field_dict: dict) -> Optional[Patient]:
         logger.debug("creating patient ...")
         try:
-            patient_attributes = self._parse_field_dict()
+            patient_attributes = self._parse_field_dict(field_dict)
             patient = Patient(**patient_attributes)
             patient.consent = False
             patient.save()
@@ -42,8 +42,11 @@ class HL7Handler:
         return patient
 
     def update_patient(self) -> Patient:
-        field_values = self._parse_field_dict()
-        updated = Patient.objects.filter(pk=self.patient.id).update(**field_values)
+        patient = Patient.objects.get(umrn=self.umrn)
+        hl7_mapping = HL7Mapping.objects.get()
+        field_dict = hl7_mapping.parse(self.hl7message)
+        field_values = self._parse_field_dict(field_dict)
+        updated = Patient.objects.filter(pk=patient.id).update(**field_values)
         result = "failure"
         if updated:
             result = "success"
