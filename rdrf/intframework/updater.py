@@ -47,7 +47,10 @@ class HL7Handler:
             return None
 
     def _update_patient(self) -> Optional[Patient]:
-        patient = Patient.objects.get(umrn=self.umrn)
+        try:
+            patient = Patient.objects.get(umrn=self.umrn)
+        except Patient.DoesNotExist:
+            return None
         updated = Patient.objects.filter(pk=patient.id).update(**self.patient_attributes)
         if updated:
             return patient
@@ -75,7 +78,6 @@ class HL7Handler:
                 patient.save()
                 context_manager = RDRFContextManager(registry)
                 default_context = context_manager.get_or_create_default_context(patient, new_patient=True)
-                # patient.save()
                 self._populate_pmi(registry.code, patient, umrn, default_context)
         except Exception as ex:
             logger.error(f"Error creating patient: {ex}")

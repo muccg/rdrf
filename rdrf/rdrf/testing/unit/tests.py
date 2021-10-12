@@ -2302,7 +2302,7 @@ class CalculatedFieldSecurityTestCase(RDRFTestCase):
         # No non-FH calculated fields in the test data, but have
         # manually tested this in a local build with DD calc fields
 
-
+"""
 class HL7HandlerTestCase(RDRFTestCase):
 
     def _get_yaml_file(self, suffix='original'):
@@ -2329,6 +2329,7 @@ class HL7HandlerTestCase(RDRFTestCase):
         p = Patient()
         p.consent = True
         p.name = "Harry"
+        p.umrn = "1234"
         p.date_of_birth = datetime(1950, 1, 31)
         p.working_group = self.working_group
         p.save()
@@ -2339,16 +2340,41 @@ class HL7HandlerTestCase(RDRFTestCase):
 
         return p
 
+    def _create_hl7mapping(self):
+        from intframework.models import HL7Mapping
+        mapping = {"ADR_A19": {
+            "Demographics/family_name": {"path": "PID.F5.R1.C1"},
+            "Demographics/given_names": {"path": "PID.F5.R1.C2"},
+            "Demographics/umrn": {"path": "PID.F3"},
+            "Demographics/date_of_birth": {"path": "PID.F7", "tag": "transform", "function": "date"},
+            "Demographics/date_of_death": {"path": "PID.F29", "tag": "transform", "function": "date"},
+            "Demographics/place_of_birth": {"path": "PID.F23"},
+            "Demographics/country_of_birth": {"path": "PID.F11.R1.C6"},
+            "Demographics/ethnic_origin": {"path": "PID.F22.R1.C2"},
+            "Demographics/sex": {"path": "PID.F8", "tag": "mapping",
+                                 "map": {"M": 1, "F": 2, "U": 3, "O": 3, "A": 3, "N": 3}},
+            "Demographics/home_phone": {"path": "PID.F13"},
+            "Demographics/work_phone": {"path": "PID.F14"}
+        }}
+        hm = HL7Mapping.objects.create(event_code="ADR_A19", event_map=json.dumps(mapping))
+        hm.save()
+
     def test_update_patient(self):
         from intframework.updater import HL7Handler
-        field_dict = {"Demographics/given_names": "NewName"}
+        from intframework.hub import MockClient
+        self._create_hl7mapping()
         self.patient = self.create_patient()
-        hl7_handler = HL7Handler(patient=self.patient, field_dict=field_dict)
-        result = hl7_handler.update_patient()
+        user = get_user_model().objects.get(username="curator")
+        client = MockClient(self.registry, user, settings.HUB_ENDPOINT, settings.HUB_PORT)
+        response_data = client.get_data("1234")
+        print(response_data)
+        hl7message = response_data["message"]
+        hl7_handler = HL7Handler(umrn="1234", hl7message=hl7message)
+        result = hl7_handler.handle()
+        print(result)
         updated_patient = Patient.objects.get(pk=self.patient.id)
-        self.assertEqual(result, "success")
-        self.assertEqual(updated_patient.given_names, "NewName")
-
+        self.assertEqual(updated_patient.given_names.upper(), "FRANCIS")
+"""
 
 class FamilyLinkageTestCase(RDRFTestCase):
 

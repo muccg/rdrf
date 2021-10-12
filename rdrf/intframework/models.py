@@ -91,7 +91,7 @@ class HL7Mapping(models.Model):
 
         for field_moniker, mapping_data in mapping_map.items():
             hl7_path = mapping_data["path"]
-            logging.info(hl7_path)
+            logger.info(hl7_path)
             try:
                 hl7_value = self._get_hl7_value(hl7_path, hl7_message)
                 try:
