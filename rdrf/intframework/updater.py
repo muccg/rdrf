@@ -24,11 +24,11 @@ class HL7Handler:
                 field_values[field_name] = value
         return field_values
 
-    def _populate_pmi(self, registry_code: str, patient: Patient, umrn: str):
+    def _populate_pmi(self, registry_code: str, patient: Patient, umrn: str, default_context):
         form_name = "Patientinformation"
         section_code = "PtIdentifiers1"
         cde_code = "PMI"
-        patient.set_form_value(registry_code, form_name, section_code, cde_code, umrn)
+        patient.set_form_value(registry_code, form_name, section_code, cde_code, umrn, context_model=default_context)
 
     def _umrn_exists(self, umrn: str) -> bool:
         return Patient.objects.filter(umrn=umrn).count() > 0
@@ -74,9 +74,9 @@ class HL7Handler:
                 patient.working_groups.set([wg])
                 patient.save()
                 context_manager = RDRFContextManager(registry)
-                # default_context = context_manager.get_or_create_default_context(patient, new_patient=True)
+                default_context = context_manager.get_or_create_default_context(patient, new_patient=True)
                 # patient.save()
-                # self._populate_pmi(registry.code, patient, umrn)
+                self._populate_pmi(registry.code, patient, umrn, default_context)
         except Exception as ex:
             logger.error(f"Error creating patient: {ex}")
             return None
