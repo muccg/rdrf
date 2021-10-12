@@ -17,7 +17,7 @@ def get_api_hostname():
 
 def set_broker_url(redis, registry_code):
     key = broker_key(registry_code)
-    value = settings.CACHES['redis']['LOCATION'][0]  # e.g 'redis://redis:6379/3'
+    value = settings.CELERY_BROKER_URL
     redis.set(key, value)
 
 
