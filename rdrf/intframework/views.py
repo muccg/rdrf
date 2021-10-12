@@ -8,9 +8,7 @@ from django.utils.decorators import method_decorator
 from django.views.generic.base import View
 from django_redis import get_redis_connection
 from intframework.hub import Client, MockClient
-from intframework.models import HL7Mapping
 from intframework.updater import HL7Handler
-from intframework.utils import get_event_code
 from rdrf.helpers.utils import anonymous_not_allowed
 from rdrf.models.definition.models import Registry
 from typing import Any, Optional
@@ -22,28 +20,22 @@ class IntegrationHubRequestView(View):
     @method_decorator(anonymous_not_allowed)
     @method_decorator(login_required)
     def get(self, request, registry_code, umrn):
-        logger.info(f"hub request from {request.user} for {umrn}")
         if not settings.HUB_ENABLED:
-            logger.info("hub not enabled - returning 404")
             raise Http404
-        logger.debug(f"hub request {registry_code} {umrn}")
+
         registry_model = Registry.objects.get(code=registry_code)
         user_model = request.user
-        response_data = self._get_hub_response(registry_model, user_model, umrn)
-        if response_data:
-            logger.info(f"response data = {response_data}")
-            hl7_handler = HL7Handler()
-            patient = hl7_handler.create_patient(field_dict=response_data)
-            logger.info(f"IF created patient {patient}")
+        hl7message = self._get_hub_response(registry_model, user_model, umrn)
+        if hl7message:
+            hl7_handler = HL7Handler(umrn=umrn, hl7message=hl7message)
+            response_data = hl7_handler.handle()
             self._setup_redis_config(registry_code)
-            logger.info("hub request returned data so subscribing in redis")
             self._setup_message_router_subscription(registry_model.code, umrn)
             client_response_dict = response_data
             client_response_dict["status"] = "success"
-
         else:
             client_response_dict = {"status": "fail"}
-            logger.error("Could not create patient")
+
         return HttpResponse(json.dumps(client_response_dict, cls=DjangoJSONEncoder))
 
     def _setup_redis_config(self, registry_code):
@@ -69,32 +61,9 @@ class IntegrationHubRequestView(View):
         hub_data: dict = hub.get_data(umrn)
 
         if "status" in hub_data and hub_data["status"] == "success":
-            logger.info("got hl7 message from hub - creating update dictionary")
-            update_dict = self._get_update_dict(hub_data)
-            return update_dict
+            return hub_data["message"]
         else:
             logger.info("hub request failed")
-            return None
-
-    def _get_update_dict(self, hub_data: dict) -> Optional[dict]:
-        logger.debug("in _get_update_dict")
-        hl7_message = hub_data["message"]
-        logger.debug(f"hl7 message = {hl7_message}")
-        event_code = get_event_code(hl7_message)
-        logger.debug(f"event code = {event_code}")
-        try:
-            hl7_mapping = HL7Mapping.objects.get(event_code=event_code)
-            logger.info("got mapping")
-            update_dict = hl7_mapping.parse(hl7_message)
-            logger.info("parsed message to create update_dict")
-            logger.info(f"update_dict = {update_dict}")
-            return update_dict
-
-        except HL7Mapping.DoesNotExist:
-            logger.error(f"mapping doesn't exist Unknown message event code: {event_code}")
-            return None
-        except HL7Mapping.MultipleObjectsReturned:
-            logger.error("Multiple message mappings for event code: {event_code}")
             return None
 
     def _setup_message_router_subscription(self, registry_code, umrn):
