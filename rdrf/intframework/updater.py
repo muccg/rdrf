@@ -87,6 +87,6 @@ class HL7Handler:
             logger.error(f"Error creating patient: {ex}")
             return None
 
-    self.patient_attributes["patient_url"] = reverse("patient_edit",
-                                                     args=[registry.code, patient.pk])
-    return self.patient_attributes
+        self.patient_attributes["patient_url"] = reverse("patient_edit",
+                                                         args=[registry.code, patient.pk])
+        return self.patient_attributes
