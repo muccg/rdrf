@@ -22,14 +22,11 @@ class IntegrationHubRequestView(View):
     def get(self, request, registry_code, umrn):
         if not settings.HUB_ENABLED:
             raise Http404
-
         registry_model = Registry.objects.get(code=registry_code)
         user_model = request.user
         hl7message = self._get_hub_response(registry_model, user_model, umrn)
         if hl7message:
-        # ensure we always have redis url in redis
             self._setup_redis_config(registry_code)
-   
             hl7_handler = HL7Handler(umrn=umrn, hl7message=hl7message)
             response_data = hl7_handler.handle()
             self._setup_message_router_subscription(registry_model.code, umrn)

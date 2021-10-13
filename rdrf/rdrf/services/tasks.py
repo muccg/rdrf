@@ -1,5 +1,6 @@
 from rdrf.celery import app
 from intframework.utils import get_event_code
+from intframework.updater import HL7Handler
 import hl7
 
 import logging
@@ -38,12 +39,10 @@ def handle_hl7_message(umrn, message: hl7.Message):
     logger.info(f"type of message = {type(message)}")
     event_code = get_event_code(message)
     logger.info(f"HL7 Message {event_code} for UMRM: {umrn}")
-    # now process the message
-    # call Jith code here
-    pass
+    hl7_handler = HL7Handler(umrn=umrn, hl7message=message)
+    response_data = hl7_handler.handle()
 
 
-@app.task(name="rdrf.services.tasks.testtask")
 def testtask(num):
     logger.info(f"testtask called with num={num}")
     return 23 + num
