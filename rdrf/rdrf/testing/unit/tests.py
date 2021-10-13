@@ -2302,6 +2302,7 @@ class CalculatedFieldSecurityTestCase(RDRFTestCase):
         # No non-FH calculated fields in the test data, but have
         # manually tested this in a local build with DD calc fields
 
+
 """
 class HL7HandlerTestCase(RDRFTestCase):
 
@@ -2375,6 +2376,7 @@ class HL7HandlerTestCase(RDRFTestCase):
         updated_patient = Patient.objects.get(pk=self.patient.id)
         self.assertEqual(updated_patient.given_names.upper(), "FRANCIS")
 """
+
 
 class FamilyLinkageTestCase(RDRFTestCase):
 
