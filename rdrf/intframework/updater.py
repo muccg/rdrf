@@ -1,4 +1,5 @@
 import logging
+from django.urls import reverse
 from intframework.models import HL7Mapping
 from intframework.utils import get_event_code
 from intframework.utils import parse_demographics_moniker
@@ -56,8 +57,10 @@ class HL7Handler:
             return patient
         return None
 
-    def handle(self) -> Optional[Patient]:
+    def handle(self) -> Optional[dict]:
         logger.debug("creating patient ...")
+        registry = Registry.objects.get()
+        patient = None
         try:
             field_dict = self._get_update_dict()
             logger.debug(f"{field_dict}")
@@ -66,12 +69,13 @@ class HL7Handler:
             umrn = self.patient_attributes["umrn"]
             if self._umrn_exists(umrn):
                 patient = self._update_patient()
+                if patient:
+                    self.patient_attributes["patient_updated"] = "updated"
             else:
                 patient = Patient(**self.patient_attributes)
                 patient.consent = False
                 patient.save()
                 logger.debug(f"patient created!: {patient.id} {patient} {patient.umrn} ")
-                registry = Registry.objects.get()
                 patient.rdrf_registry.set([registry])
                 wg = WorkingGroup.objects.get(registry=registry)
                 patient.working_groups.set([wg])
@@ -83,4 +87,6 @@ class HL7Handler:
             logger.error(f"Error creating patient: {ex}")
             return None
 
-        return self.patient_attributes
+    self.patient_attributes["patient_url"] = reverse("patient_edit",
+                                                     args=[registry.code, patient.pk])
+    return self.patient_attributes

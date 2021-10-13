@@ -25,7 +25,8 @@
 
     <div class="card invisible" id="data_received">
         <div class="card-header">
-            <span class="h5">Patient Created</span>
+            <span class="h5" id="patient_status">Patient Created</span>
+            <a href="" id="patient_url"></a>
         </div>
         <div class="card-body" id="response_div">
               <table id="patient_table" class="table table-striped table-hover">
@@ -80,23 +81,24 @@
                         type: "GET",
                         success: function(resultJson) {
                             var result  = jQuery.parseJSON(resultJson);
-			    //{"Demographics/family_name": "UNDERWOOD", "Demographics/given_names": "FRANCIS", "Demographics/umrn": "A4376449",
-			    // "Demographics/date_of_birth": "1969-10-10T00:00:00",
-			    //"Demographics/place_of_birth": "1101", "Demographics/country_of_birth": "", "Demographics/sex": "1",
-			    //"Demographics/home_phone": "", "Demographics/work_phone": ""}
-			    if (result.status == "success") {
+			                if (result.status == "success") {
                                 $("#data_received").removeClass("invisible");
-                                $("#umrn").html(result['Demographics/umrn']);
-                                $("#given_names").html(result['Demographics/given_names']);
-                                $("#last_name").html(result["Demographics/family_name"]);
-                                $("#dob").html(result["Demographics/date_of_birth"]);
+                                $("#umrn").html(result['umrn']);
+                                $("#given_names").html(result["given_names"]);
+                                $("#last_name").html(result["family_name"]);
+                                $("#dob").html(result["date_of_birth"]);
                                 $("#status_div").html("");
+                                if (result["patient_updated"]) {
+                                    $("#patient_status").html("Patient details updated");
+                                }
                                 $("#submit_div").removeClass("invisible");
+                                var url = result["patient_url"]
+                                $("#patient_url").attr("href", url);
+                                $("#patient_url").html(result["family_name"] + ' ' + result["given_names"]);
                                 dataReceived = true;
                             } else  {
                                 $("#status_div").html("The query failed - please try again.");
                             }
-			    
                         }
                 });
             });
@@ -110,7 +112,4 @@
             });
         });
     </script>
-
 {% endblock %}
-
-
