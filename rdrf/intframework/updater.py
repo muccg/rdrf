@@ -36,7 +36,7 @@ class HL7Handler:
     def _get_update_dict(self) -> Optional[dict]:
         event_code = get_event_code(self.hl7message)
         try:
-            hl7_mapping = HL7Mapping.objects.get()
+            hl7_mapping = HL7Mapping.objects.get(event_code=event_code)
             update_dict = hl7_mapping.parse(self.hl7message)
             return update_dict
         except HL7Mapping.DoesNotExist:
@@ -62,7 +62,7 @@ class HL7Handler:
             field_dict = self._get_update_dict()
             logger.debug(f"{field_dict}")
             self.patient_attributes = self._parse_field_dict(field_dict)
-            logger.debug(f"{self.patient_attributes}")
+            logger.info(f"{self.patient_attributes}")
             umrn = self.patient_attributes["umrn"]
             if self._umrn_exists(umrn):
                 patient = self._update_patient()

@@ -54,15 +54,12 @@ class HL7Mapping(models.Model):
     event_code = models.CharField(max_length=20)
     event_map = models.TextField(blank=True, null=True)
 
-    def load(self, event_code):
+    def load(self):
         try:
-            event_map = json.loads(self.event_map)
-            logger.debug(f"in load {event_code}")
-            logger.debug(f"in load {event_map}")
-            mapping_map = event_map[event_code]
-            logger.debug(f"in load {mapping_map}")
+            mapping_map = json.loads(self.event_map)
             return mapping_map
-        except ValueError:
+        except ValueError as ex:
+            logger.error(f"Error loading HL7 mappings: HL7Mapping {self.id} {self.event_code}: {ex}")
             return {}
 
     def _get_event_code(self, parsed_message):
@@ -76,16 +73,17 @@ class HL7Mapping(models.Model):
 
         The keys are HL7 event types ( MSH.9.1 ? )
 
-        {"ADR_A19": {
+        {
                 "BaseLineClinical/TestSection/CDEName": { "path": "OBX.3.4","tag": "transform", "transform": "foobar" },
                 "<FieldMoniker> : { "path" : <path into hl7 message>, "tag": "transform", "transform": "<functionname>" } ,
                 "<FieldMoniker> : { "path" : <path into hl7 message>, "tag": "mapping", "map": {<dict>} } ,
-                }
         }
         """
 
         event_code = self._get_event_code(hl7_message)
-        mapping_map = self.load(event_code)
+        mapping_map = self.load()
+        if not mapping_map:
+            raise Exception("cannot parse message as map malformed")
 
         value_map = {}
 
