@@ -14,7 +14,7 @@ from django.urls import reverse
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.db import models
-from django.db.models.signals import pre_delete
+from django.db.models.signals import pre_delete, post_save
 from django.dispatch.dispatcher import receiver
 from django.forms.models import model_to_dict
 from django.utils.safestring import mark_safe
@@ -1974,6 +1974,14 @@ class ClinicalData(models.Model):
                 logger.warning("Failed to validate: %s" % e)
             else:
                 raise ValidationError({"data": e})
+
+
+@receiver(post_save, sender=ClinicalData)
+def sync_patient_identifiers(sender, instance, **kwargs):
+    from rdrf.helpers.blackboard_utils import setup_message_router_subscription
+    if all([settings.SYSTEM_ROLE in [SystemRoles.CIC_CLINICAL, SystemRoles.CIC_DEV],
+            instance.django_model == "Patient"]):
+        pass
 
 
 def file_upload_to(instance, filename):
