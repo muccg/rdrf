@@ -20,6 +20,23 @@ class TransformFunctionError(Exception):
     pass
 
 
+class FieldSource:
+    LOCAL = "local"
+    EXTERNAL = "external"
+
+
+def get_field_source(cde_code):
+    from intframework.models import HL7Mapping
+
+    key = f"/{cde_code}"
+    for hl7_mapping in HL7Mapping.objects.all():
+        mapping_dict = hl7_mapping.load()
+        for field_moniker in mapping_dict:
+            if field_moniker.endswith(key):
+                return FieldSource.EXTERNAL
+    return FieldSource.LOCAL
+
+
 def transform(func):
     """
     Decorator to mark a function as a transform
