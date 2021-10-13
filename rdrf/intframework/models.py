@@ -1,8 +1,8 @@
-import logging
-import json
 import hl7
-from django.db import models
+import json
+import logging
 from django.conf import settings
+from django.db import models
 from intframework import utils
 from intframework.utils import TransformFunctionError
 
@@ -10,7 +10,7 @@ logger = logging.getLogger(__name__)
 
 
 class HL7:
-    MESSAGE_TYPE_PATH = "MSH.F9.R1.C1"
+    MESSAGE_TYPE_PATH = "MSH.F9.R1.C3"
 
 
 class DataRequestState:
@@ -56,9 +56,14 @@ class HL7Mapping(models.Model):
 
     def load(self):
         try:
-            return json.loads(self.event_map)
-        except ValueError:
+            mapping_map = json.loads(self.event_map)
+            return mapping_map
+        except ValueError as ex:
+            logger.error(f"Error loading HL7 mappings: HL7Mapping {self.id} {self.event_code}: {ex}")
             return {}
+
+    def _get_event_code(self, parsed_message):
+        return self._get_hl7_value(HL7.MESSAGE_TYPE_PATH, parsed_message)
 
     def parse(self, hl7_message) -> dict:
         """
@@ -68,30 +73,27 @@ class HL7Mapping(models.Model):
 
         The keys are HL7 event types ( MSH.9.1 ? )
 
-        {"QRY_A19": {"BaseLineClinical/TestSection/CDEName": { "path": "OBX.3.4", "transform": "foobar" },
-                    ."<FieldMoniker> : { "path" : <path into hl7 message>,
-                                         "transform": "<functionname>" } , }
-
-
+        {
+                "BaseLineClinical/TestSection/CDEName": { "path": "OBX.3.4","tag": "transform", "transform": "foobar" },
+                "<FieldMoniker> : { "path" : <path into hl7 message>, "tag": "transform", "transform": "<functionname>" } ,
+                "<FieldMoniker> : { "path" : <path into hl7 message>, "tag": "mapping", "map": {<dict>} } ,
+        }
         """
-        logger.debug("in mapping parse...")
+
         mapping_map = self.load()
-        logger.debug(f"loaded mappings: {mapping_map}")
+        if not mapping_map:
+            raise Exception("cannot parse message as map malformed")
 
         value_map = {}
 
         for field_moniker, mapping_data in mapping_map.items():
             hl7_path = mapping_data["path"]
-            logger.info(f"... Extracting {field_moniker} - {hl7_path}")
+            logger.info(hl7_path)
             try:
                 hl7_value = self._get_hl7_value(hl7_path, hl7_message)
-                logger.debug(f"hl7 value = {hl7_value}")
-                transform_name = mapping_data.get("transform", "identity")
                 try:
-                    rdrf_value = self._apply_transform(transform_name, hl7_value)
-                    logger.debug(f"rdrf_value = {rdrf_value}")
+                    rdrf_value = self._apply_transform(mapping_data, hl7_value)
                     value_map[field_moniker] = rdrf_value
-                    logger.debug(f"{field_moniker} is {hl7_path} = {rdrf_value}")
                 except TransformFunctionError as tfe:
                     logger.error(F"--- Error transforming HL7 field {tfe}")
                 except Exception as ex:
@@ -103,28 +105,32 @@ class HL7Mapping(models.Model):
                 logger.error(f"Error: {ex}")
         return value_map
 
-    def _get_event_code(self, parsed_message):
-        return self._get_hl7_value(HL7.MESSAGE_TYPE_PATH, parsed_message)
-
     def _get_hl7_value(self, path, parsed_message):
         # the path notation is understood by python hl7 library
         # see https://python-hl7.readthedocs.io/en/latest/accessors.html
         return parsed_message[path]
 
-    def _apply_transform(self, transform_name, hl7_value):
-        if transform_name == "identity":
+    def _apply_transform(self, mapping_data, hl7_value):
+        if "tag" not in mapping_data:
             return hl7_value
-        if hasattr(utils, transform_name):
-            func = getattr(utils, transform_name)
+        tag = mapping_data["tag"]
+        if tag == "transform":
+            transform = mapping_data["function"]
+            if hasattr(utils, transform):
+                func = getattr(utils, transform)
+            else:
+                raise TransformFunctionError(f"Unknown transform function: {transform}")
             if not callable(func):
-                raise TransformFunctionError(f"{transform_name} is not a function")
+                raise TransformFunctionError(f"{transform} is not a function")
             if not hasattr(func, "hl7_transform_func"):
-                raise TransformFunctionError(f"{transform_name} is not a HL7 transform")
+                raise TransformFunctionError(f"{transform} is not a HL7 transform")
             try:
                 return func(hl7_value)
             except Exception as ex:
-                raise TransformFunctionError(f"{transform_name} inner exception: {ex}")
-        raise TransformFunctionError(f"Unknown transform function: {transform_name}")
+                raise TransformFunctionError(f"{transform} inner exception: {ex}")
+        elif tag == "mapping":
+            mapping = mapping_data["map"]
+            return mapping[hl7_value]
 
 
 class DataRequest(models.Model):
