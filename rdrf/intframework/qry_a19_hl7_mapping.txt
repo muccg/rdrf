@@ -1,15 +1,13 @@
-ADR_A19
-
-{
-    "Demographics/family_name": {"path": "PID.F5.R1.C1"},
-    "Demographics/given_names": {"path": "PID.F5.R1.C2"},
-    "Demographics/umrn": {"path": "PID.F2"},
-    "Demographics/date_of_birth": {"path": "PID.F7", "transform": "date"},
-    "Demographics/date_of_death": {"path": "PID.F29", "transform": "date"},
-    "Demographics/place_of_birth": {"path": "PID.F23"},
-    "Demographics/country_of_birth": {"path": "PID.F11.R1.C6"},
-    "Demographics/ethnic_origin": {"path": "PID.F22.R1.C2"},
-    "Demographics/sex": {"path": "PID.F8"},
-    "Demographics/home_phone": {"path": "PID.F13"},
-    "Demographics/work_phone": {"path": "PID.F14"}
-}
+{"ADR_A19": {
+"Demographics/family_name": {"path": "PID.F5.R1.C1"},
+"Demographics/given_names": {"path": "PID.F5.R1.C2"},
+"Demographics/umrn": {"path": "PID.F3"},
+"Demographics/date_of_birth": {"path": "PID.F7", "tag": "transform", "function": "date"},
+"Demographics/date_of_death": {"path": "PID.F29", "tag": "transform", "function": "date"},
+"Demographics/place_of_birth": {"path": "PID.F23"},
+"Demographics/country_of_birth": {"path": "PID.F11.R1.C6"},
+"Demographics/ethnic_origin": {"path": "PID.F22.R1.C2"},
+"Demographics/sex": {"path": "PID.F8", "tag": "mapping", "map": {"M": 1, "F": 2, "U": 3, "O": 3, "A": 3, "N": 3}},
+"Demographics/home_phone": {"path": "PID.F13"},
+"Demographics/work_phone": {"path": "PID.F14"}
+}}
