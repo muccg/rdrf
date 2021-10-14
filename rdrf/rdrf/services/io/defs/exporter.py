@@ -1,14 +1,15 @@
-from rdrf.models.definition.models import Section, CommonDataElement, CDEPermittedValueGroup, CDEPermittedValue
+import datetime
+import json
 import logging
 import yaml
-import json
-from operator import attrgetter
-from django.forms.models import model_to_dict
-from rdrf import VERSION
-import datetime
-from rdrf.models.definition.models import DemographicFields, RegistryForm
-from explorer.models import Query
 from decimal import Decimal
+from django.forms.models import model_to_dict
+from explorer.models import Query
+from operator import attrgetter
+from rdrf.models.definition.models import DemographicFields, RegistryForm
+from rdrf.models.definition.models import Section, CommonDataElement, CDEPermittedValueGroup, CDEPermittedValue
+
+from rdrf import VERSION
 
 logger = logging.getLogger(__name__)
 
@@ -198,6 +199,7 @@ class Exporter(object):
         data["surveys"] = self._get_surveys()
         data["reviews"] = self._get_reviews()
         data["custom_actions"] = self._get_custom_actions()
+        data["hl7_mappings"] = self._get_hl7_mappings()
 
         if self.registry.patient_data_section:
             data["patient_data_section"] = self._create_section_map(
@@ -403,6 +405,15 @@ class Exporter(object):
     def _get_working_groups(self):
         from registry.groups.models import WorkingGroup
         return [wg.name for wg in WorkingGroup.objects.filter(registry=self.registry)]
+
+    def _get_hl7_mappings(self):
+        from intframework.models import HL7Mapping
+        hl7_mappings = []
+        for hl7_mapping in HL7Mapping.objects.all():
+            hl7_dict = {"event_code": hl7_mapping.event_code,
+                        "event_map": hl7_mapping.event_map}
+            hl7_mappings.append(hl7_dict)
+        return hl7_mappings
 
     def _get_demographic_fields(self):
         demographic_fields = []
