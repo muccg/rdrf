@@ -844,7 +844,7 @@ class Importer(object):
         if "hl7_mappings" in self.data:
             hl7_mappings = self.data["hl7_mappings"]
             for hl7_mapping in hl7_mappings:
-                HL7Mapping.objects.create(**hl7_mapping)
+                HL7Mapping.objects.get_or_create(**hl7_mapping)
 
     def _create_working_groups(self, registry):
         if "working_groups" in self.data:
