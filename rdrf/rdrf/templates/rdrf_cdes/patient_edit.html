@@ -6,6 +6,7 @@
 {% load has_feature %}
 {% load get_form_element %}
 {% load is_checkbox %}
+{% load is_external %}
 {% load is_patient_relative_widget %}
 {% load is_formset_obj %}
 {% load get_information_link %}
@@ -255,6 +256,9 @@
                 <div class="card-body">
                     <p>Questions indicated with a red asterisk <strong class="text-danger">*</strong> are <b>core data elements</b> and are required to be answered in order to save this form.<br></p>
                     Please click the green 'Save' button before progressing to the next form.
+		    {% if hub_enabled %}
+		    Fields marked as <b>External</b> are updated from external systems.
+		    {% endif %}
                 </div>
             </div>
 
@@ -445,6 +449,9 @@
                                                             {% if  element.field.required %}
                                                                 <span class="fa fa-asterisk text-danger" aria-hidden="true"></span>
                                                             {% endif %}
+								{% if element|is_external %}
+								<sup><span class="badge bg-secondary">EXTERNAL</span></sup>
+								{% endif %}
                                                         </label>
                                                         <div class="col-sm-9{% if element|is_checkbox %} pt-2{% endif %}">
                                                     {% endif %}

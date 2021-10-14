@@ -138,6 +138,7 @@ TEMPLATES = [
                 "rdrf.context_processors.context_processors.cic_system_role",
                 "rdrf.context_processors.context_processors.is_proms_system",
                 "rdrf.context_processors.context_processors.session_security_settings",
+                "rdrf.context_processors.context_processors.hub_enabled",
             ],
             "debug": DEBUG,
             "loaders": [
@@ -806,7 +807,7 @@ CACHES['blackboard'] = {
 
 CELERY_BROKER_URL = env.get('CELERY_BROKER_URL', 'redis://rediscache')
 CELERY_RESULT_BACKEND = CELERY_BROKER_URL
-CELERY_ACCEPT_CONTENT = ['json']
+CELERY_ACCEPT_CONTENT = ['json', 'pickle']
 CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_SERIALIZER = 'json'
 CELERY_TIMEZONE = TIME_ZONE
@@ -846,7 +847,7 @@ CSP_IMG_SRC = ["'self'"]
 
 CSP_INCLUDE_NONCE_IN = ["script-src", "style-src"]
 
-HUB_ENABLED = env.get("hub_enabled", True)
+HUB_ENABLED = env.get("hub_enabled", False)
 
 if HUB_ENABLED:
     HL7_VERSION = env.get("hl7_version", "2.6")
