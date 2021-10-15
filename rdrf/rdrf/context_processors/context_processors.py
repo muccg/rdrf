@@ -32,3 +32,7 @@ def session_security_settings(request):
     return {
         'session_security_enabled': settings.SESSION_SECURITY_ENABLE
     }
+
+
+def hub_enabled(request):
+    return {"hub_enabled": settings.HUB_ENABLED}

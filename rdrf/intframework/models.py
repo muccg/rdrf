@@ -80,7 +80,6 @@ class HL7Mapping(models.Model):
         }
         """
 
-        event_code = self._get_event_code(hl7_message)
         mapping_map = self.load()
         if not mapping_map:
             raise Exception("cannot parse message as map malformed")
