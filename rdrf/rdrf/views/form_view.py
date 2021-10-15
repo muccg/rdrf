@@ -24,6 +24,7 @@ from rdrf.helpers.utils import parse_iso_date
 from rdrf.views.decorators.patient_decorators import patient_questionnaire_access
 from rdrf.forms.navigation.wizard import NavigationWizard, NavigationFormType
 from rdrf.models.definition.models import RDRFContext
+from rdrf.custom_signals import clinical_data_saved_ok
 
 from rdrf.forms.consent_forms import CustomConsentFormGenerator
 from rdrf.helpers.utils import consent_status_for_patient
@@ -554,10 +555,12 @@ class FormView(View):
             section_field_ids_map[s] = self._get_field_ids(form_class)
 
             if not section_model.allow_multiple:
-                all_sections_valid, error_count = self._add_form_sections(form_class, request, s, dyn_patient, registry_code, sections_to_save, form_section, error_count, all_errors)
+                all_sections_valid, error_count = self._add_form_sections(
+                    form_class, request, s, dyn_patient, registry_code, sections_to_save, form_section, error_count, all_errors)
 
             else:
-                all_sections_valid, error_count = self._add_form_multi_sections(section_model, s, formset_prefixes, total_forms_ids, initial_forms_ids, form_class, request, dyn_patient, registry_code, sections_to_save, form_section, error_count, all_errors)
+                all_sections_valid, error_count = self._add_form_multi_sections(
+                    section_model, s, formset_prefixes, total_forms_ids, initial_forms_ids, form_class, request, dyn_patient, registry_code, sections_to_save, form_section, error_count, all_errors)
 
         if all_sections_valid:
             # Only save to the db iff all sections are valid
@@ -569,6 +572,8 @@ class FormView(View):
                 section_info.save()
                 form_instance = section_info.recreate_form_instance()
                 form_section[section_info.section_code] = form_instance
+
+            clinical_data_saved_ok.send(sender=ClinicalData, patient=patient, saved_sections=sections_to_save)
 
             progress_dict = dyn_patient.save_form_progress(
                 registry_code, context_model=self.rdrf_context)
