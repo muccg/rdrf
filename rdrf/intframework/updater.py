@@ -34,11 +34,15 @@ class HL7Handler:
     def _umrn_exists(self, umrn: str) -> bool:
         return Patient.objects.filter(umrn=umrn).count() > 0
 
-    def _get_update_dict(self) -> Optional[dict]:
+    def _get_update_dict(self, registry_code: str) -> Optional[dict]:
         event_code = get_event_code(self.hl7message)
         try:
+            patient_id = Patient.objects.get(umrn=self.umrn).id
+        except Patient.DoesNotExist:
+            patient_id = None
+        try:
             hl7_mapping = HL7Mapping.objects.get(event_code=event_code)
-            update_dict = hl7_mapping.parse(self.hl7message)
+            update_dict = hl7_mapping.parse(self.hl7message, patient_id, registry_code)
             return update_dict
         except HL7Mapping.DoesNotExist:
             logger.error(f"mapping doesn't exist Unknown message event code: {event_code}")
@@ -62,7 +66,7 @@ class HL7Handler:
         registry = Registry.objects.get()
         patient = None
         try:
-            field_dict = self._get_update_dict()
+            field_dict = self._get_update_dict(registry.code)
             logger.debug(f"{field_dict}")
             self.patient_attributes = self._parse_field_dict(field_dict)
             logger.info(f"{self.patient_attributes}")

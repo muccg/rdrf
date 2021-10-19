@@ -1,13 +1,11 @@
-from collections import OrderedDict
-from django.urls import reverse
-from django.utils.translation import ugettext_lazy as _
-from django.urls.exceptions import NoReverseMatch
-from django.conf import settings
-from rdrf.system_role import SystemRoles
-
-from registry.groups import GROUPS as RDRF_GROUPS
-
 import logging
+from collections import OrderedDict
+from django.conf import settings
+from django.urls import reverse
+from django.urls.exceptions import NoReverseMatch
+from django.utils.translation import ugettext_lazy as _
+from rdrf.system_role import SystemRoles
+from registry.groups import GROUPS as RDRF_GROUPS
 
 logger = logging.getLogger(__name__)
 
@@ -31,6 +29,7 @@ class Links:
 
     if settings.SYSTEM_ROLE in (SystemRoles.NORMAL, SystemRoles.CIC_DEV, SystemRoles.CIC_CLINICAL):
         HL7Mappings = QuickLink(reverse("admin:intframework_hl7mapping_changelist"), _("HL7 Mappings"))
+        HL7Messages = QuickLink(reverse("admin:intframework_hl7message_changelist"), _("HL7 Messages"))
         PatientsListing = QuickLink(reverse("patientslisting"), _("Patient List"))
         QuestionnaireResponses = QuickLink(reverse("admin:rdrf_questionnaireresponse_changelist"),
                                            _("Questionnaire Responses"))
@@ -144,7 +143,8 @@ class Links:
     if settings.SYSTEM_ROLE in (SystemRoles.NORMAL, SystemRoles.CIC_DEV, SystemRoles.CIC_CLINICAL):
         # related links are grouped or convenience
         HL7_LINKS = {
-            HL7Mappings.text: HL7Mappings
+            HL7Mappings.text: HL7Mappings,
+            HL7Messages.text: HL7Messages
         }
         AUDITING = {
             LoginLog.text: LoginLog,
