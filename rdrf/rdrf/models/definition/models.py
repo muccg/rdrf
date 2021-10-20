@@ -1982,24 +1982,21 @@ class ClinicalData(models.Model):
 def sync_patient_identifiers(sender, **kwargs):
     from rdrf.helpers.blackboard_utils import setup_message_router_subscription
     from registry.patients.models import Patient
-    if all([settings.SYSTEM_ROLE in [SystemRoles.CIC_CLINICAL, SystemRoles.CIC_DEV],
-            instance.django_model == "Patient",
-            instance.collection == "cdes"]):
-
-        patient = kwargs["patient"]
-        section_infos = kwargs["saved_sections"]
-
-        django_id = instance.django_id
-        registry_code = instance.registry_code
+    from rdrf.views.form_view import SectionInfo
+    patient = kwargs["patient"]
+    section_infos = kwargs["saved_sections"]
+    if settings.SYSTEM_ROLE in [SystemRoles.CIC_CLINICAL, SystemRoles.CIC_DEV]:
+        section_info: SectionInfo = section_infos[0]
+        registry_code = section_info.registry_code
+        django_id = section_info.patient_wrapper.django_id
         form_name = "Patientinformation"
         section_code = "PtIdentifiers1"
         cde_code = "PMI"
         patient = Patient.objects.get(id=django_id)
         logger.debug(f"synchronising pmi and umrn for patient {patient}")
-        logger.debug(instance.data)
         pmi = patient.get_form_value(registry_code, form_name, section_code, cde_code)
         logger.debug(f"pmi = {pmi}")
-        umrm = patient.umrn
+        umrn = patient.umrn
         logger.debug("umrn = {umrn}")
         if patient.umrn != pmi:
             logger.debug(f"patient {patient} umrn {umrn} <- {pmi}")
