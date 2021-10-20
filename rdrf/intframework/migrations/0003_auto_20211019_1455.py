@@ -13,6 +13,11 @@ class Migration(migrations.Migration):
     operations = [
         migrations.AddField(
             model_name='hl7message',
+            name='event_code',
+            field=models.CharField(default='', max_length=10),
+        ),
+        migrations.AddField(
+            model_name='hl7message',
             name='patient_id',
             field=models.IntegerField(null=True),
         ),
@@ -22,10 +27,12 @@ class Migration(migrations.Migration):
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('created', models.DateTimeField(auto_now_add=True)),
                 ('data_field', models.CharField(default='', max_length=200)),
+                ('hl7_path', models.CharField(max_length=20)),
+                ('original_value', models.CharField(default='', max_length=200)),
                 ('update_status',
                  models.CharField(choices=[('Success', 'Success'), ('Failure', 'Failure')], default='Failure',
                                   max_length=10)),
-                ('failure_reason', models.CharField(blank=True, default='', max_length=100, null=True)),
+                ('failure_reason', models.CharField(blank=True, default='', max_length=300, null=True)),
                 ('hl7_message', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='updates',
                                                   to='intframework.HL7Message')),
             ],

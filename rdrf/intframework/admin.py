@@ -15,7 +15,7 @@ class UpdateInline(admin.StackedInline):
 
 
 class HL7MessageAdmin(admin.ModelAdmin):
-    list_display = ("id", "username", "created", "patient", "field_updates")
+    list_display = ("id", "created", "event_code", "username", "patient", "field_updates")
     inlines = [
         UpdateInline,
     ]
@@ -24,8 +24,8 @@ class HL7MessageAdmin(admin.ModelAdmin):
     def patient(self, obj):
         link = ""
         if obj.patient_id:
-            l = reverse("patient_edit", args=[obj.registry_code, obj.patient_id])
-            link = f"<a href='{l}'>{obj.patient_id}</a>"
+            url = reverse("patient_edit", args=[obj.registry_code, obj.patient_id])
+            link = f"<a href='{url}'>{obj.patient_id}</a>"
         return link
 
     @mark_safe
@@ -33,9 +33,10 @@ class HL7MessageAdmin(admin.ModelAdmin):
         updates = ""
         if obj.updates.all().count():
             updates = "<table>"
-            updates += "<tr><th>field</th><th>update</th><th>reason</th></tr>"
+            updates += "<tr><th>Field</th><th>HL7 path</th><th>Original value</th><th>Status</th><th>Failure reason</th></tr>"
             for u in obj.updates.all():
-                updates += f"<tr><td>{u.data_field}</td><td>{u.update_status}</td><td>{u.failure_reason}</td></tr>"
+                updates += f"<tr><td>{u.data_field}</td><td>{u.hl7_path}</td><td>{u.original_value}</td>"
+                updates += f"<td>{u.update_status}</td><td>{u.failure_reason}</td></tr>"
             updates += "</table>"
         return updates
 

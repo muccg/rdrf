@@ -60,17 +60,7 @@ def identity(hl7_value):
 
 @transform
 def date(hl7_value):
-    # this assumes that the dattime string will be in the form yyyymmddHHMMSS
-    try:
-        if len(hl7_value) == 14:
-            datetime_object = datetime.strptime(hl7_value, '%Y%m%d%H%M%S')
-            return datetime_object
-        else:
-            hl7_value = hl7_value[:14].ljust(14, "0")
-            datetime_object = datetime.strptime(hl7_value, '%Y%m%d%H%M%S')
-            return datetime_object
-    except Exception:
-        return None
+    return datetime.strptime(hl7_value[:8], "%Y%m%d")
 
 
 """

@@ -61,6 +61,7 @@ class HL7Handler:
             return None
 
     def _update_patient(self) -> Optional[Patient]:
+        patient = None
         try:
             patient = Patient.objects.get(umrn=self.umrn)
         except Patient.DoesNotExist:
