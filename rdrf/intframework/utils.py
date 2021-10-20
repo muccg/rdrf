@@ -13,7 +13,13 @@ def get_event_code(message: hl7.Message) -> str:
         return ec
     except Exception as ex:
         logger.error(ex)
-        return "error"
+        try:
+            ec = f'{message["MSH.F9.R1.C1"]}_{message["MSH.F9.R1.C2"]}'  # message code and trigger event
+            logger.info("event code = %s" % ec)
+            return ec
+        except Exception as ex:
+            logger.error(ex)
+            return "error"
 
 
 class TransformFunctionError(Exception):
