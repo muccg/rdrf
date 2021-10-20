@@ -9,6 +9,8 @@ def get_event_code(message: hl7.Message) -> str:
     logger.info("get event code ")
     try:
         ec = message["MSH.F9.R1.C3"]  # ADR_A19  message structure
+        if not len(ec):
+            raise Exception
         logger.info("event code = %s" % ec)
         return ec
     except Exception as ex:
@@ -60,8 +62,13 @@ def identity(hl7_value):
 def date(hl7_value):
     # this assumes that the dattime string will be in the form yyyymmddHHMMSS
     try:
-        datetime_object = datetime.strptime(hl7_value, '%Y%m%d%H%M%S')
-        return datetime_object
+        if len(hl7_value) == 14:
+            datetime_object = datetime.strptime(hl7_value, '%Y%m%d%H%M%S')
+            return datetime_object
+        else:
+            hl7_value = hl7_value[:14].ljust(14, "0")
+            datetime_object = datetime.strptime(hl7_value, '%Y%m%d%H%M%S')
+            return datetime_object
     except Exception:
         return None
 
