@@ -1,27 +1,22 @@
+import json
 import logging
-from rdrf.models.definition.models import Registry
-from rdrf.models.definition.models import RegistryForm
-from rdrf.models.definition.models import Section
-from rdrf.models.definition.models import CommonDataElement
-from rdrf.models.definition.models import CDEPermittedValueGroup
-from rdrf.models.definition.models import CDEPermittedValue
-from rdrf.models.definition.models import ConsentSection
-from rdrf.models.definition.models import ConsentQuestion
-from rdrf.models.definition.models import DemographicFields
-
-from registry.groups.models import WorkingGroup
-
-from explorer.models import Query
-
+import yaml
 from django.contrib.auth.models import Group
 from django.core.exceptions import MultipleObjectsReturned
 from django.core.exceptions import ValidationError
-
-
+from explorer.models import Query
+from intframework.models import HL7Mapping
 from rdrf.helpers.utils import create_permission
-
-import yaml
-import json
+from rdrf.models.definition.models import CDEPermittedValue
+from rdrf.models.definition.models import CDEPermittedValueGroup
+from rdrf.models.definition.models import CommonDataElement
+from rdrf.models.definition.models import ConsentQuestion
+from rdrf.models.definition.models import ConsentSection
+from rdrf.models.definition.models import DemographicFields
+from rdrf.models.definition.models import Registry
+from rdrf.models.definition.models import RegistryForm
+from rdrf.models.definition.models import Section
+from registry.groups.models import WorkingGroup
 
 logger = logging.getLogger(__name__)
 
@@ -550,7 +545,8 @@ class Importer(object):
             "consent_rules",
             "surveys",
             "reviews",
-            "custom_actions"
+            "custom_actions",
+            "hl7_mappings"
         ]
 
         for import_obj in remaining_objects:
@@ -843,6 +839,15 @@ class Importer(object):
                         g.save()
                     form_model.groups_allowed.add(g)
                     form_model.save()
+
+    def _create_hl7_mappings(self, registry):
+        if "hl7_mappings" in self.data:
+            hl7_mappings = self.data["hl7_mappings"]
+            for hl7_mapping in hl7_mappings:
+                event_code = hl7_mapping["event_code"]
+                h, created = HL7Mapping.objects.get_or_create(event_code=event_code)
+                h.event_map = hl7_mapping["event_map"]
+                h.save()
 
     def _create_working_groups(self, registry):
         if "working_groups" in self.data:
