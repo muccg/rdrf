@@ -55,7 +55,7 @@ class HL7MessageFieldUpdate(models.Model):
     created = models.DateTimeField(auto_now_add=True)
     hl7_message = models.ForeignKey(HL7Message, on_delete=models.CASCADE, related_name="updates")
     data_field = models.CharField(max_length=200, default="")
-    update_status = models.CharField(choices=UPDATE_STATES, max_length=10, default="Success")
+    update_status = models.CharField(choices=UPDATE_STATES, max_length=10, default="Failure")
     failure_reason = models.CharField(max_length=100, default="", blank=True, null=True)
 
 
@@ -100,6 +100,8 @@ class HL7Mapping(models.Model):
 
         message_model = HL7Message(username="HL7Updater",
                                    registry_code=registry_code)
+        if patient:
+            message_model.patient_id = patient
         message_model.save()
 
         for field_moniker, mapping_data in mapping_map.items():
@@ -114,22 +116,19 @@ class HL7Mapping(models.Model):
                     value_map[field_moniker] = rdrf_value
                 except TransformFunctionError as tfe:
                     logger.error(f"Error transforming HL7 field {tfe}")
-                    update_model.update_status = "Failure"
                     update_model.failure_reason = tfe
                 except Exception as ex:
                     logger.error(f"Unhandled field error: {ex}")
-                    update_model.update_status = "Failure"
                     update_model.failure_reason = ex
             except KeyError as e:
                 logger.error(f"KeyError extracting the field. {e}")
-                update_model.update_status = "Failure"
                 update_model.failure_reason = e
             except Exception as ex:
                 logger.error(f"Error: {ex}")
-                update_model.update_status = "Failure"
                 update_model.failure_reason = ex
+            update_model.update_status = "Success"
             update_model.save()
-        return value_map
+        return value_map, message_model
 
     def _get_hl7_value(self, path, parsed_message):
         # the path notation is understood by python hl7 library
