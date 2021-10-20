@@ -2303,7 +2303,6 @@ class CalculatedFieldSecurityTestCase(RDRFTestCase):
         # manually tested this in a local build with DD calc fields
 
 
-"""
 class HL7HandlerTestCase(RDRFTestCase):
 
     def _get_yaml_file(self, suffix='original'):
@@ -2319,6 +2318,7 @@ class HL7HandlerTestCase(RDRFTestCase):
             self.yaml_data = yaml.load(yf, Loader=yaml.FullLoader)
 
         importer.load_yaml(self.yaml_file)
+        Registry.objects.all().delete()
         importer.create_registry()
 
         self.registry = Registry.objects.get(code=self.yaml_data["code"])
@@ -2329,8 +2329,11 @@ class HL7HandlerTestCase(RDRFTestCase):
 
         p = Patient()
         p.consent = True
-        p.name = "Harry"
-        p.umrn = "1234"
+        p.given_names = "Harry"
+        p.family_name = "Thomas"
+        p.umrn = "A4376449"
+        p.sex = "1"
+        p.living_status = Patient.LIVING_STATES[0]
         p.date_of_birth = datetime(1950, 1, 31)
         p.working_group = self.working_group
         p.save()
@@ -2338,25 +2341,23 @@ class HL7HandlerTestCase(RDRFTestCase):
 
         context_manager = RDRFContextManager(self.registry)
         self.default_context = context_manager.get_or_create_default_context(p, new_patient=True)
-
+        p.save()
         return p
 
     def _create_hl7mapping(self):
         from intframework.models import HL7Mapping
-        mapping = {"ADR_A19": {
+        mapping = {
             "Demographics/family_name": {"path": "PID.F5.R1.C1"},
             "Demographics/given_names": {"path": "PID.F5.R1.C2"},
             "Demographics/umrn": {"path": "PID.F3"},
             "Demographics/date_of_birth": {"path": "PID.F7", "tag": "transform", "function": "date"},
             "Demographics/date_of_death": {"path": "PID.F29", "tag": "transform", "function": "date"},
-            "Demographics/place_of_birth": {"path": "PID.F23"},
             "Demographics/country_of_birth": {"path": "PID.F11.R1.C6"},
-            "Demographics/ethnic_origin": {"path": "PID.F22.R1.C2"},
             "Demographics/sex": {"path": "PID.F8", "tag": "mapping",
                                  "map": {"M": 1, "F": 2, "U": 3, "O": 3, "A": 3, "N": 3}},
             "Demographics/home_phone": {"path": "PID.F13"},
             "Demographics/work_phone": {"path": "PID.F14"}
-        }}
+        }
         hm = HL7Mapping.objects.create(event_code="ADR_A19", event_map=json.dumps(mapping))
         hm.save()
 
@@ -2367,15 +2368,15 @@ class HL7HandlerTestCase(RDRFTestCase):
         self.patient = self.create_patient()
         user = get_user_model().objects.get(username="curator")
         client = MockClient(self.registry, user, settings.HUB_ENDPOINT, settings.HUB_PORT)
-        response_data = client.get_data("1234")
-        print(response_data)
+        this_dir = os.path.dirname(__file__)
+        mock_message = os.path.abspath(os.path.join(this_dir, "mock-message.txt"))
+        client.MOCK_MESSAGE = mock_message
+        response_data = client.get_data("A4376449")
         hl7message = response_data["message"]
-        hl7_handler = HL7Handler(umrn="1234", hl7message=hl7message)
-        result = hl7_handler.handle()
-        print(result)
+        hl7_handler = HL7Handler(umrn="A4376449", hl7message=hl7message)
+        hl7_handler.handle()
         updated_patient = Patient.objects.get(pk=self.patient.id)
         self.assertEqual(updated_patient.given_names.upper(), "FRANCIS")
-"""
 
 
 class FamilyLinkageTestCase(RDRFTestCase):
