@@ -31,6 +31,8 @@ class HL7Message(models.Model):
     content = models.TextField()
     state = models.CharField(choices=MESSAGE_STATES, max_length=1, default="C")
     error_message = models.TextField()  # save any error message on sending
+    patient_id = models.IntegerField(null=True)
+    event_code = models.CharField(max_length=10, default="")
 
     def parse(self):
         return hl7.parse(self.content)
@@ -45,6 +47,19 @@ class HL7Message(models.Model):
     @property
     def message_control_id(self):
         return f"{settings.APP_ID}.{self.registry_code}.{self.id}"
+
+
+class HL7MessageFieldUpdate(models.Model):
+    UPDATE_STATES = (("Success", "Success"),
+                     ("Failure", "Failure"))
+
+    created = models.DateTimeField(auto_now_add=True)
+    hl7_message = models.ForeignKey(HL7Message, on_delete=models.CASCADE, related_name="updates")
+    data_field = models.CharField(max_length=200, default="")
+    hl7_path = models.CharField(max_length=20)
+    original_value = models.CharField(max_length=200, default="")
+    update_status = models.CharField(choices=UPDATE_STATES, max_length=10, default="Failure")
+    failure_reason = models.CharField(max_length=300, default="", blank=True, null=True)
 
 
 class HL7Mapping(models.Model):
@@ -65,7 +80,7 @@ class HL7Mapping(models.Model):
     def _get_event_code(self, parsed_message):
         return self._get_hl7_value(HL7.MESSAGE_TYPE_PATH, parsed_message)
 
-    def parse(self, hl7_message) -> dict:
+    def parse(self, hl7_message, patient, registry_code) -> dict:
         """
         Rather than have lots of models specifying the hl7 translations
         We have a block of JSON
@@ -86,24 +101,45 @@ class HL7Mapping(models.Model):
 
         value_map = {}
 
+        message_model = HL7Message(username="HL7Updater",
+                                   event_code=self.event_code,
+                                   registry_code=registry_code)
+        if patient:
+            message_model.patient_id = patient
+        message_model.save()
+
         for field_moniker, mapping_data in mapping_map.items():
             hl7_path = mapping_data["path"]
             logger.info(hl7_path)
+            update_model = HL7MessageFieldUpdate(hl7_message=message_model,
+                                                 hl7_path=hl7_path,
+                                                 data_field=field_moniker)
             try:
                 hl7_value = self._get_hl7_value(hl7_path, hl7_message)
+                update_model.original_value = hl7_value
                 try:
                     rdrf_value = self._apply_transform(mapping_data, hl7_value)
                     value_map[field_moniker] = rdrf_value
                 except TransformFunctionError as tfe:
-                    logger.error(F"--- Error transforming HL7 field {tfe}")
+                    message = f"Error transforming HL7 field: {tfe}"
+                    logger.error(message)
+                    update_model.failure_reason = message
                 except Exception as ex:
-                    logger.error(f"Unhandled field error: {ex}")
+                    message = f"Unhandled field error: {ex}"
+                    logger.error(message)
+                    update_model.failure_reason = message
             except KeyError as e:
-                logger.error(f"KeyError extracting the field. {e}")
-                pass
+                message = f"KeyError extracting the field. {e}"
+                logger.error(message)
+                update_model.failure_reason = message
             except Exception as ex:
-                logger.error(f"Error: {ex}")
-        return value_map
+                message = f"Error: {ex}"
+                logger.error(message)
+                update_model.failure_reason = message
+            if not update_model.failure_reason:
+                update_model.update_status = "Success"
+            update_model.save()
+        return value_map, message_model
 
     def _get_hl7_value(self, path, parsed_message):
         # the path notation is understood by python hl7 library

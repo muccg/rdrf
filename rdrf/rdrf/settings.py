@@ -797,7 +797,7 @@ CACHES['redis'] = {
 
 CACHES['blackboard'] = {
     "BACKEND": "django_redis.cache.RedisCache",
-    "LOCATION": env.getlist("cache", ["redis://rediscache:6379/9"]),
+    "LOCATION": env.getlist("redis_blackboard", ["redis://rediscache:6379/9"]),
     "TIMEOUT": 3600,
     "OPTIONS": {
         "CLIENT_CLASS": "django_redis.client.DefaultClient"

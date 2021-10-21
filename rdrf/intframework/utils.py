@@ -9,11 +9,19 @@ def get_event_code(message: hl7.Message) -> str:
     logger.info("get event code ")
     try:
         ec = message["MSH.F9.R1.C3"]  # ADR_A19  message structure
+        if not len(ec):
+            raise Exception
         logger.info("event code = %s" % ec)
         return ec
     except Exception as ex:
         logger.error(ex)
-        return "error"
+        try:
+            ec = f'{message["MSH.F9.R1.C1"]}_{message["MSH.F9.R1.C2"]}'  # message code and trigger event
+            logger.info("event code = %s" % ec)
+            return ec
+        except Exception as ex:
+            logger.error(ex)
+            return "error"
 
 
 class TransformFunctionError(Exception):
@@ -52,12 +60,7 @@ def identity(hl7_value):
 
 @transform
 def date(hl7_value):
-    # this assumes that the dattime string will be in the form yyyymmddHHMMSS
-    try:
-        datetime_object = datetime.strptime(hl7_value, '%Y%m%d%H%M%S')
-        return datetime_object
-    except Exception:
-        return None
+    return datetime.strptime(hl7_value[:8], "%Y%m%d")
 
 
 """

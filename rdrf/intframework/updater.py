@@ -34,20 +34,34 @@ class HL7Handler:
     def _umrn_exists(self, umrn: str) -> bool:
         return Patient.objects.filter(umrn=umrn).count() > 0
 
-    def _get_update_dict(self) -> Optional[dict]:
+    def _get_update_dict(self, registry_code: str) -> Optional[dict]:
         event_code = get_event_code(self.hl7message)
+        patient_id = None
+
+        try:
+            patient = Patient.objects.get(umrn=self.umrn)
+            patient_id = patient.id
+        except Patient.DoesNotExist:
+            pass
         try:
             hl7_mapping = HL7Mapping.objects.get(event_code=event_code)
-            update_dict = hl7_mapping.parse(self.hl7message)
-            return update_dict
+            update_dict, message_model = hl7_mapping.parse(self.hl7message, patient_id, registry_code)
+            return update_dict, message_model
         except HL7Mapping.DoesNotExist:
-            logger.error(f"mapping doesn't exist Unknown message event code: {event_code}")
+            message = f"mapping doesn't exist Unknown message event code: {event_code}"
+            logger.error(message)
+            message_model.error_message = message
+            message_model.save()
             return None
         except HL7Mapping.MultipleObjectsReturned:
-            logger.error("Multiple message mappings for event code: {event_code}")
+            message = f"Multiple message mappings for event code: {event_code}"
+            logger.error(message)
+            message_model.error_message = message
+            message_model.save()
             return None
 
     def _update_patient(self) -> Optional[Patient]:
+        patient = None
         try:
             patient = Patient.objects.get(umrn=self.umrn)
         except Patient.DoesNotExist:
@@ -62,7 +76,7 @@ class HL7Handler:
         registry = Registry.objects.get()
         patient = None
         try:
-            field_dict = self._get_update_dict()
+            field_dict, message_model = self._get_update_dict(registry.code)
             logger.debug(f"{field_dict}")
             self.patient_attributes = self._parse_field_dict(field_dict)
             logger.info(f"{self.patient_attributes}")
@@ -75,6 +89,8 @@ class HL7Handler:
                 patient = Patient(**self.patient_attributes)
                 patient.consent = False
                 patient.save()
+                message_model.patient_id = patient.id
+                message_model.save()
                 logger.debug(f"patient created!: {patient.id} {patient} {patient.umrn} ")
                 patient.rdrf_registry.set([registry])
                 wg = WorkingGroup.objects.get(registry=registry)
