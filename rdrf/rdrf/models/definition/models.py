@@ -14,7 +14,7 @@ from django.urls import reverse
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.db import models
-from django.db.models.signals import pre_delete, post_save
+from django.db.models.signals import pre_delete
 from django.dispatch.dispatcher import receiver
 from django.forms.models import model_to_dict
 from django.utils.safestring import mark_safe
