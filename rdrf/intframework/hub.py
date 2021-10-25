@@ -141,8 +141,10 @@ class MessageBuilder:
         qrd.add_field("")
         qrd.add_field("")
         qrd.add_field("")
-        query_filter = f"{umrn}^^^^^^^^HDWA^^^^MR^0917"
-        qrd.add_field(query_filter)
+        who_subject_filter = f"{umrn}^^^^^^^^HDWA^^^^MR^0917"  # assigning facility is fixed
+        qrd.add_field(who_subject_filter)
+        what_subject_filter_field = "DEM^Demographics^HihHL7v26.WhatSubjectFilterCodes^^^1.0.0^^"
+        qrd.add_field(what_subject_filter_field)
         return qrd.s
 
 
