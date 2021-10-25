@@ -474,15 +474,7 @@ class Importer(object):
                 # shouldn't happen but if so just continue
                 pass
 
-        self._create_working_groups(r)
-        # create consent sections if they exist
         self._create_consent_sections(r)
-        # generate the questionnaire for this reqistry
-        try:
-            r.generate_questionnaire()
-        except Exception as ex:
-            raise QuestionnaireGenerationError(str(ex))
-
         self._create_form_permissions(r)
         self._create_all_remaining_objects(r)
 

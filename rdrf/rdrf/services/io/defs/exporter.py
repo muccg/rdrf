@@ -207,8 +207,6 @@ class Exporter(object):
         else:
             data["patient_data_section"] = {}
 
-        data["working_groups"] = self._get_working_groups()
-
         if export_type in [
                 ExportType.REGISTRY_ONLY,
                 ExportType.REGISTRY_PLUS_ALL_CDES,
