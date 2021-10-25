@@ -1,8 +1,18 @@
-{% extends "rdrf_cdes/base.html" %}
+<!doctype html>
+{% load staticfiles %}
 {% load i18n %}
-
-{% block content %}
-    <div class="alert alert-danger">
-        {% trans "Page not found" %}
-    </div>
-{% endblock %}
+<html lang="en">
+    <head>
+        <title>{% trans "Page not found" %}</title>
+        <link rel="stylesheet" href="{% static 'bootstrap-5.0.0/css/bootstrap.min.css' %}">
+    </head>
+    <body>
+        <div id="wrap">
+            <div class="container">
+                <div class="alert alert-danger">
+                    {% trans "Page not found" %}
+                </div>
+            </div>
+        </div>
+    </body>
+</html>
