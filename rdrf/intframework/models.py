@@ -103,6 +103,7 @@ class HL7Mapping(models.Model):
 
         message_model = HL7Message(username="HL7Updater",
                                    event_code=self.event_code,
+                                   content=hl7_message,
                                    registry_code=registry_code)
         if patient:
             message_model.patient_id = patient
