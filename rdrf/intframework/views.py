@@ -9,6 +9,7 @@ from django.views.generic.base import View
 from django_redis import get_redis_connection
 from intframework.hub import Client, MockClient
 from intframework.updater import HL7Handler
+from intframework.utils import patient_not_found
 from rdrf.helpers.utils import anonymous_not_allowed
 from rdrf.models.definition.models import Registry
 from typing import Any, Optional
@@ -26,12 +27,15 @@ class IntegrationHubRequestView(View):
         user_model = request.user
         hl7message = self._get_hub_response(registry_model, user_model, umrn)
         if hl7message:
-            self._setup_redis_config(registry_code)
-            hl7_handler = HL7Handler(umrn=umrn, hl7message=hl7message)
-            response_data = hl7_handler.handle()
-            self._setup_message_router_subscription(registry_model.code, umrn)
-            client_response_dict = response_data
-            client_response_dict["status"] = "success"
+            if patient_not_found(hl7message):
+                client_response_dict = {"status": "not_found"}
+            else:
+                self._setup_redis_config(registry_code)
+                hl7_handler = HL7Handler(umrn=umrn, hl7message=hl7message)
+                response_data = hl7_handler.handle()
+                self._setup_message_router_subscription(registry_model.code, umrn)
+                client_response_dict = response_data
+                client_response_dict["status"] = "success"
         else:
             client_response_dict = {"status": "fail"}
 
