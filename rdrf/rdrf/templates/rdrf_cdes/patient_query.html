@@ -97,7 +97,11 @@
                                 $("#patient_url").html(result["family_name"] + ' ' + result["given_names"]);
                                 dataReceived = true;
                             } else  {
-                                $("#status_div").html("The query failed - please try again.");
+                                if (result.status == "fail") {
+                                    $("#status_div").html("The query failed - please try again.");
+                                } else {
+                                    $("#status_div").html("Patient with that UMRN was not found.");
+                                }
                             }
                         }
                 });

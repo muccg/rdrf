@@ -24,6 +24,16 @@ def get_event_code(message: hl7.Message) -> str:
             return "error"
 
 
+def has_pid(message: hl7.Message) -> bool:
+    has_pid = False
+    try:
+        message.segment("PID")
+        has_pid = True
+    except KeyError as k:
+        logger.error(k)
+    return has_pid
+
+
 class TransformFunctionError(Exception):
     pass
 
