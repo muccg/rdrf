@@ -80,6 +80,8 @@ class MessageBuilder:
         message_model = HL7Message()
         message_model.username = username
         message_model.registry_code = registry_code
+        message_model.event_code = "QRY_A19"
+
         return message_model
 
     def build_qry_a19(self, umrn: str) -> hl7.Message:
@@ -96,6 +98,8 @@ class MessageBuilder:
         msh = self.build_msh()
         qrd = self.build_qrd(umrn)
         msg = hl7.parse("\r".join([msh, qrd]))
+        self.message_model.content = str(msg)
+        self.message_model.save()
         logger.info(f"built message = {msg}")
         return msg
 
@@ -141,8 +145,10 @@ class MessageBuilder:
         qrd.add_field("")
         qrd.add_field("")
         qrd.add_field("")
-        query_filter = f"{umrn}^^^^^^^^HDWA^^^^MR^0917"
-        qrd.add_field(query_filter)
+        who_subject_filter = f"{umrn}^^^^^^^^HDWA^^^^MR^0917"  # assigning facility is fixed
+        qrd.add_field(who_subject_filter)
+        what_subject_filter_field = "DEM^Demographics^HihHL7v26.WhatSubjectFilterCodes^^^1.0.0^^"
+        qrd.add_field(what_subject_filter_field)
         return qrd.s
 
 
