@@ -5,6 +5,7 @@ from django.conf import settings
 from django.db import models
 from intframework import utils
 from intframework.utils import TransformFunctionError
+from intframework.utils import MessageSearcher
 
 logger = logging.getLogger(__name__)
 
@@ -80,6 +81,26 @@ class HL7Mapping(models.Model):
     def _get_event_code(self, parsed_message):
         return self._get_hl7_value(HL7.MESSAGE_TYPE_PATH, parsed_message)
 
+    def _handle_search(self, mapping_data):
+        path = mapping_data["path"]
+        num_components = mapping_data["num_components"]
+        search_expression = mapping_data["search_expression"]
+        if "function" in mapping_data:
+            transform_name = mapping_data["function"]
+        else:
+            transform_name = None
+        try:
+            search_results = self.message_searcher.select_matching_items(path,
+                                                                         num_components,
+                                                                         search_expression)
+            if search_results:
+                hl7_value = search_results[0]
+                if transform_name:
+                    pass
+
+        except Exception as ex:
+            pass
+
     def parse(self, hl7_message, patient, registry_code) -> dict:
         """
         Rather than have lots of models specifying the hl7 translations
@@ -94,7 +115,7 @@ class HL7Mapping(models.Model):
                 "<FieldMoniker> : { "path" : <path into hl7 message>, "tag": "mapping", "map": {<dict>} } ,
         }
         """
-
+        self.message_searcher = MessageSearcher(hl7_message)
         mapping_map = self.load()
         if not mapping_map:
             raise Exception("cannot parse message as map malformed")
@@ -110,6 +131,8 @@ class HL7Mapping(models.Model):
         message_model.save()
 
         for field_moniker, mapping_data in mapping_map.items():
+            tag = mapping_data.get("tag", None)
+
             hl7_path = mapping_data["path"]
             logger.info(hl7_path)
             update_model = HL7MessageFieldUpdate(hl7_message=message_model,
