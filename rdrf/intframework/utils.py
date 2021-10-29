@@ -24,6 +24,16 @@ def get_event_code(message: hl7.Message) -> str:
             return "error"
 
 
+def patient_not_found(message: hl7.Message) -> bool:
+    result = True
+    try:
+        message.segment("PID")
+        result = False
+    except KeyError as k:
+        logger.error(k)
+    return result
+
+
 class TransformFunctionError(Exception):
     pass
 
