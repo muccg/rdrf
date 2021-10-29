@@ -62,6 +62,15 @@ class IntegrationHubRequestView(View):
         hub_data: dict = hub.get_data(umrn)
 
         if "status" in hub_data and hub_data["status"] == "success":
+            try:
+                response_message = hub.activate_subscription(umrn)
+                if patient_not_found(response_message):
+                    logger.error(f"No PID segment in activate subscription for {umrn}")
+                else:
+                    logger.info(f"patient {umrn} subscribed for updates")
+            except Exception as ex:
+                logger.error(f"Error subscriping patient: {ex}")
+
             return hub_data["message"]
         else:
             logger.info("hub request failed")
