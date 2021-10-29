@@ -15,7 +15,6 @@ script:
   export "DEIDENTIFIED_SITE_ID=testing"
 - ./travis-build.sh || travis_terminate 1;
 - ./travis-prodbuild.sh || travis_terminate 1;
-- ./travis-lint.sh
 
 env:
   global:
