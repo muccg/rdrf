@@ -84,19 +84,14 @@ class MessageBuilder:
 
         return message_model
 
-    def build_qry_a19(self, umrn: str) -> hl7.Message:
+    def build_qry_a19(self, umrn: str, activate_subscription=False) -> hl7.Message:
         logger.info(f"building qry_a19 for {umrn}")
-        # from "HIH12-5A  WA Health - HL7 Specification v4.7.pdf" [SPEC] p126
-        # MSH|^~\&|MOSIAQ^HdwaApplication.MOSIAQ^L|0106^HdwaMedicalFacility.0106^L|ESB^HdwaApplication.ESB^L|0917^HdwaMedicalFacility.0917^L|20140415092747||QRY^A19^QRY_A19|MOSIAQ.0106.13391835|D^T|2.6|||AL|NE|AUS|ASCII|en^English^ISO 639-1||HihHL7v26_4.1^HDWA^^L
-        # QRD|20140415092735|R|I|MOSIAQ.0106.5994358||||E9326541^^^^^^^^HDWA^^^^MR^0917|DEM^Demographics^HihHL7v26.WhatSubjectFilterCodes^^^1.0.0^^
-        # says QRF is reserved for future use?
-        # web example:
-        # one example page I could find http://ringholm.com/docs/00300_en.htm
-        # msh = "MSH|^~\&|KIS||CommServer||200811111017||QRY^A19||P|2.2|"
-        # commented with comment(<page reference in SPEC>)
-        # date time format (DTM)  YYYYMMDDHHMMSS[.S[S[S[S]]]]
         msh = self.build_msh()
-        qrd = self.build_qrd(umrn)
+        if not activate_subscription:
+            qrd = self.build_qrd(umrn)
+        else:
+            qrd = self.build_qrd_activate_patient_subscription(umrn)
+
         msg = hl7.parse("\r".join([msh, qrd]))
         self.message_model.content = str(msg)
         self.message_model.save()
@@ -151,18 +146,43 @@ class MessageBuilder:
         qrd.add_field(what_subject_filter_field)
         return qrd.s
 
+    def build_qrd_activate_patient_subscription(self, umrn: str) -> str:
+        qrd = Seg("QRD")
+        qrd.add_field(self.dtm)
+        qrd.add_field("R")
+        qrd.add_field("I")
+        qrd.add_field(self.query_id)
+        qrd.add_field("")
+        qrd.add_field("")
+        qrd.add_field("1^RD")
+        who_subject_filter = f"{umrn}"  # assigning facility is fixed
+        qrd.add_field(who_subject_filter)
+        qrd.add_field("ZPS")
+        return qrd.s
+
 
 class Client:
     def __init__(self, registry_model, user_model, hub_endpoint, hub_port):
         self.builder = MessageBuilder(registry_model, user_model)
-        self.hl7_client = MLLPClient(hub_endpoint,
-                                     hub_port)
+        try:
+            self.hl7_client = MLLPClient(hub_endpoint,
+                                         hub_port)
+        except Exception as ex:
+            self.hl7_client = None
+            logger.error(f"Error connecting to hub: {ex}")
         self.umrn = None
 
     def get_data(self, umrn: str) -> dict:
         self.umrn = umrn
         qry_a19_message = self.builder.build_qry_a19(umrn)
         return self.send_message(qry_a19_message)
+
+    def activate_subscription(self, umrn):
+        logger.info(f"activating subscription for {umrn}")
+        subscribe_message = self.builder.build_qry_a19(umrn, activate_subscription=True)
+        logger.info("built subscription message")
+        logger.info(f"sending subscription message for {umrn} ...")
+        return self.send_message(subscribe_message)
 
     def send_message(self, message: hl7.Message) -> dict:
         logger.info(f"hub query for {self.umrn} ..")

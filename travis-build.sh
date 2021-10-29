@@ -11,6 +11,7 @@ set -e
 mkdir -p data/
 sudo chown 1000:1000 data/
 
+./develop.sh run build lint
 ./develop.sh build base
 ./develop.sh build builder
 ./develop.sh build node
@@ -19,5 +20,4 @@ sudo chown 1000:1000 data/
 ./develop.sh run-unittests
 ./develop.sh aloe teststack
 ./develop.sh run "" node test
-./develop.sh run build lint
 ./develop.sh run "" node lint
