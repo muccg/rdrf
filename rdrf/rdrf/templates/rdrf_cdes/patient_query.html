@@ -96,11 +96,15 @@
                                 $("#patient_url").attr("href", url);
                                 $("#patient_url").html(result["family_name"] + ' ' + result["given_names"]);
                                 dataReceived = true;
-                            } else  {
-                                if (result.status == "fail") {
-                                    $("#status_div").html("The query failed - please try again.");
+                            } else {
+                                if (result.status == "connection_error") {
+                                    $("#status_div").html("Could not connect to hub - please try again.");
                                 } else {
-                                    $("#status_div").html("Patient with that UMRN was not found.");
+                                    if (result.status == "fail") {
+                                        $("#status_div").html("The query failed - please try again.");
+                                    } else {
+                                        $("#status_div").html("Patient with that UMRN was not found.");
+                                    }
                                 }
                             }
                         }
