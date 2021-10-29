@@ -85,21 +85,33 @@ class HL7Mapping(models.Model):
         path = mapping_data["path"]
         num_components = mapping_data["num_components"]
         search_expression = mapping_data["search_expression"]
-        if "function" in mapping_data:
-            transform_name = mapping_data["function"]
-        else:
-            transform_name = None
+        transform = self._get_transform(mapping_data)
+
         try:
             search_results = self.message_searcher.select_matching_items(path,
                                                                          num_components,
                                                                          search_expression)
             if search_results:
                 hl7_value = search_results[0]
-                if transform_name:
-                    pass
+                rdrf_value = transform(hl7_value)
+                return rdrf_value
 
         except Exception as ex:
             pass
+
+    def _get_transform(self, mapping_data):
+        if "function" in mapping_data:
+            function_name = mapping_data["function"]
+            if hasattr(utils, function_name):
+                f = getattr(utils, function_name)
+                if not callable(f):
+                    raise TransformFunctionError(function_name)
+                elif hasattr(f, "hl7_transform_func"):
+                    return f
+                else:
+                    raise TransformFunctionError(function_name)
+        else:
+            return lambda x: x
 
     def parse(self, hl7_message, patient, registry_code) -> dict:
         """
@@ -131,13 +143,22 @@ class HL7Mapping(models.Model):
         message_model.save()
 
         for field_moniker, mapping_data in mapping_map.items():
-            tag = mapping_data.get("tag", None)
+            tag = mapping_data.get("tag", "normal")
+            handler_name = f"handle_{tag}"
+            if hasattr(self, handler_name):
+                handler = getattr(self, handler_name)
+                try:
 
             hl7_path = mapping_data["path"]
+            tranform_func = self._get_transform(mapping_data)
             logger.info(hl7_path)
             update_model = HL7MessageFieldUpdate(hl7_message=message_model,
                                                  hl7_path=hl7_path,
                                                  data_field=field_moniker)
+
+            if tag == "normal":
+                hl7_value = self._get_hl7_value(hl7_path, hl7_message)
+
             try:
                 hl7_value = self._get_hl7_value(hl7_path, hl7_message)
                 update_model.original_value = hl7_value
