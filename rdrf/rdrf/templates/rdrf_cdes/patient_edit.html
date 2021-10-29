@@ -449,9 +449,11 @@
                                                             {% if  element.field.required %}
                                                                 <span class="fa fa-asterisk text-danger" aria-hidden="true"></span>
                                                             {% endif %}
-								{% if element|is_external %}
-								<sup><span class="badge bg-secondary">EXTERNAL</span></sup>
-								{% endif %}
+                                                            {% if element.label %}
+                                                            {% if element|is_external %}
+                                                            <sup><label class="badge bg-secondary {% if element.is_hidden %} d-none {% endif %}">EXTERNAL</label></sup>
+                                                            {% endif %}
+                                                            {% endif %}
                                                         </label>
                                                         <div class="col-sm-9{% if element|is_checkbox %} pt-2{% endif %}">
                                                     {% endif %}
