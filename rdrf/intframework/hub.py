@@ -1,10 +1,11 @@
 import hl7
-from hl7.client import MLLPClient, read_loose
 import io
+import logging
 from datetime import datetime
 from django.conf import settings
-import logging
+from hl7.client import MLLPClient, read_loose
 from typing import Optional
+
 logger = logging.getLogger(__name__)
 
 
@@ -94,6 +95,7 @@ class MessageBuilder:
 
         msg = hl7.parse("\r".join([msh, qrd]))
         self.message_model.content = str(msg)
+        self.message_model.umrn = umrn
         self.message_model.save()
         logger.info(f"built message = {msg}")
         return msg

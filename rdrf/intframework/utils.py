@@ -5,6 +5,15 @@ from datetime import datetime
 logger = logging.getLogger(__name__)
 
 
+def get_umrn(message: hl7.Message) -> str:
+    try:
+        umrn = message["PID.F3"]
+        return umrn
+    except Exception as ex:
+        logger.error(ex)
+        return None
+
+
 def get_event_code(message: hl7.Message) -> str:
     logger.info("get event code ")
     try:
