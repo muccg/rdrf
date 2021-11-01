@@ -1,5 +1,6 @@
 import json
 import logging
+import socket
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.core.serializers.json import DjangoJSONEncoder
@@ -17,6 +18,13 @@ from typing import Any, Optional
 logger = logging.getLogger(__name__)
 
 
+class HubResult:
+    CONNECTION_ERROR = "connection_error"
+    SUCCESS = "success"
+    FAIL = "fail"
+    NOT_FOUND = "not_found"
+
+
 class IntegrationHubRequestView(View):
     @method_decorator(anonymous_not_allowed)
     @method_decorator(login_required)
@@ -25,19 +33,22 @@ class IntegrationHubRequestView(View):
             raise Http404
         registry_model = Registry.objects.get(code=registry_code)
         user_model = request.user
-        hl7message = self._get_hub_response(registry_model, user_model, umrn)
-        if hl7message:
+        hub_reponse = self._get_hub_response(registry_model, user_model, umrn)
+        if hub_reponse["result"] == HubResult.CONNECTION_ERROR:
+            client_response_dict = {"status": HubResult.CONNECTION_ERROR}
+        elif hub_reponse["result"] == HubResult.SUCCESS:
+            hl7message = hub_reponse["hl7message"]
             if patient_not_found(hl7message):
-                client_response_dict = {"status": "not_found"}
+                client_response_dict = {"status": HubResult.NOT_FOUND}
             else:
                 self._setup_redis_config(registry_code)
                 hl7_handler = HL7Handler(umrn=umrn, hl7message=hl7message)
                 response_data = hl7_handler.handle()
                 self._setup_message_router_subscription(registry_model.code, umrn)
                 client_response_dict = response_data
-                client_response_dict["status"] = "success"
+                client_response_dict["status"] = HubResult.SUCCESS
         else:
-            client_response_dict = {"status": "fail"}
+            client_response_dict = {"status": HubResult.FAIL}
 
         return HttpResponse(json.dumps(client_response_dict, cls=DjangoJSONEncoder))
 
@@ -54,14 +65,21 @@ class IntegrationHubRequestView(View):
         else:
             client_class = Client
 
-        hub = client_class(registry_model,
-                           user_model,
-                           settings.HUB_ENDPOINT,
-                           settings.HUB_PORT)
+        try:
+            hub = client_class(registry_model,
+                               user_model,
+                               settings.HUB_ENDPOINT,
+                               settings.HUB_PORT)
+        except socket.gaierror as ge:
+            logger.error(ge)
+            return {"result": HubResult.CONNECTION_ERROR}
+        except Exception as ex:
+            logger.error(ex)
+            return {"result": HubResult.CONNECTION_ERROR}
 
         hub_data: dict = hub.get_data(umrn)
 
-        if "status" in hub_data and hub_data["status"] == "success":
+        if "status" in hub_data and hub_data["status"] == HubResult.SUCCESS:
             try:
                 response_message = hub.activate_subscription(umrn)
                 if patient_not_found(response_message):
@@ -71,10 +89,11 @@ class IntegrationHubRequestView(View):
             except Exception as ex:
                 logger.error(f"Error subscriping patient: {ex}")
 
-            return hub_data["message"]
+            return {"result": HubResult.SUCCESS,
+                    "hl7message": hub_data["message"]}
         else:
             logger.info("hub request failed")
-            return None
+            return {"result": HubResult.FAIL}
 
     def _setup_message_router_subscription(self, registry_code, umrn):
         logger.info(f"setting up hub subscription for registry code {registry_code} umrn {umrn}")

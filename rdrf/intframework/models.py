@@ -5,6 +5,7 @@ from django.conf import settings
 from django.db import models
 from intframework import utils
 from intframework.utils import TransformFunctionError
+from intframework.utils import get_umrn
 from intframework.utils import MessageSearcher
 from typing import Tuple
 
@@ -34,6 +35,7 @@ class HL7Message(models.Model):
     state = models.CharField(choices=MESSAGE_STATES, max_length=1, default="C")
     error_message = models.TextField()  # save any error message on sending
     patient_id = models.IntegerField(null=True)
+    umrn = models.CharField(max_length=50, null=True)
     event_code = models.CharField(max_length=10, default="")
 
     def parse(self):
@@ -166,6 +168,7 @@ class HL7Mapping(models.Model):
         message_model = HL7Message(username="HL7Updater",
                                    event_code=self.event_code,
                                    content=hl7_message,
+                                   umrn=get_umrn(hl7_message),
                                    registry_code=registry_code)
         if patient:
             message_model.patient_id = patient

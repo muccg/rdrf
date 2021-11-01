@@ -90,6 +90,7 @@ class HL7Handler:
                 patient.consent = False
                 patient.save()
                 message_model.patient_id = patient.id
+                message_model.umrn = umrn
                 message_model.save()
                 logger.debug(f"patient created!: {patient.id} {patient} {patient.umrn} ")
                 patient.rdrf_registry.set([registry])
