@@ -72,8 +72,16 @@ class IntegrationHubRequestView(View):
         if hub is None:
             raise Exception("Could not connect to hub to activate subscription")
         else:
+            from registry.patients.models import Patient
+            from intframework.utils import get_event_code
             result_message = hub.activate_subscription(umrn)
+            try:
+                result_event_code = get_event_code(result_message)
+            except Exception:
+                result_event_code = "????"
             result_model = HL7Message()
+            result_model.event_code = result_event_code
+            result_model.username = user_model.username
             result_model.registry_code = registry_model.code
             patient_model = Patient.objects.get(umrn=umrn)
             result_model.patient_id = patient_model.id
