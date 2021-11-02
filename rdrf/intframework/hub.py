@@ -163,11 +163,13 @@ class Client:
     def __init__(self, registry_model, user_model, hub_endpoint, hub_port):
         self.registry_model = registry_model
         self.user_model = user_model
+        self.message_model = None
         self.hl7_client = MLLPClient(hub_endpoint, hub_port)
         self.umrn = None
 
     def get_data(self, umrn: str) -> dict:
         builder = MessageBuilder(self.registry_model, self.user_model)
+        self.message_model = builder.message_model
         self.umrn = umrn
         qry_a19_message = builder.build_qry_a19(umrn)
         return self.send_message(qry_a19_message)
@@ -175,6 +177,7 @@ class Client:
     def activate_subscription(self, umrn):
         logger.info(f"activating subscription for {umrn}")
         builder = MessageBuilder(self.registry_model, self.user_model)
+        self.message_model = builder.message_model
         subscribe_message = builder.build_qry_a19(umrn, activate_subscription=True)
         logger.info("built subscription message")
         logger.info(f"sending subscription message for {umrn} ...")
@@ -185,6 +188,9 @@ class Client:
         try:
             result_message = hl7.parse(self.hl7_client.send_message(message))
             logger.info(f"hub query success {self.umrn}")
+            if self.message_model:
+                self.message_model.state = "S"
+                self.message_model.save()
             return {"message": result_message, "status": "success"}
         except hl7.ParseException as pex:
             logger.error(f"hub query fail {self.umrn}: {pex}")

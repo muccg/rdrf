@@ -27,6 +27,7 @@ class DataRequestState:
 class HL7Message(models.Model):
     MESSAGE_STATES = (("C", "created"),
                       ("S", "sent"),
+                      ("R", "received"),
                       ("E", "error"))
 
     created = models.DateTimeField(auto_now_add=True)
@@ -120,10 +121,6 @@ class HL7Mapping(models.Model):
         update_model.original_value = hl7_value
         rdrf_value = lookup_map[hl7_value]
         return rdrf_value
-
-    def _handle_object(self, hl7_message, field_moniker, mapping_data, update_model):
-        target_class = mapping_data["target"]
-        pass
 
     def _get_transform(self, mapping_data):
         if "function" in mapping_data:
