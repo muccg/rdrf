@@ -233,7 +233,15 @@ class MockClient(Client):
             decoded_messages = [rm.decode("ascii") for rm in raw_messages]
 
             messages = [hl7.parse(dm) for dm in decoded_messages]
-            return messages[1]
+            l = len(messages)
+            if l == 0:
+                logger.error("no parsed messages in file")
+                return None
+            if l == 1:
+                return messages[0]
+            else:
+                logger.info(f"There are {l} messages in the file returning the 2nd")
+                return messages[1]
 
         except hl7.ParseException as pex:
             logger.error(f"error parsing mock message: {pex}")

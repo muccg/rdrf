@@ -11,7 +11,7 @@ def get_umrn(message: hl7.Message) -> str:
         return umrn
     except Exception as ex:
         logger.error(ex)
-        return None
+        return ""
 
 
 def get_event_code(message: hl7.Message) -> str:
@@ -135,51 +135,56 @@ class SearchExpressionError(Exception):
     pass
 
 
+class NotFoundError(Exception):
+    pass
+
+
 class MessageSearcher:
-    def __init__(self, message: hl7.Message):
-        self.message = message
-        self.grammar = self._make_grammar()
+    def __init__(self, field_mapping):
+        self.field_mapping = field_mapping
+        logger.debug(f"search for {field_mapping}")
+        self.prefix = self.field_mapping["path"]
+        self.select = self.field_mapping["select"]
+        self.where = self.field_mapping["where"]
+        self.num_components = self.field_mapping["num_components"]
+        self.repeat = 1
 
-    def _make_grammar(self):
-        import pyparsing as pp
-        select = pp.Keyword("select")
-        where = pp.Keyword("where")
-        component = pp.Combine(pp.Literal("C") + pp.Word(pp.nums))
-        component.setParseAction(lambda l: int(l[0][1:]) - 1)
-        eq_expression = component + pp.Literal("=") + pp.Word(pp.alphanums)
-        select_expression = select + component + where + eq_expression
-        return select_expression
+    def get_component(self, repeat, component, message):
+        full_key = f"{self.prefix}.R{repeat}.{component}"
+        return message[full_key]
 
-    def get_reps(self, field_path, num_components):
+    def get_value(self, message: hl7.Message):
         r = 1
         stopped = False
-        reps = []
         while not stopped:
-            current_values = []
-            for c in range(1, num_components+1):
-                full_path = f"{field_path}.R{r}.C{c}"
-                try:
-                    component_value = self.message[full_path]
-                    current_values.append(component_value)
-                except IndexError:
-                    stopped = True
-            reps.append(current_values)
-            r += 1
-        return reps
-
-    def select_matching_items(self, path, num_components, search_expression):
-        results = self.grammar.parseString(search_expression)
-        select_component_index = results[1]
-        where_component_index = results[3]
-        value = results[5]
-        items = []
-
-        for rep in self.get_reps(path, num_components):
             try:
-                if rep[where_component_index] == value:
-                    selected_item = rep[select_component_index]
-                    items.append(selected_item)
+                where_actual = self.get_where_dict(r, message)
+                if where_actual == self.where:
+                    value = self.get_component(r, self.select, message)
+                    return value
+                r += 1
             except IndexError:
-                pass
+                stopped = True
 
-        return items
+        raise NotFoundError(str(self))
+
+    def get_where_dict(self, repeat, message):
+        return {k: self.get_component(repeat, k, message) for k in self.where}
+
+    def __str__(self):
+        w = ""
+        for k in sorted(self.where):
+            w += f" {k}={self.where[k]}"
+        return f"SELECT {self.select} WHERE{w}"
+
+
+def parse_message_file(registry, user, patient, event_code, message_file):
+    from intframework.models import HL7Mapping
+    from intframework.hub import MockClient
+    model = HL7Mapping.objects.all().get(event_code=event_code)
+    print(model)
+    mock_client = MockClient(registry, user, None, None)
+    parsed_message = mock_client._parse_mock_message_file(message_file)
+    return parsed_message
+    #parse_dict = model.parse(parsed_message, patient, registry.code)
+    # return parse_dict
