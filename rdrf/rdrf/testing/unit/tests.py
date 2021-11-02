@@ -2385,6 +2385,7 @@ class HL7HandlerTestCase(RDRFTestCase):
         hl7_handler.handle()
         updated_patient = Patient.objects.get(pk=self.patient.id)
         self.assertEqual(updated_patient.given_names.upper(), "FRANCIS")
+        self.assertEqual(updated_patient.home_phone, "65437890")
 
 
 class FamilyLinkageTestCase(RDRFTestCase):
