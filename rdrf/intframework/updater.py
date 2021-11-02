@@ -94,6 +94,12 @@ class HL7Handler:
                 patient = self._update_patient()
                 if patient:
                     self.patient_attributes["patient_updated"] = "updated"
+                    message_model.patient_id = patient.id
+                    message_model.umrn = umrn
+                    message_model.state = "R"
+                    message_model.save()
+                    logger.info("message model updated ok")
+
             else:
                 logger.info(f"No patient exists with umrn: {umrn}: a new patient will be created")
                 patient = Patient(**self.patient_attributes)
@@ -102,6 +108,7 @@ class HL7Handler:
                 logger.info(f"patient saved ok umrn = {umrn} id = {patient.id}")
                 message_model.patient_id = patient.id
                 message_model.umrn = umrn
+                message_model.state = "R"
                 message_model.save()
                 logger.info("message model updated ok")
                 patient.rdrf_registry.set([registry])

@@ -31,6 +31,7 @@ class HL7Message(models.Model):
                       ("E", "error"))
 
     created = models.DateTimeField(auto_now_add=True)
+    updated = models.DateTimeField(auto_now=True)
     username = models.CharField(max_length=80)
     registry_code = models.CharField(max_length=80)
     content = models.TextField()
@@ -50,7 +51,7 @@ class HL7Message(models.Model):
         except hl7.exceptions.ParseException:
             return False
 
-    @property
+    @ property
     def message_control_id(self):
         return f"{settings.APP_ID}.{self.registry_code}.{self.id}"
 
