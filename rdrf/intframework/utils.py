@@ -119,8 +119,8 @@ def load_message(message_file: str):
         raw_messages = [raw_message for raw_message in read_loose(stream)]
         decoded_messages = [rm.decode("ascii") for rm in raw_messages]
         messages = [hl7.parse(dm) for dm in decoded_messages]
-        l = len(messages)
-        if l > 1:
+        num_messages = len(messages)
+        if num_messages > 1:
             return messages[1]
         else:
             return messages[0]
