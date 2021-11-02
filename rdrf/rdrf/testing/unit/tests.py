@@ -1811,6 +1811,7 @@ class CICImporterTestCase(TestCase):
     """
     Tests for the definition importer
     """
+
     def _get_yaml_file(self, suffix='original'):
         this_dir = os.path.dirname(__file__)
         test_yaml = os.path.abspath(os.path.join(this_dir, "..", "..", "fixtures", f"cic_lung_{suffix}.yaml"))
@@ -1915,7 +1916,8 @@ class CICImporterTestCase(TestCase):
         :param pvg: PVG object
         :return: a dict of PVG and its PVs (excluding pk of PV)
         """
-        pv_fields = {f.name: f.get_internal_type() for f in CDEPermittedValue._meta.fields if not f.is_relation and not f.primary_key}
+        pv_fields = {f.name: f.get_internal_type()
+                     for f in CDEPermittedValue._meta.fields if not f.is_relation and not f.primary_key}
         d = {
             "code": pvg.code,
             "values": []
@@ -2134,7 +2136,8 @@ class CheckViewsTestCase(TestCase):
 
     def test_check_views(self):
         proj_name = os.getenv("PROJECT_NAME")
-        completed_process = subprocess.run(["python", f"{script_paths[proj_name]}/check_views.py", "/app/rdrf"], capture_output=True)
+        completed_process = subprocess.run(
+            ["python", f"{script_paths[proj_name]}/check_views.py", "/app/rdrf"], capture_output=True)
         if completed_process.returncode == 1:
             print("Insecure Views:")
             print(completed_process.stdout)
@@ -2224,7 +2227,8 @@ class CheckViewsUnitTests(TestCase):
 
         self.assertTrue(self.check_view_assist(not_a_view), "Error: should not find bad view where there is no view!")
         self.assertTrue(self.check_view_assist(view_has_mixin), "Error: view has mixin, but mixin has not been found!")
-        self.assertTrue(self.check_view_assist(view_has_decorators), "Error: view has decorators, but decorators have not been found!")
+        self.assertTrue(self.check_view_assist(view_has_decorators),
+                        "Error: view has decorators, but decorators have not been found!")
         self.assertFalse(self.check_view_assist(view_lacks_security), "Error: view is not secure, but no issues found!")
 
 
@@ -2350,14 +2354,18 @@ class HL7HandlerTestCase(RDRFTestCase):
             "Demographics/family_name": {"path": "PID.F5.R1.C1"},
             "Demographics/given_names": {"path": "PID.F5.R1.C2"},
             "Demographics/umrn": {"path": "PID.F3"},
-            "Demographics/date_of_birth": {"path": "PID.F7", "tag": "transform", "function": "date"},
-            "Demographics/date_of_death": {"path": "PID.F29", "tag": "transform", "function": "date"},
+            "Demographics/date_of_birth": {"path": "PID.F7", "function": "date"},
+            "Demographics/date_of_death": {"path": "PID.F29", "function": "date"},
+            "Demographics/place_of_birth": {"path": "PID.F23"},
             "Demographics/country_of_birth": {"path": "PID.F11.R1.C6"},
-            "Demographics/sex": {"path": "PID.F8", "tag": "mapping",
-                                 "map": {"M": 1, "F": 2, "U": 3, "O": 3, "A": 3, "N": 3}},
-            "Demographics/home_phone": {"path": "PID.F13"},
-            "Demographics/work_phone": {"path": "PID.F14"}
+            "Demographics/ethnic_origin": {"path": "PID.F22.R1.C2"},
+            "Demographics/sex": {"path": "PID.F8", "tag": "mapping", "map": {"M": 1, "F": 2, "U": 3, "O": 3, "A": 3, "N": 3}},
+            "Demographics/home_phone": {"tag": "search", "path": "PID.F13", "num_components": 4, "select": "C4", "where": {"C2": "P", "C3": "T"}},
+            "Demographics/mobile_phone": {"tag": "search", "path": "PID.F13", "num_components": 4, "select": "C4", "where": {"C2": "P", "C3": "M"}},
+            "Demographics/email": {"tag": "search", "path": "PID.F13", "num_components": 4, "select": "C4", "where": {"C2": "P", "C3": "E"}},
+            "Demographics/work_phone": {"tag": "search", "path": "PID.F13", "num_components": 4, "select": "C4", "where": {"C2": "B", "C3": "P"}}
         }
+
         hm = HL7Mapping.objects.create(event_code="ADR_A19", event_map=json.dumps(mapping))
         hm.save()
 
@@ -2453,8 +2461,10 @@ class FamilyLinkageTestCase(RDRFTestCase):
         # from registry.patients.models import PatientAddress
         # make patients with func, and add pks to list
         patient_ids = []
-        patient_1, patient_ids, self.patient_1_context = self.create_new_patient("Test", "Test", datetime(1989, 10, 21), "Male", "Living", patient_ids)
-        patient_2, patient_ids, self.patient_2_context = self.create_new_patient("Chester", "Test", datetime(1979, 4, 13), "Male", "Living", patient_ids)
+        patient_1, patient_ids, self.patient_1_context = self.create_new_patient(
+            "Test", "Test", datetime(1989, 10, 21), "Male", "Living", patient_ids)
+        patient_2, patient_ids, self.patient_2_context = self.create_new_patient(
+            "Chester", "Test", datetime(1979, 4, 13), "Male", "Living", patient_ids)
         # patient_3, patient_ids, self.patient_3_context = self.create_new_patient("Hester", "Test", datetime(1968, 1, 4), "Female", "Living", patient_ids)
         # make addresses and assign to patients with func - extend later with extra home & some postal addrs
         self.create_address(1, "123 Somewhere Street", "Australia", patient_1)
@@ -2558,7 +2568,8 @@ class FamilyLinkageTestCase(RDRFTestCase):
         try:
             relative_patient2_test = PatientRelative.objects.get(relative_patient=patient2_test)
         except PatientRelative.DoesNotExist:
-            self.fail(f"{error_string}{test_section_str}: PatientRelative for Patient {patient2_test} (ID = {patient2_test.pk}) has not been created")
+            self.fail(
+                f"{error_string}{test_section_str}: PatientRelative for Patient {patient2_test} (ID = {patient2_test.pk}) has not been created")
         self.assertTrue(relative_patient2_test.sex == patient2_test.sex,
                         f"{error_string}{test_section_str}: PatientRelative sex {relative_patient2_test.sex} does not match Patient {patient2_test} sex '{patient2_test.sex}'")
         self.assertTrue(relative_patient2_test.living_status == patient2_test.living_status,
@@ -2619,7 +2630,8 @@ class FamilyLinkageTestCase(RDRFTestCase):
         try:
             relative_patient1_test = PatientRelative.objects.get(relative_patient=patient1_test)
         except PatientRelative.DoesNotExist:
-            self.fail(f"{error_string}{test_section_str}: PatientRelative for Patient {patient1_test} (ID = {patient1_test.pk}) has not been created")
+            self.fail(
+                f"{error_string}{test_section_str}: PatientRelative for Patient {patient1_test} (ID = {patient1_test.pk}) has not been created")
         self.assertTrue(relative_patient1_test.sex == patient1_test.sex,
                         f"{error_string}{test_section_str}: PatientRelative sex {relative_patient1_test.sex} does not match Patient {patient1_test} sex '{patient1_test.sex}'")
         self.assertTrue(relative_patient1_test.living_status == patient1_test.living_status,
@@ -2640,7 +2652,8 @@ class FamilyLinkageTestCase(RDRFTestCase):
         # 3. Add non-patient relative, ensure it proceeds correctly
         test_section_str = "Creating non-patient relative"
         logger.info(f"{test_section_str}...")
-        relative_test = self.create_new_patient_relative("Hester", "Test", datetime(1968, 1, 4), "Female", "Living", "MA", patient2_test)
+        relative_test = self.create_new_patient_relative(
+            "Hester", "Test", datetime(1968, 1, 4), "Female", "Living", "MA", patient2_test)
         self.assertFalse(relative_test.relationship,
                          f"{error_string}{test_section_str}: PatientRelative {relative_test.given_names} {relative_test.family_name}'s relationship should not be defined")
 
@@ -2686,7 +2699,8 @@ class FamilyLinkageTestCase(RDRFTestCase):
         logger.info(f"{test_section_str}...")
         self.run_linkage_manager(add_non_patient_relative_packet)
 
-        relative_test = PatientRelative.objects.get(pk=relative_test.pk)  # Need to re-get relative for relationship to be tested properly
+        # Need to re-get relative for relationship to be tested properly
+        relative_test = PatientRelative.objects.get(pk=relative_test.pk)
         self.assertTrue(relative_test.pk in [rel['pk'] for rel in self.linkage_manager.relatives],
                         f"{error_string}{test_section_str}: PatientRelative {relative_test.given_names} {relative_test.family_name} is not in linkage manager relative list")
         self.assertFalse(relative_test.relative_patient,
@@ -2755,11 +2769,13 @@ class FamilyLinkageTestCase(RDRFTestCase):
         try:
             relative_patient1_test = PatientRelative.objects.get(relative_patient=patient1_test)
         except PatientRelative.DoesNotExist:
-            self.fail(f"{error_string}{test_section_str}: PatientRelative for Patient {patient1_test} (ID = {patient1_test.pk}) does not exist")
+            self.fail(
+                f"{error_string}{test_section_str}: PatientRelative for Patient {patient1_test} (ID = {patient1_test.pk}) does not exist")
         try:
             relative_patient2_test = PatientRelative.objects.get(relative_patient=patient2_test)
         except PatientRelative.DoesNotExist:
-            self.fail(f"{error_string}{test_section_str}: PatientRelative for Patient {patient2_test} (ID = {patient2_test.pk}) has not been created")
+            self.fail(
+                f"{error_string}{test_section_str}: PatientRelative for Patient {patient2_test} (ID = {patient2_test.pk}) has not been created")
         relative_test_patient = relative_patient1_test.patient
         self.assertTrue(relative_test_patient,
                         f"{error_string}{test_section_str}: New index patient does not exist")
