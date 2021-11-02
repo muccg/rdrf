@@ -34,13 +34,14 @@ def get_event_code(message: hl7.Message) -> str:
 
 
 def patient_not_found(message: hl7.Message) -> bool:
-    result = True
+    """
+    find a PID segment == OK
+    """
     try:
-        message.segment("PID")
-        result = False
-    except KeyError as k:
-        logger.error(k)
-    return result
+        message["PID"]
+        return False
+    except KeyError:
+        return True
 
 
 class TransformFunctionError(Exception):
@@ -142,7 +143,6 @@ class NotFoundError(Exception):
 class MessageSearcher:
     def __init__(self, field_mapping):
         self.field_mapping = field_mapping
-        logger.debug(f"search for {field_mapping}")
         self.prefix = self.field_mapping["path"]
         self.select = self.field_mapping["select"]
         self.where = self.field_mapping["where"]
@@ -182,7 +182,6 @@ def parse_message_file(registry, user, patient, event_code, message_file):
     from intframework.models import HL7Mapping
     from intframework.hub import MockClient
     model = HL7Mapping.objects.all().get(event_code=event_code)
-    print(model)
     mock_client = MockClient(registry, user, None, None)
     parsed_message = mock_client._parse_mock_message_file(message_file)
     return parsed_message

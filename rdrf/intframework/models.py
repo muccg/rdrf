@@ -156,17 +156,13 @@ class HL7Mapping(models.Model):
         message_model.save()
 
         for field_moniker, mapping_data in mapping_map.items():
-            logger.debug(f"parsing {field_moniker} ...")
             tag = mapping_data.get("tag", "normal")
-            logger.debug(f"tag = {tag}")
             handler = self._get_handler(tag)
-            logger.debug(f"handler = {handler}")
             update_model = HL7MessageFieldUpdate(hl7_message=message_model,
                                                  hl7_path="unknown",
                                                  data_field=field_moniker)
             try:
                 value = handler(hl7_message, field_moniker, mapping_data, update_model)
-                logger.debug(f"transformed value = {value}")
                 if update_model.failure_reason == "":
                     value_map[field_moniker] = value
 

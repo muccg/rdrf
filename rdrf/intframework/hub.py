@@ -58,13 +58,9 @@ class Seg:
 
 class MessageBuilder:
     def __init__(self, registry_model, user_model):
-        # MSH fields
-        logger.debug(f"initialising MessageBuilder {registry_model} {user_model}")
         self.seps = r"^~\&"  # noqa: W605
-        # sender ( us )
         self.sending_app = settings.APP_ID  # "CIC^HdwaApplication.CIC^L"
         self.sending_facility = settings.SENDING_FACILITY  # "9999^HdwaMedicalFacility.9999^L"
-        # receiver ( hub )
         self.receiving_app = settings.HUB_APP_ID  # "ESB^HdwaApplication.ESB^L"
         self.receiving_facility = settings.HUB_FACILITY  # "ESB^HdwaApplication.ESB^L"
         self.dtm = get_dtm()
@@ -73,7 +69,6 @@ class MessageBuilder:
         self.message_model = self._create_message_model(registry_model.code, user_model.username)
         self.message_model.save()  # creates id
         self.message_control_id = self.message_model.message_control_id
-        logger.debug(f"message control id = {self.message_control_id}")
         self.query_id = self.message_control_id + ".query"
 
     def _create_message_model(self, registry_code, username):
@@ -86,7 +81,11 @@ class MessageBuilder:
         return message_model
 
     def build_qry_a19(self, umrn: str, activate_subscription=False) -> hl7.Message:
-        logger.info(f"building qry_a19 for {umrn}")
+        if not activate_subscription:
+            logger.info(f"building qry_a19 for {umrn}")
+        else:
+            logger.info(f"building subscription message for {umrn}")
+
         msh = self.build_msh()
         if not activate_subscription:
             qrd = self.build_qrd(umrn)
@@ -97,7 +96,6 @@ class MessageBuilder:
         self.message_model.content = str(msg)
         self.message_model.umrn = umrn
         self.message_model.save()
-        logger.info(f"built message = {msg}")
         return msg
 
     def build_msh(self) -> str:
@@ -128,8 +126,6 @@ class MessageBuilder:
         msh.add_field("")
         msh.add_field("")
         msh.add_field("")
-
-        logger.debug(f"MSH = {msh.s}")
 
         return msh.s
 
@@ -165,18 +161,21 @@ class MessageBuilder:
 
 class Client:
     def __init__(self, registry_model, user_model, hub_endpoint, hub_port):
-        self.builder = MessageBuilder(registry_model, user_model)
+        self.registry_model = registry_model
+        self.user_model = user_model
         self.hl7_client = MLLPClient(hub_endpoint, hub_port)
         self.umrn = None
 
     def get_data(self, umrn: str) -> dict:
+        builder = MessageBuilder(self.registry_model, self.user_model)
         self.umrn = umrn
-        qry_a19_message = self.builder.build_qry_a19(umrn)
+        qry_a19_message = builder.build_qry_a19(umrn)
         return self.send_message(qry_a19_message)
 
     def activate_subscription(self, umrn):
         logger.info(f"activating subscription for {umrn}")
-        subscribe_message = self.builder.build_qry_a19(umrn, activate_subscription=True)
+        builder = MessageBuilder(self.registry_model, self.user_model)
+        subscribe_message = builder.build_qry_a19(umrn, activate_subscription=True)
         logger.info("built subscription message")
         logger.info(f"sending subscription message for {umrn} ...")
         return self.send_message(subscribe_message)
@@ -199,10 +198,14 @@ class MockClient(Client):
     MOCK_MESSAGE = "/data/mock-message.txt"
 
     def __init__(self, registry_model, user_model, hub_endpoint, hub_port):
-        self.builder = MessageBuilder(registry_model, user_model)
+        self.registry_model = registry_model
+        self.user_model = user_model
+        self.umrn = None
 
     def get_data(self, umrn: str) -> dict:
-        qry_a19_message = self.builder.build_qry_a19(umrn)
+        self.umrn = umrn
+        builder = MessageBuilder(self.registry_model, self.user_model)
+        qry_a19_message = builder.build_qry_a19(umrn)
         return self.send_message(qry_a19_message)
 
     def send_message(self, message: hl7.Message) -> dict:
@@ -210,7 +213,7 @@ class MockClient(Client):
         if os.path.exists(self.MOCK_MESSAGE):
             logger.info("using mock file")
             response_dict = {}
-            response_message = self._parse_mock_message_file2(self.MOCK_MESSAGE)
+            response_message = self._parse_mock_message_file(self.MOCK_MESSAGE)
             if response_message is None:
                 response_dict["status"] = "fail"
             else:
@@ -220,7 +223,6 @@ class MockClient(Client):
             logger.info("no mock file")
             response_dict = {}
 
-        logger.debug(f"mock response dict = {response_dict}")
         return response_dict
 
     def _parse_mock_message_file(self, mock_message_file: str) -> Optional[hl7.Message]:
@@ -252,15 +254,12 @@ class MockClient(Client):
             return None
 
     def _parse_mock_message_file2(self, mock_message_file: str) -> Optional[hl7.Message]:
-        logger.debug(f"parsing mock file {mock_message_file}")
         # see https://www.hl7.org/documentcenter/public/wg/inm/mllp_transport_specification.PDF
         binary_data = open(mock_message_file, "rb").read()
         data = [b for b in binary_data if b not in MLLProtocol.CONTROL_BYTES]
         ascii_data = "".join(map(chr, data))
-        logger.debug(f"ascii data = {ascii_data}")
         try:
             msg = hl7.parse(ascii_data)
-            logger.debug("parsed data")
             return msg
         except Exception as ex:
             logger.error("error parsing: %s" % ex)
