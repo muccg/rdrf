@@ -184,6 +184,5 @@ def parse_message_file(registry, user, patient, event_code, message_file):
     model = HL7Mapping.objects.all().get(event_code=event_code)
     mock_client = MockClient(registry, user, None, None)
     parsed_message = mock_client._parse_mock_message_file(message_file)
-    return parsed_message
-    #parse_dict = model.parse(parsed_message, patient, registry.code)
-    # return parse_dict
+    parse_dict = model.parse(parsed_message, patient, registry.code)
+    return parse_dict
