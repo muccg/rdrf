@@ -35,11 +35,7 @@ class HL7Handler:
         return Patient.objects.filter(umrn=umrn).count() > 0
 
     def _get_update_dict(self, registry_code: str) -> Tuple[Optional[dict], HL7Message]:
-        logger.debug("in _update_dict")
         event_code = get_event_code(self.hl7message)
-        logger.debug(f"event_code = {event_code}")
-        patient_id = None
-        logger.debug(f"updater umrn = {self.umrn}")
 
         try:
             patient = Patient.objects.get(umrn=self.umrn)
@@ -79,13 +75,9 @@ class HL7Handler:
         patient = None
         try:
             field_dict, message_model = self._get_update_dict(registry.code)
-            logger.debug(f"{field_dict}")
             if field_dict is None:
                 logger.error("field_dict is None")
                 return None
-            else:
-                logger.debug("creating patient attributes from field_dict")
-
             self.patient_attributes = self._parse_field_dict(field_dict)
             umrn = self.patient_attributes["umrn"]
             logger.info(f"umrn = {umrn}")
