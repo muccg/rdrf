@@ -10,6 +10,7 @@ from django.views.generic.base import View
 from django_redis import get_redis_connection
 from intframework.hub import Client, MockClient
 from intframework.updater import HL7Handler
+from intframework.models import HL7Message
 from intframework.utils import patient_not_found
 from rdrf.helpers.utils import anonymous_not_allowed
 from rdrf.models.definition.models import Registry
@@ -72,7 +73,18 @@ class IntegrationHubRequestView(View):
             raise Exception("Could not connect to hub to activate subscription")
         else:
             result_message = hub.activate_subscription(umrn)
+            result_model = HL7Message()
+            result_model.registry_code = registry_model.code
+            patient_model = Patient.objects.get(umrn=umrn)
+            result_model.patient_id = patient_model.id
+            result_model.umrn = umrn
+            result_model.content = str(result_message)
+            result_model.state = "R"
+            result_model.save()
+
             if patient_not_found(result_message):
+                result_model.error_message = "No PID in result - not subscribed?"
+                result_model.save()
                 logger.error("No PID in subscription result - not subscribed?")
             else:
                 logger.info(f"{umrn} is subscribed for further updates")
