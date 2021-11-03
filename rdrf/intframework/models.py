@@ -5,6 +5,10 @@ from django.conf import settings
 from django.db import models
 from intframework import utils
 from intframework.utils import TransformFunctionError
+from intframework.utils import MessageSearcher
+from intframework.utils import NotFoundError
+from intframework.utils import get_umrn
+from typing import Tuple
 
 logger = logging.getLogger(__name__)
 
@@ -23,15 +27,18 @@ class DataRequestState:
 class HL7Message(models.Model):
     MESSAGE_STATES = (("C", "created"),
                       ("S", "sent"),
+                      ("R", "received"),
                       ("E", "error"))
 
     created = models.DateTimeField(auto_now_add=True)
+    updated = models.DateTimeField(auto_now=True)
     username = models.CharField(max_length=80)
     registry_code = models.CharField(max_length=80)
     content = models.TextField()
     state = models.CharField(choices=MESSAGE_STATES, max_length=1, default="C")
     error_message = models.TextField()  # save any error message on sending
     patient_id = models.IntegerField(null=True)
+    umrn = models.CharField(max_length=50, null=True)
     event_code = models.CharField(max_length=10, default="")
 
     def parse(self):
@@ -44,7 +51,7 @@ class HL7Message(models.Model):
         except hl7.exceptions.ParseException:
             return False
 
-    @property
+    @ property
     def message_control_id(self):
         return f"{settings.APP_ID}.{self.registry_code}.{self.id}"
 
@@ -80,21 +87,57 @@ class HL7Mapping(models.Model):
     def _get_event_code(self, parsed_message):
         return self._get_hl7_value(HL7.MESSAGE_TYPE_PATH, parsed_message)
 
-    def parse(self, hl7_message, patient, registry_code) -> dict:
-        """
-        Rather than have lots of models specifying the hl7 translations
-        We have a block of JSON
-        Something like
+    def _get_handler(self, tag):
+        handler_name = f"_handle_{tag}"
+        if hasattr(self, handler_name):
+            return getattr(self, handler_name)
+        else:
+            raise Exception(f"Unknown tag: {tag}")
 
-        The keys are HL7 event types ( MSH.9.1 ? )
+    def _handle_search(self, hl7_message, field_moniker, mapping_data, update_model):
+        message_searcher = MessageSearcher(mapping_data)
+        update_model.hl7_path = mapping_data["path"]
+        transform = self._get_transform(mapping_data)
+        hl7_value = message_searcher.get_value(hl7_message)
+        rdrf_value = transform(hl7_value)
+        update_model.original_value = hl7_value
+        return rdrf_value
 
-        {
-                "BaseLineClinical/TestSection/CDEName": { "path": "OBX.3.4","tag": "transform", "transform": "foobar" },
-                "<FieldMoniker> : { "path" : <path into hl7 message>, "tag": "transform", "transform": "<functionname>" } ,
-                "<FieldMoniker> : { "path" : <path into hl7 message>, "tag": "mapping", "map": {<dict>} } ,
-        }
-        """
+    def _handle_normal(self, hl7_message, field_moniker, mapping_data, update_model):
+        transform_function = self._get_transform(mapping_data)
+        hl7_path = mapping_data["path"]
+        update_model.hl7_path = hl7_path
+        hl7_value = self._get_hl7_value(hl7_path, hl7_message)
+        update_model.original_value = hl7_value
+        rdrf_value = transform_function(hl7_value)
+        return rdrf_value
 
+    def _handle_mapping(self, hl7_message, field_moniker, mapping_data, update_model):
+        lookup_map = mapping_data.get("map", {})
+        if not lookup_map:
+            raise Exception(f"No map in mapping field for {field_moniker}")
+        hl7_path = mapping_data["path"]
+        update_model.hl7_path = hl7_path
+        hl7_value = self._get_hl7_value(hl7_path, hl7_message)
+        update_model.original_value = hl7_value
+        rdrf_value = lookup_map[hl7_value]
+        return rdrf_value
+
+    def _get_transform(self, mapping_data):
+        if "function" in mapping_data:
+            function_name = mapping_data["function"]
+            if hasattr(utils, function_name):
+                f = getattr(utils, function_name)
+                if not callable(f):
+                    raise TransformFunctionError(function_name)
+                elif hasattr(f, "hl7_transform_func"):
+                    return f
+                else:
+                    raise TransformFunctionError(function_name)
+        else:
+            return lambda x: x
+
+    def parse(self, hl7_message, patient, registry_code) -> Tuple[dict, hl7.Message]:
         mapping_map = self.load()
         if not mapping_map:
             raise Exception("cannot parse message as map malformed")
@@ -104,42 +147,48 @@ class HL7Mapping(models.Model):
         message_model = HL7Message(username="HL7Updater",
                                    event_code=self.event_code,
                                    content=hl7_message,
+                                   umrn=get_umrn(hl7_message),
                                    registry_code=registry_code)
         if patient:
-            message_model.patient_id = patient
+            message_model.patient_id = patient.id
         message_model.save()
 
         for field_moniker, mapping_data in mapping_map.items():
-            hl7_path = mapping_data["path"]
-            logger.info(hl7_path)
+            tag = mapping_data.get("tag", "normal")
+            handler = self._get_handler(tag)
             update_model = HL7MessageFieldUpdate(hl7_message=message_model,
-                                                 hl7_path=hl7_path,
+                                                 hl7_path="unknown",
                                                  data_field=field_moniker)
             try:
-                hl7_value = self._get_hl7_value(hl7_path, hl7_message)
-                update_model.original_value = hl7_value
-                try:
-                    rdrf_value = self._apply_transform(mapping_data, hl7_value)
-                    value_map[field_moniker] = rdrf_value
-                except TransformFunctionError as tfe:
-                    message = f"Error transforming HL7 field: {tfe}"
-                    logger.error(message)
-                    update_model.failure_reason = message
-                except Exception as ex:
-                    message = f"Unhandled field error: {ex}"
-                    logger.error(message)
-                    update_model.failure_reason = message
+                value = handler(hl7_message, field_moniker, mapping_data, update_model)
+                if update_model.failure_reason == "":
+                    value_map[field_moniker] = value
+
+            except TransformFunctionError as tfe:
+                message = f"Error transforming HL7 field: {tfe}"
+                logger.error(message)
+                update_model.failure_reason = message
+
             except KeyError as e:
                 message = f"KeyError extracting the field. {e}"
                 logger.error(message)
                 update_model.failure_reason = message
-            except Exception as ex:
-                message = f"Error: {ex}"
+
+            except NotFoundError as nf:
+                message = f"Not Found Error Extracting field: {nf}"
                 logger.error(message)
                 update_model.failure_reason = message
+
+            except Exception as ex:
+                message = f"Unhandled field error: {ex}"
+                logger.error(message)
+                update_model.failure_reason = message
+
             if not update_model.failure_reason:
                 update_model.update_status = "Success"
+
             update_model.save()
+
         return value_map, message_model
 
     def _get_hl7_value(self, path, parsed_message):

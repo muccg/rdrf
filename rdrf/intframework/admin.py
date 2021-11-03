@@ -15,7 +15,8 @@ class UpdateInline(admin.StackedInline):
 
 
 class HL7MessageAdmin(admin.ModelAdmin):
-    list_display = ("id", "created", "event_code", "username", "patient", "field_updates")
+    list_display = ("umrn", "created", "updated", "state", "event_code", "username", "patient", "field_updates")
+    search_fields = ["umrn"]
     inlines = [
         UpdateInline,
     ]

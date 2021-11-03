@@ -5,6 +5,15 @@ from datetime import datetime
 logger = logging.getLogger(__name__)
 
 
+def get_umrn(message: hl7.Message) -> str:
+    try:
+        umrn = message["PID.F3"]
+        return umrn
+    except Exception as ex:
+        logger.error(ex)
+        return ""
+
+
 def get_event_code(message: hl7.Message) -> str:
     logger.info("get event code ")
     try:
@@ -25,13 +34,14 @@ def get_event_code(message: hl7.Message) -> str:
 
 
 def patient_not_found(message: hl7.Message) -> bool:
-    result = True
+    """
+    find a PID segment == OK
+    """
     try:
-        message.segment("PID")
-        result = False
-    except KeyError as k:
-        logger.error(k)
-    return result
+        message["PID"]
+        return False
+    except KeyError:
+        return True
 
 
 class TransformFunctionError(Exception):
@@ -96,3 +106,83 @@ def parse_demographics_moniker(moniker: str) -> str:
     if "/" in moniker:
         _, field = moniker.split("/")
     return field
+
+
+def load_message(message_file: str):
+    # used for interactive testing
+    import io
+    import hl7
+    from hl7.client import read_loose
+    try:
+        binary_data = open(message_file, "rb").read()
+        stream = io.BytesIO(binary_data)
+        raw_messages = [raw_message for raw_message in read_loose(stream)]
+        decoded_messages = [rm.decode("ascii") for rm in raw_messages]
+        messages = [hl7.parse(dm) for dm in decoded_messages]
+        num_messages = len(messages)
+        if num_messages > 1:
+            return messages[1]
+        else:
+            return messages[0]
+    except hl7.ParseException as pex:
+        print(pex)
+        return None
+    except Exception as ex:
+        print(ex)
+        return None
+
+
+class SearchExpressionError(Exception):
+    pass
+
+
+class NotFoundError(Exception):
+    pass
+
+
+class MessageSearcher:
+    def __init__(self, field_mapping):
+        self.field_mapping = field_mapping
+        self.prefix = self.field_mapping["path"]
+        self.select = self.field_mapping["select"]
+        self.where = self.field_mapping["where"]
+        self.num_components = self.field_mapping["num_components"]
+        self.repeat = 1
+
+    def get_component(self, repeat, component, message):
+        full_key = f"{self.prefix}.R{repeat}.{component}"
+        return message[full_key]
+
+    def get_value(self, message: hl7.Message):
+        r = 1
+        stopped = False
+        while not stopped:
+            try:
+                where_actual = self.get_where_dict(r, message)
+                if where_actual == self.where:
+                    value = self.get_component(r, self.select, message)
+                    return value
+                r += 1
+            except IndexError:
+                stopped = True
+
+        raise NotFoundError(str(self))
+
+    def get_where_dict(self, repeat, message):
+        return {k: self.get_component(repeat, k, message) for k in self.where}
+
+    def __str__(self):
+        w = ""
+        for k in sorted(self.where):
+            w += f" {k}={self.where[k]}"
+        return f"SELECT {self.select} WHERE{w}"
+
+
+def parse_message_file(registry, user, patient, event_code, message_file):
+    from intframework.models import HL7Mapping
+    from intframework.hub import MockClient
+    model = HL7Mapping.objects.all().get(event_code=event_code)
+    mock_client = MockClient(registry, user, None, None)
+    parsed_message = mock_client._parse_mock_message_file(message_file)
+    parse_dict = model.parse(parsed_message, patient, registry.code)
+    return parse_dict
