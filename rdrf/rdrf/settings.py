@@ -853,10 +853,10 @@ if HUB_ENABLED:
     HL7_VERSION = env.get("hl7_version", "2.6")
     # sender app ( us )
     APP_ID = env.get("app_id", "CIC")
-    SENDING_FACILITY = env.get("sending_facility", "9999^cicfacility.9999^L")
+    SENDING_FACILITY = env.get("sending_facility", "0917^HdwaApplication.0917^L")
     # receiver app ( the hub)
-    HUB_APP_ID = env.get("hub_app_id", "ESB^HdwaApplication.ESB^L")
-    HUB_FACILITY = env.get("hub_facility", "ESB^HdwaApplication.ESB^L")
+    HUB_APP_ID = env.get("hub_app_id", "HIH^HdwaApplication.HIH^L")
+    HUB_FACILITY = env.get("hub_facility", "0917^HdwaApplication.0917^L")
     HUB_ENDPOINT = env.get("hub_endpoint", "mock")
     HUB_PORT = env.get("hub_port", 30000)
     HUB_MOCKED = HUB_ENDPOINT == "mock"
