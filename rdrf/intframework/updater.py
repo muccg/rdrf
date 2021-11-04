@@ -97,8 +97,8 @@ class HL7Handler:
             if field_dict is None:
                 logger.error("field_dict is None")
                 return None
-            self.patient_attributes = self._parse_field_dict(field_dict)
-            self.patient_cdes = self._parse_cdes(field_dict)
+            self.patient_attributes = self._parse_demographics_fields(field_dict)
+            self.patient_cdes = self._parse_cde_fields(field_dict)
             umrn = self.patient_attributes["umrn"]
             logger.info(f"umrn = {umrn}")
             if self._umrn_exists(umrn):

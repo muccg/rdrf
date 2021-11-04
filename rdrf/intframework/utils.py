@@ -111,6 +111,9 @@ def parse_demographics_moniker(moniker: str) -> Optional[str]:
 
 def parse_cde_moniker(moniker: str) -> Optional[Tuple[str, str, str]]:
     # get form_name, section_code, cde_code
+    parts = moniker.split("/")
+    assert len(parts) == 3
+    assert parts[0] != "Demographics"
     pass
 
 
