@@ -3,6 +3,7 @@ from django.urls import reverse
 from intframework.models import HL7Mapping, HL7Message
 from intframework.utils import get_event_code
 from intframework.utils import parse_demographics_moniker
+from intframework.utils import parse_cde_moniker
 from rdrf.db.contexts_api import RDRFContextManager
 from rdrf.models.definition.models import Registry
 from registry.groups.models import WorkingGroup
@@ -17,13 +18,31 @@ class HL7Handler:
         self.umrn = kwargs.get("umrn", None)
         self.hl7message = kwargs.get("hl7message", None)
 
-    def _parse_field_dict(self, field_dict) -> dict:
+    def _parse_demographics_fields(self, field_dict) -> dict:
         field_values = {}
         for key, value in field_dict.items():
-            field_name = parse_demographics_moniker(key)
-            if field_name:
-                field_values[field_name] = value
+            if self._is_demographics_field(key):
+                field_name = parse_demographics_moniker(key)
+                if field_name:
+                    field_values[field_name] = value
         return field_values
+
+    def _parse_cde_fields(self, field_dict) -> dict:
+        field_values = {}
+        for key, value in field_dict.items():
+            if self._is_cde_field(key):
+                form_name. section_code, cde_code = parse_cde_moniker(key)
+                field_values[(form_name, section_code, cde_code)] = value
+        return field_values
+
+    def _is_demographics_field(self, key):
+        pass
+
+    def _is_cde_field(self, key):
+        pass
+
+    def _parse_cdes(self, field_dict):
+        pass
 
     def _populate_pmi(self, registry_code: str, patient: Patient, umrn: str, default_context):
         form_name = "Patientinformation"
@@ -79,6 +98,7 @@ class HL7Handler:
                 logger.error("field_dict is None")
                 return None
             self.patient_attributes = self._parse_field_dict(field_dict)
+            self.patient_cdes = self._parse_cdes(field_dict)
             umrn = self.patient_attributes["umrn"]
             logger.info(f"umrn = {umrn}")
             if self._umrn_exists(umrn):
