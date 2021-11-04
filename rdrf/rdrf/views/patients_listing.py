@@ -299,7 +299,8 @@ class PatientsListingView(View):
             q1 = Q(given_names__icontains=self.search_term)
             q2 = Q(family_name__icontains=self.search_term)
             q3 = Q(deident__icontains=self.search_term)
-            qry = q1 | q2 | q3
+            q4 = Q(umrn=self.search_term)
+            qry = q1 | q2 | q3 | q4
             self.patients = self.patients.filter(qry)
 
     def filter_by_user_group(self):
