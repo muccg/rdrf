@@ -195,3 +195,16 @@ def parse_message_file(registry, user, patient, event_code, message_file):
     parsed_message = mock_client._parse_mock_message_file(message_file)
     parse_dict = model.parse(parsed_message, patient, registry.code)
     return parse_dict
+
+
+def parse_message(message_file):
+    """
+    A helper for interactive debugging 
+    """
+    from rdrf.models.definition.models import Registry
+    from registry.groups.models import CustomUser
+    from intframework.hub import MockClient
+    registry = Registry.objects.get()
+    user = CustomUser.objects.get(username="admin")
+    mock_client = MockClient(registry, user, None, None)
+    return mock_client._parse_mock_message_file(message_file)

@@ -50,7 +50,7 @@ class IntegrationHubRequestView(View):
             else:
                 logger.info("hub query: patient found in response")
                 logger.info(f"setup redis config for {registry_code}")
-                hl7_handler = HL7Handler(umrn=umrn, hl7message=hl7message)
+                hl7_handler = HL7Handler(umrn=umrn, hl7message=hl7message, username=request.user.username)
                 response_data = hl7_handler.handle()
                 client_response_dict = response_data
                 client_response_dict["status"] = HubResult.SUCCESS

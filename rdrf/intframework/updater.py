@@ -6,6 +6,9 @@ from intframework.utils import parse_demographics_moniker
 from intframework.utils import parse_cde_moniker
 from rdrf.db.contexts_api import RDRFContextManager
 from rdrf.models.definition.models import Registry
+from rdrf.models.definition.models import RegistryForm
+from rdrf.models.definition.models import Section
+from rdrf.models.definition.models import CommonDataElement
 from registry.groups.models import WorkingGroup
 from registry.patients.models import Patient
 from typing import Optional, Tuple
@@ -13,10 +16,59 @@ from typing import Optional, Tuple
 logger = logging.getLogger(__name__)
 
 
+def parse_cde_triple(key: str) -> Optional[Tuple[RegistryForm,
+                                                 Section,
+                                                 CommonDataElement]]:
+
+    parts = key.split("/")
+
+    if len(parts) != 3:
+        logger.error(f"parse_cde_triple: not enough parts {key}")
+        return None
+
+    form_name, section_code, cde_code = parts
+
+    try:
+        form_model = RegistryForm.objects.get(name=form_name)
+    except RegistryForm.DoesNotExist:
+        logger.error(f"parse cde triple: {form_name} is not a form")
+        return None
+    except RegistryForm.MultipleObjectsReturned:
+        logger.error(f"parse cde triple: multiple {form_name}")
+
+    try:
+        section_model = Section.objects.get(code=section_code)
+    except Section.DoesNotExist:
+        logger.error(f"parse cde triple: {section_code} is not a section")
+        return None
+    except Section.MultipleObjectsReturned:
+        logger.error(f"parse cde triple: multiple {section_code}")
+
+    try:
+        cde_model = CommonDataElement.objects.get(code=cde_code)
+    except CommonDataElement.DoesNotExist:
+        logger.error(f"parse cde triple: {cde_code} is not a cde")
+        return None
+    except CommonDataElement.MultipleObjectsReturned:
+        logger.error(f"parse cde triple: multiple {cde_code}")
+        return None
+
+    if section_model not in form_model.section_models:
+        logger.error(f"parse cde triple: {section_code} not in form {form_name}")
+        return None
+
+    if cde_model not in section_model.cde_models:
+        logger.error(f"parse cde triple: {cde_code} not in form {section_code}")
+        return None
+
+    return form_model, section_model, cde_model
+
+
 class HL7Handler:
     def __init__(self, *args, **kwargs):
         self.umrn = kwargs.get("umrn", None)
         self.hl7message = kwargs.get("hl7message", None)
+        self.username = kwargs.get("username", "unknown")
 
     def _parse_demographics_fields(self, field_dict) -> dict:
         field_values = {}
@@ -30,19 +82,14 @@ class HL7Handler:
     def _parse_cde_fields(self, field_dict) -> dict:
         field_values = {}
         for key, value in field_dict.items():
-            if self._is_cde_field(key):
-                form_name. section_code, cde_code = parse_cde_moniker(key)
-                field_values[(form_name, section_code, cde_code)] = value
+            if not self._is_demographics_field(key):
+                cde_triple = parse_cde_triple(key)
+                if cde_triple is not None:
+                    field_values[cde_triple] = value
         return field_values
 
     def _is_demographics_field(self, key):
-        pass
-
-    def _is_cde_field(self, key):
-        pass
-
-    def _parse_cdes(self, field_dict):
-        pass
+        return key.startswith("Demographics/")
 
     def _populate_pmi(self, registry_code: str, patient: Patient, umrn: str, default_context):
         form_name = "Patientinformation"
@@ -88,6 +135,30 @@ class HL7Handler:
             return patient
         return None
 
+    def _update_cdes(self, registry, patient):
+        from registry.groups.models import CustomUser
+        context_models = patient.context_models
+        default_context = patient.default_context(registry)
+
+        if self.username in ["updater", "testing"]:
+            user_model = CustomUser.objects.get(username="admin")
+        else:
+            try:
+                user_model = CustomUser.objects.get(username=self.username)
+            except CustomUser.DoesNotExist:
+                raise Exception("unknown user")
+
+        for cde_triple, value in self.patient_cdes.items():
+            form_model, section_model, cde_model = cde_triple
+            patient.set_form_value(registry.code,
+                                   form_model.name,
+                                   section_model.code,
+                                   cde_model.code,
+                                   value,
+                                   default_context,
+                                   save_snapshot=True,
+                                   user=user_model)
+
     def handle(self) -> Optional[dict]:
         logger.info("updating or creating patient from hl7 message data")
         registry = Registry.objects.get()
@@ -105,6 +176,7 @@ class HL7Handler:
                 logger.info("A patient already exists with this umrn so updating")
                 patient = self._update_patient()
                 if patient:
+                    self._update_cdes(registry, patient)
                     self.patient_attributes["patient_updated"] = "updated"
                     message_model.patient_id = patient.id
                     message_model.umrn = umrn
@@ -116,7 +188,13 @@ class HL7Handler:
                 logger.info(f"No patient exists with umrn: {umrn}: a new patient will be created")
                 patient = Patient(**self.patient_attributes)
                 patient.consent = False
+                logger.debug("saving newly created patient")
                 patient.save()
+                logger.debug("saved patient")
+                default_context = patient.get_or_create_default_context(registry)
+                logger.debug(f"default context = {default_context}")
+                self._update_cdes(registry, patient)
+                logger.debug("updated cdes")
                 logger.info(f"patient saved ok umrn = {umrn} id = {patient.id}")
                 message_model.patient_id = patient.id
                 message_model.umrn = umrn
@@ -129,8 +207,6 @@ class HL7Handler:
                 patient.save()
                 logger.info("patient working group set")
                 logger.info("patient registry  set")
-                context_manager = RDRFContextManager(registry)
-                default_context = context_manager.get_or_create_default_context(patient, new_patient=True)
                 logger.info("default_context created")
                 self._populate_pmi(registry.code, patient, umrn, default_context)
                 logger.info("pmi populated with urmrn")

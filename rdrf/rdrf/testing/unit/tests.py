@@ -2381,7 +2381,7 @@ class HL7HandlerTestCase(RDRFTestCase):
         client.MOCK_MESSAGE = mock_message
         response_data = client.get_data("A4376449")
         hl7message = response_data["message"]
-        hl7_handler = HL7Handler(umrn="A4376449", hl7message=hl7message)
+        hl7_handler = HL7Handler(umrn="A4376449", hl7message=hl7message, username="testing")
         hl7_handler.handle()
         updated_patient = Patient.objects.get(pk=self.patient.id)
         self.assertEqual(updated_patient.given_names.upper(), "FRANCIS")
