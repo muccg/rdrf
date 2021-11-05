@@ -485,6 +485,11 @@ class AddPatientView(PatientFormMixin, CreateView):
     @method_decorator(anonymous_not_allowed)
     @method_decorator(login_required)
     def get(self, request, registry_code):
+
+        registry = Registry.objects.get(code=registry_code)
+        if registry.has_feature("no_add_patient_button"):
+            raise Http404()
+
         logger.info("PATIENTADD %s %s" % (request.user,
                                           registry_code))
         if not request.user.is_authenticated:
