@@ -163,10 +163,11 @@ class HL7Handler:
         logger.info("updating or creating patient from hl7 message data")
         registry = Registry.objects.get()
         patient = None
+        umrn = None
         try:
             field_dict, message_model = self._get_update_dict(registry.code)
             if field_dict is None:
-                logger.error("field_dict is None")
+                logger.error("field_dict is None - aborting")
                 return None
             self.patient_attributes = self._parse_demographics_fields(field_dict)
             self.patient_cdes = self._parse_cde_fields(field_dict)
@@ -177,41 +178,32 @@ class HL7Handler:
                 patient = self._update_patient()
                 if patient:
                     self._update_cdes(registry, patient)
+                    logger.info(f"patient updated ok umrn = {umrn} id = {patient.id}")
                     self.patient_attributes["patient_updated"] = "updated"
                     message_model.patient_id = patient.id
                     message_model.umrn = umrn
                     message_model.state = "R"
                     message_model.save()
-                    logger.info("message model updated ok")
 
             else:
                 logger.info(f"No patient exists with umrn: {umrn}: a new patient will be created")
                 patient = Patient(**self.patient_attributes)
                 patient.consent = False
-                logger.debug("saving newly created patient")
                 patient.save()
-                logger.debug("saved patient")
                 default_context = patient.get_or_create_default_context(registry)
-                logger.debug(f"default context = {default_context}")
                 self._update_cdes(registry, patient)
-                logger.debug("updated cdes")
                 logger.info(f"patient saved ok umrn = {umrn} id = {patient.id}")
                 message_model.patient_id = patient.id
                 message_model.umrn = umrn
                 message_model.state = "R"
                 message_model.save()
-                logger.info("message model updated ok")
                 patient.rdrf_registry.set([registry])
                 wg = WorkingGroup.objects.get(registry=registry)
                 patient.working_groups.set([wg])
                 patient.save()
-                logger.info("patient working group set")
-                logger.info("patient registry  set")
-                logger.info("default_context created")
                 self._populate_pmi(registry.code, patient, umrn, default_context)
-                logger.info("pmi populated with urmrn")
         except Exception as ex:
-            logger.error(f"Error creating patient: {ex}")
+            logger.error(f"Error creating/updating patient {umrn}: {ex}")
             return None
 
         if hasattr(patient, "pk"):
