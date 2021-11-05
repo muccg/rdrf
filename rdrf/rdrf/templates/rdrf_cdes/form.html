@@ -372,7 +372,7 @@
                                                             <span class="fa fa-asterisk text-success" aria-hidden="true"></span>
                                                         {% endif %}
                                                         {% if element.label %}
-                                                            {% if element|is_external %}
+                                                            {% if element.field.cde|is_external %}
                                                                 <sup><label class="badge bg-secondary">EXTERNAL</label></sup>
                                                             {% endif %}
                                                         {% endif %}
@@ -414,7 +414,7 @@
                                                             <span class="fa fa-asterisk text-success" aria-hidden="true"></span>
                                                         {% endif %}
                                                         {% if element.label %}
-                                                            {% if element|is_external %}
+                                                            {% if element.field.cde|is_external %}
                                                                 <sup><label class="badge bg-secondary">EXTERNAL</label></sup>
                                                             {% endif %}
                                                         {% endif %}
