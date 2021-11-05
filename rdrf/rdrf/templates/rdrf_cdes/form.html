@@ -12,6 +12,7 @@
 {% load i18n admin_urls admin_static admin_modify %}
 {% load translate %}
 {% load is_abnormal %}
+{% load is_external %}
 
 {% block extrastyle %}
     {{ block.super }}
@@ -370,6 +371,11 @@
                                                         {% if  element.field.important %}
                                                             <span class="fa fa-asterisk text-success" aria-hidden="true"></span>
                                                         {% endif %}
+                                                        {% if element.label %}
+                                                            {% if element|is_external %}
+                                                                <sup><label class="badge bg-secondary">EXTERNAL</label></sup>
+                                                            {% endif %}
+                                                        {% endif %}
                                                     </label>
                                                     <div class="col-sm-9">
                                                         {{ element|safe }}
@@ -406,6 +412,11 @@
                                                             {% endif %}
                                                         {% if  element.field.important %}
                                                             <span class="fa fa-asterisk text-success" aria-hidden="true"></span>
+                                                        {% endif %}
+                                                        {% if element.label %}
+                                                            {% if element|is_external %}
+                                                                <sup><label class="badge bg-secondary">EXTERNAL</label></sup>
+                                                            {% endif %}
                                                         {% endif %}
                                                         {% endif %}
                                                     </label>
@@ -459,6 +470,11 @@
                                         {% endif %}
                                         {% if  field.verification_status == "V" %}
                                            <span class="fa fa-check text-success" aria-hidden="true"></span>
+                                        {% endif %}
+                                        {% if field.label %}
+                                            {% if field.field.cde|is_external %}
+                                                <sup><label class="badge bg-secondary">EXTERNAL</label></sup>
+                                            {% endif %}
                                         {% endif %}
                                     </label>
                                     <div class="col-sm-9">
