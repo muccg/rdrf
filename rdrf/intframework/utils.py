@@ -199,7 +199,7 @@ def parse_message_file(registry, user, patient, event_code, message_file):
 
 def parse_message(message_file):
     """
-    A helper for interactive debugging 
+    A helper for interactive debugging
     """
     from rdrf.models.definition.models import Registry
     from registry.groups.models import CustomUser
