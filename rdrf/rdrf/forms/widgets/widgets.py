@@ -535,3 +535,10 @@ class SliderWidget(widgets.TextInput):
          """ % (name, value, attrs['id'], attrs['id'], name, value, name)
 
         return context
+
+
+class ExternalWidget(HiddenInput):
+    def render(self, name, value, attrs=None, renderer=None):
+        hidden_input_html = super().render(name, value, attrs, renderer)
+        external_badge_html = f"""<div class="externalfield">{value}</div>"""
+        return hidden_input_html + external_badge_html
