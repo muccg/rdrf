@@ -3,8 +3,6 @@ from django.urls import reverse
 from intframework.models import HL7Mapping, HL7Message
 from intframework.utils import get_event_code
 from intframework.utils import parse_demographics_moniker
-from intframework.utils import parse_cde_moniker
-from rdrf.db.contexts_api import RDRFContextManager
 from rdrf.models.definition.models import Registry
 from rdrf.models.definition.models import RegistryForm
 from rdrf.models.definition.models import Section
@@ -137,7 +135,6 @@ class HL7Handler:
 
     def _update_cdes(self, registry, patient):
         from registry.groups.models import CustomUser
-        context_models = patient.context_models
         default_context = patient.default_context(registry)
 
         if self.username in ["updater", "testing"]:
@@ -167,7 +164,7 @@ class HL7Handler:
         try:
             field_dict, message_model = self._get_update_dict(registry.code)
             if field_dict is None:
-                logger.error("field_dict is None - aborting")
+                logger.error("field_dict is None")
                 return None
             self.patient_attributes = self._parse_demographics_fields(field_dict)
             self.patient_cdes = self._parse_cde_fields(field_dict)
