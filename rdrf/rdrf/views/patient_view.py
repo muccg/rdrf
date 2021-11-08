@@ -22,6 +22,8 @@ from registry.patients.models import PatientRelative
 from registry.patients.admin_forms import PatientAddressForm
 from registry.patients.admin_forms import PatientDoctorForm
 from registry.patients.admin_forms import PatientForm
+from registry.patients.admin_forms import get_patient_form_class_with_external_fields
+
 from registry.patients.admin_forms import PatientRelativeForm
 from django.utils.translation import ugettext as _
 
@@ -42,6 +44,18 @@ from django.contrib.auth.decorators import login_required
 
 import logging
 logger = logging.getLogger(__name__)
+
+
+def get_external_patient_fields():
+    from intframework.models import HL7Mapping
+    fields = []
+    for mapping in HL7Mapping.objects.all():
+        event_map = mapping.load()
+        for key in event_map:
+            if key.startswith("Demographics/"):
+                _, field = key.split("/")
+                fields.append(field)
+    return fields
 
 
 class PatientMixin(object):
@@ -618,7 +632,13 @@ class PatientEditView(View):
 
         section_blacklist = self._check_for_blacklisted_sections(registry_model)
 
-        patient, form_sections = self._get_patient_and_forms_sections(
+        external_patient_fields = get_external_patient_fields()
+
+        if external_patient_fields:
+            patient, form_sections = self._get_patient_and_forms_sections(
+                patient_id, registry_code, request, external_fields=external_patient_fields)
+        else:
+            patient, form_sections = self._get_patient_and_forms_sections(
             patient_id, registry_code, request)
 
         security_check_user_patient(request.user, patient)
@@ -928,7 +948,8 @@ class PatientEditView(View):
                                         patient_form=None,
                                         patient_address_form=None,
                                         patient_doctor_form=None,
-                                        patient_relatives_forms=None):
+                                        patient_relatives_forms=None,
+                                        external_fields=None):
 
         user = request.user
         hide_registry_specific_fields_section = False
@@ -943,13 +964,18 @@ class PatientEditView(View):
 
         registry = Registry.objects.get(code=registry_code)
 
+        if external_fields is not None:
+            patient_form_class = get_patient_form_class_with_external_fields()
+        else:
+            patient_form_class = PatientForm
+
         if not patient_form:
             if not registry.patient_fields:
-                patient_form = PatientForm(instance=patient, user=user, registry_model=registry)
+                patient_form = patient_form_class(instance=patient, user=user, registry_model=registry)
             else:
                 munged_patient_form_class = self._create_registry_specific_patient_form_class(
                     user,
-                    PatientForm,
+                    patient_form_class,
                     registry,
                     patient)
                 if munged_patient_form_class.HIDDEN:

@@ -299,9 +299,4 @@ form .aligned ul.errorlist {
 .externalfield {
     color: green;
     font-weight: bold;
-    border:2px;
-    border-radius: 25px;
-    border-style:solid;
-    border-color:gray;
-    padding: 1em;
 }
