@@ -85,7 +85,7 @@ class PatientsListingView(View):
             ColumnFullName(_("Patient"), "patients.can_see_full_name"),
             ColumnDateOfBirth(_("Date of Birth"), "patients.can_see_dob"),
             ColumnCodeField(_("Code"), "patients.can_see_code_field"),
-            ColumnWorkingGroups(_("Working Groups"), "patients.can_see_working_groups"),
+            ColumnUmrn(_("UMRN"), "patients.can_see_umrn"),
             ColumnDiagnosisProgress(_("Diagnosis Entry Progress"), "patients.can_see_diagnosis_progress"),
             ColumnDiagnosisCurrency(_("Updated < 365 days"), "patients.can_see_diagnosis_currency"),
             ColumnGeneticDataMap(_("Genetic Data"), "patients.can_see_genetic_data_map"),
@@ -476,6 +476,11 @@ class ColumnNonContexts(Column):
         color = "success" if tick else "danger"
         # fixme: replace inline style with css class
         return "<span class='fa fa-%s text-%s'></span>" % (icon, color)
+
+
+class ColumnUmrn(Column):
+    field = "umrn"
+    sort_fields = ["umrn"]
 
 
 class ColumnWorkingGroups(Column):
