@@ -205,6 +205,7 @@ def hl7_field(event_code, field_spec, default_value):
     except HL7MessageConfig.DoesNotExist:
         return default_value
 
+
 def parse_message(message_file):
     """
     A helper for interactive debugging
@@ -216,4 +217,3 @@ def parse_message(message_file):
     user = CustomUser.objects.get(username="admin")
     mock_client = MockClient(registry, user, None, None)
     return mock_client._parse_mock_message_file(message_file)
-

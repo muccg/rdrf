@@ -1,7 +1,7 @@
 import hl7
 import json
 import logging
-from django.conf import settings
+# from django.conf import settings
 from django.db import models
 from django.contrib.postgres.fields import JSONField
 from intframework import utils
