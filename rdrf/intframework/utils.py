@@ -1,6 +1,7 @@
 import hl7
 import logging
 from datetime import datetime
+from typing import Optional, Tuple
 
 logger = logging.getLogger(__name__)
 
@@ -101,11 +102,19 @@ def sex(hl7_value):
     return f"{SEX_MAP[hl7_value]}"
 
 
-def parse_demographics_moniker(moniker: str) -> str:
+def parse_demographics_moniker(moniker: str) -> Optional[str]:
     field = None
     if "/" in moniker:
         _, field = moniker.split("/")
     return field
+
+
+def parse_cde_moniker(moniker: str) -> Optional[Tuple[str, str, str]]:
+    # get form_name, section_code, cde_code
+    parts = moniker.split("/")
+    assert len(parts) == 3
+    assert parts[0] != "Demographics"
+    pass
 
 
 def load_message(message_file: str):
@@ -195,3 +204,16 @@ def hl7_field(event_code, field_spec, default_value):
         return message_config.config.get(field_spec, default_value)
     except HL7MessageConfig.DoesNotExist:
         return default_value
+
+def parse_message(message_file):
+    """
+    A helper for interactive debugging
+    """
+    from rdrf.models.definition.models import Registry
+    from registry.groups.models import CustomUser
+    from intframework.hub import MockClient
+    registry = Registry.objects.get()
+    user = CustomUser.objects.get(username="admin")
+    mock_client = MockClient(registry, user, None, None)
+    return mock_client._parse_mock_message_file(message_file)
+
