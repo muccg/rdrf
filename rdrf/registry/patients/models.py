@@ -1106,6 +1106,11 @@ class Patient(models.Model):
 
         return [(link_url(cm), link_text(cm), link_locking(cm)) for cm in context_models]
 
+    def get_or_create_default_context(self, registry_model):
+        from rdrf.db.contexts_api import RDRFContextManager
+        rdrf_context_manager = RDRFContextManager(registry_model)
+        return rdrf_context_manager.get_or_create_default_context(self)
+
     def default_context(self, registry_model):
         # return None if doesn't make sense
         from rdrf.models.definition.models import RegistryType
@@ -1459,7 +1464,8 @@ class PatientRelative(models.Model):
     date_of_birth = models.DateField()
     sex = models.CharField(max_length=1, choices=SEX_CHOICES)
     relationship = models.CharField(choices=RELATIVE_TYPES, max_length=80)
-    location = models.CharField(choices=RELATIVE_LOCATIONS + get_countries(), max_length=80, default=RELATIVE_LOCATIONS[0])
+    location = models.CharField(choices=RELATIVE_LOCATIONS + get_countries(),
+                                max_length=80, default=RELATIVE_LOCATIONS[0])
     living_status = models.CharField(choices=LIVING_STATES, max_length=80)
     relative_patient = models.OneToOneField(
         to=Patient,
