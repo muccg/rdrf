@@ -36,6 +36,7 @@ PERMISSIONS_BY_ROLES = {
         'can_see_dob',
         'can_see_full_name',
         'can_see_working_groups',
+        'can_see_umrn',
         'change_patient',
         'delete_patient',
         'add_patientaddress',

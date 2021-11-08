@@ -325,6 +325,7 @@ class Patient(models.Model):
             ("can_see_full_name", _("Can see Full Name column")),
             ("can_see_dob", _("Can see Date of Birth column")),
             ("can_see_working_groups", _("Can see Working Groups column")),
+            ("can_see_umrn", _("Can see UMRN column")),
             ("can_see_diagnosis_progress", _("Can see Diagnosis Progress column")),
             ("can_see_diagnosis_currency", _("Can see Diagnosis Currency column")),
             ("can_see_genetic_data_map", _("Can see Genetic Module column")),
