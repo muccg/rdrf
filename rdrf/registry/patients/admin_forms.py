@@ -526,28 +526,23 @@ class PatientForm(forms.ModelForm):
                 % ",".join(bad_regs))
 
 
-def get_patient_form_class_with_external_fields():
+def get_patient_form_class_with_external_fields(external_fields):
     from intframework.models import HL7Mapping
     from rdrf.forms.dynamic.fields import ExternalField
     from registry.patients.models import Patient
     from copy import deepcopy
     from collections import OrderedDict
+
+    if not external_fields:
+        return PatientForm
+
     external_fields = []
     patient_fields = [f.name for f in Patient._meta.get_fields()]
-    for mapping in HL7Mapping.objects.all():
-        event_map = mapping.load()
-        for key in event_map:
-            if key.startswith("Demographics/"):
-                _, field_name = key.split("/")
-                if field_name in patient_fields:
-                    external_fields.append(field_name)
-
     patient_fields = OrderedDict()
-    
 
     for external_field in set(sorted(external_fields)):
         logger.debug(f"external field = {external_field}")
-        patient_fields[external_field] = ExternalField
+        patient_fields[external_field] = ExternalField()
 
     klass = type("PatientFormWithExternalFields",
                  (PatientForm,),
