@@ -186,3 +186,12 @@ def parse_message_file(registry, user, patient, event_code, message_file):
     parsed_message = mock_client._parse_mock_message_file(message_file)
     parse_dict = model.parse(parsed_message, patient, registry.code)
     return parse_dict
+
+
+def hl7_field(event_code, field_spec, default_value):
+    from intframework.models import HL7MessageConfig
+    try:
+        message_config = HL7MessageConfig.objects.get(event_code=event_code)
+        return message_config.config.get(field_spec, default_value)
+    except HL7MessageConfig.DoesNotExist:
+        return default_value
