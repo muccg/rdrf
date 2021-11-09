@@ -185,6 +185,8 @@ class Client:
         builder = MessageBuilder(self.registry_model, self.user_model)
         self.message_model = builder.message_model
         subscribe_message = builder.build_qry_a19(umrn, activate_subscription=True)
+        self.message_model.content = subscribe_message
+        self.message_model.save()
         logger.info("built subscription message")
         logger.info(f"sending subscription message for {umrn} ...")
         return self.send_message(subscribe_message)
