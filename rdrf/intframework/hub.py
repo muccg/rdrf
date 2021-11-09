@@ -103,7 +103,9 @@ class MessageBuilder:
         # "Population Notes" in the SPEC as being always the value indicated
         from intframework.utils import hl7_field
         # this allows us to override the values here dynamically
-        def h(field_num, default_value): return hl7_field("QRY_A19", f"MSH.{field_num}", default_value)
+
+        def h(field_num, default_value):
+            return hl7_field("QRY_A19", f"MSH.{field_num}", default_value)
 
         msh = Seg("MSH")
         msh.add_field("^~\&")  # noqa: W605
