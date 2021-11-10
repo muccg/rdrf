@@ -527,28 +527,27 @@ class PatientForm(forms.ModelForm):
 
 
 def get_patient_form_class_with_external_fields(external_fields):
-    from intframework.models import HL7Mapping
     from rdrf.forms.dynamic.fields import ExternalField
+    from rdrf.forms.widgets.widgets import ExternalWidget
     from registry.patients.models import Patient
-    from copy import deepcopy
-    from collections import OrderedDict
 
     if not external_fields:
         return PatientForm
 
-    external_fields = []
-    patient_fields = [f.name for f in Patient._meta.get_fields()]
-    patient_fields = OrderedDict()
+    def my_init(self, *args, **kwargs):
+        PatientForm.__init__(self, *args, **kwargs)
+        instance = getattr(self, 'instance', None)
+        if instance and instance.pk:
+            for external_field in external_fields:
+                #self.fields[external_field].widget.attrs["readonly"] = True
+                logger.debug(f"{external_field} field = {self.fields[external_field]}")
 
-    for external_field in set(sorted(external_fields)):
-        logger.debug(f"external field = {external_field}")
-        patient_fields[external_field] = ExternalField()
+    my_dict = {"__init__": my_init}
 
-    klass = type("PatientFormWithExternalFields",
-                 (PatientForm,),
-                 patient_fields)
+    for external_field in external_fields:
+        my_dict[external_field] = ExternalField()
 
-    logger.debug(f"returning {klass}")
+    klass = type("PatientFormWithExternalFields", (PatientForm,), my_dict)
 
     return klass
 

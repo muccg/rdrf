@@ -1,6 +1,7 @@
 from django.urls import reverse
 from rdrf.models.definition.models import RDRFContext
 from rdrf.models.definition.models import RegistryForm
+from rdrf.helpers.utils import has_external_demographics
 
 import logging
 logger = logging.getLogger(__name__)
@@ -100,6 +101,13 @@ class NavigationWizard(object):
         return [cfg for cfg in self.registry_model.multiple_form_groups]
 
     def _construct_demographics_link(self):
+        if has_external_demographics():
+            return (
+                "demographic",
+                None,
+                reverse("externaldemographics",
+                        args=[self.registry_model.code,
+                              self.patient_model.pk]))
         return (
             "demographic",
             None,

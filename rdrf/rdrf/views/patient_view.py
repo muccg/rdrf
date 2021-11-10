@@ -639,7 +639,6 @@ class PatientEditView(View):
             patient, form_sections = self._get_patient_and_forms_sections(
                 patient_id, registry_code, request, external_fields=external_patient_fields)
 
-            logger.debug(f" xx = {form_sections[0]}")
         else:
             logger.debug(f"there are no external fields: {external_patient_fields}")
             patient, form_sections = self._get_patient_and_forms_sections(
@@ -1185,3 +1184,49 @@ class QueryPatientView(View):
     def get(self, request, registry_code):
         context = {'registry_code': registry_code}
         return render(request, "rdrf_cdes/patient_query.html", context)
+
+
+class SimpleReadonlyPatientView(View):
+    @method_decorator(anonymous_not_allowed)
+    @method_decorator(login_required)
+    def get(self, request, registry_code, patient_id):
+        registry = self.get_registry(registry_code)
+        user = request.user
+        patient = self.get_patient(patient_id)
+        template_name = self.get_template()
+        actions = self.get_actions(registry, user)
+        context = self.get_context(registry, user, patient)
+        if not context:
+            raise Http404
+        context["actions"] = self.get_actions(registry, user)
+
+        return render(request, template_name, context)
+
+    def get_patient(self, patient_id):
+        try:
+            return Patient.objects.get(id=patient_id)
+        except Patient.DoesNotExist:
+            raise Http404
+
+    def get_registry(self, registry_code):
+        try:
+            return Registry.objects.get(code=registry_code)
+        except Registry.DoesNotExist:
+            raise Http404
+
+    def get_context(self, registry, user, patient):
+        pass
+
+    def get_template(self):
+        raise NotImplementedError()
+
+
+class ExternalDemographicsView(SimpleReadonlyPatientView):
+    def get_context(self, registry, user, patient):
+        context = {}
+        demographics_fields = []
+        patient_fields = patient._meta.fields
+        context["fields"] = [(get_label(field), get_value(patient, field)) for field in patient_fields]
+
+    def get_template_name(self):
+        return "rdrf_cdes/external_demographics.html"
