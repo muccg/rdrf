@@ -103,7 +103,9 @@ class MessageBuilder:
         # "Population Notes" in the SPEC as being always the value indicated
         from intframework.utils import hl7_field
         # this allows us to override the values here dynamically
-        def h(field_num, default_value): return hl7_field("QRY_A19", f"MSH.{field_num}", default_value)
+
+        def h(field_num, default_value):
+            return hl7_field("QRY_A19", f"MSH.{field_num}", default_value)
 
         msh = Seg("MSH")
         msh.add_field("^~\&")  # noqa: W605
@@ -183,6 +185,8 @@ class Client:
         builder = MessageBuilder(self.registry_model, self.user_model)
         self.message_model = builder.message_model
         subscribe_message = builder.build_qry_a19(umrn, activate_subscription=True)
+        self.message_model.content = subscribe_message
+        self.message_model.save()
         logger.info("built subscription message")
         logger.info(f"sending subscription message for {umrn} ...")
         return self.send_message(subscribe_message)
