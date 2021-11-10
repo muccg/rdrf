@@ -632,19 +632,7 @@ class PatientEditView(View):
 
         section_blacklist = self._check_for_blacklisted_sections(registry_model)
 
-        external_patient_fields = get_external_patient_fields()
-
-        if external_patient_fields:
-            logger.debug(f"there are external fields: {external_patient_fields}")
-            patient, form_sections = self._get_patient_and_forms_sections(
-                patient_id, registry_code, request, external_fields=external_patient_fields)
-
-        else:
-            logger.debug(f"there are no external fields: {external_patient_fields}")
-            patient, form_sections = self._get_patient_and_forms_sections(
-                patient_id, registry_code, request)
-
-        logger.debug(f"form_sections = {form_sections}")
+        patient, form_sections = self._get_patient_and_forms_sections(patient_id, registry_code, request)
 
         security_check_user_patient(request.user, patient)
 
@@ -953,8 +941,7 @@ class PatientEditView(View):
                                         patient_form=None,
                                         patient_address_form=None,
                                         patient_doctor_form=None,
-                                        patient_relatives_forms=None,
-                                        external_fields=None):
+                                        patient_relatives_forms=None):
 
         user = request.user
         hide_registry_specific_fields_section = False
@@ -969,18 +956,13 @@ class PatientEditView(View):
 
         registry = Registry.objects.get(code=registry_code)
 
-        if external_fields:
-            patient_form_class = get_patient_form_class_with_external_fields(external_fields)
-        else:
-            patient_form_class = PatientForm
-
         if not patient_form:
             if not registry.patient_fields:
-                patient_form = patient_form_class(instance=patient, user=user, registry_model=registry)
+                patient_form = PatientForm(instance=patient, user=user, registry_model=registry)
             else:
                 munged_patient_form_class = self._create_registry_specific_patient_form_class(
                     user,
-                    patient_form_class,
+                    PatientForm,
                     registry,
                     patient)
                 if munged_patient_form_class.HIDDEN:
