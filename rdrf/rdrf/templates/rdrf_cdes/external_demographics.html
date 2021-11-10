@@ -1,0 +1,6 @@
+{% extends "rdrf_cdes/simple.html" %}
+{% block content %}
+{% for field_pair in field_pairs %}
+    <label>{{field_pair.0 }}</label><div class="externalfield">{{field_pair.1}}</div><br> 
+{% endblock %}
+{% endblock %}
