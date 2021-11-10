@@ -47,6 +47,10 @@ import logging
 logger = logging.getLogger(__name__)
 
 
+def get_user_group_names(user):
+    return list(user.groups.all().values_list("name", flat=True))
+
+
 def get_external_patient_fields():
     from intframework.models import HL7Mapping
     fields = []
@@ -588,7 +592,7 @@ class AddPatientView(PatientFormMixin, CreateView):
 
     def _section_hidden(self, user, registry, fieldlist):
         from rdrf.models.definition.models import DemographicFields
-        user_groups = [g.name for g in user.groups.all()]
+        user_groups = get_user_group_names(user)
         hidden_fields = DemographicFields.objects.filter(field__in=fieldlist,
                                                          registry=registry,
                                                          group__name__in=user_groups,
@@ -1152,7 +1156,7 @@ class PatientEditView(View):
 
     def _section_hidden(self, user, registry, fieldlist):
         from rdrf.models.definition.models import DemographicFields
-        user_groups = [g.name for g in user.groups.all()]
+        user_groups = get_user_group_names(user)
         hidden_fields = DemographicFields.objects.filter(field__in=fieldlist,
                                                          registry=registry,
                                                          group__name__in=user_groups,
@@ -1226,20 +1230,15 @@ class ExternalDemographicsView(SimpleReadonlyPatientView):
                         "consent_provided_by_parent_guardian"]
 
     def _get_hidden_fields(self, user, registry):
-        user_groups = [g.name for g in user.groups.all()]
+        user_groups = get_user_group_names(user)
         hidden_fields = DemographicFields.objects.filter(registry=registry,
                                                          group__name__in=user_groups,
                                                          hidden=True).values_list("field", flat=True)
-
         return list(hidden_fields) + self.FIELDS_NOT_SHOWN
 
     def _patient_fields(self, user, registry, fields):
-        patient_fields = []
-        hiddens = self._get_hidden_fields(user, registry)
-        for f in fields:
-            if f.name not in hiddens:
-                patient_fields.append(f)
-        return patient_fields
+        hidden = self._get_hidden_fields(user, registry)
+        return [field for field in fields if field.name not in hidden]
 
     def get_context(self, registry, user, patient):
         context = {}
