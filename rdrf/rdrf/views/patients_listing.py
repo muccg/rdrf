@@ -422,7 +422,7 @@ class ColumnFullName(Column):
         # cache reversed url because urlroute searches are slow
         if has_external_demographics():
             base_url = reverse("externaldemographics", kwargs={"registry_code": registry.code,
-                                                       "patient_id": 0})
+                                                               "patient_id": 0})
         else:
             base_url = reverse("patient_edit", kwargs={"registry_code": registry.code,
                                                        "patient_id": 0})
