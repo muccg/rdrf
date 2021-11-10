@@ -186,7 +186,7 @@ class RDRFContextLauncherComponent(RDRFComponent):
                 self.patient_model.pk])
 
     def _get_demographics_link(self):
-        if has_external_demographics:
+        if has_external_demographics():
             return reverse("externaldemographics", args=[self.registry_model.code, self.patient_model.pk])
         else:
             return reverse("patient_edit", args=[self.registry_model.code, self.patient_model.pk])
