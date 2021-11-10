@@ -8,6 +8,7 @@ from django.http import HttpResponseRedirect, Http404
 
 from rdrf.models.definition.models import Registry
 from rdrf.models.definition.models import CdePolicy
+from rdrf.models.definition.models import DemographicFields
 from rdrf.helpers.utils import consent_status_for_patient
 from rdrf.helpers.utils import anonymous_not_allowed
 
@@ -1218,16 +1219,42 @@ class SimpleReadonlyPatientView(View):
 
 
 class ExternalDemographicsView(SimpleReadonlyPatientView):
+
+    FIELDS_NOT_SHOWN = ["id", "deident", "consent", "active", "inactive_reason", "clinician",
+                        "user", "living_status", "patient_type",
+                        "consent_clinical_trials", "consent_sent_information",
+                        "consent_provided_by_parent_guardian"]
+
+    def _get_hidden_fields(self, user, registry):
+        user_groups = [g.name for g in user.groups.all()]
+        hidden_fields = DemographicFields.objects.filter(registry=registry,
+                                                         group__name__in=user_groups,
+                                                         hidden=True).values_list("field", flat=True)
+
+        return list(hidden_fields) + self.FIELDS_NOT_SHOWN
+
+    def _patient_fields(self, user, registry, fields):
+        patient_fields = []
+        hiddens = self._get_hidden_fields(user, registry)
+        for f in fields:
+            if f.name not in hiddens:
+                patient_fields.append(f)
+        return patient_fields
+
     def get_context(self, registry, user, patient):
         context = {}
-        # demographics_fields = []
-        patient_fields = patient._meta.fields
+        patient_fields = self._patient_fields(user, registry, patient._meta.fields)
 
         def get_label(field):
-            return field.name
+            return field.verbose_name
 
         def get_value(patient, field):
-            return getattr(patient, field.name)
+            value = getattr(patient, field.name)
+            if field.name == "sex":
+                for choice in Patient.SEX_CHOICES:
+                    if choice[0] == value:
+                        value = choice[1]
+            return value
 
         context["field_pairs"] = [(get_label(field), get_value(patient, field)) for field in patient_fields]
         context["location"] = "Demographics"
