@@ -1255,6 +1255,15 @@ class ExternalDemographicsView(SimpleReadonlyPatientView):
                         value = choice[1]
             return value
 
+        wizard = NavigationWizard(user,
+                                  registry,
+                                  patient,
+                                  NavigationFormType.DEMOGRAPHICS,
+                                  None,
+                                  None)
+        context["next_form_link"] = wizard.next_link
+        context["previous_form_link"] = wizard.previous_link
+
         context["field_pairs"] = [(get_label(field), get_value(patient, field)) for field in patient_fields]
         context["location"] = "Demographics"
         context["patient"] = patient

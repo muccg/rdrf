@@ -11,6 +11,7 @@ from two_factor import views as twv
 
 from rdrf.auth.forms import RDRFLoginAssistanceForm, RDRFPasswordResetForm, RDRFSetPasswordForm
 from rdrf.auth.views import login_assistance_confirm, QRGeneratorView, SetupView, DisableView
+from rdrf.helpers.utils import has_external_demographics
 
 import rdrf.views.form_view as form_view
 import rdrf.views.registry_view as registry_view
@@ -97,8 +98,6 @@ two_factor_auth_urls = [
 
 integration_patterns = [
     re_path(r'^integrations/', include(('intframework.urls', 'integrations'))),
-    re_path(r'^externaldemographics/(?P<registry_code>\w+)/(?P<patient_id>\d+)/?$',
-            patient_view.ExternalDemographicsView.as_view(), name="externaldemographics")
 ]
 
 
@@ -225,7 +224,10 @@ normalpatterns += [
             patient_view.QueryPatientView.as_view(), name='patient_query'),
 
     re_path(r"^(?P<registry_code>\w+)/patient/(?P<patient_id>\d+)/edit$",
-            patient_view.PatientEditView.as_view(), name='patient_edit'),
+            patient_view.ExternalDemographicsView.as_view()
+            if has_external_demographics
+            else patient_view.PatientEditView.as_view(),
+            name="patient_edit"),
 
     re_path(r"^(?P<registry_code>\w+)/permissions/?$",
             PermissionMatrixView.as_view(), name='permission_matrix'),
