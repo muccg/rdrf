@@ -225,7 +225,7 @@ normalpatterns += [
 
     re_path(r"^(?P<registry_code>\w+)/patient/(?P<patient_id>\d+)/edit$",
             patient_view.ExternalDemographicsView.as_view()
-            if has_external_demographics
+            if has_external_demographics()
             else patient_view.PatientEditView.as_view(),
             name="patient_edit"),
 
