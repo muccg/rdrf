@@ -101,13 +101,18 @@ class NavigationWizard(object):
         return [cfg for cfg in self.registry_model.multiple_form_groups]
 
     def _construct_demographics_link(self):
+        logger.debug("constructing demographics link")
         if has_external_demographics():
+            logger.debug("has external demographics")
             return (
                 "demographic",
                 None,
                 reverse("externaldemographics",
                         args=[self.registry_model.code,
                               self.patient_model.pk]))
+
+        logger.debug("using normal demographics")
+
         return (
             "demographic",
             None,

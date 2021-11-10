@@ -1,13 +1,13 @@
 {% extends "rdrf_cdes/base-2-cols.html" %}
+{% load translate %}
+{% load i18n %}
+
 {% block extrastyle %}
-    {{block.super}}
- 
- 
+  {{block.super}}
 {% endblock %}
 
 {% block formlinks %}
 {% endblock %}
-
 
 {% block actions %}
 {% if actions %}
@@ -24,9 +24,7 @@
 {% endblock %}
 
 {% block sidebar %}
-<!-- Sidebar -->
-	{{ context_launcher | safe }}
-<!-- /#sidebar-wrapper -->
+  {{ context_launcher | safe }}
 {% endblock %}
 
 {% block formbtns %}

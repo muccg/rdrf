@@ -97,7 +97,7 @@ two_factor_auth_urls = [
 
 integration_patterns = [
     re_path(r'^integrations/', include(('intframework.urls', 'integrations'))),
-    re_path(r'^externaldemographics/(?P<registry_code>\s+)/(?P<patient_id>\d+)/?$',
+    re_path(r'^externaldemographics/(?P<registry_code>\w+)/(?P<patient_id>\d+)/?$',
             patient_view.ExternalDemographicsView.as_view(), name="externaldemographics")
 ]
 

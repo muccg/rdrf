@@ -1199,6 +1199,9 @@ class SimpleReadonlyPatientView(View):
         if not context:
             raise Http404
         context["actions"] = self.get_actions(registry, user)
+        context["context_launcher"] = self.get_context_launcher(registry,
+                                                                patient,
+                                                                request)
 
         return render(request, template_name, context)
 
@@ -1207,6 +1210,13 @@ class SimpleReadonlyPatientView(View):
             return Patient.objects.get(id=patient_id)
         except Patient.DoesNotExist:
             raise Http404
+
+    def get_context_launcher(self, registry, patient, request):
+        context_launcher = RDRFContextLauncherComponent(request.user,
+                                                        registry,
+                                                        patient,
+                                                        rdrf_nonce=request.csp_nonce)
+        return context_launcher
 
     def get_registry(self, registry_code):
         try:
@@ -1220,13 +1230,24 @@ class SimpleReadonlyPatientView(View):
     def get_template(self):
         raise NotImplementedError()
 
+    def get_actions(self, registry, user):
+        return []
+
 
 class ExternalDemographicsView(SimpleReadonlyPatientView):
     def get_context(self, registry, user, patient):
         context = {}
         demographics_fields = []
         patient_fields = patient._meta.fields
-        context["fields"] = [(get_label(field), get_value(patient, field)) for field in patient_fields]
 
-    def get_template_name(self):
+        def get_label(field):
+            return field.name
+
+        def get_value(patient, field):
+            return getattr(patient, field.name)
+
+        context["fields"] = [(get_label(field), get_value(patient, field)) for field in patient_fields]
+        return context
+
+    def get_template(self):
         return "rdrf_cdes/external_demographics.html"
