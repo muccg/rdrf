@@ -22,7 +22,7 @@ from registry.patients.models import PatientRelative
 from registry.patients.admin_forms import PatientAddressForm
 from registry.patients.admin_forms import PatientDoctorForm
 from registry.patients.admin_forms import PatientForm
-from registry.patients.admin_forms import get_patient_form_class_with_external_fields
+# from registry.patients.admin_forms import get_patient_form_class_with_external_fields
 
 from registry.patients.admin_forms import PatientRelativeForm
 from django.utils.translation import ugettext as _
@@ -1180,7 +1180,8 @@ class SimpleReadonlyPatientView(View):
         context = self.get_context(registry, user, patient)
         if not context:
             raise Http404
-        context["actions"] = self.get_actions(registry, user)
+        context["actions"] = actions
+        context["show_archive_button"] = request.user.can_archive
         context["context_launcher"] = self.get_context_launcher(registry,
                                                                 patient,
                                                                 request)
@@ -1198,7 +1199,7 @@ class SimpleReadonlyPatientView(View):
                                                         registry,
                                                         patient,
                                                         rdrf_nonce=request.csp_nonce)
-        return context_launcher
+        return context_launcher.html
 
     def get_registry(self, registry_code):
         try:
@@ -1219,7 +1220,7 @@ class SimpleReadonlyPatientView(View):
 class ExternalDemographicsView(SimpleReadonlyPatientView):
     def get_context(self, registry, user, patient):
         context = {}
-        demographics_fields = []
+        # demographics_fields = []
         patient_fields = patient._meta.fields
 
         def get_label(field):
@@ -1228,7 +1229,10 @@ class ExternalDemographicsView(SimpleReadonlyPatientView):
         def get_value(patient, field):
             return getattr(patient, field.name)
 
-        context["fields"] = [(get_label(field), get_value(patient, field)) for field in patient_fields]
+        context["field_pairs"] = [(get_label(field), get_value(patient, field)) for field in patient_fields]
+        context["location"] = "Demographics"
+        context["patient"] = patient
+
         return context
 
     def get_template(self):

@@ -1,7 +1,35 @@
 {% extends "rdrf_cdes/simple_base.html" %}
+
+{% load i18n %}
+
+{% block formbtns %}
+	<div class="btn-group" role="group" aria-label="...">
+		{% if show_print_button %}
+			<a class="btn btn-warning" href="{% url 'registry_form_print' registry_code form_name patient_id %}" target="_blank">
+				<span class="fa fa-print" aria-hidden="true"></span> {% trans "Print" %}
+			</a>
+		{% endif %}
+    </div>
+{% endblock %}
+
 {% block content %}
-<h1>content should appear here!</h1>
-{% for field_pair in field_pairs %}
-    <label>{{field_pair.0 }}</label><div class="externalfield">{{field_pair.1}}</div><br> 
-{% endfor %}
+    <br>
+	<div class="row">
+        <div class="col-md-12">
+            <div class="card mb-4 border-info">
+                <div class="card-body">
+                    The Demographics of this patient are externally sourced and hence not editable.
+                </div>
+            </div>
+		</div>
+	</div>
+
+    <div class="card mb-3">
+        <div class="card-body">
+            {% for field_pair in field_pairs %}
+                <label class="col-md-2 col-form-label fw-bold">{{field_pair.0 }}</label>
+                <label class="col-md-8 externalfield">{{field_pair.1}}</label>
+            {% endfor %}
+        </div>
+    </div>
 {% endblock %}

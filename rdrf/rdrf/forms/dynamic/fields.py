@@ -8,7 +8,7 @@ from django.forms import URLField
 from django.forms import DateField
 from django.forms import MultipleChoiceField
 from rdrf.forms.widgets.widgets import MultipleFileInput
-from rdrf.forms.widgets.widgets import HiddenInput
+# from rdrf.forms.widgets.widgets import HiddenInput
 from rdrf.forms.widgets.widgets import ExternalWidget
 from django.core.exceptions import ValidationError
 

@@ -528,8 +528,8 @@ class PatientForm(forms.ModelForm):
 
 def get_patient_form_class_with_external_fields(external_fields):
     from rdrf.forms.dynamic.fields import ExternalField
-    from rdrf.forms.widgets.widgets import ExternalWidget
-    from registry.patients.models import Patient
+    # from rdrf.forms.widgets.widgets import ExternalWidget
+    # from registry.patients.models import Patient
 
     if not external_fields:
         return PatientForm
@@ -539,7 +539,7 @@ def get_patient_form_class_with_external_fields(external_fields):
         instance = getattr(self, 'instance', None)
         if instance and instance.pk:
             for external_field in external_fields:
-                #self.fields[external_field].widget.attrs["readonly"] = True
+                # self.fields[external_field].widget.attrs["readonly"] = True
                 logger.debug(f"{external_field} field = {self.fields[external_field]}")
 
     my_dict = {"__init__": my_init}
