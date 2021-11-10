@@ -11,6 +11,7 @@ from rdrf.models.definition.models import CdePolicy
 from rdrf.models.definition.models import DemographicFields
 from rdrf.helpers.utils import consent_status_for_patient
 from rdrf.helpers.utils import anonymous_not_allowed
+from rdrf.helpers.utils import has_external_demographics
 
 from django.forms.models import inlineformset_factory
 from django.utils.html import strip_tags
@@ -628,6 +629,10 @@ class PatientEditView(View):
         logger.info("DEMOGRAPHICSGET %s %s %s" % (request.user,
                                                   registry_code,
                                                   patient_id))
+
+        if has_external_demographics():
+            raise Http404()
+
         if not request.user.is_authenticated:
             patient_edit_url = reverse('patient_edit', args=[registry_code, patient_id, ])
             login_url = reverse('two_factor:login')
