@@ -1,5 +1,6 @@
 import logging
 from django.urls import reverse
+from django.urls import NoReverseMatch
 from intframework.models import HL7Mapping, HL7Message
 from intframework.utils import get_event_code
 from intframework.utils import parse_demographics_moniker
@@ -203,12 +204,12 @@ class HL7Handler:
             logger.error(f"Error creating/updating patient {umrn}: {ex}")
             return None
 
+        self.patient_attributes["patient_url"] = ""
         if hasattr(patient, "pk"):
             try:
-                patient_url = reverse("externaldemographics", args=[registry.code, patient.pk])
-            except Exception:
-                patient_url = ""
-            self.patient_attributes["patient_url"] = patient_url
-        else:
-            self.patient_attributes["patient_url"] = ""
+                self.patient_attributes["patient_url"] = reverse("externaldemographics",
+                                                                 args=[registry.code, patient.pk])
+            except NoReverseMatch as nrm:
+                pass
+
         return self.patient_attributes
