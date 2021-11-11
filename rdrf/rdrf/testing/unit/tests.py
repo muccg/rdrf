@@ -2387,6 +2387,22 @@ class HL7HandlerTestCase(RDRFTestCase):
         self.assertEqual(updated_patient.given_names.upper(), "FRANCIS")
         self.assertEqual(updated_patient.home_phone, "65437890")
 
+    def test_subscribed_function(self):
+        from intframework.utils import patient_subscribed
+        from intframework.utils import parse_message
+        this_dir = os.path.dirname(__file__)
+        mock_message_path = os.path.abspath(os.path.join(this_dir, "mock-message.txt"))
+        m = parse_message(mock_message_path)
+        self.assertTrue(patient_subscribed(m), "Mock message has AA so should be subscribed")
+
+    def test_patient_found_function(self):
+        from intframework.utils import patient_found
+        from intframework.utils import parse_message
+        this_dir = os.path.dirname(__file__)
+        mock_message_path = os.path.abspath(os.path.join(this_dir, "mock-message.txt"))
+        m = parse_message(mock_message_path)
+        self.assertTrue(patient_found(m), "Mock message has PID  so patient should be found")
+
 
 class FamilyLinkageTestCase(RDRFTestCase):
 

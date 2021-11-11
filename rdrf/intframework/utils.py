@@ -34,15 +34,27 @@ def get_event_code(message: hl7.Message) -> str:
             return "error"
 
 
-def patient_not_found(message: hl7.Message) -> bool:
+def patient_found(message: hl7.Message) -> bool:
     """
-    find a PID segment == OK
+    patient found == message contains PID segment
     """
     try:
         message["PID"]
-        return False
-    except KeyError:
         return True
+    except Exception:
+        pass
+    return False
+
+
+def patient_subscribed(message: hl7.Message) -> bool:
+    """
+    Look for AA status code of MSA Accept Acknowledgement Code
+    """
+    try:
+        return message["MSA.1"] == "AA"
+    except Exception:
+        pass
+    return False
 
 
 class TransformFunctionError(Exception):
