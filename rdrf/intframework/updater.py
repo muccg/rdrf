@@ -204,8 +204,11 @@ class HL7Handler:
             return None
 
         if hasattr(patient, "pk"):
-            self.patient_attributes["patient_url"] = reverse("externaldemographics",
-                                                             args=[registry.code, patient.pk])
+            try:
+                patient_url = reverse("externaldemographics", args=[registry.code, patient.pk])
+            except Exception:
+                patient_url = ""
+            self.patient_attributes["patient_url"] = patient_url
         else:
             self.patient_attributes["patient_url"] = ""
         return self.patient_attributes
