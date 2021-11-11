@@ -209,7 +209,7 @@ class HL7Handler:
             try:
                 self.patient_attributes["patient_url"] = reverse("externaldemographics",
                                                                  args=[registry.code, patient.pk])
-            except NoReverseMatch as nrm:
+            except NoReverseMatch:
                 pass
 
         return self.patient_attributes
