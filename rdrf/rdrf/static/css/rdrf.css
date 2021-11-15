@@ -295,3 +295,8 @@ form .aligned ul.errorlist {
     background-image: url("../icons/bootstrap/red-exclamation.svg");
     background-size: 16px 16px;
 }
+     
+.externalfield {
+    color: green;
+    font-weight: bold;
+}

@@ -11,7 +11,8 @@ from django_redis import get_redis_connection
 from intframework.hub import Client, MockClient
 from intframework.updater import HL7Handler
 from intframework.models import HL7Message
-from intframework.utils import patient_not_found
+from intframework.utils import patient_subscribed
+from intframework.utils import patient_found
 from rdrf.helpers.utils import anonymous_not_allowed
 from rdrf.models.definition.models import Registry
 from typing import Any, Optional
@@ -44,13 +45,13 @@ class IntegrationHubRequestView(View):
         elif hub_response["result"] == HubResult.SUCCESS:
             logger.info("hub query succeeded - message returned")
             hl7message = hub_response["hl7message"]
-            if patient_not_found(hl7message):
+            if not patient_found(hl7message):
                 logger.error("hub query error: no patient in response message")
                 client_response_dict = {"status": HubResult.NOT_FOUND}
             else:
                 logger.info("hub query: patient found in response")
                 logger.info(f"setup redis config for {registry_code}")
-                hl7_handler = HL7Handler(umrn=umrn, hl7message=hl7message)
+                hl7_handler = HL7Handler(umrn=umrn, hl7message=hl7message, username=request.user.username)
                 response_data = hl7_handler.handle()
                 client_response_dict = response_data
                 client_response_dict["status"] = HubResult.SUCCESS
@@ -90,10 +91,10 @@ class IntegrationHubRequestView(View):
             result_model.state = "R"
             result_model.save()
 
-            if patient_not_found(result_message):
-                result_model.error_message = "No PID in result - not subscribed?"
+            if not patient_subscribed(result_message):
+                result_model.error_message = "No AA - not subscribed?"
                 result_model.save()
-                logger.error("No PID in subscription result - not subscribed?")
+                logger.error("No AA in subscription result - not subscribed?")
             else:
                 logger.info(f"{umrn} is subscribed for further updates")
 

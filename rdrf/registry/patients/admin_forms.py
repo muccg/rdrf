@@ -526,6 +526,32 @@ class PatientForm(forms.ModelForm):
                 % ",".join(bad_regs))
 
 
+def get_patient_form_class_with_external_fields(external_fields):
+    from rdrf.forms.dynamic.fields import ExternalField
+    # from rdrf.forms.widgets.widgets import ExternalWidget
+    # from registry.patients.models import Patient
+
+    if not external_fields:
+        return PatientForm
+
+    def my_init(self, *args, **kwargs):
+        PatientForm.__init__(self, *args, **kwargs)
+        instance = getattr(self, 'instance', None)
+        if instance and instance.pk:
+            for external_field in external_fields:
+                # self.fields[external_field].widget.attrs["readonly"] = True
+                logger.debug(f"{external_field} field = {self.fields[external_field]}")
+
+    my_dict = {"__init__": my_init}
+
+    for external_field in external_fields:
+        my_dict[external_field] = ExternalField()
+
+    klass = type("PatientFormWithExternalFields", (PatientForm,), my_dict)
+
+    return klass
+
+
 class ParentGuardianForm(forms.ModelForm):
     class Meta:
         model = ParentGuardian

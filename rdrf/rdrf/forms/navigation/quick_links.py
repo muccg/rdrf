@@ -30,6 +30,7 @@ class Links:
     if settings.SYSTEM_ROLE in (SystemRoles.NORMAL, SystemRoles.CIC_DEV, SystemRoles.CIC_CLINICAL):
         HL7Mappings = QuickLink(reverse("admin:intframework_hl7mapping_changelist"), _("HL7 Mappings"))
         HL7Messages = QuickLink(reverse("admin:intframework_hl7message_changelist"), _("HL7 Messages"))
+        HL7MessageConfigs = QuickLink(reverse("admin:intframework_hl7messageconfig_changelist"), _("HL7 Message Config"))
         PatientsListing = QuickLink(reverse("patientslisting"), _("Patient List"))
         QuestionnaireResponses = QuickLink(reverse("admin:rdrf_questionnaireresponse_changelist"),
                                            _("Questionnaire Responses"))
@@ -144,7 +145,8 @@ class Links:
         # related links are grouped or convenience
         HL7_LINKS = {
             HL7Mappings.text: HL7Mappings,
-            HL7Messages.text: HL7Messages
+            HL7Messages.text: HL7Messages,
+            HL7MessageConfigs.text: HL7MessageConfigs,
         }
         AUDITING = {
             LoginLog.text: LoginLog,

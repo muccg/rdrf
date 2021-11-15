@@ -2,7 +2,7 @@ from django.contrib import admin
 from django.urls import reverse
 from django.utils.safestring import mark_safe
 
-from .models import HL7Mapping, HL7Message, HL7MessageFieldUpdate
+from .models import HL7Mapping, HL7Message, HL7MessageFieldUpdate, HL7MessageConfig
 
 
 class HL7MappingAdmin(admin.ModelAdmin):
@@ -42,5 +42,11 @@ class HL7MessageAdmin(admin.ModelAdmin):
         return updates
 
 
+class HL7MessageConfigAdmin(admin.ModelAdmin):
+    list_display = ("event_code", "created", "updated", "config")
+    search_fields = ["event_code"]
+
+
 admin.site.register(HL7Mapping, HL7MappingAdmin)
 admin.site.register(HL7Message, HL7MessageAdmin)
+admin.site.register(HL7MessageConfig, HL7MessageConfigAdmin)

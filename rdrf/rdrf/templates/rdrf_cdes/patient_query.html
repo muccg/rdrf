@@ -7,7 +7,7 @@
 {% block content %}
     <div class="row">
         <div class="col-md-12">
-            <p><h3><span class="fa fa-list-alt" aria-hidden="true"></span> {% trans 'Hub Query' %}</h3></p>
+            <p><h3><span class="fa fa-list-alt" aria-hidden="true"></span> {% trans 'Patient Query' %}</h3></p>
             <i class="text-muted"><span class="fa fa-user" aria-hidden="true"></span> {{user.first_name}} {{user.last_name}} ({{user.title}})</i>
         </div>
     </div>
@@ -17,7 +17,7 @@
             <label for="id_umrn">Patient UMRN:</label>
             <input type="text" name="umrn" id="id_umrn" placeholder="UMRN"/>
             <button type="button" id="query_patient" class="btn btn-primary me-md-2">
-                <span class="fa fa-search" aria-hidden="true"></span> {% trans 'Load Patient from Hub' %}
+                <span class="fa fa-search" aria-hidden="true"></span> {% trans 'Patient Query' %}
             </button>
             <span id="status_div"></span>
         </form>

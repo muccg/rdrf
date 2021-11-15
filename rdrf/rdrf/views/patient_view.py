@@ -8,8 +8,10 @@ from django.http import HttpResponseRedirect, Http404
 
 from rdrf.models.definition.models import Registry
 from rdrf.models.definition.models import CdePolicy
+from rdrf.models.definition.models import DemographicFields
 from rdrf.helpers.utils import consent_status_for_patient
 from rdrf.helpers.utils import anonymous_not_allowed
+from rdrf.helpers.utils import has_external_demographics
 
 from django.forms.models import inlineformset_factory
 from django.utils.html import strip_tags
@@ -22,6 +24,8 @@ from registry.patients.models import PatientRelative
 from registry.patients.admin_forms import PatientAddressForm
 from registry.patients.admin_forms import PatientDoctorForm
 from registry.patients.admin_forms import PatientForm
+# from registry.patients.admin_forms import get_patient_form_class_with_external_fields
+
 from registry.patients.admin_forms import PatientRelativeForm
 from django.utils.translation import ugettext as _
 
@@ -42,6 +46,22 @@ from django.contrib.auth.decorators import login_required
 
 import logging
 logger = logging.getLogger(__name__)
+
+
+def get_user_group_names(user):
+    return list(user.groups.all().values_list("name", flat=True))
+
+
+def get_external_patient_fields():
+    from intframework.models import HL7Mapping
+    fields = []
+    for mapping in HL7Mapping.objects.all():
+        event_map = mapping.load()
+        for key in event_map:
+            if key.startswith("Demographics/"):
+                _, field = key.split("/")
+                fields.append(field)
+    return fields
 
 
 class PatientMixin(object):
@@ -485,6 +505,11 @@ class AddPatientView(PatientFormMixin, CreateView):
     @method_decorator(anonymous_not_allowed)
     @method_decorator(login_required)
     def get(self, request, registry_code):
+
+        registry = Registry.objects.get(code=registry_code)
+        if registry.has_feature("no_add_patient_button"):
+            raise Http404()
+
         logger.info("PATIENTADD %s %s" % (request.user,
                                           registry_code))
         if not request.user.is_authenticated:
@@ -568,7 +593,7 @@ class AddPatientView(PatientFormMixin, CreateView):
 
     def _section_hidden(self, user, registry, fieldlist):
         from rdrf.models.definition.models import DemographicFields
-        user_groups = [g.name for g in user.groups.all()]
+        user_groups = get_user_group_names(user)
         hidden_fields = DemographicFields.objects.filter(field__in=fieldlist,
                                                          registry=registry,
                                                          group__name__in=user_groups,
@@ -604,6 +629,10 @@ class PatientEditView(View):
         logger.info("DEMOGRAPHICSGET %s %s %s" % (request.user,
                                                   registry_code,
                                                   patient_id))
+
+        if has_external_demographics():
+            raise Http404()
+
         if not request.user.is_authenticated:
             patient_edit_url = reverse('patient_edit', args=[registry_code, patient_id, ])
             login_url = reverse('two_factor:login')
@@ -613,8 +642,7 @@ class PatientEditView(View):
 
         section_blacklist = self._check_for_blacklisted_sections(registry_model)
 
-        patient, form_sections = self._get_patient_and_forms_sections(
-            patient_id, registry_code, request)
+        patient, form_sections = self._get_patient_and_forms_sections(patient_id, registry_code, request)
 
         security_check_user_patient(request.user, patient)
 
@@ -1133,7 +1161,7 @@ class PatientEditView(View):
 
     def _section_hidden(self, user, registry, fieldlist):
         from rdrf.models.definition.models import DemographicFields
-        user_groups = [g.name for g in user.groups.all()]
+        user_groups = get_user_group_names(user)
         hidden_fields = DemographicFields.objects.filter(field__in=fieldlist,
                                                          registry=registry,
                                                          group__name__in=user_groups,
@@ -1148,3 +1176,104 @@ class QueryPatientView(View):
     def get(self, request, registry_code):
         context = {'registry_code': registry_code}
         return render(request, "rdrf_cdes/patient_query.html", context)
+
+
+class SimpleReadonlyPatientView(View):
+    @method_decorator(anonymous_not_allowed)
+    @method_decorator(login_required)
+    def get(self, request, registry_code, patient_id):
+        registry = self.get_registry(registry_code)
+        user = request.user
+        patient = self.get_patient(patient_id)
+        template_name = self.get_template()
+        actions = self.get_actions(registry, user)
+        context = self.get_context(registry, user, patient)
+        if not context:
+            raise Http404
+        context["actions"] = actions
+        context["show_archive_button"] = request.user.can_archive
+        context["context_launcher"] = self.get_context_launcher(registry,
+                                                                patient,
+                                                                request)
+
+        return render(request, template_name, context)
+
+    def get_patient(self, patient_id):
+        try:
+            return Patient.objects.get(id=patient_id)
+        except Patient.DoesNotExist:
+            raise Http404
+
+    def get_context_launcher(self, registry, patient, request):
+        context_launcher = RDRFContextLauncherComponent(request.user,
+                                                        registry,
+                                                        patient,
+                                                        rdrf_nonce=request.csp_nonce)
+        return context_launcher.html
+
+    def get_registry(self, registry_code):
+        try:
+            return Registry.objects.get(code=registry_code)
+        except Registry.DoesNotExist:
+            raise Http404
+
+    def get_context(self, registry, user, patient):
+        pass
+
+    def get_template(self):
+        raise NotImplementedError()
+
+    def get_actions(self, registry, user):
+        return []
+
+
+class ExternalDemographicsView(SimpleReadonlyPatientView):
+
+    FIELDS_NOT_SHOWN = ["id", "deident", "consent", "active", "inactive_reason", "clinician",
+                        "user", "living_status", "patient_type",
+                        "consent_clinical_trials", "consent_sent_information",
+                        "consent_provided_by_parent_guardian"]
+
+    def _get_hidden_fields(self, user, registry):
+        user_groups = get_user_group_names(user)
+        hidden_fields = DemographicFields.objects.filter(registry=registry,
+                                                         group__name__in=user_groups,
+                                                         hidden=True).values_list("field", flat=True)
+        return list(hidden_fields) + self.FIELDS_NOT_SHOWN
+
+    def _patient_fields(self, user, registry, fields):
+        hidden = self._get_hidden_fields(user, registry)
+        return [field for field in fields if field.name not in hidden]
+
+    def get_context(self, registry, user, patient):
+        context = {}
+        patient_fields = self._patient_fields(user, registry, patient._meta.fields)
+
+        def get_label(field):
+            return field.verbose_name
+
+        def get_value(patient, field):
+            value = getattr(patient, field.name)
+            if field.name == "sex":
+                for choice in Patient.SEX_CHOICES:
+                    if choice[0] == value:
+                        value = choice[1]
+            return value
+
+        wizard = NavigationWizard(user,
+                                  registry,
+                                  patient,
+                                  NavigationFormType.DEMOGRAPHICS,
+                                  None,
+                                  None)
+        context["next_form_link"] = wizard.next_link
+        context["previous_form_link"] = wizard.previous_link
+
+        context["field_pairs"] = [(get_label(field), get_value(patient, field)) for field in patient_fields]
+        context["location"] = "Demographics"
+        context["patient"] = patient
+
+        return context
+
+    def get_template(self):
+        return "rdrf_cdes/external_demographics.html"

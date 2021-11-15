@@ -37,7 +37,7 @@ def run_custom_action(custom_action_id, user_id, patient_id, input_data):
 def handle_hl7_message(umrn, message: hl7.Message):
     event_code = get_event_code(message)
     logger.info(f"HL7 handler: {umrn} {event_code} received")
-    hl7_handler = HL7Handler(umrn=umrn, hl7message=message)
+    hl7_handler = HL7Handler(umrn=umrn, hl7message=message, username="updater")
     response_data = hl7_handler.handle()
     if response_data:
         logger.info(f"HL7 handler: {umrn} {event_code} processed")
