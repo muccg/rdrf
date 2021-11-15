@@ -3,6 +3,7 @@ from django.urls import reverse
 from django.urls import NoReverseMatch
 from intframework.models import HL7Mapping, HL7Message
 from intframework.utils import get_event_code
+from intframework.utils import get_umrn
 from intframework.utils import parse_demographics_moniker
 from rdrf.models.definition.models import Registry
 from rdrf.models.definition.models import RegistryForm
@@ -101,6 +102,7 @@ class HL7Handler:
 
     def _get_update_dict(self, registry_code: str) -> Tuple[Optional[dict], HL7Message]:
         event_code = get_event_code(self.hl7message)
+        message_model = self._create_message_model(registry_code, self.hl7message)
 
         try:
             patient = Patient.objects.get(umrn=self.umrn)
@@ -108,7 +110,7 @@ class HL7Handler:
             patient = None
         try:
             hl7_mapping = HL7Mapping.objects.get(event_code=event_code)
-            update_dict, message_model = hl7_mapping.parse(self.hl7message, patient, registry_code)
+            update_dict, message_model = hl7_mapping.parse(self.hl7message, patient, registry_code, message_model)
             return update_dict, message_model
         except HL7Mapping.DoesNotExist:
             message = f"mapping doesn't exist Unknown message event code: {event_code}"
@@ -122,6 +124,22 @@ class HL7Handler:
             message_model.error_message = message
             message_model.save()
             return None, message_model
+        except Exception as ex:
+            message = f"Unhandled error: {ex}"
+            message_model.error_message = message
+            message_model.save()
+            return None, message_model
+
+    def _create_message_model(self, registry_code, message):
+        event_code = get_event_code(message)
+        umrn = get_umrn(message)
+        message_model = HL7Message(username="HL7Updater",
+                                   event_code=event_code,
+                                   content=message,
+                                   umrn=umrn,
+                                   registry_code=registry_code)
+        message_model.save()
+        return message_model
 
     def _update_patient(self) -> Optional[Patient]:
         patient = None
