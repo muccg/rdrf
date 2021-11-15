@@ -96,7 +96,9 @@ two_factor_auth_urls = [
 ]
 
 integration_patterns = [
-    re_path(r'^integrations/', include(('intframework.urls', 'integrations')))
+    re_path(r'^integrations/', include(('intframework.urls', 'integrations'))),
+    re_path(r'^externaldemographics/(?P<registry_code>\w+)/(?P<patient_id>\d+)/?$',
+            patient_view.ExternalDemographicsView.as_view(), name="externaldemographics")
 ]
 
 
@@ -223,7 +225,7 @@ normalpatterns += [
             patient_view.QueryPatientView.as_view(), name='patient_query'),
 
     re_path(r"^(?P<registry_code>\w+)/patient/(?P<patient_id>\d+)/edit$",
-            patient_view.PatientEditView.as_view(), name='patient_edit'),
+            patient_view.PatientEditView.as_view(), name="patient_edit"),
 
     re_path(r"^(?P<registry_code>\w+)/permissions/?$",
             PermissionMatrixView.as_view(), name='permission_matrix'),

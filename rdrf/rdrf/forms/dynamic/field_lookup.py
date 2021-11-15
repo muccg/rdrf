@@ -13,6 +13,8 @@ from rdrf.forms.dynamic.calculated_fields import CalculatedFieldScriptCreator, C
 from rdrf.forms.dynamic.validation import ValidatorFactory
 from rdrf.models.definition.models import CommonDataElement
 
+from intframework.utils import get_field_source
+
 from django.utils.functional import lazy
 from django.utils.translation import ugettext_lazy as _
 from django.conf import settings
@@ -318,6 +320,11 @@ class FieldFactory(object):
 
         """
         options = self._get_field_options()
+
+        if self._is_external():
+            from rdrf.forms.dynamic.fields import ExternalField
+            return ExternalField(**options)
+
         if self._is_dropdown():
             choices = self._get_permitted_value_choices()
             options['choices'] = choices
@@ -459,6 +466,9 @@ class FieldFactory(object):
             return fields.MultipleFileField(**options)
         else:
             return FileField(**options)
+
+    def _is_external(self):
+        return get_field_source(self.cde.code) == "external"
 
 
 class ComplexFieldParseError(Exception):

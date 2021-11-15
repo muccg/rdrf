@@ -17,6 +17,7 @@ from rdrf.forms.components import FormGroupButton
 from registry.patients.models import Patient
 from rdrf.helpers.utils import MinType
 from rdrf.helpers.utils import consent_check
+from rdrf.helpers.utils import has_external_demographics
 from django.utils.translation import ugettext as _
 
 import logging
@@ -419,8 +420,12 @@ class ColumnFullName(Column):
             return "<span>%d %s</span>"
 
         # cache reversed url because urlroute searches are slow
-        base_url = reverse("patient_edit", kwargs={"registry_code": registry.code,
-                                                   "patient_id": 0})
+        if has_external_demographics():
+            base_url = reverse("externaldemographics", kwargs={"registry_code": registry.code,
+                                                               "patient_id": 0})
+        else:
+            base_url = reverse("patient_edit", kwargs={"registry_code": registry.code,
+                                                       "patient_id": 0})
         self.link_template = '<a href="%s">%%s</a>' % (base_url.replace("/0", "/%d"))
 
     def cell(self, patient, supports_contexts=False, form_progress=None, context_manager=None):
