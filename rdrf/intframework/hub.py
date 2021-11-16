@@ -193,7 +193,7 @@ class Client:
 
     def send_message(self, message: hl7.Message) -> dict:
         logger.info(f"hub query for {self.umrn} ..")
-        result = None
+        result = {"status": "fail"}
         try:
             result_message = hl7.parse(self.hl7_client.send_message(message))
             logger.info(f"hub query success {self.umrn}")
@@ -203,12 +203,10 @@ class Client:
             logger.error(f"hub query fail {self.umrn}: {pex}")
             self.message_model.state = "E"
             self.message_model.error = pex
-            result = {"status": "fail"}
         except Exception as ex:
             logger.error(f"hub query fail {self.umrn}: {ex}")
             self.message_model.state = "E"
             self.message_model.error = ex
-            result = {"status": "fail"}
         self.message_model.save()
         return result
 
