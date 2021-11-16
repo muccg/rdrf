@@ -807,6 +807,8 @@ CACHES['blackboard'] = {
 
 CELERY_BROKER_URL = env.get('CELERY_BROKER_URL', 'redis://rediscache')
 CELERY_RESULT_BACKEND = CELERY_BROKER_URL
+one_month = 3600 * 24 * 30  # in seconds
+CELERY_RESULT_EXPIRES = env.get("CELERY_RESULT_EXPIRES", one_month)
 CELERY_ACCEPT_CONTENT = ['json', 'pickle']
 CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_SERIALIZER = 'json'
