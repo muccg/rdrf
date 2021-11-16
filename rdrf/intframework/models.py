@@ -1,14 +1,12 @@
 import hl7
 import json
 import logging
-# from django.conf import settings
 from django.db import models
 from django.contrib.postgres.fields import JSONField
 from intframework import utils
 from intframework.utils import TransformFunctionError
 from intframework.utils import MessageSearcher
 from intframework.utils import NotFoundError
-from intframework.utils import get_umrn
 from typing import Tuple
 
 logger = logging.getLogger(__name__)

@@ -184,7 +184,7 @@ class HL7Handler:
             field_dict, message_model = self._get_update_dict(registry.code)
             if field_dict is None:
                 logger.error("field_dict is None")
-                return None
+                return {"error": "field_dict is None"}
             self.patient_attributes = self._parse_demographics_fields(field_dict)
             self.patient_cdes = self._parse_cde_fields(field_dict)
             umrn = self.patient_attributes["umrn"]
@@ -200,7 +200,6 @@ class HL7Handler:
                     message_model.umrn = umrn
                     message_model.state = "R"
                     message_model.save()
-
             else:
                 logger.info(f"No patient exists with umrn: {umrn}: a new patient will be created")
                 patient = Patient(**self.patient_attributes)
@@ -220,7 +219,8 @@ class HL7Handler:
                 self._populate_pmi(registry.code, patient, umrn, default_context)
         except Exception as ex:
             logger.error(f"Error creating/updating patient {umrn}: {ex}")
-            return None
+            return {"Error creating/updating patient with UMRN": umrn,
+                    "Exception": ex}
 
         self.patient_attributes["patient_url"] = ""
         if hasattr(patient, "pk"):
