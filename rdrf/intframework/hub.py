@@ -196,16 +196,19 @@ class Client:
         try:
             result_message = hl7.parse(self.hl7_client.send_message(message))
             logger.info(f"hub query success {self.umrn}")
-            if self.message_model:
-                self.message_model.state = "S"
-                self.message_model.save()
+            self.message_model.state = "S"
             return {"message": result_message, "status": "success"}
         except hl7.ParseException as pex:
             logger.error(f"hub query fail {self.umrn}: {pex}")
+            self.message_model.state = "E"
+            self.message_model.error = pex
             return {"status": "fail"}
         except Exception as ex:
             logger.error(f"hub query fail {self.umrn}: {ex}")
+            self.message_model.state = "E"
+            self.message_model.error = ex
             return {"status": "fail"}
+        self.message_model.save()
 
 
 class MockClient(Client):

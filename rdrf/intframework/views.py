@@ -128,6 +128,13 @@ class IntegrationHubRequestView(View):
         logger.info(f"getting hub response for umrn {umrn}")
         hub = self._get_hub(registry_model, user_model)
         if hub is None:
+            result_model = HL7Message()
+            result_model.username = user_model.username
+            result_model.registry_code = registry_model.code
+            result_model.umrn = umrn
+            result_model.state = "E"
+            result_model.error = "Connection error"
+            result_model.save()
             return {"result": HubResult.CONNECTION_ERROR}
 
         hub_data: dict = hub.get_data(umrn)
