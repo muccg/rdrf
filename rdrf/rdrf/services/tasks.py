@@ -4,8 +4,6 @@ from intframework.updater import HL7Handler
 import hl7
 from celery.utils.log import get_task_logger
 
-import logging
-
 logger = get_task_logger(__name__)
 
 logger.info("registering tasks ...")
