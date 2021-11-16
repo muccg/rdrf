@@ -8,6 +8,8 @@ import logging
 
 logger = get_task_logger(__name__)
 
+logger.info("registering tasks ...")
+
 
 @app.task(name="rdrf.services.tasks.run_custom_action")
 def run_custom_action(custom_action_id, user_id, patient_id, input_data):

@@ -612,6 +612,13 @@ LOGGING = {
             'when': 'midnight',
             'formatter': 'verbose'
         },
+        'celery-file': {
+            'level': 'INFO',
+            'class': 'ccg_django_utils.loghandlers.ParentPathFileHandler',
+            'filename': os.path.join(LOG_DIRECTORY, 'celery.log'),
+            'when': 'midnight',
+            'formatter': 'verbose'
+        },
         'ldap-file': {
             'level': 'DEBUG',
             'class': 'ccg_django_utils.loghandlers.ParentPathFileHandler',
@@ -678,7 +685,7 @@ LOGGING = {
             'propagate': True,
         },
         'celery': {
-            'handlers': ['file', 'console'],
+            'handlers': ['celery-file', 'console'],
             'level': 'DEBUG' if DEBUG else 'INFO',
             'propagate': True,
         }
