@@ -2,10 +2,11 @@ from rdrf.celery import app
 from intframework.utils import get_event_code
 from intframework.updater import HL7Handler
 import hl7
+from celery.utils.log import get_task_logger
 
 import logging
 
-logger = logging.getLogger(__name__)
+logger = get_task_logger(__name__)
 
 
 @app.task(name="rdrf.services.tasks.run_custom_action")

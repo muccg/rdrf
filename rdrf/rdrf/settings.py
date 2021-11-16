@@ -676,6 +676,11 @@ LOGGING = {
             'handlers': ['ldap-file', 'console'],
             'level': 'DEBUG' if RDRF_LDAP_DEBUG else 'INFO',
             'propagate': True,
+        },
+        'celery': {
+            'handlers': ['file', 'console'],
+            'level': 'DEBUG' if DEBUG else 'INFO',
+            'propagate': True,
         }
     }
 }
