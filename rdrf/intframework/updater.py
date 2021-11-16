@@ -70,6 +70,21 @@ class HL7Handler:
         self.hl7message = kwargs.get("hl7message", None)
         self.username = kwargs.get("username", "unknown")
 
+    def _get_mapping(self, event_code):
+        try:
+            mapping = HL7Mapping.objects.get(event_code=event_code)
+            logger.info(f"found mapping for {event_code}")
+            return mapping
+        except HL7Mapping.DoesNotExist:
+            try:
+                logger.error(f"No mapping for event code {event_code}")
+                fallback_mapping = HL7Mapping.objects.get(event_code="fallback")
+                logger.info(f"using fallback mapping instead of {event_code}")
+                return fallback_mapping
+            except HL7Mapping.DoesNotExist:
+                logger.error("No fallback mapping defined on the site")
+                raise
+
     def _parse_demographics_fields(self, field_dict) -> dict:
         field_values = {}
         for key, value in field_dict.items():
@@ -109,7 +124,7 @@ class HL7Handler:
         except Patient.DoesNotExist:
             patient = None
         try:
-            hl7_mapping = HL7Mapping.objects.get(event_code=event_code)
+            hl7_mapping = self._get_mapping(event_code)
             update_dict, message_model = hl7_mapping.parse(self.hl7message, patient, registry_code, message_model)
             return update_dict, message_model
         except HL7Mapping.DoesNotExist:
