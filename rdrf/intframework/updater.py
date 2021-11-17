@@ -3,6 +3,7 @@ from django.urls import reverse
 from django.urls import NoReverseMatch
 from intframework.models import HL7Mapping, HL7Message
 from intframework.utils import get_event_code
+from intframework.utils import get_umrn
 from intframework.utils import parse_demographics_moniker
 from rdrf.models.definition.models import Registry
 from rdrf.models.definition.models import RegistryForm
@@ -69,6 +70,21 @@ class HL7Handler:
         self.hl7message = kwargs.get("hl7message", None)
         self.username = kwargs.get("username", "unknown")
 
+    def _get_mapping(self, event_code):
+        try:
+            mapping = HL7Mapping.objects.get(event_code=event_code)
+            logger.info(f"found mapping for {event_code}")
+            return mapping
+        except HL7Mapping.DoesNotExist:
+            try:
+                logger.error(f"No mapping for event code {event_code}")
+                fallback_mapping = HL7Mapping.objects.get(event_code="fallback")
+                logger.info(f"using fallback mapping instead of {event_code}")
+                return fallback_mapping
+            except HL7Mapping.DoesNotExist:
+                logger.error("No fallback mapping defined on the site")
+                raise
+
     def _parse_demographics_fields(self, field_dict) -> dict:
         field_values = {}
         for key, value in field_dict.items():
@@ -101,14 +117,15 @@ class HL7Handler:
 
     def _get_update_dict(self, registry_code: str) -> Tuple[Optional[dict], HL7Message]:
         event_code = get_event_code(self.hl7message)
+        message_model = self._create_message_model(registry_code, self.hl7message)
 
         try:
             patient = Patient.objects.get(umrn=self.umrn)
         except Patient.DoesNotExist:
             patient = None
         try:
-            hl7_mapping = HL7Mapping.objects.get(event_code=event_code)
-            update_dict, message_model = hl7_mapping.parse(self.hl7message, patient, registry_code)
+            hl7_mapping = self._get_mapping(event_code)
+            update_dict, message_model = hl7_mapping.parse(self.hl7message, patient, registry_code, message_model)
             return update_dict, message_model
         except HL7Mapping.DoesNotExist:
             message = f"mapping doesn't exist Unknown message event code: {event_code}"
@@ -122,6 +139,22 @@ class HL7Handler:
             message_model.error_message = message
             message_model.save()
             return None, message_model
+        except Exception as ex:
+            message = f"Unhandled error: {ex}"
+            message_model.error_message = message
+            message_model.save()
+            return None, message_model
+
+    def _create_message_model(self, registry_code, message):
+        event_code = get_event_code(message)
+        umrn = get_umrn(message)
+        message_model = HL7Message(username="HL7Updater",
+                                   event_code=event_code,
+                                   content=message,
+                                   umrn=umrn,
+                                   registry_code=registry_code)
+        message_model.save()
+        return message_model
 
     def _update_patient(self) -> Optional[Patient]:
         patient = None
@@ -166,7 +199,7 @@ class HL7Handler:
             field_dict, message_model = self._get_update_dict(registry.code)
             if field_dict is None:
                 logger.error("field_dict is None")
-                return None
+                return {"error": "field_dict is None"}
             self.patient_attributes = self._parse_demographics_fields(field_dict)
             self.patient_cdes = self._parse_cde_fields(field_dict)
             umrn = self.patient_attributes["umrn"]
@@ -182,7 +215,6 @@ class HL7Handler:
                     message_model.umrn = umrn
                     message_model.state = "R"
                     message_model.save()
-
             else:
                 logger.info(f"No patient exists with umrn: {umrn}: a new patient will be created")
                 patient = Patient(**self.patient_attributes)
@@ -202,7 +234,8 @@ class HL7Handler:
                 self._populate_pmi(registry.code, patient, umrn, default_context)
         except Exception as ex:
             logger.error(f"Error creating/updating patient {umrn}: {ex}")
-            return None
+            return {"Error creating/updating patient with UMRN": umrn,
+                    "Exception": ex}
 
         self.patient_attributes["patient_url"] = ""
         if hasattr(patient, "pk"):
