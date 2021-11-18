@@ -1272,7 +1272,8 @@ class ExternalDemographicsView(SimpleReadonlyPatientView):
         context["field_pairs"] = [(get_label(field), get_value(patient, field)) for field in patient_fields]
         context["location"] = "Demographics"
         context["patient"] = patient
-
+        context["archive_patient_url"] = patient.get_archive_url(registry) if user.can_archive else ""
+        context["not_linked"] = not patient.is_linked
         return context
 
     def get_template(self):
