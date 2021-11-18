@@ -38,6 +38,12 @@ class PatientLocator(Locator):
         return self.instance.display_name
 
     def get_link(self):
+        from django.conf import settings
+        if settings.HUB_ENABLED:
+            return reverse("externaldemographics",
+                           args=[self.registry_model.code,
+                                 self.instance.id])
+
         patient_edit_url = reverse(
             'patient_edit',
             args=[
