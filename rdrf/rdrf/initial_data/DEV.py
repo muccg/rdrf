@@ -5,7 +5,7 @@ Includes:
     - reference data
     - users and groups
     - laboratories, small sample of genes
-    - sample registry
+    - sample registry, only if a sample registry to be created
     - permissive iprestrict rules
 '''
 from registry.groups import models
@@ -16,7 +16,8 @@ deps = [
     'users',
     'sample_laboratories',
     'genes_smaller_sample',
-    'sample_registry',
+    # uncomment the line below, if a sample registry and working group to be created
+    # 'sample_registry',
     'iprestrict_permissive',
 ]
 
