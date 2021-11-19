@@ -1040,3 +1040,23 @@ def cic_system_role():
     return settings.SYSTEM_ROLE in (SystemRoles.CIC_CLINICAL,
                                     SystemRoles.CIC_DEV,
                                     SystemRoles.CIC_PROMS)
+
+
+def is_site_system():
+    return settings.SYSTEM_ROLE in (SystemRoles.CIC_CLINICAL,
+                                    SystemRoles.CIC_DEV)
+
+
+def is_mapping_demographics_fields():
+    from intframework.models import HL7Mapping
+    for m in HL7Mapping.objects.all():
+        event_map = m.load()
+        for field_moniker in event_map:
+            if field_moniker.startswith("Demographics/"):
+                return True
+
+
+def has_external_demographics():
+    return all([settings.HUB_ENABLED,
+                is_site_system(),
+                is_mapping_demographics_fields()])

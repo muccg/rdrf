@@ -2,10 +2,11 @@ from rdrf.celery import app
 from intframework.utils import get_event_code
 from intframework.updater import HL7Handler
 import hl7
+from celery.utils.log import get_task_logger
 
-import logging
+logger = get_task_logger(__name__)
 
-logger = logging.getLogger(__name__)
+logger.info("registering tasks ...")
 
 
 @app.task(name="rdrf.services.tasks.run_custom_action")
@@ -35,12 +36,17 @@ def run_custom_action(custom_action_id, user_id, patient_id, input_data):
 
 @app.task(name="rdrf.services.tasks.handle_hl7_message")
 def handle_hl7_message(umrn, message: hl7.Message):
-    event_code = get_event_code(message)
+    logger.info(f"processing task for umrn {umrn}")
+    try:
+        event_code = get_event_code(message)
+    except Exception as ex:
+        logger.error(f"error getting event code for message: {ex}")
+        event_code = "unknown"
     logger.info(f"HL7 handler: {umrn} {event_code} received")
-    hl7_handler = HL7Handler(umrn=umrn, hl7message=message)
+    hl7_handler = HL7Handler(umrn=umrn, hl7message=message, username="updater")
     response_data = hl7_handler.handle()
     if response_data:
         logger.info(f"HL7 handler: {umrn} {event_code} processed")
-
     else:
         logger.error(f"HL7 handler: {umrn} {event_code} failed")
+    return response_data

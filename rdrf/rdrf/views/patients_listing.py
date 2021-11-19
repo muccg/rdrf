@@ -17,6 +17,7 @@ from rdrf.forms.components import FormGroupButton
 from registry.patients.models import Patient
 from rdrf.helpers.utils import MinType
 from rdrf.helpers.utils import consent_check
+from rdrf.helpers.utils import has_external_demographics
 from django.utils.translation import ugettext as _
 
 import logging
@@ -85,7 +86,7 @@ class PatientsListingView(View):
             ColumnFullName(_("Patient"), "patients.can_see_full_name"),
             ColumnDateOfBirth(_("Date of Birth"), "patients.can_see_dob"),
             ColumnCodeField(_("Code"), "patients.can_see_code_field"),
-            ColumnWorkingGroups(_("Working Groups"), "patients.can_see_working_groups"),
+            ColumnUmrn(_("UMRN"), "patients.can_see_umrn"),
             ColumnDiagnosisProgress(_("Diagnosis Entry Progress"), "patients.can_see_diagnosis_progress"),
             ColumnDiagnosisCurrency(_("Updated < 365 days"), "patients.can_see_diagnosis_currency"),
             ColumnGeneticDataMap(_("Genetic Data"), "patients.can_see_genetic_data_map"),
@@ -299,7 +300,8 @@ class PatientsListingView(View):
             q1 = Q(given_names__icontains=self.search_term)
             q2 = Q(family_name__icontains=self.search_term)
             q3 = Q(deident__icontains=self.search_term)
-            qry = q1 | q2 | q3
+            q4 = Q(umrn=self.search_term)
+            qry = q1 | q2 | q3 | q4
             self.patients = self.patients.filter(qry)
 
     def filter_by_user_group(self):
@@ -418,8 +420,12 @@ class ColumnFullName(Column):
             return "<span>%d %s</span>"
 
         # cache reversed url because urlroute searches are slow
-        base_url = reverse("patient_edit", kwargs={"registry_code": registry.code,
-                                                   "patient_id": 0})
+        if has_external_demographics():
+            base_url = reverse("externaldemographics", kwargs={"registry_code": registry.code,
+                                                               "patient_id": 0})
+        else:
+            base_url = reverse("patient_edit", kwargs={"registry_code": registry.code,
+                                                       "patient_id": 0})
         self.link_template = '<a href="%s">%%s</a>' % (base_url.replace("/0", "/%d"))
 
     def cell(self, patient, supports_contexts=False, form_progress=None, context_manager=None):
@@ -475,6 +481,11 @@ class ColumnNonContexts(Column):
         color = "success" if tick else "danger"
         # fixme: replace inline style with css class
         return "<span class='fa fa-%s text-%s'></span>" % (icon, color)
+
+
+class ColumnUmrn(Column):
+    field = "umrn"
+    sort_fields = ["umrn"]
 
 
 class ColumnWorkingGroups(Column):

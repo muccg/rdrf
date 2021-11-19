@@ -8,6 +8,8 @@ from typing import Optional
 
 logger = logging.getLogger(__name__)
 
+# dummy commit
+
 
 class Sep:
     PIPE = "|"
@@ -61,7 +63,7 @@ class MessageBuilder:
         self.seps = r"^~\&"  # noqa: W605
         self.sending_app = settings.APP_ID  # "CIC^HdwaApplication.CIC^L"
         self.sending_facility = settings.SENDING_FACILITY  # "9999^HdwaMedicalFacility.9999^L"
-        self.receiving_app = settings.HUB_APP_ID  # "ESB^HdwaApplication.ESB^L"
+        self.receiving_app = settings.HUB_APP_ID  # "HIH^HdwaApplication.HIH^L"
         self.receiving_facility = settings.HUB_FACILITY  # "ESB^HdwaApplication.ESB^L"
         self.dtm = get_dtm()
         self.security = ""  # meant to be empty ..
@@ -101,17 +103,23 @@ class MessageBuilder:
     def build_msh(self) -> str:
         # the hardcoded fields are those which are given in the
         # "Population Notes" in the SPEC as being always the value indicated
+        from intframework.utils import hl7_field
+        # this allows us to override the values here dynamically
+
+        def h(field_num, default_value):
+            return hl7_field("QRY_A19", f"MSH.{field_num}", default_value)
+
         msh = Seg("MSH")
         msh.add_field("^~\&")  # noqa: W605
-        msh.add_field(self.sending_app)
-        msh.add_field(self.sending_facility)
-        msh.add_field(self.receiving_app)
-        msh.add_field(self.receiving_facility)
+        msh.add_field(h(3, self.sending_app))
+        msh.add_field(h(4, self.sending_facility))
+        msh.add_field(h(5, self.receiving_app))
+        msh.add_field(h(6, self.receiving_facility))
         msh.add_field(self.dtm)
         msh.add_field("")  # security blank
-        msh.add_field(MessageType.PATIENT_QUERY)
+        msh.add_field(h(9, MessageType.PATIENT_QUERY))
         msh.add_field(self.message_control_id)
-        msh.add_field("D^T")
+        msh.add_field(h(11, "D^T"))
         msh.add_field(settings.HL7_VERSION)
         msh.add_field("")
         msh.add_field("")  # continuation pointer???
@@ -179,6 +187,8 @@ class Client:
         builder = MessageBuilder(self.registry_model, self.user_model)
         self.message_model = builder.message_model
         subscribe_message = builder.build_qry_a19(umrn, activate_subscription=True)
+        self.message_model.content = subscribe_message
+        self.message_model.save()
         logger.info("built subscription message")
         logger.info(f"sending subscription message for {umrn} ...")
         return self.send_message(subscribe_message)

@@ -612,6 +612,13 @@ LOGGING = {
             'when': 'midnight',
             'formatter': 'verbose'
         },
+        'celery-file': {
+            'level': 'INFO',
+            'class': 'ccg_django_utils.loghandlers.ParentPathFileHandler',
+            'filename': os.path.join(LOG_DIRECTORY, 'celery.log'),
+            'when': 'midnight',
+            'formatter': 'verbose'
+        },
         'ldap-file': {
             'level': 'DEBUG',
             'class': 'ccg_django_utils.loghandlers.ParentPathFileHandler',
@@ -675,6 +682,11 @@ LOGGING = {
         'django_auth_ldap': {
             'handlers': ['ldap-file', 'console'],
             'level': 'DEBUG' if RDRF_LDAP_DEBUG else 'INFO',
+            'propagate': True,
+        },
+        'celery': {
+            'handlers': ['celery-file', 'console'],
+            'level': 'DEBUG' if DEBUG else 'INFO',
             'propagate': True,
         }
     }
@@ -807,6 +819,8 @@ CACHES['blackboard'] = {
 
 CELERY_BROKER_URL = env.get('CELERY_BROKER_URL', 'redis://rediscache')
 CELERY_RESULT_BACKEND = CELERY_BROKER_URL
+one_month = 3600 * 24 * 30  # in seconds
+CELERY_RESULT_EXPIRES = env.get("CELERY_RESULT_EXPIRES", one_month)
 CELERY_ACCEPT_CONTENT = ['json', 'pickle']
 CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_SERIALIZER = 'json'
@@ -853,10 +867,10 @@ if HUB_ENABLED:
     HL7_VERSION = env.get("hl7_version", "2.6")
     # sender app ( us )
     APP_ID = env.get("app_id", "CIC")
-    SENDING_FACILITY = env.get("sending_facility", "9999^cicfacility.9999^L")
+    SENDING_FACILITY = env.get("sending_facility", "0917^HdwaApplication.0917^L")
     # receiver app ( the hub)
-    HUB_APP_ID = env.get("hub_app_id", "ESB^HdwaApplication.ESB^L")
-    HUB_FACILITY = env.get("hub_facility", "ESB^HdwaApplication.ESB^L")
+    HUB_APP_ID = env.get("hub_app_id", "HIH^HdwaApplication.HIH^L")
+    HUB_FACILITY = env.get("hub_facility", "0917^HdwaApplication.0917^L")
     HUB_ENDPOINT = env.get("hub_endpoint", "mock")
     HUB_PORT = env.get("hub_port", 30000)
     HUB_MOCKED = HUB_ENDPOINT == "mock"

@@ -1,13 +1,12 @@
 import hl7
 import json
 import logging
-from django.conf import settings
 from django.db import models
+from django.contrib.postgres.fields import JSONField
 from intframework import utils
 from intframework.utils import TransformFunctionError
 from intframework.utils import MessageSearcher
 from intframework.utils import NotFoundError
-from intframework.utils import get_umrn
 from typing import Tuple
 
 logger = logging.getLogger(__name__)
@@ -22,6 +21,17 @@ class DataRequestState:
     ERROR = "ERR"
     APPLIED = "APP"
     RECEIVED = "REC"
+
+
+class HL7MessageConfig(models.Model):
+    created = models.DateTimeField(auto_now_add=True)
+    updated = models.DateTimeField(auto_now=True)
+    event_code = models.CharField(max_length=10, default="")
+    config = JSONField(default=dict)
+
+    def get_field(self, field_spec):
+        # field spec is (e.g.) MSH.1   or QRD.6
+        return self.config[field_spec]
 
 
 class HL7Message(models.Model):
@@ -51,9 +61,9 @@ class HL7Message(models.Model):
         except hl7.exceptions.ParseException:
             return False
 
-    @ property
+    @property
     def message_control_id(self):
-        return f"{settings.APP_ID}.{self.registry_code}.{self.id}"
+        return f"CIC.{self.registry_code}.{self.id}"
 
 
 class HL7MessageFieldUpdate(models.Model):
@@ -137,18 +147,13 @@ class HL7Mapping(models.Model):
         else:
             return lambda x: x
 
-    def parse(self, hl7_message, patient, registry_code) -> Tuple[dict, hl7.Message]:
+    def parse(self, hl7_message, patient, registry_code, message_model) -> Tuple[dict, hl7.Message]:
         mapping_map = self.load()
         if not mapping_map:
             raise Exception("cannot parse message as map malformed")
 
         value_map = {}
 
-        message_model = HL7Message(username="HL7Updater",
-                                   event_code=self.event_code,
-                                   content=hl7_message,
-                                   umrn=get_umrn(hl7_message),
-                                   registry_code=registry_code)
         if patient:
             message_model.patient_id = patient.id
         message_model.save()
