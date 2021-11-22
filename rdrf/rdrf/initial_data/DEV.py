@@ -11,22 +11,27 @@ Includes:
 import os
 from registry.groups import models
 
-fi = os.environ.get('DJANGO_FIXTURES')
+fixtures = os.environ.get('DJANGO_FIXTURES')
+
+
+def is_dev():
+    return fixtures == "dev"
+
+
+def is_test():
+    return fixtures in ["none", "test"]
+
 
 deps = []
 
-# "dev" for runserver
-if fi == "dev":
+if is_dev():
     deps = [
         'reference_data',
         'users',
-        'sample_laboratories',
-        'genes_smaller_sample',
         'iprestrict_permissive',
     ]
 
-# "none" for bahavioural and "test" for unit tests
-if fi == "none" or fi == "test":
+if is_test():
     deps = [
         'reference_data',
         'users',
