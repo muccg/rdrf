@@ -116,6 +116,7 @@ class SurveyQuestion(models.Model):
                                      blank=True,
                                      null=True,
                                      on_delete=models.SET_NULL)
+    title = models.CharField(max_length=250, blank=True, null=True)
     instruction = models.TextField(blank=True, null=True)
     copyright_text = models.TextField(blank=True, null=True)
     source = models.TextField(blank=True, null=True)
@@ -127,6 +128,13 @@ class SurveyQuestion(models.Model):
     @property
     def name(self):
         return self.cde.name
+
+    @property
+    def question_title(self):
+        if self.title:
+            return self.title
+        else:
+            return self.cde.name
 
     def _clean_instructions(self, instructions):
         return instructions.replace("\n", " ").replace("\r", " ")
@@ -144,7 +152,7 @@ class SurveyQuestion(models.Model):
                     "cde": self.cde.code,
                     "datatype": self.cde.datatype,
                     "instructions": self._clean_instructions(self.cde.instructions),
-                    "title": clean(self.cde.name),
+                    "title": clean(self.question_title),
                     "survey_question_instruction": self._clean_instructions(clean(self.instruction)),
                     "copyright_text": self.copyright_text,
                     "source": self.source,
@@ -172,7 +180,7 @@ class SurveyQuestion(models.Model):
             return {"tag": "cond",
                     "cde": self.cde.code,
                     "instructions": self._clean_instructions(self.cde.instructions),
-                    "title": clean(self.cde.name),
+                    "title": clean(self.question_title),
                     "spec": self._get_cde_specification(),
                     "survey_question_instruction": self._clean_instructions(clean(self.instruction)),
                     "copyright_text": self.copyright_text,
