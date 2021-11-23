@@ -613,7 +613,7 @@ LOGGING = {
             'formatter': 'verbose'
         },
         'celery-file': {
-            'level': 'INFO',
+            'level': 'DEBUG' if DEBUG else 'INFO',
             'class': 'ccg_django_utils.loghandlers.ParentPathFileHandler',
             'filename': os.path.join(LOG_DIRECTORY, 'celery.log'),
             'when': 'midnight',
