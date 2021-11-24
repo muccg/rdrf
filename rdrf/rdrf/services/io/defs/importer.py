@@ -617,7 +617,7 @@ class Importer(object):
             for sq in survey_dict["questions"]:
                 sq_model = SurveyQuestion(survey=survey_model)
                 sq_model.position = sq["position"]
-                sq.title = sq.get("title", None)
+                sq_model.title = sq.get("title", None)
                 sq_model.instruction = sq.get("instruction", None)
                 sq_model.copyright_text = sq.get("copyright_text", None)
                 sq_model.source = sq.get("source", None)
