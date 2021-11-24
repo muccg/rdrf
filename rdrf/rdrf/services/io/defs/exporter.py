@@ -557,6 +557,7 @@ class Exporter(object):
                 sq_dict = {}
                 sq_dict["cde"] = sq.cde.code
                 sq_dict["cde_path"] = sq.cde_path
+                sq_dict["title"] = sq.title
                 sq_dict["position"] = sq.position
                 sq_dict["precondition"] = None
                 sq_dict["instruction"] = sq.instruction
