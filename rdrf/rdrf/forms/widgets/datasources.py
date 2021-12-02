@@ -1,38 +1,24 @@
 import logging
+from rdrf.models.definition.models import DropdownLookup
+
 logger = logging.getLogger(__name__)
 
 
 class DataSource(object):
 
-    def __init__(self, context):
+    def __init__(self, context, tag):
         self.context = context
+        self.tag = tag
 
     def values(self):
         return []
 
 
-class PatientCentres(DataSource):
-
-    """
-    centres = working groups
-    We default to working groups if metadata on the registry doesn't have override
-    questionnaire_context is a string like au or nz ( ophg wanted different centre dropdowns for DM1 in au vs nz for example)
-    """
+class ModelDataSource(DataSource):
 
     def values(self):
-        registry_model = self.context["registry_model"]
-        if "patientCentres" in registry_model.metadata:
-            questionnaire_context = self.context.get("questionnaire_context", "au")
-            # Assumes a list of pairs ( code and display text to fill the drop down)
-            if questionnaire_context is None:
-                questionnaire_context = 'au'
-
-            return registry_model.metadata["patientCentres"][questionnaire_context]
-        else:
-            from registry.groups.models import WorkingGroup
-            items = []
-            for working_group in WorkingGroup.objects.filter(
-                    registry=registry_model).order_by('name'):
-                items.append((working_group.name, working_group.name))
-
-            return items
+        items = []
+        dropdown_lookup_objects = DropdownLookup.objects.filter(tag=self.tag)
+        for object in dropdown_lookup_objects:
+            items.append((object.value, object.label))
+        return items
