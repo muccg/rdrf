@@ -787,7 +787,8 @@ class Importer(object):
                 yield d
 
         def get_form(name):
-            for form in registry.forms:
+            forms  = RegistryForm.objects.filter(registry=registry)
+            for form in forms:
                 if form.name == name:
                     return form
             raise ImportError("CFG Error: Form name %s not found in registry" % name)
