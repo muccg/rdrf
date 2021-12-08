@@ -787,7 +787,7 @@ class Importer(object):
                 yield d
 
         def get_form(name):
-            forms  = RegistryForm.objects.filter(registry=registry)
+            forms = RegistryForm.objects.filter(registry=registry)
             for form in forms:
                 if form.name == name:
                     return form
