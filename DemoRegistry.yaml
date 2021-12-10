@@ -1,0 +1,174 @@
+EXPORT_TIME: '2021-12-10 16:18:46.407522'
+EXPORT_TYPE: REGISTRY_PLUS_CDES
+RDRF_VERSION: 6.6.12
+REGISTRY_VERSION: ''
+cde_policies: []
+cdes:
+- abnormality_condition: ''
+  allow_multiple: false
+  calculation: ''
+  code: consultation_date
+  datatype: date
+  desc: Consultation Date
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Consultation Date
+  pattern: ''
+  pv_group: null
+  questionnaire_text: ''
+  widget_name: DateWidget
+- abnormality_condition: ''
+  allow_multiple: false
+  calculation: ''
+  code: height
+  datatype: integer
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Height
+  pattern: ''
+  pv_group: null
+  questionnaire_text: ''
+  widget_name: ''
+- abnormality_condition: ''
+  allow_multiple: false
+  calculation: ''
+  code: is_diabetic
+  datatype: boolean
+  desc: Is Patient Diabetic
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Is Diabetic
+  pattern: ''
+  pv_group: null
+  questionnaire_text: ''
+  widget_name: ''
+- abnormality_condition: ''
+  allow_multiple: false
+  calculation: ''
+  code: patient_type
+  datatype: range
+  desc: Patient Type
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Patient Type
+  pattern: ''
+  pv_group: pvg_patient_type
+  questionnaire_text: ''
+  widget_name: ''
+- abnormality_condition: ''
+  allow_multiple: false
+  calculation: ''
+  code: result_file
+  datatype: file
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Result File
+  pattern: ''
+  pv_group: null
+  questionnaire_text: ''
+  widget_name: ''
+- abnormality_condition: ''
+  allow_multiple: false
+  calculation: ''
+  code: weight
+  datatype: float
+  desc: Weight
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Weight
+  pattern: ''
+  pv_group: null
+  questionnaire_text: ''
+  widget_name: ''
+code: demo
+complete_fields: []
+consent_rules: []
+consent_sections: []
+context_form_groups: []
+custom_actions: []
+demographic_fields: []
+desc: Demo Registry
+email_notifications: []
+forms:
+- applicability_condition: ''
+  display_name: Consultation Details
+  header: ''
+  is_questionnaire: false
+  name: ConsultationDetails
+  position: 0
+  questionnaire_display_name: ''
+  questionnaire_questions: ''
+  sections:
+  - allow_multiple: false
+    code: patient_details
+    display_name: Patient Details
+    elements:
+    - height
+    - is_diabetic
+    - patient_type
+    extra: null
+    questionnaire_display_name: ''
+    questionnaire_help: ''
+  - allow_multiple: true
+    code: consultation
+    display_name: Consultation
+    elements:
+    - consultation_date
+    - weight
+    - result_file
+    extra: null
+    questionnaire_display_name: ''
+    questionnaire_help: ''
+forms_allowed_groups:
+  ConsultationDetails:
+  - Clinical Staff
+generic_sections:
+- {}
+- {}
+hl7_mappings: []
+metadata_json: ''
+name: Demo Registry
+patient_data_section: {}
+pvgs:
+- code: pvg_patient_type
+  values:
+  - code: inpatient
+    desc: Inpatient
+    position: 0
+    questionnaire_value: null
+    value: Inpatient
+  - code: outpatient
+    desc: Outpatient
+    position: 1
+    questionnaire_value: null
+    value: Outpatient
+reports: []
+reviews: []
+splash_screen: Demo Registry
+surveys: []
