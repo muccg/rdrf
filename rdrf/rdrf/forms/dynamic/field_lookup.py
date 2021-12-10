@@ -1,6 +1,6 @@
 import re
 import django.forms
-from django.forms import MultiValueField, MultiWidget, FileField
+from django.forms import MultiValueField, MultiWidget, FileField, DateInput
 from django.forms.widgets import CheckboxSelectMultiple
 from django.utils.safestring import mark_safe
 from django.urls import reverse
@@ -446,9 +446,9 @@ class FieldFactory(object):
                     widget = None
             else:
                 if self.cde.datatype.lower() == 'date':
-                    from django.forms.extras.widgets import SelectDateWidget
-                    years = [yr for yr in range(1920, 2012, 1)]
-                    widget = SelectDateWidget(years=years)
+                    widget = DateInput(format=('%d-%m-%Y'),
+                                       attrs={'class': 'datepicker',
+                                       'placeholder': 'Select a date'})
 
             if self._has_widget_override():
                 widget = self._get_widget_override()
