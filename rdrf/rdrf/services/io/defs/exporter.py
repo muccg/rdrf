@@ -143,15 +143,18 @@ class Exporter(object):
         return self.registry.version.strip()
 
     def _create_section_map(self, section_code):
-        section_model = Section.objects.get(code=section_code)
         section_map = {}
-        section_map["display_name"] = section_model.display_name
-        section_map["questionnaire_display_name"] = section_model.questionnaire_display_name
-        section_map["code"] = section_model.code
-        section_map["extra"] = section_model.extra
-        section_map["allow_multiple"] = section_model.allow_multiple
-        section_map["elements"] = section_model.get_elements()
-        section_map["questionnaire_help"] = section_model.questionnaire_help
+        try:
+            section_model = Section.objects.get(code=section_code)
+            section_map["display_name"] = section_model.display_name
+            section_map["questionnaire_display_name"] = section_model.questionnaire_display_name
+            section_map["code"] = section_model.code
+            section_map["extra"] = section_model.extra
+            section_map["allow_multiple"] = section_model.allow_multiple
+            section_map["elements"] = section_model.get_elements()
+            section_map["questionnaire_help"] = section_model.questionnaire_help
+        except Section.DoesNotExist:
+            pass
         return section_map
 
     def _create_form_map(self, form_model):
