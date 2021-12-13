@@ -269,8 +269,12 @@ class ParametrisedSelectWidget(widgets.Select):
     """
 
     def __init__(self, *args, **kwargs):
-        self.tag = kwargs['tag']
-        del kwargs['tag']
+        if 'widget_parameter' in kwargs:
+            self._widget_parameter = kwargs['widget_parameter']
+            del kwargs['widget_parameter']
+        if 'tag' in kwargs:
+            self.tag = kwargs['tag']
+            del kwargs['tag']
         self._widget_context = kwargs['widget_context']
         del kwargs['widget_context']
         super(ParametrisedSelectWidget, self).__init__(*args, **kwargs)
@@ -327,8 +331,12 @@ class DataSourceSelect(ParametrisedSelectWidget):
 
     def _get_items(self):
         from rdrf.forms.widgets import datasources
-        datasource = datasources.ModelDataSource(self._widget_context,
-                                                 self.tag)
+        if self._widget_parameter and hasattr(datasources, self._widget_parameter):
+            datasource_class = getattr(datasources, self._widget_parameter)
+            datasource = datasource_class(self._widget_context)
+        elif self.tag:
+            datasource = datasources.ModelDataSource(self._widget_context,
+                                                     self.tag)
         return list(datasource.values())
 
 

@@ -246,7 +246,7 @@ class FieldFactory(object):
         :return:
         """
         import django.forms as django_forms
-        if self._is_parametrised_widget(widget_config):
+        if self._is_parametrised_widget(widget_class_name, widget_config):
             widget_context = {"registry_model": self.registry,
                               "registry_form": self.registry_form,
                               "cde": self.cde,
@@ -274,15 +274,25 @@ class FieldFactory(object):
             return False
         return True
 
-    def _is_parametrised_widget(self, widget_config):
-        return self.is_json(widget_config)
+    def _is_parametrised_widget(self, widget_string, widget_config):
+        return ":" in widget_string or self.is_json(widget_config)
 
     def _get_parametrised_widget_instance(self, widget_string, widget_config, widget_context):
         # Given a widget string ( from the DE specification page )
-        if hasattr(widgets, widget_string):
-            widget_class = getattr(widgets, widget_string)
-            return widget_class(**json.loads(widget_config),
-                                widget_context=widget_context)
+        # <SomeWidgetClassName>:<widget parameter string>
+        if ":" in widget_string:
+            widget_class_name, widget_parameter = widget_string.split(":")
+        else:
+            widget_class_name, widget_parameter = widget_string, None
+        if hasattr(widgets, widget_class_name):
+            widget_class = getattr(widgets, widget_class_name)
+            if self.is_json(widget_config):
+                return widget_class(**json.loads(widget_config),
+                                    widget_parameter=widget_parameter,
+                                    widget_context=widget_context)
+            else:
+                return widget_class(widget_parameter=widget_parameter,
+                                    widget_context=widget_context)
         else:
             logger.warning("could not locate widget from widget string: %s" % widget_string)
 
