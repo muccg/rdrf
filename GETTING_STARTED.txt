@@ -13,8 +13,7 @@ This will create a sample registry with a few simple elements, which will help y
 Next steps:
 1. From the main admin page, add a WorkingGroup (This will be needed while adding a patient)
 2. From the header navigation menu, select Patient List and add a patient.
-3. You can use Resgistry Common Data Element, Registry Section, Registry Form to create your own data collection pages.
-4. You can use Survey Question, Surveys to create surveys for data collection.
+3. You can use Registry Common Data Element, Registry Section, Registry Form to create your own data collection pages.
 
 For further help, please refer to:
 https://muccg.github.io/rdrf/docs/
