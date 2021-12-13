@@ -364,16 +364,19 @@ class Importer(object):
 
     def _create_generic_sections(self, generic_section_maps):
         for section_map in generic_section_maps:
-            s, created = Section.objects.get_or_create(code=section_map["code"])
-            s.code = section_map["code"]
-            s.display_name = section_map["display_name"]
-            s.elements = ",".join(section_map["elements"])
-            s.allow_multiple = section_map["allow_multiple"]
-            if "questionnaire_help" in section_map:
-                s.questionnaire_help = section_map["questionnaire_help"]
-            s.extra = section_map["extra"]
-            s.save()
-            logger.info("saved generic section %s" % s.code)
+            try:
+                s, created = Section.objects.get_or_create(code=section_map["code"])
+                s.code = section_map["code"]
+                s.display_name = section_map["display_name"]
+                s.elements = ",".join(section_map["elements"])
+                s.allow_multiple = section_map["allow_multiple"]
+                if "questionnaire_help" in section_map:
+                    s.questionnaire_help = section_map["questionnaire_help"]
+                s.extra = section_map["extra"]
+                s.save()
+                logger.info("saved generic section %s" % s.code)
+            except KeyError:
+                pass
 
     def _create_patient_data_section(self, section_map):
         if section_map:
