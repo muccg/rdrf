@@ -6,7 +6,7 @@ from decimal import Decimal
 from django.forms.models import model_to_dict
 from explorer.models import Query
 from operator import attrgetter
-from rdrf.models.definition.models import DemographicFields, RegistryForm
+from rdrf.models.definition.models import DemographicFields, RegistryForm, DropdownLookup
 from rdrf.models.definition.models import Section, CommonDataElement, CDEPermittedValueGroup, CDEPermittedValue
 
 from rdrf import VERSION
@@ -203,6 +203,7 @@ class Exporter(object):
         data["reviews"] = self._get_reviews()
         data["custom_actions"] = self._get_custom_actions()
         data["hl7_mappings"] = self._get_hl7_mappings()
+        data["dropdown_lookups"] = self._get_dropdown_lookups()
 
         if self.registry.patient_data_section:
             data["patient_data_section"] = self._create_section_map(
@@ -294,6 +295,7 @@ class Exporter(object):
             cde_map["important"] = cde_model.important
             cde_map["pattern"] = cde_model.pattern
             cde_map["widget_name"] = cde_model.widget_name
+            cde_map["widget_config"] = cde_model.widget_config
             cde_map["calculation"] = cde_model.calculation
             cde_map["questionnaire_text"] = cde_model.questionnaire_text
             cde_map["abnormality_condition"] = cde_model.abnormality_condition
@@ -415,6 +417,16 @@ class Exporter(object):
                         "event_map": hl7_mapping.event_map}
             hl7_mappings.append(hl7_dict)
         return hl7_mappings
+
+    def _get_dropdown_lookups(self):
+        dropdown_lookups = []
+        for dropdown_lookup in DropdownLookup.objects.all():
+            dropdown_lookups.append({
+                "tag": dropdown_lookup.tag,
+                "label": dropdown_lookup.label,
+                "value": dropdown_lookup.value
+            })
+        return dropdown_lookups
 
     def _get_demographic_fields(self):
         demographic_fields = []

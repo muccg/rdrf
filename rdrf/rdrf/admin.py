@@ -23,6 +23,7 @@ from rdrf.models.definition.models import CDEFile
 from rdrf.models.definition.models import ConsentRule
 from rdrf.models.definition.models import ClinicalData
 from rdrf.models.definition.models import RegistryYaml
+from rdrf.models.definition.models import DropdownLookup
 from rdrf.models.proms.models import Survey
 from rdrf.models.proms.models import SurveyQuestion
 from rdrf.models.proms.models import Precondition
@@ -518,6 +519,10 @@ class RegistryYamlAdmin(admin.ModelAdmin):
                     'registry_version_after')
 
 
+class DropdownLookupAdmin(admin.ModelAdmin):
+    list_display = ('tag', 'label', 'value')
+
+
 CDEPermittedValueAdmin = create_restricted_model_admin_class(
     CDEPermittedValue,
     ordering=['code'],
@@ -584,6 +589,7 @@ NORMAL_MODE_ADMIN_COMPONENTS = [
     (Verification, VerificationAdmin),
     (CustomAction, CustomActionAdmin),
     (CustomActionExecution, CustomActionExecutionAdmin),
+    (DropdownLookup, DropdownLookupAdmin),
 ]
 
 ADMIN_COMPONENTS = []
