@@ -19,6 +19,7 @@ def security_check(custom_action, user):
 class SQL:
     clinical_data_query = "SELECT django_id as pid, data, context_id, collection FROM rdrf_clinicaldata WHERE collection='cdes'"
     id_query = "SELECT id, deident from patients_patient WHERE deident IS NOT NULL AND active IS NOT FALSE"
+    patient_details_query = "SELECT id, given_names, family_name, date_of_birth from patients_patient WHERE deident IS NOT NULL AND active IS NOT FALSE"
     sr_query = "SELECT p.deident as id, sr.survey_name, to_char(sr.updated,'YYYY-MM-DD HH24:MI:SS'), sr.communication_type, sr.state, sr.response from rdrf_surveyrequest sr inner join patients_patient p on p.id = sr.patient_id"
 
 
@@ -32,6 +33,7 @@ class PipeLine:
         self.data = []
         self.sr_data = []
         self.id_map = self._construct_deident_map()
+        self.patient_details = self._patient_details()
 
     def _raw_sql(self, conn, sql):
         with conn.cursor() as c:
@@ -47,6 +49,9 @@ class PipeLine:
                      self._raw_sql(self.conn_clin, SQL.clinical_data_query)
                      if row[0] in self.id_map]
 
+    def _patient_details(self):
+        return {row[0]: [row[1], row[2], row[3]] for row in self._raw_sql(self.conn_demo, SQL.patient_details_query)}
+
     def _deidentify_row(self, row):
         d = {}
         id = row[0]
@@ -56,6 +61,12 @@ class PipeLine:
         if data:
             del data["django_id"]
         d["data"] = data
+
+        r = self.patient_details[row[0]]
+        d["given_names"] = r[0]
+        d["family_name"] = r[1]
+        d["dob"] = str(r[2])
+
         return d
 
     def remove_blacklisted(self):
