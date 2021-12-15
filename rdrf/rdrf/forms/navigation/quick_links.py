@@ -101,6 +101,7 @@ class Links:
         Custom_Actions = QuickLink(reverse("admin:rdrf_customaction_changelist"), _("Custom Actions"))
         Custom_Action_Executions = QuickLink(
             reverse("admin:rdrf_customactionexecution_changelist"), _("Custom Action Executions"))
+        Dropdown_Lookups = QuickLink(reverse("admin:rdrf_dropdownlookup_changelist"), _("Dropdown Lookups"))
 
     if settings.SYSTEM_ROLE in (SystemRoles.CIC_DEV, SystemRoles.CIC_PROMS, SystemRoles.CIC_CLINICAL):
         Surveys = QuickLink(reverse("admin:rdrf_survey_changelist"), _("Surveys"))
@@ -184,6 +185,7 @@ class Links:
                 Verifications.text: Verifications,
                 Custom_Actions.text: Custom_Actions,
                 Custom_Action_Executions.text: Custom_Action_Executions,
+                Dropdown_Lookups.text: Dropdown_Lookups,
             }
         else:
             OTHER = {
@@ -199,6 +201,7 @@ class Links:
                 Verifications.text: Verifications,
                 Custom_Actions.text: Custom_Actions,
                 Custom_Action_Executions.text: Custom_Action_Executions,
+                Dropdown_Lookups.text: Dropdown_Lookups,
             }
         if settings.SYSTEM_ROLE == SystemRoles.NORMAL:
             EXPLORER = {

@@ -47,6 +47,7 @@
                             {% trans "Registries on this site" %}
                         </a>
                         <ul class="dropdown-menu dropdown-menu-end" data-bs-display="static">
+                            {% if registries|length %}
                             {% for reg in registries %}
                             <li>
                                 <a class="dropdown-item" href="{% url 'registry' reg.code %}">
@@ -54,6 +55,11 @@
                                 </a>
                             </li>
                             {% endfor %}
+                            {% else %}
+                            <li>
+                                <a class="dropdown-item" href="{% url 'admin:login' %}?next=/admin/rdrf/registry/">Login</a>
+                            </li>
+                            {% endif %}
                         </ul>
                     </li>
 

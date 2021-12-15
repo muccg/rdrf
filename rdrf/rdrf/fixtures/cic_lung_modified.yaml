@@ -20,6 +20,7 @@ cdes:
   pattern: ''
   pv_group: 1DIAGINVCOMPLC
   questionnaire_text: ''
+  widget_config: ''
   widget_name: ''
 - abnormality_condition: ''
   allow_multiple: false
@@ -37,6 +38,7 @@ cdes:
   pattern: ''
   pv_group: null
   questionnaire_text: ''
+  widget_config: ''
   widget_name: ''
 - abnormality_condition: ''
   allow_multiple: false
@@ -54,6 +56,7 @@ cdes:
   pattern: ''
   pv_group: null
   questionnaire_text: ''
+  widget_config: ''
   widget_name: DateWidget
 - abnormality_condition: ''
   allow_multiple: false
@@ -71,6 +74,7 @@ cdes:
   pattern: ''
   pv_group: 1DIAGINVOUTCLC
   questionnaire_text: ''
+  widget_config: ''
   widget_name: RadioSelect
 - abnormality_condition: ''
   allow_multiple: false
@@ -90,6 +94,7 @@ cdes:
   pattern: ''
   pv_group: 1DIAGINVTYPELC
   questionnaire_text: ''
+  widget_config: ''
   widget_name: RadioSelect
 - abnormality_condition: ''
   allow_multiple: false
@@ -107,6 +112,7 @@ cdes:
   pattern: ''
   pv_group: 1diag_stageLC
   questionnaire_text: ''
+  widget_config: ''
   widget_name: RadioSelect
 - abnormality_condition: ''
   allow_multiple: false
@@ -124,6 +130,7 @@ cdes:
   pattern: ''
   pv_group: ALKLC
   questionnaire_text: ''
+  widget_config: ''
   widget_name: RadioSelect
 - abnormality_condition: ''
   allow_multiple: false
@@ -141,6 +148,7 @@ cdes:
   pattern: ''
   pv_group: ASBESTOS
   questionnaire_text: ''
+  widget_config: ''
   widget_name: RadioSelect
 - abnormality_condition: ''
   allow_multiple: false
@@ -158,6 +166,7 @@ cdes:
   pattern: ''
   pv_group: null
   questionnaire_text: ''
+  widget_config: ''
   widget_name: Textarea
 - abnormality_condition: null
   allow_multiple: false
@@ -175,6 +184,7 @@ cdes:
   pattern: ''
   pv_group: null
   questionnaire_text: ''
+  widget_config: ''
   widget_name: Textarea
 - abnormality_condition: null
   allow_multiple: false
@@ -192,6 +202,7 @@ cdes:
   pattern: ''
   pv_group: AddressType
   questionnaire_text: ''
+  widget_config: ''
   widget_name: ''
 - abnormality_condition: null
   allow_multiple: false
@@ -209,6 +220,7 @@ cdes:
   pattern: ''
   pv_group: BASISDIAGNLC
   questionnaire_text: ''
+  widget_config: ''
   widget_name: RadioSelect
 - abnormality_condition: null
   allow_multiple: false
@@ -226,6 +238,7 @@ cdes:
   pattern: ''
   pv_group: null
   questionnaire_text: ''
+  widget_config: ''
   widget_name: DataSourceSelect:PatientCentres
 - abnormality_condition: null
   allow_multiple: false
@@ -243,6 +256,7 @@ cdes:
   pattern: ''
   pv_group: null
   questionnaire_text: ''
+  widget_config: ''
   widget_name: DateWidget
 - abnormality_condition: null
   allow_multiple: false
@@ -260,6 +274,7 @@ cdes:
   pattern: ''
   pv_group: null
   questionnaire_text: ''
+  widget_config: ''
   widget_name: ''
 - abnormality_condition: null
   allow_multiple: false
@@ -277,6 +292,7 @@ cdes:
   pattern: ''
   pv_group: null
   questionnaire_text: ''
+  widget_config: ''
   widget_name: ''
 - abnormality_condition: null
   allow_multiple: false
@@ -294,6 +310,7 @@ cdes:
   pattern: ''
   pv_group: null
   questionnaire_text: ''
+  widget_config: ''
   widget_name: ''
 - abnormality_condition: null
   allow_multiple: false
@@ -311,6 +328,7 @@ cdes:
   pattern: ''
   pv_group: null
   questionnaire_text: ''
+  widget_config: ''
   widget_name: ''
 - abnormality_condition: null
   allow_multiple: false
@@ -328,6 +346,7 @@ cdes:
   pattern: ''
   pv_group: null
   questionnaire_text: ''
+  widget_config: ''
   widget_name: ''
 - abnormality_condition: null
   allow_multiple: false
@@ -345,6 +364,7 @@ cdes:
   pattern: ''
   pv_group: NextOfKinRelationship
   questionnaire_text: ''
+  widget_config: ''
   widget_name: ''
 - abnormality_condition: null
   allow_multiple: false
@@ -362,6 +382,7 @@ cdes:
   pattern: ''
   pv_group: null
   questionnaire_text: ''
+  widget_config: ''
   widget_name: TextArea
 - abnormality_condition: null
   allow_multiple: false
@@ -379,6 +400,7 @@ cdes:
   pattern: ''
   pv_group: null
   questionnaire_text: ''
+  widget_config: ''
   widget_name: ''
 - abnormality_condition: null
   allow_multiple: false
@@ -396,6 +418,7 @@ cdes:
   pattern: ''
   pv_group: null
   questionnaire_text: ''
+  widget_config: ''
   widget_name: ''
 - abnormality_condition: null
   allow_multiple: false
@@ -413,6 +436,7 @@ cdes:
   pattern: ''
   pv_group: null
   questionnaire_text: ''
+  widget_config: ''
   widget_name: ''
 - abnormality_condition: null
   allow_multiple: false
@@ -430,6 +454,7 @@ cdes:
   pattern: ''
   pv_group: State
   questionnaire_text: ''
+  widget_config: ''
   widget_name: ''
 - abnormality_condition: null
   allow_multiple: false
@@ -447,6 +472,7 @@ cdes:
   pattern: ''
   pv_group: null
   questionnaire_text: ''
+  widget_config: ''
   widget_name: ''
 - abnormality_condition: null
   allow_multiple: false
@@ -464,6 +490,7 @@ cdes:
   pattern: ''
   pv_group: MeteorSexes
   questionnaire_text: What is your sex?
+  widget_config: ''
   widget_name: ''
 - abnormality_condition: null
   allow_multiple: false
@@ -481,6 +508,7 @@ cdes:
   pattern: ''
   pv_group: CHEMOTXLC
   questionnaire_text: ''
+  widget_config: ''
   widget_name: RadioSelect
 - abnormality_condition: ''
   allow_multiple: false
@@ -498,6 +526,7 @@ cdes:
   pattern: ''
   pv_group: CHEMOTXONGOINGLC
   questionnaire_text: ''
+  widget_config: ''
   widget_name: RadioSelect
 - abnormality_condition: null
   allow_multiple: false
@@ -515,6 +544,7 @@ cdes:
   pattern: ''
   pv_group: null
   questionnaire_text: ''
+  widget_config: ''
   widget_name: DateWidget
 - abnormality_condition: null
   allow_multiple: false
@@ -532,6 +562,7 @@ cdes:
   pattern: ''
   pv_group: null
   questionnaire_text: ''
+  widget_config: ''
   widget_name: DateWidget
 - abnormality_condition: null
   allow_multiple: false
@@ -549,6 +580,7 @@ cdes:
   pattern: ''
   pv_group: null
   questionnaire_text: ''
+  widget_config: ''
   widget_name: ''
 - abnormality_condition: ''
   allow_multiple: true
@@ -566,6 +598,7 @@ cdes:
   pattern: ''
   pv_group: COMORB
   questionnaire_text: ''
+  widget_config: ''
   widget_name: ''
 - abnormality_condition: ''
   allow_multiple: true
@@ -583,6 +616,7 @@ cdes:
   pattern: ''
   pv_group: CoMorbidLung
   questionnaire_text: ''
+  widget_config: ''
   widget_name: ''
 - abnormality_condition: ''
   allow_multiple: false
@@ -600,6 +634,7 @@ cdes:
   pattern: ''
   pv_group: null
   questionnaire_text: ''
+  widget_config: ''
   widget_name: ''
 - abnormality_condition: ''
   allow_multiple: false
@@ -617,6 +652,7 @@ cdes:
   pattern: ''
   pv_group: null
   questionnaire_text: ''
+  widget_config: ''
   widget_name: ''
 - abnormality_condition: null
   allow_multiple: false
@@ -634,6 +670,7 @@ cdes:
   pattern: ''
   pv_group: null
   questionnaire_text: ''
+  widget_config: ''
   widget_name: DateWidget
 - abnormality_condition: null
   allow_multiple: false
@@ -651,6 +688,7 @@ cdes:
   pattern: ''
   pv_group: null
   questionnaire_text: ''
+  widget_config: ''
   widget_name: DateWidget
 - abnormality_condition: null
   allow_multiple: false
@@ -668,6 +706,7 @@ cdes:
   pattern: ''
   pv_group: null
   questionnaire_text: ''
+  widget_config: ''
   widget_name: DateWidget
 - abnormality_condition: null
   allow_multiple: true
@@ -685,6 +724,7 @@ cdes:
   pattern: ''
   pv_group: COMPLSYSLC
   questionnaire_text: ''
+  widget_config: ''
   widget_name: ''
 - abnormality_condition: null
   allow_multiple: false
@@ -702,6 +742,7 @@ cdes:
   pattern: ''
   pv_group: null
   questionnaire_text: ''
+  widget_config: ''
   widget_name: DateWidget
 - abnormality_condition: null
   allow_multiple: false
@@ -720,6 +761,7 @@ cdes:
   pattern: ''
   pv_group: null
   questionnaire_text: ''
+  widget_config: ''
   widget_name: DateWidget
 - abnormality_condition: null
   allow_multiple: false
@@ -737,6 +779,7 @@ cdes:
   pattern: ''
   pv_group: null
   questionnaire_text: ''
+  widget_config: ''
   widget_name: DateWidget
 - abnormality_condition: null
   allow_multiple: false
@@ -755,6 +798,7 @@ cdes:
   pattern: ''
   pv_group: null
   questionnaire_text: ''
+  widget_config: ''
   widget_name: ''
 - abnormality_condition: null
   allow_multiple: false
@@ -772,6 +816,7 @@ cdes:
   pattern: ''
   pv_group: null
   questionnaire_text: ''
+  widget_config: ''
   widget_name: DateWidget
 - abnormality_condition: null
   allow_multiple: false
@@ -789,6 +834,7 @@ cdes:
   pattern: ''
   pv_group: null
   questionnaire_text: ''
+  widget_config: ''
   widget_name: DateWidget
 - abnormality_condition: null
   allow_multiple: false
@@ -807,6 +853,7 @@ cdes:
   pattern: ''
   pv_group: COMPLSURGLC
   questionnaire_text: ''
+  widget_config: ''
   widget_name: RadioSelect
 - abnormality_condition: null
   allow_multiple: false
@@ -824,6 +871,7 @@ cdes:
   pattern: ''
   pv_group: null
   questionnaire_text: ''
+  widget_config: ''
   widget_name: DateWidget
 - abnormality_condition: null
   allow_multiple: false
@@ -841,6 +889,7 @@ cdes:
   pattern: ''
   pv_group: null
   questionnaire_text: ''
+  widget_config: ''
   widget_name: DateWidget
 - abnormality_condition: null
   allow_multiple: false
@@ -858,6 +907,7 @@ cdes:
   pattern: ''
   pv_group: null
   questionnaire_text: ''
+  widget_config: ''
   widget_name: DateWidget
 - abnormality_condition: null
   allow_multiple: true
@@ -876,6 +926,7 @@ cdes:
   pattern: ''
   pv_group: COMPLSYSLC
   questionnaire_text: ''
+  widget_config: ''
   widget_name: ''
 - abnormality_condition: null
   allow_multiple: false
@@ -893,6 +944,7 @@ cdes:
   pattern: ''
   pv_group: null
   questionnaire_text: ''
+  widget_config: ''
   widget_name: DateWidget
 - abnormality_condition: null
   allow_multiple: false
@@ -911,6 +963,7 @@ cdes:
   pattern: ''
   pv_group: null
   questionnaire_text: ''
+  widget_config: ''
   widget_name: DateWidget
 - abnormality_condition: null
   allow_multiple: false
@@ -928,6 +981,7 @@ cdes:
   pattern: ''
   pv_group: null
   questionnaire_text: ''
+  widget_config: ''
   widget_name: DateWidget
 - abnormality_condition: ''
   allow_multiple: false
@@ -945,6 +999,7 @@ cdes:
   pattern: ''
   pv_group: null
   questionnaire_text: ''
+  widget_config: ''
   widget_name: ''
 - abnormality_condition: null
   allow_multiple: false
@@ -962,6 +1017,7 @@ cdes:
   pattern: ''
   pv_group: null
   questionnaire_text: ''
+  widget_config: ''
   widget_name: DateWidget
 - abnormality_condition: null
   allow_multiple: false
@@ -979,6 +1035,7 @@ cdes:
   pattern: ''
   pv_group: null
   questionnaire_text: ''
+  widget_config: ''
   widget_name: DateWidget
 - abnormality_condition: null
   allow_multiple: false
@@ -996,6 +1053,7 @@ cdes:
   pattern: ''
   pv_group: null
   questionnaire_text: ''
+  widget_config: ''
   widget_name: DateWidget
 - abnormality_condition: null
   allow_multiple: false
@@ -1017,6 +1075,7 @@ cdes:
   pattern: ''
   pv_group: CTDATELC
   questionnaire_text: ''
+  widget_config: ''
   widget_name: RadioSelect
 - abnormality_condition: null
   allow_multiple: false
@@ -1034,6 +1093,7 @@ cdes:
   pattern: ''
   pv_group: null
   questionnaire_text: ''
+  widget_config: ''
   widget_name: DateWidget
 - abnormality_condition: null
   allow_multiple: false
@@ -1051,6 +1111,7 @@ cdes:
   pattern: ''
   pv_group: null
   questionnaire_text: ''
+  widget_config: ''
   widget_name: DateWidget
 - abnormality_condition: null
   allow_multiple: false
@@ -1068,6 +1129,7 @@ cdes:
   pattern: ''
   pv_group: CTOBSOUTCOMELC
   questionnaire_text: ''
+  widget_config: ''
   widget_name: RadioSelect
 - abnormality_condition: null
   allow_multiple: false
@@ -1085,6 +1147,7 @@ cdes:
   pattern: ''
   pv_group: Country
   questionnaire_text: ''
+  widget_config: ''
   widget_name: CountryWidget
 - abnormality_condition: null
   allow_multiple: false
@@ -1102,6 +1165,7 @@ cdes:
   pattern: ''
   pv_group: DEATH
   questionnaire_text: ''
+  widget_config: ''
   widget_name: RadioSelect
 - abnormality_condition: null
   allow_multiple: false
@@ -1119,6 +1183,7 @@ cdes:
   pattern: ''
   pv_group: null
   questionnaire_text: ''
+  widget_config: ''
   widget_name: DateWidget
 - abnormality_condition: null
   allow_multiple: false
@@ -1136,6 +1201,7 @@ cdes:
   pattern: ''
   pv_group: DEATHLC
   questionnaire_text: ''
+  widget_config: ''
   widget_name: RadioSelect
 - abnormality_condition: null
   allow_multiple: false
@@ -1153,6 +1219,7 @@ cdes:
   pattern: ''
   pv_group: DEATHLC
   questionnaire_text: ''
+  widget_config: ''
   widget_name: RadioSelect
 - abnormality_condition: null
   allow_multiple: false
@@ -1170,6 +1237,7 @@ cdes:
   pattern: ''
   pv_group: DEATHPLACELC
   questionnaire_text: ''
+  widget_config: ''
   widget_name: RadioSelect
 - abnormality_condition: ''
   allow_multiple: false
@@ -1187,6 +1255,7 @@ cdes:
   pattern: ''
   pv_group: null
   questionnaire_text: ''
+  widget_config: ''
   widget_name: ''
 - abnormality_condition: null
   allow_multiple: false
@@ -1204,6 +1273,7 @@ cdes:
   pattern: ''
   pv_group: DXLC
   questionnaire_text: ''
+  widget_config: ''
   widget_name: RadioSelect
 - abnormality_condition: null
   allow_multiple: false
@@ -1221,6 +1291,7 @@ cdes:
   pattern: ''
   pv_group: null
   questionnaire_text: ''
+  widget_config: ''
   widget_name: DateWidget
 - abnormality_condition: null
   allow_multiple: false
@@ -1238,6 +1309,7 @@ cdes:
   pattern: ''
   pv_group: EDUCATIONLC
   questionnaire_text: ''
+  widget_config: ''
   widget_name: RadioSelect
 - abnormality_condition: ''
   allow_multiple: false
@@ -1255,6 +1327,7 @@ cdes:
   pattern: ''
   pv_group: EGFRLC
   questionnaire_text: ''
+  widget_config: ''
   widget_name: RadioSelect
 - abnormality_condition: x in ["3","4"]
   allow_multiple: false
@@ -1273,6 +1346,7 @@ cdes:
   pattern: ''
   pv_group: EORTCQLQC30
   questionnaire_text: ''
+  widget_config: ''
   widget_name: RadioSelect
 - abnormality_condition: x in ["3","4"]
   allow_multiple: false
@@ -1293,6 +1367,7 @@ cdes:
   pattern: ''
   pv_group: EORTCQLQC30
   questionnaire_text: ''
+  widget_config: ''
   widget_name: RadioSelect
 - abnormality_condition: x in ["3","4"]
   allow_multiple: false
@@ -1313,6 +1388,7 @@ cdes:
   pattern: ''
   pv_group: EORTCQLQC30
   questionnaire_text: ''
+  widget_config: ''
   widget_name: RadioSelect
 - abnormality_condition: x in ["3","4"]
   allow_multiple: false
@@ -1333,6 +1409,7 @@ cdes:
   pattern: ''
   pv_group: EORTCQLQC30
   questionnaire_text: ''
+  widget_config: ''
   widget_name: RadioSelect
 - abnormality_condition: x in ["3","4"]
   allow_multiple: false
@@ -1353,6 +1430,7 @@ cdes:
   pattern: ''
   pv_group: EORTCQLQC30
   questionnaire_text: ''
+  widget_config: ''
   widget_name: RadioSelect
 - abnormality_condition: x in ["3","4"]
   allow_multiple: false
@@ -1370,6 +1448,7 @@ cdes:
   pattern: ''
   pv_group: EORTCQLQC30
   questionnaire_text: ''
+  widget_config: ''
   widget_name: RadioSelect
 - abnormality_condition: x in ["3","4"]
   allow_multiple: false
@@ -1387,6 +1466,7 @@ cdes:
   pattern: ''
   pv_group: EORTCQLQC30
   questionnaire_text: ''
+  widget_config: ''
   widget_name: RadioSelect
 - abnormality_condition: x in ["3","4"]
   allow_multiple: false
@@ -1404,6 +1484,7 @@ cdes:
   pattern: ''
   pv_group: EORTCQLQC30
   questionnaire_text: ''
+  widget_config: ''
   widget_name: RadioSelect
 - abnormality_condition: x in ["3","4"]
   allow_multiple: false
@@ -1421,6 +1502,7 @@ cdes:
   pattern: ''
   pv_group: EORTCQLQC30
   questionnaire_text: ''
+  widget_config: ''
   widget_name: RadioSelect
 - abnormality_condition: x in ["3","4"]
   allow_multiple: false
@@ -1438,6 +1520,7 @@ cdes:
   pattern: ''
   pv_group: EORTCQLQC30
   questionnaire_text: ''
+  widget_config: ''
   widget_name: RadioSelect
 - abnormality_condition: x in ["3","4"]
   allow_multiple: false
@@ -1455,6 +1538,7 @@ cdes:
   pattern: ''
   pv_group: EORTCQLQC30
   questionnaire_text: ''
+  widget_config: ''
   widget_name: RadioSelect
 - abnormality_condition: x in ["3","4"]
   allow_multiple: false
@@ -1472,6 +1556,7 @@ cdes:
   pattern: ''
   pv_group: EORTCQLQC30
   questionnaire_text: ''
+  widget_config: ''
   widget_name: RadioSelect
 - abnormality_condition: x in ["3","4"]
   allow_multiple: false
@@ -1489,6 +1574,7 @@ cdes:
   pattern: ''
   pv_group: EORTCQLQC30
   questionnaire_text: ''
+  widget_config: ''
   widget_name: RadioSelect
 - abnormality_condition: x in ["3","4"]
   allow_multiple: false
@@ -1506,6 +1592,7 @@ cdes:
   pattern: ''
   pv_group: EORTCQLQC30
   questionnaire_text: ''
+  widget_config: ''
   widget_name: RadioSelect
 - abnormality_condition: x in ["3","4"]
   allow_multiple: false
@@ -1523,6 +1610,7 @@ cdes:
   pattern: ''
   pv_group: EORTCQLQC30
   questionnaire_text: ''
+  widget_config: ''
   widget_name: RadioSelect
 - abnormality_condition: x in ["3","4"]
   allow_multiple: false
@@ -1540,6 +1628,7 @@ cdes:
   pattern: ''
   pv_group: EORTCQLQC30
   questionnaire_text: ''
+  widget_config: ''
   widget_name: RadioSelect
 - abnormality_condition: x in ["3","4"]
   allow_multiple: false
@@ -1557,6 +1646,7 @@ cdes:
   pattern: ''
   pv_group: EORTCQLQC30
   questionnaire_text: ''
+  widget_config: ''
   widget_name: RadioSelect
 - abnormality_condition: x in ["3","4"]
   allow_multiple: false
@@ -1574,6 +1664,7 @@ cdes:
   pattern: ''
   pv_group: EORTCQLQC30
   questionnaire_text: ''
+  widget_config: ''
   widget_name: RadioSelect
 - abnormality_condition: x in ["3","4"]
   allow_multiple: false
@@ -1591,6 +1682,7 @@ cdes:
   pattern: ''
   pv_group: EORTCQLQC30
   questionnaire_text: ''
+  widget_config: ''
   widget_name: RadioSelect
 - abnormality_condition: x in ["3","4"]
   allow_multiple: false
@@ -1609,6 +1701,7 @@ cdes:
   pattern: ''
   pv_group: EORTCQLQC30
   questionnaire_text: ''
+  widget_config: ''
   widget_name: RadioSelect
 - abnormality_condition: x in ["3","4"]
   allow_multiple: false
@@ -1626,6 +1719,7 @@ cdes:
   pattern: ''
   pv_group: EORTCQLQC30
   questionnaire_text: ''
+  widget_config: ''
   widget_name: RadioSelect
 - abnormality_condition: x in ["3","4"]
   allow_multiple: false
@@ -1643,6 +1737,7 @@ cdes:
   pattern: ''
   pv_group: EORTCQLQC30
   questionnaire_text: ''
+  widget_config: ''
   widget_name: RadioSelect
 - abnormality_condition: x in ["3","4"]
   allow_multiple: false
@@ -1660,6 +1755,7 @@ cdes:
   pattern: ''
   pv_group: EORTCQLQC30
   questionnaire_text: ''
+  widget_config: ''
   widget_name: RadioSelect
 - abnormality_condition: x in ["3","4"]
   allow_multiple: false
@@ -1677,6 +1773,7 @@ cdes:
   pattern: ''
   pv_group: EORTCQLQC30
   questionnaire_text: ''
+  widget_config: ''
   widget_name: RadioSelect
 - abnormality_condition: x in ["3","4"]
   allow_multiple: false
@@ -1694,6 +1791,7 @@ cdes:
   pattern: ''
   pv_group: EORTCQLQC30
   questionnaire_text: ''
+  widget_config: ''
   widget_name: RadioSelect
 - abnormality_condition: x in ["3","4"]
   allow_multiple: false
@@ -1712,6 +1810,7 @@ cdes:
   pattern: ''
   pv_group: EORTCQLQC30
   questionnaire_text: ''
+  widget_config: ''
   widget_name: RadioSelect
 - abnormality_condition: x in ["3","4"]
   allow_multiple: false
@@ -1730,6 +1829,7 @@ cdes:
   pattern: ''
   pv_group: EORTCQLQC30
   questionnaire_text: ''
+  widget_config: ''
   widget_name: RadioSelect
 - abnormality_condition: x in ["3","4"]
   allow_multiple: false
@@ -1747,6 +1847,7 @@ cdes:
   pattern: ''
   pv_group: EORTCQLQC30
   questionnaire_text: ''
+  widget_config: ''
   widget_name: RadioSelect
 - abnormality_condition: x in ["1","2"]
   allow_multiple: false
@@ -1764,6 +1865,7 @@ cdes:
   pattern: ''
   pv_group: SevenScale
   questionnaire_text: ''
+  widget_config: ''
   widget_name: ''
 - abnormality_condition: x in ["1","2"]
   allow_multiple: false
@@ -1781,6 +1883,7 @@ cdes:
   pattern: ''
   pv_group: SevenScale
   questionnaire_text: ''
+  widget_config: ''
   widget_name: ''
 - abnormality_condition: x in ["3","4"]
   allow_multiple: false
@@ -1798,6 +1901,7 @@ cdes:
   pattern: ''
   pv_group: EORTC13
   questionnaire_text: ''
+  widget_config: ''
   widget_name: RadioSelect
 - abnormality_condition: x in ["3","4"]
   allow_multiple: false
@@ -1815,6 +1919,7 @@ cdes:
   pattern: ''
   pv_group: EORTC13
   questionnaire_text: ''
+  widget_config: ''
   widget_name: RadioSelect
 - abnormality_condition: x in ["3","4"]
   allow_multiple: false
@@ -1832,6 +1937,7 @@ cdes:
   pattern: ''
   pv_group: EORTC13
   questionnaire_text: ''
+  widget_config: ''
   widget_name: RadioSelect
 - abnormality_condition: x in ["3","4"]
   allow_multiple: false
@@ -1849,6 +1955,7 @@ cdes:
   pattern: ''
   pv_group: EORTC13
   questionnaire_text: ''
+  widget_config: ''
   widget_name: RadioSelect
 - abnormality_condition: x in ["3","4"]
   allow_multiple: false
@@ -1866,6 +1973,7 @@ cdes:
   pattern: ''
   pv_group: EORTC13
   questionnaire_text: ''
+  widget_config: ''
   widget_name: RadioSelect
 - abnormality_condition: x in ["3","4"]
   allow_multiple: false
@@ -1883,6 +1991,7 @@ cdes:
   pattern: ''
   pv_group: EORTC13
   questionnaire_text: ''
+  widget_config: ''
   widget_name: RadioSelect
 - abnormality_condition: x in ["3","4"]
   allow_multiple: false
@@ -1900,6 +2009,7 @@ cdes:
   pattern: ''
   pv_group: EORTC13
   questionnaire_text: ''
+  widget_config: ''
   widget_name: RadioSelect
 - abnormality_condition: x in ["3","4"]
   allow_multiple: false
@@ -1917,6 +2027,7 @@ cdes:
   pattern: ''
   pv_group: EORTC13
   questionnaire_text: ''
+  widget_config: ''
   widget_name: RadioSelect
 - abnormality_condition: x in ["3","4"]
   allow_multiple: false
@@ -1934,6 +2045,7 @@ cdes:
   pattern: ''
   pv_group: EORTC13
   questionnaire_text: ''
+  widget_config: ''
   widget_name: RadioSelect
 - abnormality_condition: x in ["3","4"]
   allow_multiple: false
@@ -1951,6 +2063,7 @@ cdes:
   pattern: ''
   pv_group: EORTC13
   questionnaire_text: ''
+  widget_config: ''
   widget_name: RadioSelect
 - abnormality_condition: x in ["3","4"]
   allow_multiple: false
@@ -1968,6 +2081,7 @@ cdes:
   pattern: ''
   pv_group: EORTC13
   questionnaire_text: ''
+  widget_config: ''
   widget_name: RadioSelect
 - abnormality_condition: x in ["3","4"]
   allow_multiple: false
@@ -1985,6 +2099,7 @@ cdes:
   pattern: ''
   pv_group: EORTC13
   questionnaire_text: ''
+  widget_config: ''
   widget_name: RadioSelect
 - abnormality_condition: ''
   allow_multiple: false
@@ -2002,6 +2117,7 @@ cdes:
   pattern: ''
   pv_group: null
   questionnaire_text: ''
+  widget_config: ''
   widget_name: ''
 - abnormality_condition: x in ["3","4"]
   allow_multiple: false
@@ -2019,6 +2135,7 @@ cdes:
   pattern: ''
   pv_group: EORTC13
   questionnaire_text: ''
+  widget_config: ''
   widget_name: RadioSelect
 - abnormality_condition: x in ["3","4"]
   allow_multiple: false
@@ -2036,6 +2153,7 @@ cdes:
   pattern: ''
   pv_group: EORTC13
   questionnaire_text: ''
+  widget_config: ''
   widget_name: RadioSelect
 - abnormality_condition: null
   allow_multiple: false
@@ -2053,6 +2171,7 @@ cdes:
   pattern: ''
   pv_group: EQ_Anxiety_Depress
   questionnaire_text: ''
+  widget_config: ''
   widget_name: RadioSelect
 - abnormality_condition: ''
   allow_multiple: false
@@ -2073,6 +2192,7 @@ cdes:
   pattern: ''
   pv_group: null
   questionnaire_text: ''
+  widget_config: ''
   widget_name: ''
 - abnormality_condition: null
   allow_multiple: false
@@ -2090,6 +2210,7 @@ cdes:
   pattern: ''
   pv_group: EQ_Mobility
   questionnaire_text: ''
+  widget_config: ''
   widget_name: RadioSelect
 - abnormality_condition: ''
   allow_multiple: false
@@ -2107,6 +2228,7 @@ cdes:
   pattern: ''
   pv_group: EQ_Pain_Discomfort
   questionnaire_text: ''
+  widget_config: ''
   widget_name: RadioSelect
 - abnormality_condition: null
   allow_multiple: false
@@ -2124,6 +2246,7 @@ cdes:
   pattern: ''
   pv_group: EQ_Selfcare
   questionnaire_text: ''
+  widget_config: ''
   widget_name: RadioSelect
 - abnormality_condition: null
   allow_multiple: false
@@ -2141,6 +2264,7 @@ cdes:
   pattern: ''
   pv_group: EQ_UsualActivities
   questionnaire_text: ''
+  widget_config: ''
   widget_name: RadioSelect
 - abnormality_condition: ''
   allow_multiple: false
@@ -2158,6 +2282,7 @@ cdes:
   pattern: ''
   pv_group: null
   questionnaire_text: ''
+  widget_config: ''
   widget_name: Textarea
 - abnormality_condition: ''
   allow_multiple: false
@@ -2175,6 +2300,7 @@ cdes:
   pattern: ''
   pv_group: FHXLUNG
   questionnaire_text: ''
+  widget_config: ''
   widget_name: RadioSelect
 - abnormality_condition: null
   allow_multiple: false
@@ -2193,6 +2319,7 @@ cdes:
   pattern: ''
   pv_group: null
   questionnaire_text: ''
+  widget_config: ''
   widget_name: DateWidget
 - abnormality_condition: null
   allow_multiple: false
@@ -2210,6 +2337,7 @@ cdes:
   pattern: ''
   pv_group: HISTOLLC
   questionnaire_text: ''
+  widget_config: ''
   widget_name: RadioSelect
 - abnormality_condition: null
   allow_multiple: false
@@ -2227,6 +2355,7 @@ cdes:
   pattern: ''
   pv_group: IMMUNOTXLC
   questionnaire_text: ''
+  widget_config: ''
   widget_name: RadioSelect
 - abnormality_condition: null
   allow_multiple: false
@@ -2244,6 +2373,7 @@ cdes:
   pattern: ''
   pv_group: IMMUNOTXONGOINGLC
   questionnaire_text: ''
+  widget_config: ''
   widget_name: RadioSelect
 - abnormality_condition: null
   allow_multiple: false
@@ -2261,6 +2391,7 @@ cdes:
   pattern: ''
   pv_group: null
   questionnaire_text: ''
+  widget_config: ''
   widget_name: DateWidget
 - abnormality_condition: null
   allow_multiple: false
@@ -2278,6 +2409,7 @@ cdes:
   pattern: ''
   pv_group: null
   questionnaire_text: ''
+  widget_config: ''
   widget_name: DateWidget
 - abnormality_condition: null
   allow_multiple: false
@@ -2295,6 +2427,7 @@ cdes:
   pattern: ''
   pv_group: null
   questionnaire_text: ''
+  widget_config: ''
   widget_name: DateWidget
 - abnormality_condition: ''
   allow_multiple: false
@@ -2312,6 +2445,7 @@ cdes:
   pattern: ''
   pv_group: INCIDENDATEMETHODLC
   questionnaire_text: ''
+  widget_config: ''
   widget_name: RadioSelect
 - abnormality_condition: null
   allow_multiple: false
@@ -2329,6 +2463,7 @@ cdes:
   pattern: ''
   pv_group: INDIGSTATUS
   questionnaire_text: ''
+  widget_config: ''
   widget_name: RadioSelect
 - abnormality_condition: null
   allow_multiple: false
@@ -2346,6 +2481,7 @@ cdes:
   pattern: ''
   pv_group: null
   questionnaire_text: ''
+  widget_config: ''
   widget_name: ''
 - abnormality_condition: ''
   allow_multiple: false
@@ -2364,6 +2500,7 @@ cdes:
   pattern: ''
   pv_group: null
   questionnaire_text: ''
+  widget_config: ''
   widget_name: ''
 - abnormality_condition: null
   allow_multiple: false
@@ -2381,6 +2518,7 @@ cdes:
   pattern: ''
   pv_group: IXPLANLC
   questionnaire_text: ''
+  widget_config: ''
   widget_name: RadioSelect
 - abnormality_condition: null
   allow_multiple: false
@@ -2398,6 +2536,7 @@ cdes:
   pattern: ''
   pv_group: Intent_recurrenceLC
   questionnaire_text: ''
+  widget_config: ''
   widget_name: RadioSelect
 - abnormality_condition: ''
   allow_multiple: false
@@ -2415,6 +2554,7 @@ cdes:
   pattern: ''
   pv_group: null
   questionnaire_text: ''
+  widget_config: ''
   widget_name: Textarea
 - abnormality_condition: ''
   allow_multiple: false
@@ -2432,6 +2572,7 @@ cdes:
   pattern: ''
   pv_group: null
   questionnaire_text: ''
+  widget_config: ''
   widget_name: ''
 - abnormality_condition: null
   allow_multiple: false
@@ -2449,6 +2590,7 @@ cdes:
   pattern: ''
   pv_group: LANGUAGELC
   questionnaire_text: ''
+  widget_config: ''
   widget_name: RadioSelect
 - abnormality_condition: null
   allow_multiple: false
@@ -2466,6 +2608,7 @@ cdes:
   pattern: ''
   pv_group: LIVINGLC
   questionnaire_text: ''
+  widget_config: ''
   widget_name: RadioSelect
 - abnormality_condition: null
   allow_multiple: false
@@ -2483,6 +2626,7 @@ cdes:
   pattern: ''
   pv_group: MARITAL
   questionnaire_text: ''
+  widget_config: ''
   widget_name: RadioSelect
 - abnormality_condition: ''
   allow_multiple: false
@@ -2500,6 +2644,7 @@ cdes:
   pattern: ''
   pv_group: MDTLC
   questionnaire_text: ''
+  widget_config: ''
   widget_name: RadioSelect
 - abnormality_condition: ''
   allow_multiple: true
@@ -2517,6 +2662,7 @@ cdes:
   pattern: ''
   pv_group: MEDSLC
   questionnaire_text: ''
+  widget_config: ''
   widget_name: ''
 - abnormality_condition: null
   allow_multiple: false
@@ -2536,6 +2682,7 @@ cdes:
   pattern: ''
   pv_group: METACHLC
   questionnaire_text: ''
+  widget_config: ''
   widget_name: RadioSelect
 - abnormality_condition: null
   allow_multiple: false
@@ -2553,6 +2700,7 @@ cdes:
   pattern: ''
   pv_group: null
   questionnaire_text: ''
+  widget_config: ''
   widget_name: DateWidget
 - abnormality_condition: ''
   allow_multiple: false
@@ -2570,6 +2718,7 @@ cdes:
   pattern: ''
   pv_group: null
   questionnaire_text: ''
+  widget_config: ''
   widget_name: ''
 - abnormality_condition: ''
   allow_multiple: false
@@ -2587,6 +2736,7 @@ cdes:
   pattern: ''
   pv_group: null
   questionnaire_text: ''
+  widget_config: ''
   widget_name: ''
 - abnormality_condition: ''
   allow_multiple: false
@@ -2604,6 +2754,7 @@ cdes:
   pattern: ''
   pv_group: null
   questionnaire_text: ''
+  widget_config: ''
   widget_name: ''
 - abnormality_condition: null
   allow_multiple: false
@@ -2621,6 +2772,7 @@ cdes:
   pattern: ''
   pv_group: Method_recurrenceLC
   questionnaire_text: ''
+  widget_config: ''
   widget_name: RadioSelect
 - abnormality_condition: ''
   allow_multiple: true
@@ -2638,6 +2790,7 @@ cdes:
   pattern: ''
   pv_group: Mx_recurrenceLC
   questionnaire_text: ''
+  widget_config: ''
   widget_name: ''
 - abnormality_condition: null
   allow_multiple: false
@@ -2655,6 +2808,7 @@ cdes:
   pattern: ''
   pv_group: NODLOCATIONLC
   questionnaire_text: ''
+  widget_config: ''
   widget_name: RadioSelect
 - abnormality_condition: null
   allow_multiple: false
@@ -2672,6 +2826,7 @@ cdes:
   pattern: ''
   pv_group: null
   questionnaire_text: ''
+  widget_config: ''
   widget_name: ''
 - abnormality_condition: ''
   allow_multiple: false
@@ -2689,6 +2844,7 @@ cdes:
   pattern: ''
   pv_group: NODSPICLC
   questionnaire_text: ''
+  widget_config: ''
   widget_name: RadioSelect
 - abnormality_condition: ''
   allow_multiple: false
@@ -2706,6 +2862,7 @@ cdes:
   pattern: ''
   pv_group: EGFRLC
   questionnaire_text: ''
+  widget_config: ''
   widget_name: RadioSelect
 - abnormality_condition: ''
   allow_multiple: false
@@ -2723,6 +2880,7 @@ cdes:
   pattern: ''
   pv_group: PERFORM
   questionnaire_text: ''
+  widget_config: ''
   widget_name: RadioSelect
 - abnormality_condition: null
   allow_multiple: false
@@ -2740,6 +2898,7 @@ cdes:
   pattern: ''
   pv_group: null
   questionnaire_text: ''
+  widget_config: ''
   widget_name: DateWidget
 - abnormality_condition: ''
   allow_multiple: false
@@ -2757,6 +2916,7 @@ cdes:
   pattern: ''
   pv_group: null
   questionnaire_text: ''
+  widget_config: ''
   widget_name: ''
 - abnormality_condition: ''
   allow_multiple: false
@@ -2778,6 +2938,7 @@ cdes:
   pattern: ''
   pv_group: fh_yes_no
   questionnaire_text: ''
+  widget_config: ''
   widget_name: ''
 - abnormality_condition: null
   allow_multiple: false
@@ -2795,6 +2956,7 @@ cdes:
   pattern: ''
   pv_group: null
   questionnaire_text: ''
+  widget_config: ''
   widget_name: ''
 - abnormality_condition: null
   allow_multiple: false
@@ -2812,6 +2974,7 @@ cdes:
   pattern: ''
   pv_group: null
   questionnaire_text: ''
+  widget_config: ''
   widget_name: ''
 - abnormality_condition: ''
   allow_multiple: false
@@ -2829,6 +2992,7 @@ cdes:
   pattern: ''
   pv_group: null
   questionnaire_text: ''
+  widget_config: ''
   widget_name: Textarea
 - abnormality_condition: ''
   allow_multiple: false
@@ -2846,6 +3010,7 @@ cdes:
   pattern: ''
   pv_group: PrivHospital
   questionnaire_text: ''
+  widget_config: ''
   widget_name: ''
 - abnormality_condition: ''
   allow_multiple: false
@@ -2863,6 +3028,7 @@ cdes:
   pattern: ''
   pv_group: null
   questionnaire_text: ''
+  widget_config: ''
   widget_name: ''
 - abnormality_condition: ''
   allow_multiple: false
@@ -2880,6 +3046,7 @@ cdes:
   pattern: ''
   pv_group: null
   questionnaire_text: ''
+  widget_config: ''
   widget_name: ''
 - abnormality_condition: ''
   allow_multiple: false
@@ -2897,6 +3064,7 @@ cdes:
   pattern: ''
   pv_group: null
   questionnaire_text: ''
+  widget_config: ''
   widget_name: ''
 - abnormality_condition: ''
   allow_multiple: false
@@ -2914,6 +3082,7 @@ cdes:
   pattern: ''
   pv_group: null
   questionnaire_text: ''
+  widget_config: ''
   widget_name: ''
 - abnormality_condition: null
   allow_multiple: false
@@ -2931,6 +3100,7 @@ cdes:
   pattern: ''
   pv_group: RADIOTXLC
   questionnaire_text: ''
+  widget_config: ''
   widget_name: RadioSelect
 - abnormality_condition: null
   allow_multiple: false
@@ -2948,6 +3118,7 @@ cdes:
   pattern: ''
   pv_group: RADIOTXONGOINGLC
   questionnaire_text: ''
+  widget_config: ''
   widget_name: RadioSelect
 - abnormality_condition: null
   allow_multiple: false
@@ -2965,6 +3136,7 @@ cdes:
   pattern: ''
   pv_group: null
   questionnaire_text: ''
+  widget_config: ''
   widget_name: DateWidget
 - abnormality_condition: null
   allow_multiple: false
@@ -2982,6 +3154,7 @@ cdes:
   pattern: ''
   pv_group: null
   questionnaire_text: ''
+  widget_config: ''
   widget_name: DateWidget
 - abnormality_condition: null
   allow_multiple: false
@@ -2999,6 +3172,7 @@ cdes:
   pattern: ''
   pv_group: RECURRENCELC
   questionnaire_text: ''
+  widget_config: ''
   widget_name: RadioSelect
 - abnormality_condition: null
   allow_multiple: false
@@ -3022,6 +3196,7 @@ cdes:
   pattern: ''
   pv_group: null
   questionnaire_text: ''
+  widget_config: ''
   widget_name: DateWidget
 - abnormality_condition: null
   allow_multiple: false
@@ -3039,6 +3214,7 @@ cdes:
   pattern: ''
   pv_group: REVIEWLOC
   questionnaire_text: ''
+  widget_config: ''
   widget_name: RadioSelect
 - abnormality_condition: null
   allow_multiple: false
@@ -3056,6 +3232,7 @@ cdes:
   pattern: ''
   pv_group: Region_recurrenceLC
   questionnaire_text: ''
+  widget_config: ''
   widget_name: RadioSelect
 - abnormality_condition: ''
   allow_multiple: false
@@ -3073,6 +3250,7 @@ cdes:
   pattern: ''
   pv_group: null
   questionnaire_text: ''
+  widget_config: ''
   widget_name: ''
 - abnormality_condition: null
   allow_multiple: false
@@ -3092,6 +3270,7 @@ cdes:
   pattern: ''
   pv_group: null
   questionnaire_text: ''
+  widget_config: ''
   widget_name: ''
 - abnormality_condition: null
   allow_multiple: false
@@ -3109,6 +3288,7 @@ cdes:
   pattern: ''
   pv_group: SMOKING
   questionnaire_text: ''
+  widget_config: ''
   widget_name: RadioSelect
 - abnormality_condition: ''
   allow_multiple: false
@@ -3126,6 +3306,7 @@ cdes:
   pattern: ''
   pv_group: null
   questionnaire_text: ''
+  widget_config: ''
   widget_name: ''
 - abnormality_condition: ''
   allow_multiple: false
@@ -3143,6 +3324,7 @@ cdes:
   pattern: ''
   pv_group: null
   questionnaire_text: ''
+  widget_config: ''
   widget_name: ''
 - abnormality_condition: null
   allow_multiple: false
@@ -3160,6 +3342,7 @@ cdes:
   pattern: ''
   pv_group: null
   questionnaire_text: ''
+  widget_config: ''
   widget_name: DateWidget
 - abnormality_condition: null
   allow_multiple: false
@@ -3177,6 +3360,7 @@ cdes:
   pattern: ''
   pv_group: SURGERYLC
   questionnaire_text: ''
+  widget_config: ''
   widget_name: RadioSelect
 - abnormality_condition: ''
   allow_multiple: false
@@ -3194,6 +3378,7 @@ cdes:
   pattern: ''
   pv_group: SYNCHLC
   questionnaire_text: ''
+  widget_config: ''
   widget_name: RadioSelect
 - abnormality_condition: null
   allow_multiple: false
@@ -3211,6 +3396,7 @@ cdes:
   pattern: ''
   pv_group: State
   questionnaire_text: ''
+  widget_config: ''
   widget_name: ''
 - abnormality_condition: null
   allow_multiple: false
@@ -3228,6 +3414,7 @@ cdes:
   pattern: ''
   pv_group: null
   questionnaire_text: ''
+  widget_config: ''
   widget_name: ''
 - abnormality_condition: null
   allow_multiple: false
@@ -3245,6 +3432,7 @@ cdes:
   pattern: ''
   pv_group: TARGETTXLC
   questionnaire_text: ''
+  widget_config: ''
   widget_name: RadioSelect
 - abnormality_condition: null
   allow_multiple: false
@@ -3262,6 +3450,7 @@ cdes:
   pattern: ''
   pv_group: TARGETTXONGOINGLC
   questionnaire_text: ''
+  widget_config: ''
   widget_name: RadioSelect
 - abnormality_condition: null
   allow_multiple: false
@@ -3279,6 +3468,7 @@ cdes:
   pattern: ''
   pv_group: null
   questionnaire_text: ''
+  widget_config: ''
   widget_name: DateWidget
 - abnormality_condition: null
   allow_multiple: false
@@ -3296,6 +3486,7 @@ cdes:
   pattern: ''
   pv_group: null
   questionnaire_text: ''
+  widget_config: ''
   widget_name: DateWidget
 - abnormality_condition: ''
   allow_multiple: false
@@ -3313,6 +3504,7 @@ cdes:
   pattern: ''
   pv_group: THCLC
   questionnaire_text: ''
+  widget_config: ''
   widget_name: RadioSelect
 - abnormality_condition: ''
   allow_multiple: false
@@ -3330,6 +3522,7 @@ cdes:
   pattern: ''
   pv_group: TNMCLC
   questionnaire_text: ''
+  widget_config: ''
   widget_name: RadioSelect
 - abnormality_condition: null
   allow_multiple: false
@@ -3347,6 +3540,7 @@ cdes:
   pattern: ''
   pv_group: TNMCMLC
   questionnaire_text: ''
+  widget_config: ''
   widget_name: RadioSelect
 - abnormality_condition: null
   allow_multiple: false
@@ -3364,6 +3558,7 @@ cdes:
   pattern: ''
   pv_group: TNMCNLC
   questionnaire_text: ''
+  widget_config: ''
   widget_name: RadioSelect
 - abnormality_condition: null
   allow_multiple: false
@@ -3381,6 +3576,7 @@ cdes:
   pattern: ''
   pv_group: TNMCSCLC
   questionnaire_text: ''
+  widget_config: ''
   widget_name: RadioSelect
 - abnormality_condition: null
   allow_multiple: false
@@ -3398,6 +3594,7 @@ cdes:
   pattern: ''
   pv_group: TNMCTLC
   questionnaire_text: ''
+  widget_config: ''
   widget_name: RadioSelect
 - abnormality_condition: ''
   allow_multiple: false
@@ -3415,6 +3612,7 @@ cdes:
   pattern: ''
   pv_group: TNMPLC
   questionnaire_text: ''
+  widget_config: ''
   widget_name: RadioSelect
 - abnormality_condition: null
   allow_multiple: false
@@ -3432,6 +3630,7 @@ cdes:
   pattern: ''
   pv_group: TNMPMLC
   questionnaire_text: ''
+  widget_config: ''
   widget_name: RadioSelect
 - abnormality_condition: null
   allow_multiple: false
@@ -3449,6 +3648,7 @@ cdes:
   pattern: ''
   pv_group: TNMPNLC
   questionnaire_text: ''
+  widget_config: ''
   widget_name: RadioSelect
 - abnormality_condition: null
   allow_multiple: false
@@ -3466,6 +3666,7 @@ cdes:
   pattern: ''
   pv_group: TNMPTLC
   questionnaire_text: ''
+  widget_config: ''
   widget_name: RadioSelect
 - abnormality_condition: ''
   allow_multiple: false
@@ -3483,6 +3684,7 @@ cdes:
   pattern: ''
   pv_group: null
   questionnaire_text: ''
+  widget_config: ''
   widget_name: ''
 - abnormality_condition: null
   allow_multiple: false
@@ -3500,6 +3702,7 @@ cdes:
   pattern: ''
   pv_group: TREATCOMPLLC
   questionnaire_text: ''
+  widget_config: ''
   widget_name: RadioSelect
 - abnormality_condition: null
   allow_multiple: false
@@ -3517,6 +3720,7 @@ cdes:
   pattern: ''
   pv_group: TREATINTLC
   questionnaire_text: ''
+  widget_config: ''
   widget_name: RadioSelect
 - abnormality_condition: ''
   allow_multiple: false
@@ -3534,6 +3738,7 @@ cdes:
   pattern: ''
   pv_group: treat_clinician
   questionnaire_text: ''
+  widget_config: ''
   widget_name: ''
 - abnormality_condition: ''
   allow_multiple: false
@@ -3551,6 +3756,7 @@ cdes:
   pattern: ''
   pv_group: TreatSpeciality
   questionnaire_text: ''
+  widget_config: ''
   widget_name: ''
 - abnormality_condition: ''
   allow_multiple: false
@@ -3568,6 +3774,7 @@ cdes:
   pattern: ''
   pv_group: WEIGHTLLC
   questionnaire_text: ''
+  widget_config: ''
   widget_name: RadioSelect
 - abnormality_condition: null
   allow_multiple: false
@@ -3585,6 +3792,7 @@ cdes:
   pattern: ''
   pv_group: null
   questionnaire_text: ''
+  widget_config: ''
   widget_name: DateWidget
 - abnormality_condition: null
   allow_multiple: false
@@ -3602,6 +3810,7 @@ cdes:
   pattern: ''
   pv_group: followup_patient_status
   questionnaire_text: ''
+  widget_config: ''
   widget_name: RadioSelect
 - abnormality_condition: null
   allow_multiple: false
@@ -3619,6 +3828,7 @@ cdes:
   pattern: ''
   pv_group: null
   questionnaire_text: ''
+  widget_config: ''
   widget_name: ''
 - abnormality_condition: null
   allow_multiple: false
@@ -3636,6 +3846,7 @@ cdes:
   pattern: ''
   pv_group: public_private
   questionnaire_text: ''
+  widget_config: ''
   widget_name: RadioSelect
 code: ICHOMLC
 complete_fields: []
@@ -7168,7 +7379,8 @@ surveys:
     position: 36
     precondition: null
     source: ''
-    widget_config: '{"widget_name": "slider", "max_label": "The best health you can
+    widget_config: '{"widget_config: ''
+  widget_name": "slider", "max_label": "The best health you can
       imagine", "min_label": "The worst health you can imagine", "box_label": "YOUR
       HEALTH TODAY"}'
 - context_form_group: FollowUp
@@ -7518,7 +7730,8 @@ surveys:
     position: 36
     precondition: null
     source: ''
-    widget_config: '{"widget_name": "slider", "max_label": "The best health you can
+    widget_config: '{"widget_config: ''
+  widget_name": "slider", "max_label": "The best health you can
       imagine", "min_label": "The worst health you can imagine", "box_label": "YOUR
       HEALTH TODAY"}'
   - cde: EORTCQLQLC13_Q07

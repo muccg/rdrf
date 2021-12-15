@@ -673,6 +673,9 @@ class CommonDataElement(models.Model):
         max_length=80,
         blank=True,
         help_text="If a special widget required indicate here - leave blank otherwise")
+    widget_config = models.TextField(
+        blank=True,
+        help_text='example: {"tag":"treating_clinician"}')
     calculation = models.TextField(
         blank=True,
         help_text="Calculation in javascript. Use context.CDECODE to refer to other CDEs. Must use context.result to set output")
@@ -2276,3 +2279,12 @@ class RegistryYaml(models.Model):
 
     def __str__(self):
         return self.code
+
+
+class DropdownLookup(models.Model):
+    """
+        Data source for the DataSourceSelect widget
+    """
+    tag = models.CharField(max_length=50)
+    value = models.CharField(max_length=60)
+    label = models.CharField(max_length=60)

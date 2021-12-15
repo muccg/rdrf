@@ -269,8 +269,12 @@ class ParametrisedSelectWidget(widgets.Select):
     """
 
     def __init__(self, *args, **kwargs):
-        self._widget_parameter = kwargs['widget_parameter']
-        del kwargs['widget_parameter']
+        if 'widget_parameter' in kwargs:
+            self._widget_parameter = kwargs['widget_parameter']
+            del kwargs['widget_parameter']
+        if 'tag' in kwargs:
+            self.tag = kwargs['tag']
+            del kwargs['tag']
         self._widget_context = kwargs['widget_context']
         del kwargs['widget_context']
         super(ParametrisedSelectWidget, self).__init__(*args, **kwargs)
@@ -321,18 +325,19 @@ class StateListWidget(ParametrisedSelectWidget):
 class DataSourceSelect(ParametrisedSelectWidget):
 
     """
-    A parametrised select that retrieves values from a data source specified in the parameter
+    A parametrised select that retrieves values from the DropdownLookup objects
+    with the tag specified in widget_config
     """
 
     def _get_items(self):
-        """
-        :return: [(code, value), ... ] pairs from the metadata json from the registry context
-        """
         from rdrf.forms.widgets import datasources
-        if hasattr(datasources, self._widget_parameter):
+        if self._widget_parameter and hasattr(datasources, self._widget_parameter):
             datasource_class = getattr(datasources, self._widget_parameter)
             datasource = datasource_class(self._widget_context)
-            return list(datasource.values())
+        elif self.tag:
+            datasource = datasources.ModelDataSource(self._widget_context,
+                                                     self.tag)
+        return list(datasource.values())
 
 
 class PositiveIntegerInput(widgets.TextInput):
