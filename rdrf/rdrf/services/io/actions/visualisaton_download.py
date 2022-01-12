@@ -44,6 +44,7 @@ class VisualisationDownloader:
     def _get_field_specs(self):
         try:
             field_specs = json.loads(self.custom_action_model.data)
+            return field_specs
         except:
             return []
 

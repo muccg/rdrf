@@ -2064,7 +2064,8 @@ class CustomAction(models.Model):
     """
     ACTION_TYPES = (("PR", "Patient Report"),
                     ("SR", "Patient Status Report"),
-                    ("DE", "Deidentified Data Extract"))
+                    ("DE", "Deidentified Data Extract"),
+                    ("VD", "Visualisation Download"))
 
     SCOPES = (("U", "Universal"),
               ("P", "Patient"))
