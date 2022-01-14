@@ -2064,7 +2064,8 @@ class CustomAction(models.Model):
     """
     ACTION_TYPES = (("PR", "Patient Report"),
                     ("SR", "Patient Status Report"),
-                    ("DE", "Deidentified Data Extract"))
+                    ("DE", "Deidentified Data Extract"),
+                    ("VD", "Visualisation Download"))
 
     SCOPES = (("U", "Universal"),
               ("P", "Patient"))
@@ -2194,6 +2195,11 @@ class CustomAction(models.Model):
         """
         This should return a HttpResponse of some sort
         """
+        if self.action_type == "VD":
+            from rdrf.services.io.actions import visualisaton_download as vd
+            vdlr = vd.VisualisationDownloader(user, self)
+            return vdlr.task_result
+
         if self.scope == "P":
             if not self.check_security(user, patient_model):
                 raise PermissionDenied
