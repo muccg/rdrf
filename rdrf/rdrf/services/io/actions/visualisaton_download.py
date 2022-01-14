@@ -43,13 +43,21 @@ class VisualisationDownloader:
 
     def extract(self):
         rows = []
+        num_columns = len(self.field_specs)
+
         labels = [field_spec["label"] for field_spec in self.field_specs]
 
         for cd in ClinicalData.objects.filter(collection="cdes"):
             patient_model = self._get_patient_model(cd)
             if cd.data:
                 data = cd.data
-                row = [self._get_raw_data(patient_model, field_spec, data) for field_spec in self.field_specs]
+                try:
+                    row = [self._get_raw_data(patient_model, field_spec, data) for field_spec in self.field_specs]
+                    logger.debug(row)
+                except Exception as ex:
+                    logger.error(f"error getting row: {ex}")
+                    row = [str(ex)] * num_columns
+
                 rows.append(row)
 
         raw = pd.DataFrame(rows, columns=labels)
@@ -90,6 +98,7 @@ class VisualisationDownloader:
             logger.debug(f"cde = {cde}")
             value = self._get_cde(form, section, cde, data)
             logger.debug(f"value = {value}")
+            return value
         elif tag == "demographics":
             logger.debug("demographics field")
             field = field_spec["field"]
