@@ -1,10 +1,27 @@
-import pandas as pd
+from functools import lru_cache as cached
 import json
 import logging
+import pandas as pd
 from rdrf.models.definition.models import ClinicalData
+from rdrf.models.definition.models import CommonDataElement
 from registry.patients.models import Patient
 
 logger = logging.getLogger(__name__)
+
+
+@cached(maxsize=None)
+def get_cde_model(cde_code) -> CommonDataElement:
+    return CommonDataElement.objects.get(code=cde_code)
+
+
+@cached(maxsize=None)
+def get_display_value(cde_code, raw_value):
+    try:
+        cde_model = get_cde_model(cde_code)
+    except CommonDataElement.DoesNotExist:
+        logger.error(f"{cde_code} does not exist")
+        return "NOCDE"
+    return cde_model.get_display_value(raw_value)
 
 
 class VisualisationDownloadException(Exception):
@@ -42,6 +59,7 @@ class VisualisationDownloader:
         return patient_model
 
     def extract(self):
+
         rows = []
         num_columns = len(self.field_specs)
 
@@ -52,7 +70,7 @@ class VisualisationDownloader:
             if cd.data:
                 data = cd.data
                 try:
-                    row = [self._get_raw_data(patient_model, field_spec, data) for field_spec in self.field_specs]
+                    row = [self._get_data(patient_model, field_spec, data) for field_spec in self.field_specs]
                     logger.debug(row)
                 except Exception as ex:
                     logger.error(f"error getting row: {ex}")
@@ -61,8 +79,18 @@ class VisualisationDownloader:
                 rows.append(row)
 
         raw = pd.DataFrame(rows, columns=labels)
+
+        def get_display_values(df):
+            logger.debug("getting display values ...")
+            return df
+
+        def make_missing_values_consistent(df):
+            logger.debug("make missing values consisent ...")
+            return df
+
         csv_path = "/data/vd.csv"
         raw.to_csv(csv_path, index=False)
+        logger.debug("saved to csv file")
 
         return raw
 
@@ -82,10 +110,12 @@ class VisualisationDownloader:
                     if section_dict["code"] == section:
                         for cde_dict in section_dict["cdes"]:
                             if cde_dict["code"] == cde:
-                                return cde_dict["value"]
+                                return get_display_value(cde, cde_dict["value"])
+
+        return "NODATA"
 
     @safe
-    def _get_raw_data(self, patient_model, field_spec, data):
+    def _get_data(self, patient_model, field_spec, data):
         tag = field_spec["tag"]
         logger.debug(f"got tag {tag}")
         if tag == "cde":
@@ -96,7 +126,7 @@ class VisualisationDownloader:
             logger.debug(f"section = {section}")
             cde = field_spec["cde"]
             logger.debug(f"cde = {cde}")
-            value = self._get_cde(form, section, cde, data)
+            value = get_display_value(cde, self._get_cde(form, section, cde, data))
             logger.debug(f"value = {value}")
             return value
         elif tag == "demographics":
