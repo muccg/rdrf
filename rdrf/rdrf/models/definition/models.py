@@ -2197,8 +2197,8 @@ class CustomAction(models.Model):
         """
         if self.action_type == "VD":
             from rdrf.services.io.actions import visualisaton_download as vd
-            vdlr = vd.VisualisationDownloader(self)
-            return vdlr.extract()
+            vdlr = vd.VisualisationDownloader(user, self)
+            return vdlr.task_result
 
         if self.scope == "P":
             if not self.check_security(user, patient_model):

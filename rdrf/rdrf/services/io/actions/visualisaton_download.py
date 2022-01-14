@@ -48,17 +48,34 @@ def safe(func):
 
 
 class VisualisationDownloader:
-    def __init__(self, custom_action_model):
+    def __init__(self, user, custom_action_model):
+        self.user = user
         self.custom_action_model = custom_action_model
         self.field_specs = self._get_field_specs()
-        logger.debug(f"got {len(self.field_specs)} field specs")
 
     def _get_patient_model(self, cd):
         patient_model = Patient.objects.get(id=cd.django_id)
-        logger.debug(f"got {patient_model}")
         return patient_model
 
-    def extract(self):
+    @property
+    def task_result(self):
+        import os.path
+        from rdrf.helpers.utils import generate_token
+        from django.conf import settings
+        task_dir = settings.TASK_FILE_DIRECTORY
+        filename = generate_token()
+        filepath = os.path.join(task_dir, filename)
+        with open(filepath, "w") as f:
+            self.extract(f)
+        result = {"filepath": filepath,
+                  "content_type": "text/csv",
+                  "username": self.user.username,
+                  "user_id": self.user.id,
+                  "filename": "visualisation_download.csv",
+                  }
+        return result
+
+    def extract(self, csv_path):
 
         rows = []
         num_columns = len(self.field_specs)
@@ -71,7 +88,6 @@ class VisualisationDownloader:
                 data = cd.data
                 try:
                     row = [self._get_data(patient_model, field_spec, data) for field_spec in self.field_specs]
-                    logger.debug(row)
                 except Exception as ex:
                     logger.error(f"error getting row: {ex}")
                     row = [str(ex)] * num_columns
@@ -80,19 +96,8 @@ class VisualisationDownloader:
 
         raw = pd.DataFrame(rows, columns=labels)
 
-        def get_display_values(df):
-            logger.debug("getting display values ...")
-            return df
-
-        def make_missing_values_consistent(df):
-            logger.debug("make missing values consisent ...")
-            return df
-
-        csv_path = "/data/vd.csv"
         raw.to_csv(csv_path, index=False)
-        logger.debug("saved to csv file")
-
-        return raw
+        logger.debug(f"saved to csv file to path {csv_path}")
 
     def _get_field_specs(self):
         try:
