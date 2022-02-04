@@ -7,12 +7,19 @@ from rdrf.models.definition.models import ClinicalData
 from rdrf.models.definition.models import CommonDataElement
 from rdrf.models.definition.models import RDRFContext
 from registry.patients.models import Patient
+from rdrf.helpers.utils import generate_token
+from django.contrib.sites.shortcuts import get_current_site
+
 
 logger = logging.getLogger(__name__)
 
 
-class LONG:
-    HEADER = "PID,QUESTIONNAIRE,CDE,QUESTION,VALUE,COLLECTION_DATE,RESPONSE_TYPE\n"
+class VisDownload:
+    ZIP_NAME = "visualisation_download-%s.zip"
+    PATIENTS_FILENAME = "patients.csv"
+    PATIENT_HEADER = "PID,GIVENNAMES,FAMILY_NAME,DOB,VALUE,COLLECTION_DATE,RESPONSE_TYPE\n"
+    DATA_FILENAME = "patients_data.csv"
+    DATA_HEADER = "PID,QUESTIONNAIRE,CDE,QUESTION,VALUE,COLLECTION_DATE,RESPONSE_TYPE\n"
 
 
 @cached(maxsize=None)
@@ -138,6 +145,15 @@ class VisualisationDownloader:
         self.user = user
         self.custom_action_model = custom_action_model
         self.field_specs = self._get_field_specs()
+        self.zip_filename = self._create_zip_name()
+        self.registry = self.custom_action_model.registry
+
+    def _create_zip_name(self):
+        registry_code = self.custom_action_model.registry.code
+        return VisDownload.ZIP_NAME % registry_code
+
+    def _get_site(self):
+        return "prototype"
 
     def _get_patient_model(self, cd):
         patient_model = Patient.objects.get(id=cd.django_id)
@@ -146,36 +162,39 @@ class VisualisationDownloader:
     @property
     def task_result(self):
         import os.path
-        from rdrf.helpers.utils import generate_token
         from django.conf import settings
         task_dir = settings.TASK_FILE_DIRECTORY
         filename = generate_token()
         filepath = os.path.join(task_dir, filename)
-        with open(filepath, "w") as f:
-            self.extract_long(f)
+        patients_csv_filepath = "/data/patients.csv"
+        patients_data_csv_filepath = "/data/patients_data.csv"
+        self.extract_long(patients_csv_filepath,
+                          patients_data_csv_filepath)
         result = {"filepath": filepath,
                   "content_type": "text/csv",
                   "username": self.user.username,
                   "user_id": self.user.id,
-                  "filename": "visualisation_download.csv",
+                  "filename": self.zipfile_name,
                   }
         return result
 
-    def extract_long(self, output):
-        output.write(LONG.HEADER)
-        for cd in ClinicalData.objects.filter(collection="cdes"):
-            if cd.data and "forms" in cd.data:
-                for t in yield_cdes(cd):
-                    p = t[0]
-                    qn = t[1]
-                    q = t[2]
-                    n = t[3]
-                    v = t[3]
-                    coll = t[4]
-                    rt = t[5]
-                    line = f"{p},{qn},{q},{n},{v},{coll},{rt}\n"
-                    logger.debug(line)
-                    output.write(line)
+    def extract_long(self, patients_csv_filepath, patients_data_csv_filepath):
+        pids = [p.id for p in Patient.objects.filter(rdrf_registry__in=[self.registry])]
+        with open(patients_data_csv_filepath, "w") as pdf:
+            pdf.write(VisDownload.DATA_HEADER)
+            for cd in ClinicalData.objects.filter(collection="cdes", django_model="Patient", django_id__in=pids):
+                if cd.data and "forms" in cd.data:
+                    for t in yield_cdes(cd):
+                        p = t[0]
+                        qn = t[1]
+                        q = t[2]
+                        n = t[3]
+                        v = t[4]
+                        coll = t[5]
+                        rt = t[6]
+                        line = f"{p},{qn},{q},{n},{v},{coll},{rt}\n"
+                        logger.debug(line)
+                        pdf.write(line)
 
     def extract(self, csv_path):
 
