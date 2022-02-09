@@ -9,6 +9,7 @@ from rdrf.models.definition.models import RDRFContext
 from registry.patients.models import Patient
 from rdrf.helpers.utils import generate_token
 from django.contrib.sites.shortcuts import get_current_site
+from django.db.models import Q
 
 
 logger = logging.getLogger(__name__)
@@ -17,9 +18,9 @@ logger = logging.getLogger(__name__)
 class VisDownload:
     ZIP_NAME = "visualisation_download-%s.zip"
     PATIENTS_FILENAME = "patients.csv"
-    PATIENT_HEADER = "PID,GIVENNAMES,FAMILY_NAME,DOB,VALUE,COLLECTION_DATE,RESPONSE_TYPE\n"
-    DATA_FILENAME = "patients_data.csv"
-    DATA_HEADER = "PID,QUESTIONNAIRE,CDE,QUESTION,VALUE,COLLECTION_DATE,RESPONSE_TYPE\n"
+    PATIENTS_HEADER = "PID,GIVENNAMES,FAMILYNAME,DOB,ADDRESS,SUBURB,POSTCODE,WORKINGGROUP\n"
+    PATIENTS_DATA_FILENAME = "patients_data.csv"
+    PATIENTS_DATA_HEADER = "PID,QUESTIONNAIRE,CDE,QUESTION,VALUE,COLLECTIONDATE,RESPONSETYPE,FORM\n"
 
 
 @cached(maxsize=None)
@@ -81,8 +82,16 @@ def get_response_type(cd):
     if context_model.context_form_group:
         cfg = context_model.context_form_group
         if cfg.context_type == "M":
-            return "FollowUp"
-    return "Baseline"
+            return "Multiple"
+    return "OnceOff"
+
+
+def yield_cds(pids):
+    for cd in ClinicalData.objects.filter(collection="cdes",
+                                          django_model="Patient",
+                                          django_id__in=pids):
+        if cd.data and "forms" in cd.data:
+            yield cd
 
 
 def yield_cdes(cd):
@@ -92,23 +101,26 @@ def yield_cdes(cd):
     response_type = get_response_type(cd)
 
     data = cd.data
-    if data and "forms" in data:
-        for f in data["forms"]:
-            for s in f["sections"]:
-                if not s["allow_multiple"]:
-                    for c in s["cdes"]:
-                        code = c["code"]
-                        cde = get_cde_model(code)
-                        name = cde.name
-                        value = c["value"]
-                        logger.debug(f"{code} = {value}")
-                        try:
-                            display_value = get_display_value(code, value)
-                        except Exception as ex:
-                            logger.error(f"error {code}: {ex}")
-                            display_value = "ERROR"
-                        questionnaire, question = get_questionnaire_number(code)
+    for f in data["forms"]:
+        form_name = f["name"]
+        for s in f["sections"]:
+            section_code = s["code"]
+            if not s["allow_multiple"]:
+                for c in s["cdes"]:
+                    code = c["code"]
+                    questionnaire, question = get_questionnaire_number(code)
+                    cde = get_cde_model(code)
+                    name = cde.name
+                    value = c["value"]
+                    logger.debug(f"{code} = {value}")
+                    try:
+                        display_value = get_display_value(code, value)
+                    except Exception as ex:
+                        logger.error(f"error {code}: {ex}")
+                        display_value = "ERROR"
                     yield (pid,
+                           form_name,
+                           section_code,
                            questionnaire,
                            question,
                            name,
@@ -145,7 +157,7 @@ class VisualisationDownloader:
         self.user = user
         self.custom_action_model = custom_action_model
         self.field_specs = self._get_field_specs()
-        self.zip_filename = self._create_zip_name()
+        self.zip_filename = "test.zip"  # self._create_zip_name()
         self.registry = self.custom_action_model.registry
 
     def _create_zip_name(self):
@@ -178,23 +190,51 @@ class VisualisationDownloader:
                   }
         return result
 
+    def _get_patients_in_users_groups(self):
+        logger.debug("in get patients")
+        in_wgs = Q(working_groups__in=self.user.working_groups.all(), active=True)
+        in_reg = Q(rdrf_registry__in=[self.registry])
+        query = in_wgs & in_reg
+        return Patient.objects.filter(query)
+
     def extract_long(self, patients_csv_filepath, patients_data_csv_filepath):
-        pids = [p.id for p in Patient.objects.filter(rdrf_registry__in=[self.registry])]
-        with open(patients_data_csv_filepath, "w") as pdf:
-            pdf.write(VisDownload.DATA_HEADER)
-            for cd in ClinicalData.objects.filter(collection="cdes", django_model="Patient", django_id__in=pids):
-                if cd.data and "forms" in cd.data:
-                    for t in yield_cdes(cd):
-                        p = t[0]
-                        qn = t[1]
-                        q = t[2]
-                        n = t[3]
-                        v = t[4]
-                        coll = t[5]
-                        rt = t[6]
-                        line = f"{p},{qn},{q},{n},{v},{coll},{rt}\n"
-                        logger.debug(line)
-                        pdf.write(line)
+        logger.debug("in extract_long")
+        patients = self._get_patients_in_users_groups()
+        logger.debug(f"{patients}")
+        pids = [id for id in patients.values_list('id', flat=True)]
+        logger.debug(f"patients in users groups: {pids}")
+        self._write_patients(patients_csv_filepath, pids)
+        self._write_patients_data(patients_data_csv_filepath, pids)
+
+    def _write_patients(self, csv_path, pids):
+        pass
+
+    def _write_patients_data(self, csv_path, pids):
+        logger.debug("writing patients data")
+
+        def e(value):
+            # enquote
+            if "," in value:
+                return '"' + value + '"'
+            else:
+                return value
+        with open(csv_path, "w") as f:
+            f.write(VisDownload.PATIENTS_DATA_HEADER)
+            for cd in yield_cds(pids):
+                for t in yield_cdes(cd):
+                    logger.debug(t)
+                    p = t[0]
+                    form_name = t[1]
+                    section_code = t[2]
+                    qn = t[3]
+                    q = t[4]
+                    n = e(t[5])
+                    v = t[6]
+                    coll = t[7]
+                    rt = t[8]
+                    line = f"{p},{qn},{q},{n},{v},{coll},{rt},{form_name}\n"
+                    logger.debug(line)
+                    f.write(line)
 
     def extract(self, csv_path):
 
@@ -240,7 +280,7 @@ class VisualisationDownloader:
 
         return "NODATA"
 
-    @safe
+    @ safe
     def _get_data(self, patient_model, field_spec, data):
         tag = field_spec["tag"]
         logger.debug(f"got tag {tag}")
