@@ -18,9 +18,12 @@ logger = logging.getLogger(__name__)
 class VisDownload:
     ZIP_NAME = "visualisation_download-%s.zip"
     PATIENTS_FILENAME = "patients.csv"
-    PATIENTS_HEADER = "PID,GIVENNAMES,FAMILYNAME,DOB,ADDRESS,SUBURB,POSTCODE,WORKINGGROUP\n"
+    PATIENTS_HEADER = "PID,GIVENNAMES,FAMILYNAME,DOB,ADDRESS,SUBURB,POSTCODE\n"
     PATIENTS_DATA_FILENAME = "patients_data.csv"
     PATIENTS_DATA_HEADER = "PID,QUESTIONNAIRE,CDE,QUESTION,VALUE,COLLECTIONDATE,RESPONSETYPE,FORM\n"
+    ADDRESS_FIELD = "Ptaddress1"
+    SUBURB_FIELD = "Ptaddress2"
+    POSTCODE_FIELD = "Ptaddress3"
 
 
 @cached(maxsize=None)
@@ -49,6 +52,11 @@ def get_questionnaire_number(code):
         return qn, q
     except:
         return "", code
+
+
+@cached(maxsize=None)
+def is_address_field(cde_code):
+    return cde_code in VisDownload.ADDRESS_FIELDS
 
 
 def retrieve(cd, cde):
@@ -84,6 +92,13 @@ def get_response_type(cd):
         if cfg.context_type == "M":
             return "Multiple"
     return "OnceOff"
+
+
+def e(value):
+    if "," in value:
+        return '"' + value + '"'
+    else:
+        return value
 
 
 def yield_cds(pids):
@@ -156,9 +171,9 @@ class VisualisationDownloader:
     def __init__(self, user, custom_action_model):
         self.user = user
         self.custom_action_model = custom_action_model
-        self.field_specs = self._get_field_specs()
         self.zip_filename = "test.zip"  # self._create_zip_name()
         self.registry = self.custom_action_model.registry
+        self.address_map = {}  # pid -> address info from dynamic data
 
     def _create_zip_name(self):
         registry_code = self.custom_action_model.registry.code
@@ -170,6 +185,45 @@ class VisualisationDownloader:
     def _get_patient_model(self, cd):
         patient_model = Patient.objects.get(id=cd.django_id)
         return patient_model
+
+    def _get_address_field(self, pid, field):
+        address_dict = self.address_map.get(pid, {})
+        field_value = e(address_dict.get(field, ""))
+        return field_value
+
+    def _check_address(self, pid, cde_code, value):
+        if cde_code == VisDownload.ADDRESS_FIELD:
+            self._update_address(pid, "address", value)
+        elif cde_code == VisDownload.SUBURB_FIELD:
+            self._update_address(pid, "suburb", value)
+        elif cde_code == VisDownload.POSTCODE_FIELD:
+            self._update_address(pid, "postcode", value)
+
+    def _update_address(self, pid, field, value):
+        if pid in self.address_map:
+            m = self.address_map[pid]
+        else:
+            self.address_map[pid] = {}
+            m = self.address_map[pid]
+
+        m[field] = value
+
+    def _emit_patient_line(self, pid, file):
+        try:
+            patient = Patient.objects.get(id=pid)
+            given_names = e(patient.given_names)
+            family_name = e(patient.family_name)
+            dob = f"{patient.date_of_birth:%d/%m/%Y}"
+
+            address = e(self._get_address_field(pid, "address"))
+            suburb = e(self._get_address_field(pid, "suburb"))
+            postcode = e(self._get_address_field(pid, "postcode"))
+
+            file.write(f"{pid},{given_names},{family_name},{dob},{address},{suburb},{postcode}\n")
+
+        except Patient.DoesNotExist:
+            logger.error(f"vis download: patient {pid} does not exist")
+            pass
 
     @property
     def task_result(self):
@@ -207,107 +261,29 @@ class VisualisationDownloader:
         self._write_patients_data(patients_data_csv_filepath, pids)
 
     def _write_patients(self, csv_path, pids):
-        pass
+        with open(csv_path, "w") as f:
+            f.write(VisDownload.PATIENTS_HEADER)
+            for pid in sorted(pids):
+                self._emit_patient_line(pid, f)
 
     def _write_patients_data(self, csv_path, pids):
         logger.debug("writing patients data")
 
-        def e(value):
-            # enquote
-            if "," in value:
-                return '"' + value + '"'
-            else:
-                return value
         with open(csv_path, "w") as f:
             f.write(VisDownload.PATIENTS_DATA_HEADER)
             for cd in yield_cds(pids):
                 for t in yield_cdes(cd):
                     logger.debug(t)
-                    p = t[0]
+                    pid = t[0]
                     form_name = t[1]
                     section_code = t[2]
                     qn = t[3]
                     q = t[4]
                     n = e(t[5])
                     v = t[6]
+                    self._check_address(pid, q, v)
                     coll = t[7]
                     rt = t[8]
-                    line = f"{p},{qn},{q},{n},{v},{coll},{rt},{form_name}\n"
+                    line = f"{pid},{qn},{q},{n},{v},{coll},{rt},{form_name}\n"
                     logger.debug(line)
                     f.write(line)
-
-    def extract(self, csv_path):
-
-        rows = []
-        num_columns = len(self.field_specs)
-
-        labels = [field_spec["label"] for field_spec in self.field_specs]
-
-        for cd in ClinicalData.objects.filter(collection="cdes"):
-            patient_model = self._get_patient_model(cd)
-            if cd.data:
-                data = cd.data
-                try:
-                    row = [self._get_data(patient_model, field_spec, data) for field_spec in self.field_specs]
-                except Exception as ex:
-                    logger.error(f"error getting row: {ex}")
-                    row = [str(ex)] * num_columns
-
-                rows.append(row)
-
-        raw = pd.DataFrame(rows, columns=labels)
-
-        raw.to_csv(csv_path, index=False)
-        logger.debug(f"saved to csv file to path {csv_path}")
-
-    def _get_field_specs(self):
-        try:
-            data = json.loads(self.custom_action_model.data)
-            field_specs = data.get("field_specs", [])
-            return field_specs
-        except Exception as ex:
-            logger.error(f"can't load field specs: {ex}")
-            return []
-
-    def _get_cde(self, form, section, cde, data):
-        for form_dict in data["forms"]:
-            if form_dict["name"] == form:
-                for section_dict in form_dict["sections"]:
-                    if section_dict["code"] == section:
-                        for cde_dict in section_dict["cdes"]:
-                            if cde_dict["code"] == cde:
-                                return get_display_value(cde, cde_dict["value"])
-
-        return "NODATA"
-
-    @ safe
-    def _get_data(self, patient_model, field_spec, data):
-        tag = field_spec["tag"]
-        logger.debug(f"got tag {tag}")
-        if tag == "cde":
-            logger.debug("cde field")
-            form = field_spec["form"]
-            logger.debug(f"form = {form}")
-            section = field_spec["section"]
-            logger.debug(f"section = {section}")
-            cde = field_spec["cde"]
-            logger.debug(f"cde = {cde}")
-            value = get_display_value(cde, self._get_cde(form, section, cde, data))
-            logger.debug(f"value = {value}")
-            return value
-        elif tag == "demographics":
-            logger.debug("demographics field")
-            field = field_spec["field"]
-            logger.debug(f"field = {field}")
-            value = getattr(patient_model, field)
-            logger.debug(f"value = {value}")
-            return value
-        elif tag == "datarecord":
-            logger.debug("datarecord field")
-            field = field_spec["field"]
-            value = data[field]
-            logger.debug(f"value = {value}")
-            return value
-        else:
-            logger.debug("unknown field")
-            return pd.NA
