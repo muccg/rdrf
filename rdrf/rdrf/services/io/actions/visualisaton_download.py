@@ -1,6 +1,6 @@
 from functools import lru_cache as cached
-import json
 import logging
+import shutil
 import pandas as pd
 from datetime import datetime
 from rdrf.models.definition.models import ClinicalData
@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 
 
 class VisDownload:
-    ZIP_NAME = "visualisation_download-%s.zip"
+    ZIP_NAME = "CICVisualisationDownload%s%s.zip"
     PATIENTS_FILENAME = "patients.csv"
     PATIENTS_HEADER = "PID,GIVENNAMES,FAMILYNAME,DOB,ADDRESS,SUBURB,POSTCODE\n"
     PATIENTS_DATA_FILENAME = "patients_data.csv"
@@ -39,6 +39,16 @@ def get_display_value(cde_code, raw_value):
         logger.error(f"{cde_code} does not exist")
         return "NOCDE"
     dv = cde_model.get_display_value(raw_value)
+    if cde_model.datatype == "date":
+        try:
+            logger.debug("got date")
+            logger.debug(dv)
+            y, m, d = dv.split("-")
+            s = f"{d}/{m}/{y}"
+            logger.debug(s)
+            return s
+        except:
+            return ""
     if type(dv) is list:
         return ";".join(dv)
     else:
@@ -127,15 +137,17 @@ def yield_cdes(cd):
                     cde = get_cde_model(code)
                     name = cde.name
                     value = c["value"]
-                    logger.debug(f"{code} = {value}")
                     try:
                         display_value = get_display_value(code, value)
+                        if type(display_value) is list:
+                            display_value = ";".join(display_value)
                     except Exception as ex:
                         logger.error(f"error {code}: {ex}")
                         display_value = "ERROR"
                     yield (pid,
                            form_name,
                            section_code,
+                           code,
                            questionnaire,
                            question,
                            name,
@@ -150,7 +162,6 @@ class VisualisationDownloadException(Exception):
 
 def safe(func):
     def wrapper(*args, **kwargs):
-        logger.debug("in wrapper ...")
         print(args[0])
         print(args[1])
         print(args[2])
@@ -159,7 +170,6 @@ def safe(func):
             if value is None:
                 return pd.NA
             else:
-                logger.debug(f"got value {value}")
                 return value
         except Exception as ex:
             logger.debug(f"error getting value: {ex}")
@@ -170,14 +180,34 @@ def safe(func):
 class VisualisationDownloader:
     def __init__(self, user, custom_action_model):
         self.user = user
+        self.datestamp = f"{datetime.now().date():%d$m%Y}"
         self.custom_action_model = custom_action_model
         self.zip_filename = "test.zip"  # self._create_zip_name()
         self.registry = self.custom_action_model.registry
         self.address_map = {}  # pid -> address info from dynamic data
+        self._parse_fields(custom_action_model)
 
-    def _create_zip_name(self):
-        registry_code = self.custom_action_model.registry.code
-        return VisDownload.ZIP_NAME % registry_code
+    def _parse_fields(self, custom_action_model):
+        import json
+        data = json.loads(custom_action_model.data)
+        self.patterns = []
+        self.fields = []
+        fields = data["fields"]
+        for spec in fields:
+            if spec.endswith("*"):
+                self.patterns.append(spec[:-1])
+            else:
+                self.fields.append(spec)
+        self.fields = set(self.fields)
+        logger.info(f"patterns = {self.patterns}")
+        logger.info(f"fields = {self.fields}")
+
+    @property
+    def zip_name(self):
+        user_groups = "_".join(sorted([wg.name.upper() for wg in self.user.working_groups.all()]))
+        registry_code = self.registry.code
+        name = f"CICVisualisationDownload_{registry_code}_{user_groups}_{self.datestamp}.zip"
+        return name
 
     def _get_site(self):
         return "prototype"
@@ -186,6 +216,9 @@ class VisualisationDownloader:
         patient_model = Patient.objects.get(id=cd.django_id)
         return patient_model
 
+    def zip_it(self, tmpdir):
+        shutil.make_archive(self.zip_name, 'zip', tmpdir)
+
     def _get_address_field(self, pid, field):
         address_dict = self.address_map.get(pid, {})
         field_value = e(address_dict.get(field, ""))
@@ -193,10 +226,13 @@ class VisualisationDownloader:
 
     def _check_address(self, pid, cde_code, value):
         if cde_code == VisDownload.ADDRESS_FIELD:
+            logger.debug(f"patient {pid} address = {value}")
             self._update_address(pid, "address", value)
         elif cde_code == VisDownload.SUBURB_FIELD:
+            logger.debug(f"patient {pid} suburb = {value}")
             self._update_address(pid, "suburb", value)
         elif cde_code == VisDownload.POSTCODE_FIELD:
+            logger.debug(f"patient {pid} postcode = {value}")
             self._update_address(pid, "postcode", value)
 
     def _update_address(self, pid, field, value):
@@ -207,6 +243,7 @@ class VisualisationDownloader:
             m = self.address_map[pid]
 
         m[field] = value
+        logger.debug(f"update patient {pid} {field} -> {value}")
 
     def _emit_patient_line(self, pid, file):
         try:
@@ -254,17 +291,21 @@ class VisualisationDownloader:
     def extract_long(self, patients_csv_filepath, patients_data_csv_filepath):
         logger.debug("in extract_long")
         patients = self._get_patients_in_users_groups()
-        logger.debug(f"{patients}")
         pids = [id for id in patients.values_list('id', flat=True)]
-        logger.debug(f"patients in users groups: {pids}")
-        self._write_patients(patients_csv_filepath, pids)
         self._write_patients_data(patients_data_csv_filepath, pids)
+        self._write_patients(patients_csv_filepath, pids)
 
     def _write_patients(self, csv_path, pids):
         with open(csv_path, "w") as f:
             f.write(VisDownload.PATIENTS_HEADER)
             for pid in sorted(pids):
                 self._emit_patient_line(pid, f)
+
+    def _match(self, cde_code):
+        for pattern in self.patterns:
+            if cde_code.startswith(pattern):
+                return True
+        return False
 
     def _write_patients_data(self, csv_path, pids):
         logger.debug("writing patients data")
@@ -273,17 +314,23 @@ class VisualisationDownloader:
             f.write(VisDownload.PATIENTS_DATA_HEADER)
             for cd in yield_cds(pids):
                 for t in yield_cdes(cd):
-                    logger.debug(t)
                     pid = t[0]
                     form_name = t[1]
                     section_code = t[2]
-                    qn = t[3]
-                    q = t[4]
-                    n = e(t[5])
-                    v = t[6]
+                    cde_code = t[3]
+                    logger.info(f"yield cde code {cde_code}")
+                    not_match_pattern = not self._match(cde_code)
+                    not_in_fields = cde_code not in self.fields
+                    if not_match_pattern and not_in_fields:
+                        continue
+
+                    logger.info("field will be emitted")
+                    qn = t[4]
+                    q = t[5]
+                    n = e(t[6])
+                    v = t[7]
                     self._check_address(pid, q, v)
-                    coll = t[7]
-                    rt = t[8]
+                    coll = t[8]
+                    rt = t[9]
                     line = f"{pid},{qn},{q},{n},{v},{coll},{rt},{form_name}\n"
-                    logger.debug(line)
                     f.write(line)
