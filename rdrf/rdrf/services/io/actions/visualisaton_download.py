@@ -8,7 +8,6 @@ from rdrf.models.definition.models import CommonDataElement
 from rdrf.models.definition.models import RDRFContext
 from registry.patients.models import Patient
 from rdrf.helpers.utils import generate_token
-from django.contrib.sites.shortcuts import get_current_site
 from django.db.models import Q
 
 
@@ -119,43 +118,6 @@ def yield_cds(pids):
             yield cd
 
 
-def yield_cdes(cd):
-    # this will only work if there is one form with collection date
-    pid = cd.django_id
-    collection_date = get_collection_date(cd)
-    response_type = get_response_type(cd)
-
-    data = cd.data
-    for f in data["forms"]:
-        form_name = f["name"]
-        for s in f["sections"]:
-            section_code = s["code"]
-            if not s["allow_multiple"]:
-                for c in s["cdes"]:
-                    code = c["code"]
-                    questionnaire, question = get_questionnaire_number(code)
-                    cde = get_cde_model(code)
-                    name = cde.name
-                    value = c["value"]
-                    try:
-                        display_value = get_display_value(code, value)
-                        if type(display_value) is list:
-                            display_value = ";".join(display_value)
-                    except Exception as ex:
-                        logger.error(f"error {code}: {ex}")
-                        display_value = "ERROR"
-                    yield (pid,
-                           form_name,
-                           section_code,
-                           code,
-                           questionnaire,
-                           question,
-                           name,
-                           display_value,
-                           collection_date,
-                           response_type)
-
-
 class VisualisationDownloadException(Exception):
     pass
 
@@ -185,7 +147,13 @@ class VisualisationDownloader:
         self.zip_filename = "test.zip"  # self._create_zip_name()
         self.registry = self.custom_action_model.registry
         self.address_map = {}  # pid -> address info from dynamic data
+        self.all_cdes = False
+        self.patterns = []
+        self.fields = []
         self._parse_fields(custom_action_model)
+
+    def _get_config(self, data):
+        return data.get("config", {})
 
     def _parse_fields(self, custom_action_model):
         import json
@@ -193,6 +161,13 @@ class VisualisationDownloader:
         self.patterns = []
         self.fields = []
         fields = data["fields"]
+        if fields == "all":
+            self.all_cdes = True
+            logger.info(f"will use all cdes")
+            return
+
+        self.config = self._get_config(data)
+        self.delimiter = self.config.get("delimiter", "|")
         for spec in fields:
             if spec.endswith("*"):
                 self.patterns.append(spec[:-1])
@@ -220,8 +195,9 @@ class VisualisationDownloader:
         shutil.make_archive(self.zip_name, 'zip', tmpdir)
 
     def _get_address_field(self, pid, field):
+        logger.info(f"address map = {self.address_map}")
         address_dict = self.address_map.get(pid, {})
-        field_value = e(address_dict.get(field, ""))
+        field_value = address_dict.get(field, "")
         return field_value
 
     def _check_address(self, pid, cde_code, value):
@@ -245,18 +221,19 @@ class VisualisationDownloader:
         m[field] = value
         logger.debug(f"update patient {pid} {field} -> {value}")
 
-    def _emit_patient_line(self, pid, file):
+    def _emit_patient_line(self, pid, file, d):
+        # d = delimiter
         try:
             patient = Patient.objects.get(id=pid)
-            given_names = e(patient.given_names)
-            family_name = e(patient.family_name)
+            given_names = patient.given_names
+            family_name = patient.family_name
             dob = f"{patient.date_of_birth:%d/%m/%Y}"
 
-            address = e(self._get_address_field(pid, "address"))
-            suburb = e(self._get_address_field(pid, "suburb"))
-            postcode = e(self._get_address_field(pid, "postcode"))
-
-            file.write(f"{pid},{given_names},{family_name},{dob},{address},{suburb},{postcode}\n")
+            address = self._get_address_field(pid, "address")
+            suburb = self._get_address_field(pid, "suburb")
+            postcode = self._get_address_field(pid, "postcode")
+            logger.info(f"address for {patient} {pid}: {address} {suburb} {postcode}")
+            file.write(f"{pid}{d}{given_names}{d}{family_name}{d}{dob}{d}{address}{d}{suburb}{d}{postcode}\n")
 
         except Patient.DoesNotExist:
             logger.error(f"vis download: patient {pid} does not exist")
@@ -265,10 +242,12 @@ class VisualisationDownloader:
     @property
     def task_result(self):
         import os.path
+        import tempfile
         from django.conf import settings
         task_dir = settings.TASK_FILE_DIRECTORY
         filename = generate_token()
-        filepath = os.path.join(task_dir, filename)
+
+        zip_filepath = os.path.join(task_dir, filename)
         patients_csv_filepath = "/data/patients.csv"
         patients_data_csv_filepath = "/data/patients_data.csv"
         self.extract_long(patients_csv_filepath,
@@ -296,41 +275,79 @@ class VisualisationDownloader:
         self._write_patients(patients_csv_filepath, pids)
 
     def _write_patients(self, csv_path, pids):
+        d = self.delimiter
         with open(csv_path, "w") as f:
-            f.write(VisDownload.PATIENTS_HEADER)
+            f.write(VisDownload.PATIENTS_HEADER.replace(",", d))
             for pid in sorted(pids):
-                self._emit_patient_line(pid, f)
+                self._emit_patient_line(pid, f, d)
 
+    @ cached(maxsize=None)
     def _match(self, cde_code):
+        if self.all_cdes:
+            return True
         for pattern in self.patterns:
             if cde_code.startswith(pattern):
                 return True
+        if cde_code in self.fields:
+            return True
         return False
+
+    def _yield_cdes(self, cd):
+        # this will only work if there is one form with collection date
+        pid = cd.django_id
+        collection_date = get_collection_date(cd)
+        response_type = get_response_type(cd)
+        data = cd.data
+        for f in data["forms"]:
+            form_name = f["name"]
+            for s in f["sections"]:
+                section_code = s["code"]
+                if not s["allow_multiple"]:
+                    for c in s["cdes"]:
+                        code = c["code"]
+                        if self._match(code):
+                            questionnaire, question = get_questionnaire_number(code)
+                            cde = get_cde_model(code)
+                            name = cde.name
+                            value = c["value"]
+                            try:
+                                display_value = get_display_value(code, value)
+                                if type(display_value) is list:
+                                    display_value = ";".join(display_value)
+                            except Exception as ex:
+                                logger.error(f"error {code}: {ex}")
+                                display_value = "ERROR"
+                            yield (pid,
+                                   form_name,
+                                   section_code,
+                                   code,
+                                   questionnaire,
+                                   question,
+                                   name,
+                                   display_value,
+                                   collection_date,
+                                   response_type)
 
     def _write_patients_data(self, csv_path, pids):
         logger.debug("writing patients data")
+        d = self.delimiter
+        header = VisDownload.PATIENTS_DATA_HEADER.replace(",", d)
 
         with open(csv_path, "w") as f:
-            f.write(VisDownload.PATIENTS_DATA_HEADER)
+            f.write(header)
             for cd in yield_cds(pids):
-                for t in yield_cdes(cd):
+                for t in self._yield_cdes(cd):
                     pid = t[0]
                     form_name = t[1]
                     section_code = t[2]
                     cde_code = t[3]
-                    logger.info(f"yield cde code {cde_code}")
-                    not_match_pattern = not self._match(cde_code)
-                    not_in_fields = cde_code not in self.fields
-                    if not_match_pattern and not_in_fields:
-                        continue
-
-                    logger.info("field will be emitted")
+                    logger.info(f"cde code {cde_code}")
                     qn = t[4]
                     q = t[5]
-                    n = e(t[6])
+                    n = t[6]
                     v = t[7]
                     self._check_address(pid, q, v)
                     coll = t[8]
                     rt = t[9]
-                    line = f"{pid},{qn},{q},{n},{v},{coll},{rt},{form_name}\n"
+                    line = f"{pid}{d}{qn}{d}{q}{d}{n}{d}{v}{d}{coll}{d}{rt}{d}{form_name}\n"
                     f.write(line)
