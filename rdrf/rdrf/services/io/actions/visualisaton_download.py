@@ -1,7 +1,6 @@
 from functools import lru_cache as cached
 import logging
 import shutil
-import pandas as pd
 from datetime import datetime
 from rdrf.models.definition.models import ClinicalData
 from rdrf.models.definition.models import CommonDataElement
@@ -118,27 +117,6 @@ def yield_cds(pids):
                                           django_id__in=pids):
         if cd.data and "forms" in cd.data:
             yield cd
-
-
-class VisualisationDownloadException(Exception):
-    pass
-
-
-def safe(func):
-    def wrapper(*args, **kwargs):
-        print(args[0])
-        print(args[1])
-        print(args[2])
-        try:
-            value = func(*args, **kwargs)
-            if value is None:
-                return pd.NA
-            else:
-                return value
-        except Exception as ex:
-            logger.debug(f"error getting value: {ex}")
-            return pd.NA
-    return wrapper
 
 
 class VisualisationDownloader:
@@ -289,11 +267,6 @@ class VisualisationDownloader:
         if cde_code in self.fields:
             return True
         return False
-
-    def _create_zip_object(self) -> ZipFile:
-        obj = BytesIO()
-        zf = ZipFile(obj, 'w', zipfile.ZIP_DEFLATED)
-        return zf
 
     def _yield_cdes(self, cd):
         # this will only work if there is one form with collection date
