@@ -9,6 +9,8 @@ from rdrf.models.definition.models import RDRFContext
 from registry.patients.models import Patient
 from rdrf.helpers.utils import generate_token
 from django.db.models import Q
+import zipfile
+from zipfile import ZipFile
 
 
 logger = logging.getLogger(__name__)
@@ -142,9 +144,8 @@ def safe(func):
 class VisualisationDownloader:
     def __init__(self, user, custom_action_model):
         self.user = user
-        self.datestamp = f"{datetime.now().date():%d$m%Y}"
+        self.datestamp = f"{datetime.now().date():%d%m%Y}"
         self.custom_action_model = custom_action_model
-        self.zip_filename = "test.zip"  # self._create_zip_name()
         self.registry = self.custom_action_model.registry
         self.address_map = {}  # pid -> address info from dynamic data
         self.all_cdes = False
@@ -163,7 +164,6 @@ class VisualisationDownloader:
         fields = data["fields"]
         if fields == "all":
             self.all_cdes = True
-            logger.info(f"will use all cdes")
             return
 
         self.config = self._get_config(data)
@@ -174,8 +174,6 @@ class VisualisationDownloader:
             else:
                 self.fields.append(spec)
         self.fields = set(self.fields)
-        logger.info(f"patterns = {self.patterns}")
-        logger.info(f"fields = {self.fields}")
 
     @property
     def zip_name(self):
@@ -191,24 +189,17 @@ class VisualisationDownloader:
         patient_model = Patient.objects.get(id=cd.django_id)
         return patient_model
 
-    def zip_it(self, tmpdir):
-        shutil.make_archive(self.zip_name, 'zip', tmpdir)
-
     def _get_address_field(self, pid, field):
-        logger.info(f"address map = {self.address_map}")
         address_dict = self.address_map.get(pid, {})
         field_value = address_dict.get(field, "")
         return field_value
 
     def _check_address(self, pid, cde_code, value):
         if cde_code == VisDownload.ADDRESS_FIELD:
-            logger.debug(f"patient {pid} address = {value}")
             self._update_address(pid, "address", value)
         elif cde_code == VisDownload.SUBURB_FIELD:
-            logger.debug(f"patient {pid} suburb = {value}")
             self._update_address(pid, "suburb", value)
         elif cde_code == VisDownload.POSTCODE_FIELD:
-            logger.debug(f"patient {pid} postcode = {value}")
             self._update_address(pid, "postcode", value)
 
     def _update_address(self, pid, field, value):
@@ -219,7 +210,6 @@ class VisualisationDownloader:
             m = self.address_map[pid]
 
         m[field] = value
-        logger.debug(f"update patient {pid} {field} -> {value}")
 
     def _emit_patient_line(self, pid, file, d):
         # d = delimiter
@@ -232,7 +222,6 @@ class VisualisationDownloader:
             address = self._get_address_field(pid, "address")
             suburb = self._get_address_field(pid, "suburb")
             postcode = self._get_address_field(pid, "postcode")
-            logger.info(f"address for {patient} {pid}: {address} {suburb} {postcode}")
             file.write(f"{pid}{d}{given_names}{d}{family_name}{d}{dob}{d}{address}{d}{suburb}{d}{postcode}\n")
 
         except Patient.DoesNotExist:
@@ -242,35 +231,44 @@ class VisualisationDownloader:
     @property
     def task_result(self):
         import os.path
-        import tempfile
         from django.conf import settings
-        task_dir = settings.TASK_FILE_DIRECTORY
-        filename = generate_token()
-
-        zip_filepath = os.path.join(task_dir, filename)
-        patients_csv_filepath = "/data/patients.csv"
-        patients_data_csv_filepath = "/data/patients_data.csv"
+        task_subfolder_name = generate_token()
+        task_dir = os.path.join(settings.TASK_FILE_DIRECTORY, task_subfolder_name)
+        zip_filename = os.path.join(settings.TASK_FILE_DIRECTORY, generate_token())
+        os.makedirs(task_dir)
+        patients_csv_filepath = os.path.join(task_dir, "patients.csv")
+        patients_data_csv_filepath = os.path.join(task_dir, "patients_data.csv")
         self.extract_long(patients_csv_filepath,
                           patients_data_csv_filepath)
-        result = {"filepath": filepath,
+
+        zf = ZipFile(zip_filename, "w")
+        zf.write(patients_csv_filepath, os.path.basename(patients_csv_filepath))
+        zf.write(patients_data_csv_filepath, os.path.basename(patients_data_csv_filepath))
+        zf.close()
+        shutil.rmtree(task_dir)
+
+        result = {"filepath": zip_filename,
                   "content_type": "text/csv",
                   "username": self.user.username,
                   "user_id": self.user.id,
-                  "filename": self.zipfile_name,
+                  "filename": self.zip_name,
                   }
         return result
 
     def _get_patients_in_users_groups(self):
-        logger.debug("in get patients")
         in_wgs = Q(working_groups__in=self.user.working_groups.all(), active=True)
         in_reg = Q(rdrf_registry__in=[self.registry])
         query = in_wgs & in_reg
         return Patient.objects.filter(query)
 
     def extract_long(self, patients_csv_filepath, patients_data_csv_filepath):
-        logger.debug("in extract_long")
         patients = self._get_patients_in_users_groups()
         pids = [id for id in patients.values_list('id', flat=True)]
+        # Note the order here ( counterintuitive! )
+        # when writing the patients data , the address data is retrieved
+        # as a side effect, populating the address map
+        # ( this to avoid having to search for it again )
+        # this address map is used in the write_patients call
         self._write_patients_data(patients_data_csv_filepath, pids)
         self._write_patients(patients_csv_filepath, pids)
 
@@ -291,6 +289,11 @@ class VisualisationDownloader:
         if cde_code in self.fields:
             return True
         return False
+
+    def _create_zip_object(self) -> ZipFile:
+        obj = BytesIO()
+        zf = ZipFile(obj, 'w', zipfile.ZIP_DEFLATED)
+        return zf
 
     def _yield_cdes(self, cd):
         # this will only work if there is one form with collection date
@@ -329,7 +332,6 @@ class VisualisationDownloader:
                                    response_type)
 
     def _write_patients_data(self, csv_path, pids):
-        logger.debug("writing patients data")
         d = self.delimiter
         header = VisDownload.PATIENTS_DATA_HEADER.replace(",", d)
 
@@ -341,7 +343,6 @@ class VisualisationDownloader:
                     form_name = t[1]
                     section_code = t[2]
                     cde_code = t[3]
-                    logger.info(f"cde code {cde_code}")
                     qn = t[4]
                     q = t[5]
                     n = t[6]
