@@ -8,7 +8,6 @@ from rdrf.models.definition.models import RDRFContext
 from registry.patients.models import Patient
 from rdrf.helpers.utils import generate_token
 from django.db.models import Q
-import zipfile
 from zipfile import ZipFile
 
 
@@ -41,13 +40,12 @@ def get_display_value(cde_code, raw_value):
     dv = cde_model.get_display_value(raw_value)
     if cde_model.datatype == "date":
         try:
-            logger.debug("got date")
-            logger.debug(dv)
             y, m, d = dv.split("-")
             s = f"{d}/{m}/{y}"
-            logger.debug(s)
             return s
-        except:
+        except ValueError:
+            return ""
+        except AttributeError:
             return ""
     if type(dv) is list:
         return ";".join(dv)
@@ -60,7 +58,7 @@ def get_questionnaire_number(code):
     try:
         qn, q = code.split("_Q")
         return qn, q
-    except:
+    except Exception:
         return "", code
 
 
