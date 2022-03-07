@@ -81,7 +81,7 @@ def aus_date_string(us_date_string):
         try:
             d = datetime.strptime(us_date_string, "%Y-%m-%d")
             return f"{d:%d/%m/%Y}"
-        except:
+        except Exception:
             pass
     return ""
 
