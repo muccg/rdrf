@@ -312,8 +312,6 @@ class VisualisationDownloader:
                 for t in self._yield_cdes(cd):
                     pid = t[0]
                     form_name = t[1]
-                    #section_code = t[2]
-                    #cde_code = t[3]
                     qn = t[4]
                     q = t[5]
                     n = t[6]
