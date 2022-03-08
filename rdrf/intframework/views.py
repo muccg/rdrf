@@ -31,7 +31,9 @@ class IntegrationHubRequestView(View):
     @method_decorator(anonymous_not_allowed)
     @method_decorator(login_required)
     def get(self, request, registry_code, umrn):
-        logger.info(f"hub query by {request.user} for {umrn}")
+        logger.info(f"patient query for umrn [{umrn}]")
+        umrn = umrn.strip().upper()
+        logger.info(f"hub query by {request.user} for umrn [{umrn}]")
         self._setup_redis_config(registry_code)
         if not settings.HUB_ENABLED:
             logger.error("hub query not enabled in settings!")
