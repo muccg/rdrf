@@ -7,6 +7,7 @@ from intframework import utils
 from intframework.utils import TransformFunctionError
 from intframework.utils import MessageSearcher
 from intframework.utils import NotFoundError
+from intframework.utils import empty_value_for_field
 from typing import Tuple
 
 logger = logging.getLogger(__name__)
@@ -179,10 +180,10 @@ class HL7Mapping(models.Model):
                 logger.error(message)
                 update_model.failure_reason = message
 
-            except NotFoundError as nf:
-                message = f"Not Found Error Extracting field: {nf}"
-                logger.error(message)
-                update_model.failure_reason = message
+            except NotFoundError:
+                # we blank the field instead of treating as error
+                update_model.failure_reason = ""
+                value_map[field_moniker] = empty_value_for_field(field_moniker)
 
             except Exception as ex:
                 message = f"Unhandled field error: {ex}"

@@ -1258,6 +1258,9 @@ class ExternalDemographicsView(SimpleReadonlyPatientView):
                 for choice in Patient.SEX_CHOICES:
                     if choice[0] == value:
                         value = choice[1]
+
+            if value is None:
+                return ""
             return value
 
         wizard = NavigationWizard(user,

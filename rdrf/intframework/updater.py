@@ -5,6 +5,7 @@ from intframework.models import HL7Mapping, HL7Message
 from intframework.utils import get_event_code
 from intframework.utils import get_umrn
 from intframework.utils import parse_demographics_moniker
+from intframework.utils import empty_value_for_field
 from rdrf.models.definition.models import Registry
 from rdrf.models.definition.models import RegistryForm
 from rdrf.models.definition.models import Section
@@ -88,10 +89,14 @@ class HL7Handler:
     def _parse_demographics_fields(self, field_dict) -> dict:
         field_values = {}
         for key, value in field_dict.items():
+            if value == '""':
+                value = empty_value_for_field(key)
             if self._is_demographics_field(key):
                 field_name = parse_demographics_moniker(key)
                 if field_name:
                     field_values[field_name] = value
+
+        logger.debug(f"field_values = {field_values}")
         return field_values
 
     def _parse_cde_fields(self, field_dict) -> dict:

@@ -229,3 +229,9 @@ def parse_message(message_file):
     user = CustomUser.objects.get(username="admin")
     mock_client = MockClient(registry, user, None, None)
     return mock_client._parse_mock_message_file(message_file)
+
+
+def empty_value_for_field(field):
+    if "date_" in field:
+        return None
+    return ""
