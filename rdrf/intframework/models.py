@@ -7,6 +7,7 @@ from intframework import utils
 from intframework.utils import TransformFunctionError
 from intframework.utils import MessageSearcher
 from intframework.utils import NotFoundError
+from intframework.utils import FieldEmpty
 from intframework.utils import empty_value_for_field
 from typing import Tuple
 
@@ -69,7 +70,8 @@ class HL7Message(models.Model):
 
 class HL7MessageFieldUpdate(models.Model):
     UPDATE_STATES = (("Success", "Success"),
-                     ("Failure", "Failure"))
+                     ("Failure", "Failure"),
+                     ("Empty", "Empty"))
 
     created = models.DateTimeField(auto_now_add=True)
     hl7_message = models.ForeignKey(HL7Message, on_delete=models.CASCADE, related_name="updates")
@@ -160,13 +162,17 @@ class HL7Mapping(models.Model):
         message_model.save()
 
         for field_moniker, mapping_data in mapping_map.items():
+            logger.debug(f"parsing field {field_moniker}")
+            field_empty = False
             tag = mapping_data.get("tag", "normal")
             handler = self._get_handler(tag)
+            logger.debug(f"using handler {handler}")
             update_model = HL7MessageFieldUpdate(hl7_message=message_model,
                                                  hl7_path="unknown",
                                                  data_field=field_moniker)
             try:
                 value = handler(hl7_message, field_moniker, mapping_data, update_model)
+                logger.debug(f"handler ran without error value = {value}")
                 if update_model.failure_reason == "":
                     value_map[field_moniker] = value
 
@@ -180,10 +186,16 @@ class HL7Mapping(models.Model):
                 logger.error(message)
                 update_model.failure_reason = message
 
-            except NotFoundError:
-                # we blank the field instead of treating as error
+            except FieldEmpty as fe:
+                logger.debug(f"{field_moniker} is empty")
                 update_model.failure_reason = ""
-                value_map[field_moniker] = empty_value_for_field(field_moniker)
+                field_empty = True
+
+            except NotFoundError as nf:
+                message = f"Not Found Error Extracting field: {nf}"
+                logger.error(message)
+                update_model.failure_reason = message
+                update_model.failure_reason = message
 
             except Exception as ex:
                 message = f"Unhandled field error: {ex}"
@@ -191,7 +203,10 @@ class HL7Mapping(models.Model):
                 update_model.failure_reason = message
 
             if not update_model.failure_reason:
-                update_model.update_status = "Success"
+                if field_empty:
+                    update_model.update_status = "Empty"
+                else:
+                    update_model.update_status = "Success"
 
             update_model.save()
 

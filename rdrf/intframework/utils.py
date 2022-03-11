@@ -161,6 +161,10 @@ class NotFoundError(Exception):
     pass
 
 
+class FieldEmpty(Exception):
+    pass
+
+
 class MessageSearcher:
     def __init__(self, field_mapping):
         self.field_mapping = field_mapping
@@ -175,6 +179,11 @@ class MessageSearcher:
         return message[full_key]
 
     def get_value(self, message: hl7.Message):
+        path = message[self.prefix]
+        logger.debug(f"searching message {self.prefix}  = [{path}]")
+        if path == "":
+            logger.debug("path is empty so raising FieldEmpty - won't update")
+            raise FieldEmpty(self.prefix)
         r = 1
         stopped = False
         while not stopped:
