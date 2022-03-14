@@ -1,4 +1,4 @@
-FROM muccg/python-base:3.8-debian-10
+FROM muccg/python-base:3.9-debian-10
 MAINTAINER https://github.com/muccg/rdrf/
 
 ENV PROJECT_NAME rdrf
