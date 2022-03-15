@@ -2,8 +2,41 @@ import hl7
 import logging
 from datetime import datetime
 from typing import Optional, Tuple
+import re
 
 logger = logging.getLogger(__name__)
+
+field_pattern = re.compile("^(.*\.F\d+).*$")
+
+
+def get_segment_field(path):
+    # from PID.F13.R1.C3  we want
+    # PID.F13 returned as a pair : "PID", "F13"
+    logger.debug(f"getting field from path {path}")
+    m = field_pattern.search(path)
+    if m:
+        logger.debug("field pattern found a match")
+        field_path = m.group(1)
+        segment, field = field_path.split(".")
+        logger.debug(f"segment = {segment} field = {field}")
+        return segment, field
+    logger.debug("field pattern did not match")
+    return None
+
+
+def field_empty(message: hl7.Message, path: str) -> bool:
+    # path is something like PID.F13
+    segment, field_expr = get_segment_field(path)
+    field_num = int(field_expr.replace("F", ""))
+    hl7_field = message[segment][0][field_num]  # this is an object
+    field_value = f"{hl7_field}"
+    logger.debug(f"{segment}.{field_expr} = <{field_value}>")
+    if not field_value:
+        logger.debug(f"{segment}.F{field_num} is empty!: {field_value}")
+        return True
+    else:
+        logger.debug(f"{segment}.F{field_num} is not empty: <{field_value}>")
+        return False
 
 
 def get_umrn(message: hl7.Message) -> str:
@@ -179,11 +212,11 @@ class MessageSearcher:
         return message[full_key]
 
     def get_value(self, message: hl7.Message):
-        path = message[self.prefix]
-        logger.debug(f"searching message {self.prefix}  = [{path}]")
-        if path == "":
+        if field_empty(message, self.prefix):
             logger.debug("path is empty so raising FieldEmpty - won't update")
             raise FieldEmpty(self.prefix)
+
+        # otherwise we try to extract the component specified
         r = 1
         stopped = False
         while not stopped:
