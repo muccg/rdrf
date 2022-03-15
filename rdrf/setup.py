@@ -56,12 +56,12 @@ requirements = [
     "django-auth-ldap",
     "django-session-security==2.6.6",
     "Markdown==3.1.1",
-    "xhtml2pdf",
+    "xhtml2pdf==0.2.5",
     "django-redis==4.12.1",
     "kombu==5.0.2",
     "django-csp==3.7",
     "hl7==0.4.2",
-    "pandas==1.3.5"
+    "pandas"
 ]
 
 
@@ -143,7 +143,7 @@ for package in ['rdrf', 'registry.common', 'registry.genetic',
 
 
 setup(name='django-rdrf',
-      version="6.6.15",
+      version="6.6.16",
       packages=find_packages(),
       description='RDRF',
       long_description='Rare Disease Registry Framework',
