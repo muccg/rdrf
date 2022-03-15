@@ -12,7 +12,8 @@ class CustomActionExecution(models.Model):
     custom_action_code = models.CharField(max_length=80, blank=True, null=True)
     task_id = models.CharField(max_length=80, blank=True, null=True)
     name = models.CharField(max_length=80)
-    user = models.ForeignKey(CustomUser, help_text="The user who executed the action", on_delete=models.PROTECT)
+    user = models.ForeignKey(CustomUser, help_text="The user who executed the action",
+                             null=True, blank=True, on_delete=models.SET_NULL)
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
     status = models.CharField(max_length=80, blank=True, null=True)

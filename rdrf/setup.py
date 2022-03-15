@@ -6,7 +6,7 @@ start_dir = os.getcwd()
 requirements = [
     "ccg-django-utils==0.4.2",
     "celery==5.1.0",
-    "Django==2.2.24",
+    "Django==2.2.26",
     "django-anymail==8.1",
     "django-ajax-selects==2.1.0",
     "django-countries==7.2.1",
@@ -42,8 +42,8 @@ requirements = [
     "django-formtools==2.2",
     "django-otp==1.1.3",
     "django-phonenumber-field==4.0.0",
-    "django-two-factor-auth==1.13.1",
-    "phonenumberslite==8.12.38",
+    "phonenumberslite==8.12.41",
+    "django-two-factor-auth==1.13.2",
     "Pillow==8.3.2",
     "qrcode==7.3",
     "django-reversion==3.0.8",
@@ -56,11 +56,12 @@ requirements = [
     "django-auth-ldap",
     "django-session-security==2.6.6",
     "Markdown==3.1.1",
-    "xhtml2pdf",
+    "xhtml2pdf==0.2.5",
     "django-redis==4.12.1",
     "kombu==5.0.2",
     "django-csp==3.7",
-    "hl7==0.4.2"
+    "hl7==0.4.2",
+    "pandas"
 ]
 
 
@@ -142,7 +143,7 @@ for package in ['rdrf', 'registry.common', 'registry.genetic',
 
 
 setup(name='django-rdrf',
-      version="6.6.12",
+      version="6.6.16",
       packages=find_packages(),
       description='RDRF',
       long_description='Rare Disease Registry Framework',

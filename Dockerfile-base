@@ -34,5 +34,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
  
 #RUN pip install --upgrade pip
 RUN pip install zipp
+RUN pip install --upgrade "setuptools==60.9.3"
+
 
 ENTRYPOINT ["/bin/sh"]
