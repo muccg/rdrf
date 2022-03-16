@@ -77,14 +77,8 @@ class HL7Handler:
             logger.info(f"found mapping for {event_code}")
             return mapping
         except HL7Mapping.DoesNotExist:
-            try:
-                logger.error(f"No mapping for event code {event_code}")
-                fallback_mapping = HL7Mapping.objects.get(event_code="fallback")
-                logger.info(f"using fallback mapping instead of {event_code}")
-                return fallback_mapping
-            except HL7Mapping.DoesNotExist:
-                logger.error("No fallback mapping defined on the site")
-                raise
+            logger.error(f"No mapping for event code {event_code}")
+            raise
 
     def _parse_demographics_fields(self, field_dict) -> dict:
         field_values = {}
