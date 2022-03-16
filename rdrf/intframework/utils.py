@@ -146,7 +146,39 @@ N	    Not applicable
 SEX_MAP = {"M": 1, "F": 2, "U": 3, "O": 3, "A": 3, "N": 3}
 
 
-@transform
+CODE_TABLES = {"place_of_birth":
+               {'0901': 'New South Wales',
+                '0902': 'Victoria',
+                '0903': 'Queensland',
+                '0904': 'South Australia',
+                '0905': 'Western Australia',
+                '0906': 'Tasmania',
+                '0907': 'Northern Territory',
+                '0908': 'Aust Cap Territory',
+                '0909': 'Christmas Cocos Island',
+                '1101': 'Australia',
+                '1102': 'Norfolk Island',
+                '1199': 'Australian External Territories, nec',
+                '1201': 'New Zealand', '1301': 'New Caledonia',
+                '1302': 'Papua New Guinea',
+                '1303': 'Solomon Islands',
+                '1304': 'Vanuatu',
+                '1401': 'Guam',
+                '1402': 'Kiribati',
+                '1403': 'Marshall Islands',
+                '1404': 'Micronesia, Federated States of',
+                '1405': 'Nauru',
+                '1406': 'Northern Mariana Islands',
+                '1407': 'Palau',
+                '1501': 'Cook Islands',
+                '1502': 'Fiji',
+                '1503': 'French Polynesia',
+                '1504': 'Niue',
+                '1505': 'Samoa',
+                '1506': 'Samoa, American'}}
+
+
+@ transform
 def sex(hl7_value):
     return f"{SEX_MAP[hl7_value]}"
 
