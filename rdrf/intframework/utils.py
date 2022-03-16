@@ -93,6 +93,10 @@ def identity(hl7_value):
 
 @transform
 def date(hl7_value):
+    if hl7_value == '""':
+        return None
+    if hl7_value == "":
+        return None
     return datetime.strptime(hl7_value[:8], "%Y%m%d")
 
 
