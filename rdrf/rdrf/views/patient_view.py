@@ -1254,6 +1254,8 @@ class ExternalDemographicsView(SimpleReadonlyPatientView):
 
         def get_value(patient, field):
             value = getattr(patient, field.name)
+            if value is None:
+                return ""
             if field.name == "sex":
                 for choice in Patient.SEX_CHOICES:
                     if choice[0] == value:
