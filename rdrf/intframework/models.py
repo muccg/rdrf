@@ -10,7 +10,6 @@ from intframework.utils import NotFoundError
 from intframework.utils import FieldEmpty
 from intframework.utils import field_empty
 from intframework.utils import get_code_table_value
-from intframework.utils import empty_value_for_field
 from typing import Tuple
 
 logger = logging.getLogger(__name__)
