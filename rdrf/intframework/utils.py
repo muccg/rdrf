@@ -1,3 +1,4 @@
+# flake8: noqa
 import hl7
 import logging
 from datetime import datetime
