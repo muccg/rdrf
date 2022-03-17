@@ -90,7 +90,6 @@ class HL7Handler:
                 if field_name:
                     field_values[field_name] = value
 
-        logger.debug(f"field_values = {field_values}")
         return field_values
 
     def _parse_cde_fields(self, field_dict) -> dict:
