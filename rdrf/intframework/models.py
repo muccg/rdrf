@@ -9,6 +9,7 @@ from intframework.utils import MessageSearcher
 from intframework.utils import NotFoundError
 from intframework.utils import FieldEmpty
 from intframework.utils import field_empty
+from intframework.utils import get_code_table_value
 from intframework.utils import empty_value_for_field
 from typing import Tuple
 
@@ -114,6 +115,20 @@ class HL7Mapping(models.Model):
         transform = self._get_transform(mapping_data)
         hl7_value = message_searcher.get_value(hl7_message)
         rdrf_value = transform(hl7_value)
+        update_model.original_value = hl7_value
+        return rdrf_value
+
+    def _handle_table(self, hl7_message, field_moniker, mapping_data, update_model):
+        logger.debug(f"handling table for {field_moniker}")
+        hl7_path = mapping_data["path"]
+        update_model.hl7_path = hl7_path
+        hl7_value = self._get_hl7_value(hl7_path, hl7_message)
+        table_name = mapping_data.get("table", "")
+        if hl7_value == '""':
+            logger.info(f"in handle table for {field_moniker} but value is double quotes so blanking")
+            rdrf_value = ""
+        else:
+            rdrf_value = get_code_table_value(table_name, hl7_value)
         update_model.original_value = hl7_value
         return rdrf_value
 
