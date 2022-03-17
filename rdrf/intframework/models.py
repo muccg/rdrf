@@ -8,6 +8,7 @@ from intframework.utils import TransformFunctionError
 from intframework.utils import MessageSearcher
 from intframework.utils import NotFoundError
 from intframework.utils import FieldEmpty
+from intframework.utils import field_empty
 from intframework.utils import empty_value_for_field
 from typing import Tuple
 
@@ -162,18 +163,28 @@ class HL7Mapping(models.Model):
         message_model.save()
 
         for field_moniker, mapping_data in mapping_map.items():
-            logger.debug(f"parsing field {field_moniker}")
-            field_empty = False
+            logger.info(f"updating data for {field_moniker}")
+            field_is_empty = False
             tag = mapping_data.get("tag", "normal")
+            path = mapping_data.get("path", "")
+
             handler = self._get_handler(tag)
-            logger.debug(f"using handler {handler}")
             update_model = HL7MessageFieldUpdate(hl7_message=message_model,
                                                  hl7_path="unknown",
                                                  data_field=field_moniker)
             try:
+                if field_empty(hl7_message, path):
+                    raise FieldEmpty(path)
                 value = handler(hl7_message, field_moniker, mapping_data, update_model)
-                logger.debug(f"handler ran without error value = {value}")
                 if update_model.failure_reason == "":
+                    if value == '""':
+                        logger.info(f"{field_moniker} is double quotes so will blank this field")
+                        if "date_" in field_moniker:
+                            value = None
+                        else:
+                            value = ""
+                    else:
+                        logger.info(f"{field_moniker} normal update")
                     value_map[field_moniker] = value
 
             except TransformFunctionError as tfe:
@@ -187,9 +198,10 @@ class HL7Mapping(models.Model):
                 update_model.failure_reason = message
 
             except FieldEmpty as fe:
-                logger.debug(f"{field_moniker} is empty")
+                message = f"FieldEmpty Extracting field: {fe}"
+                logger.info(message)
                 update_model.failure_reason = ""
-                field_empty = True
+                field_is_empty = True
 
             except NotFoundError as nf:
                 message = f"Not Found Error Extracting field: {nf}"
@@ -203,7 +215,7 @@ class HL7Mapping(models.Model):
                 update_model.failure_reason = message
 
             if not update_model.failure_reason:
-                if field_empty:
+                if field_is_empty:
                     update_model.update_status = "Empty"
                 else:
                     update_model.update_status = "Success"
