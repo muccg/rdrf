@@ -446,7 +446,14 @@
                                        {% endif %}">
                                     <label for="{{field.id_for_label}}" class="col-sm-3 col-form-label text-end fw-bold {% if field|is_abnormal %}
                                         fa fa-exclamation-triangle
-                                       {% endif %}">
+					{% endif %}"
+					>
+                                        <script type="text/javascript" nonce="{{request.csp_nonce}}">
+                                            $("label[for='{{field.id_for_label}}']").click(function() {
+                                                event.preventDefault();
+                                            });
+                                        </script>
+				        
                                         {% if field.field.cde.code and not CREATE_MODE and have_dynamic_data %}
                                         <a href="{% url 'registry_form_field_history' registry_code form_name patient_id s context_id field.field.cde.code %}"
                                            id="cde_history_{{patient_id}}_{{s}}_{{context_id}}_{{field.field.cde.code}}"

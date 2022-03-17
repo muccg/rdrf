@@ -7,6 +7,9 @@ from intframework import utils
 from intframework.utils import TransformFunctionError
 from intframework.utils import MessageSearcher
 from intframework.utils import NotFoundError
+from intframework.utils import FieldEmpty
+from intframework.utils import field_empty
+from intframework.utils import get_code_table_value
 from typing import Tuple
 
 logger = logging.getLogger(__name__)
@@ -68,7 +71,8 @@ class HL7Message(models.Model):
 
 class HL7MessageFieldUpdate(models.Model):
     UPDATE_STATES = (("Success", "Success"),
-                     ("Failure", "Failure"))
+                     ("Failure", "Failure"),
+                     ("Empty", "Empty"))
 
     created = models.DateTimeField(auto_now_add=True)
     hl7_message = models.ForeignKey(HL7Message, on_delete=models.CASCADE, related_name="updates")
@@ -110,6 +114,20 @@ class HL7Mapping(models.Model):
         transform = self._get_transform(mapping_data)
         hl7_value = message_searcher.get_value(hl7_message)
         rdrf_value = transform(hl7_value)
+        update_model.original_value = hl7_value
+        return rdrf_value
+
+    def _handle_table(self, hl7_message, field_moniker, mapping_data, update_model):
+        logger.debug(f"handling table for {field_moniker}")
+        hl7_path = mapping_data["path"]
+        update_model.hl7_path = hl7_path
+        hl7_value = self._get_hl7_value(hl7_path, hl7_message)
+        table_name = mapping_data.get("table", "")
+        if hl7_value == '""':
+            logger.info(f"in handle table for {field_moniker} but value is double quotes so blanking")
+            rdrf_value = ""
+        else:
+            rdrf_value = get_code_table_value(table_name, hl7_value)
         update_model.original_value = hl7_value
         return rdrf_value
 
@@ -159,14 +177,28 @@ class HL7Mapping(models.Model):
         message_model.save()
 
         for field_moniker, mapping_data in mapping_map.items():
+            logger.info(f"updating data for {field_moniker}")
+            field_is_empty = False
             tag = mapping_data.get("tag", "normal")
+            path = mapping_data.get("path", "")
+
             handler = self._get_handler(tag)
             update_model = HL7MessageFieldUpdate(hl7_message=message_model,
                                                  hl7_path="unknown",
                                                  data_field=field_moniker)
             try:
+                if field_empty(hl7_message, path):
+                    raise FieldEmpty(path)
                 value = handler(hl7_message, field_moniker, mapping_data, update_model)
                 if update_model.failure_reason == "":
+                    if value == '""':
+                        logger.info(f"{field_moniker} is double quotes so will blank this field")
+                        if "date_" in field_moniker:
+                            value = None
+                        else:
+                            value = ""
+                    else:
+                        logger.info(f"{field_moniker} normal update")
                     value_map[field_moniker] = value
 
             except TransformFunctionError as tfe:
@@ -179,9 +211,16 @@ class HL7Mapping(models.Model):
                 logger.error(message)
                 update_model.failure_reason = message
 
+            except FieldEmpty as fe:
+                message = f"FieldEmpty Extracting field: {fe}"
+                logger.info(message)
+                update_model.failure_reason = ""
+                field_is_empty = True
+
             except NotFoundError as nf:
                 message = f"Not Found Error Extracting field: {nf}"
                 logger.error(message)
+                update_model.failure_reason = message
                 update_model.failure_reason = message
 
             except Exception as ex:
@@ -190,7 +229,10 @@ class HL7Mapping(models.Model):
                 update_model.failure_reason = message
 
             if not update_model.failure_reason:
-                update_model.update_status = "Success"
+                if field_is_empty:
+                    update_model.update_status = "Empty"
+                else:
+                    update_model.update_status = "Success"
 
             update_model.save()
 

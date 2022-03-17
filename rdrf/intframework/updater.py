@@ -5,6 +5,7 @@ from intframework.models import HL7Mapping, HL7Message
 from intframework.utils import get_event_code
 from intframework.utils import get_umrn
 from intframework.utils import parse_demographics_moniker
+from intframework.utils import empty_value_for_field
 from rdrf.models.definition.models import Registry
 from rdrf.models.definition.models import RegistryForm
 from rdrf.models.definition.models import Section
@@ -76,22 +77,19 @@ class HL7Handler:
             logger.info(f"found mapping for {event_code}")
             return mapping
         except HL7Mapping.DoesNotExist:
-            try:
-                logger.error(f"No mapping for event code {event_code}")
-                fallback_mapping = HL7Mapping.objects.get(event_code="fallback")
-                logger.info(f"using fallback mapping instead of {event_code}")
-                return fallback_mapping
-            except HL7Mapping.DoesNotExist:
-                logger.error("No fallback mapping defined on the site")
-                raise
+            logger.error(f"No mapping for event code {event_code}")
+            raise
 
     def _parse_demographics_fields(self, field_dict) -> dict:
         field_values = {}
         for key, value in field_dict.items():
+            if value == '""':
+                value = empty_value_for_field(key)
             if self._is_demographics_field(key):
                 field_name = parse_demographics_moniker(key)
                 if field_name:
                     field_values[field_name] = value
+
         return field_values
 
     def _parse_cde_fields(self, field_dict) -> dict:
