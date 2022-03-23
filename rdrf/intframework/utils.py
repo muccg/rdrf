@@ -129,8 +129,6 @@ def date(hl7_value):
 
 @transform
 def rdrf_date(hl7_value):
-    # RDRF will convert this date object
-    # when it updates the dynamic data
     date_object = date(hl7_value).date()
     s = "%s-%s-%s" % (date_object.year,
                       date_object.month,
