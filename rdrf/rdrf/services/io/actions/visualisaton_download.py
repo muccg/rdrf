@@ -284,10 +284,12 @@ class VisualisationDownloader:
                             cde = get_cde_model(code)
                             name = cde.name
                             value = c["value"]
+
                             try:
-                                display_value = get_display_value(code, value)
-                                if type(display_value) is list:
-                                    display_value = ";".join(display_value)
+                                if type(value) is list:
+                                    display_value = ";".join([get_display_value(code, x) for x in value])
+                                else:
+                                    display_value = get_display_value(code, value)
                             except Exception as ex:
                                 logger.error(f"error {code}: {ex}")
                                 display_value = "ERROR"
