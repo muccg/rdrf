@@ -1,17 +1,15 @@
 version: 2
 updates:
   - package-ecosystem: "npm"
-    directory: "/"
+    directory: "/rdrf/rdrf/frontend"
     schedule:
       interval: "daily"
     # Always increase the version requirement
-    # to match the new version. not just yarn lock
+    # to match the new version. Not just yarn lock!
     versioning-strategy: increase
   - package-ecosystem: "pip"
-    directory: "/"
+    directory: "/rdrf"
     schedule:
       interval: "daily"
-    # Always increase the version requirement
-    # to match the new version. not just yarn lock
     versioning-strategy: increase
   
