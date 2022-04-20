@@ -127,6 +127,15 @@ def date(hl7_value):
     return datetime.strptime(hl7_value[:8], "%Y%m%d")
 
 
+@transform
+def rdrf_date(hl7_value):
+    date_object = date(hl7_value).date()
+    s = "%s-%s-%s" % (date_object.year,
+                      date_object.month,
+                      date_object.day)
+    return s
+
+
 """
 HL7 values
 Value	Description

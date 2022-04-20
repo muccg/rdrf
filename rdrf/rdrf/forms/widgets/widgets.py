@@ -544,6 +544,31 @@ class SliderWidget(widgets.TextInput):
 
 class ExternalWidget(HiddenInput):
     def render(self, name, value, attrs=None, renderer=None):
+        logger.debug(f"external widget {name} value = {value}")
+        display_value = self._get_display_value(name, value)
         hidden_input_html = super().render(name, value, attrs, renderer)
-        external_badge_html = f"""<div class="externalfield">{value}</div>"""
+        external_badge_html = f"""<div class="externalfield">{display_value}</div>"""
         return mark_safe(hidden_input_html + external_badge_html)
+
+    def _get_display_value(self, name, value):
+        if value is None:
+            return ""
+
+        if value == "":
+            return ""
+
+        def is_cde(s):
+            return "____" in s
+
+        if is_cde(name):
+            parts = name.split("____")
+            cde_code = parts[-1]
+            cde_model = CommonDataElement.objects.get(code=cde_code)
+            if cde_model.datatype == "date":
+                from datetime import datetime
+                date_object = datetime.strptime(value, "%Y-%m-%d")
+                return "%s-%s-%s" % (date_object.day,
+                                     date_object.month,
+                                     date_object.year)
+
+        return value
