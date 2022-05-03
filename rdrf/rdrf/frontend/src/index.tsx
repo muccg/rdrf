@@ -8,6 +8,8 @@ import { Provider } from 'react-redux';
 import { applyMiddleware, compose, createStore } from 'redux';
 import thunk from 'redux-thunk';
 import { promsPageReducer } from './pages/proms_page/reducers';
+import { createRoot } from 'react-dom/client';
+
 
 import 'bootstrap/dist/css/bootstrap.min.css';
 
@@ -22,6 +24,17 @@ export const store = createStore(
 const unsubscribe = store.subscribe(() =>
     global.console.log(store.getState())
 )
+
+const rootElement = document.getElementById('root');
+const root = createRoot(rootElement);
+
+
+root.render(
+    <Provider store={store}>
+         <App />
+    </Provider>
+);
+
 
 ReactDOM.render(<Provider store={store}>
     <App />
