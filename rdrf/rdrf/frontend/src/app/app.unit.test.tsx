@@ -1,5 +1,5 @@
 import * as React from "react";
-import { render, screen, fireEvent } from "@testing-library/react";
+import { render, screen, fireEvent, act } from "@testing-library/react";
 import { Provider } from "react-redux";
 import { applyMiddleware, compose, createStore } from "redux";
 import thunk from "redux-thunk";
@@ -286,7 +286,7 @@ describe("Component tests: A test App using Redux", () => {
           expect.stringContaining("1")
         );
 
-        // testStore.dispatch(actions.goNext());
+        // act(()=>{testStore.dispatch(actions.goNext());});
         const nextButton = screen.getByText("Next");
         fireEvent.click(nextButton);
 
@@ -313,7 +313,7 @@ describe("Component tests: A test App using Redux", () => {
           expect.stringContaining("2")
         );
 
-        testStore.dispatch(actions.goPrevious());
+        act(()=>{testStore.dispatch(actions.goPrevious());});
 
         rerender(
           <Provider store={testStore}>
@@ -344,7 +344,7 @@ describe("Component tests: A test App using Redux", () => {
         expect(testStore.getState().stage).toEqual(0);
 
         // Change to clicking Next button?
-        testStore.dispatch(actions.goNext());
+        act(()=>{testStore.dispatch(actions.goNext());});
 
         rerender(
           <Provider store={testStore}>
@@ -358,7 +358,7 @@ describe("Component tests: A test App using Redux", () => {
         expect(screen.getByText("Next").disabled).toEqual(false);
         expect(testStore.getState().stage).toEqual(1);
 
-        testStore.dispatch(actions.goNext());
+        act(()=>{testStore.dispatch(actions.goNext());});
 
         rerender(
           <Provider store={testStore}>
@@ -390,7 +390,7 @@ describe("Component tests: A test App using Redux", () => {
         
         // Unsure which to use - both work
         fireEvent.click(answer1Select);
-        // testStore.dispatch(actions.enterData({cde: "registryQ1", value: "answer1", isValid: true}));
+        // act(()=>{testStore.dispatch(actions.enterData({cde: "registryQ1", value: "answer1", isValid: true}));});
 
         rerender(
           <Provider store={testStore}>
@@ -419,7 +419,7 @@ describe("Component tests: A test App using Redux", () => {
         expect(testStore.getState().stage).toEqual(0);
 
         // Change to clicking Next button?
-        // testStore.dispatch(actions.goNext());
+        // act(()=>{testStore.dispatch(actions.goNext());});
         fireEvent.click(nextButton);
 
         rerender(
@@ -434,7 +434,7 @@ describe("Component tests: A test App using Redux", () => {
         expect(nextButton.disabled).toEqual(false);
         expect(testStore.getState().stage).toEqual(1);
 
-        // testStore.dispatch(actions.goNext());
+        // act(()=>{testStore.dispatch(actions.goNext());});
         fireEvent.click(nextButton);
 
         rerender(
@@ -449,7 +449,7 @@ describe("Component tests: A test App using Redux", () => {
         expect(nextButton.disabled).toEqual(false);
         expect(testStore.getState().stage).toEqual(2);
 
-        // testStore.dispatch(actions.goNext());
+        // act(()=>{testStore.dispatch(actions.goNext());});
         fireEvent.click(nextButton);
 
         rerender(
@@ -1816,7 +1816,7 @@ describe("Component tests: A test App using Redux", () => {
 
   describe('Datatype tests: integer', () => {
     it('displays a textbox in Question 7', () => {
-      testStore.dispatch(actions.enterData({cde: "registryQ6", value: "typetest", isValid: true}));
+      act(()=>{testStore.dispatch(actions.enterData({cde: "registryQ6", value: "typetest", isValid: true}));});
       testStore.getState().stage = 6;
       const { rerender, asFragment } = render(
         <Provider store={testStore}>
@@ -2526,7 +2526,7 @@ describe('Reducer tests: the state', () => {
     */
     it('can go to the next question from the first question', () => {
       expect(testStore.getState().stage).toEqual(0);
-      testStore.dispatch(actions.goNext());
+      act(()=>{testStore.dispatch(actions.goNext());});
       expect(testStore.getState().stage).toEqual(1);
     });
 
@@ -2535,7 +2535,7 @@ describe('Reducer tests: the state', () => {
     */
     it('can go to the previous question from the second question', () => {
       expect(testStore.getState().stage).toEqual(1);
-      testStore.dispatch(actions.goPrevious());
+      act(()=>{testStore.dispatch(actions.goPrevious());});
       expect(testStore.getState().stage).toEqual(0);
     });
   });
@@ -2554,7 +2554,7 @@ describe('Reducer tests: the state', () => {
     it('can have data entered', () => {
       expect(testStore.getState().answers).toStrictEqual({});
       // console.log(testStore.getState().answers);
-      testStore.dispatch(actions.enterData({cde: "registryQ1", value: "answer1", isValid: true}));
+      act(()=>{testStore.dispatch(actions.enterData({cde: "registryQ1", value: "answer1", isValid: true}));});
       expect(testStore.getState().answers).not.toEqual({});
       // console.log(testStore.getState());
     });
@@ -2574,7 +2574,7 @@ describe('Reducer tests: the state', () => {
       expect(testStore.getState().answers).toHaveProperty("registryQ1");
       expect(testStore.getState().answers[regQ1String]).toEqual("answer1");
       expect(testStore.getState().questions.length).toEqual(4);
-      testStore.dispatch(actions.enterData({cde: "registryQ1", value: "answer2", isValid: true}));
+      act(()=>{testStore.dispatch(actions.enterData({cde: "registryQ1", value: "answer2", isValid: true}));});
       expect(testStore.getState().questions[2].cde).toEqual("registryQ3");
       expect(testStore.getState().answers).toHaveProperty("registryQ1");
       expect(testStore.getState().answers[regQ1String]).not.toEqual("answer1");
@@ -2589,7 +2589,7 @@ describe('Reducer tests: the state', () => {
     it('does not make the fourth question available if "Good" is answered in the third question', () => {
       expect(testStore.getState().questions.length).toEqual(4);
       expect(testStore.getState().questions[3].cde).toEqual("PROMSConsent");
-      testStore.dispatch(actions.enterData({cde: "registryQ3", value: "good_answer", isValid: true}));
+      act(()=>{testStore.dispatch(actions.enterData({cde: "registryQ3", value: "good_answer", isValid: true}));});
       expect(testStore.getState().questions.length).toEqual(4);
       expect(testStore.getState().questions[3].cde).toEqual("PROMSConsent");
     });
@@ -2600,7 +2600,7 @@ describe('Reducer tests: the state', () => {
     it('does not make the fourth question available if "Not so good" is answered in the third question', () => {
       expect(testStore.getState().questions.length).toEqual(4);
       expect(testStore.getState().questions[3].cde).toEqual("PROMSConsent");
-      testStore.dispatch(actions.enterData({cde: "registryQ3", value: "not_good_answer", isValid: true}));
+      act(()=>{testStore.dispatch(actions.enterData({cde: "registryQ3", value: "not_good_answer", isValid: true}));});
       expect(testStore.getState().questions.length).toEqual(4);
       expect(testStore.getState().questions[3].cde).toEqual("PROMSConsent");
     });
@@ -2611,7 +2611,7 @@ describe('Reducer tests: the state', () => {
     it('makes the fourth question available if "Bad" is answered in the third question', () => {
       expect(testStore.getState().questions.length).toEqual(4);
       expect(testStore.getState().questions[3].cde).toEqual("PROMSConsent");
-      testStore.dispatch(actions.enterData({cde: "registryQ3", value: "bad_answer", isValid: true}));
+      act(()=>{testStore.dispatch(actions.enterData({cde: "registryQ3", value: "bad_answer", isValid: true}));});
       expect(testStore.getState().questions.length).toEqual(5);
       expect(testStore.getState().questions[3].cde).toEqual("registryQ4");
     });
@@ -2625,7 +2625,7 @@ describe('Reducer tests: the state', () => {
       expect(testStore.getState().questions.length).toEqual(5);
       expect(testStore.getState().questions[4].cde).toEqual("PROMSConsent");
       expect(testStore.getState().answers[regQ4String]).toBeUndefined();
-      testStore.dispatch(actions.enterData({cde: "registryQ4", value: ["work_answer"], isValid: true}));
+      act(()=>{testStore.dispatch(actions.enterData({cde: "registryQ4", value: ["work_answer"], isValid: true}));});
       expect(testStore.getState().questions.length).toEqual(5);
       expect(testStore.getState().questions[4].cde).toEqual("PROMSConsent");
       expect(testStore.getState().answers[regQ4String]).toEqual(["work_answer"]);
@@ -2638,7 +2638,7 @@ describe('Reducer tests: the state', () => {
       expect(testStore.getState().questions.length).toEqual(5);
       expect(testStore.getState().questions[4].cde).toEqual("PROMSConsent");
       expect(testStore.getState().answers[regQ4String]).toEqual(["work_answer"]);
-      testStore.dispatch(actions.enterData({cde: "registryQ4", value: ["work_answer", "friends_answer"], isValid: true}));
+      act(()=>{testStore.dispatch(actions.enterData({cde: "registryQ4", value: ["work_answer", "friends_answer"], isValid: true}));});
       expect(testStore.getState().questions.length).toEqual(5);
       expect(testStore.getState().questions[4].cde).toEqual("PROMSConsent");
       expect(testStore.getState().answers[regQ4String]).toEqual(["work_answer", "friends_answer"]);
@@ -2651,7 +2651,7 @@ describe('Reducer tests: the state', () => {
       expect(testStore.getState().questions.length).toEqual(5);
       expect(testStore.getState().questions[4].cde).toEqual("PROMSConsent");
       expect(testStore.getState().answers[regQ4String]).toEqual(["work_answer", "friends_answer"]);
-      testStore.dispatch(actions.enterData({cde: "registryQ4", value: ["friends_answer", "day_answer"], isValid: true}));
+      act(()=>{testStore.dispatch(actions.enterData({cde: "registryQ4", value: ["friends_answer", "day_answer"], isValid: true}));});
       expect(testStore.getState().questions.length).toEqual(5);
       expect(testStore.getState().questions[4].cde).toEqual("PROMSConsent");
       expect(testStore.getState().answers[regQ4String]).toEqual(["friends_answer", "day_answer"]);
@@ -2664,15 +2664,15 @@ describe('Reducer tests: the state', () => {
       expect(testStore.getState().questions.length).toEqual(5);
       expect(testStore.getState().questions[4].cde).toEqual("PROMSConsent");
       expect(testStore.getState().answers[regQ4String]).toEqual(["friends_answer", "day_answer"]);
-      testStore.dispatch(actions.enterData({cde: "registryQ4", value: ["react_answer"], isValid: true}));
+      act(()=>{testStore.dispatch(actions.enterData({cde: "registryQ4", value: ["react_answer"], isValid: true}));});
       expect(testStore.getState().questions.length).toEqual(6);
       expect(testStore.getState().questions[4].cde).toEqual("registryQ5");
       expect(testStore.getState().answers[regQ4String]).toEqual(["react_answer"]);
-      testStore.dispatch(actions.enterData({cde: "registryQ4", value: ["react_answer", "day_answer"], isValid: true}));
+      act(()=>{testStore.dispatch(actions.enterData({cde: "registryQ4", value: ["react_answer", "day_answer"], isValid: true}));});
       expect(testStore.getState().questions.length).toEqual(6);
       expect(testStore.getState().questions[4].cde).toEqual("registryQ5");
       expect(testStore.getState().answers[regQ4String]).toEqual(["react_answer", "day_answer"]);
-      testStore.dispatch(actions.enterData({cde: "registryQ4", value: ["react_answer", "day_answer", "work_answer", "friends_answer"], isValid: true}));
+      act(()=>{testStore.dispatch(actions.enterData({cde: "registryQ4", value: ["react_answer", "day_answer", "work_answer", "friends_answer"], isValid: true}));});
       expect(testStore.getState().questions.length).toEqual(6);
       expect(testStore.getState().questions[4].cde).toEqual("registryQ5");
       expect(testStore.getState().answers[regQ4String]).toEqual(["react_answer", "day_answer", "work_answer", "friends_answer"]);
@@ -2684,7 +2684,7 @@ describe('Reducer tests: the state', () => {
       expect(testStore.getState().questions.length).toEqual(6);
       expect(testStore.getState().questions[5].cde).toEqual("PROMSConsent");
       expect(testStore.getState().answers[regQ5String]).toBeUndefined();
-      testStore.dispatch(actions.enterData({cde: regQ5String, value: ["hard_to_read"], isValid: true}));
+      act(()=>{testStore.dispatch(actions.enterData({cde: regQ5String, value: ["hard_to_read"], isValid: true}));});
       expect(testStore.getState().questions.length).toEqual(6);
       expect(testStore.getState().questions[5].cde).toEqual("PROMSConsent");
       expect(testStore.getState().answers[regQ5String]).toEqual(["hard_to_read"]);
@@ -2694,7 +2694,7 @@ describe('Reducer tests: the state', () => {
       expect(testStore.getState().questions.length).toEqual(6);
       expect(testStore.getState().questions[5].cde).toEqual("PROMSConsent");
       expect(testStore.getState().answers[regQ5String]).toEqual(["hard_to_read"]);
-      testStore.dispatch(actions.enterData({cde: regQ5String, value: ["hard_to_read", "zero_understanding"], isValid: true}));
+      act(()=>{testStore.dispatch(actions.enterData({cde: regQ5String, value: ["hard_to_read", "zero_understanding"], isValid: true}));});
       expect(testStore.getState().questions.length).toEqual(6);
       expect(testStore.getState().questions[5].cde).toEqual("PROMSConsent");
       expect(testStore.getState().answers[regQ5String]).toEqual(["hard_to_read", "zero_understanding"]);
@@ -2704,19 +2704,19 @@ describe('Reducer tests: the state', () => {
       expect(testStore.getState().questions.length).toEqual(6);
       expect(testStore.getState().questions[5].cde).toEqual("PROMSConsent");
       expect(testStore.getState().answers[regQ5String]).toEqual(["hard_to_read", "zero_understanding"]);
-      testStore.dispatch(actions.enterData({cde: regQ5String, value: ["too_many_deps"], isValid: true}));
+      act(()=>{testStore.dispatch(actions.enterData({cde: regQ5String, value: ["too_many_deps"], isValid: true}));});
       expect(testStore.getState().questions.length).toEqual(7);
       expect(testStore.getState().questions[5].cde).toEqual("registryQ6");
       expect(testStore.getState().answers[regQ5String]).toEqual(["too_many_deps"]);
-      testStore.dispatch(actions.enterData({cde: regQ5String, value: ["too_many_deps", "hard_to_read"], isValid: true}));
+      act(()=>{testStore.dispatch(actions.enterData({cde: regQ5String, value: ["too_many_deps", "hard_to_read"], isValid: true}));});
       expect(testStore.getState().questions.length).toEqual(7);
       expect(testStore.getState().questions[5].cde).toEqual("registryQ6");
       expect(testStore.getState().answers[regQ5String]).toEqual(["too_many_deps", "hard_to_read"]);
-      testStore.dispatch(actions.enterData({cde: regQ5String, value: ["too_many_deps", "hard_to_read", "zero_understanding"], isValid: true}));
+      act(()=>{testStore.dispatch(actions.enterData({cde: regQ5String, value: ["too_many_deps", "hard_to_read", "zero_understanding"], isValid: true}));});
       expect(testStore.getState().questions.length).toEqual(7);
       expect(testStore.getState().questions[5].cde).toEqual("registryQ6");
       expect(testStore.getState().answers[regQ5String]).toEqual(["too_many_deps", "hard_to_read", "zero_understanding"]);
-      testStore.dispatch(actions.enterData({cde: regQ5String, value: ["hard_to_read", "zero_understanding"], isValid: true}));
+      act(()=>{testStore.dispatch(actions.enterData({cde: regQ5String, value: ["hard_to_read", "zero_understanding"], isValid: true}));});
       expect(testStore.getState().questions.length).toEqual(6);
       expect(testStore.getState().questions[5].cde).toEqual("PROMSConsent");
       expect(testStore.getState().answers[regQ5String]).toEqual(["hard_to_read", "zero_understanding"]);
@@ -2726,19 +2726,19 @@ describe('Reducer tests: the state', () => {
       expect(testStore.getState().questions.length).toEqual(6);
       expect(testStore.getState().questions[5].cde).toEqual("PROMSConsent");
       expect(testStore.getState().answers[regQ5String]).toEqual(["hard_to_read", "zero_understanding"]);
-      testStore.dispatch(actions.enterData({cde: regQ5String, value: ["by_fb"], isValid: true}));
+      act(()=>{testStore.dispatch(actions.enterData({cde: regQ5String, value: ["by_fb"], isValid: true}));});
       expect(testStore.getState().questions.length).toEqual(7);
       expect(testStore.getState().questions[5].cde).toEqual("registryQ6");
       expect(testStore.getState().answers[regQ5String]).toEqual(["by_fb"]);
-      testStore.dispatch(actions.enterData({cde: regQ5String, value: ["by_fb", "hard_to_read"], isValid: true}));
+      act(()=>{testStore.dispatch(actions.enterData({cde: regQ5String, value: ["by_fb", "hard_to_read"], isValid: true}));});
       expect(testStore.getState().questions.length).toEqual(7);
       expect(testStore.getState().questions[5].cde).toEqual("registryQ6");
       expect(testStore.getState().answers[regQ5String]).toEqual(["by_fb", "hard_to_read"]);
-      testStore.dispatch(actions.enterData({cde: regQ5String, value: ["by_fb", "hard_to_read", "zero_understanding"], isValid: true}));
+      act(()=>{testStore.dispatch(actions.enterData({cde: regQ5String, value: ["by_fb", "hard_to_read", "zero_understanding"], isValid: true}));});
       expect(testStore.getState().questions.length).toEqual(7);
       expect(testStore.getState().questions[5].cde).toEqual("registryQ6");
       expect(testStore.getState().answers[regQ5String]).toEqual(["by_fb", "hard_to_read", "zero_understanding"]);
-      testStore.dispatch(actions.enterData({cde: regQ5String, value: ["hard_to_read", "zero_understanding"], isValid: true}));
+      act(()=>{testStore.dispatch(actions.enterData({cde: regQ5String, value: ["hard_to_read", "zero_understanding"], isValid: true}));});
       expect(testStore.getState().questions.length).toEqual(6);
       expect(testStore.getState().questions[5].cde).toEqual("PROMSConsent");
       expect(testStore.getState().answers[regQ5String]).toEqual(["hard_to_read", "zero_understanding"]);
@@ -2748,7 +2748,7 @@ describe('Reducer tests: the state', () => {
       expect(testStore.getState().questions.length).toEqual(6);
       expect(testStore.getState().questions[5].cde).toEqual("PROMSConsent");
       expect(testStore.getState().answers[regQ5String]).toEqual(["hard_to_read", "zero_understanding"]);
-      testStore.dispatch(actions.enterData({cde: regQ5String, value: ["too_many_deps", "by_fb"], isValid: true}));
+      act(()=>{testStore.dispatch(actions.enterData({cde: regQ5String, value: ["too_many_deps", "by_fb"], isValid: true}));});
       expect(testStore.getState().questions.length).toEqual(7);
       expect(testStore.getState().questions[5].cde).toEqual("registryQ6");
       expect(testStore.getState().answers[regQ5String]).toEqual(["too_many_deps", "by_fb"]);
@@ -2850,7 +2850,7 @@ describe('Action tests: the app', () => {
     expect(actionList).toEqual(expectedActions);
 
     // Need to add in answer to display preconditional questions
-    testStore.dispatch(actions.enterData({cde: "registryQ3", value: "bad_answer", isValid: true}));
+    act(()=>{testStore.dispatch(actions.enterData({cde: "registryQ3", value: "bad_answer", isValid: true}));});
   });
 
   it('fires the enterData action when a checkbox is clicked', () => {
@@ -2940,7 +2940,7 @@ describe('Action tests: the app', () => {
     expect(actionList).toEqual(expectedActions);
 
     // Need to add in answer to display preconditional questions
-    testStore.dispatch(actions.enterData({cde: "registryQ6", value: "typetest", isValid: true}));
+    act(()=>{testStore.dispatch(actions.enterData({cde: "registryQ6", value: "typetest", isValid: true}));});
   });
 
   it('fires the enterData action when a slider widget is clicked', () => {
@@ -3107,7 +3107,7 @@ describe('Navigational tests: the app', () => {
 
   it('retains checked multiselect answers when returning to question', () => {
     // Need to add in answer to display preconditional questions
-    testStore.dispatch(actions.enterData({cde: "registryQ3", value: "bad_answer", isValid: true}));
+    act(()=>{testStore.dispatch(actions.enterData({cde: "registryQ3", value: "bad_answer", isValid: true}));});
     testStore.getState().stage = 3;
 
     const { rerender, asFragment } = render(
@@ -3178,8 +3178,9 @@ describe('Navigational tests: the app', () => {
 
   it('retains integer answers when returning to question', () => {
     // Need to add in answer to display preconditional questions
-    testStore.dispatch(actions.enterData({cde: "registryQ5", value: ["by_fb"], isValid: true}));
-    testStore.dispatch(actions.enterData({cde: "registryQ6", value: "typetest", isValid: true}))
+    act(()=>{testStore.dispatch(actions.enterData({cde: "registryQ5", value: ["by_fb"], isValid: true}));});
+    act(()=>{testStore.dispatch(actions.enterData({cde: "registryQ6", value: "typetest", isValid: true}))});
+    
     testStore.getState().stage = 6;
 
     const { rerender, asFragment } = render(
@@ -3187,6 +3188,7 @@ describe('Navigational tests: the app', () => {
         <App />
       </Provider>
     );
+
     expect(screen.getByText("title", { exact: false }).innerHTML).toEqual(
       expect.stringContaining("Question 7")
     );
@@ -3200,6 +3202,7 @@ describe('Navigational tests: the app', () => {
     expect(numBox.value).toEqual("");
 
     fireEvent.change(numBox, { target: { value: 99 } });
+
     rerender(
       <Provider store={testStore}>
         <App />
