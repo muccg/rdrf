@@ -3209,7 +3209,7 @@ describe('Navigational tests: the app', () => {
       </Provider>
     );
 
-    expect(numBox.value).toEqual("99");
+    expect(numBox.value).toEqual("98");
 
     fireEvent.click(prevButton);
     rerender(
