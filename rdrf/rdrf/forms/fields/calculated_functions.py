@@ -495,6 +495,132 @@ def LDLCholesterolAdjTreatment_inputs():
 
 ################ END OF LDLCholesterolAdjTreatment ################################
 
+
+crc_stage = """
+Stage unknown
+TNMPTCRC = pTX TNMPNCRC = pNX TNMPMCRC = pMX
+Stage 0
+TNMPTCRC = pTis TNMPNCRC = pNX TNMPMCRC = pMX
+TNMPTCRC = pT0 TNMPNCRC = pN0 TNMPMCRC = pMX
+Stage I
+TNMPTCRC = pT1 TNMPNCRC = pN0 TNMPMCRC = pMX
+TNMPTCRC = pT2 TNMPNCRC = pN0 TNMPMCRC = pMX
+Stage IIA
+TNMPTCRC = pT3 TNMPNCRC = pN0 TNMPMCRC = pMX
+Stage IIB
+TNMPTCRC = pT4a TNMPNCRC = pN0 TNMPMCRC = pMX
+Stage IIC
+TNMPTCRC = pT4b TNMPNCRC = pN0 TNMPMCRC = pMX
+Stage IIIA
+TNMPTCRC = pT1 TNMPNCRC = pN1 TNMPMCRC = pMX
+TNMPTCRC = pT2 TNMPNCRC = pN1 TNMPMCRC = pMX
+TNMPTCRC = pT1 TNMPNCRC = pN1c TNMPMCRC = pMX
+TNMPTCRC = pT2 TNMPNCRC = pN1c TNMPMCRC = pMX
+TNMPTCRC = pT1 TNMPNCRC = pN2a TNMPMCRC = pMX
+Stage IIIB
+TNMPTCRC = pT3 TNMPNCRC = pN1 TNMPMCRC = pMX
+TNMPTCRC = pT3 TNMPNCRC = pN1c TNMPMCRC = pMX
+TNMPTCRC = pT4a TNMPNCRC = pN1 TNMPMCRC = pMX
+TNMPTCRC = pT4a TNMPNCRC = pN1c TNMPMCRC = pMX
+TNMPTCRC = pT2 TNMPNCRC = pN2a TNMPMCRC = pMX
+TNMPTCRC = pT3 TNMPNCRC = pN2a TNMPMCRC = pMX
+TNMPTCRC = pT1 TNMPNCRC = pN2b TNMPMCRC = pMX
+TNMPTCRC = pT2 TNMPNCRC = pN2b TNMPMCRC = pMX
+Stage IIIC
+TNMPTCRC = pT4a TNMPNCRC = pN2a TNMPMCRC = pMX
+TNMPTCRC = pT3 TNMPNCRC = pN2b TNMPMCRC = pMX
+TNMPTCRC = pT4a TNMPNCRC = pN2b TNMPMCRC = pMX
+TNMPTCRC = pT4b TNMPNCRC = pN1 TNMPMCRC = pMX
+TNMPTCRC = pT4b TNMPNCRC = pN2 TNMPMCRC = pMX
+Stage IVA
+TNMPTCRC = pTX TNMPNCRC = pNX TNMPMCRC = pM1a
+Stage IVB
+TNMPTCRC = pTX TNMPNCRC = pNX TNMPMCRC = pM1b
+Stage IVC
+TNMPTCRC = pTX TNMPNCRC = pNX TNMPMCRC = pM1c
+"""
+
+
+class CancerStageEvaluator:
+
+    def parse_spec(self, spec):
+        self.spec = spec
+        self.rule_dict = self._get_rule_dict(spec)
+
+    def evaluate(self, patient, context):
+        for stage, rules in self.rules_dict.items():
+            if self._evaluate(rules, patient, context):
+                return stage
+
+    def _get_condition(self, parts):
+        field = parts[0]
+        value = parts[2]
+        return (field, value)
+
+    def _get_rules_dict(self, spec: str) -> dict:
+        d = {}
+        for line in spec.strip().split("\n"):
+            line = line.strip()
+            if line.startswith("Stage"):
+                parts = line.split()
+                stage_name = parts[-1]
+                d[stage_name] = []
+                current_list = d[stage_name]
+            else:
+                parts = line.strip().split()
+                conditions = []
+                while parts:
+                    condition = self._get_condition(parts)
+                    conditions.append(condition)
+                    parts = parts[3:]
+                current_list.append(conditions)
+        return d
+
+
+def CRCCANCERSTAGE(patient, context):
+    context = fill_missing_input(context, 'CRCCANCERSTAGE_inputs')
+    evaluator = CancerStageEvaluator(crc_cancer_stage_spec)
+    try:
+        value = evaluator.evaluate(patient, context)
+        return value
+    except:
+        pass
+
+
+def CRCCANCERSTAGE_inputs():
+    return []
+
+
+def BCCANCERSTAGE(patient, context):
+    context = fill_missing_input(context, 'BCCANCERSTAGE_inputs')
+    evaluator = CancerStageEvaluator(bc_cancer_stage_spec)
+    try:
+        value = evaluator.evaluate(patient, context)
+        return value
+    except:
+        pass
+    return "unknown"
+
+
+def BCCANCERSTAGE_inputs():
+    return []
+
+
+def LCCANCERSTAGE(patient, context):
+    context = fill_missing_input(context, 'LCCANCERSTAGE_inputs')
+    evaluator = CancerStageEvaluator(lc_cancer_stage_spec)
+    try:
+        value = evaluator.evaluate(patient, context)
+        return value
+    except:
+        pass
+    return "unknown"
+
+
+def LCCANCERSTAGE_inputs():
+    return []
+
+
 ################ BEGINNING OF CDEBMI ################################
 
 def CDEBMI(patient, context):
@@ -811,11 +937,12 @@ def ANGBMIimperial_inputs():
 
 ################ BEGINNING OF FHDeathAge ################################
 
+
 def APMATPlasmicRisk(patient, context):
     context = fill_missing_input(context, 'APMATPlasmicRisk_inputs')
 
     YES = "fh_yes_no_yes"
-    yes_selected = lambda value: value == YES
+    def yes_selected(value): return value == YES
 
     score = 0
     score += 1 if yes_selected(context["APMATPlateletCountLessThan30"]) else 0
@@ -828,11 +955,13 @@ def APMATPlasmicRisk(patient, context):
 
     return "low risk" if score < 5 else "intermediate risk" if score == 5 else "high risk"
 
+
 def APMATPlasmicRisk_inputs():
     return ["APMATPlateletCountLessThan30", "APMATHaemolysisVariable", "APMATNoActiveCancer", "APMATNoTransplant",
             "APMATMCVLessThan90", "APMATINRLessThan1Dot5", "APMATCreatinineLessThan2"]
 
 ################ END OF FHDeathAge ################################
+
 
 def validate_date(date):
     try:
