@@ -9,6 +9,9 @@ from django.db import transaction
 from django.utils.html import strip_tags
 from functools import total_ordering
 
+from django.core.management import call_command
+
+
 import datetime
 import dateutil.parser
 import logging
@@ -1060,3 +1063,14 @@ def has_external_demographics():
     return all([settings.HUB_ENABLED,
                 is_site_system(),
                 is_mapping_demographics_fields()])
+
+
+def has_calcuated_fields(form_model):
+    for section_model in form_model.section_models:
+        for cde_model in section_model.cde_models:
+            if cde_model.datatype == "calculated":
+                return True
+
+
+def update_patient_calculated_fields(registry_code, patient_id):
+    call_command('update_calculated_fields', registry_code=registry_code, patient_id=[patient_id])

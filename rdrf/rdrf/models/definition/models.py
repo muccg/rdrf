@@ -846,6 +846,11 @@ class CommonDataElement(models.Model):
 
         return validation_rules_description
 
+    def calculate(self, patient, context):
+        if not self.datatype == "calculated":
+            raise ValueError("Can't calculate with a non-calculated field")
+        return "RESULTOFCALC!"
+
 
 def validate_abnormality_condition(abnormality_condition, datatype):
     abnormality_condition_lines = list(

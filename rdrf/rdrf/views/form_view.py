@@ -56,6 +56,8 @@ from rdrf.forms.components import RDRFPatientInfoComponent
 from rdrf.security.security_checks import security_check_user_patient
 
 from rdrf.helpers.utils import annotate_form_with_verifications
+from rdrf.helpers.utils import update_patient_calculated_fields
+
 from rdrf.views.custom_actions import CustomActionWrapper
 
 import logging
@@ -182,12 +184,34 @@ class SectionInfo(object):
             current_data,
             multisection=self.is_multiple)
 
+        logger.debug(f"dynamic data before: {dynamic_data}")
+        wrapped_data = self.update_calculated_fields(dynamic_data)
+        logger.debug(f"wrapped data after: {dynamic_data}")
+
         if self.is_multiple:
             form_instance = self.form_set_class(initial=wrapped_data, prefix=self.prefix)
         else:
             form_instance = self.form_class(dynamic_data, initial=wrapped_data)
 
         return form_instance
+
+    def update_calculated_fields(self, dynamic_data):
+        logger.debug(f"dynamic data = {dynamic_data}")
+        for key in dynamic_data:
+            try:
+                form_name, section_code, cde_code = key.split("____")
+            except ValueError:
+                continue
+
+            cde_model = CommonDataElement.objects.get(code=cde_code)
+            if cde_model.datatype == "calculated":
+                logger.debug(f"calculating new value for {cde_code}")
+                patient = None
+                calculation_context = {}
+                new_value = cde_model.calculate(patient, calculation_context)
+                dynamic_data[key] = new_value
+                logger.debug(f"new value = {new_value}")
+        return dynamic_data
 
 
 class FormSwitchLockingView(View):
@@ -572,6 +596,8 @@ class FormView(View):
                 section_info.save()
                 form_instance = section_info.recreate_form_instance()
                 form_section[section_info.section_code] = form_instance
+
+            #update_patient_calculated_fields(registry_code, patient_id)
 
             clinical_data_saved_ok.send(sender=ClinicalData, patient=patient, saved_sections=sections_to_save)
 

@@ -7,6 +7,7 @@
 from rest_framework.exceptions import ParseError
 from datetime import datetime
 from decimal import Decimal, ROUND_HALF_UP
+from functools import reduce
 import math
 import logging
 logger = logging.getLogger(__name__)
@@ -496,110 +497,163 @@ def LDLCholesterolAdjTreatment_inputs():
 ################ END OF LDLCholesterolAdjTreatment ################################
 
 
-crc_stage = """
-Stage unknown
-TNMPTCRC = pTX TNMPNCRC = pNX TNMPMCRC = pMX
-Stage 0
-TNMPTCRC = pTis TNMPNCRC = pNX TNMPMCRC = pMX
-TNMPTCRC = pT0 TNMPNCRC = pN0 TNMPMCRC = pMX
-Stage I
-TNMPTCRC = pT1 TNMPNCRC = pN0 TNMPMCRC = pMX
-TNMPTCRC = pT2 TNMPNCRC = pN0 TNMPMCRC = pMX
-Stage IIA
-TNMPTCRC = pT3 TNMPNCRC = pN0 TNMPMCRC = pMX
-Stage IIB
-TNMPTCRC = pT4a TNMPNCRC = pN0 TNMPMCRC = pMX
-Stage IIC
-TNMPTCRC = pT4b TNMPNCRC = pN0 TNMPMCRC = pMX
-Stage IIIA
-TNMPTCRC = pT1 TNMPNCRC = pN1 TNMPMCRC = pMX
-TNMPTCRC = pT2 TNMPNCRC = pN1 TNMPMCRC = pMX
-TNMPTCRC = pT1 TNMPNCRC = pN1c TNMPMCRC = pMX
-TNMPTCRC = pT2 TNMPNCRC = pN1c TNMPMCRC = pMX
-TNMPTCRC = pT1 TNMPNCRC = pN2a TNMPMCRC = pMX
-Stage IIIB
-TNMPTCRC = pT3 TNMPNCRC = pN1 TNMPMCRC = pMX
-TNMPTCRC = pT3 TNMPNCRC = pN1c TNMPMCRC = pMX
-TNMPTCRC = pT4a TNMPNCRC = pN1 TNMPMCRC = pMX
-TNMPTCRC = pT4a TNMPNCRC = pN1c TNMPMCRC = pMX
-TNMPTCRC = pT2 TNMPNCRC = pN2a TNMPMCRC = pMX
-TNMPTCRC = pT3 TNMPNCRC = pN2a TNMPMCRC = pMX
-TNMPTCRC = pT1 TNMPNCRC = pN2b TNMPMCRC = pMX
-TNMPTCRC = pT2 TNMPNCRC = pN2b TNMPMCRC = pMX
-Stage IIIC
-TNMPTCRC = pT4a TNMPNCRC = pN2a TNMPMCRC = pMX
-TNMPTCRC = pT3 TNMPNCRC = pN2b TNMPMCRC = pMX
-TNMPTCRC = pT4a TNMPNCRC = pN2b TNMPMCRC = pMX
-TNMPTCRC = pT4b TNMPNCRC = pN1 TNMPMCRC = pMX
-TNMPTCRC = pT4b TNMPNCRC = pN2 TNMPMCRC = pMX
-Stage IVA
-TNMPTCRC = pTX TNMPNCRC = pNX TNMPMCRC = pM1a
-Stage IVB
-TNMPTCRC = pTX TNMPNCRC = pNX TNMPMCRC = pM1b
-Stage IVC
-TNMPTCRC = pTX TNMPNCRC = pNX TNMPMCRC = pM1c
-"""
+crc_cancer_stage_rules = {
+    "0": [[{'cde': 'TNMPTCRC', 'value': 'pTis'},
+           {'cde': 'TNMPNCRC', 'value': 'pNX'},
+           {'cde': 'TNMPMCRC', 'value': 'pMX'}],
+          [{'cde': 'TNMPTCRC', 'value': 'pT0'},
+           {'cde': 'TNMPNCRC', 'value': 'pN0'},
+           {'cde': 'TNMPMCRC', 'value': 'pMX'}]],
+
+    "I": [[{'cde': 'TNMPTCRC', 'value': 'pT1'},
+           {'cde': 'TNMPNCRC', 'value': 'pN0'},
+           {'cde': 'TNMPMCRC', 'value': 'pMX'}],
+          [{'cde': 'TNMPTCRC', 'value': 'pT2'},
+           {'cde': 'TNMPNCRC', 'value': 'pN0'},
+           {'cde': 'TNMPMCRC', 'value': 'pMX'}]],
+    "IIA": [[{'cde': 'TNMPTCRC', 'value': 'pT3'},
+             {'cde': 'TNMPNCRC', 'value': 'pN0'},
+             {'cde': 'TNMPMCRC', 'value': 'pMX'}]],
+    "IIB": [[{'cde': 'TNMPTCRC', 'value': 'pT4a'},
+             {'cde': 'TNMPNCRC', 'value': 'pN0'},
+             {'cde': 'TNMPMCRC', 'value': 'pMX'}]],
+    "IIC": [[{'cde': 'TNMPTCRC', 'value': 'pT4b'},
+             {'cde': 'TNMPNCRC', 'value': 'pN0'},
+             {'cde': 'TNMPMCRC', 'value': 'pMX'}]],
+    "IIIA": [[{'cde': 'TNMPTCRC', 'value': 'pT1'},
+              {'cde': 'TNMPNCRC', 'value': 'pN1'},
+              {'cde': 'TNMPMCRC', 'value': 'pMX'}],
+             [{'cde': 'TNMPTCRC', 'value': 'pT2'},
+              {'cde': 'TNMPNCRC', 'value': 'pN1'},
+              {'cde': 'TNMPMCRC', 'value': 'pMX'}],
+             [{'cde': 'TNMPTCRC', 'value': 'pT1'},
+              {'cde': 'TNMPNCRC', 'value': 'pN1c'},
+              {'cde': 'TNMPMCRC', 'value': 'pMX'}],
+             [{'cde': 'TNMPTCRC', 'value': 'pT2'},
+              {'cde': 'TNMPNCRC', 'value': 'pN1c'},
+              {'cde': 'TNMPMCRC', 'value': 'pMX'}
+              ],
+             [{'cde': 'TNMPTCRC', 'value': 'pT1'},
+              {'cde': 'TNMPNCRC', 'value': 'pN2a'},
+              {'cde': 'TNMPMCRC', 'value': 'pMX'}]],
+    "IIIB": [[{'cde': 'TNMPTCRC', 'value': 'pT3'},
+              {'cde': 'TNMPNCRC', 'value': 'pN1'},
+              {'cde': 'TNMPMCRC', 'value': 'pMX'}],
+             [{'cde': 'TNMPTCRC', 'value': 'pT3'},
+              {'cde': 'TNMPNCRC', 'value': 'pN1c'},
+              {'cde': 'TNMPMCRC', 'value': 'pMX'}],
+             [{'cde': 'TNMPTCRC', 'value': 'pT4a'},
+              {'cde': 'TNMPNCRC', 'value': 'pN1'},
+              {'cde': 'TNMPMCRC', 'value': 'pMX'}],
+             [{'cde': 'TNMPTCRC', 'value': 'pT4a'},
+              {'cde': 'TNMPNCRC', 'value': 'pN1c'},
+              {'cde': 'TNMPMCRC', 'value': 'pMX'}],
+             [{'cde': 'TNMPTCRC', 'value': 'pT2'},
+              {'cde': 'TNMPNCRC', 'value': 'pN2a'},
+              {'cde': 'TNMPMCRC', 'value': 'pMX'}],
+             [{'cde': 'TNMPTCRC', 'value': 'pT3'},
+              {'cde': 'TNMPNCRC', 'value': 'pN2a'},
+              {'cde': 'TNMPMCRC', 'value': 'pMX'}],
+             [{'cde': 'TNMPTCRC', 'value': 'pT1'},
+              {'cde': 'TNMPNCRC', 'value': 'pN2b'},
+              {'cde': 'TNMPMCRC', 'value': 'pMX'}],
+             [{'cde': 'TNMPTCRC', 'value': 'pT2'},
+              {'cde': 'TNMPNCRC', 'value': 'pN2b'},
+              {'cde': 'TNMPMCRC', 'value': 'pMX'}]],
+    "IIIC": [[{'cde': 'TNMPTCRC', 'value': 'pT4a'},
+              {'cde': 'TNMPNCRC', 'value': 'pN2a'},
+              {'cde': 'TNMPMCRC', 'value': 'pMX'}],
+             [{'cde': 'TNMPTCRC', 'value': 'pT3'},
+              {'cde': 'TNMPNCRC', 'value': 'pN2b'},
+              {'cde': 'TNMPMCRC', 'value': 'pMX'}],
+             [{'cde': 'TNMPTCRC', 'value': 'pT4a'},
+              {'cde': 'TNMPNCRC', 'value': 'pN2b'},
+              {'cde': 'TNMPMCRC', 'value': 'pMX'}],
+             [{'cde': 'TNMPTCRC', 'value': 'pT4b'},
+              {'cde': 'TNMPNCRC', 'value': 'pN1'},
+              {'cde': 'TNMPMCRC', 'value': 'pMX'}],
+             [{'cde': 'TNMPTCRC', 'value': 'pT4b'},
+              {'cde': 'TNMPNCRC', 'value': 'pN2'},
+              {'cde': 'TNMPMCRC', 'value': 'pMX'}]],
+    "IVA": [[{'cde': 'TNMPTCRC', 'value': 'pTX'},
+             {'cde': 'TNMPNCRC', 'value': 'pNX'},
+             {'cde': 'TNMPMCRC', 'value': 'pM1a'}]],
+    "IVB": [[{'cde': 'TNMPTCRC', 'value': 'pTX'},
+             {'cde': 'TNMPNCRC', 'value': 'pNX'},
+             {'cde': 'TNMPMCRC', 'value': 'pM1b'}]],
+    "IVC": [[{'cde': 'TNMPTCRC', 'value': 'pTX'},
+             {'cde': 'TNMPNCRC', 'value': 'pNX'},
+             {'cde': 'TNMPMCRC', 'value': 'pM1c'}]]}
+
+bc_cancer_stage_rules = {}
+lc_cancer_stage_rules = {}
 
 
 class CancerStageEvaluator:
-
-    def parse_spec(self, spec):
-        self.spec = spec
-        self.rule_dict = self._get_rule_dict(spec)
+    def __init__(self, rules_dict):
+        logger.debug("initialising canver stage evaluator")
+        self.rules_dict = rules_dict
+        self.cache = {}
 
     def evaluate(self, patient, context):
         for stage, rules in self.rules_dict.items():
-            if self._evaluate(rules, patient, context):
+            logger.debug(f"checking for cancer stage {stage}")
+            if self._evaluate_stage(rules, patient, context):
+                logger.debug(f"cancer stage: patient {patient} context {context} stage = {stage} evaluates to true")
                 return stage
+        logger.debug("No rules matched - stage is set to a blank string")
+        return ""
 
-    def _get_condition(self, parts):
-        field = parts[0]
-        value = parts[2]
-        return (field, value)
+    def _evaluate_stage(self, rules, patient, context):
+        stage_value = any([self._evaluate_conjuncts(patient, context, conjuncts) for conjuncts in rules])
+        return stage_value
 
-    def _get_rules_dict(self, spec: str) -> dict:
-        d = {}
-        for line in spec.strip().split("\n"):
-            line = line.strip()
-            if line.startswith("Stage"):
-                parts = line.split()
-                stage_name = parts[-1]
-                d[stage_name] = []
-                current_list = d[stage_name]
-            else:
-                parts = line.strip().split()
-                conditions = []
-                while parts:
-                    condition = self._get_condition(parts)
-                    conditions.append(condition)
-                    parts = parts[3:]
-                current_list.append(conditions)
-        return d
+    def _evaluate_conjuncts(self, patient, context, conjuncts):
+        return all([self._evaluate_conjunct(patient, context, conjunct) for conjunct in conjuncts])
+
+    def _evaluate_conjunct(self, patient, context, conjunct):
+        from rdrf.models.definition.models import CommonDataElement
+        cde_code = conjunct["cde"]
+        cde_model = CommonDataElement.objects.get(code=cde_code)
+        rule_display_value = conjunct["value"]
+        rule_db_value = self._get_db_value(cde_code, rule_display_value)
+        rule_display_value_from_cde = cde_model.get_display_value(rule_db_value)
+
+        patient_db_value = self._get_patient_value(patient, context, cde_code)
+        patient_display_value = cde_model.get_display_value(patient_db_value)
+
+        logger.debug(
+            f"cde code = {cde_code} patient has {patient_db_value}/{patient_display_value}, rule has {rule_db_value}/{rule_display_value}")
+        return patient_db_value == rule_db_value
+
+    def _get_patient_value(self, patient, context, cde_code):
+        return context[cde_code]  # ??
+
+    def _get_db_value(self, cde_code, display_value):
+        from rdrf.models.definition.models import CommonDataElement
+        cde_model = CommonDataElement.objects.get(code=cde_code)
+        if cde_model.pv_group:
+            d = cde_model.pv_group.as_dict()
+            for value_dict in d["values"]:
+                if value_dict["value"] == display_value:
+                    return value_dict["code"]  # what gets stored in db
 
 
 def CRCCANCERSTAGE(patient, context):
+    logger.info("in cdecrc cancer stage")
     context = fill_missing_input(context, 'CRCCANCERSTAGE_inputs')
-    evaluator = CancerStageEvaluator(crc_cancer_stage_spec)
-    try:
-        value = evaluator.evaluate(patient, context)
-        return value
-    except:
-        pass
+    evaluator = CancerStageEvaluator(crc_cancer_stage_rules)
+    return evaluator.evaluate(patient, context)
 
 
 def CRCCANCERSTAGE_inputs():
-    return []
+    return ['TNMPTCRC', 'TNMPNCRC', 'TNMPMCRC']
 
 
 def BCCANCERSTAGE(patient, context):
     context = fill_missing_input(context, 'BCCANCERSTAGE_inputs')
-    evaluator = CancerStageEvaluator(bc_cancer_stage_spec)
-    try:
-        value = evaluator.evaluate(patient, context)
-        return value
-    except:
-        pass
-    return "unknown"
+    evaluator = CancerStageEvaluator(bc_cancer_stage_rules)
+    return evaluator.evaluate(patient, context)
 
 
 def BCCANCERSTAGE_inputs():
@@ -607,14 +661,9 @@ def BCCANCERSTAGE_inputs():
 
 
 def LCCANCERSTAGE(patient, context):
-    context = fill_missing_input(context, 'LCCANCERSTAGE_inputs')
-    evaluator = CancerStageEvaluator(lc_cancer_stage_spec)
-    try:
-        value = evaluator.evaluate(patient, context)
-        return value
-    except:
-        pass
-    return "unknown"
+    context = fill_missing_input(context, 'CRCCANCERSTAGE_inputs')
+    evaluator = CancerStageEvaluator(crc_cancer_stage_rules)
+    return evaluator.evaluate(patient, context)
 
 
 def LCCANCERSTAGE_inputs():
