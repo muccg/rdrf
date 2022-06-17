@@ -37,16 +37,9 @@ def get_display_value(cde_code, raw_value):
     except CommonDataElement.DoesNotExist:
         logger.error(f"{cde_code} does not exist")
         return "NOCDE"
-    dv = cde_model.get_display_value(raw_value)
     if cde_model.datatype == "date":
-        try:
-            y, m, d = dv.split("-")
-            s = f"{d}/{m}/{y}"
-            return s
-        except ValueError:
-            return ""
-        except AttributeError:
-            return ""
+        return aus_date_string(raw_value)
+    dv = cde_model.get_display_value(raw_value)
     if type(dv) is list:
         return ";".join(dv)
     else:
