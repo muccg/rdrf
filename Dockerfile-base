@@ -1,4 +1,4 @@
-FROM muccg/python-base:3.8-debian-10
+FROM muccg/python-base:3.9-debian-11
 MAINTAINER https://github.com/muccg/rdrf/
 
 ENV PROJECT_NAME rdrf
@@ -21,10 +21,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
   libpcre3 \
   libpq5 \
   mime-support \
-  libnode64 \
   nodejs \
   unixodbc \
-  python-ldap \
+  python3-ldap \
   libsasl2-dev \
   python-dev \
   libldap2-dev \
