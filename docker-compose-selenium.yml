@@ -2,15 +2,17 @@ version: '2'
 services:
 
   hub:
-    image: selenium/hub:4.2.2
+    image: selenium/hub:4.2.2-20220609
     
     environment:
       - GRID_TIMEOUT=120000
     ports:
-      - "4444"
+      - "4444:4444"
+      - "4442:4442"
+      - "4443:4443"
 
   chrome:
-    image: selenium/node-chrome-debug:3.5
+    image: selenium/node-chrome:4.2.2-20220609
     shm_size: 256M
     environment:
       - SCREEN_WIDTH=1366
@@ -18,7 +20,7 @@ services:
       - SCREEN_DEPTH=16
       - HUB_PORT_4444_TCP_ADDR=hub
       - HUB_PORT_4444_TCP_PORT=4444
-      - SE_EVENT_BUS_HOST=selenium-hub
+      - SE_EVENT_BUS_HOST=hub
       - SE_EVENT_BUS_PUBLISH_PORT=4442
       - SE_EVENT_BUS_SUBSCRIBE_PORT=4443
     ports:
@@ -27,14 +29,17 @@ services:
       - hub
 
   firefox:
-    image: selenium/node-firefox-debug:3.5
+    image: selenium/node-firefox:4.2.2-20220609
     shm_size: 256M
     environment:
+      - SE_EVENT_BUS_HOST=hub
       - SCREEN_WIDTH=1366
       - SCREEN_HEIGHT=768
       - SCREEN_DEPTH=16
       - HUB_PORT_4444_TCP_ADDR=hub
       - HUB_PORT_4444_TCP_PORT=4444
+      - SE_EVENT_BUS_PUBLISH_PORT=4442
+      - SE_EVENT_BUS_SUBSCRIBE_PORT=4443
     ports:
       - 5900:5900
     depends_on:
