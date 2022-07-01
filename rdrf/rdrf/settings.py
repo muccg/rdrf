@@ -786,6 +786,7 @@ SESSION_SECURITY_ENABLE = env.get("session_security_enable", True)
 if SESSION_SECURITY_ENABLE:
     SESSION_SECURITY_WARN_AFTER = env.get("session_security_warn_after", 480)
     SESSION_SECURITY_EXPIRE_AFTER = env.get("session_security_expire_after", 600)
+    SESSION_SECURITY_WARNING = env.get("session_security_warning", 60)
 
     MIDDLEWARE.append('session_security.middleware.SessionSecurityMiddleware')
     INSTALLED_APPS.append('session_security')
