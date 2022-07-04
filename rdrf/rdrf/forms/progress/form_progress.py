@@ -454,8 +454,15 @@ class FormProgress(object):
             content = "No modules available"
         else:
             for form in viewable_forms:
-                is_current = self.get_form_currency(form, patient_model, context_model)
-                flag = "images/%s.png" % ("tick" if is_current else "cross")
+                see_tick = form.registry.has_feature("form_ticks")
+                logger.debug(f"see tick = {see_tick}")
+                if see_tick:
+                    is_current = self.get_form_currency(form, patient_model, context_model)
+                    flag = "images/%s.png" % ("tick" if is_current else "cross")
+                else:
+                    is_current = False
+                    flag = ""
+
                 url = reverse('registry_form', args=(self.registry_model.code,
                                                      form.id, patient_model.pk,
                                                      context_model.pk))
