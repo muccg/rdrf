@@ -211,9 +211,6 @@
         {% endif %}
 
         <div class="container rdrf-content">
-	  <div class="alert alert-info">
-	    TIME LEFT 05:43:34
-	  </div>
             {% if messages %}
                 {% for message in messages %}
                     <div {% if message.tags %} class="alert alert-{{ message.tags }}" {% endif %}>{{ message }}</div>
