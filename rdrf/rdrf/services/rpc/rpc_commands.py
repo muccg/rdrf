@@ -208,6 +208,14 @@ def rpc_create_patient_from_questionnaire(request, questionnaire_response_id):
             "patient_blurb": patient_blurb}
 
 
+def rpc_get_timeout_config(request):
+    from django.conf import settings
+    timeout = settings.SESSION_SECURITY_EXPIRE_AFTER
+    warning = settings.SESSION_SECURITY_WARNING
+    return {"timeout": timeout,
+            "warning": warning}
+
+
 def rpc_get_forms_list(request, registry_code, patient_id, form_group_id):
     from rdrf.models.definition.models import ContextFormGroup
     from rdrf.models.definition.models import Registry
