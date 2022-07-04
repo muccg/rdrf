@@ -19,7 +19,7 @@ class VisDownload:
     PATIENTS_FILENAME = "patients.csv"
     PATIENTS_HEADER = "PID,GIVENNAMES,FAMILYNAME,DOB,ADDRESS,SUBURB,POSTCODE\n"
     PATIENTS_DATA_FILENAME = "patients_data.csv"
-    PATIENTS_DATA_HEADER = "PID,QUESTIONNAIRE,CDE,QUESTION,VALUE,COLLECTIONDATE,RESPONSETYPE,FORM\n"
+    PATIENTS_DATA_HEADER = "PID,QUESTIONNAIRE,CDE,QUESTION,VALUE,COLLECTIONDATE,RESPONSETYPE,FORM,INDEX\n"
     ADDRESS_FIELD = "Ptaddress1"
     SUBURB_FIELD = "Ptaddress2"
     POSTCODE_FIELD = "Ptaddress3"
@@ -270,32 +270,49 @@ class VisualisationDownloader:
             for s in f["sections"]:
                 section_code = s["code"]
                 if not s["allow_multiple"]:
+                    index = 1
                     for c in s["cdes"]:
                         code = c["code"]
-                        if self._match(code):
-                            questionnaire, question = get_questionnaire_number(code)
-                            cde = get_cde_model(code)
-                            name = cde.name
-                            value = c["value"]
+                        cde_data = self._get_cde_data(c, code, form_name, section_code,
+                                                      collection_date, response_type, index)
+                        if cde_data:
+                            yield cde_data
+                else:
+                    for i, item in enumerate(s["cdes"]):
+                        index = i + 1
+                        for c in item:
+                            code = c["code"]
+                            cde_data = self._get_cde_data(c, code, form_name, section_code,
+                                                          collection_date, response_type, index)
+                            if cde_data:
+                                yield cde_data
 
-                            try:
-                                if type(value) is list:
-                                    display_value = ";".join([get_display_value(code, x) for x in value])
-                                else:
-                                    display_value = get_display_value(code, value)
-                            except Exception as ex:
-                                logger.error(f"error {code}: {ex}")
-                                display_value = "ERROR"
-                            yield (pid,
-                                   form_name,
-                                   section_code,
-                                   code,
-                                   questionnaire,
-                                   question,
-                                   name,
-                                   display_value,
-                                   collection_date,
-                                   response_type)
+    def _get_cde_data(self, cde_dict, code, form_name, section_code, collection_date, response_type, index):
+        if self._match(code):
+            questionnaire, question = get_questionnaire_number(code)
+            cde = get_cde_model(code)
+            name = cde.name
+            value = cde_dict["value"]
+
+            try:
+                if type(value) is list:
+                    display_value = ";".join([get_display_value(code, x) for x in value])
+                else:
+                    display_value = get_display_value(code, value)
+            except Exception as ex:
+                logger.error(f"error {code}: {ex}")
+                display_value = "ERROR"
+                return (pid,
+                        form_name,
+                        section_code,
+                        code,
+                        questionnaire,
+                        question,
+                        name,
+                        display_value,
+                        collection_date,
+                        response_type,
+                        index)  # index column
 
     def _write_patients_data(self, csv_path, pids):
         d = self.delimiter
@@ -314,5 +331,6 @@ class VisualisationDownloader:
                     self._check_address(pid, q, v)
                     coll = t[8]
                     rt = t[9]
-                    line = f"{pid}{d}{qn}{d}{q}{d}{n}{d}{v}{d}{coll}{d}{rt}{d}{form_name}\n"
+                    index = t[10]
+                    line = f"{pid}{d}{qn}{d}{q}{d}{n}{d}{v}{d}{coll}{d}{rt}{d}{form_name}{index}\n"
                     f.write(line)
