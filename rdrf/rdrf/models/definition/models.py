@@ -714,12 +714,29 @@ class CommonDataElement(models.Model):
                 return None
         return stored_value
 
+    def _get_display_value_datasource(self, stored_value):
+        import json
+        config = json.loads(self.widget_config)
+        # e.g.  {"tag":"clinicians"}
+        tag = config["tag"]
+        try:
+            item = DropdownLookup.objects.get(tag=tag, value=stored_value)
+            return item.label
+        except DropdownLookup.DoesNotExist:
+            logger.error(f"dropdown lookup error tag {tag} stored_value {stored_value} does not exist")
+            return ""
+        except DropdownLookup.MultipleObjectsReturned:
+            logger.error(f"dropdown lookup error tag {tag} stored_value {stored_value} has multiple values")
+            return ""
+
     def get_display_value(self, stored_value):
         if stored_value is None:
             return ""
         elif stored_value == "NaN":
             # the DataTable was not escaping this value and interpreting it as NaN
             return ":NaN"
+        elif self.widget_name == "DataSourceSelect" and self.widget_config:
+            return self._get_display_value_datasource(stored_value)
         elif self.pv_group:
             # if a range, return the display value
             try:

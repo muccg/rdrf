@@ -44,6 +44,8 @@
     <script type="text/javascript" src="{% static 'js/rpc_module.js' %}"></script>
     <script type="text/javascript" src="{% static 'js/rdrf.js' %}"></script>
     <script type="text/javascript" nonce="{{request.csp_nonce}}">var django = { $: $.noConflict() }; if (!$) $ = django.$; </script>
+    <script type="text/javascript" src="{% static 'js/timeout_warning.js' %}"></script>
+
 
     {% block extrastyle %}
     {% endblock %}
@@ -61,6 +63,17 @@
             hide_empty_menu();
 
             $(".navbar .dropdown-menu").addClass("mt-{% if PL %}3{% else %}2{% endif %}");
+	     var rpc = new RPC.RPC("{% url 'rpc' %}", "{{csrf_token}}");
+	    
+	    rpc.send("get_timeout_config",[], function(data) {
+
+		const timeout = data.result.timeout;
+		const warning = data.result.warning;
+		const config = {"timeout": timeout,
+				"warning": warning};
+		inactivityTimeoutSetup(config);
+            });
+
         });
     </script>
 
@@ -211,14 +224,12 @@
         {% endif %}
 
         <div class="container rdrf-content">
-	  <div class="alert alert-info">
-	    TIME LEFT 05:43:34
-	  </div>
             {% if messages %}
                 {% for message in messages %}
                     <div {% if message.tags %} class="alert alert-{{ message.tags }}" {% endif %}>{{ message }}</div>
                 {% endfor %}
             {% endif %}
+	    {% include "rdrf_cdes/timeout_warning_modal.html" %}
 
             <div class="row">
                 <div class="col-md-12">
