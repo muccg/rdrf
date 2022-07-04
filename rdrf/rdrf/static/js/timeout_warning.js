@@ -26,10 +26,13 @@ var inactivityTimeoutSetup = function (config) {
     
 
     function resetTimer() {
+	modal.hide();
         clearTimeout(time);
 	clearInterval(messageUpdate);
 	timeLeft = config.warning;
-	modal.hide();
+	const message = $("#timeout_warning_message");
+	message.text("");
+
 	var startWarning = 1000 * ( config.timeout - config.warning );
         time = setTimeout(warning, startWarning);
     }
