@@ -273,7 +273,7 @@ class VisualisationDownloader:
                     index = 1
                     for c in s["cdes"]:
                         code = c["code"]
-                        cde_data = self._get_cde_data(c, code, form_name, section_code,
+                        cde_data = self._get_cde_data(pid, c, code, form_name, section_code,
                                                       collection_date, response_type, index)
                         if cde_data:
                             yield cde_data
@@ -282,13 +282,14 @@ class VisualisationDownloader:
                         index = i + 1
                         for c in item:
                             code = c["code"]
-                            cde_data = self._get_cde_data(c, code, form_name, section_code,
+                            cde_data = self._get_cde_data(pid, c, code, form_name, section_code,
                                                           collection_date, response_type, index)
                             if cde_data:
                                 yield cde_data
 
-    def _get_cde_data(self, cde_dict, code, form_name, section_code, collection_date, response_type, index):
+    def _get_cde_data(self, pid, cde_dict, code, form_name, section_code, collection_date, response_type, index):
         if self._match(code):
+            logger.debug(f"code {code} matches")
             questionnaire, question = get_questionnaire_number(code)
             cde = get_cde_model(code)
             name = cde.name
@@ -302,17 +303,17 @@ class VisualisationDownloader:
             except Exception as ex:
                 logger.error(f"error {code}: {ex}")
                 display_value = "ERROR"
-                return (pid,
-                        form_name,
-                        section_code,
-                        code,
-                        questionnaire,
-                        question,
-                        name,
-                        display_value,
-                        collection_date,
-                        response_type,
-                        index)  # index column
+            return (pid,
+                    form_name,
+                    section_code,
+                    code,
+                    questionnaire,
+                    question,
+                    name,
+                    display_value,
+                    collection_date,
+                    response_type,
+                    index)  # index column
 
     def _write_patients_data(self, csv_path, pids):
         d = self.delimiter
@@ -332,5 +333,5 @@ class VisualisationDownloader:
                     coll = t[8]
                     rt = t[9]
                     index = t[10]
-                    line = f"{pid}{d}{qn}{d}{q}{d}{n}{d}{v}{d}{coll}{d}{rt}{d}{form_name}{index}\n"
+                    line = f"{pid}{d}{qn}{d}{q}{d}{n}{d}{v}{d}{coll}{d}{rt}{d}{form_name}{d}{index}\n"
                     f.write(line)
