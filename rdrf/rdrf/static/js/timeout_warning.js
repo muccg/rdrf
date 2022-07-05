@@ -1,14 +1,12 @@
 var inactivityTimeoutSetup = function (config) {
     var time;
-    console.log(config.warning);
-    console.log(config.timeout);
     window.onload = resetTimer;
-    // DOM Events
     document.onmousemove = resetTimer;
     document.onkeydown = resetTimer;
     var messageUpdate;
     var timeLeft = config.warning;
     var modal = getModal();
+    const loginUrl = config.login; 
 
     function warning() {
 	modal.show();
@@ -18,12 +16,6 @@ var inactivityTimeoutSetup = function (config) {
     function getModal() {
 	return new bootstrap.Modal(document.getElementById("timeout_warning_modal"));
     }
-
-    function updateTimerWidget() {
-	console.log(time);
-    }
-
-    
 
     function resetTimer() {
 	modal.hide();
@@ -41,7 +33,7 @@ var inactivityTimeoutSetup = function (config) {
 	const message = $("#timeout_warning_message");
 	timeLeft -= 1; 
 	if (timeLeft === 0) {
-	    window.location = "/account/login?next=/router/";
+	    window.location = loginUrl;
 	}
 	var msg = "You will be logged out in " + timeLeft.toString() + " seconds.";
 	message.text(msg);
