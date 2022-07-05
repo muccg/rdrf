@@ -17,12 +17,13 @@ logger = logging.getLogger(__name__)
 class VisDownload:
     ZIP_NAME = "CICVisualisationDownload%s%s.zip"
     PATIENTS_FILENAME = "patients.csv"
-    PATIENTS_HEADER = "PID,GIVENNAMES,FAMILYNAME,DOB,ADDRESS,SUBURB,POSTCODE\n"
+    PATIENTS_HEADER = "PID,UMRN,GIVENNAMES,FAMILYNAME,DOB,ADDRESS,SUBURB,POSTCODE\n"
     PATIENTS_DATA_FILENAME = "patients_data.csv"
     PATIENTS_DATA_HEADER = "PID,QUESTIONNAIRE,CDE,QUESTION,VALUE,COLLECTIONDATE,RESPONSETYPE,FORM,INDEX\n"
     ADDRESS_FIELD = "Ptaddress1"
     SUBURB_FIELD = "Ptaddress2"
     POSTCODE_FIELD = "Ptaddress3"
+    UMRN_FIELD = "PMI"
 
 
 @cached(maxsize=None)
@@ -117,6 +118,7 @@ class VisualisationDownloader:
         self.custom_action_model = custom_action_model
         self.registry = self.custom_action_model.registry
         self.address_map = {}  # pid -> address info from dynamic data
+        self.umrn_map = {}     # pid -> umrn/pmi
         self.all_cdes = False
         self.patterns = []
         self.fields = []
@@ -171,6 +173,10 @@ class VisualisationDownloader:
         elif cde_code == VisDownload.POSTCODE_FIELD:
             self._update_address(pid, "postcode", value)
 
+    def _check_umrn(self, pid, cde_code, value):
+        if cde_code == VisDownload.UMRN_FIELD:
+            self.umrn_map[pid] = value
+
     def _update_address(self, pid, field, value):
         if pid in self.address_map:
             m = self.address_map[pid]
@@ -191,7 +197,11 @@ class VisualisationDownloader:
             address = self._get_address_field(pid, "address")
             suburb = self._get_address_field(pid, "suburb")
             postcode = self._get_address_field(pid, "postcode")
-            file.write(f"{pid}{d}{given_names}{d}{family_name}{d}{dob}{d}{address}{d}{suburb}{d}{postcode}\n")
+            if patient.umrn:
+                umrn = patient.umrn
+            else:
+                umrn = self._get_umrn(pid)
+            file.write(f"{pid}{d}{umrn}{d}{given_names}{d}{family_name}{d}{dob}{d}{address}{d}{suburb}{d}{postcode}\n")
 
         except Patient.DoesNotExist:
             logger.error(f"vis download: patient {pid} does not exist")
@@ -330,6 +340,7 @@ class VisualisationDownloader:
                     n = t[6]
                     v = t[7]
                     self._check_address(pid, q, v)
+                    self._check_umrn(pid, q, v)
                     coll = t[8]
                     rt = t[9]
                     index = t[10]
