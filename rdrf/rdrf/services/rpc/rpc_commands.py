@@ -210,10 +210,16 @@ def rpc_create_patient_from_questionnaire(request, questionnaire_response_id):
 
 def rpc_get_timeout_config(request):
     from django.conf import settings
+    from django.urls import reverse
+    from rdrf.helpers.utils import get_site_url
     timeout = settings.SESSION_SECURITY_EXPIRE_AFTER
     warning = settings.SESSION_SECURITY_WARNING
+    site_url = get_site_url(request)
+    logger.debug(f"site url = {site_url}")
+
     return {"timeout": timeout,
-            "warning": warning}
+            "warning": warning,
+            "login": site_url}
 
 
 def rpc_get_forms_list(request, registry_code, patient_id, form_group_id):
