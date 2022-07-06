@@ -6,16 +6,14 @@ var inactivityTimeoutSetup = function (config) {
     var messageUpdate;
     var timeLeft = config.warning;
     var modal = getModal();
-    const loginUrl = config.login; 
+    const loginUrl = config.loginUrl; 
 
     $(document).on('hide.bs.modal','#timeout_warning_modal', function () {
-	console.log("sending rpc to reset session timeout ...");
 	config.rpc.send("reset_session_timeout",[], function(data) {
 	    console.log("reset session!");
 	});
 
     });
-
 
     function warning() {
 	modal.show();
@@ -32,7 +30,8 @@ var inactivityTimeoutSetup = function (config) {
 	clearInterval(messageUpdate);
 	timeLeft = config.warning;
 	const message = $("#timeout_warning_message");
-	message.text("");
+	var msg = "You will be logged out in " + timeLeft.toString() + " seconds.";
+	message.text(msg);
 
 	var startWarning = 1000 * ( config.timeout - config.warning );
         time = setTimeout(warning, startWarning);
@@ -42,9 +41,7 @@ var inactivityTimeoutSetup = function (config) {
 	const message = $("#timeout_warning_message");
 	timeLeft -= 1; 
 	if (timeLeft === 0) {
-	    window.onbeforeunload = function () {
-		return null;
-	    };
+	    $(window).off('beforeunload');
 	    window.location = loginUrl;
 	}
 	var msg = "You will be logged out in " + timeLeft.toString() + " seconds.";

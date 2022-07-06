@@ -226,7 +226,7 @@ def rpc_get_timeout_config(request):
 
     return {"timeout": timeout,
             "warning": warning,
-            "login": site_url}
+            "loginUrl": site_url}
 
 
 def rpc_get_forms_list(request, registry_code, patient_id, form_group_id):
