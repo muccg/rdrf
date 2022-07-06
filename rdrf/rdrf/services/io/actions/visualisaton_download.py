@@ -207,6 +207,9 @@ class VisualisationDownloader:
             logger.error(f"vis download: patient {pid} does not exist")
             pass
 
+    def _get_umrn(self, pid):
+        return self.umrn_map.get(pid, "")
+
     @property
     def task_result(self):
         import os.path
