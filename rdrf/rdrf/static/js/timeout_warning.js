@@ -8,6 +8,15 @@ var inactivityTimeoutSetup = function (config) {
     var modal = getModal();
     const loginUrl = config.login; 
 
+    $(document).on('hide.bs.modal','#timeout_warning_modal', function () {
+	console.log("sending rpc to reset session timeout ...");
+	config.rpc.send("reset_session_timeout",[], function(data) {
+	    console.log("reset session!");
+	});
+
+    });
+
+
     function warning() {
 	modal.show();
 	messageUpdate = setInterval(update_timeout_message, 1000);
@@ -33,6 +42,9 @@ var inactivityTimeoutSetup = function (config) {
 	const message = $("#timeout_warning_message");
 	timeLeft -= 1; 
 	if (timeLeft === 0) {
+	    window.onbeforeunload = function () {
+		return null;
+	    };
 	    window.location = loginUrl;
 	}
 	var msg = "You will be logged out in " + timeLeft.toString() + " seconds.";

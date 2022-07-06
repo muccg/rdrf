@@ -8,6 +8,14 @@ def rpc_visibility(request, element):
         return True
 
 
+def rpc_reset_session_timeout(request):
+    from datetime import datetime
+    dt = datetime.now()
+    logger.debug(f"resetting session time to {dt}")
+    request.session['_session_security'] = dt.strftime('%Y-%m-%dT%H:%M:%S.%f')
+    return {}
+
+
 def rpc_check_notifications(request):
     from rdrf.models.definition.models import Notification
     user = request.user
