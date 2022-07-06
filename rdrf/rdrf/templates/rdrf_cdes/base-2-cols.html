@@ -83,7 +83,9 @@
 		const timeout = data.result.timeout;
 		const warning = data.result.warning;
 		const config = {"timeout": timeout,
+				"loginUrl": data.result.loginUrl,
 				"warning": warning};
+		config.rpc = rpc;
 		inactivityTimeoutSetup(config);
             });
         });
