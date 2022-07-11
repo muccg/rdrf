@@ -74,6 +74,13 @@ def aus_date_string(us_date_string):
     return ""
 
 
+def aus_date(dt: datetime) -> str:
+    if dt:
+        return f"{dt:%d/%m/%Y}"
+    else:
+        return ""
+
+
 def get_collection_date(cd):
     raw_value = retrieve(cd, "COLLECTIONDATE")
     return aus_date_string(raw_value)
@@ -222,7 +229,11 @@ class Downloader:
             return True
         return False
 
-    def _get_field(self, field, pid):
+    def _get_sex(self, patient):
+        sex_choices = {"1": "MALE", "2": "FEMALE", "3": "INDETERMINATE"}
+        return sex_choices.get(patient.sex, "")
+
+    def _get_field(self, pid, field):
         map_name = f"{field}_map"
         field_map = getattr(self, map_name)
 
@@ -234,7 +245,7 @@ class Downloader:
                 if field == "deident":
                     value = getattr(patient, "deident")
                 elif field == "dob":
-                    value = aus_date_string(patient.date_of_birth)
+                    value = aus_date(patient.date_of_birth)
                 elif field == "sex":
                     value = self._get_sex(patient)
 
@@ -309,7 +320,7 @@ class Downloader:
             for cd in yield_cds(pids):
                 for t in self._yield_cdes(cd):
                     pid = t[0]
-                    dident = self._get_field(pid, "deident")
+                    deident = self._get_field(pid, "deident")
                     dob = self._get_field(pid, "dob")
                     sex = self._get_field(pid, "sex")
                     form_name = t[1]
@@ -317,8 +328,6 @@ class Downloader:
                     q = t[5]
                     n = t[6]
                     v = t[7]
-                    self._check_address(pid, q, v)
-                    self._check_umrn(pid, q, v)
                     coll = t[8]
                     rt = t[9]
                     index = t[10]
