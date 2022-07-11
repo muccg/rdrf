@@ -2082,6 +2082,7 @@ class CustomAction(models.Model):
     ACTION_TYPES = (("PR", "Patient Report"),
                     ("SR", "Patient Status Report"),
                     ("DE", "Deidentified Data Extract"),
+                    ("RD", "Research Download"),
                     ("VD", "Visualisation Download"))
 
     SCOPES = (("U", "Universal"),
@@ -2216,6 +2217,11 @@ class CustomAction(models.Model):
             from rdrf.services.io.actions import visualisaton_download as vd
             vdlr = vd.VisualisationDownloader(user, self)
             return vdlr.task_result
+
+        if self.action_type == "RD":
+            from rdrf.services.io.actions import research_download as rd
+            dlr = rd.Downloader(user, self)
+            return dlr.task_result
 
         if self.scope == "P":
             if not self.check_security(user, patient_model):
