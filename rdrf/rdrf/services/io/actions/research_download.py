@@ -17,7 +17,7 @@ logger = logging.getLogger(__name__)
 class ResearchDownload:
     ZIP_NAME = "CICResearchDownload%s%s.zip"
     PATIENTS_DATA_FILENAME = "patients_data.csv"
-    PATIENTS_DATA_HEADER = "PID,DEIDENT,DOB,SEX,QUESTIONNAIRE,CDE,QUESTION,VALUE,COLLECTIONDATE,RESPONSETYPE,FORM,INDEX\n"
+    PATIENTS_DATA_HEADER = "PID,QUESTIONNAIRE,CDE,QUESTION,VALUE,COLLECTIONDATE,RESPONSETYPE,FORM,INDEX\n"
 
 
 @cached(maxsize=None)
@@ -129,6 +129,48 @@ class Downloader:
     def _get_config(self, data):
         return data.get("config", {})
 
+    def _get_deident(self, pid):
+        deident = self._get_field(pid, "deident")
+        return (pid,
+                "",
+                "",
+                "deident",
+                "",
+                "",
+                "Deidentified Token",
+                deident,
+                "",
+                "",
+                1)  # index column
+
+    def _get_dob(self, pid):
+        dob = self._get_field(pid, "dob")
+        return (pid,
+                "Demographics",
+                "",
+                "DOB",
+                "",
+                "",
+                "Date of Birth",
+                dob,
+                "",
+                "",
+                1)  # index column
+
+    def _get_sex(self, pid):
+        sex = self._get_field(pid, "sex")
+        return (pid,
+                "Demographics",
+                "",
+                "Sex",
+                "",
+                "",
+                "Sex",
+                sex,
+                "",
+                "",
+                1)  # index column
+
     def _parse_fields(self, custom_action_model):
         import json
         data = json.loads(custom_action_model.data)
@@ -157,31 +199,6 @@ class Downloader:
 
     def _get_site(self):
         return "prototype"
-
-    def _get_patient_model(self, cd):
-        patient_model = Patient.objects.get(id=cd.django_id)
-        return patient_model
-
-    def _emit_patient_line(self, pid, file, d):
-        # d = delimiter
-        try:
-            patient = Patient.objects.get(id=pid)
-            given_names = patient.given_names
-            family_name = patient.family_name
-            dob = f"{patient.date_of_birth:%d/%m/%Y}"
-
-            address = self._get_address_field(pid, "address")
-            suburb = self._get_address_field(pid, "suburb")
-            postcode = self._get_address_field(pid, "postcode")
-            if patient.umrn:
-                umrn = patient.umrn
-            else:
-                umrn = self._get_umrn(pid)
-            file.write(f"{pid}{d}{umrn}{d}{given_names}{d}{family_name}{d}{dob}{d}{address}{d}{suburb}{d}{postcode}\n")
-
-        except Patient.DoesNotExist:
-            logger.error(f"vis download: patient {pid} does not exist")
-            pass
 
     @property
     def task_result(self):
@@ -229,8 +246,8 @@ class Downloader:
             return True
         return False
 
-    def _get_sex(self, patient):
-        sex_choices = {"1": "MALE", "2": "FEMALE", "3": "INDETERMINATE"}
+    def _get_sex_value(self, patient):
+        sex_choices = {"1": "Male", "2": "Female", "3": "Indeterminate"}
         return sex_choices.get(patient.sex, "")
 
     def _get_field(self, pid, field):
@@ -247,7 +264,7 @@ class Downloader:
                 elif field == "dob":
                     value = aus_date(patient.date_of_birth)
                 elif field == "sex":
-                    value = self._get_sex(patient)
+                    value = self._get_sex_value(patient)
 
                 field_map[pid] = value
                 return value
@@ -261,6 +278,9 @@ class Downloader:
         collection_date = get_collection_date(cd)
         response_type = get_response_type(cd)
         data = cd.data
+        yield self._get_deident(pid)
+        yield self._get_dob(pid)
+        yield self._get_sex(pid)
         for f in data["forms"]:
             form_name = f["name"]
             for s in f["sections"]:
@@ -320,9 +340,6 @@ class Downloader:
             for cd in yield_cds(pids):
                 for t in self._yield_cdes(cd):
                     pid = t[0]
-                    deident = self._get_field(pid, "deident")
-                    dob = self._get_field(pid, "dob")
-                    sex = self._get_field(pid, "sex")
                     form_name = t[1]
                     qn = t[4]
                     q = t[5]
@@ -331,5 +348,5 @@ class Downloader:
                     coll = t[8]
                     rt = t[9]
                     index = t[10]
-                    line = f"{pid}{d}{deident}{d}{dob}{d}{sex}{d}{qn}{d}{q}{d}{n}{d}{v}{d}{coll}{d}{rt}{d}{form_name}{d}{index}\n"
+                    line = f"{pid}{d}{qn}{d}{q}{d}{n}{d}{v}{d}{coll}{d}{rt}{d}{form_name}{d}{index}\n"
                     f.write(line)
