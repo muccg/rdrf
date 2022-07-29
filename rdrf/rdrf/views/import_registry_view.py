@@ -13,6 +13,14 @@ from django.contrib.auth import get_user_model
 logger = logging.getLogger(__name__)
 
 
+def get_checkbox(d, key):
+    try:
+        value = d[key]
+        return value == "on"
+    except KeyError:
+        return False
+
+
 class ImportRegistryView(View):
 
     @method_decorator(staff_member_required)
@@ -34,6 +42,12 @@ class ImportRegistryView(View):
     @method_decorator(login_required)
     def post(self, request, *args, **kwargs):
         registry_yaml = request.POST["registry_yaml"]
+        importer_options = {}
+
+        just_cdes = get_checkbox(request.POST, "just_cdes")
+
+        if just_cdes:
+            importer_options["just_cdes"] = True
 
         from rdrf.services.io.defs.importer import Importer
 
@@ -41,7 +55,7 @@ class ImportRegistryView(View):
             registry_yaml = request.FILES['registry_yaml_file'].read()
 
         try:
-            importer = Importer()
+            importer = Importer(importer_options)
 
             importer.load_yaml_from_string(registry_yaml)
             with transaction.atomic():
