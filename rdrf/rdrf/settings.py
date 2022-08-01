@@ -48,6 +48,13 @@ DEBUG = env.get("debug", not PRODUCTION)
 SITE_ID = env.get("site_id", 1)
 APPEND_SLASH = env.get("append_slash", True)
 
+# SITE_NAME this is the nginx site after the base url - empty in dev
+# but will be something like cicclinical on staging
+# or prod hss crc
+# https://ciccancersitesystem.hdwa.health.wa.gov.au/crc/account/login?next=/crc/router/
+# this makes redirecting easier from javascript
+
+SITE_NAME = env.get("SITE_NAME", "")
 FORM_SECTION_DELIMITER = "____"
 
 IMPORT_MODE = False

@@ -155,6 +155,7 @@ def get_site_url(request, path="/"):
     # https://rdrf.ccgapps.com.au/ophg/admin/patients/patient/3/
     # ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
     # this part !
+    # LR: this is not the case!
     return request.build_absolute_uri(path)
 
 
