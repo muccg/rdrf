@@ -185,8 +185,7 @@ class SectionInfo(object):
             multisection=self.is_multiple)
 
         logger.debug(f"dynamic data before: {dynamic_data}")
-        wrapped_data = self.update_calculated_fields(dynamic_data)
-        logger.debug(f"wrapped data after: {dynamic_data}")
+        wrapped_data = self.update_calculated_fields(wrapped_data)
 
         if self.is_multiple:
             form_instance = self.form_set_class(initial=wrapped_data, prefix=self.prefix)
@@ -195,9 +194,9 @@ class SectionInfo(object):
 
         return form_instance
 
-    def update_calculated_fields(self, dynamic_data):
-        logger.debug(f"dynamic data = {dynamic_data}")
-        for key in dynamic_data:
+    def update_calculated_fields(self, data):
+        logger.debug(f"data = {data}")
+        for key in data:
             try:
                 form_name, section_code, cde_code = key.split("____")
             except ValueError:
@@ -209,9 +208,9 @@ class SectionInfo(object):
                 patient = None
                 calculation_context = {}
                 new_value = cde_model.calculate(patient, calculation_context)
-                dynamic_data[key] = new_value
-                logger.debug(f"new value = {new_value}")
-        return dynamic_data
+                data[key] = new_value
+                logger.debug(f"data after calcs = {data}")
+        return data
 
 
 class FormSwitchLockingView(View):
