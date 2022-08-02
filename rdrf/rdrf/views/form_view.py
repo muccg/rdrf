@@ -148,6 +148,8 @@ class SectionInfo(object):
         self.patient_wrapper = patient_wrapper
         self.is_multiple = is_multiple
         self.registry_code = registry_code
+        self.registry = Registry.objects.get(code=registry_code)
+        self.use_new_style_calcs = self.registry.has_feature("use_new_style_calcs")
         self.collection_name = collection_name
         self.data = data
         self.index_map = index_map
@@ -157,8 +159,27 @@ class SectionInfo(object):
         self.form_set_class = form_set_class
         self.prefix = prefix
 
+    def update_calculated_fields(self):
+        logger.debug(f"data = {self.data}")
+        for key in self.data:
+            try:
+                form_name, section_code, cde_code = key.split("____")
+            except ValueError:
+                continue
+
+            cde_model = CommonDataElement.objects.get(code=cde_code)
+            if cde_model.datatype == "calculated":
+                logger.debug(f"calculating new value for {cde_code}")
+                patient = None
+                calculation_context = {}
+                new_value = cde_model.calculate(patient, calculation_context)
+                self.data[key] = new_value
+                logger.debug(f"data after calcs = {self.data}")
+
     def save(self):
         if not self.is_multiple:
+            if self.use_new_style_calcs:
+                self.update_calculated_fields()
             self.patient_wrapper.save_dynamic_data(
                 self.registry_code, self.collection_name, self.data)
         else:
@@ -184,33 +205,12 @@ class SectionInfo(object):
             current_data,
             multisection=self.is_multiple)
 
-        logger.debug(f"dynamic data before: {dynamic_data}")
-        wrapped_data = self.update_calculated_fields(wrapped_data)
-
         if self.is_multiple:
             form_instance = self.form_set_class(initial=wrapped_data, prefix=self.prefix)
         else:
             form_instance = self.form_class(dynamic_data, initial=wrapped_data)
 
         return form_instance
-
-    def update_calculated_fields(self, data):
-        logger.debug(f"data = {data}")
-        for key in data:
-            try:
-                form_name, section_code, cde_code = key.split("____")
-            except ValueError:
-                continue
-
-            cde_model = CommonDataElement.objects.get(code=cde_code)
-            if cde_model.datatype == "calculated":
-                logger.debug(f"calculating new value for {cde_code}")
-                patient = None
-                calculation_context = {}
-                new_value = cde_model.calculate(patient, calculation_context)
-                data[key] = new_value
-                logger.debug(f"data after calcs = {data}")
-        return data
 
 
 class FormSwitchLockingView(View):
