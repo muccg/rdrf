@@ -542,6 +542,21 @@ class SliderWidget(widgets.TextInput):
         return context
 
 
+class NewStyleCalculatedWidget(HiddenInput):
+    def render(self, name, value, attrs=None, renderer=None):
+        logger.debug(f"external widget {name} value = {value}")
+        display_value = self._get_display_value(name, value)
+        hidden_input_html = super().render(name, value, attrs, renderer)
+        badge_html = f"""<span class="badge bg-warning">{display_value}</span>"""
+        return mark_safe(hidden_input_html + badge_html)
+
+    def _get_display_value(self, name, value):
+        if value is None:
+            return ""
+        else:
+            return value
+
+
 class ExternalWidget(HiddenInput):
     def render(self, name, value, attrs=None, renderer=None):
         logger.debug(f"external widget {name} value = {value}")
