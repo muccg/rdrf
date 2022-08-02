@@ -498,83 +498,86 @@ def LDLCholesterolAdjTreatment_inputs():
 
 
 crc_cancer_stage_rules = {
+    "Unknown": [[{"cde": "TNMPTCRC", "value": "pTX"},
+                 {"cde": "TNMPNCRC", "value": "pNX"},
+                 {"cde": "TNMPMCRC", "value": "pMx"}]],
     "0": [[{'cde': 'TNMPTCRC', 'value': 'pTis'},
            {'cde': 'TNMPNCRC', 'value': 'pNX'},
-           {'cde': 'TNMPMCRC', 'value': 'pMX'}],
+           {'cde': 'TNMPMCRC', 'value': 'pMx'}],
           [{'cde': 'TNMPTCRC', 'value': 'pT0'},
            {'cde': 'TNMPNCRC', 'value': 'pN0'},
-           {'cde': 'TNMPMCRC', 'value': 'pMX'}]],
+           {'cde': 'TNMPMCRC', 'value': 'pMx'}]],
 
     "I": [[{'cde': 'TNMPTCRC', 'value': 'pT1'},
            {'cde': 'TNMPNCRC', 'value': 'pN0'},
-           {'cde': 'TNMPMCRC', 'value': 'pMX'}],
+           {'cde': 'TNMPMCRC', 'value': 'pMx'}],
           [{'cde': 'TNMPTCRC', 'value': 'pT2'},
            {'cde': 'TNMPNCRC', 'value': 'pN0'},
-           {'cde': 'TNMPMCRC', 'value': 'pMX'}]],
+           {'cde': 'TNMPMCRC', 'value': 'pMx'}]],
     "IIA": [[{'cde': 'TNMPTCRC', 'value': 'pT3'},
              {'cde': 'TNMPNCRC', 'value': 'pN0'},
-             {'cde': 'TNMPMCRC', 'value': 'pMX'}]],
+             {'cde': 'TNMPMCRC', 'value': 'pMx'}]],
     "IIB": [[{'cde': 'TNMPTCRC', 'value': 'pT4a'},
              {'cde': 'TNMPNCRC', 'value': 'pN0'},
-             {'cde': 'TNMPMCRC', 'value': 'pMX'}]],
+             {'cde': 'TNMPMCRC', 'value': 'pMx'}]],
     "IIC": [[{'cde': 'TNMPTCRC', 'value': 'pT4b'},
              {'cde': 'TNMPNCRC', 'value': 'pN0'},
-             {'cde': 'TNMPMCRC', 'value': 'pMX'}]],
+             {'cde': 'TNMPMCRC', 'value': 'pMx'}]],
     "IIIA": [[{'cde': 'TNMPTCRC', 'value': 'pT1'},
               {'cde': 'TNMPNCRC', 'value': 'pN1'},
-              {'cde': 'TNMPMCRC', 'value': 'pMX'}],
+              {'cde': 'TNMPMCRC', 'value': 'pMx'}],
              [{'cde': 'TNMPTCRC', 'value': 'pT2'},
               {'cde': 'TNMPNCRC', 'value': 'pN1'},
-              {'cde': 'TNMPMCRC', 'value': 'pMX'}],
+              {'cde': 'TNMPMCRC', 'value': 'pMx'}],
              [{'cde': 'TNMPTCRC', 'value': 'pT1'},
               {'cde': 'TNMPNCRC', 'value': 'pN1c'},
-              {'cde': 'TNMPMCRC', 'value': 'pMX'}],
+              {'cde': 'TNMPMCRC', 'value': 'pMx'}],
              [{'cde': 'TNMPTCRC', 'value': 'pT2'},
               {'cde': 'TNMPNCRC', 'value': 'pN1c'},
-              {'cde': 'TNMPMCRC', 'value': 'pMX'}
+              {'cde': 'TNMPMCRC', 'value': 'pMx'}
               ],
              [{'cde': 'TNMPTCRC', 'value': 'pT1'},
               {'cde': 'TNMPNCRC', 'value': 'pN2a'},
-              {'cde': 'TNMPMCRC', 'value': 'pMX'}]],
+              {'cde': 'TNMPMCRC', 'value': 'pMx'}]],
     "IIIB": [[{'cde': 'TNMPTCRC', 'value': 'pT3'},
               {'cde': 'TNMPNCRC', 'value': 'pN1'},
-              {'cde': 'TNMPMCRC', 'value': 'pMX'}],
+              {'cde': 'TNMPMCRC', 'value': 'pMx'}],
              [{'cde': 'TNMPTCRC', 'value': 'pT3'},
               {'cde': 'TNMPNCRC', 'value': 'pN1c'},
-              {'cde': 'TNMPMCRC', 'value': 'pMX'}],
+              {'cde': 'TNMPMCRC', 'value': 'pMx'}],
              [{'cde': 'TNMPTCRC', 'value': 'pT4a'},
               {'cde': 'TNMPNCRC', 'value': 'pN1'},
-              {'cde': 'TNMPMCRC', 'value': 'pMX'}],
+              {'cde': 'TNMPMCRC', 'value': 'pMx'}],
              [{'cde': 'TNMPTCRC', 'value': 'pT4a'},
               {'cde': 'TNMPNCRC', 'value': 'pN1c'},
-              {'cde': 'TNMPMCRC', 'value': 'pMX'}],
+              {'cde': 'TNMPMCRC', 'value': 'pMx'}],
              [{'cde': 'TNMPTCRC', 'value': 'pT2'},
               {'cde': 'TNMPNCRC', 'value': 'pN2a'},
-              {'cde': 'TNMPMCRC', 'value': 'pMX'}],
+              {'cde': 'TNMPMCRC', 'value': 'pMx'}],
              [{'cde': 'TNMPTCRC', 'value': 'pT3'},
               {'cde': 'TNMPNCRC', 'value': 'pN2a'},
-              {'cde': 'TNMPMCRC', 'value': 'pMX'}],
+              {'cde': 'TNMPMCRC', 'value': 'pMx'}],
              [{'cde': 'TNMPTCRC', 'value': 'pT1'},
               {'cde': 'TNMPNCRC', 'value': 'pN2b'},
-              {'cde': 'TNMPMCRC', 'value': 'pMX'}],
+              {'cde': 'TNMPMCRC', 'value': 'pMx'}],
              [{'cde': 'TNMPTCRC', 'value': 'pT2'},
               {'cde': 'TNMPNCRC', 'value': 'pN2b'},
-              {'cde': 'TNMPMCRC', 'value': 'pMX'}]],
+              {'cde': 'TNMPMCRC', 'value': 'pMx'}]],
     "IIIC": [[{'cde': 'TNMPTCRC', 'value': 'pT4a'},
               {'cde': 'TNMPNCRC', 'value': 'pN2a'},
-              {'cde': 'TNMPMCRC', 'value': 'pMX'}],
+              {'cde': 'TNMPMCRC', 'value': 'pMx'}],
              [{'cde': 'TNMPTCRC', 'value': 'pT3'},
               {'cde': 'TNMPNCRC', 'value': 'pN2b'},
-              {'cde': 'TNMPMCRC', 'value': 'pMX'}],
+              {'cde': 'TNMPMCRC', 'value': 'pMx'}],
              [{'cde': 'TNMPTCRC', 'value': 'pT4a'},
               {'cde': 'TNMPNCRC', 'value': 'pN2b'},
-              {'cde': 'TNMPMCRC', 'value': 'pMX'}],
+              {'cde': 'TNMPMCRC', 'value': 'pMx'}],
              [{'cde': 'TNMPTCRC', 'value': 'pT4b'},
               {'cde': 'TNMPNCRC', 'value': 'pN1'},
-              {'cde': 'TNMPMCRC', 'value': 'pMX'}],
+              {'cde': 'TNMPMCRC', 'value': 'pMx'}],
              [{'cde': 'TNMPTCRC', 'value': 'pT4b'},
               {'cde': 'TNMPNCRC', 'value': 'pN2'},
-              {'cde': 'TNMPMCRC', 'value': 'pMX'}]],
+              {'cde': 'TNMPMCRC', 'value': 'pMx'}]],
     "IVA": [[{'cde': 'TNMPTCRC', 'value': 'pTX'},
              {'cde': 'TNMPNCRC', 'value': 'pNX'},
              {'cde': 'TNMPMCRC', 'value': 'pM1a'}]],
@@ -597,12 +600,12 @@ class CancerStageEvaluator:
 
     def evaluate(self, patient, context):
         for stage, rules in self.rules_dict.items():
-            logger.debug(f"checking for cancer stage {stage}")
+            logger.debug(f"*** checking for cancer stage {stage}")
             if self._evaluate_stage(rules, patient, context):
                 logger.debug(f"cancer stage: patient {patient} context {context} stage = {stage} evaluates to true")
                 return stage
         logger.debug("No rules matched - stage is set to a blank string")
-        return ""
+        return "Unknown"
 
     def _evaluate_stage(self, rules, patient, context):
         stage_value = any([self._evaluate_conjuncts(patient, context, conjuncts) for conjuncts in rules])
@@ -627,6 +630,7 @@ class CancerStageEvaluator:
         return patient_db_value == rule_db_value
 
     def _get_patient_value(self, patient, context, cde_code):
+        logger.debug(f"patient context for stage calc = {context}")
         return context[cde_code]  # ??
 
     def _get_db_value(self, cde_code, display_value):

@@ -171,10 +171,31 @@ class SectionInfo(object):
             if cde_model.datatype == "calculated":
                 logger.debug(f"calculating new value for {cde_code}")
                 patient = None
-                calculation_context = {}
+                calculation_context = self._get_calculation_context(cde_model)
                 new_value = cde_model.calculate(patient, calculation_context)
                 self.data[key] = new_value
                 logger.debug(f"data after calcs = {self.data}")
+
+    def _get_calculation_context(self, cde_model):
+        from rdrf.forms.fields import calculated_functions as calcs_module
+        input_function_name = f"{cde_model.code}_inputs"
+        calculation_context = {}
+        if hasattr(calcs_module, input_function_name):
+            input_function = getattr(calcs_module, input_function_name)
+            if callable(input_function):
+                input_cde_codes = input_function()
+                for input_cde_code in input_cde_codes:
+                    input_value = self._get_input_value(input_cde_code)
+                    calculation_context[input_cde_code] = input_value
+        else:
+            raise Exception("No input for calc")
+
+        return calculation_context
+
+    def _get_input_value(self, cde_code):
+        for key in self.data:
+            if key.endswith("____"+cde_code):
+                return self.data[key]
 
     def save(self):
         if not self.is_multiple:
