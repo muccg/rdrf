@@ -56,7 +56,6 @@ from rdrf.forms.components import RDRFPatientInfoComponent
 from rdrf.security.security_checks import security_check_user_patient
 
 from rdrf.helpers.utils import annotate_form_with_verifications
-from rdrf.helpers.utils import update_patient_calculated_fields
 
 from rdrf.views.custom_actions import CustomActionWrapper
 
@@ -194,7 +193,7 @@ class SectionInfo(object):
 
     def _get_input_value(self, cde_code):
         for key in self.data:
-            if key.endswith("____"+cde_code):
+            if key.endswith("____" + cde_code):
                 return self.data[key]
 
     def save(self):
@@ -616,8 +615,6 @@ class FormView(View):
                 section_info.save()
                 form_instance = section_info.recreate_form_instance()
                 form_section[section_info.section_code] = form_instance
-
-            #update_patient_calculated_fields(registry_code, patient_id)
 
             clinical_data_saved_ok.send(sender=ClinicalData, patient=patient, saved_sections=sections_to_save)
 
