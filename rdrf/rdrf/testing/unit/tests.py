@@ -175,7 +175,7 @@ class CalculatedFunctionsTestCase(TestCase):
 
     def test_lc_cancer_stage(self):
         input_output_pairs = []
-        calc = calculated_functions.LCANCERSTAGE
+        calc = calculated_functions.LCCANCERSTAGE
         self.cic_cancer_stage("LC", calc, input_output_pairs)
 
     def test_ov_cancer_stage(self):
