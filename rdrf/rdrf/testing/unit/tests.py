@@ -175,7 +175,45 @@ class CalculatedFunctionsTestCase(TestCase):
                     return value_dict["code"]
 
     def test_crc_cancer_stage(self):
-        db = self.db_value
+        # CRC not loaded in unit tests so the cde metadata is setup here
+        config = {"TNMPTCRC":  [{'code': '0', 'value': 'pTX', 'questionnaire_value': '', 'desc': 'pTX', 'position': 1},
+                                {'code': '1', 'value': 'pT0', 'questionnaire_value': '', 'desc': 'pT0', 'position': 2},
+                                {'code': '2', 'value': 'pTis', 'questionnaire_value': '', 'desc': 'pTis', 'position': 3},
+                                {'code': '3', 'value': 'pT1', 'questionnaire_value': '', 'desc': 'pT1', 'position': 4},
+                                {'code': '4', 'value': 'pT2', 'questionnaire_value': '', 'desc': 'pT2', 'position': 5},
+                                {'code': '5', 'value': 'pT3', 'questionnaire_value': '', 'desc': 'pT3', 'position': 6},
+                                {'code': '6', 'value': 'pT4', 'questionnaire_value': '', 'desc': 'pT4', 'position': 7},
+                                {'code': '7', 'value': 'pT4a', 'questionnaire_value': '', 'desc': 'pT4a', 'position': 8},
+                                {'code': '8', 'value': 'pT4b', 'questionnaire_value': '', 'desc': 'pT4b', 'position': 9},
+                                {'code': '999', 'value': 'Unknown', 'questionnaire_value': None, 'desc': 'Unknown', 'position': 999}],
+
+                  "TNMPNCRC": [{'code': '0', 'value': 'pNX', 'questionnaire_value': '', 'desc': 'pNX', 'position': 1},
+                               {'code': '1', 'value': 'pN0', 'questionnaire_value': '', 'desc': 'pN0', 'position': 2},
+                               {'code': '2', 'value': 'pN1', 'questionnaire_value': '', 'desc': 'pN1', 'position': 3},
+                               {'code': '3', 'value': 'pN1a', 'questionnaire_value': '', 'desc': 'pN1a', 'position': 4},
+                               {'code': '4', 'value': 'pN1b', 'questionnaire_value': '', 'desc': 'pN1b', 'position': 5},
+                               {'code': '5', 'value': 'pN1c', 'questionnaire_value': '', 'desc': 'pN1c', 'position': 6},
+                               {'code': '6', 'value': 'pN2', 'questionnaire_value': '', 'desc': 'pN2', 'position': 7},
+                               {'code': '7', 'value': 'pN2a', 'questionnaire_value': '', 'desc': 'pN2a', 'position': 8},
+                               {'code': '8', 'value': 'pN2b', 'questionnaire_value': '', 'desc': 'pN2b', 'position': 9},
+                               {'code': '999', 'value': 'Unknown', 'questionnaire_value': None, 'desc': 'Unknown', 'position': 999}],
+
+                  "TNMPMCRC": [{'code': '0', 'value': 'pMx', 'questionnaire_value': '', 'desc': 'pMx', 'position': 1},
+                               {'code': '1', 'value': 'pM0', 'questionnaire_value': '', 'desc': 'pM0', 'position': 2},
+                               {'code': '2', 'value': 'pM1', 'questionnaire_value': '', 'desc': 'pM1', 'position': 3},
+                               {'code': '3', 'value': 'pM1a', 'questionnaire_value': '', 'desc': 'pM1a', 'position': 4},
+                               {'code': '4', 'value': 'pM1b', 'questionnaire_value': '', 'desc': 'pM1b', 'position': 5},
+                               {'code': '5', 'value': 'pM1c', 'questionnaire_value': None, 'desc': 'pM1c', 'position': 6},
+                               {'code': '999', 'value': 'Unknown', 'questionnaire_value': None, 'desc': 'Unknown', 'position': 999}]
+
+                  }
+
+        def db(code, display_value):
+            dicts = config[code]
+            for d in dicts:
+                if d["value"] == display_value:
+                    return d["code"]
+
         input_output_pairs = [({"TNMPTCRC": db("TNMPTCRC", "pTX"),
                                 "TNMPNCRC": db("TNMPNCRC", "pNX"),
                                 "TNMPMCRC": db("TNMPMCRC", "pMx")},
