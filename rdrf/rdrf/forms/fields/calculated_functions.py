@@ -674,6 +674,16 @@ def LCCANCERSTAGE_inputs():
     return []
 
 
+def OVCANCERSTAGE(patient, context):
+    context = fill_missing_input(context, 'OVCANCERSTAGE_inputs')
+    evaluator = CancerStageEvaluator(crc_cancer_stage_rules)
+    return evaluator.evaluate(patient, context)
+
+
+def OVCANCERSTAGE_inputs():
+    return []
+
+
 ################ BEGINNING OF CDEBMI ################################
 
 def CDEBMI(patient, context):
