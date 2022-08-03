@@ -163,8 +163,24 @@ class CalculatedFunctionsTestCase(TestCase):
             msg = f"CIC {name} cancer stage failed: expected=[{expected_value}] actual=[{actual_value}]"
             self.assertEquals(actual_value, expected_value, msg)
 
+    def db_value(self, cde_code, display_value):
+        # helper to reverse lookup
+        cde_model = CommonDataElement.objects.get(code=cde_code)
+        if cde_model.datatype != "range":
+            return display_value
+        else:
+            d = cde_model.pv_group.as_dict()
+            for value_dict in d["values"]:
+                if value_dict["value"] == display_value:
+                    return value_dict["code"]
+
     def test_crc_cancer_stage(self):
-        input_output_pairs = []
+        db = self.db_value
+        input_output_pairs = [({"TNMPTCRC": db("pTX"),
+                                "TNMPNCRC": db("pNX"),
+                                "TNMPMCRC": db("pMx")},
+                               "Unknown")]
+
         calc = calculated_functions.CRCCANCERSTAGE
         self.cic_cancer_stage("CRC", calc, input_output_pairs)
 
