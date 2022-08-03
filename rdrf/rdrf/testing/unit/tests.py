@@ -176,16 +176,16 @@ class CalculatedFunctionsTestCase(TestCase):
 
     def test_crc_cancer_stage(self):
         # CRC not loaded in unit tests so the cde metadata is setup here
-        config = {"TNMPTCRC":  [{'code': '0', 'value': 'pTX', 'questionnaire_value': '', 'desc': 'pTX', 'position': 1},
-                                {'code': '1', 'value': 'pT0', 'questionnaire_value': '', 'desc': 'pT0', 'position': 2},
-                                {'code': '2', 'value': 'pTis', 'questionnaire_value': '', 'desc': 'pTis', 'position': 3},
-                                {'code': '3', 'value': 'pT1', 'questionnaire_value': '', 'desc': 'pT1', 'position': 4},
-                                {'code': '4', 'value': 'pT2', 'questionnaire_value': '', 'desc': 'pT2', 'position': 5},
-                                {'code': '5', 'value': 'pT3', 'questionnaire_value': '', 'desc': 'pT3', 'position': 6},
-                                {'code': '6', 'value': 'pT4', 'questionnaire_value': '', 'desc': 'pT4', 'position': 7},
-                                {'code': '7', 'value': 'pT4a', 'questionnaire_value': '', 'desc': 'pT4a', 'position': 8},
-                                {'code': '8', 'value': 'pT4b', 'questionnaire_value': '', 'desc': 'pT4b', 'position': 9},
-                                {'code': '999', 'value': 'Unknown', 'questionnaire_value': None, 'desc': 'Unknown', 'position': 999}],
+        config = {"TNMPTCRC": [{'code': '0', 'value': 'pTX', 'questionnaire_value': '', 'desc': 'pTX', 'position': 1},
+                               {'code': '1', 'value': 'pT0', 'questionnaire_value': '', 'desc': 'pT0', 'position': 2},
+                               {'code': '2', 'value': 'pTis', 'questionnaire_value': '', 'desc': 'pTis', 'position': 3},
+                               {'code': '3', 'value': 'pT1', 'questionnaire_value': '', 'desc': 'pT1', 'position': 4},
+                               {'code': '4', 'value': 'pT2', 'questionnaire_value': '', 'desc': 'pT2', 'position': 5},
+                               {'code': '5', 'value': 'pT3', 'questionnaire_value': '', 'desc': 'pT3', 'position': 6},
+                               {'code': '6', 'value': 'pT4', 'questionnaire_value': '', 'desc': 'pT4', 'position': 7},
+                               {'code': '7', 'value': 'pT4a', 'questionnaire_value': '', 'desc': 'pT4a', 'position': 8},
+                               {'code': '8', 'value': 'pT4b', 'questionnaire_value': '', 'desc': 'pT4b', 'position': 9},
+                               {'code': '999', 'value': 'Unknown', 'questionnaire_value': None, 'desc': 'Unknown', 'position': 999}],
 
                   "TNMPNCRC": [{'code': '0', 'value': 'pNX', 'questionnaire_value': '', 'desc': 'pNX', 'position': 1},
                                {'code': '1', 'value': 'pN0', 'questionnaire_value': '', 'desc': 'pN0', 'position': 2},
