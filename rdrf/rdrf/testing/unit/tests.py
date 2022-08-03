@@ -176,9 +176,9 @@ class CalculatedFunctionsTestCase(TestCase):
 
     def test_crc_cancer_stage(self):
         db = self.db_value
-        input_output_pairs = [({"TNMPTCRC": db("pTX"),
-                                "TNMPNCRC": db("pNX"),
-                                "TNMPMCRC": db("pMx")},
+        input_output_pairs = [({"TNMPTCRC": db("TNMPTCRC", "pTX"),
+                                "TNMPNCRC": db("TNMPNCRC", "pNX"),
+                                "TNMPMCRC": db("TNMPMCRC", "pMx")},
                                "Unknown")]
 
         calc = calculated_functions.CRCCANCERSTAGE
