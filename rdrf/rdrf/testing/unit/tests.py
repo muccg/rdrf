@@ -156,6 +156,33 @@ class CalculatedFunctionsTestCase(TestCase):
         self.assertEqual(calculated_functions.poemScore(
             self.patient_values, self.form_values), '28 ( Very severe eczema )')
 
+    def cic_cancer_stage(self, name, calculation, input_output_pairs):
+        patient = self.patient_values
+        for input, expected_value in input_output_pairs:
+            actual_value = calculation(patient, input)
+            msg = f"CIC {name} cancer stage failed: expected=[{expected_value}] actual=[{actual_value}]"
+            self.assertEquals(actual_value, expected_value, msg)
+
+    def test_crc_cancer_stage(self):
+        input_output_pairs = []
+        calc = calculated_functions.CRCCANCERSTAGE
+        self.cic_cancer_stage("CRC", calc, input_output_pairs)
+
+    def test_bc_cancer_stage(self):
+        input_output_pairs = []
+        calc = calculated_functions.BCCANCERSTAGE
+        self.cic_cancer_stage("BC", calc, input_output_pairs)
+
+    def test_lc_cancer_stage(self):
+        input_output_pairs = []
+        calc = calculated_functions.LCANCERSTAGE
+        self.cic_cancer_stage("LC", calc, input_output_pairs)
+
+    def test_ov_cancer_stage(self):
+        input_output_pairs = []
+        calc = calculated_functions.OVCANCERSTAGE
+        self.cic_cancer_stage("OV", calc, input_output_pairs)
+
 
 class AbnormalityRulesTestCase(TestCase):
 
