@@ -2885,7 +2885,7 @@ class CICCancerStageTestCase(RDRFTestCase):
             actual_value = calculation(patient, input)
             msg = f"Cancer Stage {name} failed: expected=[{expected_value}] actual=[{actual_value}]"
             logger.info(f"input = {input}")
-            self.assertEquals(actual_value, expected_value, msg)
+            self.assertEquals(actual_value, expected_value, msg=msg)
 
     def test_crc_cancer_stage(self):
         # The X means match anything ie pM* but the spec
