@@ -2868,18 +2868,11 @@ class CICCancerStageTestCase(RDRFTestCase):
         test_yaml = os.path.abspath(os.path.join(this_dir, "..", "..", "fixtures", self.filename))
         return test_yaml
 
-    def cic_cancer_stage(self, name, calculation, input_output_pairs):
-        patient = self.patient_values
-        for input, expected_value in input_output_pairs:
-            actual_value = calculation(patient, input)
-            msg = f"CIC {name} cancer stage failed: expected=[{expected_value}] actual=[{actual_value}]"
-            self.assertEquals(actual_value, expected_value, msg)
-
     def import_registry(self, name):
         importer = Importer()
         yaml_name = self.yaml_map[name]
         yaml_file = self._get_yaml_file(yaml_name)
-        with open(self.yaml_file) as yf:
+        with open(yaml_file) as yf:
             self.yaml_data = yaml.load(yf, Loader=yaml.FullLoader)
 
         importer.load_yaml(self.yaml_file)
