@@ -619,7 +619,7 @@ class CancerStageEvaluator:
         cde_code = conjunct["cde"]
         cde_model = CommonDataElement.objects.get(code=cde_code)
         rule_display_value = conjunct["value"]
-        if rule_display_value.endswith("X"):
+        if rule_display_value.lowercase().endswith("x"):
             stem = rule_display_value[-1]
         else:
             stem = None
