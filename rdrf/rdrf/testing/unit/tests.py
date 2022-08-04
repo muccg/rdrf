@@ -2883,7 +2883,8 @@ class CICCancerStageTestCase(RDRFTestCase):
         patient = self.patient_values
         for input, expected_value in input_output_pairs:
             actual_value = calculation(patient, input)
-            msg = f"CIC {name} cancer stage failed: expected=[{expected_value}] actual=[{actual_value}]"
+            msg = f"Cancer Stage {name} failed: expected=[{expected_value}] actual=[{actual_value}]"
+            logger.info(f"input = {input}")
             self.assertEquals(actual_value, expected_value, msg)
 
     def test_crc_cancer_stage(self):
