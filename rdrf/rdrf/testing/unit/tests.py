@@ -2875,7 +2875,7 @@ class CICCancerStageTestCase(RDRFTestCase):
         with open(yaml_file) as yf:
             self.yaml_data = yaml.load(yf, Loader=yaml.FullLoader)
 
-        importer.load_yaml(self.yaml_file)
+        importer.load_yaml(yaml_file)
         Registry.objects.all().delete()
         importer.create_registry()
 
