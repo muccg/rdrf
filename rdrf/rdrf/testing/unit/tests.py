@@ -2855,7 +2855,7 @@ class CICCancerStageTestCase(RDRFTestCase):
     This class tests calculated fields in CIC
     """
     patient_values = {}
-    yaml_map = {"crc": "crc44",
+    yaml_map = {"crc": "crc44.yaml",
                 "lc": "xxx",
                 "bc": "xxx",
                 "ov": "xxx"}
@@ -2865,7 +2865,7 @@ class CICCancerStageTestCase(RDRFTestCase):
 
     def _get_yaml_file(self, filename):
         this_dir = os.path.dirname(__file__)
-        test_yaml = os.path.abspath(os.path.join(this_dir, "..", "..", "fixtures", self.filename))
+        test_yaml = os.path.abspath(os.path.join(this_dir, "..", "..", "fixtures", filename))
         return test_yaml
 
     def import_registry(self, name):
