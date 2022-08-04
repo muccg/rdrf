@@ -35,6 +35,26 @@ from registry.patients.models import State, PatientAddress, AddressType
 logger = logging.getLogger(__name__)
 
 
+def load_yaml(yaml_path):
+    from django.core.management import call_command
+    call_command("import_registry", "--file", yaml_path, "--format", "yaml")
+
+
+def get_yaml_path(yaml_filename):
+    this_dir = os.path.dirname(__file__)
+    return os.path.abspath(os.path.join(this_dir, "..", "..", "fixtures", yaml_filename))
+
+
+def use_yaml(yaml_filename):
+    def decorator(method):
+        def wrapper(self):
+            yaml_path = get_yaml_path(yaml_filename)
+            load_yaml(yaml_path)
+            return method()
+        return wrapper
+    return decorator
+
+
 class CalculatedFunctionsTestCase(TestCase):
 
     def setUp(self):
@@ -155,87 +175,6 @@ class CalculatedFunctionsTestCase(TestCase):
                             'poemQ5': "EveryDay", 'poemQ6': "EveryDay", 'poemQ7': "EveryDay"}
         self.assertEqual(calculated_functions.poemScore(
             self.patient_values, self.form_values), '28 ( Very severe eczema )')
-
-    def cic_cancer_stage(self, name, calculation, input_output_pairs):
-        patient = self.patient_values
-        for input, expected_value in input_output_pairs:
-            actual_value = calculation(patient, input)
-            msg = f"CIC {name} cancer stage failed: expected=[{expected_value}] actual=[{actual_value}]"
-            self.assertEquals(actual_value, expected_value, msg)
-
-    def db_value(self, cde_code, display_value):
-        # helper to reverse lookup
-        cde_model = CommonDataElement.objects.get(code=cde_code)
-        if cde_model.datatype != "range":
-            return display_value
-        else:
-            d = cde_model.pv_group.as_dict()
-            for value_dict in d["values"]:
-                if value_dict["value"] == display_value:
-                    return value_dict["code"]
-
-    def test_crc_cancer_stage(self):
-        # CRC not loaded in unit tests so the cde metadata is setup here
-        config = {"TNMPTCRC": [{'code': '0', 'value': 'pTX', 'questionnaire_value': '', 'desc': 'pTX', 'position': 1},
-                               {'code': '1', 'value': 'pT0', 'questionnaire_value': '', 'desc': 'pT0', 'position': 2},
-                               {'code': '2', 'value': 'pTis', 'questionnaire_value': '', 'desc': 'pTis', 'position': 3},
-                               {'code': '3', 'value': 'pT1', 'questionnaire_value': '', 'desc': 'pT1', 'position': 4},
-                               {'code': '4', 'value': 'pT2', 'questionnaire_value': '', 'desc': 'pT2', 'position': 5},
-                               {'code': '5', 'value': 'pT3', 'questionnaire_value': '', 'desc': 'pT3', 'position': 6},
-                               {'code': '6', 'value': 'pT4', 'questionnaire_value': '', 'desc': 'pT4', 'position': 7},
-                               {'code': '7', 'value': 'pT4a', 'questionnaire_value': '', 'desc': 'pT4a', 'position': 8},
-                               {'code': '8', 'value': 'pT4b', 'questionnaire_value': '', 'desc': 'pT4b', 'position': 9},
-                               {'code': '999', 'value': 'Unknown', 'questionnaire_value': None, 'desc': 'Unknown', 'position': 999}],
-
-                  "TNMPNCRC": [{'code': '0', 'value': 'pNX', 'questionnaire_value': '', 'desc': 'pNX', 'position': 1},
-                               {'code': '1', 'value': 'pN0', 'questionnaire_value': '', 'desc': 'pN0', 'position': 2},
-                               {'code': '2', 'value': 'pN1', 'questionnaire_value': '', 'desc': 'pN1', 'position': 3},
-                               {'code': '3', 'value': 'pN1a', 'questionnaire_value': '', 'desc': 'pN1a', 'position': 4},
-                               {'code': '4', 'value': 'pN1b', 'questionnaire_value': '', 'desc': 'pN1b', 'position': 5},
-                               {'code': '5', 'value': 'pN1c', 'questionnaire_value': '', 'desc': 'pN1c', 'position': 6},
-                               {'code': '6', 'value': 'pN2', 'questionnaire_value': '', 'desc': 'pN2', 'position': 7},
-                               {'code': '7', 'value': 'pN2a', 'questionnaire_value': '', 'desc': 'pN2a', 'position': 8},
-                               {'code': '8', 'value': 'pN2b', 'questionnaire_value': '', 'desc': 'pN2b', 'position': 9},
-                               {'code': '999', 'value': 'Unknown', 'questionnaire_value': None, 'desc': 'Unknown', 'position': 999}],
-
-                  "TNMPMCRC": [{'code': '0', 'value': 'pMx', 'questionnaire_value': '', 'desc': 'pMx', 'position': 1},
-                               {'code': '1', 'value': 'pM0', 'questionnaire_value': '', 'desc': 'pM0', 'position': 2},
-                               {'code': '2', 'value': 'pM1', 'questionnaire_value': '', 'desc': 'pM1', 'position': 3},
-                               {'code': '3', 'value': 'pM1a', 'questionnaire_value': '', 'desc': 'pM1a', 'position': 4},
-                               {'code': '4', 'value': 'pM1b', 'questionnaire_value': '', 'desc': 'pM1b', 'position': 5},
-                               {'code': '5', 'value': 'pM1c', 'questionnaire_value': None, 'desc': 'pM1c', 'position': 6},
-                               {'code': '999', 'value': 'Unknown', 'questionnaire_value': None, 'desc': 'Unknown', 'position': 999}]
-
-                  }
-
-        def db(code, display_value):
-            dicts = config[code]
-            for d in dicts:
-                if d["value"] == display_value:
-                    return d["code"]
-
-        input_output_pairs = [({"TNMPTCRC": db("TNMPTCRC", "pTX"),
-                                "TNMPNCRC": db("TNMPNCRC", "pNX"),
-                                "TNMPMCRC": db("TNMPMCRC", "pMx")},
-                               "Unknown")]
-
-        calc = calculated_functions.CRCCANCERSTAGE
-        self.cic_cancer_stage("CRC", calc, input_output_pairs)
-
-    def test_bc_cancer_stage(self):
-        input_output_pairs = []
-        calc = calculated_functions.BCCANCERSTAGE
-        self.cic_cancer_stage("BC", calc, input_output_pairs)
-
-    def test_lc_cancer_stage(self):
-        input_output_pairs = []
-        calc = calculated_functions.LCCANCERSTAGE
-        self.cic_cancer_stage("LC", calc, input_output_pairs)
-
-    def test_ov_cancer_stage(self):
-        input_output_pairs = []
-        calc = calculated_functions.OVCANCERSTAGE
-        self.cic_cancer_stage("OV", calc, input_output_pairs)
 
 
 class AbnormalityRulesTestCase(TestCase):
@@ -2909,3 +2848,130 @@ class FamilyLinkageTestCase(RDRFTestCase):
                         f"{error_string}{test_section_str}: Patient {patient2_test} is not a relative")
         self.assertFalse(self.patient_is_index(patient2_test),
                          f"{error_string}{test_section_str}: Patient {patient2_test} is an index")
+
+
+class CICCancerStageTestCase(RDRFTestCase):
+    """
+    This class tests calculated fields in CIC
+    """
+    patient_values = {}
+    yaml_map = {"crc": "crc44",
+                "lc": "xxx",
+                "bc": "xxx",
+                "ov": "xxx"}
+
+    def get_rules(self):
+        return []
+
+    def _get_yaml_file(self, filename):
+        this_dir = os.path.dirname(__file__)
+        test_yaml = os.path.abspath(os.path.join(this_dir, "..", "..", "fixtures", self.filename))
+        return test_yaml
+
+    def cic_cancer_stage(self, name, calculation, input_output_pairs):
+        patient = self.patient_values
+        for input, expected_value in input_output_pairs:
+            actual_value = calculation(patient, input)
+            msg = f"CIC {name} cancer stage failed: expected=[{expected_value}] actual=[{actual_value}]"
+            self.assertEquals(actual_value, expected_value, msg)
+
+    def import_registry(self, name):
+        importer = Importer()
+        yaml_name = self.yaml_map[name]
+        yaml_file = self._get_yaml_file(yaml_name)
+        with open(self.yaml_file) as yf:
+            self.yaml_data = yaml.load(yf, Loader=yaml.FullLoader)
+
+        importer.load_yaml(self.yaml_file)
+        Registry.objects.all().delete()
+        importer.create_registry()
+
+    def cic_cancer_stage(self, name, calculation, input_output_pairs):
+        patient = self.patient_values
+        for input, expected_value in input_output_pairs:
+            actual_value = calculation(patient, input)
+            msg = f"CIC {name} cancer stage failed: expected=[{expected_value}] actual=[{actual_value}]"
+            self.assertEquals(actual_value, expected_value, msg)
+
+    def test_crc_cancer_stage(self):
+        # The X means match anything ie pM* but the spec
+        # sent from CIC has this notation so using that
+        self.import_registry("crc")
+        input_output_pairs = [
+            ({"TNMPTCRC": "pTX", "TNMPNCRC": "pNX", "TNMPMCRC": "pMX"},
+             "Unknown"),
+            ({"TNMPTCRC": "pTis", "TNMPNCRC": "pNX", "TNMPMCRC": "pMX"},
+             "0"),
+            ({"TNMPTCRC": "pT0", "TNMPNCRC": "pN0", "TNMPMCRC": "pMX"},
+             "0"),
+            ({"TNMPTCRC": "pT1", "TNMPNCRC": "pN0", "TNMPMCRC": "pMX"},
+             "I"),
+            ({"TNMPTCRC": "pT2", "TNMPNCRC": "pN0", "TNMPMCRC": "pMX"},
+             "I"),
+            ({"TNMPTCRC": "pT3", "TNMPNCRC": "pN0", "TNMPMCRC": "pMX"},
+             "IIA"),
+            ({"TNMPTCRC": "pTX", "TNMPNCRC": "pNX", "TNMPMCRC": "pMX"},
+             "Unknown"),
+            ({"TNMPTCRC": "pT4a", "TNMPNCRC": "pN0", "TNMPMCRC": "pMX"},
+             "IIB"),
+            ({"TNMPTCRC": "pT4b", "TNMPNCRC": "pN0", "TNMPMCRC": "pMX"},
+             "IIC"),
+            ({"TNMPTCRC": "pT1", "TNMPNCRC": "pN1", "TNMPMCRC": "pMX"},
+             "IIIA"),
+            ({"TNMPTCRC": "pT2", "TNMPNCRC": "pN1", "TNMPMCRC": "pMX"},
+             "IIIA"),
+            ({"TNMPTCRC": "pT1", "TNMPNCRC": "pN1c", "TNMPMCRC": "pMX"},
+             "IIIA"),
+            ({"TNMPTCRC": "pT2", "TNMPNCRC": "pN1c", "TNMPMCRC": "pMX"},
+             "IIIA"),
+            ({"TNMPTCRC": "pT1", "TNMPNCRC": "pN2a", "TNMPMCRC": "pMX"},
+             "IIIA"),
+            ({"TNMPTCRC": "pT3", "TNMPNCRC": "pN1", "TNMPMCRC": "pMX"},
+             "IIIB"),
+            ({"TNMPTCRC": "pT3", "TNMPNCRC": "pN1c", "TNMPMCRC": "pMX"},
+             "IIIB"),
+            ({"TNMPTCRC": "pT4a", "TNMPNCRC": "pN1", "TNMPMCRC": "pMX"},
+             "IIIB"),
+            ({"TNMPTCRC": "pT4a", "TNMPNCRC": "pN1c", "TNMPMCRC": "pMX"},
+             "IIIB"),
+            ({"TNMPTCRC": "pT2", "TNMPNCRC": "pN2a", "TNMPMCRC": "pMX"},
+             "IIIB"),
+            ({"TNMPTCRC": "pT3", "TNMPNCRC": "pN2a", "TNMPMCRC": "pMX"},
+             "IIIB"),
+            ({"TNMPTCRC": "pT1", "TNMPNCRC": "pN2b", "TNMPMCRC": "pMX"},
+             "IIIB"),
+            ({"TNMPTCRC": "pT2", "TNMPNCRC": "pN2b", "TNMPMCRC": "pMX"},
+             "IIIB"),
+            ({"TNMPTCRC": "pT4a", "TNMPNCRC": "pN2a", "TNMPMCRC": "pMX"},
+             "IIIC"),
+            ({"TNMPTCRC": "pT3", "TNMPNCRC": "pN2b", "TNMPMCRC": "pMX"},
+             "IIIC"),
+            ({"TNMPTCRC": "pT4a", "TNMPNCRC": "pN2b", "TNMPMCRC": "pMX"},
+             "IIIC"),
+            ({"TNMPTCRC": "pTX", "TNMPNCRC": "pNX", "TNMPMCRC": "pM1a"},
+             "IVA"),
+            ({"TNMPTCRC": "pTX", "TNMPNCRC": "pNX", "TNMPMCRC": "pM1b"},
+             "IVB"),
+            ({"TNMPTCRC": "pTX", "TNMPNCRC": "pNX", "TNMPMCRC": "pM1c"},
+             "IVC")]
+
+        calc = calculated_functions.CRCCANCERSTAGE
+        self.cic_cancer_stage("CRC", calc, input_output_pairs)
+
+    def test_bc_cancer_stage(self):
+        self.import_registry("bc")
+        input_output_pairs = []
+        calc = calculated_functions.BCCANCERSTAGE
+        self.cic_cancer_stage("BC", calc, input_output_pairs)
+
+    def test_lc_cancer_stage(self):
+        self.import_registry("lc")
+        input_output_pairs = []
+        calc = calculated_functions.LCCANCERSTAGE
+        self.cic_cancer_stage("LC", calc, input_output_pairs)
+
+    def test_ov_cancer_stage(self):
+        self.import_registry("ov")
+        input_output_pairs = []
+        calc = calculated_functions.OVCANCERSTAGE
+        self.cic_cancer_stage("OV", calc, input_output_pairs)

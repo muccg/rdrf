@@ -619,15 +619,21 @@ class CancerStageEvaluator:
         cde_code = conjunct["cde"]
         cde_model = CommonDataElement.objects.get(code=cde_code)
         rule_display_value = conjunct["value"]
-        rule_db_value = self._get_db_value(cde_code, rule_display_value)
-        rule_display_value_from_cde = cde_model.get_display_value(rule_db_value)
+        if rule_display_value.endswith("X"):
+            stem = rule_display_value[-1]
+        else:
+            stem = None
 
         patient_db_value = self._get_patient_value(patient, context, cde_code)
         patient_display_value = cde_model.get_display_value(patient_db_value)
 
-        logger.debug(
-            f"cde code = {cde_code} patient has {patient_db_value}/{patient_display_value}, rule has {rule_db_value}/{rule_display_value}")
-        return patient_db_value == rule_db_value
+        if stem is None:
+            result = patient_display_value == rule_display_value
+        else:
+            result = patient_display_value.startswith(stem)
+
+        logger.debug(f"{cde_code} rule {rule_display_value} patient {patient_display_value} result: {result}")
+        return result
 
     def _get_patient_value(self, patient, context, cde_code):
         logger.debug(f"patient context for stage calc = {context}")
