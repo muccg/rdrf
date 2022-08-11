@@ -67,7 +67,10 @@ def fill_missing_input(context, input_func_name, across_forms_info=None):
         # the input cdes are on another form
         for cde_code in func():
             if cde_code not in context.keys():
-                cde_value = across_forms_info.get_cde_value(cde_code)
+                try:
+                    cde_value = across_forms_info.get_cde_value(cde_code)
+                except KeyError:
+                    cde_value = ""
                 context[cde_code] = cde_value
     else:
         for cde_code in func():
@@ -811,11 +814,12 @@ def ANGBMIimperial_inputs():
 
 ################ BEGINNING OF FHDeathAge ################################
 
+
 def APMATPlasmicRisk(patient, context):
     context = fill_missing_input(context, 'APMATPlasmicRisk_inputs')
 
     YES = "fh_yes_no_yes"
-    yes_selected = lambda value: value == YES
+    def yes_selected(value): return value == YES
 
     score = 0
     score += 1 if yes_selected(context["APMATPlateletCountLessThan30"]) else 0
@@ -828,11 +832,13 @@ def APMATPlasmicRisk(patient, context):
 
     return "low risk" if score < 5 else "intermediate risk" if score == 5 else "high risk"
 
+
 def APMATPlasmicRisk_inputs():
     return ["APMATPlateletCountLessThan30", "APMATHaemolysisVariable", "APMATNoActiveCancer", "APMATNoTransplant",
             "APMATMCVLessThan90", "APMATINRLessThan1Dot5", "APMATCreatinineLessThan2"]
 
 ################ END OF FHDeathAge ################################
+
 
 def validate_date(date):
     try:
@@ -879,7 +885,11 @@ def date_diff_helper(patient, context, input_func_name, later_cde_code, earlier_
     context = fill_missing_input(context, input_func_name, across_forms_info)
     later_date_string = context[later_cde_code]
     earlier_date_string = context[earlier_cde_code]
-    return str(number_of_days(earlier_date_string, later_date_string))
+    r = number_of_days(earlier_date_string, later_date_string)
+    if r is None:
+        return ""
+    else:
+        return str(r)
 
 
 def INITREVINTERVLC(patient, context):
