@@ -68,7 +68,10 @@ def fill_missing_input(context, input_func_name, across_forms_info=None):
         # the input cdes are on another form
         for cde_code in func():
             if cde_code not in context.keys():
-                cde_value = across_forms_info.get_cde_value(cde_code)
+                try:
+                    cde_value = across_forms_info.get_cde_value(cde_code)
+                except KeyError:
+                    cde_value = ""
                 context[cde_code] = cde_value
     else:
         for cde_code in func():
@@ -1077,7 +1080,11 @@ def date_diff_helper(patient, context, input_func_name, later_cde_code, earlier_
     context = fill_missing_input(context, input_func_name, across_forms_info)
     later_date_string = context[later_cde_code]
     earlier_date_string = context[earlier_cde_code]
-    return str(number_of_days(earlier_date_string, later_date_string))
+    r = number_of_days(earlier_date_string, later_date_string)
+    if r is None:
+        return ""
+    else:
+        return str(r)
 
 
 def INITREVINTERVLC(patient, context):
