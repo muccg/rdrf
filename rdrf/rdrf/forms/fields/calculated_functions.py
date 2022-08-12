@@ -501,9 +501,6 @@ def LDLCholesterolAdjTreatment_inputs():
 
 
 crc_cancer_stage_rules = {
-    "Unknown": [[{"cde": "TNMPTCRC", "value": "pTX"},
-                 {"cde": "TNMPNCRC", "value": "pNX"},
-                 {"cde": "TNMPMCRC", "value": "pMx"}]],
     "0": [[{'cde': 'TNMPTCRC', 'value': 'pTis'},
            {'cde': 'TNMPNCRC', 'value': 'pNX'},
            {'cde': 'TNMPMCRC', 'value': 'pMx'}],
