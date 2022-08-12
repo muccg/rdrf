@@ -617,23 +617,31 @@ class CancerStageEvaluator:
     def _evaluate_conjuncts(self, patient, context, conjuncts):
         return all([self._evaluate_conjunct(patient, context, conjunct) for conjunct in conjuncts])
 
+    def _is_pattern(self, value):
+        return value[-1].lower() == "x"
+
+    def _get_pattern_prefix(self, pattern):
+        return pattern[:-1]
+
     def _evaluate_conjunct(self, patient, context, conjunct):
         from rdrf.models.definition.models import CommonDataElement
         cde_code = conjunct["cde"]
         cde_model = CommonDataElement.objects.get(code=cde_code)
         rule_display_value = conjunct["value"]
-        if rule_display_value.lower().endswith("x"):
-            stem = rule_display_value[-1]
+        is_pattern = self._is_pattern(rule_display_value)
+
+        if is_pattern:
+            prefix = self._get_pattern_prefix(rule_display_value)
         else:
-            stem = None
+            prefix = None
 
         patient_db_value = self._get_patient_value(patient, context, cde_code)
         patient_display_value = cde_model.get_display_value(patient_db_value)
 
-        if stem is None:
+        if not is_pattern:
             result = patient_display_value == rule_display_value
         else:
-            result = patient_display_value.startswith(stem)
+            result = patient_display_value.startswith(prefix)
 
         logger.debug(f"{cde_code} rule {rule_display_value} patient {patient_display_value} result: {result}")
         return result
