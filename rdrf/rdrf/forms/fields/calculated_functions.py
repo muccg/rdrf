@@ -626,7 +626,10 @@ lc_cancer_stage_rules = {}
 
 
 class CancerStageEvaluator:
-    def __init__(self, rules_dict=None, spec=None):
+    def __init__(self, rules_dict=None, spec=None, cde_prefix=None, value_prefix="p"):
+        self.cde_prefix = cde_prefix
+        self.value_prefix = value_prefix
+        assert(self.cde_prefix is not None, "cde_prefix must not be None")
         logger.debug("initialising canver stage evaluator")
         if rules_dict is not None:
             self.rules_dict = rules_dict
@@ -644,9 +647,9 @@ class CancerStageEvaluator:
         key = None
         value = None
         for token in tokens:
-            if token.startswith("TNMP"):
+            if token.startswith(self.cde_prefix):
                 key = token.strip()
-            elif token.startswith("p"):
+            elif token.startswith(self.value_prefix):
                 value = token.strip()
                 d[current_key] = value
             if key and value:
@@ -667,6 +670,35 @@ class CancerStageEvaluator:
                 rules_dict[stage].append(dicts)
         logger.debug(f"rules dict = {rules_dict}")
         return rules_dict
+
+    def parse_test_spec(self, spec: str) -> list:
+        input_output_pairs = []
+        output_index = 1
+        inputs_index = 0
+        for line in spec.split("\n"):
+            pair = [None, None]
+            line = line.strip()
+            if line.startswith("Stage"):
+                stage = self.parse_output(line)
+                output = stage
+                pair[output_index] = output
+
+            else:
+                inputs_dict = {}
+                tokens = line.split(" ")
+                key = None
+                value = None
+                for token in tokens:
+                    if token.startswith(self.cde_prefix):
+                        key = token.strip()
+                    elif token.startswith(self.value_prefix):
+                        value = token.strip()
+                    if key and value:
+                        inputs_dict[key] = value
+                pair[inputs_index] = inputs_dict
+                input_output_pairs.append(pair)
+
+        return input_output_pairs
 
     def evaluate(self, patient, context):
         for stage, rules in self.rules_dict.items():
@@ -730,7 +762,7 @@ class CancerStageEvaluator:
 def CRCCANCERSTAGE(patient, context):
     logger.info("in cdecrc cancer stage")
     context = fill_missing_input(context, 'CRCCANCERSTAGE_inputs')
-    evaluator = CancerStageEvaluator(crc_cancer_stage_rules)
+    evaluator = CancerStageEvaluator(rules_dict=crc_cancer_stage_rules, cde_prefix="TNMP")
     return evaluator.evaluate(patient, context)
 
 
@@ -740,12 +772,12 @@ def CRCCANCERSTAGE_inputs():
 
 def BCCANCERSTAGE(patient, context):
     context = fill_missing_input(context, 'BCCANCERSTAGE_inputs')
-    evaluator = CancerStageEvaluator(spec=bc_output_specs)
+    evaluator = CancerStageEvaluator(spec=bc_output_specs, cde_prefix="TNMP")
     return evaluator.evaluate(patient, context)
 
 
 def BCCANCERSTAGE_inputs():
-    return []
+    return ["TNMPTB", "TNMPNBC", "TNMPMBC"]
 
 
 def LCCANCERSTAGE(patient, context):

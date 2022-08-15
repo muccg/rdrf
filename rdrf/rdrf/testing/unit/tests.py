@@ -2952,6 +2952,9 @@ class CICCancerStageTestCase(RDRFTestCase):
 
     def test_bc_cancer_stage(self):
         self.import_registry("bc")
+        Evalulator = calculated_functions.CancerStageEvaluator
+        spec = calculated_functions.bc_output_specs
+        evaluator = Evalulator(spec=spec)
 
         input_output_specs = """Stage 0
                                 TNMPTB = pTis TNMPNBC = pN0 TNMPMBC = pMX
@@ -2986,18 +2989,7 @@ class CICCancerStageTestCase(RDRFTestCase):
                                 Stage IV
                                 TNMPTB = pTX TNMPNBC = pNX TNMPMBC = pM1"""
         input_output_pairs = []
-        for line in input_output_specs.split("\n"):
-            line = line.strip()
-            if line.startswith("Stage "):
-                print(line)
-                stage = parse_output(line)
-            elif line.startswith("TNM"):
-                input_dict = parse_inputs(line)
-                pair = (input_dict, stage)
-                print(line)
-                print(pair)
-                input_output_pairs.append(pair)
-
+        input_output_pairs = evaluator.parse_test_spec(spec)
         calc = calculated_functions.BCCANCERSTAGE
         self.cic_cancer_stage("BC", calc, input_output_pairs)
 
