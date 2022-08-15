@@ -656,7 +656,7 @@ class CancerStageEvaluator:
                 dicts.append({"cde": key, "value": value})
         return dicts
 
-    def parse_spec(self, spec):
+    def parse_spec(self, spec: str):
         stage = None
         rules_dict = {}
 
@@ -666,7 +666,7 @@ class CancerStageEvaluator:
                 stage = self.parse_spec_output(line)
                 rules_dict[stage] = []
             else:
-                dicts = self.parse_inputs(line)
+                dicts = self.parse_spec_inputs(line)
                 rules_dict[stage].append(dicts)
         logger.debug(f"rules dict = {rules_dict}")
         return rules_dict
