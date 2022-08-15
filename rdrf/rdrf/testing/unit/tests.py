@@ -2952,43 +2952,9 @@ class CICCancerStageTestCase(RDRFTestCase):
 
     def test_bc_cancer_stage(self):
         self.import_registry("bc")
-        Evalulator = calculated_functions.CancerStageEvaluator
+        evalulator_class = calculated_functions.CancerStageEvaluator
         spec = calculated_functions.bc_output_specs
-        evaluator = Evalulator(spec=spec)
-
-        input_output_specs = """Stage 0
-                                TNMPTB = pTis TNMPNBC = pN0 TNMPMBC = pMX
-                                Stage IA
-                                TNMPTB = pT1 TNMPNBC = pN0 TNMPMBC = pMX
-                                Stage IB
-                                TNMPTB = pT0 TNMPNBC = pN1 mi TNMPMBC = pMX
-                                TNMPTB = pT1 TNMPNBC = pN1 mi TNMPMBC = pMX
-                                Stage IIA
-                                TNMPTB = pT0 TNMPNBC = pN1 TNMPMBC = pMX
-                                TNMPTB = pT1 TNMPNBC = pN1 TNMPMBC = pMX
-                                TNMPTB = pT2 TNMPNBC = pN0 TNMPMBC = pMX
-                                Stage IIB
-                                TNMPTB = pT2 TNMPNBC = pN1 TNMPMBC = pMX
-                                TNMPTB = pT3 TNMPNBC = pN0 TNMPMBC = pMX
-                                Stage IIIA
-                                TNMPTB = pT0 TNMPNBC = pN2 TNMPMBC = pMX
-                                TNMPTB = pT1 TNMPNBC = pN2 TNMPMBC = pMX
-                                TNMPTB = pT2 TNMPNBC = pN2 TNMPMBC = pMX
-                                TNMPTB = pT3 TNMPNBC = pN1 TNMPMBC = pMX
-                                TNMPTB = pT3 TNMPNBC = pN2 TNMPMBC = pMX
-                                Stage IIIB
-                                TNMPTB = pT4 TNMPNBC = pN0 TNMPMBC = pMX
-                                TNMPTB = pT4 TNMPNBC = pN1 TNMPMBC = pMX
-                                TNMPTB = pT4 TNMPNBC = pN2 TNMPMBC = pMX
-                                Stage IIIC
-                                TNMPTB = pTX TNMPNBC = pN3 TNMPMBC = pMX
-                                TNMPTB = pT0 TNMPNBC = pN3 TNMPMBC = pMX
-                                TNMPTB = pT1 TNMPNBC = pN3 TNMPMBC = pMX
-                                TNMPTB = pT2 TNMPNBC = pN3 TNMPMBC = pMX
-                                TNMPTB = pT3 TNMPNBC = pN3 TNMPMBC = pMX
-                                Stage IV
-                                TNMPTB = pTX TNMPNBC = pNX TNMPMBC = pM1"""
-        input_output_pairs = []
+        evaluator = evaluator_class(spec=spec, cde_prefix="TNMP")
         input_output_pairs = evaluator.parse_test_spec(spec)
         calc = calculated_functions.BCCANCERSTAGE
         self.cic_cancer_stage("BC", calc, input_output_pairs)
