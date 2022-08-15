@@ -588,15 +588,85 @@ crc_cancer_stage_rules = {
              {'cde': 'TNMPNCRC', 'value': 'pNX'},
              {'cde': 'TNMPMCRC', 'value': 'pM1c'}]]}
 
-bc_cancer_stage_rules = {}
+
+bc_output_specs = """Stage 0
+                  TNMPTB = pTis TNMPNBC = pN0 TNMPMBC = pMX
+                  Stage IA
+                  TNMPTB = pT1 TNMPNBC = pN0 TNMPMBC = pMX
+                  Stage IB
+                  TNMPTB = pT0 TNMPNBC = pN1 mi TNMPMBC = pMX
+                  TNMPTB = pT1 TNMPNBC = pN1 mi TNMPMBC = pMX
+                  Stage IIA
+                  TNMPTB = pT0 TNMPNBC = pN1 TNMPMBC = pMX
+                  TNMPTB = pT1 TNMPNBC = pN1 TNMPMBC = pMX
+                  TNMPTB = pT2 TNMPNBC = pN0 TNMPMBC = pMX
+                  Stage IIB
+                  TNMPTB = pT2 TNMPNBC = pN1 TNMPMBC = pMX
+                  TNMPTB = pT3 TNMPNBC = pN0 TNMPMBC = pMX
+                  Stage IIIA
+                  TNMPTB = pT0 TNMPNBC = pN2 TNMPMBC = pMX
+                  TNMPTB = pT1 TNMPNBC = pN2 TNMPMBC = pMX
+                  TNMPTB = pT2 TNMPNBC = pN2 TNMPMBC = pMX
+                  TNMPTB = pT3 TNMPNBC = pN1 TNMPMBC = pMX
+                  TNMPTB = pT3 TNMPNBC = pN2 TNMPMBC = pMX
+                  Stage IIIB
+                  TNMPTB = pT4 TNMPNBC = pN0 TNMPMBC = pMX
+                  TNMPTB = pT4 TNMPNBC = pN1 TNMPMBC = pMX
+                  TNMPTB = pT4 TNMPNBC = pN2 TNMPMBC = pMX
+                  Stage IIIC
+                  TNMPTB = pTX TNMPNBC = pN3 TNMPMBC = pMX
+                  TNMPTB = pT0 TNMPNBC = pN3 TNMPMBC = pMX
+                  TNMPTB = pT1 TNMPNBC = pN3 TNMPMBC = pMX
+                  TNMPTB = pT2 TNMPNBC = pN3 TNMPMBC = pMX
+                  TNMPTB = pT3 TNMPNBC = pN3 TNMPMBC = pMX
+                  Stage IV
+                  TNMPTB = pTX TNMPNBC = pNX TNMPMBC = pM1"""
+
 lc_cancer_stage_rules = {}
 
 
 class CancerStageEvaluator:
-    def __init__(self, rules_dict):
+    def __init__(self, rules_dict=None, spec=None):
         logger.debug("initialising canver stage evaluator")
-        self.rules_dict = rules_dict
+        if rules_dict is not None:
+            self.rules_dict = rules_dict
+        else:
+            self.rules_dict = self.parse_spec(spec)
+
         self.cache = {}
+
+    def parse_spec_output(self, line):
+        return line.strip().replace("Stage ", "")
+
+    def parse_spec_inputs(self, line):
+        dicts = []
+        tokens = line.split(" ")
+        key = None
+        value = None
+        for token in tokens:
+            if token.startswith("TNMP"):
+                key = token.strip()
+            elif token.startswith("p"):
+                value = token.strip()
+                d[current_key] = value
+            if key and value:
+                dicts.append({"cde": key, "value": value})
+        return dicts
+
+    def parse_spec(self, spec):
+        stage = None
+        rules_dict = {}
+
+        for line in spec.split("\n"):
+            line = line.strip()
+            if line.startswith("Stage"):
+                stage = self.parse_spec_output(line)
+                rules_dict[stage] = []
+            else:
+                dicts = self.parse_inputs(line)
+                rules_dict[stage].append(dicts)
+        logger.debug(f"rules dict = {rules_dict}")
+        return rules_dict
 
     def evaluate(self, patient, context):
         for stage, rules in self.rules_dict.items():
@@ -670,7 +740,7 @@ def CRCCANCERSTAGE_inputs():
 
 def BCCANCERSTAGE(patient, context):
     context = fill_missing_input(context, 'BCCANCERSTAGE_inputs')
-    evaluator = CancerStageEvaluator(bc_cancer_stage_rules)
+    evaluator = CancerStageEvaluator(spec=bc_output_specs)
     return evaluator.evaluate(patient, context)
 
 

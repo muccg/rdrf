@@ -2953,21 +2953,6 @@ class CICCancerStageTestCase(RDRFTestCase):
     def test_bc_cancer_stage(self):
         self.import_registry("bc")
 
-        def parse_output(line):
-            return line.strip().replace("Stage ", "")
-
-        def parse_inputs(line):
-            d = {}
-            tokens = line.split(" ")
-            for token in tokens:
-                if token.startswith("TNMP"):
-                    current_key = token.strip()
-                    d[current_key] = None
-                elif token.startswith("p"):
-                    value = token.strip()
-                    d[current_key] = value
-            return d
-
         input_output_specs = """Stage 0
                                 TNMPTB = pTis TNMPNBC = pN0 TNMPMBC = pMX
                                 Stage IA
