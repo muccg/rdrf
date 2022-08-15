@@ -3003,8 +3003,6 @@ class CICCancerStageTestCase(RDRFTestCase):
                                 Stage IV
                                 TNMPTB = pTX TNMPNBC = pNX TNMPMBC = pM1"""
         input_output_pairs = []
-        pair = None
-        d = None
         for line in input_output_specs.split("\n"):
             line = line.strip()
             if line.startswith("Stage "):
