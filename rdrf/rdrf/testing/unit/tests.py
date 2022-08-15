@@ -2883,7 +2883,7 @@ class CICCancerStageTestCase(RDRFTestCase):
         patient = self.patient_values
         for input, expected_value in input_output_pairs:
             actual_value = calculation(patient, input)
-            msg = f"Cancer Stage {name} failed: expected=[{expected_value}] actual=[{actual_value}]"
+            msg = f"{name} Cancer Stage test failed:input={input} expected=[{expected_value}] actual=[{actual_value}]"
             logger.info(f"input = {input}")
             self.assertEquals(actual_value, expected_value, msg)
 
@@ -2892,8 +2892,6 @@ class CICCancerStageTestCase(RDRFTestCase):
         # sent from CIC has this notation so using that
         self.import_registry("crc")
         input_output_pairs = [
-            ({"TNMPTCRC": "pTX", "TNMPNCRC": "pNX", "TNMPMCRC": "pMX"},
-             "Unknown"),
             ({"TNMPTCRC": "pTis", "TNMPNCRC": "pNX", "TNMPMCRC": "pMX"},
              "0"),
             ({"TNMPTCRC": "pT0", "TNMPNCRC": "pN0", "TNMPMCRC": "pMX"},
