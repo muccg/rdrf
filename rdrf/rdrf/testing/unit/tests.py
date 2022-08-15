@@ -2970,7 +2970,7 @@ class CICCancerStageTestCase(RDRFTestCase):
                     d[current_key] = value
             return d
 
-        input_output_pairs = """Stage 0
+        input_output_specs = """Stage 0
                                 TNMPTB = pTis TNMPNBC = pN0 TNMPMBC = pMX
                                 Stage IA
                                 TNMPTB = pT1 TNMPNBC = pN0 TNMPMBC = pMX
@@ -3005,14 +3005,14 @@ class CICCancerStageTestCase(RDRFTestCase):
         input_output_pairs = []
         pair = None
         d = None
-        for line in spec.split("\n"):
+        for line in input_output_specs.split("\n"):
             line = line.strip()
             if line.startswith("Stage "):
                 print(line)
                 stage = parse_output(line)
             elif line.startswith("TNM"):
                 input_dict = parse_inputs(line)
-                pair = (d, stage)
+                pair = (input_dict, stage)
                 print(line)
                 print(pair)
                 input_output_pairs.append(pair)
