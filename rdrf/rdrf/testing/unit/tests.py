@@ -2954,7 +2954,69 @@ class CICCancerStageTestCase(RDRFTestCase):
 
     def test_bc_cancer_stage(self):
         self.import_registry("bc")
+
+        def parse_output(line):
+            return line.strip().replace("Stage ", "")
+
+        def parse_inputs(line):
+            d = {}
+            tokens = line.split(" ")
+            for token in tokens:
+                if token.startswith("TNMP"):
+                    current_key = token.strip()
+                    d[current_key] = None
+                elif token.startswith("p"):
+                    value = token.strip()
+                    d[current_key] = value
+            return d
+
+        input_output_pairs = """Stage 0
+                                TNMPTB = pTis TNMPNBC = pN0 TNMPMBC = pMX
+                                Stage IA
+                                TNMPTB = pT1 TNMPNBC = pN0 TNMPMBC = pMX
+                                Stage IB
+                                TNMPTB = pT0 TNMPNBC = pN1 mi TNMPMBC = pMX
+                                TNMPTB = pT1 TNMPNBC = pN1 mi TNMPMBC = pMX
+                                Stage IIA
+                                TNMPTB = pT0 TNMPNBC = pN1 TNMPMBC = pMX
+                                TNMPTB = pT1 TNMPNBC = pN1 TNMPMBC = pMX
+                                TNMPTB = pT2 TNMPNBC = pN0 TNMPMBC = pMX
+                                Stage IIB
+                                TNMPTB = pT2 TNMPNBC = pN1 TNMPMBC = pMX
+                                TNMPTB = pT3 TNMPNBC = pN0 TNMPMBC = pMX
+                                Stage IIIA
+                                TNMPTB = pT0 TNMPNBC = pN2 TNMPMBC = pMX
+                                TNMPTB = pT1 TNMPNBC = pN2 TNMPMBC = pMX
+                                TNMPTB = pT2 TNMPNBC = pN2 TNMPMBC = pMX
+                                TNMPTB = pT3 TNMPNBC = pN1 TNMPMBC = pMX
+                                TNMPTB = pT3 TNMPNBC = pN2 TNMPMBC = pMX
+                                Stage IIIB
+                                TNMPTB = pT4 TNMPNBC = pN0 TNMPMBC = pMX
+                                TNMPTB = pT4 TNMPNBC = pN1 TNMPMBC = pMX
+                                TNMPTB = pT4 TNMPNBC = pN2 TNMPMBC = pMX
+                                Stage IIIC
+                                TNMPTB = pTX TNMPNBC = pN3 TNMPMBC = pMX
+                                TNMPTB = pT0 TNMPNBC = pN3 TNMPMBC = pMX
+                                TNMPTB = pT1 TNMPNBC = pN3 TNMPMBC = pMX
+                                TNMPTB = pT2 TNMPNBC = pN3 TNMPMBC = pMX
+                                TNMPTB = pT3 TNMPNBC = pN3 TNMPMBC = pMX
+                                Stage IV
+                                TNMPTB = pTX TNMPNBC = pNX TNMPMBC = pM1"""
         input_output_pairs = []
+        pair = None
+        d = None
+        for line in spec.split("\n"):
+            line = line.strip()
+            if line.startswith("Stage "):
+                print(line)
+                stage = parse_output(line)
+            elif line.startswith("TNM"):
+                input_dict = parse_inputs(line)
+                pair = (d, stage)
+                print(line)
+                print(pair)
+                input_output_pairs.append(pair)
+
         calc = calculated_functions.BCCANCERSTAGE
         self.cic_cancer_stage("BC", calc, input_output_pairs)
 
