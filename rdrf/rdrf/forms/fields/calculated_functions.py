@@ -651,7 +651,6 @@ class CancerStageEvaluator:
                 key = token.strip()
             elif token.startswith(self.value_prefix):
                 value = token.strip()
-                d[current_key] = value
             if key and value:
                 dicts.append({"cde": key, "value": value})
         return dicts
