@@ -2952,7 +2952,7 @@ class CICCancerStageTestCase(RDRFTestCase):
 
     def test_bc_cancer_stage(self):
         self.import_registry("bc")
-        evalulator_class = calculated_functions.CancerStageEvaluator
+        evaluator_class = calculated_functions.CancerStageEvaluator
         spec = calculated_functions.bc_output_specs
         evaluator = evaluator_class(spec=spec, cde_prefix="TNMP")
         input_output_pairs = evaluator.parse_test_spec(spec)
