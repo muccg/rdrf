@@ -2857,7 +2857,7 @@ class CICCancerStageTestCase(RDRFTestCase):
     patient_values = {}
     yaml_map = {"crc": "crc44.yaml",
                 "lc": "lc22.yaml",
-                "bc": "bc28.yaml",
+                "bc": "bc29.yaml",
                 "ov": "ov41.yaml"}
 
     def get_rules(self):
