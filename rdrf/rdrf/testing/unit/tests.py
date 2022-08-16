@@ -2880,6 +2880,8 @@ class CICCancerStageTestCase(RDRFTestCase):
         importer.create_registry()
 
     def cic_cancer_stage(self, name, calculation, input_output_pairs):
+        print(f"cic cancer stage test for {name}")
+        print(f"input output pairs =  {input_output_pairs}")
         patient = self.patient_values
         for input, expected_value in input_output_pairs:
             actual_value = calculation(patient, input)
