@@ -678,7 +678,7 @@ class CancerStageEvaluator:
             pair = [None, None]
             line = line.strip()
             if line.startswith("Stage"):
-                stage = self.parse_output(line)
+                stage = self.parse_spec_output(line)
                 output = stage
                 pair[output_index] = output
 
