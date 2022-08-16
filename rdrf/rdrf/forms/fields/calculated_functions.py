@@ -674,11 +674,11 @@ class CancerStageEvaluator:
         input_output_pairs = []
         output_index = 1
         inputs_index = 0
-        pair = [None, None]
         for line in spec.split("\n"):
             print(line)
             line = line.strip()
             if line.startswith("Stage"):
+                pair = [None, None]
                 stage = self.parse_spec_output(line)
                 pair[output_index] = stage
 
@@ -696,7 +696,7 @@ class CancerStageEvaluator:
                         inputs_dict[key] = value
                 pair[inputs_index] = inputs_dict
                 input_output_pairs.append(pair)
-                pair = [None, None]
+                pair = [None, stage]
 
         return input_output_pairs
 
