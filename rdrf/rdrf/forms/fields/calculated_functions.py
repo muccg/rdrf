@@ -62,6 +62,7 @@ class AcrossFormsInfo:
 
 
 def fill_missing_input(context, input_func_name, across_forms_info=None):
+    logger.debug(f"fill missing input context = {context}")
     mod = __import__('rdrf.forms.fields.calculated_functions', fromlist=['object'])
     func = getattr(mod, input_func_name)
     if across_forms_info is not None:
@@ -588,40 +589,41 @@ crc_cancer_stage_rules = {
              {'cde': 'TNMPNCRC', 'value': 'pNX'},
              {'cde': 'TNMPMCRC', 'value': 'pM1c'}]]}
 
-bc_output_specs = """Stage 0
-                  TNMPT = pTis TNMPN = pN0 TNMPM = pMX
-                  Stage IA
-                  TNMPT = pT1 TNMPN = pN0 TNMPM = pMX
-                  Stage IB
-                  TNMPT = pT0 TNMPN = pN1 mi TNMPM = pMX
-                  TNMPT = pT1 TNMPN = pN1 mi TNMPM = pMX
-                  Stage IIA
-                  TNMPT = pT0 TNMPN = pN1 TNMPM = pMX
-                  TNMPT = pT1 TNMPN = pN1 TNMPM = pMX
-                  TNMPT = pT2 TNMPN = pN0 TNMPM = pMX
-                  Stage IIB
-                  TNMPT = pT2 TNMPN = pN1 TNMPM = pMX
-                  TNMPT = pT3 TNMPN = pN0 TNMPM = pMX
-                  Stage IIIA
-                  TNMPT = pT0 TNMPN = pN2 TNMPM = pMX
-                  TNMPT = pT1 TNMPN = pN2 TNMPM = pMX
-                  TNMPT = pT2 TNMPN = pN2 TNMPM = pMX
-                  TNMPT = pT3 TNMPN = pN1 TNMPM = pMX
-                  TNMPT = pT3 TNMPN = pN2 TNMPM = pMX
-                  Stage IIIB
-                  TNMPT = pT4 TNMPN = pN0 TNMPM = pMX
-                  TNMPT = pT4 TNMPN = pN1 TNMPM = pMX
-                  TNMPT = pT4 TNMPN = pN2 TNMPM = pMX
-                  Stage IIIC
-                  TNMPT = pTX TNMPN = pN3 TNMPM = pMX
-                  TNMPT = pT0 TNMPN = pN3 TNMPM = pMX
-                  TNMPT = pT1 TNMPN = pN3 TNMPM = pMX
-                  TNMPT = pT2 TNMPN = pN3 TNMPM = pMX
-                  TNMPT = pT3 TNMPN = pN3 TNMPM = pMX
-                  Stage IV
-                  TNMPT = pTX TNMPN = pNX TNMPM = pM1"""
+bc_cancer_stage_spec = """Stage 0
+                       TNMPT = pTis TNMPN = pN0 TNMPM = pMX
+                       Stage IA
+                       TNMPT = pT1 TNMPN = pN0 TNMPM = pMX
+                       Stage IB
+                       TNMPT = pT0 TNMPN = pN1 TNMPM = pMX
+                       TNMPT = pT1 TNMPN = pN1 TNMPM = pMX
+                       Stage IIA
+                       TNMPT = pT0 TNMPN = pN1 TNMPM = pMX
+                       TNMPT = pT1 TNMPN = pN1 TNMPM = pMX
+                       TNMPT = pT2 TNMPN = pN0 TNMPM = pMX
+                       Stage IIB
+                       TNMPT = pT2 TNMPN = pN1 TNMPM = pMX
+                       TNMPT = pT3 TNMPN = pN0 TNMPM = pMX
+                       Stage IIIA
+                       TNMPT = pT0 TNMPN = pN2 TNMPM = pMX
+                       TNMPT = pT1 TNMPN = pN2 TNMPM = pMX
+                       TNMPT = pT2 TNMPN = pN2 TNMPM = pMX
+                       TNMPT = pT3 TNMPN = pN1 TNMPM = pMX
+                       TNMPT = pT3 TNMPN = pN2 TNMPM = pMX
+                       Stage IIIB
+                       TNMPT = pT4 TNMPN = pN0 TNMPM = pMX
+                       TNMPT = pT4 TNMPN = pN1 TNMPM = pMX
+                       TNMPT = pT4 TNMPN = pN2 TNMPM = pMX
+                       Stage IIIC
+                       TNMPT = pTX TNMPN = pN3 TNMPM = pMX
+                       TNMPT = pT0 TNMPN = pN3 TNMPM = pMX
+                       TNMPT = pT1 TNMPN = pN3 TNMPM = pMX
+                       TNMPT = pT2 TNMPN = pN3 TNMPM = pMX
+                       TNMPT = pT3 TNMPN = pN3 TNMPM = pMX
+                       Stage IV
+                       TNMPT = pTX TNMPN = pNX TNMPM = pM1"""
 
-lc_cancer_stage_rules = {}
+lc_cancer_stage_spec = ""
+ov_cancer_stage_spec = ""
 
 
 class CancerStageEvaluator:
@@ -635,23 +637,37 @@ class CancerStageEvaluator:
         else:
             self.rules_dict = self.parse_spec(spec)
 
+        logger.debug(f"cancer stage evaluator: rules dict = {self.rules_dict}")
+
         self.cache = {}
 
     def parse_spec_output(self, line):
         return line.strip().replace("Stage ", "")
 
     def parse_spec_inputs(self, line):
+        logger.debug(f"parse_spec_inputs line = {line}")
         dicts = []
         tokens = line.split(" ")
         key = None
         value = None
         for token in tokens:
+            logger.debug(f"token = {token}")
+
             if token.startswith(self.cde_prefix):
+                logger.debug(f"token is a cde")
                 key = token.strip()
+                logger.debug(f"key = {key}")
             elif token.startswith(self.value_prefix):
+                logger.debug("token is a value")
                 value = token.strip()
+                logger.debug(f"value = {value}")
+            else:
+                logger.debug(f"unknown token: {token}")
             if key and value:
                 dicts.append({"cde": key, "value": value})
+                key = None
+                value = None
+
         return dicts
 
     def parse_spec(self, spec: str):
@@ -660,13 +676,18 @@ class CancerStageEvaluator:
 
         for line in spec.split("\n"):
             line = line.strip()
+            logger.debug(f"parsing line: {line}")
             if line.startswith("Stage"):
+                logger.debug("is a stage!")
                 stage = self.parse_spec_output(line)
+                logger.debug(f"parse stage = {stage}")
                 rules_dict[stage] = []
             else:
+                logger.debug("is not a stage")
                 dicts = self.parse_spec_inputs(line)
+                logger.debug(f"parsed dicts = {dicts}")
                 rules_dict[stage].append(dicts)
-        logger.debug(f"rules dict = {rules_dict}")
+
         return rules_dict
 
     def parse_test_spec(self, spec: str) -> list:
@@ -717,7 +738,14 @@ class CancerStageEvaluator:
         return all([self._evaluate_conjunct(patient, context, conjunct) for conjunct in conjuncts])
 
     def _is_pattern(self, value):
-        return value[-1].lower() == "x"
+        logger.debug(f"checking whether value {value} is a pattern")
+        result = value[-1].lower() == "x"
+        if result:
+            logger.debug(f"{value} IS a pattern")
+        else:
+            logger.debug(f"{value} IS NOT pattern")
+
+        return result
 
     def _get_pattern_prefix(self, pattern):
         return pattern[:-1]
@@ -743,9 +771,13 @@ class CancerStageEvaluator:
         patient_db_value = self._get_patient_value(patient, context, cde_code)
         patient_display_value = cde_model.get_display_value(patient_db_value)
 
+        logger.debug(f"patient db value = {patient_db_value} display value = {patient_display_value}")
+
         if not is_pattern:
+            logger.debug("not a pattern")
             result = patient_display_value == rule_display_value
         else:
+            logger.debug("pattern found")
             result = patient_display_value.startswith(prefix)
 
         logger.debug(f"{cde_code} rule {rule_display_value} patient {patient_display_value} result: {result}")
@@ -777,8 +809,9 @@ def CRCCANCERSTAGE_inputs():
 
 
 def BCCANCERSTAGE(patient, context):
+    logger.debug(f"calculating BCCANCERSTAGE: patient = {patient} context = {context}")
     context = fill_missing_input(context, 'BCCANCERSTAGE_inputs')
-    evaluator = CancerStageEvaluator(spec=bc_output_specs, cde_prefix="TNMP")
+    evaluator = CancerStageEvaluator(spec=bc_cancer_stage_spec, cde_prefix="TNMP")
     return evaluator.evaluate(patient, context)
 
 
@@ -787,8 +820,8 @@ def BCCANCERSTAGE_inputs():
 
 
 def LCCANCERSTAGE(patient, context):
-    context = fill_missing_input(context, 'CRCCANCERSTAGE_inputs')
-    evaluator = CancerStageEvaluator(crc_cancer_stage_rules)
+    context = fill_missing_input(context, 'LCCANCERSTAGE_inputs')
+    evaluator = CancerStageEvaluator(lc_cancer_stage_spec)
     return evaluator.evaluate(patient, context)
 
 
@@ -798,7 +831,7 @@ def LCCANCERSTAGE_inputs():
 
 def OVCANCERSTAGE(patient, context):
     context = fill_missing_input(context, 'OVCANCERSTAGE_inputs')
-    evaluator = CancerStageEvaluator(crc_cancer_stage_rules)
+    evaluator = CancerStageEvaluator(ov_cancer_stage_spec)
     return evaluator.evaluate(patient, context)
 
 
