@@ -588,39 +588,38 @@ crc_cancer_stage_rules = {
              {'cde': 'TNMPNCRC', 'value': 'pNX'},
              {'cde': 'TNMPMCRC', 'value': 'pM1c'}]]}
 
-
 bc_output_specs = """Stage 0
-                  TNMPTB = pTis TNMPNBC = pN0 TNMPMBC = pMX
+                  TNMPT = pTis TNMPN = pN0 TNMPM = pMX
                   Stage IA
-                  TNMPTB = pT1 TNMPNBC = pN0 TNMPMBC = pMX
+                  TNMPT = pT1 TNMPN = pN0 TNMPM = pMX
                   Stage IB
-                  TNMPTB = pT0 TNMPNBC = pN1 mi TNMPMBC = pMX
-                  TNMPTB = pT1 TNMPNBC = pN1 mi TNMPMBC = pMX
+                  TNMPT = pT0 TNMPN = pN1 mi TNMPM = pMX
+                  TNMPT = pT1 TNMPN = pN1 mi TNMPM = pMX
                   Stage IIA
-                  TNMPTB = pT0 TNMPNBC = pN1 TNMPMBC = pMX
-                  TNMPTB = pT1 TNMPNBC = pN1 TNMPMBC = pMX
-                  TNMPTB = pT2 TNMPNBC = pN0 TNMPMBC = pMX
+                  TNMPT = pT0 TNMPN = pN1 TNMPM = pMX
+                  TNMPT = pT1 TNMPN = pN1 TNMPM = pMX
+                  TNMPT = pT2 TNMPN = pN0 TNMPM = pMX
                   Stage IIB
-                  TNMPTB = pT2 TNMPNBC = pN1 TNMPMBC = pMX
-                  TNMPTB = pT3 TNMPNBC = pN0 TNMPMBC = pMX
+                  TNMPT = pT2 TNMPN = pN1 TNMPM = pMX
+                  TNMPT = pT3 TNMPN = pN0 TNMPM = pMX
                   Stage IIIA
-                  TNMPTB = pT0 TNMPNBC = pN2 TNMPMBC = pMX
-                  TNMPTB = pT1 TNMPNBC = pN2 TNMPMBC = pMX
-                  TNMPTB = pT2 TNMPNBC = pN2 TNMPMBC = pMX
-                  TNMPTB = pT3 TNMPNBC = pN1 TNMPMBC = pMX
-                  TNMPTB = pT3 TNMPNBC = pN2 TNMPMBC = pMX
+                  TNMPT = pT0 TNMPN = pN2 TNMPM = pMX
+                  TNMPT = pT1 TNMPN = pN2 TNMPM = pMX
+                  TNMPT = pT2 TNMPN = pN2 TNMPM = pMX
+                  TNMPT = pT3 TNMPN = pN1 TNMPM = pMX
+                  TNMPT = pT3 TNMPN = pN2 TNMPM = pMX
                   Stage IIIB
-                  TNMPTB = pT4 TNMPNBC = pN0 TNMPMBC = pMX
-                  TNMPTB = pT4 TNMPNBC = pN1 TNMPMBC = pMX
-                  TNMPTB = pT4 TNMPNBC = pN2 TNMPMBC = pMX
+                  TNMPT = pT4 TNMPN = pN0 TNMPM = pMX
+                  TNMPT = pT4 TNMPN = pN1 TNMPM = pMX
+                  TNMPT = pT4 TNMPN = pN2 TNMPM = pMX
                   Stage IIIC
-                  TNMPTB = pTX TNMPNBC = pN3 TNMPMBC = pMX
-                  TNMPTB = pT0 TNMPNBC = pN3 TNMPMBC = pMX
-                  TNMPTB = pT1 TNMPNBC = pN3 TNMPMBC = pMX
-                  TNMPTB = pT2 TNMPNBC = pN3 TNMPMBC = pMX
-                  TNMPTB = pT3 TNMPNBC = pN3 TNMPMBC = pMX
+                  TNMPT = pTX TNMPN = pN3 TNMPM = pMX
+                  TNMPT = pT0 TNMPN = pN3 TNMPM = pMX
+                  TNMPT = pT1 TNMPN = pN3 TNMPM = pMX
+                  TNMPT = pT2 TNMPN = pN3 TNMPM = pMX
+                  TNMPT = pT3 TNMPN = pN3 TNMPM = pMX
                   Stage IV
-                  TNMPTB = pTX TNMPNBC = pNX TNMPMBC = pM1"""
+                  TNMPT = pTX TNMPN = pNX TNMPM = pM1"""
 
 lc_cancer_stage_rules = {}
 
@@ -711,6 +710,7 @@ class CancerStageEvaluator:
 
     def _evaluate_stage(self, rules, patient, context):
         stage_value = any([self._evaluate_conjuncts(patient, context, conjuncts) for conjuncts in rules])
+        logger.debug(f"stage_value = {stage_value}")
         return stage_value
 
     def _evaluate_conjuncts(self, patient, context, conjuncts):
@@ -723,9 +723,15 @@ class CancerStageEvaluator:
         return pattern[:-1]
 
     def _evaluate_conjunct(self, patient, context, conjunct):
+        logger.debug(f"evaluate conjunct: patient {patient} context {context} conjunct {conjunct}")
         from rdrf.models.definition.models import CommonDataElement
         cde_code = conjunct["cde"]
-        cde_model = CommonDataElement.objects.get(code=cde_code)
+        logger.debug(f"cde code = {cde_code}")
+        try:
+            cde_model = CommonDataElement.objects.get(code=cde_code)
+        except CommonDataElement.DoesNotExist:
+            logger.error(f"cannot find cde {cde_code}")
+            return False
         rule_display_value = conjunct["value"]
         is_pattern = self._is_pattern(rule_display_value)
 
@@ -777,7 +783,7 @@ def BCCANCERSTAGE(patient, context):
 
 
 def BCCANCERSTAGE_inputs():
-    return ["TNMPTB", "TNMPNBC", "TNMPMBC"]
+    return ["TNMPT", "TNMPN", "TNMPM"]
 
 
 def LCCANCERSTAGE(patient, context):
