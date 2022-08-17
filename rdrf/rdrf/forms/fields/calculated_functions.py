@@ -666,10 +666,10 @@ Stage IIIC
 TNMPTLC = pT3 TNMPNLC = pN3 TNMPMLC = pM0
 TNMPTLC = pT4 TNMPNLC = pN3 TNMPMLC = pMX0
 Stage IVA
-TNMPTLC = pTx TNMPNLC = pNX TNMPMLC = pM1a (any T and any N)
-TNMPTLC = pTx TNMPNLC = pNX TNMPMLC = pM1b (any T and any N)
+TNMPTLC = pTx TNMPNLC = pNX TNMPMLC = pM1a
+TNMPTLC = pTx TNMPNLC = pNX TNMPMLC = pM1b
 Stage IVB
-TNMPTLC = pTx TNMPNLC = pNX TNMPMLC = pM1c (any T and any N)
+TNMPTLC = pTx TNMPNLC = pNX TNMPMLC = pM1c
 """
 ov_cancer_stage_spec = ""
 
@@ -869,7 +869,7 @@ def BCCANCERSTAGE_inputs():
 
 def LCCANCERSTAGE(patient, context):
     context = fill_missing_input(context, 'LCCANCERSTAGE_inputs')
-    evaluator = CancerStageEvaluator(lc_cancer_stage_spec)
+    evaluator = CancerStageEvaluator(spec=lc_cancer_stage_spec, cde_prefix="TNMP")
     return evaluator.evaluate(patient, context)
 
 
