@@ -697,14 +697,20 @@ class CancerStageEvaluator:
         tokens = line.split(" ")
         key = None
         value = None
+        def is_cde(token): return token.startswith(self.cde_prefix)
+        if not self.value_prefix:
+            def is_value(token): return not any([is_cde(token), token in [' ', '=']])
+        else:
+            def is_value(token): return token.startswith(self.value_prefix)
+
         for token in tokens:
             logger.debug(f"token = {token}")
 
-            if token.startswith(self.cde_prefix):
+            if is_cde(token):
                 logger.debug(f"token is a cde")
                 key = token.strip()
                 logger.debug(f"key = {key}")
-            elif token.startswith(self.value_prefix):
+            elif is_value(token):
                 logger.debug("token is a value")
                 value = token.strip()
                 logger.debug(f"value = {value}")
@@ -868,7 +874,7 @@ def BCCANCERSTAGE_inputs():
 
 def LCCANCERSTAGE(patient, context):
     context = fill_missing_input(context, 'LCCANCERSTAGE_inputs')
-    evaluator = CancerStageEvaluator(spec=lc_cancer_stage_spec, cde_prefix="TNMP")
+    evaluator = CancerStageEvaluator(spec=lc_cancer_stage_spec, cde_prefix="TNMP", value_prefix=None)
     return evaluator.evaluate(patient, context)
 
 
