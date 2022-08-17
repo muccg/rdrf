@@ -622,8 +622,7 @@ bc_cancer_stage_spec = """Stage 0
                        Stage IV
                        TNMPT = pTX TNMPN = pNX TNMPM = pM1"""
 
-lc_cancer_stage_spec = """
-Stage Occult carcinoma
+lc_cancer_stage_spec = """Stage Occult carcinoma
 TNMPTLC = pTx TNMPNLC = pN0 TNMPMLC = pM0
 Stage 0
 TNMPTLC = pTis TNMPNLC = pN0 TNMPMLC = pM0
