@@ -53,7 +53,7 @@ def handle_hl7_message(umrn, message: hl7.Message):
 
 
 @app.task(name="rdrf.services.tasks.recalculate_cde")
-def recalculate_cde(username, patient_id, registry_code, context_id, form_name, section_code, section_index, cde_code):
+def recalculate_cde(patient_id, registry_code, context_id, form_name, section_code, section_index, cde_code):
     """
     Problem: If a user changes an input of a calculated field which sits on
     another form, the calculation will not be re-evaluated unless
@@ -62,10 +62,13 @@ def recalculate_cde(username, patient_id, registry_code, context_id, form_name, 
     The task is spawn in the postsave of the form with the changed input
     """
     from rdrf.models.definition.models import CommonDataElement
+    from rdrf.models.definition.models import RDRFContext
     from rdrf.forms.fields import calculated_functions as cf
+
     what = f"{registry_code}/{form_name}/{section_index}/{section_code}/{cde_code}"
-    msg = f"{username} triggered recalc of {what} in context {context_id}"
+    msg = f"recalc of {what} in context {context_id}"
     logger.info(msg)
+
     cde_model = CommonDataElement.objects.get(code=cde_code)
     if cde_model.datatype != "calculated":
         logger.error(f"cannot recalculate cde {cde_code} as it is not a calculated field")
@@ -77,23 +80,42 @@ def recalculate_cde(username, patient_id, registry_code, context_id, form_name, 
         return
 
     inputs_func_name = f"{cde_code}_inputs"
-
     get_input_cde_codes_func = getattr(cf, inputs_func_name)
     if not callable(get_input_cde_codes_func):
         logger.error(f"could not find inputs for {cde_code}")
         return
 
-    # use a closure here
-    def get_input(cde_code):
-        pass
+    def get_patient_dict(patient_model):
+        return {}
 
-    def get_patient(patient_id):
-        pass
+    patient_model = Patient.objects.get(id=patient_id)
+    patient_dict = get_patient_dict(patient_model)
+
+    patient_contexts = patient_model.context_models
+    ids = [c.id for c in patient_contexts]
+    if context_id not in ids:
+        logger.error(f"recalc not possible in passed in context")
+        return
+
+    patient_data = patient_model.load_dynamic_data()
+
+    def get_input_value(cde_code):
+        for form_dict in patient_data["forms"]:
+            for section_dict in form_dict["sections"]:
+                if not section_dict["allow_multiple"]:
+                    for cde_dict in section_dict["cdes"]:
+                        if cde_dict["code"] == cde_code:
+                            value = cde_dict["value"]
+                            return value
 
     def save_result(result):
-        pass
-
-    patient = get_patient(patient_id)
+        patient_model.set_form_value(registry_code,
+                                     form_name,
+                                     section_code,
+                                     cde_code,
+                                     result,
+                                     context_model)
+        logger.info(f"recalc successful")
 
     input_cde_codes = get_input_cde_codes_func()
     input_context = {}

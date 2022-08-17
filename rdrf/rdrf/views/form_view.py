@@ -141,7 +141,8 @@ class SectionInfo(object):
                  index_map=None,
                  form_set_class=None,
                  form_class=None,
-                 prefix=None):
+                 prefix=None,
+                 form_name=None):
         self.section_code = section_code
         self.patient_wrapper = patient_wrapper
         self.is_multiple = is_multiple
@@ -154,6 +155,7 @@ class SectionInfo(object):
         # otherwise we create a formset using these
         self.form_set_class = form_set_class
         self.prefix = prefix
+        self.form_name = form_name
 
     def save(self):
         if not self.is_multiple:

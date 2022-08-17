@@ -2033,17 +2033,111 @@ def sync_patient_identifiers(sender, **kwargs):
 
 @receiver(clinical_data_saved_ok, sender=ClinicalData)
 def update_calculated_fields_depending_on_saved_data(sender, **kwargs):
+    """
+    This is more complex than I thought initially.
+    If calculated fields on other forms use cdes on the form
+    just saved, they aren't being recalculated.
+    This spawns tasks to recalculate them.
+    """
     from registry.patients.models import Patient
     from rdrf.views.form_view import SectionInfo
+    from rdrf.forms.fields import calculated_functions as cf
+    from rdrf.helpers.utils import is_calculated_cde_in_registry as in_registry
+
     patient = kwargs["patient"]
+    registry_model = patient.rdrf_registry.first()  # we only have one
     section_infos = kwargs["saved_sections"]
+
+    # helper functions
+
+    def get_calcs():
+        """
+        Iterate through the calculated functions module
+        and work out all the input-output info
+        for all the calculations that belong to this registry
+        """
+        pairs = []
+        for name, thing in cf.__dict__.items():
+            if callable(thing) and name.endswith("_inputs"):
+                output_cde_code = name.replace("_inputs", "")
+                try:
+                    output_cde_model = CommonDataElement.objects.get(code=output_cde_code)
+                except CommonDataElement.DoesNotExist:
+                    continue
+                except CommonDataElement.MultipleObjectsReturned:
+                    continue
+                if output_cde_model.datatype != "calculated":
+                    continue
+                if not in_registry(registry_model, output_cde_model):
+                    continue
+
+                inputs_func = thing
+                input_cde_codes = inputs_func()
+                funcs.append((input_cde_codes, output_cde_model))
+        return pairs
+
+    def get_cde_models(section_info):
+        section_code = section_info.section_code
+        form_model = section_info.dyn_patient.current_form_model
+        for section_model in form_model.section_models:
+            if section_model.code == section_code:
+                for cde_model in section_model.cde_models:
+                    yield cde_model
+
+    calcs_data = get_calcs()
+
+    def get_outputs(cde_model):
+        cde_code = cde_model.code
+        outputs = []
+        for inputs_cde_codes, output_cde_model in calcs_data:
+            if cde_code in inputs_cde_codes:
+                # the SectionInfo containing this cde_code
+                # has just been saved and it is an input
+                # to another calculated cde
+                outputs.append(output_cde_model)
+        return outputs
+
+    def get_form_cde_models(form_model):
+        cde_models = []
+        for section_model in form_model.section_models:
+            for cde_model in section_model.cde_models:
+                cde_models.append(cde_model)
+        return cde_models
+
+    def recalc(calc_cde_model):
+        from rdrf.services.tasks import recalculate_cde
+        from rdrf.helpers.utils import get_location
+        cde_code = calc_cde_model.code
+        location_pair = get_location(calc_cde_model)
+        if location_pair is not None:
+            form_model = location_pair[0]
+            section_model = location_pair[1]
+        else:
+            logger.error(f"recalc: cannot find location of cde {calc_cde_model.code}")
+            return
+        recalculate_cde.delay(username,
+                              patient_id,
+                              registry_code,
+                              context_id,
+                              form_name,
+                              section_code,
+                              section_index,
+                              cde_code)
+
+    # all passed in SectionInfo objects will belong to the same
+    # form:
+    current_form_model = section_infos[0].dyn_patient.current_form_model
+    form_cde_models = get_form_cde_models(form_model)
+
     for section_info in section_infos:
-        for cde_model in section_info.cde_models:
+        for cde_model in get_cde_models(section_info):
             # does this cde form the input of a calculation(s)?
-            outputs = get_outputs(cde_model)
-            for output in outputs:
-                # spawn a recalc
-                pass
+            # possible a cde could be an input of more than
+            # one calc cde
+            output_cde_models = get_outputs(cde_model)
+            for output_cde_model in output_cde_models:
+                if output_cde_model not in form_cde_models:
+                    recalc(output_cde_model)
 
 
 def file_upload_to(instance, filename):

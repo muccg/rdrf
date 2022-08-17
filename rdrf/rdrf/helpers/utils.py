@@ -1061,3 +1061,11 @@ def has_external_demographics():
     return all([settings.HUB_ENABLED,
                 is_site_system(),
                 is_mapping_demographics_fields()])
+
+
+def get_location(registry_model, cde_model):
+    for form_model in registry_model.forms:
+        for section_model in form_model.section_models:
+            for c in section_model.cde_models:
+                if c.code == cde_model.code:
+                    return form_model, section_model
