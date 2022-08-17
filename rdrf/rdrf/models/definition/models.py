@@ -2031,6 +2031,21 @@ def sync_patient_identifiers(sender, **kwargs):
             logger.error(f"error syncing pmi to umrn: {ex}")
 
 
+@receiver(clinical_data_saved_ok, sender=ClinicalData)
+def update_calculated_fields_depending_on_saved_data(sender, **kwargs):
+    from registry.patients.models import Patient
+    from rdrf.views.form_view import SectionInfo
+    patient = kwargs["patient"]
+    section_infos = kwargs["saved_sections"]
+    for section_info in section_infos:
+        for cde_model in section_info.cde_models:
+            # does this cde form the input of a calculation(s)?
+            outputs = get_outputs(cde_model)
+            for output in outputs:
+                # spawn a recalc
+                pass
+
+
 def file_upload_to(instance, filename):
     return "/".join(filter(bool, [
         instance.registry_code,

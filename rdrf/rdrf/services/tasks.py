@@ -50,3 +50,60 @@ def handle_hl7_message(umrn, message: hl7.Message):
     else:
         logger.error(f"HL7 handler: {umrn} {event_code} failed")
     return response_data
+
+
+@app.task(name="rdrf.services.tasks.recalculate_cde")
+def recalculate_cde(username, patient_id, registry_code, context_id, form_name, section_code, section_index, cde_code):
+    """
+    Problem: If a user changes an input of a calculated field which sits on
+    another form, the calculation will not be re-evaluated unless
+    they go that form and save.
+    This task recalculates a calculated cde automatically.
+    The task is spawn in the postsave of the form with the changed input
+    """
+    from rdrf.models.definition.models import CommonDataElement
+    from rdrf.forms.fields import calculated_functions as cf
+    what = f"{registry_code}/{form_name}/{section_index}/{section_code}/{cde_code}"
+    msg = f"{username} triggered recalc of {what} in context {context_id}"
+    logger.info(msg)
+    cde_model = CommonDataElement.objects.get(code=cde_code)
+    if cde_model.datatype != "calculated":
+        logger.error(f"cannot recalculate cde {cde_code} as it is not a calculated field")
+        return
+
+    calculation_func = getattr(cf, cde_code)
+    if not callable(calculation_func):
+        logger.error(f"could not find calculation for {cde_code}")
+        return
+
+    inputs_func_name = f"{cde_code}_inputs"
+
+    get_input_cde_codes_func = getattr(cf, inputs_func_name)
+    if not callable(get_input_cde_codes_func):
+        logger.error(f"could not find inputs for {cde_code}")
+        return
+
+    # use a closure here
+    def get_input(cde_code):
+        pass
+
+    def get_patient(patient_id):
+        pass
+
+    def save_result(result):
+        pass
+
+    patient = get_patient(patient_id)
+
+    input_cde_codes = get_input_cde_codes_func()
+    input_context = {}
+    for input_cde_code in input_cde_codes:
+        input_value = get_input_value(input_cde_code)
+        input_context[input_cde_code] = input_value
+
+    updated_result = calculation_func(patient, input_context)
+    logger.debug(f"updated result = {updated_result}")
+
+    # now save the result
+    save_result(updated_result)
+    logger.info("DONE {msg}")
