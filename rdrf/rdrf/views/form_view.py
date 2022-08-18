@@ -191,6 +191,17 @@ class SectionInfo(object):
 
         return form_instance
 
+    @property
+    def cde_models(self):
+        cdes = []
+        section_code = self.section_code
+        form_model = self.patient_wrapper.current_form_model
+        for section_model in form_model.section_models:
+            if section_model.code == section_code:
+                for cde_model in section_model.cde_models:
+                    cdes.append(cde_model)
+        return cdes
+
 
 class FormSwitchLockingView(View):
     @method_decorator(anonymous_not_allowed)
