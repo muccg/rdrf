@@ -2036,7 +2036,8 @@ def update_calculated_fields_depending_on_saved_data(sender, **kwargs):
     from rdrf.helpers.recalc_logic import Recalculator
     patient = kwargs["patient"]
     section_infos = kwargs["saved_sections"]
-    form_model = section_infos[0].current_form_model
+    # all section_infos come from same form
+    form_model = section_infos[0].patient_wrapper.current_form_model
     registry_model = form_model.registry
     recalculator = Recalculator(registry_model, patient)
     for section_info in section_infos:

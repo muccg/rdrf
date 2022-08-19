@@ -5,8 +5,11 @@ from rdrf.models.definition.models import CommonDataElement
 from rdrf.views.form_view import SectionInfo
 from rdrf.services.tasks import recalculate_cde
 from rdrf.helpers.utils import get_location
-from rdrf.helpers.utils import in_registry
+from rdrf.helpers.utils import is_calculated_cde_in_registry as in_registry
 from rdrf.forms.fields import calculated_functions as cf
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 def get_calcs_reverse_map(registry: Registry) -> dict:
@@ -46,35 +49,44 @@ class Recalculator:
         self.registry = registry
         self.patient = patient
         self.inputs_map: dict = get_calcs_reverse_map(self.registry)
+        logger.debug(f"recalculator inputs_map = {self.inputs_map}")
 
     def check_recalc(self, section_info: SectionInfo):
+        logger.debug(f"checking recalc on sectioninfo {section_info}")
         section_form: RegistryForm = section_info.patient_wrapper.current_form_model
+        logger.debug(f"sectioninfo is on {section_form.name}")
         recalc_needed = set([])
         for cde_model in section_info.cde_models:
             if cde_model.code in self.inputs_map:
                 for output_cde_code in self.inputs_map[cde_model.code]:
                     if self._on_different_form(output_cde_code, section_form):
+                        logger.debug(f"recalc needed for {output_cde_code}")
                         recalc_needed.add(output_cde_code)
+                    else:
+                        logger.debug(f"{output_cde_code} on same form {section_form.name}")
 
         for output_cde_code in recalc_needed:
             self._recalc(output_cde_code, section_info)
 
     def _on_different_form(self, cde_code, section_form: RegistryForm):
-        for cde_model in section_form.cde_models:
-            if cde_model.code == cde_code:
-                return False
+        for section_model in section_form.section_models:
+            for cde_model in section_model.cde_models:
+                if cde_model.code == cde_code:
+                    return False
+        return True
 
     def _recalc(self, output_cde_code, section_info: SectionInfo):
         calc_cde: CommonDataElement = CommonDataElement.objects.get(code=output_cde_code)
         form_model, section_model = get_location(self.registry, calc_cde)
         context_id = section_info.patient_wrapper.rdrf_context_id
         section_index = 0
+        logger.debug(f"recalculating {output_cde_code}")
 
         # spawn a task to update
-        recalculate_cde.delay(self.patient.id,
-                              self.registry.code,
-                              context_id,
-                              form_model.name,
-                              section_model.code,
-                              section_index,
-                              calc_cde.code)
+        recalculate_cde(self.patient.id,
+                        self.registry.code,
+                        context_id,
+                        form_model.name,
+                        section_model.code,
+                        section_index,
+                        calc_cde.code)
