@@ -105,7 +105,6 @@ def recalculate_cde(patient_id, registry_code, context_id, form_name, section_co
     context_model = RDRFContext.objects.get(id=context_id)
 
     patient_data = patient_model.get_dynamic_data(registry, context_id=context_id)
-    logger.debug(f"loaded dynamic data = {patient_data}")
 
     def get_input_value(cde_code):
         for form_dict in patient_data["forms"]:
@@ -139,7 +138,6 @@ def recalculate_cde(patient_id, registry_code, context_id, form_name, section_co
     except Exception as ex:
         logger.info(f"error recalculating {cde_code}: {ex}")
         updated_result = ""
-    logger.debug(f"updated result = {updated_result}")
 
     # now save the result
     save_result(updated_result)

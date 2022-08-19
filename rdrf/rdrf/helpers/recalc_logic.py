@@ -49,21 +49,15 @@ class Recalculator:
         self.registry = registry
         self.patient = patient
         self.inputs_map: dict = get_calcs_reverse_map(self.registry)
-        logger.debug(f"recalculator inputs_map = {self.inputs_map}")
 
     def check_recalc(self, section_info: SectionInfo):
-        logger.debug(f"checking recalc on sectioninfo {section_info}")
         section_form: RegistryForm = section_info.patient_wrapper.current_form_model
-        logger.debug(f"sectioninfo is on {section_form.name}")
         recalc_needed = set([])
         for cde_model in section_info.cde_models:
             if cde_model.code in self.inputs_map:
                 for output_cde_code in self.inputs_map[cde_model.code]:
                     if self._on_different_form(output_cde_code, section_form):
-                        logger.debug(f"recalc needed for {output_cde_code}")
                         recalc_needed.add(output_cde_code)
-                    else:
-                        logger.debug(f"{output_cde_code} on same form {section_form.name}")
 
         for output_cde_code in recalc_needed:
             self._recalc(output_cde_code, section_info)
@@ -80,9 +74,10 @@ class Recalculator:
         form_model, section_model = get_location(self.registry, calc_cde)
         context_id = section_info.patient_wrapper.rdrf_context_id
         section_index = 0
-        logger.debug(f"recalculating {output_cde_code}")
 
-        # spawn a task to update
+        # originally I thought this would be in a task
+        # but will call synchronously as it doesn't seem
+        # slow
         recalculate_cde(self.patient.id,
                         self.registry.code,
                         context_id,
