@@ -78,8 +78,8 @@ class Recalculator:
         # originally I thought this would be in a task
         # but will call synchronously as it doesn't seem
         # slow
+        # func = recalculate_cde.delay
 
-        #func = recalculate_cde.delay
         func = recalculate_cde
         func(self.patient.id,
              self.registry.code,
