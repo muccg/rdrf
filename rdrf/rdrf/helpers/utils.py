@@ -1073,5 +1073,6 @@ def get_location(registry_model, cde_model):
                 if c.code == cde_model.code:
                     return form_model, section_model
 
+
 def update_patient_calculated_fields(registry_code, patient_id):
     call_command('update_calculated_fields', registry_code=registry_code, patient_id=[patient_id])
