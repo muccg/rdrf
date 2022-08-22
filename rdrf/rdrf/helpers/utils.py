@@ -9,6 +9,9 @@ from django.db import transaction
 from django.utils.html import strip_tags
 from functools import total_ordering
 
+from django.core.management import call_command
+
+
 import datetime
 import dateutil.parser
 import logging
@@ -1069,3 +1072,6 @@ def get_location(registry_model, cde_model):
             for c in section_model.cde_models:
                 if c.code == cde_model.code:
                     return form_model, section_model
+
+def update_patient_calculated_fields(registry_code, patient_id):
+    call_command('update_calculated_fields', registry_code=registry_code, patient_id=[patient_id])

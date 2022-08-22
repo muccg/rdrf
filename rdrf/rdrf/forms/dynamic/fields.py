@@ -10,6 +10,7 @@ from django.forms import MultipleChoiceField
 from rdrf.forms.widgets.widgets import MultipleFileInput
 # from rdrf.forms.widgets.widgets import HiddenInput
 from rdrf.forms.widgets.widgets import ExternalWidget
+from rdrf.forms.widgets.widgets import NewStyleCalculatedWidget
 from django.core.exceptions import ValidationError
 
 
@@ -102,3 +103,7 @@ class RDRFMultipleChoiceField(MultipleChoiceField):
 
 class ExternalField(CharField):
     widget = ExternalWidget
+
+
+class NewStyleCalculatedField(CharField):
+    widget = NewStyleCalculatedWidget

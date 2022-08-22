@@ -863,6 +863,21 @@ class CommonDataElement(models.Model):
 
         return validation_rules_description
 
+    def calculate(self, patient, context):
+        if not self.datatype == "calculated":
+            raise ValueError("Can't calculate with a non-calculated field")
+        from rdrf.forms.fields import calculated_functions as cf
+        if hasattr(cf, self.code):
+            func = getattr(cf, self.code)
+            if callable(func):
+                logger.debug("found calc func")
+                result = func(patient, context)
+                logger.debug(f"result of calc = {result}")
+                return result
+            else:
+                logger.debug("func not callable: {func}")
+        return "ERROR?"
+
 
 def validate_abnormality_condition(abnormality_condition, datatype):
     abnormality_condition_lines = list(
