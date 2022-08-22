@@ -78,10 +78,10 @@ class Recalculator:
         # originally I thought this would be in a task
         # but will call synchronously as it doesn't seem
         # slow
-        recalculate_cde(self.patient.id,
-                        self.registry.code,
-                        context_id,
-                        form_model.name,
-                        section_model.code,
-                        section_index,
-                        calc_cde.code)
+        recalculate_cde.delay(self.patient.id,
+                              self.registry.code,
+                              context_id,
+                              form_model.name,
+                              section_model.code,
+                              section_index,
+                              calc_cde.code)
