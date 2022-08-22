@@ -579,14 +579,14 @@ crc_cancer_stage_rules = {
              [{'cde': 'TNMPTCRC', 'value': 'pT4b'},
               {'cde': 'TNMPNCRC', 'value': 'pN2'},
               {'cde': 'TNMPMCRC', 'value': 'pMx'}]],
-    "IVA": [[{'cde': 'TNMPTCRC', 'value': 'pTX'},
-             {'cde': 'TNMPNCRC', 'value': 'pNX'},
+    "IVA": [[{'cde': 'TNMPTCRC', 'value': 'pTZ'},
+             {'cde': 'TNMPNCRC', 'value': 'pNZ'},
              {'cde': 'TNMPMCRC', 'value': 'pM1a'}]],
-    "IVB": [[{'cde': 'TNMPTCRC', 'value': 'pTX'},
-             {'cde': 'TNMPNCRC', 'value': 'pNX'},
+    "IVB": [[{'cde': 'TNMPTCRC', 'value': 'pTZ'},
+             {'cde': 'TNMPNCRC', 'value': 'pNZ'},
              {'cde': 'TNMPMCRC', 'value': 'pM1b'}]],
-    "IVC": [[{'cde': 'TNMPTCRC', 'value': 'pTX'},
-             {'cde': 'TNMPNCRC', 'value': 'pNX'},
+    "IVC": [[{'cde': 'TNMPTCRC', 'value': 'pTZ'},
+             {'cde': 'TNMPNCRC', 'value': 'pNZ'},
              {'cde': 'TNMPMCRC', 'value': 'pM1c'}]]}
 
 bc_cancer_stage_spec = """Stage 0
@@ -674,9 +674,10 @@ ov_cancer_stage_spec = ""
 
 
 class CancerStageEvaluator:
-    def __init__(self, rules_dict=None, spec=None, cde_prefix=None, value_prefix="p"):
+    def __init__(self, rules_dict=None, spec=None, cde_prefix=None, value_prefix="p", pattern="Z"):
         self.cde_prefix = cde_prefix
         self.value_prefix = value_prefix
+        self.pattern = pattern
         assert(self.cde_prefix is not None, "cde_prefix must not be None")
         logger.debug("initialising canver stage evaluator")
         if rules_dict is not None:
@@ -792,7 +793,7 @@ class CancerStageEvaluator:
 
     def _is_pattern(self, value):
         logger.debug(f"checking whether value {value} is a pattern")
-        result = value[-1].lower() == "x"
+        result = value[-1].lower() == self.pattern
         if result:
             logger.debug(f"{value} IS a pattern")
         else:
@@ -828,7 +829,7 @@ class CancerStageEvaluator:
 
         if not is_pattern:
             logger.debug("not a pattern")
-            result = patient_display_value == rule_display_value
+            result = patient_display_value.lower() == rule_display_value.lower()
         else:
             logger.debug("pattern found")
             result = patient_display_value.startswith(prefix)
@@ -853,7 +854,7 @@ class CancerStageEvaluator:
 def CRCCANCERSTAGE(patient, context):
     logger.info("in cdecrc cancer stage")
     context = fill_missing_input(context, 'CRCCANCERSTAGE_inputs')
-    evaluator = CancerStageEvaluator(rules_dict=crc_cancer_stage_rules, cde_prefix="TNMP")
+    evaluator = CancerStageEvaluator(rules_dict=crc_cancer_stage_rules, cde_prefix="TNMP", pattern="Z")
     return evaluator.evaluate(patient, context)
 
 
