@@ -589,6 +589,48 @@ crc_cancer_stage_rules = {
              {'cde': 'TNMPNCRC', 'value': 'pNZ'},
              {'cde': 'TNMPMCRC', 'value': 'pM1c'}]]}
 
+
+crc_cancer_stage_spec = """Stage 0
+TNMPTCRC = pTis TNMPNCRC = pNX TNMPMCRC = pMX
+TNMPTCRC = pT0 TNMPNCRC = pN0 TNMPMCRC = pMX
+Stage I
+TNMPTCRC = pT1 TNMPNCRC = pN0 TNMPMCRC = pMX
+TNMPTCRC = pT2 TNMPNCRC = pN0 TNMPMCRC = pMX
+Stage IIA
+TNMPTCRC = pT3 TNMPNCRC = pN0 TNMPMCRC = pMX
+Stage IIB
+TNMPTCRC = pT4a TNMPNCRC = pN0 TNMPMCRC = pMX
+Stage IIC
+TNMPTCRC = pT4b TNMPNCRC = pN0 TNMPMCRC = pMX
+Stage IIIA
+TNMPTCRC = pT1 TNMPNCRC = pN1 TNMPMCRC = pMX
+TNMPTCRC = pT2 TNMPNCRC = pN1 TNMPMCRC = pMX
+TNMPTCRC = pT1 TNMPNCRC = pN1c TNMPMCRC = pMX
+TNMPTCRC = pT2 TNMPNCRC = pN1c TNMPMCRC = pMX
+TNMPTCRC = pT1 TNMPNCRC = pN2a TNMPMCRC = pMX
+Stage IIIB
+TNMPTCRC = pT3 TNMPNCRC = pN1 TNMPMCRC = pMX
+TNMPTCRC = pT3 TNMPNCRC = pN1c TNMPMCRC = pMX
+TNMPTCRC = pT4a TNMPNCRC = pN1 TNMPMCRC = pMX
+TNMPTCRC = pT4a TNMPNCRC = pN1c TNMPMCRC = pMX
+TNMPTCRC = pT2 TNMPNCRC = pN2a TNMPMCRC = pMX
+TNMPTCRC = pT3 TNMPNCRC = pN2a TNMPMCRC = pMX
+TNMPTCRC = pT1 TNMPNCRC = pN2b TNMPMCRC = pMX
+TNMPTCRC = pT2 TNMPNCRC = pN2b TNMPMCRC = pMX
+Stage IIIC
+TNMPTCRC = pT4a TNMPNCRC = pN2a TNMPMCRC = pMX
+TNMPTCRC = pT3 TNMPNCRC = pN2b TNMPMCRC = pMX
+TNMPTCRC = pT4a TNMPNCRC = pN2b TNMPMCRC = pMX
+TNMPTCRC = pT4b TNMPNCRC = pN1 TNMPMCRC = pMX
+TNMPTCRC = pT4b TNMPNCRC = pN2 TNMPMCRC = pMX
+Stage IVA
+TNMPTCRC = pTZ TNMPNCRC = pNZ TNMPMCRC = pM1a
+Stage IVB
+TNMPTCRC = pTZ TNMPNCRC = pNZ TNMPMCRC = pM1b
+Stage IVC
+TNMPTCRC = pTZ TNMPNCRC = pNZ TNMPMCRC = pM1c
+"""
+
 bc_cancer_stage_spec = """Stage 0
                        TNMPT = pTis TNMPN = pN0 TNMPM = pMX
                        Stage IA
@@ -851,7 +893,8 @@ class CancerStageEvaluator:
 def CRCCANCERSTAGE(patient, context):
     logger.info("in cdecrc cancer stage")
     context = fill_missing_input(context, 'CRCCANCERSTAGE_inputs')
-    evaluator = CancerStageEvaluator(rules_dict=crc_cancer_stage_rules, cde_prefix="TNMP", pattern="Z")
+    #evaluator = CancerStageEvaluator(rules_dict=crc_cancer_stage_rules, cde_prefix="TNMP", pattern="Z")
+    evaluator = CancerStageEvaluator(spec=crc_cancer_stage_spec, cde_prefix="TNMP", pattern="Z")
     return evaluator.evaluate(patient, context)
 
 
