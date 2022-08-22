@@ -73,6 +73,10 @@ def recalculate_cde(patient_id, registry_code, context_id, form_name, section_co
 
     registry: Registry = Registry.objects.get(code=registry_code)
 
+    if not registry.has_feature("use_new_style_calcs"):
+        logger.info("recalc: will not recalculate cde as registry not using new style calcs feature")
+        return
+
     cde_model = CommonDataElement.objects.get(code=cde_code)
     if cde_model.datatype != "calculated":
         logger.error(f"cannot recalculate cde {cde_code} as it is not a calculated field")
