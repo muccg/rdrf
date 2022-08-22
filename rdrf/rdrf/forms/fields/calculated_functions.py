@@ -593,9 +593,6 @@ bc_cancer_stage_spec = """Stage 0
                        TNMPT = pTis TNMPN = pN0 TNMPM = pMX
                        Stage IA
                        TNMPT = pT1 TNMPN = pN0 TNMPM = pMX
-                       Stage IB
-                       TNMPT = pT0 TNMPN = pN1 TNMPM = pMX
-                       TNMPT = pT1 TNMPN = pN1 TNMPM = pMX
                        Stage IIA
                        TNMPT = pT0 TNMPN = pN1 TNMPM = pMX
                        TNMPT = pT1 TNMPN = pN1 TNMPM = pMX
