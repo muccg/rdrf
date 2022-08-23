@@ -4,6 +4,7 @@ from setuptools import setup, find_packages
 package_data = {}
 start_dir = os.getcwd()
 requirements = [
+    "svglib==1.2.1",
     "ccg-django-utils==0.4.2",
     "celery==5.1.0",
     "Django==2.2.28",
