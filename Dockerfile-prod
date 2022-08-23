@@ -11,7 +11,7 @@ RUN env | sort
 RUN mkdir -p /data \
     && /bin/chown ccg-user:ccg-user /data
     
-RUN pip install --upgrade "setuptools==65.2.0"
+#RUN pip install --upgrade "setuptools==65.2.0"
 
 ADD build/${PROJECT_NAME}-${BUILD_VERSION}.tar.gz /
 
