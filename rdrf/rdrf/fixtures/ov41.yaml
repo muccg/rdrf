@@ -1,0 +1,5908 @@
+EXPORT_TIME: '2022-08-04 14:03:46.022114'
+EXPORT_TYPE: REGISTRY_PLUS_CDES
+RDRF_VERSION: 6.6.25
+REGISTRY_VERSION: '41'
+cde_policies: []
+cdes:
+- abnormality_condition: ''
+  allow_multiple: false
+  calculation: ''
+  code: ALB_Ov
+  datatype: integer
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Serum albumin at diagnosis
+  pattern: ''
+  pv_group: null
+  questionnaire_text: ''
+  widget_config: ''
+  widget_name: ''
+- abnormality_condition: ''
+  allow_multiple: false
+  calculation: ''
+  code: AVASTARTDATE_Ov
+  datatype: date
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Start of Bevacizumab therapy
+  pattern: ''
+  pv_group: null
+  questionnaire_text: ''
+  widget_config: ''
+  widget_name: DateWidget
+- abnormality_condition: ''
+  allow_multiple: false
+  calculation: ''
+  code: AVASTIN_Ov
+  datatype: range
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Was Bevacizumab given in the last year
+  pattern: ''
+  pv_group: Y_N_UK
+  questionnaire_text: ''
+  widget_config: ''
+  widget_name: RadioSelect
+- abnormality_condition: ''
+  allow_multiple: false
+  calculation: ''
+  code: AVASTOPDATE_Ov
+  datatype: date
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: End of Bevacizumab therapy
+  pattern: ''
+  pv_group: null
+  questionnaire_text: ''
+  widget_config: ''
+  widget_name: DateWidget
+- abnormality_condition: null
+  allow_multiple: false
+  calculation: ''
+  code: Address
+  datatype: string
+  desc: Address
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Address
+  pattern: ''
+  pv_group: null
+  questionnaire_text: ''
+  widget_config: ''
+  widget_name: Textarea
+- abnormality_condition: null
+  allow_multiple: false
+  calculation: ''
+  code: AddressType
+  datatype: range
+  desc: home or postal
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Address type
+  pattern: ''
+  pv_group: AddressType
+  questionnaire_text: ''
+  widget_config: ''
+  widget_name: ''
+- abnormality_condition: ''
+  allow_multiple: false
+  calculation: ''
+  code: BSSC_1
+  datatype: range
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Are you satisfied with your sexual function?
+  pattern: ''
+  pv_group: BSSC_Y_N
+  questionnaire_text: ''
+  widget_config: ''
+  widget_name: RadioSelect
+- abnormality_condition: ''
+  allow_multiple: false
+  calculation: ''
+  code: BSSC_2
+  datatype: integer
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: How long have been dissatisfied with your sexual function (in months)?
+  pattern: ''
+  pv_group: null
+  questionnaire_text: ''
+  widget_config: ''
+  widget_name: ''
+- abnormality_condition: ''
+  allow_multiple: false
+  calculation: ''
+  code: BSSC_3A
+  datatype: range
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: 1. Problem with little or no interest in sex
+  pattern: ''
+  pv_group: BSSC_Y_N
+  questionnaire_text: ''
+  widget_config: ''
+  widget_name: RadioSelect
+- abnormality_condition: ''
+  allow_multiple: false
+  calculation: ''
+  code: BSSC_3B
+  datatype: range
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: 2. Problem with decreased genital sensation (feeling)
+  pattern: ''
+  pv_group: BSSC_Y_N
+  questionnaire_text: ''
+  widget_config: ''
+  widget_name: RadioSelect
+- abnormality_condition: ''
+  allow_multiple: false
+  calculation: ''
+  code: BSSC_3C
+  datatype: range
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: 3. Problem with decreased vaginal lubrication (dryness)
+  pattern: ''
+  pv_group: BSSC_Y_N
+  questionnaire_text: ''
+  widget_config: ''
+  widget_name: RadioSelect
+- abnormality_condition: ''
+  allow_multiple: false
+  calculation: ''
+  code: BSSC_3D
+  datatype: range
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: 4. Problem reaching orgasm
+  pattern: ''
+  pv_group: BSSC_Y_N
+  questionnaire_text: ''
+  widget_config: ''
+  widget_name: RadioSelect
+- abnormality_condition: ''
+  allow_multiple: false
+  calculation: ''
+  code: BSSC_3E
+  datatype: range
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: 5. Problem with pain during sex
+  pattern: ''
+  pv_group: BSSC_Y_N
+  questionnaire_text: ''
+  widget_config: ''
+  widget_name: RadioSelect
+- abnormality_condition: ''
+  allow_multiple: false
+  calculation: ''
+  code: BSSC_3Fa
+  datatype: range
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: 6a. Other
+  pattern: ''
+  pv_group: BSSC_Y_N
+  questionnaire_text: ''
+  widget_config: ''
+  widget_name: RadioSelect
+- abnormality_condition: ''
+  allow_multiple: false
+  calculation: ''
+  code: BSSC_3Fb
+  datatype: string
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: 100
+  max_value: null
+  min_value: null
+  name: 6b.Reason
+  pattern: ''
+  pv_group: null
+  questionnaire_text: ''
+  widget_config: ''
+  widget_name: ''
+- abnormality_condition: ''
+  allow_multiple: false
+  calculation: ''
+  code: BSSC_4
+  datatype: string
+  desc: Of the six problems described
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Which problem is most bothersome?
+  pattern: ''
+  pv_group: null
+  questionnaire_text: ''
+  widget_config: ''
+  widget_name: ''
+- abnormality_condition: ''
+  allow_multiple: false
+  calculation: ''
+  code: BSSC_5
+  datatype: range
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Would you like to talk about it with your doctor?
+  pattern: ''
+  pv_group: BSSC_Y_N
+  questionnaire_text: ''
+  widget_config: ''
+  widget_name: RadioSelect
+- abnormality_condition: null
+  allow_multiple: false
+  calculation: ''
+  code: CDEPatientCentre
+  datatype: string
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Centre
+  pattern: ''
+  pv_group: null
+  questionnaire_text: ''
+  widget_config: ''
+  widget_name: ''
+- abnormality_condition: null
+  allow_multiple: false
+  calculation: ''
+  code: CDEPatientDateOfBirth
+  datatype: date
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: true
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Date of Birth
+  pattern: ''
+  pv_group: null
+  questionnaire_text: ''
+  widget_config: ''
+  widget_name: DateWidget
+- abnormality_condition: null
+  allow_multiple: false
+  calculation: ''
+  code: CDEPatientEmail
+  datatype: string
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: true
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Email
+  pattern: ''
+  pv_group: null
+  questionnaire_text: ''
+  widget_config: ''
+  widget_name: ''
+- abnormality_condition: null
+  allow_multiple: false
+  calculation: ''
+  code: CDEPatientFamilyName
+  datatype: string
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: true
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Family Name
+  pattern: ''
+  pv_group: null
+  questionnaire_text: ''
+  widget_config: ''
+  widget_name: ''
+- abnormality_condition: null
+  allow_multiple: false
+  calculation: ''
+  code: CDEPatientGivenNames
+  datatype: string
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: true
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Given Names
+  pattern: ''
+  pv_group: null
+  questionnaire_text: ''
+  widget_config: ''
+  widget_name: ''
+- abnormality_condition: null
+  allow_multiple: false
+  calculation: ''
+  code: CDEPatientHomePhone
+  datatype: string
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Home Phone
+  pattern: ''
+  pv_group: null
+  questionnaire_text: ''
+  widget_config: ''
+  widget_name: ''
+- abnormality_condition: null
+  allow_multiple: false
+  calculation: ''
+  code: CDEPatientMobilePhone
+  datatype: string
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Mobile Phone
+  pattern: ''
+  pv_group: null
+  questionnaire_text: ''
+  widget_config: ''
+  widget_name: ''
+- abnormality_condition: null
+  allow_multiple: false
+  calculation: ''
+  code: CDEPatientSex
+  datatype: range
+  desc: sex
+  important: false
+  instructions: ''
+  is_required: true
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Sex
+  pattern: ''
+  pv_group: Sex
+  questionnaire_text: What is your gender?
+  widget_config: ''
+  widget_name: ''
+- abnormality_condition: ''
+  allow_multiple: false
+  calculation: ''
+  code: CHEMOTXONGOING_Ov
+  datatype: range
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Ongoing chemotherapy
+  pattern: ''
+  pv_group: Y_N_UK
+  questionnaire_text: ''
+  widget_config: ''
+  widget_name: RadioSelect
+- abnormality_condition: ''
+  allow_multiple: false
+  calculation: ''
+  code: CHEMOTXSTARTDATE_Ov
+  datatype: date
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Start of chemotherapy
+  pattern: ''
+  pv_group: null
+  questionnaire_text: ''
+  widget_config: ''
+  widget_name: DateWidget
+- abnormality_condition: ''
+  allow_multiple: false
+  calculation: ''
+  code: CHEMOTXSTOPDATE_Ov
+  datatype: date
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: End of chemotherapy
+  pattern: ''
+  pv_group: null
+  questionnaire_text: ''
+  widget_config: ''
+  widget_name: DateWidget
+- abnormality_condition: ''
+  allow_multiple: false
+  calculation: ''
+  code: CHEMOTXTYPE1_Ov
+  datatype: range
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Type of chemotherapy
+  pattern: ''
+  pv_group: CHEMOTXTYPE1_Ov
+  questionnaire_text: ''
+  widget_config: ''
+  widget_name: RadioSelect
+- abnormality_condition: ''
+  allow_multiple: false
+  calculation: ''
+  code: CHEMOTX_Ov
+  datatype: range
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Was chemotherapy given in the last year
+  pattern: ''
+  pv_group: CHEMOTX_Ov
+  questionnaire_text: ''
+  widget_config: ''
+  widget_name: RadioSelect
+- abnormality_condition: ''
+  allow_multiple: false
+  calculation: ''
+  code: COLLECTIONDATE
+  datatype: date
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Collection Date
+  pattern: ''
+  pv_group: null
+  questionnaire_text: ''
+  widget_config: ''
+  widget_name: DateWidget
+- abnormality_condition: ''
+  allow_multiple: true
+  calculation: ''
+  code: COMORB_Ov
+  datatype: range
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Comorbidities (Select all that apply)
+  pattern: ''
+  pv_group: COMORBIDITIES
+  questionnaire_text: ''
+  widget_config: ''
+  widget_name: ''
+- abnormality_condition: ''
+  allow_multiple: false
+  calculation: ''
+  code: COMPLETE_Ov
+  datatype: range
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Completeness of surgical resection
+  pattern: ''
+  pv_group: COMPLETE_Ov
+  questionnaire_text: ''
+  widget_config: ''
+  widget_name: RadioSelect
+- abnormality_condition: ''
+  allow_multiple: true
+  calculation: ''
+  code: COMPLIMPACT_Ov
+  datatype: range
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Impact of complication/s (Select all that apply)
+  pattern: ''
+  pv_group: COMPLIMPACT_Ov
+  questionnaire_text: ''
+  widget_config: ''
+  widget_name: ''
+- abnormality_condition: ''
+  allow_multiple: false
+  calculation: ''
+  code: COMPLSYSCARDATE_Ov
+  datatype: date
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Date of cardiovascular toxicity
+  pattern: ''
+  pv_group: null
+  questionnaire_text: ''
+  widget_config: ''
+  widget_name: DateWidget
+- abnormality_condition: ''
+  allow_multiple: false
+  calculation: ''
+  code: COMPLSYSCYTODATE_Ov
+  datatype: date
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Date of cytopenia
+  pattern: ''
+  pv_group: null
+  questionnaire_text: ''
+  widget_config: ''
+  widget_name: DateWidget
+- abnormality_condition: ''
+  allow_multiple: false
+  calculation: ''
+  code: COMPLSYSINFDATE_Ov
+  datatype: date
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Date of infection
+  pattern: ''
+  pv_group: null
+  questionnaire_text: ''
+  widget_config: ''
+  widget_name: DateWidget
+- abnormality_condition: ''
+  allow_multiple: false
+  calculation: ''
+  code: COMPLSYSNEURODATE_Ov
+  datatype: date
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Date of neuropathy
+  pattern: ''
+  pv_group: null
+  questionnaire_text: ''
+  widget_config: ''
+  widget_name: DateWidget
+- abnormality_condition: ''
+  allow_multiple: false
+  calculation: ''
+  code: COMPLSYSOTHERDATE_Ov
+  datatype: date
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Date of other complication
+  pattern: ''
+  pv_group: null
+  questionnaire_text: ''
+  widget_config: ''
+  widget_name: DateWidget
+- abnormality_condition: ''
+  allow_multiple: false
+  calculation: ''
+  code: COMPLSYSOTHER_Ov
+  datatype: string
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: 100
+  max_value: null
+  min_value: null
+  name: CTCAE grade III-IV complication due to systemic therapy (excluding ADT) other
+    than those explicitly listed
+  pattern: ''
+  pv_group: null
+  questionnaire_text: ''
+  widget_config: ''
+  widget_name: ''
+- abnormality_condition: ''
+  allow_multiple: false
+  calculation: ''
+  code: COMPLSYSSKIDATE_Ov
+  datatype: date
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Date of skin reaction
+  pattern: ''
+  pv_group: null
+  questionnaire_text: ''
+  widget_config: ''
+  widget_name: DateWidget
+- abnormality_condition: ''
+  allow_multiple: true
+  calculation: ''
+  code: COMPLSYS_Ov
+  datatype: range
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: CTCAE grade III-IV complications due to systemic therapy (excluding ADT) -
+    (Select all that apply)
+  pattern: ''
+  pv_group: COMPLSYS_Ov
+  questionnaire_text: ''
+  widget_config: ''
+  widget_name: ''
+- abnormality_condition: ''
+  allow_multiple: false
+  calculation: ''
+  code: COMPLTX_Ov
+  datatype: range
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Complication/s attribute to treatment
+  pattern: ''
+  pv_group: Y_N_UK
+  questionnaire_text: ''
+  widget_config: ''
+  widget_name: RadioSelect
+- abnormality_condition: ''
+  allow_multiple: true
+  calculation: ''
+  code: COMPL_Ov
+  datatype: range
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Complication type (Select all that apply)
+  pattern: ''
+  pv_group: COMPL_Ov
+  questionnaire_text: ''
+  widget_config: ''
+  widget_name: ''
+- abnormality_condition: ''
+  allow_multiple: false
+  calculation: ''
+  code: CURA_Ov
+  datatype: range
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: 'Treatment intent: curative or palliative'
+  pattern: ''
+  pv_group: CURA_Ov
+  questionnaire_text: ''
+  widget_config: ''
+  widget_name: RadioSelect
+- abnormality_condition: ''
+  allow_multiple: false
+  calculation: ''
+  code: DEATHDATE_Ov
+  datatype: date
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Date of death
+  pattern: ''
+  pv_group: null
+  questionnaire_text: ''
+  widget_config: ''
+  widget_name: DateWidget
+- abnormality_condition: ''
+  allow_multiple: false
+  calculation: ''
+  code: DEATHOC_Ov
+  datatype: range
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Death was attributable to cancer
+  pattern: ''
+  pv_group: Y_N_UK
+  questionnaire_text: ''
+  widget_config: ''
+  widget_name: RadioSelect
+- abnormality_condition: ''
+  allow_multiple: false
+  calculation: ''
+  code: DEATHPALL_Ov
+  datatype: range
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Was patient cared for by palliative care at time of death
+  pattern: ''
+  pv_group: Y_N_UK
+  questionnaire_text: ''
+  widget_config: ''
+  widget_name: RadioSelect
+- abnormality_condition: ''
+  allow_multiple: false
+  calculation: ''
+  code: DEATHPLACEPREFDATE_Ov
+  datatype: date
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Date of place of death preference documented
+  pattern: ''
+  pv_group: null
+  questionnaire_text: ''
+  widget_config: ''
+  widget_name: DateWidget
+- abnormality_condition: ''
+  allow_multiple: false
+  calculation: ''
+  code: DEATHPLACE_Ov
+  datatype: range
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Where did the person die
+  pattern: ''
+  pv_group: DEATHPLACE_Ov
+  questionnaire_text: ''
+  widget_config: ''
+  widget_name: RadioSelect
+- abnormality_condition: ''
+  allow_multiple: false
+  calculation: ''
+  code: DEATHPREF_Ov
+  datatype: range
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Does/did the person have a documented preference of place of death
+  pattern: ''
+  pv_group: DEATHPLACE_Ov
+  questionnaire_text: ''
+  widget_config: ''
+  widget_name: RadioSelect
+- abnormality_condition: ''
+  allow_multiple: false
+  calculation: ''
+  code: DEATH_Ov
+  datatype: range
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Has the person died
+  pattern: ''
+  pv_group: Y_N_UK
+  questionnaire_text: ''
+  widget_config: ''
+  widget_name: RadioSelect
+- abnormality_condition: ''
+  allow_multiple: false
+  calculation: ''
+  code: DIAGDATE_Ov
+  datatype: date
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Histological diagnosis DATE
+  pattern: ''
+  pv_group: null
+  questionnaire_text: ''
+  widget_config: ''
+  widget_name: DateWidget
+- abnormality_condition: ''
+  allow_multiple: false
+  calculation: ''
+  code: EDUCATION_Ov
+  datatype: range
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Highest education Level
+  pattern: ''
+  pv_group: EDUCATION_Ov
+  questionnaire_text: ''
+  widget_config: ''
+  widget_name: RadioSelect
+- abnormality_condition: ''
+  allow_multiple: false
+  calculation: ''
+  code: EQ_Anxiety_Depress
+  datatype: range
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: ANXIETY / DEPRESSION
+  pattern: ''
+  pv_group: EQ_Anxiety_Depress
+  questionnaire_text: ''
+  widget_config: ''
+  widget_name: RadioSelect
+- abnormality_condition: ''
+  allow_multiple: false
+  calculation: ''
+  code: EQ_Health_Rate
+  datatype: integer
+  desc: ''
+  important: false
+  instructions: We would like to know how good or bad your health is TODAY. This scale
+    is numbered from 0 to 100. 100 means the best health you can imagine. 0 means
+    the worst health you can imagine. Please tap on the scale to indicate how your
+    health is TODAY.
+  is_required: false
+  max_length: null
+  max_value: '100.00'
+  min_value: '0.00'
+  name: YOUR HEALTH TODAY
+  pattern: ''
+  pv_group: null
+  questionnaire_text: ''
+  widget_config: ''
+  widget_name: ''
+- abnormality_condition: ''
+  allow_multiple: false
+  calculation: ''
+  code: EQ_Mobility
+  datatype: range
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: MOBILITY
+  pattern: ''
+  pv_group: EQMobility
+  questionnaire_text: ''
+  widget_config: ''
+  widget_name: RadioSelect
+- abnormality_condition: ''
+  allow_multiple: false
+  calculation: ''
+  code: EQ_Pain_Discomfort
+  datatype: range
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: PAIN / DISCOMFORT
+  pattern: ''
+  pv_group: EQ_Pain_Discomfort
+  questionnaire_text: ''
+  widget_config: ''
+  widget_name: RadioSelect
+- abnormality_condition: ''
+  allow_multiple: false
+  calculation: ''
+  code: EQ_Selfcare
+  datatype: range
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: PERSONAL CARE
+  pattern: ''
+  pv_group: EQSelfCare
+  questionnaire_text: ''
+  widget_config: ''
+  widget_name: RadioSelect
+- abnormality_condition: ''
+  allow_multiple: false
+  calculation: ''
+  code: EQ_UsualActivities
+  datatype: range
+  desc: ''
+  important: false
+  instructions: (e.g. work, study, housework, family or leisure activities)
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: USUAL ACTIVITIES
+  pattern: ''
+  pv_group: EQUsualActivities
+  questionnaire_text: ''
+  widget_config: ''
+  widget_name: RadioSelect
+- abnormality_condition: ''
+  allow_multiple: false
+  calculation: ''
+  code: ETNIC_Ov
+  datatype: range
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Ethnicity
+  pattern: ''
+  pv_group: Ethnicity
+  questionnaire_text: ''
+  widget_config: ''
+  widget_name: RadioSelect
+- abnormality_condition: ''
+  allow_multiple: false
+  calculation: ''
+  code: FAMHIS_Ov
+  datatype: range
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Patient family history of ovarian, breast or prostate cancer
+  pattern: ''
+  pv_group: Y_N_UK
+  questionnaire_text: ''
+  widget_config: ''
+  widget_name: RadioSelect
+- abnormality_condition: ''
+  allow_multiple: true
+  calculation: ''
+  code: FAMHIS_Ov_Y
+  datatype: range
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: 'If yes - was this in a: (Select all that apply)'
+  pattern: ''
+  pv_group: FAMHIS_Ov_Y
+  questionnaire_text: ''
+  widget_config: ''
+  widget_name: ''
+- abnormality_condition: ''
+  allow_multiple: false
+  calculation: ''
+  code: GERMMUT_Ov
+  datatype: range
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: BRCA, MMR or other gene mutation
+  pattern: ''
+  pv_group: Y_N_UK
+  questionnaire_text: ''
+  widget_config: ''
+  widget_name: RadioSelect
+- abnormality_condition: ''
+  allow_multiple: false
+  calculation: ''
+  code: GERMMUT_Ov_Y
+  datatype: string
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: If Yes - please record the gene name
+  pattern: ''
+  pv_group: null
+  questionnaire_text: ''
+  widget_config: ''
+  widget_name: ''
+- abnormality_condition: ''
+  allow_multiple: false
+  calculation: ''
+  code: GRADE_Ov
+  datatype: range
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Tumour grade
+  pattern: ''
+  pv_group: GRADE_Ov
+  questionnaire_text: ''
+  widget_config: ''
+  widget_name: RadioSelect
+- abnormality_condition: ''
+  allow_multiple: false
+  calculation: ''
+  code: HEIGHT_Ov
+  datatype: integer
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Height (in centimetres)
+  pattern: ''
+  pv_group: null
+  questionnaire_text: ''
+  widget_config: ''
+  widget_name: ''
+- abnormality_condition: ''
+  allow_multiple: false
+  calculation: ''
+  code: HISTOTYPE_Ov
+  datatype: range
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Histological type
+  pattern: ''
+  pv_group: HISTOTYPE_Ov
+  questionnaire_text: ''
+  widget_config: ''
+  widget_name: RadioSelect
+- abnormality_condition: ''
+  allow_multiple: false
+  calculation: ''
+  code: HORMONTXONGOING_Ov
+  datatype: range
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Ongoing hormonal therapy
+  pattern: ''
+  pv_group: Y_N_UK
+  questionnaire_text: ''
+  widget_config: ''
+  widget_name: RadioSelect
+- abnormality_condition: ''
+  allow_multiple: false
+  calculation: ''
+  code: HORMONTXSTARTDATE_Ov
+  datatype: date
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Start of hormonal therapy
+  pattern: ''
+  pv_group: null
+  questionnaire_text: ''
+  widget_config: ''
+  widget_name: DateWidget
+- abnormality_condition: ''
+  allow_multiple: false
+  calculation: ''
+  code: HORMONTXSTOPDATE_Ov
+  datatype: date
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: End of hormonal therapy
+  pattern: ''
+  pv_group: null
+  questionnaire_text: ''
+  widget_config: ''
+  widget_name: DateWidget
+- abnormality_condition: ''
+  allow_multiple: false
+  calculation: ''
+  code: HORMONTXTYPE_Ov
+  datatype: range
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Type of hormonal therapy
+  pattern: ''
+  pv_group: HORMONTXTYPE_Ov
+  questionnaire_text: ''
+  widget_config: ''
+  widget_name: RadioSelect
+- abnormality_condition: ''
+  allow_multiple: false
+  calculation: ''
+  code: HORMONTX_Ov
+  datatype: range
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Was hormonal therapy given in the last year
+  pattern: ''
+  pv_group: Y_N_UK
+  questionnaire_text: ''
+  widget_config: ''
+  widget_name: RadioSelect
+- abnormality_condition: ''
+  allow_multiple: false
+  calculation: ''
+  code: HOSPID_CHEMO_Ov
+  datatype: range
+  desc: ADD BUTTON
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Hospital where chemotherapy undertaken
+  pattern: ''
+  pv_group: HOSPITAL_Ov
+  questionnaire_text: ''
+  widget_config: ''
+  widget_name: ''
+- abnormality_condition: ''
+  allow_multiple: false
+  calculation: ''
+  code: HOSPID_SURGERY_Ov
+  datatype: range
+  desc: ADD BUTTON
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Hospital where surgery performed
+  pattern: ''
+  pv_group: HOSPITAL_Ov
+  questionnaire_text: ''
+  widget_config: ''
+  widget_name: ''
+- abnormality_condition: ''
+  allow_multiple: false
+  calculation: ''
+  code: IMMUNOTXSTARTDATE_Ov
+  datatype: date
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Start of immunotherapy
+  pattern: ''
+  pv_group: null
+  questionnaire_text: ''
+  widget_config: ''
+  widget_name: DateWidget
+- abnormality_condition: ''
+  allow_multiple: false
+  calculation: ''
+  code: IMMUNOTXSTOPDATE_Ov
+  datatype: date
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: End of immunotherapy
+  pattern: ''
+  pv_group: null
+  questionnaire_text: ''
+  widget_config: ''
+  widget_name: DateWidget
+- abnormality_condition: ''
+  allow_multiple: false
+  calculation: ''
+  code: IMMUNOTX_Ov
+  datatype: range
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Was immunotherapy given in the last year
+  pattern: ''
+  pv_group: Y_N_UK
+  questionnaire_text: ''
+  widget_config: ''
+  widget_name: RadioSelect
+- abnormality_condition: ''
+  allow_multiple: false
+  calculation: ''
+  code: INHOSPITAL_Ov
+  datatype: range
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Days spent in hospital in the last 30 days of life
+  pattern: ''
+  pv_group: Y_N_UK
+  questionnaire_text: ''
+  widget_config: ''
+  widget_name: RadioSelect
+- abnormality_condition: ''
+  allow_multiple: false
+  calculation: ''
+  code: MARITAL_Ov
+  datatype: range
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Relationship status
+  pattern: ''
+  pv_group: MARITAL_Ov
+  questionnaire_text: ''
+  widget_config: ''
+  widget_name: RadioSelect
+- abnormality_condition: ''
+  allow_multiple: false
+  calculation: ''
+  code: MENOPAUSE_Ov
+  datatype: range
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Menopause status
+  pattern: ''
+  pv_group: MENOPAUSE
+  questionnaire_text: ''
+  widget_config: ''
+  widget_name: RadioSelect
+- abnormality_condition: x in ["4","5","6","7","8","9","10"]
+  allow_multiple: false
+  calculation: ''
+  code: MOSTFollow_up_Q1
+  datatype: range
+  desc: |-
+    Please choose, for each line, the number that best represents how much this issue has concerned you on average during the last 3 to 4 weeks
+    0 = No trouble at all, 10 = Worst I can imagine
+  important: false
+  instructions: |-
+    0 = No trouble at all,
+    1,2,3 = Mild,
+    4,5,6 = Moderate,
+    7,8,9 = Severe,
+    10 = Worst I can imagine.
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Fatigue (tiredness)
+  pattern: ''
+  pv_group: 0_10Scale
+  questionnaire_text: ''
+  widget_config: ''
+  widget_name: RadioSelect
+- abnormality_condition: x in ["4","5","6","7","8","9","10"]
+  allow_multiple: false
+  calculation: ''
+  code: MOSTFollow_up_Q10
+  datatype: range
+  desc: |-
+    Please choose, for each line, the number that best represents how much this issue has concerned you on average during the last 3 to 4 weeks
+    0 = No trouble at all, 10 = Worst I can imagine
+  important: false
+  instructions: |-
+    0 = No trouble at all,
+    1,2,3 = Mild,
+    4,5,6 = Moderate,
+    7,8,9 = Severe,
+    10 = Worst I can imagine.
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Trouble sleeping
+  pattern: ''
+  pv_group: 0_10Scale
+  questionnaire_text: ''
+  widget_config: ''
+  widget_name: RadioSelect
+- abnormality_condition: x in ["4","5","6","7","8","9","10"]
+  allow_multiple: false
+  calculation: ''
+  code: MOSTFollow_up_Q11
+  datatype: range
+  desc: |-
+    Please choose, for each line, the number that best represents how much this issue has concerned you on average during the last 3 to 4 weeks
+    0 = No trouble at all, 10 = Worst I can imagine
+  important: false
+  instructions: |-
+    0 = No trouble at all,
+    1,2,3 = Mild,
+    4,5,6 = Moderate,
+    7,8,9 = Severe,
+    10 = Worst I can imagine.
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Numbness or pins and needles
+  pattern: ''
+  pv_group: 0_10Scale
+  questionnaire_text: ''
+  widget_config: ''
+  widget_name: RadioSelect
+- abnormality_condition: x in ["4","5","6","7","8","9","10"]
+  allow_multiple: false
+  calculation: x in ["4","5","6","7","8","9","10"]
+  code: MOSTFollow_up_Q12
+  datatype: range
+  desc: |-
+    Please choose, for each line, the number that best represents how much this issue has concerned you on average during the last 3 to 4 weeks
+    0 = No trouble at all, 10 = Worst I can imagine
+  important: false
+  instructions: |-
+    0 = No trouble at all,
+    1,2,3 = Mild,
+    4,5,6 = Moderate,
+    7,8,9 = Severe,
+    10 = Worst I can imagine.
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Sore hands and feet
+  pattern: ''
+  pv_group: 0_10Scale
+  questionnaire_text: ''
+  widget_config: ''
+  widget_name: RadioSelect
+- abnormality_condition: x in ["4","5","6","7","8","9","10"]
+  allow_multiple: false
+  calculation: ''
+  code: MOSTFollow_up_Q13
+  datatype: range
+  desc: |-
+    Please choose, for each line, the number that represents how you would assess yourself on average in this area over the last 3 to 4 weeks
+    0 = No trouble at all, 10 = Worst I can imagine
+  important: false
+  instructions: |-
+    0 = No trouble at all,
+    1,2,3 = Mild,
+    4,5,6 = Moderate,
+    7,8,9 = Severe,
+    10 = Worst I can imagine.
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Trouble concentrating
+  pattern: ''
+  pv_group: 0_10Scale
+  questionnaire_text: ''
+  widget_config: ''
+  widget_name: RadioSelect
+- abnormality_condition: x in ["4","5","6","7","8","9","10"]
+  allow_multiple: false
+  calculation: ''
+  code: MOSTFollow_up_Q14
+  datatype: range
+  desc: |-
+    Please choose, for each line, the number that represents how you would assess yourself on average in this area over the last 3 to 4 weeks
+    0 = No trouble at all, 10 = Worst I can imagine
+  important: false
+  instructions: |-
+    0 = No trouble at all,
+    1,2,3 = Mild,
+    4,5,6 = Moderate,
+    7,8,9 = Severe,
+    10 = Worst I can imagine.
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Anxiety (feeling worried)
+  pattern: ''
+  pv_group: 0_10Scale
+  questionnaire_text: ''
+  widget_config: ''
+  widget_name: RadioSelect
+- abnormality_condition: x in ["4","5","6","7","8","9","10"]
+  allow_multiple: false
+  calculation: ''
+  code: MOSTFollow_up_Q15
+  datatype: range
+  desc: |-
+    Please choose, for each line, the number that best represents how much this issue has concerned you on average during the last 3 to 4 weeks
+    0 = No trouble at all, 10 = Worst I can imagine
+  important: false
+  instructions: |-
+    0 = No trouble at all,
+    1,2,3 = Mild,
+    4,5,6 = Moderate,
+    7,8,9 = Severe,
+    10 = Worst I can imagine.
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Depression (feeling sad)
+  pattern: ''
+  pv_group: 0_10Scale
+  questionnaire_text: ''
+  widget_config: ''
+  widget_name: RadioSelect
+- abnormality_condition: x in ["4","5","6","7","8","9","10"]
+  allow_multiple: false
+  calculation: ''
+  code: MOSTFollow_up_Q16
+  datatype: range
+  desc: |-
+    Please choose for each line, the number that best represents how much this issue has concerned you on average during the past month
+    0 = No trouble at all, 10 = Worst I can imagine
+  important: false
+  instructions: |-
+    0 = No trouble at all,
+    1,2,3 = Mild,
+    4,5,6 = Moderate,
+    7,8,9 = Severe,
+    10 = Worst I can imagine.
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Problems doing what I wanted
+  pattern: ''
+  pv_group: 0_10Scale
+  questionnaire_text: ''
+  widget_config: ''
+  widget_name: RadioSelect
+- abnormality_condition: x in ["1","2","3","4","5"]
+  allow_multiple: false
+  calculation: ''
+  code: MOSTFollow_up_Q17
+  datatype: range
+  desc: |-
+    Please choose for each line, the number that best represents how much this issue has concerned you on average during the past month
+    0 = Worst possible, 10 = Best possible
+  important: false
+  instructions: |-
+    10 = Best possible,
+    9,8 = Very Good,
+    7,6 = Good,
+    5 = Fair,
+    4,3 = Poor,
+    2,1 = Very poor,
+    0 = Worst possible.
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Physical well-being
+  pattern: ''
+  pv_group: TenScale
+  questionnaire_text: ''
+  widget_config: ''
+  widget_name: RadioSelect
+- abnormality_condition: x in ["1","2","3","4","5"]
+  allow_multiple: false
+  calculation: ''
+  code: MOSTFollow_up_Q18
+  datatype: range
+  desc: |-
+    Please choose for each line, the number that best represents how much this issue has concerned you on average during the past month
+    0 = Worst possible, 10 = Best possible
+  important: false
+  instructions: |-
+    10 = Best possible,
+    9,8 = Very Good,
+    7,6 = Good,
+    5 = Fair,
+    4,3 = Poor,
+    2,1 = Very poor,
+    0 = Worst possible.
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Emotional well-being
+  pattern: ''
+  pv_group: TenScale
+  questionnaire_text: ''
+  widget_config: ''
+  widget_name: RadioSelect
+- abnormality_condition: x in ["1","2","3","4","5"]
+  allow_multiple: false
+  calculation: ''
+  code: MOSTFollow_up_Q19
+  datatype: range
+  desc: |-
+    Please choose for each line, the number that best represents how much this issue has concerned you on average during the past month
+    0 = Worst possible, 10 = Best possible
+  important: false
+  instructions: |-
+    10 = Best possible,
+    9,8 = Very Good,
+    7,6 = Good,
+    5 = Fair,
+    4,3 = Poor,
+    2,1 = Very poor,
+    0 = Worst possible.
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Overall well-being
+  pattern: ''
+  pv_group: TenScale
+  questionnaire_text: ''
+  widget_config: ''
+  widget_name: RadioSelect
+- abnormality_condition: x in ["4","5","6","7","8","9","10"]
+  allow_multiple: false
+  calculation: ''
+  code: MOSTFollow_up_Q2
+  datatype: range
+  desc: |-
+    Please choose, for each line, the number that best represents how much this issue has concerned you on average during the last 3 to 4 weeks
+    0 = No trouble at all, 10 = Worst I can imagine
+  important: false
+  instructions: |-
+    0 = No trouble at all,
+    1,2,3 = Mild,
+    4,5,6 = Moderate,
+    7,8,9 = Severe,
+    10 = Worst I can imagine.
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Poor appetite (or feeling full quickly)
+  pattern: ''
+  pv_group: 0_10Scale
+  questionnaire_text: ''
+  widget_config: ''
+  widget_name: RadioSelect
+- abnormality_condition: ''
+  allow_multiple: false
+  calculation: ''
+  code: MOSTFollow_up_Q20
+  datatype: range
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Are you currently having any treatment prescribed by your oncologist including
+    tablets or infusions?
+  pattern: ''
+  pv_group: MOSTFollow_up_Q21
+  questionnaire_text: ''
+  widget_config: ''
+  widget_name: RadioSelect
+- abnormality_condition: x in ["4","5","6","7","8","9","10"]
+  allow_multiple: false
+  calculation: ''
+  code: MOSTFollow_up_Q21
+  datatype: range
+  desc: |-
+    Please choose, for each line, the number that represents how you would assess yourself on average in this area over the last 3 to 4 weeks
+    0 = No trouble at all, 10 = Worst I can imagine
+  important: false
+  instructions: |-
+    0 = No trouble at all,
+    1,2,3 = Mild,
+    4,5,6 = Moderate,
+    7,8,9 = Severe,
+    10 = Worst I can imagine.
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Problems taking pills
+  pattern: ''
+  pv_group: 0_10Scale
+  questionnaire_text: ''
+  widget_config: ''
+  widget_name: RadioSelect
+- abnormality_condition: x in ["4","5","6","7","8","9","10"]
+  allow_multiple: false
+  calculation: ''
+  code: MOSTFollow_up_Q22
+  datatype: range
+  desc: |-
+    Please choose, for each line, the number that represents how you would assess yourself on average in this area over the last 3 to 4 weeks
+    0 = No trouble at all, 10 = Worst I can imagine
+  important: false
+  instructions: |-
+    0 = No trouble at all,
+    1,2,3 = Mild,
+    4,5,6 = Moderate,
+    7,8,9 = Severe,
+    10 = Worst I can imagine.
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Problems with needles or injections
+  pattern: ''
+  pv_group: 0_10Scale
+  questionnaire_text: ''
+  widget_config: ''
+  widget_name: RadioSelect
+- abnormality_condition: x in ["4","5","6","7","8","9","10"]
+  allow_multiple: false
+  calculation: ''
+  code: MOSTFollow_up_Q23
+  datatype: range
+  desc: |-
+    Please choose, for each line, the number that represents how you would assess yourself on average in this area over the last 3 to 4 weeks
+    0 = No trouble at all, 10 = Worst I can imagine
+  important: false
+  instructions: |-
+    0 = No trouble at all,
+    1,2,3 = Mild,
+    4,5,6 = Moderate,
+    7,8,9 = Severe,
+    10 = Worst I can imagine.
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Inconvenience of treatment
+  pattern: ''
+  pv_group: 0_10Scale
+  questionnaire_text: ''
+  widget_config: ''
+  widget_name: RadioSelect
+- abnormality_condition: x in ["4","5","6","7","8","9","10"]
+  allow_multiple: false
+  calculation: ''
+  code: MOSTFollow_up_Q24
+  datatype: range
+  desc: |-
+    Please choose, for each line, the number that represents how you would assess yourself on average in this area over the last 3 to 4 weeks
+    0 = No trouble at all, 10 = Worst I can imagine
+  important: false
+  instructions: |-
+    0 = No trouble at all,
+    1,2,3 = Mild,
+    4,5,6 = Moderate,
+    7,8,9 = Severe,
+    10 = Worst I can imagine.
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Thoughts of actually having treatment
+  pattern: ''
+  pv_group: 0_10Scale
+  questionnaire_text: ''
+  widget_config: ''
+  widget_name: RadioSelect
+- abnormality_condition: ''
+  allow_multiple: false
+  calculation: ''
+  code: MOSTFollow_up_Q25
+  datatype: range
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Do you have any other symptoms that are bothering you?
+  pattern: ''
+  pv_group: MOSTFollow_up_Q26
+  questionnaire_text: ''
+  widget_config: ''
+  widget_name: RadioSelect
+- abnormality_condition: ''
+  allow_multiple: false
+  calculation: ''
+  code: MOSTFollow_up_Q26a
+  datatype: string
+  desc: What are those symptoms? Please list up to three symptoms that are concerning
+    you and circle the number that best represents how much your symptom has concerned
+    you on average during the last 3 to 4 weeks.
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: 25
+  max_value: null
+  min_value: null
+  name: Other symptom 1.
+  pattern: ''
+  pv_group: null
+  questionnaire_text: ''
+  widget_config: ''
+  widget_name: ''
+- abnormality_condition: x in ["4","5","6","7","8","9","10"]
+  allow_multiple: false
+  calculation: x in ["4","5","6","7","8","9","10"]
+  code: MOSTFollow_up_Q26ar
+  datatype: range
+  desc: If yes at Question 26 of MOST Follow up and response at Question 26a
+  important: false
+  instructions: |-
+    0 = No trouble at all,
+    1,2,3 = Mild,
+    4,5,6 = Moderate,
+    7,8,9 = Severe,
+    10 = Worst I can imagine.
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Other symptom 1 score
+  pattern: ''
+  pv_group: 0_10Scale
+  questionnaire_text: ''
+  widget_config: ''
+  widget_name: RadioSelect
+- abnormality_condition: ''
+  allow_multiple: false
+  calculation: ''
+  code: MOSTFollow_up_Q26b
+  datatype: string
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: 25
+  max_value: null
+  min_value: null
+  name: Other symptom 2.
+  pattern: ''
+  pv_group: null
+  questionnaire_text: ''
+  widget_config: ''
+  widget_name: ''
+- abnormality_condition: x in ["4","5","6","7","8","9","10"]
+  allow_multiple: false
+  calculation: ''
+  code: MOSTFollow_up_Q26br
+  datatype: range
+  desc: ''
+  important: false
+  instructions: |-
+    0 = No trouble at all,
+    1,2,3 = Mild,
+    4,5,6 = Moderate,
+    7,8,9 = Severe,
+    10 = Worst I can imagine.
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Other symptom 2 score
+  pattern: ''
+  pv_group: 0_10Scale
+  questionnaire_text: ''
+  widget_config: ''
+  widget_name: RadioSelect
+- abnormality_condition: ''
+  allow_multiple: false
+  calculation: ''
+  code: MOSTFollow_up_Q26c
+  datatype: string
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: 25
+  max_value: null
+  min_value: null
+  name: Other symptom 3.
+  pattern: ''
+  pv_group: null
+  questionnaire_text: ''
+  widget_config: ''
+  widget_name: ''
+- abnormality_condition: x in ["4","5","6","7","8","9","10"]
+  allow_multiple: false
+  calculation: ''
+  code: MOSTFollow_up_Q26cr
+  datatype: range
+  desc: ''
+  important: false
+  instructions: |-
+    0 = No trouble at all,
+    1,2,3 = Mild,
+    4,5,6 = Moderate,
+    7,8,9 = Severe,
+    10 = Worst I can imagine.
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Other symptom 3 score
+  pattern: ''
+  pv_group: 0_10Scale
+  questionnaire_text: ''
+  widget_config: ''
+  widget_name: RadioSelect
+- abnormality_condition: x in ["4","5","6","7","8","9","10"]
+  allow_multiple: false
+  calculation: ''
+  code: MOSTFollow_up_Q3
+  datatype: range
+  desc: |-
+    Please choose, for each line, the number that best represents how much this issue has concerned you on average during the last 3 to 4 weeks
+    0 = No trouble at all, 10 = Worst I can imagine
+  important: false
+  instructions: |-
+    0 = No trouble at all,
+    1,2,3 = Mild,
+    4,5,6 = Moderate,
+    7,8,9 = Severe,
+    10 = Worst I can imagine.
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Abdominal pain, discomfort and/or cramps
+  pattern: ''
+  pv_group: 0_10Scale
+  questionnaire_text: ''
+  widget_config: ''
+  widget_name: RadioSelect
+- abnormality_condition: x in ["4","5","6","7","8","9","10"]
+  allow_multiple: false
+  calculation: ''
+  code: MOSTFollow_up_Q4
+  datatype: range
+  desc: |-
+    Please choose, for each line, the number that best represents how much this issue has concerned you on average during the last 3 to 4 weeks
+    0 = No trouble at all, 10 = Worst I can imagine
+  important: false
+  instructions: |-
+    0 = No trouble at all,
+    1,2,3 = Mild,
+    4,5,6 = Moderate,
+    7,8,9 = Severe,
+    10 = Worst I can imagine.
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Abdominal swelling, bloating and/or fullness
+  pattern: ''
+  pv_group: 0_10Scale
+  questionnaire_text: ''
+  widget_config: ''
+  widget_name: RadioSelect
+- abnormality_condition: x in ["4","5","6","7","8","9","10"]
+  allow_multiple: false
+  calculation: ''
+  code: MOSTFollow_up_Q5
+  datatype: range
+  desc: |-
+    Please choose, for each line, the number that best represents how much this issue has concerned you on average during the last 3 to 4 weeks
+    0 = No trouble at all, 10 = Worst I can imagine
+  important: false
+  instructions: |-
+    0 = No trouble at all,
+    1,2,3 = Mild,
+    4,5,6 = Moderate,
+    7,8,9 = Severe,
+    10 = Worst I can imagine.
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Nausea
+  pattern: ''
+  pv_group: 0_10Scale
+  questionnaire_text: ''
+  widget_config: ''
+  widget_name: RadioSelect
+- abnormality_condition: x in ["4","5","6","7","8","9","10"]
+  allow_multiple: false
+  calculation: ''
+  code: MOSTFollow_up_Q6
+  datatype: range
+  desc: |-
+    Please choose, for each line, the number that best represents how much this issue has concerned you on average during the last 3 to 4 weeks
+    0 = No trouble at all, 10 = Worst I can imagine
+  important: false
+  instructions: |-
+    0 = No trouble at all,
+    1,2,3 = Mild,
+    4,5,6 = Moderate,
+    7,8,9 = Severe,
+    10 = Worst I can imagine.
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Vomiting
+  pattern: ''
+  pv_group: 0_10Scale
+  questionnaire_text: ''
+  widget_config: ''
+  widget_name: RadioSelect
+- abnormality_condition: x in ["4","5","6","7","8","9","10"]
+  allow_multiple: false
+  calculation: ''
+  code: MOSTFollow_up_Q7
+  datatype: range
+  desc: |-
+    Please choose, for each line, the number that best represents how much this issue has concerned you on average during the last 3 to 4 weeks
+    0 = No trouble at all, 10 = Worst I can imagine
+  important: false
+  instructions: |-
+    0 = No trouble at all,
+    1,2,3 = Mild,
+    4,5,6 = Moderate,
+    7,8,9 = Severe,
+    10 = Worst I can imagine.
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Constipation
+  pattern: ''
+  pv_group: 0_10Scale
+  questionnaire_text: ''
+  widget_config: ''
+  widget_name: RadioSelect
+- abnormality_condition: x in ["4","5","6","7","8","9","10"]
+  allow_multiple: false
+  calculation: ''
+  code: MOSTFollow_up_Q8
+  datatype: range
+  desc: |-
+    Please choose, for each line, the number that best represents how much this issue has concerned you on average during the last 3 to 4 weeks
+    0 = No trouble at all, 10 = Worst I can imagine
+  important: false
+  instructions: |-
+    0 = No trouble at all,
+    1,2,3 = Mild,
+    4,5,6 = Moderate,
+    7,8,9 = Severe,
+    10 = Worst I can imagine.
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Shortness of breath
+  pattern: ''
+  pv_group: 0_10Scale
+  questionnaire_text: ''
+  widget_config: ''
+  widget_name: RadioSelect
+- abnormality_condition: x in ["4","5","6","7","8","9","10"]
+  allow_multiple: false
+  calculation: ''
+  code: MOSTFollow_up_Q9
+  datatype: range
+  desc: |-
+    Please choose, for each line, the number that best represents how much this issue has concerned you on average during the last 3 to 4 weeks
+    0 = No troubles at all, 10 = Worst I can imagine
+  important: false
+  instructions: |-
+    No trouble at all = 0.
+    Mild = 1,2,3.
+    Moderate = 4,5,6.
+    Severe = 7,8,9.
+    Worst I can imagine = 10.
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Leg swelling
+  pattern: ''
+  pv_group: 0_10Scale
+  questionnaire_text: ''
+  widget_config: ''
+  widget_name: RadioSelect
+- abnormality_condition: ''
+  allow_multiple: false
+  calculation: ''
+  code: Medicare
+  datatype: string
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Medicare Number
+  pattern: ''
+  pv_group: null
+  questionnaire_text: ''
+  widget_config: ''
+  widget_name: ''
+- abnormality_condition: ''
+  allow_multiple: false
+  calculation: ''
+  code: NGOR_1
+  datatype: range
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: If early stage disease - was the patient appropriately surgically staged?
+  pattern: ''
+  pv_group: Y_N_UK
+  questionnaire_text: ''
+  widget_config: ''
+  widget_name: RadioSelect
+- abnormality_condition: ''
+  allow_multiple: false
+  calculation: ''
+  code: NGOR_10
+  datatype: integer
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Germline genetic testing and result
+  pattern: ''
+  pv_group: null
+  questionnaire_text: ''
+  widget_config: ''
+  widget_name: ''
+- abnormality_condition: ''
+  allow_multiple: false
+  calculation: ''
+  code: NGOR_11
+  datatype: range
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Tumour (somatic) mutation testing and result if performed
+  pattern: ''
+  pv_group: Y_N_UK
+  questionnaire_text: ''
+  widget_config: ''
+  widget_name: RadioSelect
+- abnormality_condition: ''
+  allow_multiple: false
+  calculation: ''
+  code: NGOR_12
+  datatype: integer
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Time in days from diagnosis to first treatment (whether surgery or chemotherapy)
+  pattern: ''
+  pv_group: null
+  questionnaire_text: ''
+  widget_config: ''
+  widget_name: ''
+- abnormality_condition: ''
+  allow_multiple: false
+  calculation: ''
+  code: NGOR_13
+  datatype: range
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Was all the information required in the pathology report? ICCR synoptic report?
+  pattern: ''
+  pv_group: Y_N_UK
+  questionnaire_text: ''
+  widget_config: ''
+  widget_name: RadioSelect
+- abnormality_condition: ''
+  allow_multiple: false
+  calculation: ''
+  code: NGOR_2
+  datatype: range
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Was the patient discussed at the Gyn Oncology MDT?
+  pattern: ''
+  pv_group: Y_N_UK
+  questionnaire_text: ''
+  widget_config: ''
+  widget_name: RadioSelect
+- abnormality_condition: ''
+  allow_multiple: false
+  calculation: ''
+  code: NGOR_3
+  datatype: range
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Was there a histological diagnosis prior to the patient receiving chemotherapy?
+  pattern: ''
+  pv_group: Y_N_UK
+  questionnaire_text: ''
+  widget_config: ''
+  widget_name: RadioSelect
+- abnormality_condition: ''
+  allow_multiple: false
+  calculation: ''
+  code: NGOR_4
+  datatype: range
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Did the patient receive both platinum and taxane based chemotherapy?
+  pattern: ''
+  pv_group: Y_N_UK
+  questionnaire_text: ''
+  widget_config: ''
+  widget_name: RadioSelect
+- abnormality_condition: ''
+  allow_multiple: false
+  calculation: ''
+  code: NGOR_5
+  datatype: range
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: If the patient had sub-optimal surgical debulking (residual >1cm) did they
+    receive bevacizumab?
+  pattern: ''
+  pv_group: Y_N_UK
+  questionnaire_text: ''
+  widget_config: ''
+  widget_name: RadioSelect
+- abnormality_condition: ''
+  allow_multiple: false
+  calculation: ''
+  code: NGOR_6
+  datatype: range
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Neoadjuvant or adjuvant chemotherapy?
+  pattern: ''
+  pv_group: NGOR_6
+  questionnaire_text: ''
+  widget_config: ''
+  widget_name: RadioSelect
+- abnormality_condition: ''
+  allow_multiple: false
+  calculation: ''
+  code: NGOR_7
+  datatype: integer
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: If neoadjuvant chemotherapy - how many cycles prior to interval surgery?
+  pattern: ''
+  pv_group: null
+  questionnaire_text: ''
+  widget_config: ''
+  widget_name: ''
+- abnormality_condition: ''
+  allow_multiple: false
+  calculation: ''
+  code: NGOR_8
+  datatype: range
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: 'Unplanned intraoperative event: blood loss >1000ml, full thickness damage
+    to bladder, ureter, small bowel, large bowel, vascular, nerve, anaesthetic, other'
+  pattern: ''
+  pv_group: Y_N_UK
+  questionnaire_text: ''
+  widget_config: ''
+  widget_name: RadioSelect
+- abnormality_condition: ''
+  allow_multiple: false
+  calculation: ''
+  code: NGOR_9
+  datatype: range
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Postoperative complications grade 3, 4 or 5 (Clavien Dindo grading system)
+    within 30 days.
+  pattern: ''
+  pv_group: Y_N_UK
+  questionnaire_text: ''
+  widget_config: ''
+  widget_name: RadioSelect
+- abnormality_condition: ''
+  allow_multiple: false
+  calculation: ''
+  code: NGOR_9A
+  datatype: string
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: If Yes, please record the type of complication (free text)
+  pattern: ''
+  pv_group: null
+  questionnaire_text: ''
+  widget_config: ''
+  widget_name: ''
+- abnormality_condition: ''
+  allow_multiple: false
+  calculation: ''
+  code: PARPiSTARTDATE_Ov
+  datatype: date
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Start of PARPi therapy
+  pattern: ''
+  pv_group: null
+  questionnaire_text: ''
+  widget_config: ''
+  widget_name: DateWidget
+- abnormality_condition: ''
+  allow_multiple: false
+  calculation: ''
+  code: PARPiSTOPDATE_Ov
+  datatype: date
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: End of PARPi therapy
+  pattern: ''
+  pv_group: null
+  questionnaire_text: ''
+  widget_config: ''
+  widget_name: DateWidget
+- abnormality_condition: ''
+  allow_multiple: false
+  calculation: ''
+  code: PARPi_Ov
+  datatype: range
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Was a PARP INHIBITOR given in the last year
+  pattern: ''
+  pv_group: Y_N_UK
+  questionnaire_text: ''
+  widget_config: ''
+  widget_name: RadioSelect
+- abnormality_condition: ''
+  allow_multiple: false
+  calculation: ''
+  code: PERFORM_Ov
+  datatype: range
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: ECOG/WHO performance status
+  pattern: ''
+  pv_group: PERFORM_Ov
+  questionnaire_text: ''
+  widget_config: ''
+  widget_name: RadioSelect
+- abnormality_condition: ''
+  allow_multiple: false
+  calculation: ''
+  code: PMI
+  datatype: string
+  desc: ''
+  important: false
+  instructions: Medical record number for public hospitals
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Patient Medical Index
+  pattern: ''
+  pv_group: null
+  questionnaire_text: ''
+  widget_config: ''
+  widget_name: ''
+- abnormality_condition: ''
+  allow_multiple: false
+  calculation: ''
+  code: PROGRESS_Ov
+  datatype: range
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Disease progression in the last year
+  pattern: ''
+  pv_group: Y_N_UK
+  questionnaire_text: ''
+  widget_config: ''
+  widget_name: RadioSelect
+- abnormality_condition: ''
+  allow_multiple: false
+  calculation: ''
+  code: PROMSConsent
+  datatype: boolean
+  desc: ''
+  important: false
+  instructions: Thank you for completing this survey. We realise that the information
+    you have provided is personal and sensitive and so your confidentiality will be
+    protected at all times. Only your doctor will have access to your individual information.
+    Any use of your information for research purposes will only be in a non- identifiable,
+    combined format.
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Consent
+  pattern: ''
+  pv_group: null
+  questionnaire_text: ''
+  widget_config: ''
+  widget_name: ''
+- abnormality_condition: ''
+  allow_multiple: false
+  calculation: ''
+  code: PrivHosp
+  datatype: range
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Private hospital
+  pattern: ''
+  pv_group: PrivHosp
+  questionnaire_text: ''
+  widget_config: ''
+  widget_name: ''
+- abnormality_condition: ''
+  allow_multiple: false
+  calculation: ''
+  code: PrivHospMedRecNo
+  datatype: integer
+  desc: ''
+  important: false
+  instructions: Medical record number for the private hospital specified
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Private hospital medical record number
+  pattern: ''
+  pv_group: null
+  questionnaire_text: ''
+  widget_config: ''
+  widget_name: ''
+- abnormality_condition: ''
+  allow_multiple: false
+  calculation: ''
+  code: Ptaddress1
+  datatype: string
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Address
+  pattern: ''
+  pv_group: null
+  questionnaire_text: ''
+  widget_config: ''
+  widget_name: ''
+- abnormality_condition: ''
+  allow_multiple: false
+  calculation: ''
+  code: Ptaddress2
+  datatype: string
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Suburb
+  pattern: ''
+  pv_group: null
+  questionnaire_text: ''
+  widget_config: ''
+  widget_name: ''
+- abnormality_condition: ''
+  allow_multiple: false
+  calculation: ''
+  code: Ptaddress3
+  datatype: string
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Postcode
+  pattern: ''
+  pv_group: null
+  questionnaire_text: ''
+  widget_config: ''
+  widget_name: ''
+- abnormality_condition: ''
+  allow_multiple: false
+  calculation: ''
+  code: RECURDATE_Ov
+  datatype: date
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Recurrence date
+  pattern: ''
+  pv_group: null
+  questionnaire_text: ''
+  widget_config: ''
+  widget_name: DateWidget
+- abnormality_condition: ''
+  allow_multiple: true
+  calculation: ''
+  code: RECURMETH_Ov
+  datatype: range
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: What method was used to diagnose the recurrence (Select all that apply)
+  pattern: ''
+  pv_group: RECURMETH_Ov
+  questionnaire_text: ''
+  widget_config: ''
+  widget_name: ''
+- abnormality_condition: ''
+  allow_multiple: false
+  calculation: ''
+  code: RECUR_Ov
+  datatype: range
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Has recurrence occurred
+  pattern: ''
+  pv_group: Y_N_UK
+  questionnaire_text: ''
+  widget_config: ''
+  widget_name: RadioSelect
+- abnormality_condition: ''
+  allow_multiple: true
+  calculation: ''
+  code: SOMMUT_Ov
+  datatype: range
+  desc: ''
+  important: false
+  instructions: (Select all that apply)
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Somatic mutation only in tumour
+  pattern: ''
+  pv_group: GERMMUT_Ov
+  questionnaire_text: ''
+  widget_config: ''
+  widget_name: RadioSelect
+- abnormality_condition: ''
+  allow_multiple: false
+  calculation: ''
+  code: SURGERY_DATE_Ov
+  datatype: date
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Date of most recent surgery
+  pattern: ''
+  pv_group: null
+  questionnaire_text: ''
+  widget_config: ''
+  widget_name: DateWidget
+- abnormality_condition: ''
+  allow_multiple: false
+  calculation: ''
+  code: SURGERY_Ov
+  datatype: range
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Was surgery performed in the last year
+  pattern: ''
+  pv_group: Y_N_UK
+  questionnaire_text: ''
+  widget_config: ''
+  widget_name: RadioSelect
+- abnormality_condition: null
+  allow_multiple: false
+  calculation: ''
+  code: State
+  datatype: range
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: State
+  pattern: ''
+  pv_group: State
+  questionnaire_text: ''
+  widget_config: ''
+  widget_name: ''
+- abnormality_condition: null
+  allow_multiple: false
+  calculation: ''
+  code: SuburbTown
+  datatype: string
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Suburb/Town
+  pattern: ''
+  pv_group: null
+  questionnaire_text: ''
+  widget_config: ''
+  widget_name: ''
+- abnormality_condition: ''
+  allow_multiple: false
+  calculation: ''
+  code: TNMCT_Ov
+  datatype: range
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Tumour stage
+  pattern: ''
+  pv_group: TNMCT_Ov
+  questionnaire_text: ''
+  widget_config: ''
+  widget_name: RadioSelect
+- abnormality_condition: ''
+  allow_multiple: false
+  calculation: ''
+  code: Treating_clinician
+  datatype: range
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Treating clinician
+  pattern: ''
+  pv_group: null
+  questionnaire_text: ''
+  widget_config: ''
+  widget_name: ''
+- abnormality_condition: ''
+  allow_multiple: false
+  calculation: ''
+  code: Treatment_speciality
+  datatype: range
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Which clinical speciality
+  pattern: ''
+  pv_group: ClinicalSpeciality
+  questionnaire_text: ''
+  widget_config: ''
+  widget_name: ''
+- abnormality_condition: ''
+  allow_multiple: false
+  calculation: ''
+  code: WEIGHTLKg_Ov
+  datatype: integer
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: '30.00'
+  min_value: '0.00'
+  name: Weight loss in kilograms
+  pattern: ''
+  pv_group: null
+  questionnaire_text: ''
+  widget_config: ''
+  widget_name: ''
+- abnormality_condition: ''
+  allow_multiple: false
+  calculation: ''
+  code: WEIGHTL_Ov
+  datatype: range
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Weight loss prior to diagnosis
+  pattern: ''
+  pv_group: Y_N_UK
+  questionnaire_text: ''
+  widget_config: ''
+  widget_name: RadioSelect
+- abnormality_condition: ''
+  allow_multiple: false
+  calculation: ''
+  code: WEIGHT_Ov
+  datatype: integer
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Weight (in kilograms)
+  pattern: ''
+  pv_group: null
+  questionnaire_text: ''
+  widget_config: ''
+  widget_name: ''
+- abnormality_condition: null
+  allow_multiple: false
+  calculation: ''
+  code: postcode
+  datatype: string
+  desc: Postcode
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Postcode
+  pattern: ''
+  pv_group: null
+  questionnaire_text: ''
+  widget_config: ''
+  widget_name: ''
+- abnormality_condition: ''
+  allow_multiple: false
+  calculation: ''
+  code: public_private
+  datatype: range
+  desc: ''
+  important: false
+  instructions: ''
+  is_required: false
+  max_length: null
+  max_value: null
+  min_value: null
+  name: Was the patient treated as a public or private patient?
+  pattern: ''
+  pv_group: public_private
+  questionnaire_text: ''
+  widget_config: ''
+  widget_name: RadioSelect
+code: ov
+complete_fields: []
+consent_rules: []
+consent_sections:
+- applicability_condition: ''
+  code: promsconsentsection
+  information_link: null
+  information_text: Thank you for completing this survey. We realise that the information
+    you have provided is personal and sensitive and so your confidentiality will be
+    protected at all times. Only your doctor will have access to your individual information.
+    Any use of your information for research purposes will only be in a non- identifiable,
+    combined format.
+  questions:
+  - code: promsconsent
+    instructions: ''
+    position: 1
+    question_label: "By ticking this box you:\n•\tGive consent for the information\
+      \ you provide to be used for the CIC Cancer project; and\n•\tWill receive a\
+      \ reminder when the next survey is due (approximately 6 months)."
+    questionnaire_label: ''
+  section_label: Proms Consent
+  validation_rule: ''
+context_form_groups:
+- context_type: M
+  forms:
+  - 6MONTHLYPROMS
+  is_default: false
+  name: Followup
+  naming_cde_to_use: null
+  naming_scheme: D
+  ordering: C
+- context_type: F
+  forms:
+  - Patientinformation
+  - ClinicalInfo
+  - BaselinePROMS
+  - TREATMENT
+  - SURVDISEASECON
+  - NGOR1
+  is_default: true
+  name: Modules
+  naming_cde_to_use: null
+  naming_scheme: D
+  ordering: C
+custom_actions:
+- action_type: RD
+  code: rd
+  data: |-
+    {"fields": ["ALB_Ov", "AVASTARTDATE_Ov", "AVASTIN_Ov", "AVASTOPDATE_Ov", "BSSC_1", "BSSC_1", "BSSC_2", "BSSC_2", "BSSC_3A", "BSSC_3A", "BSSC_3B", "BSSC_3B", "BSSC_3C", "BSSC_3C", "BSSC_3D", "BSSC_3D", "BSSC_3E", "BSSC_3E", "BSSC_3Fa", "BSSC_3Fa", "BSSC_3Fb", "BSSC_3Fb", "BSSC_4", "BSSC_4", "BSSC_5", "BSSC_5", "CHEMOTXONGOING_Ov", "CHEMOTXSTARTDATE_Ov", "CHEMOTXSTOPDATE_Ov", "CHEMOTXTYPE1_Ov", "CHEMOTX_Ov", "COLLECTIONDATE", "COLLECTIONDATE", "COMORB_Ov", "COMPLETE_Ov", "COMPLIMPACT_Ov", "COMPLSYSCARDATE_Ov", "COMPLSYSCYTODATE_Ov", "COMPLSYSINFDATE_Ov", "COMPLSYSNEURODATE_Ov", "COMPLSYSOTHERDATE_Ov", "COMPLSYSOTHER_Ov", "COMPLSYSSKIDATE_Ov", "COMPLSYS_Ov", "COMPLTX_Ov", "COMPL_Ov", "CURA_Ov", "DEATHDATE_Ov", "DEATHOC_Ov", "DEATHPALL_Ov", "DEATHPLACEPREFDATE_Ov", "DEATHPLACE_Ov", "DEATHPREF_Ov", "DEATH_Ov", "DIAGDATE_Ov", "EDUCATION_Ov", "EQ_Anxiety_Depress", "EQ_Anxiety_Depress", "EQ_Health_Rate", "EQ_Health_Rate", "EQ_Mobility", "EQ_Mobility", "EQ_Pain_Discomfort", "EQ_Pain_Discomfort", "EQ_Selfcare", "EQ_Selfcare", "EQ_UsualActivities", "EQ_UsualActivities", "ETNIC_Ov", "FAMHIS_Ov", "FAMHIS_Ov_Y", "GERMMUT_Ov", "GERMMUT_Ov_Y", "GRADE_Ov", "HEIGHT_Ov", "HISTOTYPE_Ov", "HORMONTXONGOING_Ov", "HORMONTXSTARTDATE_Ov", "HORMONTXSTOPDATE_Ov", "HORMONTXTYPE_Ov", "HORMONTX_Ov", "IMMUNOTXSTARTDATE_Ov", "IMMUNOTXSTOPDATE_Ov", "IMMUNOTX_Ov", "INHOSPITAL_Ov", "MARITAL_Ov", "MENOPAUSE_Ov", "MOSTFollow_up_Q1", "MOSTFollow_up_Q1", "MOSTFollow_up_Q10", "MOSTFollow_up_Q10", "MOSTFollow_up_Q11", "MOSTFollow_up_Q11", "MOSTFollow_up_Q12", "MOSTFollow_up_Q12", "MOSTFollow_up_Q13", "MOSTFollow_up_Q13", "MOSTFollow_up_Q14", "MOSTFollow_up_Q14", "MOSTFollow_up_Q15", "MOSTFollow_up_Q15", "MOSTFollow_up_Q16", "MOSTFollow_up_Q16", "MOSTFollow_up_Q17", "MOSTFollow_up_Q17", "MOSTFollow_up_Q18", "MOSTFollow_up_Q18", "MOSTFollow_up_Q19", "MOSTFollow_up_Q19", "MOSTFollow_up_Q2", "MOSTFollow_up_Q2", "MOSTFollow_up_Q20", "MOSTFollow_up_Q20", "MOSTFollow_up_Q21", "MOSTFollow_up_Q21", "MOSTFollow_up_Q22", "MOSTFollow_up_Q22", "MOSTFollow_up_Q23", "MOSTFollow_up_Q23", "MOSTFollow_up_Q24", "MOSTFollow_up_Q24", "MOSTFollow_up_Q25", "MOSTFollow_up_Q25", "MOSTFollow_up_Q26a", "MOSTFollow_up_Q26a", "MOSTFollow_up_Q26ar", "MOSTFollow_up_Q26ar", "MOSTFollow_up_Q26b", "MOSTFollow_up_Q26b", "MOSTFollow_up_Q26br", "MOSTFollow_up_Q26br", "MOSTFollow_up_Q26c", "MOSTFollow_up_Q26c", "MOSTFollow_up_Q26cr", "MOSTFollow_up_Q26cr", "MOSTFollow_up_Q3", "MOSTFollow_up_Q3", "MOSTFollow_up_Q4", "MOSTFollow_up_Q4", "MOSTFollow_up_Q5", "MOSTFollow_up_Q5", "MOSTFollow_up_Q6", "MOSTFollow_up_Q6", "MOSTFollow_up_Q7", "MOSTFollow_up_Q7", "MOSTFollow_up_Q8", "MOSTFollow_up_Q8", "MOSTFollow_up_Q9", "MOSTFollow_up_Q9", "NGOR_1", "NGOR_10", "NGOR_11", "NGOR_12", "NGOR_13", "NGOR_2", "NGOR_3", "NGOR_4", "NGOR_5", "NGOR_6", "NGOR_7", "NGOR_8", "NGOR_9", "NGOR_9A", "PARPiSTARTDATE_Ov", "PARPiSTOPDATE_Ov", "PARPi_Ov", "PERFORM_Ov", "PROGRESS_Ov", "RECURDATE_Ov", "RECURMETH_Ov", "RECUR_Ov", "SOMMUT_Ov", "SURGERY_DATE_Ov", "SURGERY_Ov", "TNMCT_Ov", "WEIGHTLKg_Ov", "WEIGHTL_Ov", "Treating_clinician", "Treatment_speciality","WEIGHT_Ov","public_private"],
+    "config": { "delimiter": "|"}
+    }
+  groups_allowed:
+  - Clinical Staff
+  include_all: false
+  name: Research Download
+  runtime_spec: '{"async": true}'
+  scope: U
+- action_type: VD
+  code: visdownload
+  data: |-
+    {"fields": ["ALB_Ov", "AVASTARTDATE_Ov", "AVASTIN_Ov", "AVASTOPDATE_Ov", "BSSC_1", "BSSC_1", "BSSC_2", "BSSC_2", "BSSC_3A", "BSSC_3A", "BSSC_3B", "BSSC_3B", "BSSC_3C", "BSSC_3C", "BSSC_3D", "BSSC_3D", "BSSC_3E", "BSSC_3E", "BSSC_3Fa", "BSSC_3Fa", "BSSC_3Fb", "BSSC_3Fb", "BSSC_4", "BSSC_4", "BSSC_5", "BSSC_5", "CHEMOTXONGOING_Ov", "CHEMOTXSTARTDATE_Ov", "CHEMOTXSTOPDATE_Ov", "CHEMOTXTYPE1_Ov", "CHEMOTX_Ov", "COLLECTIONDATE", "COLLECTIONDATE", "COMORB_Ov", "COMPLETE_Ov", "COMPLIMPACT_Ov", "COMPLSYSCARDATE_Ov", "COMPLSYSCYTODATE_Ov", "COMPLSYSINFDATE_Ov", "COMPLSYSNEURODATE_Ov", "COMPLSYSOTHERDATE_Ov", "COMPLSYSOTHER_Ov", "COMPLSYSSKIDATE_Ov", "COMPLSYS_Ov", "COMPLTX_Ov", "COMPL_Ov", "CURA_Ov", "DEATHDATE_Ov", "DEATHOC_Ov", "DEATHPALL_Ov", "DEATHPLACEPREFDATE_Ov", "DEATHPLACE_Ov", "DEATHPREF_Ov", "DEATH_Ov", "DIAGDATE_Ov", "EDUCATION_Ov", "EQ_Anxiety_Depress", "EQ_Anxiety_Depress", "EQ_Health_Rate", "EQ_Health_Rate", "EQ_Mobility", "EQ_Mobility", "EQ_Pain_Discomfort", "EQ_Pain_Discomfort", "EQ_Selfcare", "EQ_Selfcare", "EQ_UsualActivities", "EQ_UsualActivities", "ETNIC_Ov", "FAMHIS_Ov", "FAMHIS_Ov_Y", "GERMMUT_Ov", "GERMMUT_Ov_Y", "GRADE_Ov", "HEIGHT_Ov", "HISTOTYPE_Ov", "HORMONTXONGOING_Ov", "HORMONTXSTARTDATE_Ov", "HORMONTXSTOPDATE_Ov", "HORMONTXTYPE_Ov", "HORMONTX_Ov", "IMMUNOTXSTARTDATE_Ov", "IMMUNOTXSTOPDATE_Ov", "IMMUNOTX_Ov", "INHOSPITAL_Ov", "MARITAL_Ov", "MENOPAUSE_Ov", "MOSTFollow_up_Q1", "MOSTFollow_up_Q1", "MOSTFollow_up_Q10", "MOSTFollow_up_Q10", "MOSTFollow_up_Q11", "MOSTFollow_up_Q11", "MOSTFollow_up_Q12", "MOSTFollow_up_Q12", "MOSTFollow_up_Q13", "MOSTFollow_up_Q13", "MOSTFollow_up_Q14", "MOSTFollow_up_Q14", "MOSTFollow_up_Q15", "MOSTFollow_up_Q15", "MOSTFollow_up_Q16", "MOSTFollow_up_Q16", "MOSTFollow_up_Q17", "MOSTFollow_up_Q17", "MOSTFollow_up_Q18", "MOSTFollow_up_Q18", "MOSTFollow_up_Q19", "MOSTFollow_up_Q19", "MOSTFollow_up_Q2", "MOSTFollow_up_Q2", "MOSTFollow_up_Q20", "MOSTFollow_up_Q20", "MOSTFollow_up_Q21", "MOSTFollow_up_Q21", "MOSTFollow_up_Q22", "MOSTFollow_up_Q22", "MOSTFollow_up_Q23", "MOSTFollow_up_Q23", "MOSTFollow_up_Q24", "MOSTFollow_up_Q24", "MOSTFollow_up_Q25", "MOSTFollow_up_Q25", "MOSTFollow_up_Q26a", "MOSTFollow_up_Q26a", "MOSTFollow_up_Q26ar", "MOSTFollow_up_Q26ar", "MOSTFollow_up_Q26b", "MOSTFollow_up_Q26b", "MOSTFollow_up_Q26br", "MOSTFollow_up_Q26br", "MOSTFollow_up_Q26c", "MOSTFollow_up_Q26c", "MOSTFollow_up_Q26cr", "MOSTFollow_up_Q26cr", "MOSTFollow_up_Q3", "MOSTFollow_up_Q3", "MOSTFollow_up_Q4", "MOSTFollow_up_Q4", "MOSTFollow_up_Q5", "MOSTFollow_up_Q5", "MOSTFollow_up_Q6", "MOSTFollow_up_Q6", "MOSTFollow_up_Q7", "MOSTFollow_up_Q7", "MOSTFollow_up_Q8", "MOSTFollow_up_Q8", "MOSTFollow_up_Q9", "MOSTFollow_up_Q9", "Medicare", "NGOR_1", "NGOR_10", "NGOR_11", "NGOR_12", "NGOR_13", "NGOR_2", "NGOR_3", "NGOR_4", "NGOR_5", "NGOR_6", "NGOR_7", "NGOR_8", "NGOR_9", "NGOR_9A", "PARPiSTARTDATE_Ov", "PARPiSTOPDATE_Ov", "PARPi_Ov", "PERFORM_Ov", "PMI", "PROGRESS_Ov", "Ptaddress1", "Ptaddress2", "Ptaddress3", "RECURDATE_Ov", "RECURMETH_Ov", "RECUR_Ov", "SOMMUT_Ov", "SURGERY_DATE_Ov", "SURGERY_Ov", "TNMCT_Ov", "WEIGHTLKg_Ov", "WEIGHTL_Ov", "Treating_clinician", "Treatment_speciality","WEIGHT_Ov","public_private"],
+    "config": { "delimiter": "|"}
+    }
+  groups_allowed:
+  - Clinical Staff
+  include_all: false
+  name: Visualisation Download
+  runtime_spec: '{"async": true}'
+  scope: U
+demographic_fields:
+- field: place_of_birth
+  group: Clinical Staff
+  hidden: true
+  readonly: null
+  registry: ov
+- field: maiden_name
+  group: Clinical Staff
+  hidden: true
+  readonly: null
+  registry: ov
+- field: country_of_birth
+  group: Clinical Staff
+  hidden: true
+  readonly: null
+  registry: ov
+- field: umrn
+  group: Clinical Staff
+  hidden: true
+  readonly: null
+  registry: ov
+- field: date_of_migration
+  group: Clinical Staff
+  hidden: true
+  readonly: null
+  registry: ov
+- field: date_of_death
+  group: Clinical Staff
+  hidden: true
+  readonly: null
+  registry: ov
+- field: ethnic_origin
+  group: Clinical Staff
+  hidden: true
+  readonly: null
+  registry: ov
+- field: next_of_kin_parent_place_of_birth
+  group: Clinical Staff
+  hidden: true
+  readonly: null
+  registry: ov
+- field: next_of_kin_relationship
+  group: Clinical Staff
+  hidden: true
+  readonly: null
+  registry: ov
+- field: next_of_kin_mobile_phone
+  group: Clinical Staff
+  hidden: true
+  readonly: null
+  registry: ov
+- field: next_of_kin_home_phone
+  group: AdminOnly
+  hidden: true
+  readonly: null
+  registry: ov
+- field: next_of_kin_work_phone
+  group: Clinical Staff
+  hidden: true
+  readonly: null
+  registry: ov
+- field: next_of_kin_given_names
+  group: Clinical Staff
+  hidden: true
+  readonly: null
+  registry: ov
+- field: next_of_kin_family_name
+  group: Clinical Staff
+  hidden: true
+  readonly: null
+  registry: ov
+- field: next_of_kin_suburb
+  group: Clinical Staff
+  hidden: true
+  readonly: null
+  registry: ov
+- field: next_of_kin_postcode
+  group: Clinical Staff
+  hidden: true
+  readonly: null
+  registry: ov
+- field: next_of_kin_state
+  group: Clinical Staff
+  hidden: true
+  readonly: null
+  registry: ov
+- field: next_of_kin_email
+  group: Clinical Staff
+  hidden: true
+  readonly: null
+  registry: ov
+- field: next_of_kin_country
+  group: Clinical Staff
+  hidden: true
+  readonly: null
+  registry: ov
+- field: next_of_kin_address
+  group: Clinical Staff
+  hidden: true
+  readonly: null
+  registry: ov
+desc: Ovarian Cancer Registry Demo
+dropdown_lookups: []
+email_notifications:
+- description: survey-request
+  disabled: false
+  email_from: no-reply@mg.ccgapps.com.au
+  email_templates:
+  - body: |-
+      Dear {{display_name}}<br>
+      <br>
+      You are receiving this email because you {% if survey_name == "Baseline PROMs" %}recently {% endif %}agreed to take part in the Continuous Improvement in Care - Cancer Project.<br>
+      {% if survey_name != "Baseline PROMs" %}
+      <br>
+      We would appreciate if you could complete the following survey prior to your next appointment with the doctor.
+      <br>
+      {% endif %}
+      <br>
+      Your answers will help your doctor to identify any areas where you are having problems, so that these can be addressed promptly.
+      <br>
+      <br>
+      <b><font color='red'>Google Chrome or Firefox (recent versions) web browsers <i>need</i> to be used,</font> as other web browsers are not supported.</b>
+      <br>
+      Please click on the following link to begin the survey:<br>
+      <br>
+      {{email_link}}
+    description: CIC survey request
+    language: en
+    subject: Ovarian Cancer {{survey_name}} Survey
+  group_recipient: null
+  recipient: '{{patient_email}}'
+forms:
+- applicability_condition: ''
+  display_name: 6 Monthly PROMs
+  header: ''
+  is_questionnaire: false
+  name: 6MONTHLYPROMS
+  position: 0
+  questionnaire_display_name: ''
+  questionnaire_questions: ''
+  sections:
+  - allow_multiple: false
+    code: SurveyInformation
+    display_name: Survey Information
+    elements:
+    - COLLECTIONDATE
+    extra: null
+    questionnaire_display_name: ''
+    questionnaire_help: ''
+  - allow_multiple: false
+    code: MOSTFollowup1
+    display_name: MOST FOLLOW UP Please choose, for each line, the answer that best
+      represents how much this issue has concerned you on average during the last
+      3 to 4 weeks
+    elements:
+    - MOSTFollow_up_Q1
+    - MOSTFollow_up_Q2
+    - MOSTFollow_up_Q3
+    - MOSTFollow_up_Q4
+    - MOSTFollow_up_Q5
+    - MOSTFollow_up_Q6
+    - MOSTFollow_up_Q7
+    - MOSTFollow_up_Q8
+    - MOSTFollow_up_Q9
+    - MOSTFollow_up_Q10
+    - MOSTFollow_up_Q11
+    - MOSTFollow_up_Q12
+    - MOSTFollow_up_Q13
+    - MOSTFollow_up_Q14
+    - MOSTFollow_up_Q15
+    - MOSTFollow_up_Q16
+    extra: null
+    questionnaire_display_name: ''
+    questionnaire_help: ''
+  - allow_multiple: false
+    code: MOSTFollowup2
+    display_name: Please choose, for each line, the answer that represents how you
+      would assess yourself on average in this area over the last 3 to 4 weeks
+    elements:
+    - MOSTFollow_up_Q17
+    - MOSTFollow_up_Q18
+    - MOSTFollow_up_Q19
+    extra: null
+    questionnaire_display_name: ''
+    questionnaire_help: ''
+  - allow_multiple: false
+    code: MOSTFollowup3
+    display_name: Please choose for each line, the answer that best represents how
+      much this issue has concerned you on average during the past month
+    elements:
+    - MOSTFollow_up_Q20
+    - MOSTFollow_up_Q21
+    - MOSTFollow_up_Q22
+    - MOSTFollow_up_Q23
+    - MOSTFollow_up_Q24
+    extra: null
+    questionnaire_display_name: ''
+    questionnaire_help: ''
+  - allow_multiple: false
+    code: MOSTFollowup4
+    display_name: Other symptoms
+    elements:
+    - MOSTFollow_up_Q25
+    - MOSTFollow_up_Q26a
+    - MOSTFollow_up_Q26ar
+    - MOSTFollow_up_Q26b
+    - MOSTFollow_up_Q26br
+    - MOSTFollow_up_Q26c
+    - MOSTFollow_up_Q26cr
+    extra: null
+    questionnaire_display_name: ''
+    questionnaire_help: ''
+  - allow_multiple: false
+    code: EQ5L
+    display_name: Under each heading, please tap the ONE box that best describes your
+      health TODAY
+    elements:
+    - EQ_Mobility
+    - EQ_Selfcare
+    - EQ_UsualActivities
+    - EQ_Pain_Discomfort
+    - EQ_Anxiety_Depress
+    - EQ_Health_Rate
+    extra: null
+    questionnaire_display_name: ''
+    questionnaire_help: ''
+  - allow_multiple: false
+    code: BSSC1
+    display_name: These questions are about your sexual function
+    elements:
+    - BSSC_1
+    - BSSC_2
+    extra: null
+    questionnaire_display_name: ''
+    questionnaire_help: ''
+  - allow_multiple: false
+    code: BSSC2
+    display_name: The problem(s) with your sexual function is/are (Mark one or more)
+    elements:
+    - BSSC_3A
+    - BSSC_3B
+    - BSSC_3C
+    - BSSC_3D
+    - BSSC_3E
+    - BSSC_3Fa
+    - BSSC_3Fb
+    - BSSC_4
+    - BSSC_5
+    extra: null
+    questionnaire_display_name: The problem(s) with your sexual function is/are (Mark
+      one or more)
+    questionnaire_help: ''
+- applicability_condition: ''
+  display_name: Baseline PROMS
+  header: ''
+  is_questionnaire: false
+  name: BaselinePROMS
+  position: 3
+  questionnaire_display_name: ''
+  questionnaire_questions: ''
+  sections:
+  - allow_multiple: false
+    code: SurveyInformation
+    display_name: Survey Information
+    elements:
+    - COLLECTIONDATE
+    extra: null
+    questionnaire_display_name: ''
+    questionnaire_help: ''
+  - allow_multiple: false
+    code: MOSTFollowup1
+    display_name: MOST FOLLOW UP Please choose, for each line, the answer that best
+      represents how much this issue has concerned you on average during the last
+      3 to 4 weeks
+    elements:
+    - MOSTFollow_up_Q1
+    - MOSTFollow_up_Q2
+    - MOSTFollow_up_Q3
+    - MOSTFollow_up_Q4
+    - MOSTFollow_up_Q5
+    - MOSTFollow_up_Q6
+    - MOSTFollow_up_Q7
+    - MOSTFollow_up_Q8
+    - MOSTFollow_up_Q9
+    - MOSTFollow_up_Q10
+    - MOSTFollow_up_Q11
+    - MOSTFollow_up_Q12
+    - MOSTFollow_up_Q13
+    - MOSTFollow_up_Q14
+    - MOSTFollow_up_Q15
+    - MOSTFollow_up_Q16
+    extra: null
+    questionnaire_display_name: ''
+    questionnaire_help: ''
+  - allow_multiple: false
+    code: MOSTFollowup2
+    display_name: Please choose, for each line, the answer that represents how you
+      would assess yourself on average in this area over the last 3 to 4 weeks
+    elements:
+    - MOSTFollow_up_Q17
+    - MOSTFollow_up_Q18
+    - MOSTFollow_up_Q19
+    extra: null
+    questionnaire_display_name: ''
+    questionnaire_help: ''
+  - allow_multiple: false
+    code: MOSTFollowup3
+    display_name: Please choose for each line, the answer that best represents how
+      much this issue has concerned you on average during the past month
+    elements:
+    - MOSTFollow_up_Q20
+    - MOSTFollow_up_Q21
+    - MOSTFollow_up_Q22
+    - MOSTFollow_up_Q23
+    - MOSTFollow_up_Q24
+    extra: null
+    questionnaire_display_name: ''
+    questionnaire_help: ''
+  - allow_multiple: false
+    code: MOSTFollowup4
+    display_name: Other symptoms
+    elements:
+    - MOSTFollow_up_Q25
+    - MOSTFollow_up_Q26a
+    - MOSTFollow_up_Q26ar
+    - MOSTFollow_up_Q26b
+    - MOSTFollow_up_Q26br
+    - MOSTFollow_up_Q26c
+    - MOSTFollow_up_Q26cr
+    extra: null
+    questionnaire_display_name: ''
+    questionnaire_help: ''
+  - allow_multiple: false
+    code: EQ5L
+    display_name: Under each heading, please tap the ONE box that best describes your
+      health TODAY
+    elements:
+    - EQ_Mobility
+    - EQ_Selfcare
+    - EQ_UsualActivities
+    - EQ_Pain_Discomfort
+    - EQ_Anxiety_Depress
+    - EQ_Health_Rate
+    extra: null
+    questionnaire_display_name: ''
+    questionnaire_help: ''
+  - allow_multiple: false
+    code: BSSC1
+    display_name: These questions are about your sexual function
+    elements:
+    - BSSC_1
+    - BSSC_2
+    extra: null
+    questionnaire_display_name: ''
+    questionnaire_help: ''
+  - allow_multiple: false
+    code: BSSC2
+    display_name: The problem(s) with your sexual function is/are (Mark one or more)
+    elements:
+    - BSSC_3A
+    - BSSC_3B
+    - BSSC_3C
+    - BSSC_3D
+    - BSSC_3E
+    - BSSC_3Fa
+    - BSSC_3Fb
+    - BSSC_4
+    - BSSC_5
+    extra: null
+    questionnaire_display_name: The problem(s) with your sexual function is/are (Mark
+      one or more)
+    questionnaire_help: ''
+- applicability_condition: ''
+  display_name: Clinical Details
+  header: ''
+  is_questionnaire: false
+  name: ClinicalInfo
+  position: 2
+  questionnaire_display_name: ''
+  questionnaire_questions: ''
+  sections:
+  - allow_multiple: false
+    code: DEMOGRAPHICS_Ov
+    display_name: Demographics 2
+    elements:
+    - ETNIC_Ov
+    - EDUCATION_Ov
+    - MARITAL_Ov
+    - MENOPAUSE_Ov
+    extra: null
+    questionnaire_display_name: ''
+    questionnaire_help: ''
+  - allow_multiple: false
+    code: CLINICAL_Ov
+    display_name: Baseline clinical
+    elements:
+    - COMORB_Ov
+    - WEIGHTL_Ov
+    - WEIGHTLKg_Ov
+    - ALB_Ov
+    - HEIGHT_Ov
+    - WEIGHT_Ov
+    - FAMHIS_Ov
+    - FAMHIS_Ov_Y
+    - PERFORM_Ov
+    extra: null
+    questionnaire_display_name: ''
+    questionnaire_help: ''
+  - allow_multiple: false
+    code: TUMFACTORS_Ov
+    display_name: Baseline tumour factors
+    elements:
+    - GERMMUT_Ov
+    - GERMMUT_Ov_Y
+    - DIAGDATE_Ov
+    - HISTOTYPE_Ov
+    - SOMMUT_Ov
+    - GRADE_Ov
+    - TNMCT_Ov
+    extra: null
+    questionnaire_display_name: ''
+    questionnaire_help: ''
+- applicability_condition: ''
+  display_name: National Gynae-Oncology Registry
+  header: ''
+  is_questionnaire: false
+  name: NGOR1
+  position: 6
+  questionnaire_display_name: ''
+  questionnaire_questions: ''
+  sections:
+  - allow_multiple: false
+    code: NGOR
+    display_name: National Gynae-Oncology Registry
+    elements:
+    - NGOR_1
+    - NGOR_2
+    - NGOR_3
+    - NGOR_4
+    - NGOR_5
+    - NGOR_6
+    - NGOR_7
+    - NGOR_8
+    - NGOR_9
+    - NGOR_9A
+    - NGOR_10
+    - NGOR_11
+    - NGOR_12
+    - NGOR_13
+    extra: null
+    questionnaire_display_name: ''
+    questionnaire_help: ''
+- applicability_condition: ''
+  display_name: Patient Information
+  header: ''
+  is_questionnaire: false
+  name: Patientinformation
+  position: 1
+  questionnaire_display_name: ''
+  questionnaire_questions: ''
+  sections:
+  - allow_multiple: false
+    code: public_private
+    display_name: Public or private treatment
+    elements:
+    - public_private
+    extra: null
+    questionnaire_display_name: ''
+    questionnaire_help: ''
+  - allow_multiple: false
+    code: PtIdentifiers1
+    display_name: Public Hospital Medical Record Number
+    elements:
+    - PMI
+    extra: null
+    questionnaire_display_name: ''
+    questionnaire_help: ''
+  - allow_multiple: true
+    code: PrivHospCodes
+    display_name: Private Hospital Record
+    elements:
+    - PrivHosp
+    - PrivHospMedRecNo
+    extra: null
+    questionnaire_display_name: ''
+    questionnaire_help: ''
+  - allow_multiple: false
+    code: PtIdentifiers2
+    display_name: Patient identifiers
+    elements:
+    - Medicare
+    - Ptaddress1
+    - Ptaddress2
+    - Ptaddress3
+    extra: null
+    questionnaire_display_name: ''
+    questionnaire_help: ''
+  - allow_multiple: true
+    code: Consultants
+    display_name: Treating clinician
+    elements:
+    - Treating_clinician
+    - Treatment_speciality
+    extra: null
+    questionnaire_display_name: ''
+    questionnaire_help: ''
+- applicability_condition: ''
+  display_name: Survival and Disease control
+  header: Survival and Disease control
+  is_questionnaire: false
+  name: SURVDISEASECON
+  position: 5
+  questionnaire_display_name: ''
+  questionnaire_questions: ''
+  sections:
+  - allow_multiple: false
+    code: RECUR_PROGRESS
+    display_name: recurrence or Progression
+    elements:
+    - RECUR_Ov
+    - RECURMETH_Ov
+    - RECURDATE_Ov
+    - PROGRESS_Ov
+    extra: null
+    questionnaire_display_name: ''
+    questionnaire_help: ''
+  - allow_multiple: false
+    code: DEATH
+    display_name: Death details and preferences
+    elements:
+    - DEATH_Ov
+    - DEATHDATE_Ov
+    - DEATHOC_Ov
+    - DEATHPLACE_Ov
+    - INHOSPITAL_Ov
+    - DEATHPALL_Ov
+    - DEATHPREF_Ov
+    - DEATHPLACEPREFDATE_Ov
+    extra: null
+    questionnaire_display_name: ''
+    questionnaire_help: ''
+- applicability_condition: ''
+  display_name: Treatment Details
+  header: ''
+  is_questionnaire: false
+  name: TREATMENT
+  position: 4
+  questionnaire_display_name: ''
+  questionnaire_questions: ''
+  sections:
+  - allow_multiple: true
+    code: HOSPITAL_ID
+    display_name: Hospital - Surgery
+    elements:
+    - HOSPID_SURGERY_Ov
+    extra: null
+    questionnaire_display_name: ''
+    questionnaire_help: ''
+  - allow_multiple: true
+    code: HOSP_ID_C
+    display_name: Hospital - Adjuvant therapy
+    elements:
+    - HOSPID_CHEMO_Ov
+    extra: null
+    questionnaire_display_name: ''
+    questionnaire_help: ''
+  - allow_multiple: false
+    code: SURGERY
+    display_name: Surgery
+    elements:
+    - CURA_Ov
+    - COMPLETE_Ov
+    - SURGERY_Ov
+    - SURGERY_DATE_Ov
+    extra: null
+    questionnaire_display_name: ''
+    questionnaire_help: ''
+  - allow_multiple: false
+    code: ADJUVANT
+    display_name: Adjuvant therapy
+    elements:
+    - CHEMOTX_Ov
+    - CHEMOTXTYPE1_Ov
+    - CHEMOTXSTARTDATE_Ov
+    - CHEMOTXSTOPDATE_Ov
+    - CHEMOTXONGOING_Ov
+    - HORMONTX_Ov
+    - HORMONTXTYPE_Ov
+    - HORMONTXSTARTDATE_Ov
+    - HORMONTXSTOPDATE_Ov
+    - HORMONTXONGOING_Ov
+    - PARPi_Ov
+    - PARPiSTARTDATE_Ov
+    - PARPiSTOPDATE_Ov
+    - AVASTIN_Ov
+    - AVASTARTDATE_Ov
+    - AVASTOPDATE_Ov
+    - IMMUNOTX_Ov
+    - IMMUNOTXSTARTDATE_Ov
+    - IMMUNOTXSTOPDATE_Ov
+    extra: null
+    questionnaire_display_name: ''
+    questionnaire_help: ''
+  - allow_multiple: false
+    code: COMPLICATIONS
+    display_name: Complications
+    elements:
+    - COMPLSYS_Ov
+    - COMPLSYSOTHER_Ov
+    - COMPLIMPACT_Ov
+    - COMPLTX_Ov
+    - COMPL_Ov
+    extra: null
+    questionnaire_display_name: ''
+    questionnaire_help: ''
+  - allow_multiple: false
+    code: COMPLICATIONS_2
+    display_name: Complete date, where applicable
+    elements:
+    - COMPLSYSCYTODATE_Ov
+    - COMPLSYSINFDATE_Ov
+    - COMPLSYSNEURODATE_Ov
+    - COMPLSYSCARDATE_Ov
+    - COMPLSYSSKIDATE_Ov
+    - COMPLSYSOTHERDATE_Ov
+    extra: null
+    questionnaire_display_name: ''
+    questionnaire_help: ''
+forms_allowed_groups:
+  6MONTHLYPROMS: []
+  BaselinePROMS: []
+  ClinicalInfo: []
+  NGOR1: []
+  Patientinformation: []
+  SURVDISEASECON: []
+  TREATMENT: []
+generic_sections:
+- allow_multiple: false
+  code: PatientData
+  display_name: Personal Information
+  elements:
+  - CDEPatientCentre
+  - CDEPatientFamilyName
+  - CDEPatientGivenNames
+  - CDEPatientDateOfBirth
+  - CDEPatientSex
+  - CDEPatientHomePhone
+  - CDEPatientMobilePhone
+  - CDEPatientEmail
+  extra: null
+  questionnaire_display_name: ''
+  questionnaire_help: ''
+- allow_multiple: true
+  code: PatientDataAddressSection
+  display_name: Addresses
+  elements:
+  - AddressType
+  - Address
+  - State
+  - SuburbTown
+  - postcode
+  extra: null
+  questionnaire_display_name: ''
+  questionnaire_help: ''
+hl7_mappings: []
+metadata_json: |-
+  {"features": ["proms_clinical","contexts","show_query_patient_button","no_add_patient_button"],
+  "survey_consent_information": " (approximately 6 months).",
+  "section_blacklist": ["Next of Kin", "Patient Doctor", "Patient Address"],
+  "surveys": [
+  {"code": "BaselinePROMs", "description": "Baseline"},
+  {"code": "PROMsFollowup", "description": "PROMs Followup"}
+  ],
+  "proms_system_url": "https://rdrf.ccgapps.com.au/ovproms","preamble_text":"This survey helps us to understand how your cancer care and treatment affects your life, from your point of view. The information you provide will help your health team to provide care that better meets your individual needs. What you tell us will also help to improve care for people who undergo medical treatments in the future.\n\nThank you again for taking part in the study.","copyright_text":"©The modified Brief Sexual Symptom Checklist for Women (BSSC-W) | © EuroQol Research Foundation. EQ-5D™ is a trade mark of the EuroQol Research Foundation | © MOST Follow Up University of Sydney September 2020","consents":{"PROMSConsent":"promsconsent"}
+  }
+name: OVARIAN
+patient_data_section: {}
+pvgs:
+- code: 0_10Scale
+  values:
+  - code: '0'
+    desc: '0'
+    position: 0
+    questionnaire_value: '0'
+    value: '0'
+  - code: '1'
+    desc: '1'
+    position: 1
+    questionnaire_value: '1'
+    value: '1'
+  - code: '10'
+    desc: '10'
+    position: 10
+    questionnaire_value: '10'
+    value: '10'
+  - code: '2'
+    desc: '2'
+    position: 2
+    questionnaire_value: '2'
+    value: '2'
+  - code: '3'
+    desc: '3'
+    position: 3
+    questionnaire_value: '3'
+    value: '3'
+  - code: '4'
+    desc: '4'
+    position: 4
+    questionnaire_value: '4'
+    value: '4'
+  - code: '5'
+    desc: '5'
+    position: 5
+    questionnaire_value: '5'
+    value: '5'
+  - code: '6'
+    desc: '6'
+    position: 6
+    questionnaire_value: '6'
+    value: '6'
+  - code: '7'
+    desc: '7'
+    position: 7
+    questionnaire_value: '7'
+    value: '7'
+  - code: '8'
+    desc: '8'
+    position: 8
+    questionnaire_value: '8'
+    value: '8'
+  - code: '9'
+    desc: '9'
+    position: 9
+    questionnaire_value: '9'
+    value: '9'
+- code: AddressType
+  values:
+  - code: AddressTypeHome
+    desc: Home
+    position: 1
+    questionnaire_value: Home
+    value: Home
+  - code: AddressTypePostal
+    desc: Postal
+    position: 2
+    questionnaire_value: Postal
+    value: Postal
+  - code: NA
+    desc: NA
+    position: 99
+    questionnaire_value: NA
+    value: NA
+- code: BSSC_Y_N
+  values:
+  - code: '0'
+    desc: 'No'
+    position: 2
+    questionnaire_value: null
+    value: 'No'
+  - code: '1'
+    desc: 'Yes'
+    position: 1
+    questionnaire_value: null
+    value: 'Yes'
+- code: CHEMOTXTYPE1_Ov
+  values:
+  - code: '1'
+    desc: Carboplatin and paclitaxel
+    position: 1
+    questionnaire_value: null
+    value: Carboplatin and paclitaxel
+  - code: '2'
+    desc: Single agent carboplatin
+    position: 2
+    questionnaire_value: null
+    value: Single agent carboplatin
+- code: CHEMOTX_Ov
+  values:
+  - code: '0'
+    desc: 'No'
+    position: 1
+    questionnaire_value: null
+    value: 'No'
+  - code: '1'
+    desc: Yes, neo-adjuvant
+    position: 2
+    questionnaire_value: null
+    value: Yes, neoadjuvant
+  - code: '2'
+    desc: Yes, adjuvant
+    position: 3
+    questionnaire_value: null
+    value: Yes, adjuvant
+  - code: '9'
+    desc: Unknown
+    position: 9
+    questionnaire_value: null
+    value: Unknown
+- code: COMORBIDITIES
+  values:
+  - code: '0'
+    desc: I have no other diseases
+    position: 1
+    questionnaire_value: null
+    value: I have no other diseases
+  - code: '1'
+    desc: 'Heart disease (for example: angina, heart attack, or heart failure'
+    position: 2
+    questionnaire_value: null
+    value: 'Heart disease (for example: angina, heart attack, or heart failure)'
+  - code: '10'
+    desc: Other cancer (within the last 5 years)
+    position: 11
+    questionnaire_value: null
+    value: Other cancer (within the last 5 years)
+  - code: '11'
+    desc: Depression
+    position: 12
+    questionnaire_value: null
+    value: Depression
+  - code: '12'
+    desc: Arthritis
+    position: 13
+    questionnaire_value: null
+    value: Arthritis
+  - code: '2'
+    desc: High blood pressure
+    position: 3
+    questionnaire_value: null
+    value: High blood pressure
+  - code: '3'
+    desc: Leg pain when walking due to poor circulation
+    position: 4
+    questionnaire_value: null
+    value: Leg pain when walking due to poor circulation
+  - code: '4'
+    desc: Lung disease (For example, asthma, chronic bronchitis, or emphysema)
+    position: 5
+    questionnaire_value: null
+    value: Lung disease (For example, asthma, chronic bronchitis, or emphysema)
+  - code: '5'
+    desc: Diabetes
+    position: 6
+    questionnaire_value: null
+    value: Diabetes
+  - code: '6'
+    desc: Kidney disease
+    position: 7
+    questionnaire_value: null
+    value: Kidney disease
+  - code: '7'
+    desc: Liver disease
+    position: 8
+    questionnaire_value: null
+    value: Liver disease
+  - code: '8'
+    desc: Problems caused by stroke
+    position: 9
+    questionnaire_value: null
+    value: Problems caused by stroke
+  - code: '9'
+    desc: Disease of the nervous system (For example, Parkinson’s disease or multiple
+      sclerosis)
+    position: 10
+    questionnaire_value: null
+    value: Disease of the nervous system (For example, Parkinson’s disease or multiple
+      sclerosis)
+- code: COMPLETE_Ov
+  values:
+  - code: '0'
+    desc: R0
+    position: 1
+    questionnaire_value: null
+    value: R0
+  - code: '1'
+    desc: R<1cm
+    position: 2
+    questionnaire_value: null
+    value: R less than 1cm
+  - code: '2'
+    desc: R>1cm
+    position: 3
+    questionnaire_value: null
+    value: R greater than1cm
+- code: COMPLIMPACT_Ov
+  values:
+  - code: '0'
+    desc: No complication
+    position: 1
+    questionnaire_value: null
+    value: No complication
+  - code: '1'
+    desc: Complication requiring intervention (surgical, radiological, endoscopic)
+    position: 2
+    questionnaire_value: null
+    value: Complication requiring intervention (surgical, radiological, endoscopic)
+  - code: '2'
+    desc: Complication leading to prolonged hospitalisation ( >14 days)
+    position: 3
+    questionnaire_value: null
+    value: Complication leading to prolonged hospitalisation ( >14 days)
+  - code: '3'
+    desc: Complication leading to unplanned readmission
+    position: 4
+    questionnaire_value: null
+    value: Complication leading to unplanned readmission
+  - code: '4'
+    desc: Complication leading to ICU admission
+    position: 5
+    questionnaire_value: null
+    value: Complication leading to ICU admission
+  - code: '5'
+    desc: Complication leading to discontinuing of treatment
+    position: 6
+    questionnaire_value: null
+    value: Complication leading to discontinuing of treatment
+  - code: '6'
+    desc: Complication leading to reduced dosing
+    position: 7
+    questionnaire_value: null
+    value: Complication leading to reduced dosing
+  - code: '7'
+    desc: Complication leading to death
+    position: 8
+    questionnaire_value: null
+    value: Complication leading to death
+  - code: '8'
+    desc: Complication, but did not result in any of the above mentioned
+    position: 9
+    questionnaire_value: null
+    value: Complication, but did not result in any of the above mentioned
+  - code: '999'
+    desc: Unknown
+    position: 10
+    questionnaire_value: null
+    value: Unknown
+- code: COMPLSYS_Ov
+  values:
+  - code: '0'
+    desc: No grade III-‐IV toxicity
+    position: 1
+    questionnaire_value: null
+    value: No grade III-‐IV toxicity
+  - code: '1'
+    desc: Cytopenias (anaemia, febrile neutropenia, thrombocytopenia)
+    position: 2
+    questionnaire_value: null
+    value: Cytopenias (anemia, febrile neutropenia, thrombocytopenia)
+  - code: '2'
+    desc: Infection, any primary site
+    position: 3
+    questionnaire_value: null
+    value: Infection, any primary site
+  - code: '3'
+    desc: Skin reaction (rash, dermatitis radiation)
+    position: 4
+    questionnaire_value: null
+    value: Skin reaction (rash, dermatitis radiation)
+  - code: '4'
+    desc: Pneumonitis, cough, dyspnea, other lung toxicity
+    position: 5
+    questionnaire_value: null
+    value: Pneumonitis, cough, dyspnea, other lung toxicity
+  - code: '5'
+    desc: Oesophagitis, mucositis oral, nausea, vomiting, diarrhoea, constipation,
+      other GI toxicity
+    position: 6
+    questionnaire_value: null
+    value: Oesophagitis, mucositis oral, nausea, vomiting, diarrhoea, constipation,
+      other GI toxicity
+  - code: '6'
+    desc: Neuropathy, tinnitus, hearing impaired, other neurologic toxicity
+    position: 7
+    questionnaire_value: null
+    value: Neuropathy, tinnitus, hearing impaired, other neurologic toxicity
+  - code: '7'
+    desc: Acute kidney injury
+    position: 8
+    questionnaire_value: null
+    value: Acute kidney injury
+  - code: '888'
+    desc: Other
+    position: 9
+    questionnaire_value: null
+    value: Other
+- code: COMPL_Ov
+  values:
+  - code: '1'
+    desc: Cytopenias
+    position: 1
+    questionnaire_value: null
+    value: Cytopenias
+  - code: '2'
+    desc: Infection
+    position: 2
+    questionnaire_value: null
+    value: Infection
+  - code: '3'
+    desc: Vomiting, diarrhoea, constipation, or other GI toxicity
+    position: 3
+    questionnaire_value: null
+    value: Vomiting, diarrhoea, constipation, or other GI toxicity
+  - code: '4'
+    desc: Neuropathy
+    position: 4
+    questionnaire_value: null
+    value: Neuropathy
+  - code: '5'
+    desc: Cardiovascular toxicity
+    position: 5
+    questionnaire_value: null
+    value: Cardiovascular toxicity
+  - code: '6'
+    desc: Other
+    position: 6
+    questionnaire_value: null
+    value: Other
+  - code: '7'
+    desc: Skin reaction
+    position: 7
+    questionnaire_value: null
+    value: Skin reaction
+- code: CURA_Ov
+  values:
+  - code: '1'
+    desc: Curative
+    position: 1
+    questionnaire_value: null
+    value: Curative
+  - code: '2'
+    desc: Palliatve
+    position: 2
+    questionnaire_value: null
+    value: Palliative
+  - code: '9'
+    desc: Unknown
+    position: 9
+    questionnaire_value: null
+    value: Unknown
+- code: ClinicalSpeciality
+  values:
+  - code: '1'
+    desc: Surgery
+    position: 1
+    questionnaire_value: null
+    value: Surgery
+  - code: '2'
+    desc: Medical Oncology
+    position: 2
+    questionnaire_value: null
+    value: Medical Oncology
+  - code: '3'
+    desc: Radiation Oncology
+    position: 3
+    questionnaire_value: null
+    value: Radiation Oncology
+  - code: '888'
+    desc: Other
+    position: 888
+    questionnaire_value: null
+    value: Other
+- code: DEATHPLACE_Ov
+  values:
+  - code: '1'
+    desc: Home
+    position: 1
+    questionnaire_value: null
+    value: Home
+  - code: '2'
+    desc: Hospital
+    position: 3
+    questionnaire_value: null
+    value: Hospital
+  - code: '3'
+    desc: Nursing home/care home (including assisted living facilities)
+    position: 2
+    questionnaire_value: null
+    value: Nursing home/care home (including assisted living facilities)
+  - code: '4'
+    desc: Other
+    position: 5
+    questionnaire_value: null
+    value: Other
+  - code: '5'
+    desc: Hospice
+    position: 4
+    questionnaire_value: null
+    value: Hospice
+  - code: '999'
+    desc: Unknown
+    position: 9
+    questionnaire_value: null
+    value: Unknown
+- code: EDUCATION_Ov
+  values:
+  - code: '0'
+    desc: None
+    position: 1
+    questionnaire_value: null
+    value: None
+  - code: '1'
+    desc: Primary
+    position: 2
+    questionnaire_value: null
+    value: Primary
+  - code: '2'
+    desc: Secondary
+    position: 3
+    questionnaire_value: null
+    value: Secondary
+  - code: '3'
+    desc: Tertiary
+    position: 4
+    questionnaire_value: null
+    value: Tertiary
+- code: EQMobility
+  values:
+  - code: '1'
+    desc: I have no problems with walking around
+    position: 1
+    questionnaire_value: null
+    value: I have no problems with walking around
+  - code: '2'
+    desc: I have slight problems with walking around
+    position: 2
+    questionnaire_value: null
+    value: I have slight problems with walking around
+  - code: '3'
+    desc: I have moderate problems with walking around
+    position: 3
+    questionnaire_value: null
+    value: I have moderate problems with walking around
+  - code: '4'
+    desc: I have severe problems with walking around
+    position: 4
+    questionnaire_value: null
+    value: I have severe problems with walking around
+  - code: '5'
+    desc: I am unable to walk around
+    position: 5
+    questionnaire_value: null
+    value: I am unable to walk around
+- code: EQSelfCare
+  values:
+  - code: '1'
+    desc: I have no problems with washing or dressing myself
+    position: 1
+    questionnaire_value: null
+    value: I have no problems with washing or dressing myself
+  - code: '2'
+    desc: I have slight problems with washing or dressing myself
+    position: 2
+    questionnaire_value: null
+    value: I have slight problems with washing or dressing myself
+  - code: '3'
+    desc: I have moderate problems with washing or dressing myself
+    position: 3
+    questionnaire_value: null
+    value: I have moderate problems with washing or dressing myself
+  - code: '4'
+    desc: I have severe problems with washing or dressing myself
+    position: 4
+    questionnaire_value: null
+    value: I have severe problems with washing or dressing myself
+  - code: '5'
+    desc: I am unable to wash or dress myself
+    position: 5
+    questionnaire_value: null
+    value: I am unable to wash or dress myself
+- code: EQUsualActivities
+  values:
+  - code: '1'
+    desc: I have no problems doing my usual activities
+    position: 1
+    questionnaire_value: null
+    value: I have no problems doing my usual activities
+  - code: '2'
+    desc: I have slight problems doing my usual activities
+    position: 2
+    questionnaire_value: null
+    value: I have slight problems doing my usual activities
+  - code: '3'
+    desc: I have moderate problems doing my usual activities
+    position: 3
+    questionnaire_value: null
+    value: I have moderate problems doing my usual activities
+  - code: '4'
+    desc: I have severe problems doing my usual activities
+    position: 4
+    questionnaire_value: null
+    value: I have severe problems doing my usual activities
+  - code: '5'
+    desc: I am unable to do my usual activities
+    position: 5
+    questionnaire_value: null
+    value: I am unable to do my usual activities
+- code: EQ_Anxiety_Depress
+  values:
+  - code: '1'
+    desc: I am not anxious or depressed
+    position: 1
+    questionnaire_value: null
+    value: I am not anxious or depressed
+  - code: '2'
+    desc: I am slightly anxious or depressed
+    position: 2
+    questionnaire_value: null
+    value: I am slightly anxious or depressed
+  - code: '3'
+    desc: I am moderately anxious or depressed
+    position: 3
+    questionnaire_value: null
+    value: I am moderately anxious or depressed
+  - code: '4'
+    desc: I am severely anxious or depressed
+    position: 4
+    questionnaire_value: null
+    value: I am severely anxious or depressed
+  - code: '5'
+    desc: I am extremely anxious or depressed
+    position: 5
+    questionnaire_value: null
+    value: I am extremely anxious or depressed
+- code: EQ_Pain_Discomfort
+  values:
+  - code: '1'
+    desc: I have no pain or discomfort
+    position: 1
+    questionnaire_value: null
+    value: I have no pain or discomfort
+  - code: '2'
+    desc: I have slight pain or discomfort
+    position: 2
+    questionnaire_value: null
+    value: I have slight pain or discomfort
+  - code: '3'
+    desc: I have moderate pain or discomfort
+    position: 3
+    questionnaire_value: null
+    value: I have moderate pain or discomfort
+  - code: '4'
+    desc: I have severe pain or discomfort
+    position: 4
+    questionnaire_value: null
+    value: I have severe pain or discomfort
+  - code: '5'
+    desc: I have extreme pain or discomfort
+    position: 5
+    questionnaire_value: null
+    value: I have extreme pain or discomfort
+- code: Ethnicity
+  values:
+  - code: '0'
+    desc: ATSI
+    position: 1
+    questionnaire_value: null
+    value: ATSI
+  - code: '1'
+    desc: Not ATSI
+    position: 2
+    questionnaire_value: null
+    value: Not ATSI
+  - code: '2'
+    desc: Prefer not to say
+    position: 3
+    questionnaire_value: null
+    value: Prefer not to say
+- code: FAMHIS_Ov_Y
+  values:
+  - code: '1'
+    desc: first degree relative (parent, sibling or child)
+    position: 1
+    questionnaire_value: null
+    value: First degree relative (parent, sibling or child)
+  - code: '2'
+    desc: Other relative
+    position: 2
+    questionnaire_value: null
+    value: Other relative
+- code: GERMMUT_Ov
+  values:
+  - code: '0'
+    desc: No, mutations
+    position: 3
+    questionnaire_value: null
+    value: No, mutations
+  - code: '1'
+    desc: BRCA mutation
+    position: 1
+    questionnaire_value: null
+    value: BRCA mutation
+  - code: '2'
+    desc: Other HRD mutation
+    position: 2
+    questionnaire_value: null
+    value: Other HRD mutation
+- code: GRADE_Ov
+  values:
+  - code: '1'
+    desc: Grade 1 Well differentiated
+    position: 1
+    questionnaire_value: null
+    value: Grade 1 Well differentiated
+  - code: '2'
+    desc: Grade 2 Moderately differentatiated
+    position: 2
+    questionnaire_value: null
+    value: Grade 2 Moderately differentatiated
+  - code: '3'
+    desc: Grade 3 Poorly differentiated
+    position: 3
+    questionnaire_value: null
+    value: Grade 3 Poorly differentiated
+- code: HISTOTYPE_Ov
+  values:
+  - code: '1'
+    desc: Serous
+    position: 1
+    questionnaire_value: null
+    value: Serous
+  - code: '2'
+    desc: Endometroid
+    position: 2
+    questionnaire_value: null
+    value: Endometroid
+  - code: '3'
+    desc: Clear cell
+    position: 3
+    questionnaire_value: null
+    value: Clear cell
+  - code: '4'
+    desc: Mucinous
+    position: 4
+    questionnaire_value: null
+    value: Mucinous
+  - code: '5'
+    desc: Mixed
+    position: 5
+    questionnaire_value: null
+    value: Mixed
+- code: HORMONTXTYPE_Ov
+  values:
+  - code: '1'
+    desc: Letrozole
+    position: 1
+    questionnaire_value: null
+    value: Letrozole
+  - code: '2'
+    desc: Other aromatase inhibitor
+    position: 2
+    questionnaire_value: null
+    value: Other aromatase inhibitor
+  - code: '3'
+    desc: Tamoxifen
+    position: 3
+    questionnaire_value: null
+    value: Tamoxifen
+  - code: '4'
+    desc: Provera
+    position: 4
+    questionnaire_value: null
+    value: Provera
+- code: HOSPITAL_Ov
+  values:
+  - code: '1'
+    desc: SCGH
+    position: 1
+    questionnaire_value: null
+    value: SCGH
+  - code: '2'
+    desc: SJOG -Subiaco
+    position: 2
+    questionnaire_value: null
+    value: SJOG Subiaco
+  - code: '3'
+    desc: SJOG - Murdoch
+    position: 3
+    questionnaire_value: null
+    value: SJOG Murdoch
+  - code: '4'
+    desc: FSH
+    position: 4
+    questionnaire_value: null
+    value: FSH
+  - code: '5'
+    desc: SJOG - Midland
+    position: 5
+    questionnaire_value: null
+    value: SJOG Midland
+  - code: '6'
+    desc: Hollywood
+    position: 6
+    questionnaire_value: null
+    value: Hollywood
+  - code: '7'
+    desc: Other
+    position: 7
+    questionnaire_value: null
+    value: Other
+- code: MARITAL_Ov
+  values:
+  - code: '0'
+    desc: Never married/partnered
+    position: 1
+    questionnaire_value: null
+    value: Never married/partnered
+  - code: '1'
+    desc: Married/partnered
+    position: 2
+    questionnaire_value: null
+    value: Married/partnered
+  - code: '2'
+    desc: Divorced/separated
+    position: 3
+    questionnaire_value: null
+    value: Divorced/separated
+  - code: '3'
+    desc: Widowed
+    position: 4
+    questionnaire_value: null
+    value: Widowed
+- code: MENOPAUSE
+  values:
+  - code: '0'
+    desc: Pre-menopausal
+    position: 1
+    questionnaire_value: null
+    value: Pre-menopausal
+  - code: '1'
+    desc: Post-menopausal (natural/surgical) - if you have not had your period >12
+      months, caused by natural decline of hormones or due to surgery (e.g. menopause
+      that develops after the ovaries are surgically removed
+    position: 2
+    questionnaire_value: null
+    value: Post-menopausal (natural/surgical) - if you have not had your period >12
+      months, caused by natural decline of hormones or due to surgery (e.g. menopause
+      that develops after the ovaries are surgically removed
+  - code: '3'
+    desc: I don't know what my current menopausal status is
+    position: 3
+    questionnaire_value: null
+    value: I don't know what my current menopausal status is
+- code: MOSTFollow_up_Q21
+  values:
+  - code: '0'
+    desc: 'No'
+    position: 2
+    questionnaire_value: 'No'
+    value: 'No'
+  - code: '1'
+    desc: 'Yes'
+    position: 1
+    questionnaire_value: 'Yes'
+    value: 'Yes'
+- code: MOSTFollow_up_Q26
+  values:
+  - code: '0'
+    desc: 'No'
+    position: 2
+    questionnaire_value: 'No'
+    value: 'No'
+  - code: '1'
+    desc: 'Yes'
+    position: 1
+    questionnaire_value: 'Yes'
+    value: 'Yes'
+- code: NGOR_6
+  values:
+  - code: '1'
+    desc: Neo-adjuvant
+    position: 1
+    questionnaire_value: null
+    value: Neo-adjuvant
+  - code: '2'
+    desc: Adjuvant
+    position: 2
+    questionnaire_value: null
+    value: Adjuvant
+  - code: '9'
+    desc: Unknown
+    position: 9
+    questionnaire_value: null
+    value: Unknown
+- code: PERFORM_Ov
+  values:
+  - code: '0'
+    desc: Normal activity level
+    position: 1
+    questionnaire_value: null
+    value: Normal activity level
+  - code: '1'
+    desc: Restricted with physically strenuous activity
+    position: 2
+    questionnaire_value: null
+    value: Restricted with physically strenuous activity
+  - code: '2'
+    desc: Active >/= 50% of day
+    position: 3
+    questionnaire_value: null
+    value: Active >/= 50% of day
+  - code: '3'
+    desc: Spends > 50% of day in chair or bed
+    position: 4
+    questionnaire_value: null
+    value: Spends > 50% of day in chair or bed
+  - code: '4'
+    desc: Totally confined to chair or bed
+    position: 5
+    questionnaire_value: null
+    value: Totally confined to chair or bed
+  - code: '99'
+    desc: Unknown
+    position: 9
+    questionnaire_value: null
+    value: Unknown
+- code: PrivHosp
+  values:
+  - code: '1'
+    desc: SJOG _ Midland
+    position: 1
+    questionnaire_value: null
+    value: SJOG - Midland
+  - code: '2'
+    desc: SJOG _ S
+    position: 2
+    questionnaire_value: null
+    value: SJOG - Subiaco
+- code: RECURMETH_Ov
+  values:
+  - code: '0'
+    desc: Imaging (CT or PET-CT)
+    position: 1
+    questionnaire_value: null
+    value: Imaging (CT or PET-CT)
+  - code: '1'
+    desc: Histology
+    position: 2
+    questionnaire_value: null
+    value: Histology
+  - code: '2'
+    desc: Serum tumour marker elevation
+    position: 3
+    questionnaire_value: null
+    value: Serum tumour marker elevation
+- code: Sex
+  values:
+  - code: '0'
+    desc: Female
+    position: null
+    questionnaire_value: null
+    value: Female
+  - code: '1'
+    desc: Male
+    position: null
+    questionnaire_value: null
+    value: Male
+  - code: N/A
+    desc: N/A
+    position: 99
+    questionnaire_value: N/A
+    value: N/A
+  - code: X
+    desc: Other/Intersex
+    position: null
+    questionnaire_value: null
+    value: Other/Intersex
+- code: State
+  values:
+  - code: ACT
+    desc: Australian Capital Territory
+    position: null
+    questionnaire_value: null
+    value: Australian Capital Territory
+  - code: NA
+    desc: NA
+    position: 99
+    questionnaire_value: NA
+    value: NA
+  - code: NSW
+    desc: New South Wales
+    position: null
+    questionnaire_value: null
+    value: New South Wales
+  - code: NT
+    desc: Northern Territory
+    position: null
+    questionnaire_value: null
+    value: Northern Territory
+  - code: QLD
+    desc: Queensland
+    position: null
+    questionnaire_value: null
+    value: Queensland
+  - code: SA
+    desc: South Australia
+    position: null
+    questionnaire_value: null
+    value: South Australia
+  - code: TAS
+    desc: Tasmania
+    position: null
+    questionnaire_value: null
+    value: Tasmania
+  - code: VIC
+    desc: Victoria
+    position: null
+    questionnaire_value: null
+    value: Victoria
+  - code: WA
+    desc: Western Australia
+    position: null
+    questionnaire_value: null
+    value: Western Australia
+- code: TNMCT_Ov
+  values:
+  - code: '1'
+    desc: 1A
+    position: 1
+    questionnaire_value: null
+    value: 1A
+  - code: '10'
+    desc: 3A2
+    position: 10
+    questionnaire_value: null
+    value: 3A2
+  - code: '11'
+    desc: 3B
+    position: 11
+    questionnaire_value: null
+    value: 3B
+  - code: '12'
+    desc: 3C
+    position: 12
+    questionnaire_value: null
+    value: 3C
+  - code: '13'
+    desc: 4A
+    position: 13
+    questionnaire_value: null
+    value: 4A
+  - code: '14'
+    desc: 4B
+    position: 14
+    questionnaire_value: null
+    value: 4B
+  - code: '2'
+    desc: 1B
+    position: 2
+    questionnaire_value: null
+    value: 1B
+  - code: '3'
+    desc: 1C1
+    position: 3
+    questionnaire_value: null
+    value: 1C1
+  - code: '4'
+    desc: 1C2
+    position: 4
+    questionnaire_value: null
+    value: 1C2
+  - code: '5'
+    desc: 1C3
+    position: 5
+    questionnaire_value: null
+    value: 1C3
+  - code: '6'
+    desc: 2A
+    position: 6
+    questionnaire_value: null
+    value: 2A
+  - code: '7'
+    desc: 2B
+    position: 7
+    questionnaire_value: null
+    value: 2B
+  - code: '8'
+    desc: 3A1i
+    position: 8
+    questionnaire_value: null
+    value: 3A1i
+  - code: '9'
+    desc: 3A1ii
+    position: 9
+    questionnaire_value: null
+    value: 3A1ii
+- code: TenScale
+  values:
+  - code: '0'
+    desc: '0'
+    position: 10
+    questionnaire_value: null
+    value: '0'
+  - code: '1'
+    desc: '1'
+    position: 9
+    questionnaire_value: null
+    value: '1'
+  - code: '10'
+    desc: '10'
+    position: 0
+    questionnaire_value: null
+    value: '10'
+  - code: '2'
+    desc: '2'
+    position: 8
+    questionnaire_value: null
+    value: '2'
+  - code: '3'
+    desc: '3'
+    position: 7
+    questionnaire_value: null
+    value: '3'
+  - code: '4'
+    desc: '4'
+    position: 6
+    questionnaire_value: null
+    value: '4'
+  - code: '5'
+    desc: '5'
+    position: 5
+    questionnaire_value: null
+    value: '5'
+  - code: '6'
+    desc: '6'
+    position: 4
+    questionnaire_value: null
+    value: '6'
+  - code: '7'
+    desc: '7'
+    position: 3
+    questionnaire_value: null
+    value: '7'
+  - code: '8'
+    desc: '8'
+    position: 2
+    questionnaire_value: null
+    value: '8'
+  - code: '9'
+    desc: '9'
+    position: 1
+    questionnaire_value: null
+    value: '9'
+- code: Y_N_UK
+  values:
+  - code: '0'
+    desc: 'No'
+    position: 2
+    questionnaire_value: null
+    value: 'No'
+  - code: '1'
+    desc: 'Yes'
+    position: 1
+    questionnaire_value: null
+    value: 'Yes'
+  - code: '9'
+    desc: Unknown
+    position: 3
+    questionnaire_value: null
+    value: Unknown
+- code: public_private
+  values:
+  - code: '1'
+    desc: Public
+    position: 1
+    questionnaire_value: null
+    value: Public
+  - code: '2'
+    desc: Private
+    position: 2
+    questionnaire_value: null
+    value: Private
+  - code: '3'
+    desc: Both
+    position: 3
+    questionnaire_value: null
+    value: Both
+  - code: '999'
+    desc: Unknown
+    position: 999
+    questionnaire_value: null
+    value: Unknown
+reports: []
+reviews: []
+splash_screen: <h1>Ovarian Registry Demo</h1>
+surveys:
+- context_form_group: Modules
+  display_name: Baseline PROMs
+  form: BaselinePROMS
+  is_followup: false
+  name: BaselinePROMs
+  questions:
+  - cde: COLLECTIONDATE
+    cde_path: BaselinePROMS/SurveyInformation
+    copyright_text: ''
+    instruction: Please select the date of completing the survey
+    position: 49
+    precondition: null
+    source: ''
+    title: Completion Date
+    widget_config: ''
+  - cde: PROMSConsent
+    cde_path: null
+    copyright_text: ''
+    instruction: ''
+    position: 50
+    precondition: null
+    source: ''
+    title: null
+    widget_config: ''
+  - cde: MOSTFollow_up_Q19
+    cde_path: null
+    copyright_text: © MOST Follow Up University of Sydney September 2020
+    instruction: Please choose for each line, the number that best represents how
+      much this issue has concerned you on average during the last 3 to 4 weeks
+    position: 19
+    precondition: null
+    source: ''
+    title: null
+    widget_config: ''
+  - cde: EQ_Health_Rate
+    cde_path: null
+    copyright_text: © EuroQol Research Foundation. EQ-5D™ is a trade mark of the EuroQol
+      Research Foundation
+    instruction: ''
+    position: 37
+    precondition: null
+    source: ''
+    title: null
+    widget_config: '{"widget_name": "slider", "max_label": "The best health you can
+      imagine", "min_label": "The worst health you can imagine", "box_label": "YOUR
+      HEALTH TODAY"}'
+  - cde: MOSTFollow_up_Q26cr
+    cde_path: null
+    copyright_text: © MOST Follow Up University of Sydney September 2020
+    instruction: Please choose, for each line, the number that best represents how
+      much this issue has concerned you on average during the last 3 to 4 weeks
+    position: 31
+    precondition:
+      cde: MOSTFollow_up_Q25
+      value: '1'
+    source: ''
+    title: null
+    widget_config: ''
+  - cde: MOSTFollow_up_Q26c
+    cde_path: null
+    copyright_text: © MOST Follow Up University of Sydney September 2020
+    instruction: What is Symptom 3 (if applicable)?
+    position: 30
+    precondition:
+      cde: MOSTFollow_up_Q25
+      value: '1'
+    source: ''
+    title: null
+    widget_config: ''
+  - cde: MOSTFollow_up_Q26br
+    cde_path: null
+    copyright_text: © MOST Follow Up University of Sydney September 2020
+    instruction: Please choose, for each line, the number that best represents how
+      much this issue has concerned you on average during the last 3 to 4 weeks
+    position: 29
+    precondition:
+      cde: MOSTFollow_up_Q25
+      value: '1'
+    source: ''
+    title: null
+    widget_config: ''
+  - cde: MOSTFollow_up_Q26b
+    cde_path: null
+    copyright_text: © MOST Follow Up University of Sydney September 2020
+    instruction: What is Symptom 2 (if applicable)?
+    position: 28
+    precondition:
+      cde: MOSTFollow_up_Q25
+      value: '1'
+    source: ''
+    title: null
+    widget_config: ''
+  - cde: MOSTFollow_up_Q26ar
+    cde_path: null
+    copyright_text: © MOST Follow Up University of Sydney September 2020
+    instruction: Please choose, for each line, the number that best represents how
+      much this issue has concerned you on average during the last 3 to 4 weeks
+    position: 27
+    precondition:
+      cde: MOSTFollow_up_Q25
+      value: '1'
+    source: ''
+    title: null
+    widget_config: ''
+  - cde: MOSTFollow_up_Q26a
+    cde_path: null
+    copyright_text: © MOST Follow Up University of Sydney September 2020
+    instruction: What is Symptom 1?
+    position: 26
+    precondition:
+      cde: MOSTFollow_up_Q25
+      value: '1'
+    source: ''
+    title: null
+    widget_config: ''
+  - cde: MOSTFollow_up_Q25
+    cde_path: null
+    copyright_text: © MOST Follow Up University of Sydney September 2020
+    instruction: ''
+    position: 25
+    precondition: null
+    source: ''
+    title: null
+    widget_config: ''
+  - cde: MOSTFollow_up_Q24
+    cde_path: null
+    copyright_text: © MOST Follow Up University of Sydney September 2020
+    instruction: Please choose, for each line, the number that best represents how
+      much this issue has concerned you on average during the last 3 to 4 weeks
+    position: 24
+    precondition:
+      cde: MOSTFollow_up_Q20
+      value: '1'
+    source: ''
+    title: null
+    widget_config: ''
+  - cde: MOSTFollow_up_Q23
+    cde_path: null
+    copyright_text: © MOST Follow Up University of Sydney September 2020
+    instruction: Please choose, for each line, the number that best represents how
+      much this issue has concerned you on average during the last 3 to 4 weeks
+    position: 23
+    precondition:
+      cde: MOSTFollow_up_Q20
+      value: '1'
+    source: ''
+    title: null
+    widget_config: ''
+  - cde: MOSTFollow_up_Q22
+    cde_path: null
+    copyright_text: © MOST Follow Up University of Sydney September 2020
+    instruction: Please choose, for each line, the number that best represents how
+      much this issue has concerned you on average during the last 3 to 4 weeks
+    position: 22
+    precondition:
+      cde: MOSTFollow_up_Q20
+      value: '1'
+    source: ''
+    title: null
+    widget_config: ''
+  - cde: MOSTFollow_up_Q21
+    cde_path: null
+    copyright_text: © MOST Follow Up University of Sydney September 2020
+    instruction: Please choose, for each line, the number that best represents how
+      much this issue has concerned you on average during the last 3 to 4 weeks
+    position: 21
+    precondition:
+      cde: MOSTFollow_up_Q20
+      value: '1'
+    source: ''
+    title: null
+    widget_config: ''
+  - cde: MOSTFollow_up_Q20
+    cde_path: null
+    copyright_text: © MOST Follow Up University of Sydney September 2020
+    instruction: ''
+    position: 20
+    precondition: null
+    source: ''
+    title: null
+    widget_config: ''
+  - cde: MOSTFollow_up_Q18
+    cde_path: null
+    copyright_text: © MOST Follow Up University of Sydney September 2020
+    instruction: Please choose for each line, the number that best represents how
+      much this issue has concerned you on average during the last 3 to 4 weeks
+    position: 18
+    precondition: null
+    source: ''
+    title: null
+    widget_config: ''
+  - cde: MOSTFollow_up_Q17
+    cde_path: null
+    copyright_text: © MOST Follow Up University of Sydney September 2020
+    instruction: Please choose for each line, the number that best represents how
+      much this issue has concerned you on average during the last 3 to 4 weeks
+    position: 17
+    precondition: null
+    source: ''
+    title: null
+    widget_config: ''
+  - cde: MOSTFollow_up_Q16
+    cde_path: null
+    copyright_text: © MOST Follow Up University of Sydney September 2020
+    instruction: Please choose, for each line, the number that best represents how
+      much this issue has concerned you on average during the last 3 to 4 weeks
+    position: 16
+    precondition: null
+    source: ''
+    title: null
+    widget_config: ''
+  - cde: MOSTFollow_up_Q15
+    cde_path: null
+    copyright_text: © MOST Follow Up University of Sydney September 2020
+    instruction: Please choose, for each line, the number that best represents how
+      much this issue has concerned you on average during the last 3 to 4 weeks
+    position: 15
+    precondition: null
+    source: ''
+    title: null
+    widget_config: ''
+  - cde: MOSTFollow_up_Q14
+    cde_path: null
+    copyright_text: © MOST Follow Up University of Sydney September 2020
+    instruction: Please choose, for each line, the number that best represents how
+      much this issue has concerned you on average during the last 3 to 4 weeks
+    position: 14
+    precondition: null
+    source: ''
+    title: null
+    widget_config: ''
+  - cde: MOSTFollow_up_Q13
+    cde_path: null
+    copyright_text: © MOST Follow Up University of Sydney September 2020
+    instruction: Please choose, for each line, the number that best represents how
+      much this issue has concerned you on average during the last 3 to 4 weeks
+    position: 13
+    precondition: null
+    source: ''
+    title: null
+    widget_config: ''
+  - cde: MOSTFollow_up_Q12
+    cde_path: null
+    copyright_text: © MOST Follow Up University of Sydney September 2020
+    instruction: Please choose, for each line, the number that best represents how
+      much this issue has concerned you on average during the last 3 to 4 weeks
+    position: 12
+    precondition: null
+    source: ''
+    title: null
+    widget_config: ''
+  - cde: MOSTFollow_up_Q11
+    cde_path: null
+    copyright_text: © MOST Follow Up University of Sydney September 2020
+    instruction: Please choose, for each line, the number that best represents how
+      much this issue has concerned you on average during the last 3 to 4 weeks
+    position: 11
+    precondition: null
+    source: ''
+    title: null
+    widget_config: ''
+  - cde: MOSTFollow_up_Q10
+    cde_path: null
+    copyright_text: © MOST Follow Up University of Sydney September 2020
+    instruction: Please choose, for each line, the number that best represents how
+      much this issue has concerned you on average during the last 3 to 4 weeks
+    position: 10
+    precondition: null
+    source: ''
+    title: null
+    widget_config: ''
+  - cde: BSSC_5
+    cde_path: null
+    copyright_text: ©The modified Brief Sexual Symptom Checklist for Women (BSSC-W)
+    instruction: ''
+    position: 48
+    precondition:
+      cde: BSSC_1
+      value: '0'
+    source: ''
+    title: null
+    widget_config: ''
+  - cde: BSSC_4
+    cde_path: null
+    copyright_text: ©The modified Brief Sexual Symptom Checklist for Women (BSSC-W)
+    instruction: Of the six problems described
+    position: 47
+    precondition:
+      cde: BSSC_1
+      value: '0'
+    source: ''
+    title: null
+    widget_config: ''
+  - cde: BSSC_3Fb
+    cde_path: null
+    copyright_text: ©The modified Brief Sexual Symptom Checklist for Women (BSSC-W)
+    instruction: ''
+    position: 46
+    precondition:
+      cde: BSSC_3Fa
+      value: '1'
+    source: ''
+    title: null
+    widget_config: ''
+  - cde: BSSC_3Fa
+    cde_path: null
+    copyright_text: ©The modified Brief Sexual Symptom Checklist for Women (BSSC-W)
+    instruction: ''
+    position: 45
+    precondition:
+      cde: BSSC_1
+      value: '0'
+    source: ''
+    title: null
+    widget_config: ''
+  - cde: BSSC_3E
+    cde_path: null
+    copyright_text: ©The modified Brief Sexual Symptom Checklist for Women (BSSC-W)
+    instruction: ''
+    position: 44
+    precondition:
+      cde: BSSC_1
+      value: '0'
+    source: ''
+    title: null
+    widget_config: ''
+  - cde: BSSC_3D
+    cde_path: null
+    copyright_text: ©The modified Brief Sexual Symptom Checklist for Women (BSSC-W)
+    instruction: ''
+    position: 43
+    precondition:
+      cde: BSSC_1
+      value: '0'
+    source: ''
+    title: null
+    widget_config: ''
+  - cde: BSSC_3C
+    cde_path: null
+    copyright_text: ©The modified Brief Sexual Symptom Checklist for Women (BSSC-W)
+    instruction: ''
+    position: 42
+    precondition:
+      cde: BSSC_1
+      value: '0'
+    source: ''
+    title: null
+    widget_config: ''
+  - cde: BSSC_3B
+    cde_path: null
+    copyright_text: ©The modified Brief Sexual Symptom Checklist for Women (BSSC-W)
+    instruction: ''
+    position: 41
+    precondition:
+      cde: BSSC_1
+      value: '0'
+    source: ''
+    title: null
+    widget_config: ''
+  - cde: BSSC_3A
+    cde_path: null
+    copyright_text: ©The modified Brief Sexual Symptom Checklist for Women (BSSC-W)
+    instruction: ''
+    position: 40
+    precondition:
+      cde: BSSC_1
+      value: '0'
+    source: ''
+    title: null
+    widget_config: ''
+  - cde: BSSC_2
+    cde_path: null
+    copyright_text: ©The modified Brief Sexual Symptom Checklist for Women (BSSC-W)
+    instruction: ''
+    position: 39
+    precondition:
+      cde: BSSC_1
+      value: '0'
+    source: ''
+    title: null
+    widget_config: ''
+  - cde: BSSC_1
+    cde_path: null
+    copyright_text: ©The modified Brief Sexual Symptom Checklist for Women (BSSC-W)
+    instruction: ''
+    position: 38
+    precondition: null
+    source: ''
+    title: null
+    widget_config: ''
+  - cde: EQ_Anxiety_Depress
+    cde_path: null
+    copyright_text: © EuroQol Research Foundation. EQ-5D™ is a trade mark of the EuroQol
+      Research Foundation
+    instruction: Please tap the ONE box that best describes your health TODAY.
+    position: 36
+    precondition: null
+    source: ''
+    title: null
+    widget_config: ''
+  - cde: EQ_Pain_Discomfort
+    cde_path: null
+    copyright_text: © EuroQol Research Foundation. EQ-5D™ is a trade mark of the EuroQol
+      Research Foundation
+    instruction: Please tap the ONE box that best describes your health TODAY.
+    position: 35
+    precondition: null
+    source: ''
+    title: null
+    widget_config: ''
+  - cde: EQ_UsualActivities
+    cde_path: null
+    copyright_text: © EuroQol Research Foundation. EQ-5D™ is a trade mark of the EuroQol
+      Research Foundation
+    instruction: Please tap the ONE box that best describes your health TODAY.
+    position: 34
+    precondition: null
+    source: ''
+    title: null
+    widget_config: ''
+  - cde: EQ_Selfcare
+    cde_path: null
+    copyright_text: © EuroQol Research Foundation. EQ-5D™ is a trade mark of the EuroQol
+      Research Foundation
+    instruction: Please tap the ONE box that best describes your health TODAY.
+    position: 33
+    precondition: null
+    source: ''
+    title: null
+    widget_config: ''
+  - cde: EQ_Mobility
+    cde_path: null
+    copyright_text: © EuroQol Research Foundation. EQ-5D™ is a trade mark of the EuroQol
+      Research Foundation
+    instruction: Please tap the ONE box that best describes your health TODAY.
+    position: 32
+    precondition: null
+    source: ''
+    title: null
+    widget_config: ''
+  - cde: MOSTFollow_up_Q9
+    cde_path: null
+    copyright_text: © MOST Follow Up University of Sydney September 2020
+    instruction: Please choose, for each line, the number that best represents how
+      much this issue has concerned you on average during the last 3 to 4 weeks
+    position: 9
+    precondition: null
+    source: ''
+    title: null
+    widget_config: ''
+  - cde: MOSTFollow_up_Q8
+    cde_path: null
+    copyright_text: © MOST Follow Up University of Sydney September 2020
+    instruction: Please choose, for each line, the number that best represents how
+      much this issue has concerned you on average during the last 3 to 4 weeks
+    position: 8
+    precondition: null
+    source: ''
+    title: null
+    widget_config: ''
+  - cde: MOSTFollow_up_Q7
+    cde_path: null
+    copyright_text: © MOST Follow Up University of Sydney September 2020
+    instruction: Please choose, for each line, the number that best represents how
+      much this issue has concerned you on average during the last 3 to 4 weeks
+    position: 7
+    precondition: null
+    source: ''
+    title: null
+    widget_config: ''
+  - cde: MOSTFollow_up_Q6
+    cde_path: null
+    copyright_text: © MOST Follow Up University of Sydney September 2020
+    instruction: Please choose, for each line, the number that best represents how
+      much this issue has concerned you on average during the last 3 to 4 weeks
+    position: 6
+    precondition: null
+    source: ''
+    title: null
+    widget_config: ''
+  - cde: MOSTFollow_up_Q5
+    cde_path: null
+    copyright_text: © MOST Follow Up University of Sydney September 2020
+    instruction: Please choose, for each line, the number that best represents how
+      much this issue has concerned you on average during the last 3 to 4 weeks
+    position: 5
+    precondition: null
+    source: ''
+    title: null
+    widget_config: ''
+  - cde: MOSTFollow_up_Q4
+    cde_path: null
+    copyright_text: © MOST Follow Up University of Sydney September 2020
+    instruction: Please choose, for each line, the number that best represents how
+      much this issue has concerned you on average during the last 3 to 4 weeks
+    position: 4
+    precondition: null
+    source: ''
+    title: null
+    widget_config: ''
+  - cde: MOSTFollow_up_Q3
+    cde_path: null
+    copyright_text: © MOST Follow Up University of Sydney September 2020
+    instruction: Please choose, for each line, the number that best represents how
+      much this issue has concerned you on average during the last 3 to 4 weeks
+    position: 3
+    precondition: null
+    source: ''
+    title: null
+    widget_config: ''
+  - cde: MOSTFollow_up_Q2
+    cde_path: null
+    copyright_text: © MOST Follow Up University of Sydney September 2020
+    instruction: Please choose, for each line, the number that best represents how
+      much this issue has concerned you on average during the last 3 to 4 weeks
+    position: 2
+    precondition: null
+    source: ''
+    title: null
+    widget_config: ''
+  - cde: MOSTFollow_up_Q1
+    cde_path: null
+    copyright_text: © MOST Follow Up University of Sydney September 2020
+    instruction: Please choose the number that best represents how much this issue
+      has concerned you on average during the last 3 to 4 weeks
+    position: 1
+    precondition: null
+    source: ''
+    title: null
+    widget_config: ''
+- context_form_group: Followup
+  display_name: Six monthly PROMs Follow up
+  form: 6MONTHLYPROMS
+  is_followup: true
+  name: PROMsFollowup
+  questions:
+  - cde: COLLECTIONDATE
+    cde_path: 6MONTHLYPROMS/SurveyInformation
+    copyright_text: ''
+    instruction: Please select the date of completing the survey
+    position: 49
+    precondition: null
+    source: ''
+    title: Completion Date
+    widget_config: ''
+  - cde: PROMSConsent
+    cde_path: null
+    copyright_text: ''
+    instruction: ''
+    position: 50
+    precondition: null
+    source: ''
+    title: null
+    widget_config: ''
+  - cde: MOSTFollow_up_Q26cr
+    cde_path: null
+    copyright_text: © MOST Follow Up University of Sydney September 2020
+    instruction: Please choose the number that best represents how much this issue
+      has concerned you on average during the last 3 to 4 weeks
+    position: 31
+    precondition:
+      cde: MOSTFollow_up_Q25
+      value: '1'
+    source: ''
+    title: null
+    widget_config: ''
+  - cde: MOSTFollow_up_Q26br
+    cde_path: null
+    copyright_text: © MOST Follow Up University of Sydney September 2020
+    instruction: Please choose the number that best represents how much this issue
+      has concerned you on average during the last 3 to 4 weeks
+    position: 29
+    precondition:
+      cde: MOSTFollow_up_Q25
+      value: '1'
+    source: ''
+    title: null
+    widget_config: ''
+  - cde: MOSTFollow_up_Q26ar
+    cde_path: null
+    copyright_text: © MOST Follow Up University of Sydney September 2020
+    instruction: Please choose the number that best represents how much this issue
+      has concerned you on average during the last 3 to 4 weeks
+    position: 27
+    precondition:
+      cde: MOSTFollow_up_Q25
+      value: '1'
+    source: ''
+    title: null
+    widget_config: ''
+  - cde: MOSTFollow_up_Q25
+    cde_path: null
+    copyright_text: © MOST Follow Up University of Sydney September 2020
+    instruction: Please choose the number that best represents how much this issue
+      has concerned you on average during the last 3 to 4 weeks
+    position: 25
+    precondition: null
+    source: ''
+    title: null
+    widget_config: ''
+  - cde: MOSTFollow_up_Q24
+    cde_path: null
+    copyright_text: © MOST Follow Up University of Sydney September 2020
+    instruction: Please choose the number that best represents how much this issue
+      has concerned you on average during the last 3 to 4 weeks
+    position: 24
+    precondition:
+      cde: MOSTFollow_up_Q20
+      value: '1'
+    source: ''
+    title: null
+    widget_config: ''
+  - cde: MOSTFollow_up_Q23
+    cde_path: null
+    copyright_text: © MOST Follow Up University of Sydney September 2020
+    instruction: Please choose the number that best represents how much this issue
+      has concerned you on average during the last 3 to 4 weeks
+    position: 23
+    precondition:
+      cde: MOSTFollow_up_Q20
+      value: '1'
+    source: ''
+    title: null
+    widget_config: ''
+  - cde: MOSTFollow_up_Q22
+    cde_path: null
+    copyright_text: © MOST Follow Up University of Sydney September 2020
+    instruction: Please choose the number that best represents how much this issue
+      has concerned you on average during the last 3 to 4 weeks
+    position: 22
+    precondition:
+      cde: MOSTFollow_up_Q20
+      value: '1'
+    source: ''
+    title: null
+    widget_config: ''
+  - cde: MOSTFollow_up_Q21
+    cde_path: null
+    copyright_text: © MOST Follow Up University of Sydney September 2020
+    instruction: Please choose the number that best represents how much this issue
+      has concerned you on average during the last 3 to 4 weeks
+    position: 21
+    precondition:
+      cde: MOSTFollow_up_Q20
+      value: '1'
+    source: ''
+    title: null
+    widget_config: ''
+  - cde: MOSTFollow_up_Q16
+    cde_path: null
+    copyright_text: © MOST Follow Up University of Sydney September 2020
+    instruction: Please choose the number that best represents how much this issue
+      has concerned you on average during the last 3 to 4 weeks
+    position: 16
+    precondition: null
+    source: ''
+    title: null
+    widget_config: ''
+  - cde: MOSTFollow_up_Q15
+    cde_path: null
+    copyright_text: © MOST Follow Up University of Sydney September 2020
+    instruction: Please choose the number that best represents how much this issue
+      has concerned you on average during the last 3 to 4 weeks
+    position: 15
+    precondition: null
+    source: ''
+    title: null
+    widget_config: ''
+  - cde: MOSTFollow_up_Q14
+    cde_path: null
+    copyright_text: © MOST Follow Up University of Sydney September 2020
+    instruction: Please choose the number that best represents how much this issue
+      has concerned you on average during the last 3 to 4 weeks
+    position: 14
+    precondition: null
+    source: ''
+    title: null
+    widget_config: ''
+  - cde: MOSTFollow_up_Q13
+    cde_path: null
+    copyright_text: © MOST Follow Up University of Sydney September 2020
+    instruction: Please choose the number that best represents how much this issue
+      has concerned you on average during the last 3 to 4 weeks
+    position: 13
+    precondition: null
+    source: ''
+    title: null
+    widget_config: ''
+  - cde: MOSTFollow_up_Q12
+    cde_path: null
+    copyright_text: © MOST Follow Up University of Sydney September 2020
+    instruction: Please choose the number that best represents how much this issue
+      has concerned you on average during the last 3 to 4 weeks
+    position: 12
+    precondition: null
+    source: ''
+    title: null
+    widget_config: ''
+  - cde: MOSTFollow_up_Q11
+    cde_path: null
+    copyright_text: © MOST Follow Up University of Sydney September 2020
+    instruction: Please choose the number that best represents how much this issue
+      has concerned you on average during the last 3 to 4 weeks
+    position: 11
+    precondition: null
+    source: ''
+    title: null
+    widget_config: ''
+  - cde: MOSTFollow_up_Q10
+    cde_path: null
+    copyright_text: © MOST Follow Up University of Sydney September 2020
+    instruction: Please choose the number that best represents how much this issue
+      has concerned you on average during the last 3 to 4 weeks
+    position: 10
+    precondition: null
+    source: ''
+    title: null
+    widget_config: ''
+  - cde: MOSTFollow_up_Q9
+    cde_path: null
+    copyright_text: © MOST Follow Up University of Sydney September 2020
+    instruction: Please choose the number that best represents how much this issue
+      has concerned you on average during the last 3 to 4 weeks
+    position: 9
+    precondition: null
+    source: ''
+    title: null
+    widget_config: ''
+  - cde: MOSTFollow_up_Q6
+    cde_path: null
+    copyright_text: © MOST Follow Up University of Sydney September 2020
+    instruction: Please choose the number that best represents how much this issue
+      has concerned you on average during the last 3 to 4 weeks
+    position: 6
+    precondition: null
+    source: ''
+    title: null
+    widget_config: ''
+  - cde: BSSC_5
+    cde_path: null
+    copyright_text: ©The modified Brief Sexual Symptom Checklist for Women (BSSC-W)
+    instruction: ''
+    position: 48
+    precondition:
+      cde: BSSC_1
+      value: '0'
+    source: ''
+    title: null
+    widget_config: ''
+  - cde: BSSC_4
+    cde_path: null
+    copyright_text: ©The modified Brief Sexual Symptom Checklist for Women (BSSC-W)
+    instruction: Of the six problems described
+    position: 47
+    precondition:
+      cde: BSSC_1
+      value: '0'
+    source: ''
+    title: null
+    widget_config: ''
+  - cde: BSSC_3Fb
+    cde_path: null
+    copyright_text: ©The modified Brief Sexual Symptom Checklist for Women (BSSC-W)
+    instruction: ''
+    position: 46
+    precondition:
+      cde: BSSC_3Fa
+      value: '1'
+    source: ''
+    title: null
+    widget_config: ''
+  - cde: BSSC_3D
+    cde_path: null
+    copyright_text: ©The modified Brief Sexual Symptom Checklist for Women (BSSC-W)
+    instruction: ''
+    position: 43
+    precondition:
+      cde: BSSC_1
+      value: '0'
+    source: ''
+    title: null
+    widget_config: ''
+  - cde: BSSC_3C
+    cde_path: null
+    copyright_text: ©The modified Brief Sexual Symptom Checklist for Women (BSSC-W)
+    instruction: ''
+    position: 42
+    precondition:
+      cde: BSSC_1
+      value: '0'
+    source: ''
+    title: null
+    widget_config: ''
+  - cde: BSSC_3B
+    cde_path: null
+    copyright_text: ©The modified Brief Sexual Symptom Checklist for Women (BSSC-W)
+    instruction: ''
+    position: 41
+    precondition:
+      cde: BSSC_1
+      value: '0'
+    source: ''
+    title: null
+    widget_config: ''
+  - cde: BSSC_3A
+    cde_path: null
+    copyright_text: ©The modified Brief Sexual Symptom Checklist for Women (BSSC-W)
+    instruction: ''
+    position: 40
+    precondition:
+      cde: BSSC_1
+      value: '0'
+    source: ''
+    title: null
+    widget_config: ''
+  - cde: BSSC_2
+    cde_path: null
+    copyright_text: ©The modified Brief Sexual Symptom Checklist for Women (BSSC-W)
+    instruction: ''
+    position: 39
+    precondition:
+      cde: BSSC_1
+      value: '0'
+    source: ''
+    title: null
+    widget_config: ''
+  - cde: BSSC_1
+    cde_path: null
+    copyright_text: ©The modified Brief Sexual Symptom Checklist for Women (BSSC-W)
+    instruction: ''
+    position: 38
+    precondition: null
+    source: ''
+    title: null
+    widget_config: ''
+  - cde: EQ_Health_Rate
+    cde_path: null
+    copyright_text: © EuroQol Research Foundation. EQ-5D™ is a trade mark of the EuroQol
+      Research Foundation
+    instruction: ''
+    position: 37
+    precondition: null
+    source: ''
+    title: null
+    widget_config: '{"widget_name": "slider", "max_label": "The best health you can
+      imagine", "min_label": "The worst health you can imagine", "box_label": "YOUR
+      HEALTH TODAY"}'
+  - cde: EQ_Pain_Discomfort
+    cde_path: null
+    copyright_text: © EuroQol Research Foundation. EQ-5D™ is a trade mark of the EuroQol
+      Research Foundation
+    instruction: Please tap the ONE box that best describes your health TODAY.
+    position: 35
+    precondition: null
+    source: ''
+    title: null
+    widget_config: ''
+  - cde: EQ_UsualActivities
+    cde_path: null
+    copyright_text: © EuroQol Research Foundation. EQ-5D™ is a trade mark of the EuroQol
+      Research Foundation
+    instruction: Please tap the ONE box that best describes your health TODAY.
+    position: 34
+    precondition: null
+    source: ''
+    title: null
+    widget_config: ''
+  - cde: EQ_Selfcare
+    cde_path: null
+    copyright_text: © EuroQol Research Foundation. EQ-5D™ is a trade mark of the EuroQol
+      Research Foundation
+    instruction: Please tap the ONE box that best describes your health TODAY.
+    position: 33
+    precondition: null
+    source: ''
+    title: null
+    widget_config: ''
+  - cde: EQ_Mobility
+    cde_path: null
+    copyright_text: © EuroQol Research Foundation. EQ-5D™ is a trade mark of the EuroQol
+      Research Foundation
+    instruction: Please tap the ONE box that best describes your health TODAY.
+    position: 32
+    precondition: null
+    source: ''
+    title: null
+    widget_config: ''
+  - cde: MOSTFollow_up_Q26c
+    cde_path: null
+    copyright_text: © MOST Follow Up University of Sydney September 2020
+    instruction: What is Symptom 3 (if applicable)?
+    position: 30
+    precondition:
+      cde: MOSTFollow_up_Q25
+      value: '1'
+    source: ''
+    title: null
+    widget_config: ''
+  - cde: MOSTFollow_up_Q26b
+    cde_path: null
+    copyright_text: © MOST Follow Up University of Sydney September 2020
+    instruction: What is Symptom 2 (if applicable)?
+    position: 28
+    precondition:
+      cde: MOSTFollow_up_Q25
+      value: '1'
+    source: ''
+    title: null
+    widget_config: ''
+  - cde: MOSTFollow_up_Q26a
+    cde_path: null
+    copyright_text: © MOST Follow Up University of Sydney September 2020
+    instruction: What is Symptom 1?
+    position: 26
+    precondition:
+      cde: MOSTFollow_up_Q25
+      value: '1'
+    source: ''
+    title: null
+    widget_config: ''
+  - cde: MOSTFollow_up_Q20
+    cde_path: null
+    copyright_text: © MOST Follow Up University of Sydney September 2020
+    instruction: ''
+    position: 20
+    precondition: null
+    source: ''
+    title: null
+    widget_config: ''
+  - cde: MOSTFollow_up_Q19
+    cde_path: null
+    copyright_text: © MOST Follow Up University of Sydney September 2020
+    instruction: Please choose for each line, the number that best represents how
+      much this issue has concerned you on average during the last 3 to 4 weeks
+    position: 19
+    precondition: null
+    source: ''
+    title: null
+    widget_config: ''
+  - cde: MOSTFollow_up_Q18
+    cde_path: null
+    copyright_text: © MOST Follow Up University of Sydney September 2020
+    instruction: Please choose for each line, the number that best represents how
+      much this issue has concerned you on average during the last 3 to 4 weeks
+    position: 18
+    precondition: null
+    source: ''
+    title: null
+    widget_config: ''
+  - cde: MOSTFollow_up_Q17
+    cde_path: null
+    copyright_text: © MOST Follow Up University of Sydney September 2020
+    instruction: Please choose for each line, the number that best represents how
+      much this issue has concerned you on average during the last 3 to 4 weeks
+    position: 17
+    precondition: null
+    source: ''
+    title: null
+    widget_config: ''
+  - cde: BSSC_3Fa
+    cde_path: null
+    copyright_text: ©The modified Brief Sexual Symptom Checklist for Women (BSSC-W)
+    instruction: ''
+    position: 45
+    precondition:
+      cde: BSSC_1
+      value: '0'
+    source: ''
+    title: null
+    widget_config: ''
+  - cde: BSSC_3E
+    cde_path: null
+    copyright_text: ©The modified Brief Sexual Symptom Checklist for Women (BSSC-W)
+    instruction: ''
+    position: 44
+    precondition:
+      cde: BSSC_1
+      value: '0'
+    source: ''
+    title: null
+    widget_config: ''
+  - cde: EQ_Anxiety_Depress
+    cde_path: null
+    copyright_text: © EuroQol Research Foundation. EQ-5D™ is a trade mark of the EuroQol
+      Research Foundation
+    instruction: Please tap the ONE box that best describes your health TODAY.
+    position: 36
+    precondition: null
+    source: ''
+    title: null
+    widget_config: ''
+  - cde: MOSTFollow_up_Q5
+    cde_path: null
+    copyright_text: © MOST Follow Up University of Sydney September 2020
+    instruction: Please choose the number that best represents how much this issue
+      has concerned you on average during the last 3 to 4 weeks
+    position: 5
+    precondition: null
+    source: ''
+    title: null
+    widget_config: ''
+  - cde: MOSTFollow_up_Q4
+    cde_path: null
+    copyright_text: © MOST Follow Up University of Sydney September 2020
+    instruction: Please choose the number that best represents how much this issue
+      has concerned you on average during the last 3 to 4 weeks
+    position: 4
+    precondition: null
+    source: ''
+    title: null
+    widget_config: ''
+  - cde: MOSTFollow_up_Q8
+    cde_path: null
+    copyright_text: © MOST Follow Up University of Sydney September 2020
+    instruction: Please choose the number that best represents how much this issue
+      has concerned you on average during the last 3 to 4 weeks
+    position: 8
+    precondition: null
+    source: ''
+    title: null
+    widget_config: ''
+  - cde: MOSTFollow_up_Q7
+    cde_path: null
+    copyright_text: © MOST Follow Up University of Sydney September 2020
+    instruction: Please choose the number that best represents how much this issue
+      has concerned you on average during the last 3 to 4 weeks
+    position: 7
+    precondition: null
+    source: ''
+    title: null
+    widget_config: ''
+  - cde: MOSTFollow_up_Q3
+    cde_path: null
+    copyright_text: © MOST Follow Up University of Sydney September 2020
+    instruction: Please choose the number that best represents how much this issue
+      has concerned you on average during the last 3 to 4 weeks
+    position: 3
+    precondition: null
+    source: ''
+    title: null
+    widget_config: ''
+  - cde: MOSTFollow_up_Q1
+    cde_path: null
+    copyright_text: © MOST Follow Up University of Sydney September 2020
+    instruction: Please choose the number that best represents how much this issue
+      has concerned you on average during the last 3 to 4 weeks
+    position: 1
+    precondition: null
+    source: ''
+    title: null
+    widget_config: ''
+  - cde: MOSTFollow_up_Q2
+    cde_path: null
+    copyright_text: © MOST Follow Up University of Sydney September 2020
+    instruction: Please choose the number that best represents how much this issue
+      has concerned you on average during the last 3 to 4 weeks
+    position: 2
+    precondition: null
+    source: ''
+    title: null
+    widget_config: ''

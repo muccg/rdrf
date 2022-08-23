@@ -35,6 +35,26 @@ from registry.patients.models import State, PatientAddress, AddressType
 logger = logging.getLogger(__name__)
 
 
+def load_yaml(yaml_path):
+    from django.core.management import call_command
+    call_command("import_registry", "--file", yaml_path, "--format", "yaml")
+
+
+def get_yaml_path(yaml_filename):
+    this_dir = os.path.dirname(__file__)
+    return os.path.abspath(os.path.join(this_dir, "..", "..", "fixtures", yaml_filename))
+
+
+def use_yaml(yaml_filename):
+    def decorator(method):
+        def wrapper(self):
+            yaml_path = get_yaml_path(yaml_filename)
+            load_yaml(yaml_path)
+            return method()
+        return wrapper
+    return decorator
+
+
 class CalculatedFunctionsTestCase(TestCase):
 
     def setUp(self):
@@ -2828,3 +2848,134 @@ class FamilyLinkageTestCase(RDRFTestCase):
                         f"{error_string}{test_section_str}: Patient {patient2_test} is not a relative")
         self.assertFalse(self.patient_is_index(patient2_test),
                          f"{error_string}{test_section_str}: Patient {patient2_test} is an index")
+
+
+class CICCancerStageTestCase(RDRFTestCase):
+    """
+    This class tests calculated fields in CIC
+    """
+    patient_values = {}
+    yaml_map = {"crc": "crc44.yaml",
+                "lc": "lc22.yaml",
+                "bc": "bc29.yaml",
+                "ov": "ov41.yaml"}
+
+    def get_rules(self):
+        return []
+
+    def _get_yaml_file(self, filename):
+        this_dir = os.path.dirname(__file__)
+        test_yaml = os.path.abspath(os.path.join(this_dir, "..", "..", "fixtures", filename))
+        return test_yaml
+
+    def import_registry(self, name):
+        importer = Importer()
+        yaml_name = self.yaml_map[name]
+        yaml_file = self._get_yaml_file(yaml_name)
+        with open(yaml_file) as yf:
+            self.yaml_data = yaml.load(yf, Loader=yaml.FullLoader)
+
+        importer.load_yaml(yaml_file)
+        Registry.objects.all().delete()
+        importer.create_registry()
+
+    def cic_cancer_stage(self, name, calculation, input_output_pairs):
+        print(f"cic cancer stage test for {name}")
+        print(f"input output pairs =  {input_output_pairs}")
+        patient = self.patient_values
+        for input, expected_value in input_output_pairs:
+            actual_value = calculation(patient, input)
+            msg = f"{name} Cancer Stage test failed:input={input} expected=[{expected_value}] actual=[{actual_value}]"
+            logger.info(f"input = {input}")
+            self.assertEquals(actual_value, expected_value, msg)
+
+    def test_crc_cancer_stage(self):
+        # The X means match anything ie pM* but the spec
+        # sent from CIC has this notation so using that
+        self.import_registry("crc")
+        input_output_pairs = [
+            ({"TNMPTCRC": "pTis", "TNMPNCRC": "pNX", "TNMPMCRC": "pMX"},
+             "0"),
+            ({"TNMPTCRC": "pT0", "TNMPNCRC": "pN0", "TNMPMCRC": "pMX"},
+             "0"),
+            ({"TNMPTCRC": "pT1", "TNMPNCRC": "pN0", "TNMPMCRC": "pMX"},
+             "I"),
+            ({"TNMPTCRC": "pT2", "TNMPNCRC": "pN0", "TNMPMCRC": "pMX"},
+             "I"),
+            ({"TNMPTCRC": "pT3", "TNMPNCRC": "pN0", "TNMPMCRC": "pMX"},
+             "IIA"),
+            ({"TNMPTCRC": "pTX", "TNMPNCRC": "pNX", "TNMPMCRC": "pMX"},
+             "Unknown"),
+            ({"TNMPTCRC": "pT4a", "TNMPNCRC": "pN0", "TNMPMCRC": "pMX"},
+             "IIB"),
+            ({"TNMPTCRC": "pT4b", "TNMPNCRC": "pN0", "TNMPMCRC": "pMX"},
+             "IIC"),
+            ({"TNMPTCRC": "pT1", "TNMPNCRC": "pN1", "TNMPMCRC": "pMX"},
+             "IIIA"),
+            ({"TNMPTCRC": "pT2", "TNMPNCRC": "pN1", "TNMPMCRC": "pMX"},
+             "IIIA"),
+            ({"TNMPTCRC": "pT1", "TNMPNCRC": "pN1c", "TNMPMCRC": "pMX"},
+             "IIIA"),
+            ({"TNMPTCRC": "pT2", "TNMPNCRC": "pN1c", "TNMPMCRC": "pMX"},
+             "IIIA"),
+            ({"TNMPTCRC": "pT1", "TNMPNCRC": "pN2a", "TNMPMCRC": "pMX"},
+             "IIIA"),
+            ({"TNMPTCRC": "pT3", "TNMPNCRC": "pN1", "TNMPMCRC": "pMX"},
+             "IIIB"),
+            ({"TNMPTCRC": "pT3", "TNMPNCRC": "pN1c", "TNMPMCRC": "pMX"},
+             "IIIB"),
+            ({"TNMPTCRC": "pT4a", "TNMPNCRC": "pN1", "TNMPMCRC": "pMX"},
+             "IIIB"),
+            ({"TNMPTCRC": "pT4a", "TNMPNCRC": "pN1c", "TNMPMCRC": "pMX"},
+             "IIIB"),
+            ({"TNMPTCRC": "pT2", "TNMPNCRC": "pN2a", "TNMPMCRC": "pMX"},
+             "IIIB"),
+            ({"TNMPTCRC": "pT3", "TNMPNCRC": "pN2a", "TNMPMCRC": "pMX"},
+             "IIIB"),
+            ({"TNMPTCRC": "pT1", "TNMPNCRC": "pN2b", "TNMPMCRC": "pMX"},
+             "IIIB"),
+            ({"TNMPTCRC": "pT2", "TNMPNCRC": "pN2b", "TNMPMCRC": "pMX"},
+             "IIIB"),
+            ({"TNMPTCRC": "pT4a", "TNMPNCRC": "pN2a", "TNMPMCRC": "pMX"},
+             "IIIC"),
+            ({"TNMPTCRC": "pT3", "TNMPNCRC": "pN2b", "TNMPMCRC": "pMX"},
+             "IIIC"),
+            ({"TNMPTCRC": "pT4a", "TNMPNCRC": "pN2b", "TNMPMCRC": "pMX"},
+             "IIIC"),
+            ({"TNMPTCRC": "pTX", "TNMPNCRC": "pNX", "TNMPMCRC": "pM1a"},
+             "IVA"),
+            ({"TNMPTCRC": "pTX", "TNMPNCRC": "pNX", "TNMPMCRC": "pM1b"},
+             "IVB"),
+            ({"TNMPTCRC": "pTX", "TNMPNCRC": "pNX", "TNMPMCRC": "pM1c"},
+             "IVC")]
+
+        calc = calculated_functions.CRCCANCERSTAGE
+        evaluator_class = calculated_functions.CancerStageEvaluator
+        spec = calculated_functions.crc_cancer_stage_spec
+        evaluator = evaluator_class(spec=spec, cde_prefix="TNMP")
+        input_output_pairs = evaluator.parse_test_spec(spec)
+        self.cic_cancer_stage("CRC", calc, input_output_pairs)
+
+    def test_bc_cancer_stage(self):
+        self.import_registry("bc")
+        evaluator_class = calculated_functions.CancerStageEvaluator
+        spec = calculated_functions.bc_cancer_stage_spec
+        evaluator = evaluator_class(spec=spec, cde_prefix="TNMP")
+        input_output_pairs = evaluator.parse_test_spec(spec)
+        calc = calculated_functions.BCCANCERSTAGE
+        self.cic_cancer_stage("BC", calc, input_output_pairs)
+
+    def test_lc_cancer_stage(self):
+        self.import_registry("lc")
+        calc = calculated_functions.LCCANCERSTAGE
+        spec = calculated_functions.lc_cancer_stage_spec
+        evaluator_class = calculated_functions.CancerStageEvaluator
+        evaluator = evaluator_class(spec=spec, cde_prefix="TNMP", value_prefix="")
+        input_output_pairs = evaluator.parse_test_spec(spec)
+        self.cic_cancer_stage("LC", calc, input_output_pairs)
+
+    def test_ov_cancer_stage(self):
+        self.import_registry("ov")
+        input_output_pairs = []
+        calc = calculated_functions.OVCANCERSTAGE
+        self.cic_cancer_stage("OV", calc, input_output_pairs)

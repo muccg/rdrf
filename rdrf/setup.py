@@ -4,6 +4,7 @@ from setuptools import setup, find_packages
 package_data = {}
 start_dir = os.getcwd()
 requirements = [
+    "svglib==1.2.1",
     "ccg-django-utils==0.4.2",
     "celery==5.1.0",
     "Django==2.2.28",
@@ -56,7 +57,7 @@ requirements = [
     "django-auth-ldap",
     "django-session-security==2.6.6",
     "Markdown==3.1.1",
-    "xhtml2pdf==0.2.5",
+    "xhtml2pdf==0.2.6",
     "django-redis==4.12.1",
     "kombu==5.0.2",
     "django-csp==3.7",
@@ -143,7 +144,7 @@ for package in ['rdrf', 'registry.common', 'registry.genetic',
 
 
 setup(name='django-rdrf',
-      version="6.6.25",
+      version="6.6.26",
       packages=find_packages(),
       description='RDRF',
       long_description='Rare Disease Registry Framework',

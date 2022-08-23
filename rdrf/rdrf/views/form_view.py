@@ -56,6 +56,7 @@ from rdrf.forms.components import RDRFPatientInfoComponent
 from rdrf.security.security_checks import security_check_user_patient
 
 from rdrf.helpers.utils import annotate_form_with_verifications
+
 from rdrf.views.custom_actions import CustomActionWrapper
 
 import logging
@@ -141,11 +142,14 @@ class SectionInfo(object):
                  index_map=None,
                  form_set_class=None,
                  form_class=None,
-                 prefix=None):
+                 prefix=None,
+                 form_name=None):
         self.section_code = section_code
         self.patient_wrapper = patient_wrapper
         self.is_multiple = is_multiple
         self.registry_code = registry_code
+        self.registry = Registry.objects.get(code=registry_code)
+        self.use_new_style_calcs = self.registry.has_feature("use_new_style_calcs")
         self.collection_name = collection_name
         self.data = data
         self.index_map = index_map
@@ -154,9 +158,50 @@ class SectionInfo(object):
         # otherwise we create a formset using these
         self.form_set_class = form_set_class
         self.prefix = prefix
+        self.form_name = form_name
+
+    def update_calculated_fields(self):
+        logger.debug(f"data = {self.data}")
+        for key in self.data:
+            try:
+                form_name, section_code, cde_code = key.split("____")
+            except ValueError:
+                continue
+
+            cde_model = CommonDataElement.objects.get(code=cde_code)
+            if cde_model.datatype == "calculated":
+                logger.debug(f"calculating new value for {cde_code}")
+                patient = None
+                calculation_context = self._get_calculation_context(cde_model)
+                new_value = cde_model.calculate(patient, calculation_context)
+                self.data[key] = new_value
+                logger.debug(f"data after calcs = {self.data}")
+
+    def _get_calculation_context(self, cde_model):
+        from rdrf.forms.fields import calculated_functions as calcs_module
+        input_function_name = f"{cde_model.code}_inputs"
+        calculation_context = {}
+        if hasattr(calcs_module, input_function_name):
+            input_function = getattr(calcs_module, input_function_name)
+            if callable(input_function):
+                input_cde_codes = input_function()
+                for input_cde_code in input_cde_codes:
+                    input_value = self._get_input_value(input_cde_code)
+                    calculation_context[input_cde_code] = input_value
+        else:
+            raise Exception("No input for calc")
+
+        return calculation_context
+
+    def _get_input_value(self, cde_code):
+        for key in self.data:
+            if key.endswith("____" + cde_code):
+                return self.data[key]
 
     def save(self):
         if not self.is_multiple:
+            if self.use_new_style_calcs:
+                self.update_calculated_fields()
             self.patient_wrapper.save_dynamic_data(
                 self.registry_code, self.collection_name, self.data)
         else:
@@ -188,6 +233,17 @@ class SectionInfo(object):
             form_instance = self.form_class(dynamic_data, initial=wrapped_data)
 
         return form_instance
+
+    @property
+    def cde_models(self):
+        cdes = []
+        section_code = self.section_code
+        form_model = self.patient_wrapper.current_form_model
+        for section_model in form_model.section_models:
+            if section_model.code == section_code:
+                for cde_model in section_model.cde_models:
+                    cdes.append(cde_model)
+        return cdes
 
 
 class FormSwitchLockingView(View):

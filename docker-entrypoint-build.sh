@@ -34,7 +34,7 @@ if [ "$1" = 'releasetarball' ]; then
     info "PROJECT_SOURCE ${PROJECT_SOURCE}"
 	cd /data/app
 	
-    pip install --upgrade "setuptools>=36.0.0,<=37.0.0"
+    #pip install --upgrade "setuptools>=36.0.0,<=37.0.0"
 	
     #pip install -e "${PROJECT_NAME}"
     cd "${PROJECT_NAME}" && pip install .

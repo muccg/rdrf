@@ -338,6 +338,9 @@ class FieldFactory(object):
             from rdrf.forms.dynamic.fields import ExternalField
             return ExternalField(**options)
 
+        if self._is_new_style_calculated_field():
+            return fields.NewStyleCalculatedField(**options)
+
         if self._is_dropdown():
             choices = self._get_permitted_value_choices()
             options['choices'] = choices
@@ -461,7 +464,7 @@ class FieldFactory(object):
                 if self.cde.datatype.lower() == 'date':
                     widget = DateInput(format=('%d-%m-%Y'),
                                        attrs={'class': 'datepicker',
-                                       'placeholder': 'Select a date'})
+                                              'placeholder': 'Select a date'})
 
             if self._has_widget_override():
                 widget = self._get_widget_override()
@@ -482,6 +485,16 @@ class FieldFactory(object):
 
     def _is_external(self):
         return get_field_source(self.cde.code) == "external"
+
+    def _is_new_style_calculated_field(self):
+        if not self.registry.has_feature("use_new_style_calcs"):
+            return False
+        is_calc = self.cde.datatype == "calculated"
+        if is_calc:
+            from rdrf.forms.fields import calculated_functions as cf
+            func = getattr(cf, self.cde.code)
+            if callable(func):
+                return True
 
 
 class ComplexFieldParseError(Exception):

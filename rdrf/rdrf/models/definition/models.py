@@ -863,6 +863,21 @@ class CommonDataElement(models.Model):
 
         return validation_rules_description
 
+    def calculate(self, patient, context):
+        if not self.datatype == "calculated":
+            raise ValueError("Can't calculate with a non-calculated field")
+        from rdrf.forms.fields import calculated_functions as cf
+        if hasattr(cf, self.code):
+            func = getattr(cf, self.code)
+            if callable(func):
+                logger.debug("found calc func")
+                result = func(patient, context)
+                logger.debug(f"result of calc = {result}")
+                return result
+            else:
+                logger.debug("func not callable: {func}")
+        return "ERROR?"
+
 
 def validate_abnormality_condition(abnormality_condition, datatype):
     abnormality_condition_lines = list(
@@ -2029,6 +2044,19 @@ def sync_patient_identifiers(sender, **kwargs):
                 logger.info("no need to sync as identifiers are the same")
         except Exception as ex:
             logger.error(f"error syncing pmi to umrn: {ex}")
+
+
+@receiver(clinical_data_saved_ok, sender=ClinicalData)
+def update_calculated_fields_depending_on_saved_data(sender, **kwargs):
+    from rdrf.helpers.recalc_logic import Recalculator
+    patient = kwargs["patient"]
+    section_infos = kwargs["saved_sections"]
+    # all section_infos come from same form
+    form_model = section_infos[0].patient_wrapper.current_form_model
+    registry_model = form_model.registry
+    recalculator = Recalculator(registry_model, patient)
+    for section_info in section_infos:
+        recalculator.check_recalc(section_info)
 
 
 def file_upload_to(instance, filename):
