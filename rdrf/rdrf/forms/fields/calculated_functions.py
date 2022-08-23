@@ -920,7 +920,7 @@ def LCCANCERSTAGE(patient, context):
 
 
 def LCCANCERSTAGE_inputs():
-    return []
+    return ["TNMPTLC", "TNMPNLC", "TNMPMLC"]
 
 
 def OVCANCERSTAGE(patient, context):
