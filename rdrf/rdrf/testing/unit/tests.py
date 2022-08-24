@@ -2886,69 +2886,12 @@ class CICCancerStageTestCase(RDRFTestCase):
         for input, expected_value in input_output_pairs:
             actual_value = calculation(patient, input)
             msg = f"{name} Cancer Stage test failed:input={input} expected=[{expected_value}] actual=[{actual_value}]"
+            msg = f"{msg}\nInput output pairs = {input_output_pairs}"
             logger.info(f"input = {input}")
             self.assertEquals(actual_value, expected_value, msg)
 
     def test_crc_cancer_stage(self):
-        # The X means match anything ie pM* but the spec
-        # sent from CIC has this notation so using that
         self.import_registry("crc")
-        input_output_pairs = [
-            ({"TNMPTCRC": "pTis", "TNMPNCRC": "pNX", "TNMPMCRC": "pMX"},
-             "0"),
-            ({"TNMPTCRC": "pT0", "TNMPNCRC": "pN0", "TNMPMCRC": "pMX"},
-             "0"),
-            ({"TNMPTCRC": "pT1", "TNMPNCRC": "pN0", "TNMPMCRC": "pMX"},
-             "I"),
-            ({"TNMPTCRC": "pT2", "TNMPNCRC": "pN0", "TNMPMCRC": "pMX"},
-             "I"),
-            ({"TNMPTCRC": "pT3", "TNMPNCRC": "pN0", "TNMPMCRC": "pMX"},
-             "IIA"),
-            ({"TNMPTCRC": "pTX", "TNMPNCRC": "pNX", "TNMPMCRC": "pMX"},
-             "Unknown"),
-            ({"TNMPTCRC": "pT4a", "TNMPNCRC": "pN0", "TNMPMCRC": "pMX"},
-             "IIB"),
-            ({"TNMPTCRC": "pT4b", "TNMPNCRC": "pN0", "TNMPMCRC": "pMX"},
-             "IIC"),
-            ({"TNMPTCRC": "pT1", "TNMPNCRC": "pN1", "TNMPMCRC": "pMX"},
-             "IIIA"),
-            ({"TNMPTCRC": "pT2", "TNMPNCRC": "pN1", "TNMPMCRC": "pMX"},
-             "IIIA"),
-            ({"TNMPTCRC": "pT1", "TNMPNCRC": "pN1c", "TNMPMCRC": "pMX"},
-             "IIIA"),
-            ({"TNMPTCRC": "pT2", "TNMPNCRC": "pN1c", "TNMPMCRC": "pMX"},
-             "IIIA"),
-            ({"TNMPTCRC": "pT1", "TNMPNCRC": "pN2a", "TNMPMCRC": "pMX"},
-             "IIIA"),
-            ({"TNMPTCRC": "pT3", "TNMPNCRC": "pN1", "TNMPMCRC": "pMX"},
-             "IIIB"),
-            ({"TNMPTCRC": "pT3", "TNMPNCRC": "pN1c", "TNMPMCRC": "pMX"},
-             "IIIB"),
-            ({"TNMPTCRC": "pT4a", "TNMPNCRC": "pN1", "TNMPMCRC": "pMX"},
-             "IIIB"),
-            ({"TNMPTCRC": "pT4a", "TNMPNCRC": "pN1c", "TNMPMCRC": "pMX"},
-             "IIIB"),
-            ({"TNMPTCRC": "pT2", "TNMPNCRC": "pN2a", "TNMPMCRC": "pMX"},
-             "IIIB"),
-            ({"TNMPTCRC": "pT3", "TNMPNCRC": "pN2a", "TNMPMCRC": "pMX"},
-             "IIIB"),
-            ({"TNMPTCRC": "pT1", "TNMPNCRC": "pN2b", "TNMPMCRC": "pMX"},
-             "IIIB"),
-            ({"TNMPTCRC": "pT2", "TNMPNCRC": "pN2b", "TNMPMCRC": "pMX"},
-             "IIIB"),
-            ({"TNMPTCRC": "pT4a", "TNMPNCRC": "pN2a", "TNMPMCRC": "pMX"},
-             "IIIC"),
-            ({"TNMPTCRC": "pT3", "TNMPNCRC": "pN2b", "TNMPMCRC": "pMX"},
-             "IIIC"),
-            ({"TNMPTCRC": "pT4a", "TNMPNCRC": "pN2b", "TNMPMCRC": "pMX"},
-             "IIIC"),
-            ({"TNMPTCRC": "pTX", "TNMPNCRC": "pNX", "TNMPMCRC": "pM1a"},
-             "IVA"),
-            ({"TNMPTCRC": "pTX", "TNMPNCRC": "pNX", "TNMPMCRC": "pM1b"},
-             "IVB"),
-            ({"TNMPTCRC": "pTX", "TNMPNCRC": "pNX", "TNMPMCRC": "pM1c"},
-             "IVC")]
-
         calc = calculated_functions.CRCCANCERSTAGE
         evaluator_class = calculated_functions.CancerStageEvaluator
         spec = calculated_functions.crc_cancer_stage_spec
