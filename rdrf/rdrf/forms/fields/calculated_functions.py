@@ -705,6 +705,14 @@ class CancerStageEvaluator:
         input_output_pairs = []
         output_index = 1
         inputs_index = 0
+
+        def is_valid(pair):
+            output = pair[output_index]
+            input_dict = pair[inputs_index]
+            if input_dict:
+                if output:
+                    return True
+
         for line in spec.split("\n"):
             print(line)
             line = line.strip()
@@ -726,7 +734,8 @@ class CancerStageEvaluator:
                     if all([key, value]):
                         inputs_dict[key] = value
                 pair[inputs_index] = inputs_dict
-                input_output_pairs.append(pair)
+                if is_valid(pair):
+                    input_output_pairs.append(pair)
                 pair = [None, stage]
 
         return input_output_pairs
