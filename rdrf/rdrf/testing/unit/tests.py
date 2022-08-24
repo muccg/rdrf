@@ -2886,12 +2886,11 @@ class CICCancerStageTestCase(RDRFTestCase):
         for input, expected_value in input_output_pairs:
             actual_value = calculation(patient, input)
             msg = f"{name} Cancer Stage test failed:input={input} expected=[{expected_value}] actual=[{actual_value}]"
+            msg = f"{msg}\nInput output pairs = {input_output_pairs}"
             logger.info(f"input = {input}")
             self.assertEquals(actual_value, expected_value, msg)
 
     def test_crc_cancer_stage(self):
-        # The X means match anything ie pM* but the spec
-        # sent from CIC has this notation so using that
         self.import_registry("crc")
         calc = calculated_functions.CRCCANCERSTAGE
         evaluator_class = calculated_functions.CancerStageEvaluator
