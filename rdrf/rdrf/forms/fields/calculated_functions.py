@@ -723,7 +723,7 @@ class CancerStageEvaluator:
                         key = token.strip()
                     elif token.startswith(self.value_prefix):
                         value = token.strip()
-                    if key and value:
+                    if all([key, value]):
                         inputs_dict[key] = value
                 pair[inputs_index] = inputs_dict
                 input_output_pairs.append(pair)
