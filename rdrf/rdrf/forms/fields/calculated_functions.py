@@ -590,7 +590,9 @@ crc_cancer_stage_rules = {
              {'cde': 'TNMPMCRC', 'value': 'pM1c'}]]}
 
 
-crc_cancer_stage_spec = """Stage 0
+crc_cancer_stage_spec = """Unknown
+TNMPTCRC = pTX TNMPNCRC = pNX TNMPMCRC = pMX
+Stage 0
 TNMPTCRC = pTis TNMPNCRC = pNX TNMPMCRC = pMX
 TNMPTCRC = pT0 TNMPNCRC = pN0 TNMPMCRC = pMX
 Stage I
