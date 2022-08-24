@@ -2897,7 +2897,6 @@ class CICCancerStageTestCase(RDRFTestCase):
         spec = calculated_functions.crc_cancer_stage_spec
         evaluator = evaluator_class(spec=spec, cde_prefix="TNMP")
         input_output_pairs = evaluator.parse_test_spec(spec)
-        adhoc_cases = []
         self.cic_cancer_stage("CRC", calc, input_output_pairs)
 
     def test_bc_cancer_stage(self):
