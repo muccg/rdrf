@@ -272,14 +272,28 @@ class VisualisationDownloader:
             return True
         return False
 
+    def _get_collection_date_map(self, cd: ClinicalData) -> dict:
+        d = {}
+        if cd.data and "forms" in cd.data:
+            for f in cd.data["forms"]:
+                form_name = f["name"]
+                for s in f["sections"]:
+                    if not s["allow_multiple"]:
+                        for c in s["cdes"]:
+                            if c["code"] == "COLLECTIONDATE":
+                                value = c["value"]
+                                date_value = aus_date_string(value)
+                                d[form_name] = c["value"]
+        return d
     def _yield_cdes(self, cd):
         # this will only work if there is one form with collection date
         pid = cd.django_id
-        collection_date = get_collection_date(cd)
+        collection_date_map = self._get_collection_date_map(cd)
         response_type = get_response_type(cd)
         data = cd.data
         for f in data["forms"]:
             form_name = f["name"]
+            collection_date = collection_date_map.get(form_name, "")
             for s in f["sections"]:
                 section_code = s["code"]
                 if not s["allow_multiple"]:
