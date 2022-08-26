@@ -283,8 +283,9 @@ class VisualisationDownloader:
                             if c["code"] == "COLLECTIONDATE":
                                 value = c["value"]
                                 date_value = aus_date_string(value)
-                                d[form_name] = c["value"]
+                                d[form_name] = date_value
         return d
+
     def _yield_cdes(self, cd):
         # this will only work if there is one form with collection date
         pid = cd.django_id
