@@ -547,7 +547,7 @@ class NewStyleCalculatedWidget(HiddenInput):
         logger.debug(f"external widget {name} value = {value}")
         display_value = self._get_display_value(name, value)
         hidden_input_html = super().render(name, value, attrs, renderer)
-        badge_html = f"""<span class="badge bg-warning">{display_value}</span>"""
+        badge_html = f"""<span class="badge bg-warning calcfield rounded-pill">{display_value}</span>"""
         return mark_safe(hidden_input_html + badge_html)
 
     def _get_display_value(self, name, value):
