@@ -2870,6 +2870,7 @@ class LungCancerSmokingTestCase(RDRFTestCase):
 
     def test_smoking_pack_years(self):
         self.values("0", 20, 2010, 0, 2020, "999")
+        self.values("2", 20, 2010, 5, 2020, "5")
 
 
 class CICCancerStageTestCase(RDRFTestCase):
