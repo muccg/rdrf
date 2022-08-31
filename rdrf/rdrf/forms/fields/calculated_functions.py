@@ -1362,10 +1362,11 @@ def SMOKEPACKYEAR(patient, context):
         if not ay:
             return 0
         else:
-            try:
-                return int(ay)
-            except:
-                return 0
+            ay = int(ay)
+            if ay == 999:
+                raise NoDataException()
+            else:
+                return ay
 
     def get_current_year():
         # this will be when the form is saved ..
