@@ -594,35 +594,63 @@ Stage IVC
 TNMPTCRC = pT* TNMPNCRC = pN* TNMPMCRC = pM1c
 """
 
-bc_cancer_stage_spec = """Stage 0
-                       TNMPT = pTis TNMPN = pN0 TNMPM = pMX
-                       Stage IA
-                       TNMPT = pT1 TNMPN = pN0 TNMPM = pMX
-                       Stage IIA
-                       TNMPT = pT0 TNMPN = pN1 TNMPM = pMX
-                       TNMPT = pT1 TNMPN = pN1 TNMPM = pMX
-                       TNMPT = pT2 TNMPN = pN0 TNMPM = pMX
-                       Stage IIB
-                       TNMPT = pT2 TNMPN = pN1 TNMPM = pMX
-                       TNMPT = pT3 TNMPN = pN0 TNMPM = pMX
-                       Stage IIIA
-                       TNMPT = pT0 TNMPN = pN2 TNMPM = pMX
-                       TNMPT = pT1 TNMPN = pN2 TNMPM = pMX
-                       TNMPT = pT2 TNMPN = pN2 TNMPM = pMX
-                       TNMPT = pT3 TNMPN = pN1 TNMPM = pMX
-                       TNMPT = pT3 TNMPN = pN2 TNMPM = pMX
-                       Stage IIIB
-                       TNMPT = pT4 TNMPN = pN0 TNMPM = pMX
-                       TNMPT = pT4 TNMPN = pN1 TNMPM = pMX
-                       TNMPT = pT4 TNMPN = pN2 TNMPM = pMX
-                       Stage IIIC
-                       TNMPT = pTX TNMPN = pN3 TNMPM = pMX
-                       TNMPT = pT0 TNMPN = pN3 TNMPM = pMX
-                       TNMPT = pT1 TNMPN = pN3 TNMPM = pMX
-                       TNMPT = pT2 TNMPN = pN3 TNMPM = pMX
-                       TNMPT = pT3 TNMPN = pN3 TNMPM = pMX
-                       Stage IV
-                       TNMPT = pTX TNMPN = pNX TNMPM = pM1"""
+bc_cancer_stage_spec = """Stage Unknown
+TNMPTB = pTX TNMPNBC = pNX TNMPMBC = pMX 
+Stage 0
+TNMPTB = pTis TNMPNBC = pN0 TNMPMBC = pMX 
+TNMPTB = pTis TNMPNBC = pN0 TNMPMBC = pM0 
+Stage IA
+TNMPTB = pT1 TNMPNBC = pN0 TNMPMBC = pMX 
+TNMPTB = pT1 TNMPNBC = pN0 TNMPMBC = pM0 
+Stage IB
+TNMPTB = pT0 TNMPNBC = pN1 mi TNMPMBC = pMX
+TNMPTB = pT0 TNMPNBC = pN1 mi TNMPMBC = pM0
+TNMPTB = pT1 TNMPNBC = pN1 mi TNMPMBC = pMX
+TNMPTB = pT1 TNMPNBC = pN1 mi TNMPMBC = pM0
+Stage IIA
+TNMPTB = pT0 TNMPNBC = pN1 TNMPMBC = pMX 
+TNMPTB = pT0 TNMPNBC = pN1 TNMPMBC = pM0 
+TNMPTB = pT1 TNMPNBC = pN1 TNMPMBC = pMX 
+TNMPTB = pT1 TNMPNBC = pN1 TNMPMBC = pM0 
+TNMPTB = pT2 TNMPNBC = pN0 TNMPMBC = pMX 
+TNMPTB = pT2 TNMPNBC = pN0 TNMPMBC = pM0 
+Stage IIB
+TNMPTB = pT2 TNMPNBC = pN1 TNMPMBC = pMX
+TNMPTB = pT2 TNMPNBC = pN1 TNMPMBC = pM0 
+TNMPTB = pT3 TNMPNBC = pN0 TNMPMBC = pMX 
+TNMPTB = pT3 TNMPNBC = pN0 TNMPMBC = pM0 
+Stage IIIA
+TNMPTB = pT0 TNMPNBC = pN2 TNMPMBC = pMX
+TNMPTB = pT0 TNMPNBC = pN2 TNMPMBC = pM0 
+TNMPTB = pT1 TNMPNBC = pN2 TNMPMBC = pMX 
+TNMPTB = pT1 TNMPNBC = pN2 TNMPMBC = pM0 
+TNMPTB = pT2 TNMPNBC = pN2 TNMPMBC = pMX 
+TNMPTB = pT2 TNMPNBC = pN2 TNMPMBC = pM0 
+TNMPTB = pT3 TNMPNBC = pN1 TNMPMBC = pMX
+TNMPTB = pT3 TNMPNBC = pN1 TNMPMBC = pM0 
+TNMPTB = pT3 TNMPNBC = pN2 TNMPMBC = pMX
+TNMPTB = pT3 TNMPNBC = pN2 TNMPMBC = pM0 
+Stage IIIB
+TNMPTB = pT4 TNMPNBC = pN0 TNMPMBC = pMX 
+TNMPTB = pT4 TNMPNBC = pN0 TNMPMBC = pM0
+TNMPTB = pT4 TNMPNBC = pN1 TNMPMBC = pMX
+TNMPTB = pT4 TNMPNBC = pN1 TNMPMBC = pM0 
+TNMPTB = pT4 TNMPNBC = pN2 TNMPMBC = pMX
+TNMPTB = pT4 TNMPNBC = pN2 TNMPMBC = pM0
+Stage IIIC
+TNMPTB = pTX TNMPNBC = pN3 TNMPMBC = pMX 
+TNMPTB = pTX TNMPNBC = pN3 TNMPMBC = pM0 
+TNMPTB = pT0 TNMPNBC = pN3 TNMPMBC = pMX 
+TNMPTB = pT0 TNMPNBC = pN3 TNMPMBC = pM0
+TNMPTB = pT1 TNMPNBC = pN3 TNMPMBC = pMX
+TNMPTB = pT1 TNMPNBC = pN3 TNMPMBC = pM0 
+TNMPTB = pT2 TNMPNBC = pN3 TNMPMBC = pMX 
+TNMPTB = pT2 TNMPNBC = pN3 TNMPMBC = pM0
+TNMPTB = pT3 TNMPNBC = pN3 TNMPMBC = pMX
+TNMPTB = pT3 TNMPNBC = pN3 TNMPMBC = pM0 
+Stage IV
+TNMPTB = pT* TNMPNBC = pN* TNMPMBC = pM1
+"""
 
 
 lc_cancer_stage_spec = """Stage Occult carcinoma
