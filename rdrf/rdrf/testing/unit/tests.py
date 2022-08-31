@@ -2869,10 +2869,22 @@ class LungCancerSmokingTestCase(RDRFTestCase):
         self.assertEqual(result, expectation, msg)
 
     def test_smoking_pack_years(self):
-        self.values("0", 20, 2010, 0, 2020, "999")
-        self.values("2", 20, 2010, 5, 2020, "5")
-        self.values("2", 40, 2010, 0, 2020, "20")
-        self.values("2", 40, 2010, 0, 2020, "23")
+        # CIC use 999 as indicator for unknown sometimes ...
+        unknown = "999"
+        self.values("0", 20, 2010, 0, 2020, "0")  # non-smoker flag overrides
+        self.values("2", 20, 2010, 5, 2020, "5")  # past smoker
+        self.values("2", 40, 2010, 0, 2020, "20")  # heavy past smoker
+        self.values("2", 60, 2010, 0, 2020, "30")
+        self.values("2", 65, 2010, 0, 2020, "30")  # rounds down
+        self.values("2", 60, 2010, 7, 2020, "9")  # user abstinence period
+        # unknown propagates
+        self.values("2", 60, "", 7, 2020, unknown)
+        self.values("2", 60, None, 7, 2020, unknown)
+        self.values("2", 60, unknown, 7, 2020, unknown)
+        self.values("2", unknown, 2010, 7, 2020, unknown)
+        self.values("2", 60, unknown, 7, 2020, unknown)
+        self.values("2", 60, 2010, unknown, 2020, unknown)
+        self.values("2", 60, 2010, 0, unknown, unknown)
 
 
 class CICCancerStageTestCase(RDRFTestCase):
