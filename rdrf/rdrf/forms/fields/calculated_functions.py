@@ -1323,3 +1323,85 @@ def MXINTERVAL1LC(patient, context):
 
 def MXINTERVAL1LC_inputs():
     return ['REFDATELC', 'MXDATELC']
+
+
+def SMOKEPACKYEAR(patient, context):
+    """
+    from AI
+    SMOKEPACKYEAR is an integer.
+    If SMOKING = 1  SMOKEPACKYEAR = 0
+    If SMOKING = 2 then SMOKEPACKYEAR = CIGDAY/20 x (SMOKINGSTOPYEAR – SMOKINGSTARTYEAR)
+    If SMOKING = 3 then SMOKEPACKYEAR = CIGDAY/20 x (THIS YEAR – SMOKINGSTARTYEAR)  THIS YEAR is the year in which the data is collected and entered.
+    If SMOKING = 999 then  SMOKEPACKYEAR = 999
+    deduct abstinence ( 300822 discussion)
+    """
+
+    unknown = "999"
+
+    class NoDataException(Exception):
+        pass
+
+    def maybe_int(s):
+        logger.debug(f"maybe_int value = {s} type = {type(s)}")
+        if s == unknown:
+            raise NoDataException()
+        if s == 999:
+            raise NoDataException()
+        if s == "":
+            raise NoDataException()
+        if s is None:
+            raise NoDataException()
+
+        try:
+            return int(s)
+        except:
+            raise NoDataException()
+
+    def get_abstinence_years(context):
+        ay = context["SMOKABSTINENTYRS"]
+        if not ay:
+            return 0
+        else:
+            try:
+                return int(ay)
+            except:
+                return 0
+
+    def get_current_year():
+        # this will be when the form is saved ..
+        return datetime.now().year
+
+    def calc(cigdays, a, b, c):
+        value = (float(cigdays) / 20.0) * (b - a - c)
+        return str(int(value))
+
+    smoking = context["SMOKING"]
+
+    if smoking == "1":
+        return "0"
+
+    if smoking == "2":
+        try:
+            cigday = maybe_int(context["CIGDAY"])
+            smoking_start_year = maybe_int(context["SMOKINGSTARTYEAR"])
+            smoking_stop_year = maybe_int(context["SMOKINGSTOPYEAR"])
+            abstinence_years = get_abstinence_years(context)
+            return calc(cigday, smoking_start_year, smoking_stop_year, abstinence_years)
+        except NoDataException:
+            return unknown
+
+    if smoking == "3":
+        try:
+            cigday = maybe_int(context["CIGDAY"])
+            smoking_start_year = maybe_int(context["SMOKINGSTARTYEAR"])
+            current_year = get_current_year()
+            abstinence_years = get_abstinence_years(context)
+            return calc(cigday, smoking_start_year, smoking_stop_year, abstinence_years)
+        except NoDataException:
+            return unknown
+
+    return unknown
+
+
+def SMOKEPACKYEAR_inputs():
+    return ["CIGDAY", "SMOKING", "SMOKINGSTARTYEAR", "SMOKINGSTOPYEAR", "SMOKABSTINENTYRS"]
