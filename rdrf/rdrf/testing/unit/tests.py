@@ -2876,7 +2876,8 @@ class LungCancerSmokingTestCase(RDRFTestCase):
         self.values("2", 20, 2010, 5, 2020, "5")  # past smoker
         self.values("2", 40, 2010, 0, 2020, "20")  # heavy past smoker
         self.values("2", 60, 2010, 0, 2020, "30")
-        self.values("2", 65, 2010, 0, 2020, "30")  # rounds down
+        self.values("2", 65, 2010, 0, 2020, "32")  # rounds down
+        self.values("2", 66, 2010, 0, 2020, "32")  # rounds down
         self.values("2", 60, 2010, 7, 2020, "9")  # user abstinence period
         # unknown propagates
         self.values("2", 60, "", 7, 2020, unknown)
