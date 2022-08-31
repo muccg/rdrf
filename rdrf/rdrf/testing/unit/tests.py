@@ -2850,6 +2850,28 @@ class FamilyLinkageTestCase(RDRFTestCase):
                          f"{error_string}{test_section_str}: Patient {patient2_test} is an index")
 
 
+class LungCancerSmokingTestCase(RDRFTestCase):
+    # "CIGDAY", "SMOKING", "SMOKINGSTARTYEAR", "SMOKINGSTOPYEAR", "SMOKABSTINENTYRS"
+    def setUp(self):
+        from rdrf.forms.fields.calculated_functions import SMOKEPACKYEAR
+        self.func = SMOKEPACKYEAR
+
+    def values(self, smoking, cigday, start_year, abst, stop_year, expectation):
+        context = {}
+        context["SMOKING"] = smoking
+        context["CIGDAY"] = cigday
+        context["SMOKINGSTARTYEAR"] = start_year
+        context["SMOKINGSTOPYEAR"] = stop_year
+        context["SMOKABSTINENTYRS"] = abst
+        patient = {}
+        result = self.func(patient, context)
+        msg = f"SMOKEPACKYEAR wrong: {context} expected {expectation} actual {result}"
+        self.assertEqual(result, expectation, msg)
+
+    def test_smoking_pack_years(self):
+        self.values("0", 20, 2010, 0, 2020, "999")
+
+
 class CICCancerStageTestCase(RDRFTestCase):
     """
     This class tests calculated fields in CIC
