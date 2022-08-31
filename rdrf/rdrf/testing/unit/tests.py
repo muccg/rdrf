@@ -2872,6 +2872,7 @@ class LungCancerSmokingTestCase(RDRFTestCase):
         self.values("0", 20, 2010, 0, 2020, "999")
         self.values("2", 20, 2010, 5, 2020, "5")
         self.values("2", 40, 2010, 0, 2020, "20")
+        self.values("2", 40, 2010, 0, 2020, "23")
 
 
 class CICCancerStageTestCase(RDRFTestCase):
