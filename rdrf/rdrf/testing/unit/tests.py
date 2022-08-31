@@ -2871,7 +2871,8 @@ class LungCancerSmokingTestCase(RDRFTestCase):
     def test_smoking_pack_years(self):
         # CIC use 999 as indicator for unknown sometimes ...
         unknown = "999"
-        self.values("0", 20, 2010, 0, 2020, "0")  # non-smoker flag overrides
+        self.values("1", 20, 2010, 0, 2020, "0")  # non-smoker flag overrides
+        self.values("5", 20, 2010, 0, 2020, unknown)  # 5 unknown smoker type
         self.values("2", 20, 2010, 5, 2020, "5")  # past smoker
         self.values("2", 40, 2010, 0, 2020, "20")  # heavy past smoker
         self.values("2", 60, 2010, 0, 2020, "30")
