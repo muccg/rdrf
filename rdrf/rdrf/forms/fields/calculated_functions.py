@@ -500,86 +500,168 @@ def LDLCholesterolAdjTreatment_inputs():
 
 ################ END OF LDLCholesterolAdjTreatment ################################
 
-
 crc_cancer_stage_spec = """Stage Unknown
 TNMPTCRC = pTX TNMPNCRC = pNX TNMPMCRC = pMX
 Stage 0
 TNMPTCRC = pTis TNMPNCRC = pNX TNMPMCRC = pMX
 TNMPTCRC = pT0 TNMPNCRC = pN0 TNMPMCRC = pMX
+TNMPTCRC = pTis TNMPNCRC = pNX TNMPMCRC = pM0
+TNMPTCRC = pT0 TNMPNCRC = pN0 TNMPMCRC = pM0
 Stage I
 TNMPTCRC = pT1 TNMPNCRC = pN0 TNMPMCRC = pMX
 TNMPTCRC = pT2 TNMPNCRC = pN0 TNMPMCRC = pMX
+TNMPTCRC = pT1 TNMPNCRC = pN0 TNMPMCRC = pM0
+TNMPTCRC = pT2 TNMPNCRC = pN0 TNMPMCRC = pM0
 Stage IIA
 TNMPTCRC = pT3 TNMPNCRC = pN0 TNMPMCRC = pMX
+TNMPTCRC = pT3 TNMPNCRC = pN0 TNMPMCRC = pM0
 Stage IIB
 TNMPTCRC = pT4a TNMPNCRC = pN0 TNMPMCRC = pMX
+TNMPTCRC = pT4a TNMPNCRC = pN0 TNMPMCRC = pM0
 Stage IIC
 TNMPTCRC = pT4b TNMPNCRC = pN0 TNMPMCRC = pMX
+TNMPTCRC = pT4b TNMPNCRC = pN0 TNMPMCRC = pM0
 Stage IIIA
 TNMPTCRC = pT1 TNMPNCRC = pN1 TNMPMCRC = pMX
+TNMPTCRC = pT1 TNMPNCRC = pN1a TNMPMCRC = pMX
+TNMPTCRC = pT1 TNMPNCRC = pN1b TNMPMCRC = pMX
 TNMPTCRC = pT2 TNMPNCRC = pN1 TNMPMCRC = pMX
+TNMPTCRC = pT2 TNMPNCRC = pN1a TNMPMCRC = pMX
+TNMPTCRC = pT2 TNMPNCRC = pN1b TNMPMCRC = pMX
 TNMPTCRC = pT1 TNMPNCRC = pN1c TNMPMCRC = pMX
 TNMPTCRC = pT2 TNMPNCRC = pN1c TNMPMCRC = pMX
 TNMPTCRC = pT1 TNMPNCRC = pN2a TNMPMCRC = pMX
+TNMPTCRC = pT1 TNMPNCRC = pN1 TNMPMCRC = pM0
+TNMPTCRC = pT1 TNMPNCRC = pN1a TNMPMCRC = pM0
+TNMPTCRC = pT1 TNMPNCRC = pN1b TNMPMCRC = pM0
+TNMPTCRC = pT2 TNMPNCRC = pN1 TNMPMCRC = pM0
+TNMPTCRC = pT2 TNMPNCRC = pN1a TNMPMCRC = pM0
+TNMPTCRC = pT2 TNMPNCRC = pN1b TNMPMCRC = pM0
+TNMPTCRC = pT1 TNMPNCRC = pN1c TNMPMCRC = pM0
+TNMPTCRC = pT2 TNMPNCRC = pN1c TNMPMCRC = pM0
+TNMPTCRC = pT1 TNMPNCRC = pN2a TNMPMCRC = pM0
 Stage IIIB
 TNMPTCRC = pT3 TNMPNCRC = pN1 TNMPMCRC = pMX
+TNMPTCRC = pT3 TNMPNCRC = pN1a TNMPMCRC = pMX
+TNMPTCRC = pT3 TNMPNCRC = pN1b TNMPMCRC = pMX
 TNMPTCRC = pT3 TNMPNCRC = pN1c TNMPMCRC = pMX
 TNMPTCRC = pT4a TNMPNCRC = pN1 TNMPMCRC = pMX
+TNMPTCRC = pT4a TNMPNCRC = pN1a TNMPMCRC = pMX
+TNMPTCRC = pT4a TNMPNCRC = pN1b TNMPMCRC = pMX
 TNMPTCRC = pT4a TNMPNCRC = pN1c TNMPMCRC = pMX
 TNMPTCRC = pT2 TNMPNCRC = pN2a TNMPMCRC = pMX
 TNMPTCRC = pT3 TNMPNCRC = pN2a TNMPMCRC = pMX
 TNMPTCRC = pT1 TNMPNCRC = pN2b TNMPMCRC = pMX
 TNMPTCRC = pT2 TNMPNCRC = pN2b TNMPMCRC = pMX
+TNMPTCRC = pT3 TNMPNCRC = pN1 TNMPMCRC = pM0
+TNMPTCRC = pT3 TNMPNCRC = pN1a TNMPMCRC = pM0
+TNMPTCRC = pT3 TNMPNCRC = pN1b TNMPMCRC = pM0
+TNMPTCRC = pT3 TNMPNCRC = pN1c TNMPMCRC = pM0
+TNMPTCRC = pT4a TNMPNCRC = pN1 TNMPMCRC = pM0
+TNMPTCRC = pT4a TNMPNCRC = pN1a TNMPMCRC = pM0
+TNMPTCRC = pT4a TNMPNCRC = pN1b TNMPMCRC = pM0
+TNMPTCRC = pT4a TNMPNCRC = pN1c TNMPMCRC = pM0
+TNMPTCRC = pT2 TNMPNCRC = pN2a TNMPMCRC = pM0
+TNMPTCRC = pT3 TNMPNCRC = pN2a TNMPMCRC = pM0
+TNMPTCRC = pT1 TNMPNCRC = pN2b TNMPMCRC = pM0
+TNMPTCRC = pT2 TNMPNCRC = pN2b TNMPMCRC = pM0
 Stage IIIC
 TNMPTCRC = pT4a TNMPNCRC = pN2a TNMPMCRC = pMX
 TNMPTCRC = pT3 TNMPNCRC = pN2b TNMPMCRC = pMX
 TNMPTCRC = pT4a TNMPNCRC = pN2b TNMPMCRC = pMX
 TNMPTCRC = pT4b TNMPNCRC = pN1 TNMPMCRC = pMX
+TNMPTCRC = pT4b TNMPNCRC = pN1a TNMPMCRC = pMX
+TNMPTCRC = pT4b TNMPNCRC = pN1b TNMPMCRC = pMX
 TNMPTCRC = pT4b TNMPNCRC = pN2 TNMPMCRC = pMX
+TNMPTCRC = pT4b TNMPNCRC = pN2a TNMPMCRC = pMX
+TNMPTCRC = pT4b TNMPNCRC = pN2b TNMPMCRC = pMX
+TNMPTCRC = pT4a TNMPNCRC = pN2a TNMPMCRC = pM0
+TNMPTCRC = pT3 TNMPNCRC = pN2b TNMPMCRC = pM0
+TNMPTCRC = pT4a TNMPNCRC = pN2b TNMPMCRC = pM0
+TNMPTCRC = pT4b TNMPNCRC = pN1 TNMPMCRC = pM0
+TNMPTCRC = pT4b TNMPNCRC = pN1a TNMPMCRC = pM0
+TNMPTCRC = pT4b TNMPNCRC = pN1b TNMPMCRC = pM0
+TNMPTCRC = pT4b TNMPNCRC = pN2 TNMPMCRC = pM0
+TNMPTCRC = pT4b TNMPNCRC = pN2a TNMPMCRC = pM0
+TNMPTCRC = pT4b TNMPNCRC = pN2b TNMPMCRC = pM0
+Stage IV
+TNMPTCRC = pT* TNMPNCRC = pN* TNMPMCRC = pM1
 Stage IVA
-TNMPTCRC = pTZ TNMPNCRC = pNZ TNMPMCRC = pM1a
+TNMPTCRC = pT* TNMPNCRC = pN* TNMPMCRC = pM1a
 Stage IVB
-TNMPTCRC = pTZ TNMPNCRC = pNZ TNMPMCRC = pM1b
+TNMPTCRC = pT* TNMPNCRC = pN* TNMPMCRC = pM1b
 Stage IVC
-TNMPTCRC = pTZ TNMPNCRC = pNZ TNMPMCRC = pM1c
+TNMPTCRC = pT* TNMPNCRC = pN* TNMPMCRC = pM1c
 """
 
-bc_cancer_stage_spec = """Stage 0
-                       TNMPT = pTis TNMPN = pN0 TNMPM = pMX
-                       Stage IA
-                       TNMPT = pT1 TNMPN = pN0 TNMPM = pMX
-                       Stage IIA
-                       TNMPT = pT0 TNMPN = pN1 TNMPM = pMX
-                       TNMPT = pT1 TNMPN = pN1 TNMPM = pMX
-                       TNMPT = pT2 TNMPN = pN0 TNMPM = pMX
-                       Stage IIB
-                       TNMPT = pT2 TNMPN = pN1 TNMPM = pMX
-                       TNMPT = pT3 TNMPN = pN0 TNMPM = pMX
-                       Stage IIIA
-                       TNMPT = pT0 TNMPN = pN2 TNMPM = pMX
-                       TNMPT = pT1 TNMPN = pN2 TNMPM = pMX
-                       TNMPT = pT2 TNMPN = pN2 TNMPM = pMX
-                       TNMPT = pT3 TNMPN = pN1 TNMPM = pMX
-                       TNMPT = pT3 TNMPN = pN2 TNMPM = pMX
-                       Stage IIIB
-                       TNMPT = pT4 TNMPN = pN0 TNMPM = pMX
-                       TNMPT = pT4 TNMPN = pN1 TNMPM = pMX
-                       TNMPT = pT4 TNMPN = pN2 TNMPM = pMX
-                       Stage IIIC
-                       TNMPT = pTX TNMPN = pN3 TNMPM = pMX
-                       TNMPT = pT0 TNMPN = pN3 TNMPM = pMX
-                       TNMPT = pT1 TNMPN = pN3 TNMPM = pMX
-                       TNMPT = pT2 TNMPN = pN3 TNMPM = pMX
-                       TNMPT = pT3 TNMPN = pN3 TNMPM = pMX
-                       Stage IV
-                       TNMPT = pTX TNMPN = pNX TNMPM = pM1"""
+
+# Stage IB
+# TNMPTB = pT0 TNMPNBC = pN1 mi TNMPMBC = pMX
+# TNMPTB = pT0 TNMPNBC = pN1 mi TNMPMBC = pM0
+# TNMPTB = pT1 TNMPNBC = pN1 mi TNMPMBC = pMX
+# TNMPTB = pT1 TNMPNBC = pN1 mi TNMPMBC = pM0
+
+
+# force build
+bc_cancer_stage_spec = """Stage Unknown
+TNMPT = pTX TNMPN = pNX TNMPM = pMX
+Stage 0
+TNMPT = pTis TNMPN = pN0 TNMPM = pMX
+TNMPT = pTis TNMPN = pN0 TNMPM = pM0
+Stage IA
+TNMPT = pT1 TNMPN = pN0 TNMPM = pMX
+TNMPT = pT1 TNMPN = pN0 TNMPM = pM0
+Stage IIA
+TNMPT = pT0 TNMPN = pN1 TNMPM = pMX
+TNMPT = pT0 TNMPN = pN1 TNMPM = pM0
+TNMPT = pT1 TNMPN = pN1 TNMPM = pMX
+TNMPT = pT1 TNMPN = pN1 TNMPM = pM0
+TNMPT = pT2 TNMPN = pN0 TNMPM = pMX
+TNMPT = pT2 TNMPN = pN0 TNMPM = pM0
+Stage IIB
+TNMPT = pT2 TNMPN = pN1 TNMPM = pMX
+TNMPT = pT2 TNMPN = pN1 TNMPM = pM0
+TNMPT = pT3 TNMPN = pN0 TNMPM = pMX
+TNMPT = pT3 TNMPN = pN0 TNMPM = pM0
+Stage IIIA
+TNMPT = pT0 TNMPN = pN2 TNMPM = pMX
+TNMPT = pT0 TNMPN = pN2 TNMPM = pM0
+TNMPT = pT1 TNMPN = pN2 TNMPM = pMX
+TNMPT = pT1 TNMPN = pN2 TNMPM = pM0
+TNMPT = pT2 TNMPN = pN2 TNMPM = pMX
+TNMPT = pT2 TNMPN = pN2 TNMPM = pM0
+TNMPT = pT3 TNMPN = pN1 TNMPM = pMX
+TNMPT = pT3 TNMPN = pN1 TNMPM = pM0
+TNMPT = pT3 TNMPN = pN2 TNMPM = pMX
+TNMPT = pT3 TNMPN = pN2 TNMPM = pM0
+Stage IIIB
+TNMPT = pT4 TNMPN = pN0 TNMPM = pMX
+TNMPT = pT4 TNMPN = pN0 TNMPM = pM0
+TNMPT = pT4 TNMPN = pN1 TNMPM = pMX
+TNMPT = pT4 TNMPN = pN1 TNMPM = pM0
+TNMPT = pT4 TNMPN = pN2 TNMPM = pMX
+TNMPT = pT4 TNMPN = pN2 TNMPM = pM0
+Stage IIIC
+TNMPT = pTX TNMPN = pN3 TNMPM = pMX
+TNMPT = pTX TNMPN = pN3 TNMPM = pM0
+TNMPT = pT0 TNMPN = pN3 TNMPM = pMX
+TNMPT = pT0 TNMPN = pN3 TNMPM = pM0
+TNMPT = pT1 TNMPN = pN3 TNMPM = pMX
+TNMPT = pT1 TNMPN = pN3 TNMPM = pM0
+TNMPT = pT2 TNMPN = pN3 TNMPM = pMX
+TNMPT = pT2 TNMPN = pN3 TNMPM = pM0
+TNMPT = pT3 TNMPN = pN3 TNMPM = pMX
+TNMPT = pT3 TNMPN = pN3 TNMPM = pM0
+Stage IV
+TNMPT = pT* TNMPN = pN* TNMPM = pM1
+"""
 
 lc_cancer_stage_spec = """Stage Occult carcinoma
 TNMPTLC = Tx TNMPNLC = N0 TNMPMLC = M0
 Stage 0
 TNMPTLC = Tis TNMPNLC = N0 TNMPMLC = M0
 Stage IA1
-TNMPTLC = T1ml TNMPNLC = N0 TNMPMLC = M0
+TNMPTLC = T1mi TNMPNLC = N0 TNMPMLC = M0
 TNMPTLC = T1a TNMPNLC = N0 TNMPMLC = M0
 Stage IA2
 TNMPTLC = T1b TNMPNLC = N0 TNMPMLC = M0
@@ -591,20 +673,49 @@ Stage IIA
 TNMPTLC = T2b TNMPNLC = N0 TNMPMLC = M0
 Stage IIB
 TNMPTLC = T1a TNMPNLC = N1 TNMPMLC = M0
+TNMPTLC = T1a TNMPNLC = N1a TNMPMLC = M0
+TNMPTLC = T1a TNMPNLC = N1b TNMPMLC = M0
 TNMPTLC = T1b TNMPNLC = N1 TNMPMLC = M0
+TNMPTLC = T1b TNMPNLC = N1a TNMPMLC = M0
+TNMPTLC = T1b TNMPNLC = N1b TNMPMLC = M0
 TNMPTLC = T1c TNMPNLC = N1 TNMPMLC = M0
+TNMPTLC = T1c TNMPNLC = N1a TNMPMLC = M0
+TNMPTLC = T1c TNMPNLC = N1b TNMPMLC = M0
 TNMPTLC = T2a TNMPNLC = N1 TNMPMLC = M0
+TNMPTLC = T2a TNMPNLC = N1a TNMPMLC = M0
+TNMPTLC = T2a TNMPNLC = N1b TNMPMLC = M0
 TNMPTLC = T2b TNMPNLC = N1 TNMPMLC = M0
+TNMPTLC = T2b TNMPNLC = N1a TNMPMLC = M0
+TNMPTLC = T2b TNMPNLC = N1b TNMPMLC = M0
 TNMPTLC = T3 TNMPNLC = N0 TNMPMLC = M0
 Stage IIIA
 TNMPTLC = T1a TNMPNLC = N2 TNMPMLC = M0
+TNMPTLC = T1a TNMPNLC = N2a1 TNMPMLC = M0
+TNMPTLC = T1a TNMPNLC = N2a2 TNMPMLC = M0
+TNMPTLC = T1a TNMPNLC = N2b TNMPMLC = M0
 TNMPTLC = T1b TNMPNLC = N2 TNMPMLC = M0
+TNMPTLC = T1b TNMPNLC = N2a1 TNMPMLC = M0
+TNMPTLC = T1b TNMPNLC = N2a2 TNMPMLC = M0
+TNMPTLC = T1b TNMPNLC = N2b TNMPMLC = M0
 TNMPTLC = T1c TNMPNLC = N2 TNMPMLC = M0
+TNMPTLC = T1c TNMPNLC = N2a1 TNMPMLC = M0
+TNMPTLC = T1c TNMPNLC = N2a2 TNMPMLC = M0
+TNMPTLC = T1c TNMPNLC = N2b TNMPMLC = M0
 TNMPTLC = T2a TNMPNLC = N2 TNMPMLC = M0
+TNMPTLC = T2a TNMPNLC = N2a1 TNMPMLC = M0
+TNMPTLC = T2a TNMPNLC = N2a2 TNMPMLC = M0
+TNMPTLC = T2a TNMPNLC = N2b TNMPMLC = M0
 TNMPTLC = T2b TNMPNLC = N2 TNMPMLC = M0
-TNMPTLC = T2 TNMPNLC = N1 TNMPMLC = M0
+TNMPTLC = T2b TNMPNLC = N2a1 TNMPMLC = M0
+TNMPTLC = T2b TNMPNLC = N2a2 TNMPMLC = M0
+TNMPTLC = T2b TNMPNLC = N2b TNMPMLC = M0
+TNMPTLC = T3 TNMPNLC = N1 TNMPMLC = M0
+TNMPTLC = T3 TNMPNLC = N1a TNMPMLC = M0
+TNMPTLC = T3 TNMPNLC = N1b TNMPMLC = M0
 TNMPTLC = T4 TNMPNLC = N0 TNMPMLC = M0
 TNMPTLC = T4 TNMPNLC = N1 TNMPMLC = M0
+TNMPTLC = T4 TNMPNLC = N1a TNMPMLC = M0
+TNMPTLC = T4 TNMPNLC = N1b TNMPMLC = M0
 Stage IIIB
 TNMPTLC = T1a TNMPNLC = N3 TNMPMLC = M0
 TNMPTLC = T1b TNMPNLC = N3 TNMPMLC = M0
@@ -612,21 +723,28 @@ TNMPTLC = T1c TNMPNLC = N3 TNMPMLC = M0
 TNMPTLC = T2a TNMPNLC = N3 TNMPMLC = M0
 TNMPTLC = T2b TNMPNLC = N3 TNMPMLC = M0
 TNMPTLC = T3 TNMPNLC = N2 TNMPMLC = M0
+TNMPTLC = T3 TNMPNLC = N2a1 TNMPMLC = M0
+TNMPTLC = T3 TNMPNLC = N2a2 TNMPMLC = M0
+TNMPTLC = T3 TNMPNLC = N2b TNMPMLC = M0
 TNMPTLC = T4 TNMPNLC = N2 TNMPMLC = M0
+TNMPTLC = T4 TNMPNLC = N2a1 TNMPMLC = M0
+TNMPTLC = T4 TNMPNLC = N2a2 TNMPMLC = M0
+TNMPTLC = T4 TNMPNLC = N2b TNMPMLC = M0
 Stage IIIC
 TNMPTLC = T3 TNMPNLC = N3 TNMPMLC = M0
-TNMPTLC = T4 TNMPNLC = N3 TNMPMLC = MX0
+TNMPTLC = T4 TNMPNLC = N3 TNMPMLC = M0
 Stage IVA
-TNMPTLC = Tx TNMPNLC = NX TNMPMLC = M1a
-TNMPTLC = Tx TNMPNLC = NX TNMPMLC = M1b
+TNMPTLC = T* TNMPNLC = N* TNMPMLC = M1a
+TNMPTLC = T* TNMPNLC = N* TNMPMLC = M1b
 Stage IVB
-TNMPTLC = Tx TNMPNLC = NX TNMPMLC = M1c
+TNMPTLC = T* TNMPNLC = N* TNMPMLC = M1c
 """
+
 ov_cancer_stage_spec = ""
 
 
 class CancerStageEvaluator:
-    def __init__(self, rules_dict=None, spec=None, cde_prefix=None, value_prefix="p", pattern="Z"):
+    def __init__(self, rules_dict=None, spec=None, cde_prefix=None, value_prefix="p", pattern="*"):
         self.cde_prefix = cde_prefix
         self.value_prefix = value_prefix
         self.pattern = pattern
@@ -733,6 +851,7 @@ class CancerStageEvaluator:
                         value = token.strip()
                     if all([key, value]):
                         inputs_dict[key] = value
+
                 pair[inputs_index] = inputs_dict
                 if is_valid(pair):
                     input_output_pairs.append(pair)
@@ -823,7 +942,7 @@ class CancerStageEvaluator:
 def CRCCANCERSTAGE(patient, context):
     logger.info("in cdecrc cancer stage")
     context = fill_missing_input(context, 'CRCCANCERSTAGE_inputs')
-    evaluator = CancerStageEvaluator(spec=crc_cancer_stage_spec, cde_prefix="TNMP", pattern="Z")
+    evaluator = CancerStageEvaluator(spec=crc_cancer_stage_spec, cde_prefix="TNMP")
     return evaluator.evaluate(patient, context)
 
 
@@ -1323,3 +1442,86 @@ def MXINTERVAL1LC(patient, context):
 
 def MXINTERVAL1LC_inputs():
     return ['REFDATELC', 'MXDATELC']
+
+
+def SMOKEPACKYEAR(patient, context):
+    """
+    from AI
+    SMOKEPACKYEAR is an integer.
+    If SMOKING = 1  SMOKEPACKYEAR = 0
+    If SMOKING = 2 then SMOKEPACKYEAR = CIGDAY/20 x (SMOKINGSTOPYEAR – SMOKINGSTARTYEAR)
+    If SMOKING = 3 then SMOKEPACKYEAR = CIGDAY/20 x (THIS YEAR – SMOKINGSTARTYEAR)  THIS YEAR is the year in which the data is collected and entered.
+    If SMOKING = 999 then  SMOKEPACKYEAR = 999
+    deduct abstinence ( 300822 discussion)
+    """
+
+    unknown = "999"
+
+    class NoDataException(Exception):
+        pass
+
+    def maybe_int(s):
+        logger.debug(f"maybe_int value = {s} type = {type(s)}")
+        if s == unknown:
+            raise NoDataException()
+        if s == 999:
+            raise NoDataException()
+        if s == "":
+            raise NoDataException()
+        if s is None:
+            raise NoDataException()
+
+        try:
+            return int(s)
+        except:
+            raise NoDataException()
+
+    def get_abstinence_years(context):
+        ay = context["SMOKABSTINENTYRS"]
+        if not ay:
+            return 0
+        else:
+            ay = int(ay)
+            if ay == 999:
+                raise NoDataException()
+            else:
+                return ay
+
+    def get_current_year():
+        # this will be when the form is saved ..
+        return datetime.now().year
+
+    def calc(cigdays, a, b, c):
+        value = (float(cigdays) / 20.0) * (b - a - c)
+        return str(int(value))
+
+    smoking = context["SMOKING"]
+
+    if smoking == "1":
+        return "0"
+
+    if smoking == "2":
+        try:
+            cigday = maybe_int(context["CIGDAY"])
+            smoking_start_year = maybe_int(context["SMOKINGSTARTYEAR"])
+            smoking_stop_year = maybe_int(context["SMOKINGSTOPYEAR"])
+            abstinence_years = get_abstinence_years(context)
+            return calc(cigday, smoking_start_year, smoking_stop_year, abstinence_years)
+        except NoDataException:
+            return unknown
+
+    if smoking == "3":
+        try:
+            cigday = maybe_int(context["CIGDAY"])
+            smoking_start_year = maybe_int(context["SMOKINGSTARTYEAR"])
+            current_year = get_current_year()
+            abstinence_years = get_abstinence_years(context)
+            return calc(cigday, smoking_start_year, smoking_stop_year, abstinence_years)
+        except NoDataException:
+            return unknown
+
+    return unknown
+
+
+def SMOKEPACKYEAR_inputs():
+    return ["CIGDAY", "SMOKING", "SMOKINGSTARTYEAR", "SMOKINGSTOPYEAR", "SMOKABSTINENTYRS"]

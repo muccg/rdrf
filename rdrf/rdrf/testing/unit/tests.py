@@ -2850,6 +2850,45 @@ class FamilyLinkageTestCase(RDRFTestCase):
                          f"{error_string}{test_section_str}: Patient {patient2_test} is an index")
 
 
+class LungCancerSmokingTestCase(RDRFTestCase):
+    # "CIGDAY", "SMOKING", "SMOKINGSTARTYEAR", "SMOKINGSTOPYEAR", "SMOKABSTINENTYRS"
+    def setUp(self):
+        from rdrf.forms.fields.calculated_functions import SMOKEPACKYEAR
+        self.func = SMOKEPACKYEAR
+
+    def values(self, smoking, cigday, start_year, abst, stop_year, expectation):
+        context = {}
+        context["SMOKING"] = smoking
+        context["CIGDAY"] = cigday
+        context["SMOKINGSTARTYEAR"] = start_year
+        context["SMOKINGSTOPYEAR"] = stop_year
+        context["SMOKABSTINENTYRS"] = abst
+        patient = {}
+        result = self.func(patient, context)
+        msg = f"SMOKEPACKYEAR wrong: {context} expected {expectation} actual {result}"
+        self.assertEqual(result, expectation, msg)
+
+    def test_smoking_pack_years(self):
+        # CIC use 999 as indicator for unknown sometimes ...
+        unknown = "999"
+        self.values("1", 20, 2010, 0, 2020, "0")  # non-smoker flag overrides
+        self.values("5", 20, 2010, 0, 2020, unknown)  # 5 unknown smoker type
+        self.values("2", 20, 2010, 5, 2020, "5")  # past smoker
+        self.values("2", 40, 2010, 0, 2020, "20")  # heavy past smoker
+        self.values("2", 60, 2010, 0, 2020, "30")
+        self.values("2", 65, 2010, 0, 2020, "32")  # rounds down
+        self.values("2", 66, 2010, 0, 2020, "33")
+        self.values("2", 60, 2010, 7, 2020, "9")  # user abstinence period
+        # unknown propagates
+        self.values("2", 60, "", 7, 2020, unknown)
+        self.values("2", 60, None, 7, 2020, unknown)
+        self.values("2", 60, unknown, 7, 2020, unknown)
+        self.values("2", unknown, 2010, 7, 2020, unknown)
+        self.values("2", 60, unknown, 7, 2020, unknown)
+        self.values("2", 60, 2010, unknown, 2020, unknown)
+        self.values("2", 60, 2010, 0, unknown, unknown)
+
+
 class CICCancerStageTestCase(RDRFTestCase):
     """
     This class tests calculated fields in CIC
