@@ -791,7 +791,7 @@ class CancerStageEvaluator:
                 if possible_value.startswith(prefix):
                     return True
         else:
-            return value in possible_values
+            return value.lower() in possible_values
 
     def parse_spec_output(self, line):
         return line.strip().replace("Stage ", "")
