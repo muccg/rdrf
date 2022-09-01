@@ -674,19 +674,14 @@ TNMPTLC = T2a TNMPNLC = N0 TNMPMLC = M0
 Stage IIA
 TNMPTLC = T2b TNMPNLC = N0 TNMPMLC = M0
 Stage IIB
-TNMPTLC = T1a TNMPNLC = N1 TNMPMLC = M0
 TNMPTLC = T1a TNMPNLC = N1a TNMPMLC = M0
 TNMPTLC = T1a TNMPNLC = N1b TNMPMLC = M0
-TNMPTLC = T1b TNMPNLC = N1 TNMPMLC = M0
 TNMPTLC = T1b TNMPNLC = N1a TNMPMLC = M0
 TNMPTLC = T1b TNMPNLC = N1b TNMPMLC = M0
-TNMPTLC = T1c TNMPNLC = N1 TNMPMLC = M0
 TNMPTLC = T1c TNMPNLC = N1a TNMPMLC = M0
 TNMPTLC = T1c TNMPNLC = N1b TNMPMLC = M0
-TNMPTLC = T2a TNMPNLC = N1 TNMPMLC = M0
 TNMPTLC = T2a TNMPNLC = N1a TNMPMLC = M0
 TNMPTLC = T2a TNMPNLC = N1b TNMPMLC = M0
-TNMPTLC = T2b TNMPNLC = N1 TNMPMLC = M0
 TNMPTLC = T2b TNMPNLC = N1a TNMPMLC = M0
 TNMPTLC = T2b TNMPNLC = N1b TNMPMLC = M0
 TNMPTLC = T3 TNMPNLC = N0 TNMPMLC = M0
@@ -711,11 +706,9 @@ TNMPTLC = T2b TNMPNLC = N2 TNMPMLC = M0
 TNMPTLC = T2b TNMPNLC = N2a1 TNMPMLC = M0
 TNMPTLC = T2b TNMPNLC = N2a2 TNMPMLC = M0
 TNMPTLC = T2b TNMPNLC = N2b TNMPMLC = M0
-TNMPTLC = T3 TNMPNLC = N1 TNMPMLC = M0
 TNMPTLC = T3 TNMPNLC = N1a TNMPMLC = M0
 TNMPTLC = T3 TNMPNLC = N1b TNMPMLC = M0
 TNMPTLC = T4 TNMPNLC = N0 TNMPMLC = M0
-TNMPTLC = T4 TNMPNLC = N1 TNMPMLC = M0
 TNMPTLC = T4 TNMPNLC = N1a TNMPMLC = M0
 TNMPTLC = T4 TNMPNLC = N1b TNMPMLC = M0
 Stage IIIB
@@ -780,8 +773,8 @@ class CancerStageEvaluator:
         try:
             cde_model = CommonDataElement.objects.get(code=cde_code)
         except CommonDataElement.DoesNotExist:
-            logger.error(f"cde code in rule does not exist: {cde_code}")
-            raise
+            error_msg = f"rule contains cde {cde_code} which does not exist"
+            raise Exception(error_msg)
         value_dicts = cde_model.pv_group.as_dict()["values"]
         possible_values = [d["value"].lower() for d in value_dicts]
 
