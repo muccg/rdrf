@@ -810,7 +810,7 @@ class CancerStageEvaluator:
                 logger.debug("token is a value")
                 value = token.strip()
                 value = self.replace_space(value)
-                if not self.is_possible(key, value):
+                if key and not self.is_possible(key, value):
                     raise Exception(f"impossible value in rule: cde={key} value={value}")
                 logger.debug(f"value = {value}")
             else:
