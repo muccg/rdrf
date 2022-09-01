@@ -777,7 +777,11 @@ class CancerStageEvaluator:
 
     def is_possible(self, cde_code, value):
         from rdrf.models.definition.models import CommonDataElement
-        cde_model = CommonDataElement.objects.get(code=cde_code)
+        try:
+            cde_model = CommonDataElement.objects.get(code=cde_code)
+        except CommonDataElement.DoesNotExist:
+            logger.error(f"cde code in rule does not exist: {cde_code}")
+            raise
         value_dicts = cde_model.pv_group.as_dict()["values"]
         possible_values = [d["value"].lower() for d in value_dicts]
 
