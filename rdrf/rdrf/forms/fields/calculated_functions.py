@@ -779,14 +779,14 @@ class CancerStageEvaluator:
         from rdrf.models.definition.models import CommonDataElement
         cde_model = CommonDataElement.objects.get(code=cde_code)
         value_dicts = cde_model.pv_group.as_dict()["values"]
-        possible_values = [d["value"] for d in value_dicts]
+        possible_values = [d["value"].lower() for d in value_dicts]
 
         if self.pattern in value:
             pattern_index = value.find(self.pattern)
             if pattern_index == 0:
                 return True
 
-            prefix = value[0:pattern_index]
+            prefix = value[0:pattern_index].lower()
             for possible_value in possible_values:
                 if possible_value.startswith(prefix):
                     return True

@@ -2952,7 +2952,7 @@ class CICCancerStageTestCase(RDRFTestCase):
         calc = calculated_functions.LCCANCERSTAGE
         spec = calculated_functions.lc_cancer_stage_spec
         evaluator_class = calculated_functions.CancerStageEvaluator
-        evaluator = evaluator_class(spec=spec, cde_prefix="TNMP", value_prefix="")
+        evaluator = evaluator_class(spec=spec, cde_prefix="TNMP")
         input_output_pairs = evaluator.parse_test_spec(spec)
         self.cic_cancer_stage("LC", calc, input_output_pairs)
 
