@@ -778,7 +778,7 @@ class CancerStageEvaluator:
     def is_possible(self, cde_code, value):
         from rdrf.models.definition.models import CommonDataElement
         cde_model = CommonDataElement.objects.get(code=cde_code)
-        value_dicts = cde_model.pv_group.as_dict()
+        value_dicts = cde_model.pv_group.as_dict()["values"]
         possible_values = [d["value"] for d in value_dicts]
 
         if self.pattern in value:
