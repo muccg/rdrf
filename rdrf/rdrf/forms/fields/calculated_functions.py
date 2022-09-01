@@ -753,7 +753,6 @@ class RuleParser:
 class CancerStageEvaluator:
     def __init__(self, rules_dict=None, spec=None, cde_prefix=None):
         self.cde_prefix = cde_prefix
-        self.value_prefix = value_prefix
         self.pattern = "*"
         assert(self.cde_prefix is not None, "cde_prefix must not be None")
         logger.debug("initialising canver stage evaluator")
@@ -775,6 +774,23 @@ class CancerStageEvaluator:
             return s.replace("SPACE", " ")
         else:
             return s
+
+    def is_possible(self, cde_code, value):
+        cde_model = CommonDataElement.objects.get(code=cde_code)
+        value_dicts = cde_model.pv_group.as_dict()
+        possible_values = [d["value"] for d in value_dicts]
+
+        if self.pattern in value:
+            pattern_index = value.find(self.pattern)
+            if pattern_index == 0:
+                return True
+
+            prefix = value[0:pattern_index]
+            for possible_value in possible_values:
+                if possible_value.startswith(prefix):
+                    return True
+        else:
+            return value in possible_values
 
     def parse_spec_output(self, line):
         return line.strip().replace("Stage ", "")
@@ -803,6 +819,8 @@ class CancerStageEvaluator:
                 logger.debug("token is a value")
                 value = token.strip()
                 value = self.replace_space(value)
+                if not self.is_possible(key, value):
+                    raise Exception(f"impossible value in rule: cde={key} value={value}")
                 logger.debug(f"value = {value}")
             else:
                 logger.debug(f"unknown token: {token}")
@@ -979,7 +997,7 @@ def BCCANCERSTAGE_inputs():
 
 def LCCANCERSTAGE(patient, context):
     context = fill_missing_input(context, 'LCCANCERSTAGE_inputs')
-    evaluator = CancerStageEvaluator(spec=lc_cancer_stage_spec, cde_prefix="TNMP", value_prefix=None)
+    evaluator = CancerStageEvaluator(spec=lc_cancer_stage_spec, cde_prefix="TNMP")
     return evaluator.evaluate(patient, context)
 
 
