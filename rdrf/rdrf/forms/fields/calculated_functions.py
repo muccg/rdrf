@@ -585,29 +585,21 @@ TNMPTCRC = pT4b TNMPNCRC = pN2 TNMPMCRC = pM0
 TNMPTCRC = pT4b TNMPNCRC = pN2a TNMPMCRC = pM0
 TNMPTCRC = pT4b TNMPNCRC = pN2b TNMPMCRC = pM0
 Stage IV
-TNMPTCRC = pT* TNMPNCRC = pN* TNMPMCRC = pM1
+TNMPTCRC = * TNMPNCRC = * TNMPMCRC = pM1
 Stage IVA
-TNMPTCRC = pT* TNMPNCRC = pN* TNMPMCRC = pM1a
+TNMPTCRC = * TNMPNCRC = * TNMPMCRC = pM1a
 Stage IVB
-TNMPTCRC = pT* TNMPNCRC = pN* TNMPMCRC = pM1b
+TNMPTCRC = * TNMPNCRC = * TNMPMCRC = pM1b
 Stage IVC
-TNMPTCRC = pT* TNMPNCRC = pN* TNMPMCRC = pM1c
+TNMPTCRC = * TNMPNCRC = * TNMPMCRC = pM1c
 """
-
-
-# Stage IB
-# TNMPTB = pT0 TNMPNBC = pN1 mi TNMPMBC = pMX
-# TNMPTB = pT0 TNMPNBC = pN1 mi TNMPMBC = pM0
-# TNMPTB = pT1 TNMPNBC = pN1 mi TNMPMBC = pMX
-# TNMPTB = pT1 TNMPNBC = pN1 mi TNMPMBC = pM0
-
 
 # force build
 bc_cancer_stage_spec = """Stage Unknown
 TNMPT = pTX TNMPN = pNX TNMPM = pMX
 Stage 0
-TNMPT = pTis TNMPN = pN0 TNMPM = pMX
-TNMPT = pTis TNMPN = pN0 TNMPM = pM0
+TNMPT = pTisSPACE(DCIS) TNMPN = pN0 TNMPM = pMX
+TNMPT = pTisSPACE(DCIS) TNMPN = pN0 TNMPM = pM0
 Stage IA
 TNMPT = pT1 TNMPN = pN0 TNMPM = pMX
 TNMPT = pT1 TNMPN = pN0 TNMPM = pM0
@@ -635,12 +627,12 @@ TNMPT = pT3 TNMPN = pN1 TNMPM = pM0
 TNMPT = pT3 TNMPN = pN2 TNMPM = pMX
 TNMPT = pT3 TNMPN = pN2 TNMPM = pM0
 Stage IIIB
-TNMPT = pT4 TNMPN = pN0 TNMPM = pMX
-TNMPT = pT4 TNMPN = pN0 TNMPM = pM0
-TNMPT = pT4 TNMPN = pN1 TNMPM = pMX
-TNMPT = pT4 TNMPN = pN1 TNMPM = pM0
-TNMPT = pT4 TNMPN = pN2 TNMPM = pMX
-TNMPT = pT4 TNMPN = pN2 TNMPM = pM0
+TNMPT = T4 TNMPN = pN0 TNMPM = pMX
+TNMPT = T4 TNMPN = pN0 TNMPM = pM0
+TNMPT = T4 TNMPN = pN1 TNMPM = pMX
+TNMPT = T4 TNMPN = pN1 TNMPM = pM0
+TNMPT = T4 TNMPN = pN2 TNMPM = pMX
+TNMPT = T4 TNMPN = pN2 TNMPM = pM0
 Stage IIIC
 TNMPT = pTX TNMPN = pN3 TNMPM = pMX
 TNMPT = pTX TNMPN = pN3 TNMPM = pM0
@@ -652,8 +644,10 @@ TNMPT = pT2 TNMPN = pN3 TNMPM = pMX
 TNMPT = pT2 TNMPN = pN3 TNMPM = pM0
 TNMPT = pT3 TNMPN = pN3 TNMPM = pMX
 TNMPT = pT3 TNMPN = pN3 TNMPM = pM0
+TNMPT = T4 TNMPN = pN3 TNMPM = pMX
+TNMPT = T4 TNMPN = pN3 TNMPM = pM0
 Stage IV
-TNMPT = pT* TNMPN = pN* TNMPM = pM1
+TNMPT = * TNMPN = * TNMPM = pM1
 """
 
 lc_cancer_stage_spec = """Stage Occult carcinoma
@@ -672,48 +666,36 @@ TNMPTLC = T2a TNMPNLC = N0 TNMPMLC = M0
 Stage IIA
 TNMPTLC = T2b TNMPNLC = N0 TNMPMLC = M0
 Stage IIB
-TNMPTLC = T1a TNMPNLC = N1 TNMPMLC = M0
 TNMPTLC = T1a TNMPNLC = N1a TNMPMLC = M0
 TNMPTLC = T1a TNMPNLC = N1b TNMPMLC = M0
-TNMPTLC = T1b TNMPNLC = N1 TNMPMLC = M0
 TNMPTLC = T1b TNMPNLC = N1a TNMPMLC = M0
 TNMPTLC = T1b TNMPNLC = N1b TNMPMLC = M0
-TNMPTLC = T1c TNMPNLC = N1 TNMPMLC = M0
 TNMPTLC = T1c TNMPNLC = N1a TNMPMLC = M0
 TNMPTLC = T1c TNMPNLC = N1b TNMPMLC = M0
-TNMPTLC = T2a TNMPNLC = N1 TNMPMLC = M0
 TNMPTLC = T2a TNMPNLC = N1a TNMPMLC = M0
 TNMPTLC = T2a TNMPNLC = N1b TNMPMLC = M0
-TNMPTLC = T2b TNMPNLC = N1 TNMPMLC = M0
 TNMPTLC = T2b TNMPNLC = N1a TNMPMLC = M0
 TNMPTLC = T2b TNMPNLC = N1b TNMPMLC = M0
 TNMPTLC = T3 TNMPNLC = N0 TNMPMLC = M0
 Stage IIIA
-TNMPTLC = T1a TNMPNLC = N2 TNMPMLC = M0
 TNMPTLC = T1a TNMPNLC = N2a1 TNMPMLC = M0
 TNMPTLC = T1a TNMPNLC = N2a2 TNMPMLC = M0
 TNMPTLC = T1a TNMPNLC = N2b TNMPMLC = M0
-TNMPTLC = T1b TNMPNLC = N2 TNMPMLC = M0
 TNMPTLC = T1b TNMPNLC = N2a1 TNMPMLC = M0
 TNMPTLC = T1b TNMPNLC = N2a2 TNMPMLC = M0
 TNMPTLC = T1b TNMPNLC = N2b TNMPMLC = M0
-TNMPTLC = T1c TNMPNLC = N2 TNMPMLC = M0
 TNMPTLC = T1c TNMPNLC = N2a1 TNMPMLC = M0
 TNMPTLC = T1c TNMPNLC = N2a2 TNMPMLC = M0
 TNMPTLC = T1c TNMPNLC = N2b TNMPMLC = M0
-TNMPTLC = T2a TNMPNLC = N2 TNMPMLC = M0
 TNMPTLC = T2a TNMPNLC = N2a1 TNMPMLC = M0
 TNMPTLC = T2a TNMPNLC = N2a2 TNMPMLC = M0
 TNMPTLC = T2a TNMPNLC = N2b TNMPMLC = M0
-TNMPTLC = T2b TNMPNLC = N2 TNMPMLC = M0
 TNMPTLC = T2b TNMPNLC = N2a1 TNMPMLC = M0
 TNMPTLC = T2b TNMPNLC = N2a2 TNMPMLC = M0
 TNMPTLC = T2b TNMPNLC = N2b TNMPMLC = M0
-TNMPTLC = T3 TNMPNLC = N1 TNMPMLC = M0
 TNMPTLC = T3 TNMPNLC = N1a TNMPMLC = M0
 TNMPTLC = T3 TNMPNLC = N1b TNMPMLC = M0
 TNMPTLC = T4 TNMPNLC = N0 TNMPMLC = M0
-TNMPTLC = T4 TNMPNLC = N1 TNMPMLC = M0
 TNMPTLC = T4 TNMPNLC = N1a TNMPMLC = M0
 TNMPTLC = T4 TNMPNLC = N1b TNMPMLC = M0
 Stage IIIB
@@ -722,11 +704,9 @@ TNMPTLC = T1b TNMPNLC = N3 TNMPMLC = M0
 TNMPTLC = T1c TNMPNLC = N3 TNMPMLC = M0
 TNMPTLC = T2a TNMPNLC = N3 TNMPMLC = M0
 TNMPTLC = T2b TNMPNLC = N3 TNMPMLC = M0
-TNMPTLC = T3 TNMPNLC = N2 TNMPMLC = M0
 TNMPTLC = T3 TNMPNLC = N2a1 TNMPMLC = M0
 TNMPTLC = T3 TNMPNLC = N2a2 TNMPMLC = M0
 TNMPTLC = T3 TNMPNLC = N2b TNMPMLC = M0
-TNMPTLC = T4 TNMPNLC = N2 TNMPMLC = M0
 TNMPTLC = T4 TNMPNLC = N2a1 TNMPMLC = M0
 TNMPTLC = T4 TNMPNLC = N2a2 TNMPMLC = M0
 TNMPTLC = T4 TNMPNLC = N2b TNMPMLC = M0
@@ -734,20 +714,24 @@ Stage IIIC
 TNMPTLC = T3 TNMPNLC = N3 TNMPMLC = M0
 TNMPTLC = T4 TNMPNLC = N3 TNMPMLC = M0
 Stage IVA
-TNMPTLC = T* TNMPNLC = N* TNMPMLC = M1a
-TNMPTLC = T* TNMPNLC = N* TNMPMLC = M1b
-Stage IVB
-TNMPTLC = T* TNMPNLC = N* TNMPMLC = M1c
+TNMPTLC = * TNMPNLC = * TNMPMLC = M1a
+TNMPTLC = * TNMPNLC = * TNMPMLC = M1b
+Stage IV
+TNMPTLC = * TNMPNLC = * TNMPMLC = M1c
 """
 
 ov_cancer_stage_spec = ""
 
 
+class RuleParser:
+    def __init__(self, spec):
+        self.spec = spec
+
+
 class CancerStageEvaluator:
-    def __init__(self, rules_dict=None, spec=None, cde_prefix=None, value_prefix="p", pattern="*"):
+    def __init__(self, rules_dict=None, spec=None, cde_prefix=None):
         self.cde_prefix = cde_prefix
-        self.value_prefix = value_prefix
-        self.pattern = pattern
+        self.pattern = "*"
         assert(self.cde_prefix is not None, "cde_prefix must not be None")
         logger.debug("initialising canver stage evaluator")
         if rules_dict is not None:
@@ -763,8 +747,42 @@ class CancerStageEvaluator:
 
         self.cache = {}
 
+    def replace_space(self, s):
+        if "SPACE" in s:
+            return s.replace("SPACE", " ")
+        else:
+            return s
+
+    def is_possible(self, cde_code, value):
+        from rdrf.models.definition.models import CommonDataElement
+        try:
+            cde_model = CommonDataElement.objects.get(code=cde_code)
+        except CommonDataElement.DoesNotExist:
+            error_msg = f"rule contains cde {cde_code} which does not exist"
+            raise Exception(error_msg)
+        value_dicts = cde_model.pv_group.as_dict()["values"]
+        possible_values = [d["value"].lower() for d in value_dicts]
+
+        if self.pattern in value:
+            pattern_index = value.find(self.pattern)
+            if pattern_index == 0:
+                return True
+
+            prefix = value[0:pattern_index].lower()
+            for possible_value in possible_values:
+                if possible_value.startswith(prefix):
+                    return True
+        else:
+            return value.lower() in possible_values
+
     def parse_spec_output(self, line):
         return line.strip().replace("Stage ", "")
+
+    def is_value(self, token):
+        return not any([self.is_cde(token), token in [' ', '=']])
+
+    def is_cde(self, token):
+        return token.startswith(self.cde_prefix)
 
     def parse_spec_inputs(self, line):
         logger.debug(f"parse_spec_inputs line = {line}")
@@ -772,22 +790,20 @@ class CancerStageEvaluator:
         tokens = line.split(" ")
         key = None
         value = None
-        def is_cde(token): return token.startswith(self.cde_prefix)
-        if not self.value_prefix:
-            def is_value(token): return not any([is_cde(token), token in [' ', '=']])
-        else:
-            def is_value(token): return token.startswith(self.value_prefix)
 
         for token in tokens:
             logger.debug(f"token = {token}")
 
-            if is_cde(token):
+            if self.is_cde(token):
                 logger.debug(f"token is a cde")
                 key = token.strip()
                 logger.debug(f"key = {key}")
-            elif is_value(token):
+            elif self.is_value(token):
                 logger.debug("token is a value")
                 value = token.strip()
+                value = self.replace_space(value)
+                if key and not self.is_possible(key, value):
+                    raise Exception(f"impossible value in rule: cde={key} value={value}")
                 logger.debug(f"value = {value}")
             else:
                 logger.debug(f"unknown token: {token}")
@@ -845,10 +861,11 @@ class CancerStageEvaluator:
                 key = None
                 value = None
                 for token in tokens:
-                    if token.startswith(self.cde_prefix):
+                    if self.is_cde(token):
                         key = token.strip()
-                    elif token.startswith(self.value_prefix):
+                    elif self.is_value(token):
                         value = token.strip()
+                        value = self.replace_space(value)
                     if all([key, value]):
                         inputs_dict[key] = value
 
@@ -963,7 +980,7 @@ def BCCANCERSTAGE_inputs():
 
 def LCCANCERSTAGE(patient, context):
     context = fill_missing_input(context, 'LCCANCERSTAGE_inputs')
-    evaluator = CancerStageEvaluator(spec=lc_cancer_stage_spec, cde_prefix="TNMP", value_prefix=None)
+    evaluator = CancerStageEvaluator(spec=lc_cancer_stage_spec, cde_prefix="TNMP")
     return evaluator.evaluate(patient, context)
 
 
