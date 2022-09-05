@@ -171,11 +171,25 @@ class SectionInfo(object):
             cde_model = CommonDataElement.objects.get(code=cde_code)
             if cde_model.datatype == "calculated":
                 logger.debug(f"calculating new value for {cde_code}")
-                patient = None
+                patient = self._get_patient_dict()
                 calculation_context = self._get_calculation_context(cde_model)
+                logger.debug(f"calc {cde_code} calculate")
+                logger.debug(f"calc {cde_code} patient = {patient}")
+                logger.debug(f"calc {cde_code} context = {calculation_context}")
                 new_value = cde_model.calculate(patient, calculation_context)
+                logger.debug(f"calc {cde_code} new_value = {new_value}")
+
                 self.data[key] = new_value
-                logger.debug(f"data after calcs = {self.data}")
+                logger.debug(f"calc data after calcs = {self.data}")
+
+    def _get_patient_dict(self):
+        patient: Patient = self.patient_wrapper.obj
+        # this mirrors what old API call creates
+        patient_dict = {'date_of_birth': patient.date_of_birth,
+                        'patient_id': patient.id,
+                        'registry_code': self.registry_code,
+                        'sex': patient.sex}
+        return patient_dict
 
     def _get_calculation_context(self, cde_model):
         from rdrf.forms.fields import calculated_functions as calcs_module
@@ -187,16 +201,20 @@ class SectionInfo(object):
                 input_cde_codes = input_function()
                 for input_cde_code in input_cde_codes:
                     input_value = self._get_input_value(input_cde_code)
-                    calculation_context[input_cde_code] = input_value
+                    if input_value is not None:
+                        calculation_context[input_cde_code] = input_value
         else:
             raise Exception("No input for calc")
 
         return calculation_context
 
     def _get_input_value(self, cde_code):
+        logger.debug(f"self.data = {self.data}")
         for key in self.data:
             if key.endswith("____" + cde_code):
                 return self.data[key]
+
+        # non-local field value
 
     def save(self):
         if not self.is_multiple:

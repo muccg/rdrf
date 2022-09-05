@@ -66,14 +66,21 @@ def fill_missing_input(context, input_func_name, across_forms_info=None):
     mod = __import__('rdrf.forms.fields.calculated_functions', fromlist=['object'])
     func = getattr(mod, input_func_name)
     if across_forms_info is not None:
+        logger.debug("fill_missing_input checking across forms info")
         # the input cdes are on another form
         for cde_code in func():
+            logger.debug(f"checking for input cde {cde_code}")
             if cde_code not in context.keys():
+                logger.debug(f"{cde_code} not in context - trying across forms")
                 try:
                     cde_value = across_forms_info.get_cde_value(cde_code)
+                    logger.debug(f"found cde {cde_code} across forms value = {cde_value}")
                 except KeyError:
+                    logger.debug(f"{cde_code} could not be found across forms")
                     cde_value = ""
                 context[cde_code] = cde_value
+            else:
+                logger.debug(f"input {cde_code} is in context ( value is {context[cde_code]}")
     else:
         for cde_code in func():
             if cde_code not in context.keys():
@@ -732,7 +739,7 @@ class CancerStageEvaluator:
     def __init__(self, rules_dict=None, spec=None, cde_prefix=None):
         self.cde_prefix = cde_prefix
         self.pattern = "*"
-        assert(self.cde_prefix is not None, "cde_prefix must not be None")
+        assert (self.cde_prefix is not None, "cde_prefix must not be None")
         logger.debug("initialising canver stage evaluator")
         if rules_dict is not None:
             self.rules_dict = rules_dict
@@ -1358,6 +1365,11 @@ def number_of_days(datestring1, datestring2):
     """
     return number of days between date1 < date2
     """
+    logger.debug(f"number_of_days s1=[{datestring1}] s2=[{datestring2}]")
+    if datestring1 is None:
+        return None
+    if datestring2 is None:
+        return None
     try:
         date1 = validate_date(datestring1)
     except ParseError:
@@ -1383,6 +1395,7 @@ def date_diff_helper(patient, context, input_func_name, later_cde_code, earlier_
     across_forms_info = AcrossFormsInfo(registry_model,
                                         patient_model)
     context = fill_missing_input(context, input_func_name, across_forms_info)
+    logger.debug(f"calc context after filling missing input = {context}")
     later_date_string = context[later_cde_code]
     earlier_date_string = context[earlier_cde_code]
     r = number_of_days(earlier_date_string, later_date_string)
@@ -1409,7 +1422,11 @@ def INITREVINTERVLC(patient, context):
     context = fill_missing_input(context, 'INITREVINTERVLC_inputs', across_forms_info)
     first_seenlc = context["FIRSTSEENLC"]
     refdatelc = context["REFDATELC"]
-    return str(number_of_days(refdatelc, first_seenlc))
+    num_days = number_of_days(refdatelc, first_seenlc)
+    if num_days is None:
+        return ""
+    else:
+        return str(num_days)
 
 
 def INITREVINTERVLC_inputs():
