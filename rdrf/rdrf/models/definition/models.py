@@ -1508,8 +1508,8 @@ class DemographicFields(models.Model):
     registry = models.ForeignKey(Registry, on_delete=models.CASCADE)
     group = models.ForeignKey(Group, on_delete=models.CASCADE)
     field = models.CharField(max_length=50, choices=FIELD_CHOICES)
-    readonly = models.NullBooleanField(null=True, blank=True)
-    hidden = models.NullBooleanField(null=True, blank=True)
+    readonly = models.BooleanField(null=True, blank=True)
+    hidden = models.BooleanField(null=True, blank=True)
     custom_label = models.CharField(max_length=50, blank=True, null=True)
 
     class Meta:

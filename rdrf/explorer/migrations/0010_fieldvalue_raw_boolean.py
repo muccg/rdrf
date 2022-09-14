@@ -15,6 +15,6 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='fieldvalue',
             name='raw_boolean',
-            field=models.NullBooleanField(),
+            field=models.BooleanField(null=True),
         ),
     ]
