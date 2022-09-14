@@ -7,7 +7,7 @@ requirements = [
     "svglib==1.2.1",
     "ccg-django-utils==0.4.2",
     "celery==5.1.0",
-    "Django==2.2.28",
+    "Django==3.2.15",
     "django-anymail==8.1",
     "django-ajax-selects==2.2.0",
     "django-countries==7.3.2",
