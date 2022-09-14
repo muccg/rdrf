@@ -2,7 +2,7 @@ import hl7
 import json
 import logging
 from django.db import models
-from django.contrib.postgres.fields import JSONField
+from django.db.models import JSONField
 from intframework import utils
 from intframework.utils import TransformFunctionError
 from intframework.utils import MessageSearcher
