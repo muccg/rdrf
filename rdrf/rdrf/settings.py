@@ -220,7 +220,6 @@ INSTALLED_APPS = [
     'ajax_select',
     'explorer',
     'useraudit',
-    'templatetag_handlebars',
     'iprestrict',
     'rest_framework',
     'anymail',

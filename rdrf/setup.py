@@ -19,7 +19,6 @@ requirements = [
     "django-registration-redux==2.10",
     "djangorestframework==3.12.1",
     "django-storages==1.10.1",
-    "django-templatetag-handlebars==1.3.1",
     "django-templatetag-sugar==1.0",
     "django-useraudit==1.7.1",
     "django-uwsgi==0.2.2",
