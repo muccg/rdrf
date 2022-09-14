@@ -12,7 +12,7 @@ requirements = [
     "django-ajax-selects==2.2.0",
     "django-countries==7.3.2",
     "django-extensions==3.0.9",
-    "django-iprestrict==1.7.0",
+    "django-iprestrict==1.8.0",
     "django-messages-ui==2.0.2",
     "django-nose==1.4.7",
     "django-positions==0.6.0",
