@@ -40,7 +40,7 @@ class FieldValue(models.Model):
     raw_float = models.FloatField(null=True, blank=True)
     file_name = models.TextField(null=True, blank=True)
     raw_date = models.DateField(null=True, blank=True)
-    raw_boolean = models.NullBooleanField(null=True, blank=True)
+    raw_boolean = models.BooleanField(null=True, blank=True)
 
     class Meta:
         # the "path" to a value for a giveb

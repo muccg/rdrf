@@ -220,7 +220,6 @@ INSTALLED_APPS = [
     'ajax_select',
     'explorer',
     'useraudit',
-    'templatetag_handlebars',
     'iprestrict',
     'rest_framework',
     'anymail',
@@ -882,3 +881,6 @@ if HUB_ENABLED:
     HUB_ENDPOINT = env.get("hub_endpoint", "mock")
     HUB_PORT = env.get("hub_port", 30000)
     HUB_MOCKED = HUB_ENDPOINT == "mock"
+
+
+DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'

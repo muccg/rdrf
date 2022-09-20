@@ -1,5 +1,6 @@
 import datetime
-from django.contrib.postgres.fields import JSONField
+from django.db.models import JSONField
+
 
 __all__ = ["DataField"]
 
