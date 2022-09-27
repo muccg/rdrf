@@ -1,0 +1,26 @@
+{% extends "rdrf_cdes/base-1-col.html" %}
+
+{% block formlinks %}
+{% endblock %}
+
+{% block sidebar %}
+{{ context_launcher | safe }}
+{% endblock %}
+
+{% block formbtns %}
+{% endblock %}
+
+{% block content %}
+{{ block.super }}
+	<a class="previous-form" href="{{ previous_form_link }}">
+		<span class="fa fa-chevron-left" aria-hidden="true"></span>
+	</a>
+
+	<a class="next-form" href="{{ next_form_link }}">
+		<span class="fa fa-chevron-right" aria-hidden="true"></span>
+	</a>
+
+    <br><div class="container">
+      <iframe title="CICCancerPROMS_COLO_DUPLICATE_CIC" width="1140" height="541.25" src="https://app.powerbi.com/reportEmbed?reportId=52221545-2e2b-4f8f-904f-bbe01f82fedf&autoAuth=true&ctid=c00d4c1b-cf7b-4e93-b7c7-10113a9bc230" frameborder="0" allowFullScreen="true"></iframe>
+    </div>
+{% endblock %}

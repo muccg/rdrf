@@ -13,6 +13,7 @@ from rdrf.auth.forms import RDRFLoginAssistanceForm, RDRFPasswordResetForm, RDRF
 from rdrf.auth.views import login_assistance_confirm, QRGeneratorView, SetupView, DisableView
 
 import rdrf.views.form_view as form_view
+from rdrf.views.patient_dashboard import PatientDashboardView
 import rdrf.views.registry_view as registry_view
 import rdrf.views.landing_view as landing_view
 import rdrf.views.import_registry_view as import_registry_view
@@ -119,6 +120,8 @@ report_patterns = [
 ]
 
 normalpatterns += [
+    re_path(r"^patientdashboard/(?P<registry_code>\w+)/(?P<patient_id>\d+)/?$",
+            PatientDashboardView.as_view(), name="patientdashboard"),
     re_path(r'^reviews/?', ReviewWizardLandingView.as_view(), name='wizard_landing'),
     re_path(r'^actions/?', ActionExecutorView.as_view(), name='action'),
     re_path(r'^translations/jsi18n/$', JavaScriptCatalog.as_view(), name='javascript-catalog'),

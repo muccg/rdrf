@@ -314,3 +314,9 @@ class DataRequest(models.Model):
             datasource = external_data["datasource"]
             data = external_data["data"]
             logger.info(datasource, data)
+
+
+class PowerBiReport(models.Model):
+    app_id = models.CharField(max_length=80)
+    report_id = models.CharField(max_length=80)
+    name = models.CharField(max_length=80)
