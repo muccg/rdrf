@@ -1164,7 +1164,7 @@ def get_lc_clinical_cancer_stage_spec():
            Stage IA2
            TNMCTLC = T1b TNMCNLC = N0 TNMCMLC = M0
            Stage IA3
-           TNMCTLC = T1 TNMCNLC = N0 TNMCMLC = M0
+           TNMCTLC = T1c TNMCNLC = N0 TNMCMLC = M0
            Stage IB
            TNMCTLC = T2a TNMCNLC = N0 TNMCMLC = M0
            Stage IIA
@@ -1174,8 +1174,8 @@ def get_lc_clinical_cancer_stage_spec():
            TNMCTLC = T1a TNMCNLC = N1b TNMCMLC = M0
            TNMCTLC = T1b TNMCNLC = N1a TNMCMLC = M0
            TNMCTLC = T1b TNMCNLC = N1b TNMCMLC = M0
-           TNMCTLC = T1 TNMCNLC = N1a TNMCMLC = M0
-           TNMCTLC = T1 TNMCNLC = N1b TNMCMLC = M0
+           TNMCTLC = T1c TNMCNLC = N1a TNMCMLC = M0
+           TNMCTLC = T1c TNMCNLC = N1b TNMCMLC = M0
            TNMCTLC = T2a TNMCNLC = N1a TNMCMLC = M0
            TNMCTLC = T2a TNMCNLC = N1b TNMCMLC = M0
            TNMCTLC = T2b TNMCNLC = N1a TNMCMLC = M0
@@ -1188,9 +1188,9 @@ def get_lc_clinical_cancer_stage_spec():
            TNMCTLC = T1b TNMCNLC = N2a1 TNMCMLC = M0
            TNMCTLC = T1b TNMCNLC = N2a2 TNMCMLC = M0
            TNMCTLC = T1b TNMCNLC = N2b TNMPCLC = M0
-           TNMCTLC = T1 TNMCNLC = N2a1 TNMCMLC = M0
-           TNMCTLC = T1 TNMCNLC = N2a2 TNMCMLC = M0
-           TNMCTLC = T1 TNMCNLC = N2b TNMPCLC = M0
+           TNMCTLC = T1c TNMCNLC = N2a1 TNMCMLC = M0
+           TNMCTLC = T1c TNMCNLC = N2a2 TNMCMLC = M0
+           TNMCTLC = T1c TNMCNLC = N2b TNMPCLC = M0
            TNMCTLC = T2a TNMCNLC = N2a1 TNMCMLC = M0
            TNMCTLC = T2a TNMCNLC = N2a2 TNMCMLC = M0
            TNMCTLC = T2a TNMCNLC = N2b TNMPCLC = M0
@@ -1205,7 +1205,7 @@ def get_lc_clinical_cancer_stage_spec():
            Stage IIIB
            TNMCTLC = T1a TNMCNLC = N3 TNMCMLC = M0
            TNMCTLC = T1b TNMCNLC = N3 TNMCMLC = M0
-           TNMCTLC = T1 TNMCNLC = N3 TNMCMLC = M0
+           TNMCTLC = T1c TNMCNLC = N3 TNMCMLC = M0
            TNMCTLC = T2a TNMCNLC = N3 TNMCMLC = M0
            TNMCTLC = T2b TNMCNLC = N3 TNMCMLC = M0
            TNMCTLC = T3 TNMCNLC = N2a1 TNMCMLC = M0
