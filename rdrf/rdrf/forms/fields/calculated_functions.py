@@ -798,7 +798,7 @@ def get_crc_clinical_cancer_stage_spec():
            """
 
 
-def get_bc_clinical_cancer_stage():
+def get_bc_clinical_cancer_stage_spec():
     return """Stage 0
             TNMCTBC = cTis TNMCNBC = cN0 TNMCMBC = cMX 
             TNMCTBC = cTis TNMCNBC = cN0 TNMCMBC = cM0 
