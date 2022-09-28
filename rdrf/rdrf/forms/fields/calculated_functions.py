@@ -800,54 +800,54 @@ def get_crc_clinical_cancer_stage_spec():
 
 def get_bc_clinical_cancer_stage_spec():
     return """Stage 0
-            TNMCTBC = cTis TNMCNBC = cN0 TNMCMBC = cMX 
-            TNMCTBC = cTis TNMCNBC = cN0 TNMCMBC = cM0 
+            TNMCT = cTis TNMCN = cN0 TNMCM = cMX 
+            TNMCT = cTis TNMCN = cN0 TNMCM = cM0 
             Stage IA
-            TNMCTBC = cT1 TNMCNBC = cN0 TNMCMBC = cMX
-            TNMCTBC = cT1 TNMCNBC = cN0 TNMCMBC = cM0
+            TNMCT = cT1 TNMCN = cN0 TNMCM = cMX
+            TNMCT = cT1 TNMCN = cN0 TNMCM = cM0
             Stage IIA
-            TNMCTBC = cT0 TNMCNBC = cN1 TNMCMBC = cMX
-            TNMCTBC = cT0 TNMCNBC = cN1 TNMCMBC = cM0 
-            TNMCTBC = cT1 TNMCNBC = cN1 TNMCMBC = cMX
-            TNMCTBC = cT1 TNMCNBC = cN1 TNMCMBC = cM0 
-            TNMCTBC = cT2 TNMCNBC = cN0 TNMCMBC = cMX
-            TNMCTBC = cT2 TNMCNBC = cN0 TNMCMBC = cM0 
+            TNMCT = cT0 TNMCN = cN1 TNMCM = cMX
+            TNMCT = cT0 TNMCN = cN1 TNMCM = cM0 
+            TNMCT = cT1 TNMCN = cN1 TNMCM = cMX
+            TNMCT = cT1 TNMCN = cN1 TNMCM = cM0 
+            TNMCT = cT2 TNMCN = cN0 TNMCM = cMX
+            TNMCT = cT2 TNMCN = cN0 TNMCM = cM0 
             Stage IIB
-            TNMCTBC = cT2 TNMCNBC = cN1 TNMCMBC = cMX
-            TNMCTBC = cT2 TNMCNBC = cN1 TNMCMBC = cM0 
-            TNMCTBC = cT3 TNMCNBC = cN0 TNMCMBC = cMX
-            TNMCTBC = cT3 TNMCNBC = cN0 TNMCMBC = cM0 
+            TNMCT = cT2 TNMCN = cN1 TNMCM = cMX
+            TNMCT = cT2 TNMCN = cN1 TNMCM = cM0 
+            TNMCT = cT3 TNMCN = cN0 TNMCM = cMX
+            TNMCT = cT3 TNMCN = cN0 TNMCM = cM0 
             Stage IIIA
-            TNMCTBC = cT0 TNMCNBC = cN2 TNMCMBC = cMX 
-            TNMCTBC = cT0 TNMCNBC = cN2 TNMCMBC = cM0
-            TNMCTBC = cT1 TNMCNBC = cN2 TNMCMBC = cMX
-            TNMCTBC = cT1 TNMCNBC = cN2 TNMCMBC = cM0 
-            TNMCTBC = cT2 TNMCNBC = cN2 TNMCMBC = cMX
-            TNMCTBC = cT2 TNMCNBC = cN2 TNMCMBC = cM0 
-            TNMCTBC = cT3 TNMCNBC = cN1 TNMCMBC = cMX 
-            TNMCTBC = cT3 TNMCNBC = cN1 TNMCMBC = cM0 
-            TNMCTBC = cT3 TNMCNBC = cN2 TNMCMBC = cMX
-            TNMCTBC = cT3 TNMCNBC = cN2 TNMCMBC = cM0 
+            TNMCT = cT0 TNMCN = cN2 TNMCM = cMX 
+            TNMCT = cT0 TNMCN = cN2 TNMCM = cM0
+            TNMCT = cT1 TNMCN = cN2 TNMCM = cMX
+            TNMCT = cT1 TNMCN = cN2 TNMCM = cM0 
+            TNMCT = cT2 TNMCN = cN2 TNMCM = cMX
+            TNMCT = cT2 TNMCN = cN2 TNMCM = cM0 
+            TNMCT = cT3 TNMCN = cN1 TNMCM = cMX 
+            TNMCT = cT3 TNMCN = cN1 TNMCM = cM0 
+            TNMCT = cT3 TNMCN = cN2 TNMCM = cMX
+            TNMCT = cT3 TNMCN = cN2 TNMCM = cM0 
             Stage IIIB
-            TNMCTBC = cT4 TNMCNBC = cN0 TNMCMBC = cMX
-            TNMCTBC = cT4 TNMCNBC = cN0 TNMCMBC = cM0 
-            TNMCTBC = cT4 TNMCNBC = cN1 TNMCMBC = cMX
-            TNMCTBC = cT4 TNMCNBC = cN1 TNMCMBC = cM0 
-            TNMCTBC = cT4 TNMCNBC = cN2 TNMCMBC = cMX
-            TNMCTBC = cT4 TNMCNBC = cN2 TNMCMBC = cM0
+            TNMCT = cT4 TNMCN = cN0 TNMCM = cMX
+            TNMCT = cT4 TNMCN = cN0 TNMCM = cM0 
+            TNMCT = cT4 TNMCN = cN1 TNMCM = cMX
+            TNMCT = cT4 TNMCN = cN1 TNMCM = cM0 
+            TNMCT = cT4 TNMCN = cN2 TNMCM = cMX
+            TNMCT = cT4 TNMCN = cN2 TNMCM = cM0
             Stage IIIC
-            TNMCTBC = cT0 TNMCNBC = cN3 TNMCMBC = cMX 
-            TNMCTBC = cT0 TNMCNBC = cN3 TNMCMBC = cM0
-            TNMCTBC = cT1 TNMCNBC = cN3 TNMCMBC = cMX
-            TNMCTBC = cT1 TNMCNBC = cN3 TNMCMBC = cM0
-            TNMCTBC = cT2 TNMCNBC = cN3 TNMCMBC = cMX 
-            TNMCTBC = cT2 TNMCNBC = cN3 TNMCMBC = cM0
-            TNMCTBC = cT3 TNMCNBC = cN3 TNMCMBC = cMX 
-            TNMCTBC = cT3 TNMCNBC = cN3 TNMCMBC = cM0
-            TNMCTBC = cT4 TNMCNBC = cN3 TNMCMBC = cMX
-            TNMCTBC = cT4 TNMCNBC = cN3 TNMCMBC = cM0 
+            TNMCT = cT0 TNMCN = cN3 TNMCM = cMX 
+            TNMCT = cT0 TNMCN = cN3 TNMCM = cM0
+            TNMCT = cT1 TNMCN = cN3 TNMCM = cMX
+            TNMCT = cT1 TNMCN = cN3 TNMCM = cM0
+            TNMCT = cT2 TNMCN = cN3 TNMCM = cMX 
+            TNMCT = cT2 TNMCN = cN3 TNMCM = cM0
+            TNMCT = cT3 TNMCN = cN3 TNMCM = cMX 
+            TNMCT = cT3 TNMCN = cN3 TNMCM = cM0
+            TNMCT = cT4 TNMCN = cN3 TNMCM = cMX
+            TNMCT = cT4 TNMCN = cN3 TNMCM = cM0 
             Stage IV
-            TNMCTBC = cT* TNMCNBC = cN* TNMCMBC = cM1
+            TNMCT = cT* TNMCN = cN* TNMCM = cM1
             """
 
 
