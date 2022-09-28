@@ -980,6 +980,8 @@ class CancerStageEvaluator:
         for line in spec.split("\n"):
             print(f"parsing spec line: [{line}]")
             line = line.strip()
+            if not line:
+                continue
             if line.startswith("Stage"):
                 pair = [None, None]
                 stage = self.parse_spec_output(line)
