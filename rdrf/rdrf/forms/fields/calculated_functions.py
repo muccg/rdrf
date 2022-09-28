@@ -1155,73 +1155,73 @@ def LCCLINICALCANCERSTAGE_inputs():
 
 def get_lc_clinical_cancer_stage_spec():
     return """Stage Occult carcinoma
-           TNMCTLC = cTx TNMCNLC = cN0 TNMCMLC = cM0
+           TNMCTLC = Tx TNMCNLC = N0 TNMCMLC = M0
            Stage 0
-           TNMCTLC = cTis TNMCNLC = cN0 TNMCMLC = cM0
+           TNMCTLC = Tis TNMCNLC = N0 TNMCMLC = M0
            Stage IA1
-           TNMCTLC = cT1mi TNMCNLC = cN0 TNMCMLC = cM0
-           TNMCTLC = cT1a TNMCNLC = cN0 TNMCMLC = cM0
+           TNMCTLC = T1mi TNMCNLC = N0 TNMCMLC = M0
+           TNMCTLC = T1a TNMCNLC = N0 TNMCMLC = M0
            Stage IA2
-           TNMCTLC = cT1b TNMCNLC = cN0 TNMCMLC = cM0
+           TNMCTLC = T1b TNMCNLC = N0 TNMCMLC = M0
            Stage IA3
-           TNMCTLC = cT1c TNMCNLC = cN0 TNMCMLC = cM0
+           TNMCTLC = T1 TNMCNLC = N0 TNMCMLC = M0
            Stage IB
-           TNMCTLC = cT2a TNMCNLC = cN0 TNMCMLC = cM0
+           TNMCTLC = T2a TNMCNLC = N0 TNMCMLC = M0
            Stage IIA
-           TNMCTLC = cT2b TNMCNLC = cN0 TNMCMLC = cM0
+           TNMCTLC = T2b TNMCNLC = N0 TNMCMLC = M0
            Stage IIB
-           TNMCTLC = cT1a TNMCNLC = cN1a TNMCMLC = cM0
-           TNMCTLC = cT1a TNMCNLC = cN1b TNMCMLC = cM0
-           TNMCTLC = cT1b TNMCNLC = cN1a TNMCMLC = cM0
-           TNMCTLC = cT1b TNMCNLC = cN1b TNMCMLC = cM0
-           TNMCTLC = cT1c TNMCNLC = cN1a TNMCMLC = cM0
-           TNMCTLC = cT1c TNMCNLC = cN1b TNMCMLC = cM0
-           TNMCTLC = cT2a TNMCNLC = cN1a TNMCMLC = cM0
-           TNMCTLC = cT2a TNMCNLC = cN1b TNMCMLC = cM0
-           TNMCTLC = cT2b TNMCNLC = cN1a TNMCMLC = cM0
-           TNMCTLC = cT2b TNMCNLC = cN1b TNMCMLC = cM0
-           TNMCTLC = cT3 TNMCNLC = cN0 TNMCMLC = cM0
+           TNMCTLC = T1a TNMCNLC = N1a TNMCMLC = M0
+           TNMCTLC = T1a TNMCNLC = N1b TNMCMLC = M0
+           TNMCTLC = T1b TNMCNLC = N1a TNMCMLC = M0
+           TNMCTLC = T1b TNMCNLC = N1b TNMCMLC = M0
+           TNMCTLC = T1 TNMCNLC = N1a TNMCMLC = M0
+           TNMCTLC = T1 TNMCNLC = N1b TNMCMLC = M0
+           TNMCTLC = T2a TNMCNLC = N1a TNMCMLC = M0
+           TNMCTLC = T2a TNMCNLC = N1b TNMCMLC = M0
+           TNMCTLC = T2b TNMCNLC = N1a TNMCMLC = M0
+           TNMCTLC = T2b TNMCNLC = N1b TNMCMLC = M0
+           TNMCTLC = T3 TNMCNLC = N0 TNMCMLC = M0
            Stage IIIA
-           TNMCTLC = cT1a TNMCNLC = cN2a1 TNMCMLC = cM0
-           TNMCTLC = cT1a TNMCNLC = cN2a2 TNMCMLC = cM0
-           TNMCTLC = cT1a TNMCNLC = cN2b TNMPCLC = cM0
-           TNMCTLC = cT1b TNMCNLC = cN2a1 TNMCMLC = cM0
-           TNMCTLC = cT1b TNMCNLC = cN2a2 TNMCMLC = cM0
-           TNMCTLC = cT1b TNMCNLC = cN2b TNMPCLC = cM0
-           TNMCTLC = cT1c TNMCNLC = cN2a1 TNMCMLC = cM0
-           TNMCTLC = cT1c TNMCNLC = cN2a2 TNMCMLC = cM0
-           TNMCTLC = cT1c TNMCNLC = cN2b TNMPCLC = cM0
-           TNMCTLC = cT2a TNMCNLC = cN2a1 TNMCMLC = cM0
-           TNMCTLC = cT2a TNMCNLC = cN2a2 TNMCMLC = cM0
-           TNMCTLC = cT2a TNMCNLC = cN2b TNMPCLC = cM0
-           TNMCTLC = cT2b TNMCNLC = cN2a1 TNMCMLC = cM0
-           TNMCTLC = cT2b TNMCNLC = cN2a2 TNMCMLC = cM0
-           TNMCTLC = cT2b TNMCNLC = cN2b TNMPCLC = cM0
-           TNMCTLC = cT3 TNMCNLC = cN1a TNMCMLC = cM0
-           TNMCTLC = cT3 TNMCNLC = cN1b TNMCMLC = cM0
-           TNMCTLC = cT4 TNMCNLC = cN0 TNMCMLC = cM0
-           TNMCTLC = cT4 TNMCNLC = cN1a TNMCMLC = cM0
-           TNMCTLC = cT4 TNMCNLC = cN1b TNMCMLC = cM0
+           TNMCTLC = T1a TNMCNLC = N2a1 TNMCMLC = M0
+           TNMCTLC = T1a TNMCNLC = N2a2 TNMCMLC = M0
+           TNMCTLC = T1a TNMCNLC = N2b TNMPCLC = M0
+           TNMCTLC = T1b TNMCNLC = N2a1 TNMCMLC = M0
+           TNMCTLC = T1b TNMCNLC = N2a2 TNMCMLC = M0
+           TNMCTLC = T1b TNMCNLC = N2b TNMPCLC = M0
+           TNMCTLC = T1 TNMCNLC = N2a1 TNMCMLC = M0
+           TNMCTLC = T1 TNMCNLC = N2a2 TNMCMLC = M0
+           TNMCTLC = T1 TNMCNLC = N2b TNMPCLC = M0
+           TNMCTLC = T2a TNMCNLC = N2a1 TNMCMLC = M0
+           TNMCTLC = T2a TNMCNLC = N2a2 TNMCMLC = M0
+           TNMCTLC = T2a TNMCNLC = N2b TNMPCLC = M0
+           TNMCTLC = T2b TNMCNLC = N2a1 TNMCMLC = M0
+           TNMCTLC = T2b TNMCNLC = N2a2 TNMCMLC = M0
+           TNMCTLC = T2b TNMCNLC = N2b TNMPCLC = M0
+           TNMCTLC = T3 TNMCNLC = N1a TNMCMLC = M0
+           TNMCTLC = T3 TNMCNLC = N1b TNMCMLC = M0
+           TNMCTLC = T4 TNMCNLC = N0 TNMCMLC = M0
+           TNMCTLC = T4 TNMCNLC = N1a TNMCMLC = M0
+           TNMCTLC = T4 TNMCNLC = N1b TNMCMLC = M0
            Stage IIIB
-           TNMCTLC = cT1a TNMCNLC = cN3 TNMCMLC = cM0
-           TNMCTLC = cT1b TNMCNLC = cN3 TNMCMLC = cM0
-           TNMCTLC = cT1c TNMCNLC = cN3 TNMCMLC = cM0
-           TNMCTLC = cT2a TNMCNLC = cN3 TNMCMLC = cM0
-           TNMCTLC = cT2b TNMCNLC = cN3 TNMCMLC = cM0
-           TNMCTLC = cT3 TNMCNLC = cN2a1 TNMCMLC = cM0
-           TNMCTLC = cT3 TNMCNLC = cN2a2 TNMCMLC = cM0
-           TNMCTLC = cT3 TNMCNLC = cN2b TNMPCLC = cM0
-           TNMCTLC = cT4 TNMCNLC = cN2a1 TNMCMLC = cM0
-           TNMCTLC = cT4 TNMCNLC = cN2a2 TNMCMLC = cM0
-           TNMCTLC = cT4 TNMCNLC = cN2b TNMPCLC = cM0
+           TNMCTLC = T1a TNMCNLC = N3 TNMCMLC = M0
+           TNMCTLC = T1b TNMCNLC = N3 TNMCMLC = M0
+           TNMCTLC = T1 TNMCNLC = N3 TNMCMLC = M0
+           TNMCTLC = T2a TNMCNLC = N3 TNMCMLC = M0
+           TNMCTLC = T2b TNMCNLC = N3 TNMCMLC = M0
+           TNMCTLC = T3 TNMCNLC = N2a1 TNMCMLC = M0
+           TNMCTLC = T3 TNMCNLC = N2a2 TNMCMLC = M0
+           TNMCTLC = T3 TNMCNLC = N2b TNMPCLC = M0
+           TNMCTLC = T4 TNMCNLC = N2a1 TNMCMLC = M0
+           TNMCTLC = T4 TNMCNLC = N2a2 TNMCMLC = M0
+           TNMCTLC = T4 TNMCNLC = N2b TNMPCLC = M0
            Stage IIIC
-           TNMCTLC = cT3 TNMCNLC = cN3 TNMCMLC = cM0
-           TNMCTLC = cT4 TNMCNLC = cN3 TNMCMLC = cM0
+           TNMCTLC = T3 TNMCNLC = N3 TNMCMLC = M0
+           TNMCTLC = T4 TNMCNLC = N3 TNMCMLC = M0
            Stage IVA
-           TNMCTLC = cT* TNMCNLC = cN* TNMCMLC = cM1a
-           TNMCTLC = cT* TNMCNLC = cN* TNMCMLC = cM1b
+           TNMCTLC = T* TNMCNLC = N* TNMCMLC = M1a
+           TNMCTLC = T* TNMCNLC = N* TNMCMLC = M1b
            Stage IVB
-           TNMCTLC = cT* TNMCNLC = cN* TNMCMLC = cM1c
+           TNMCTLC = T* TNMCNLC = N* TNMCMLC = M1
            """
 
 
