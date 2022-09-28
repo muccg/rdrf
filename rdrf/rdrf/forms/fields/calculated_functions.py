@@ -1221,7 +1221,7 @@ def get_lc_clinical_cancer_stage_spec():
            TNMCTLC = T* TNMCNLC = N* TNMCMLC = M1a
            TNMCTLC = T* TNMCNLC = N* TNMCMLC = M1b
            Stage IVB
-           TNMCTLC = T* TNMCNLC = N* TNMCMLC = M1
+           TNMCTLC = T* TNMCNLC = N* TNMCMLC = M1c
            """
 
 
