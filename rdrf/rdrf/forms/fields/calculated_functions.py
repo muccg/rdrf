@@ -1123,7 +1123,8 @@ def BCCANCERSTAGE_inputs():
 def BCCLINICALCANCERSTAGE(patient, context):
     logger.debug(f"calculating BCCLINICALCANCERSTAGE: patient = {patient} context = {context}")
     context = fill_missing_input(context, 'BCCLINICALCANCERSTAGE_inputs')
-    evaluator = CancerStageEvaluator(spec=bc_cancer_stage_spec, cde_prefix="TNMC")
+    spec = get_bc_clinical_cancer_stage_spec()
+    evaluator = CancerStageEvaluator(spec=spec, cde_prefix="TNMC")
     return evaluator.evaluate(patient, context)
 
 
