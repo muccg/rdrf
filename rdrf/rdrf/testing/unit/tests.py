@@ -2979,3 +2979,12 @@ class CICCancerStageTestCase(RDRFTestCase):
         evaluator = evaluator_class(spec=spec, cde_prefix="TNMC")
         input_output_pairs = evaluator.parse_test_spec(spec)
         self.cic_cancer_stage("BC", calc, input_output_pairs)
+
+    def test_lc_clinical_cancer_stage(self):
+        self.import_registry("lc")
+        calc = calculated_functions.LCCLINICALCANCERSTAGE
+        evaluator_class = calculated_functions.CancerStageEvaluator
+        spec = calculated_functions.get_lc_clinical_cancer_stage_spec()
+        evaluator = evaluator_class(spec=spec, cde_prefix="TNMC")
+        input_output_pairs = evaluator.parse_test_spec(spec)
+        self.cic_cancer_stage("LC", calc, input_output_pairs)

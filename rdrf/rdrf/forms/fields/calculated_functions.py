@@ -1142,6 +1142,89 @@ def LCCANCERSTAGE_inputs():
     return ["TNMPTLC", "TNMPNLC", "TNMPMLC"]
 
 
+def LCCLINICALCANCERSTAGE(patient, context):
+    context = fill_missing_input(context, 'LCCLINICALCANCERSTAGE_inputs')
+    spec = get_lc_clinical_cancer_stage_spec()
+    evaluator = CancerStageEvaluator(spec=spec, cde_prefix="TNMC")
+    return evaluator.evaluate(patient, context)
+
+
+def LCCLINICALCANCERSTAGE_inputs():
+    return ["TNMCTLC", "TNMCNLC", "TNMCMLC"]
+
+
+def get_lc_clinical_cancer_stage_spec():
+    return """Stage Occult carcinoma
+           TNMCTLC = cTx TNMCNLC = cN0 TNMCMLC = cM0
+           Stage 0
+           TNMCTLC = cTis TNMCNLC = cN0 TNMCMLC = cM0
+           Stage IA1
+           TNMCTLC = cT1mi TNMCNLC = cN0 TNMCMLC = cM0
+           TNMCTLC = cT1a TNMCNLC = cN0 TNMCMLC = cM0
+           Stage IA2
+           TNMCTLC = cT1b TNMCNLC = cN0 TNMCMLC = cM0
+           Stage IA3
+           TNMCTLC = cT1c TNMCNLC = cN0 TNMCMLC = cM0
+           Stage IB
+           TNMCTLC = cT2a TNMCNLC = cN0 TNMCMLC = cM0
+           Stage IIA
+           TNMCTLC = cT2b TNMCNLC = cN0 TNMCMLC = cM0
+           Stage IIB
+           TNMCTLC = cT1a TNMCNLC = cN1a TNMCMLC = cM0
+           TNMCTLC = cT1a TNMCNLC = cN1b TNMCMLC = cM0
+           TNMCTLC = cT1b TNMCNLC = cN1a TNMCMLC = cM0
+           TNMCTLC = cT1b TNMCNLC = cN1b TNMCMLC = cM0
+           TNMCTLC = cT1c TNMCNLC = cN1a TNMCMLC = cM0
+           TNMCTLC = cT1c TNMCNLC = cN1b TNMCMLC = cM0
+           TNMCTLC = cT2a TNMCNLC = cN1a TNMCMLC = cM0
+           TNMCTLC = cT2a TNMCNLC = cN1b TNMCMLC = cM0
+           TNMCTLC = cT2b TNMCNLC = cN1a TNMCMLC = cM0
+           TNMCTLC = cT2b TNMCNLC = cN1b TNMCMLC = cM0
+           TNMCTLC = cT3 TNMCNLC = cN0 TNMCMLC = cM0
+           Stage IIIA
+           TNMCTLC = cT1a TNMCNLC = cN2a1 TNMCMLC = cM0
+           TNMCTLC = cT1a TNMCNLC = cN2a2 TNMCMLC = cM0
+           TNMCTLC = cT1a TNMCNLC = cN2b TNMPCLC = cM0
+           TNMCTLC = cT1b TNMCNLC = cN2a1 TNMCMLC = cM0
+           TNMCTLC = cT1b TNMCNLC = cN2a2 TNMCMLC = cM0
+           TNMCTLC = cT1b TNMCNLC = cN2b TNMPCLC = cM0
+           TNMCTLC = cT1c TNMCNLC = cN2a1 TNMCMLC = cM0
+           TNMCTLC = cT1c TNMCNLC = cN2a2 TNMCMLC = cM0
+           TNMCTLC = cT1c TNMCNLC = cN2b TNMPCLC = cM0
+           TNMCTLC = cT2a TNMCNLC = cN2a1 TNMCMLC = cM0
+           TNMCTLC = cT2a TNMCNLC = cN2a2 TNMCMLC = cM0
+           TNMCTLC = cT2a TNMCNLC = cN2b TNMPCLC = cM0
+           TNMCTLC = cT2b TNMCNLC = cN2a1 TNMCMLC = cM0
+           TNMCTLC = cT2b TNMCNLC = cN2a2 TNMCMLC = cM0
+           TNMCTLC = cT2b TNMCNLC = cN2b TNMPCLC = cM0
+           TNMCTLC = cT3 TNMCNLC = cN1a TNMCMLC = cM0
+           TNMCTLC = cT3 TNMCNLC = cN1b TNMCMLC = cM0
+           TNMCTLC = cT4 TNMCNLC = cN0 TNMCMLC = cM0
+           TNMCTLC = cT4 TNMCNLC = cN1a TNMCMLC = cM0
+           TNMCTLC = cT4 TNMCNLC = cN1b TNMCMLC = cM0
+           Stage IIIB
+           TNMCTLC = cT1a TNMCNLC = cN3 TNMCMLC = cM0
+           TNMCTLC = cT1b TNMCNLC = cN3 TNMCMLC = cM0
+           TNMCTLC = cT1c TNMCNLC = cN3 TNMCMLC = cM0
+           TNMCTLC = cT2a TNMCNLC = cN3 TNMCMLC = cM0
+           TNMCTLC = cT2b TNMCNLC = cN3 TNMCMLC = cM0
+           TNMCTLC = cT3 TNMCNLC = cN2a1 TNMCMLC = cM0
+           TNMCTLC = cT3 TNMCNLC = cN2a2 TNMCMLC = cM0
+           TNMCTLC = cT3 TNMCNLC = cN2b TNMPCLC = cM0
+           TNMCTLC = cT4 TNMCNLC = cN2a1 TNMCMLC = cM0
+           TNMCTLC = cT4 TNMCNLC = cN2a2 TNMCMLC = cM0
+           TNMCTLC = cT4 TNMCNLC = cN2b TNMPCLC = cM0
+           Stage IIIC
+           TNMCTLC = cT3 TNMCNLC = cN3 TNMCMLC = cM0
+           TNMCTLC = cT4 TNMCNLC = cN3 TNMCMLC = cM0
+           Stage IVA
+           TNMCTLC = cT* TNMCNLC = cN* TNMCMLC = cM1a
+           TNMCTLC = cT* TNMCNLC = cN* TNMCMLC = cM1b
+           Stage IVB
+           TNMCTLC = cT* TNMCNLC = cN* TNMCMLC = cM1c
+           """
+
+
 def OVCANCERSTAGE(patient, context):
     context = fill_missing_input(context, 'OVCANCERSTAGE_inputs')
     evaluator = CancerStageEvaluator(ov_cancer_stage_spec)
