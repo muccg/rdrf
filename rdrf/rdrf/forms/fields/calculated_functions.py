@@ -997,7 +997,7 @@ class CancerStageEvaluator:
                         value = token.strip()
                         value = self.replace_space(value)
                         if value == "":
-                        raise Exception(f"parse spec error on line: {line}")
+                            raise Exception(f"parse spec error on line [{line}]: value is empty string")
                     if all([key, value]):
                         inputs_dict[key] = value
 
