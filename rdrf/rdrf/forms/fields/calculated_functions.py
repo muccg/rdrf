@@ -1048,6 +1048,18 @@ def CRCCANCERSTAGE_inputs():
     return ['TNMPTCRC', 'TNMPNCRC', 'TNMPMCRC']
 
 
+def CRCCLINICALCANCERSTAGE(patient, context):
+    logger.info("in cde crc clinical cancer stage")
+    context = fill_missing_input(context, 'CRCCLINICALCANCERSTAGE_inputs')
+    spec = get_crc_clinical_cancer_stage_spec()
+    evaluator = CancerStageEvaluator(spec=spec, cde_prefix="TNMC")
+    return evaluator.evaluate(patient, context)
+
+
+def CRCCLINICALCANCERSTAGE_inputs():
+    return ['TNMCTCRC', 'TNMCNCRC', 'TNMCMCRC']
+
+
 def BCCANCERSTAGE(patient, context):
     logger.debug(f"calculating BCCANCERSTAGE: patient = {patient} context = {context}")
     context = fill_missing_input(context, 'BCCANCERSTAGE_inputs')
