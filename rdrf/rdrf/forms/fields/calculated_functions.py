@@ -798,6 +798,59 @@ def get_crc_clinical_cancer_stage_spec():
            """
 
 
+def get_bc_clinical_cancer_stage():
+    return """Stage 0
+            TNMCTBC = cTis TNMCNBC = cN0 TNMCMBC = cMX 
+            TNMCTBC = cTis TNMCNBC = cN0 TNMCMBC = cM0 
+            Stage IA
+            TNMCTBC = cT1 TNMCNBC = cN0 TNMCMBC = cMX
+            TNMCTBC = cT1 TNMCNBC = cN0 TNMCMBC = cM0
+            Stage IIA
+            TNMCTBC = cT0 TNMCNBC = cN1 TNMCMBC = cMX
+            TNMCTBC = cT0 TNMCNBC = cN1 TNMCMBC = cM0 
+            TNMCTBC = cT1 TNMCNBC = cN1 TNMCMBC = cMX
+            TNMCTBC = cT1 TNMCNBC = cN1 TNMCMBC = cM0 
+            TNMCTBC = cT2 TNMCNBC = cN0 TNMCMBC = cMX
+            TNMCTBC = cT2 TNMCNBC = cN0 TNMCMBC = cM0 
+            Stage IIB
+            TNMCTBC = cT2 TNMCNBC = cN1 TNMCMBC = cMX
+            TNMCTBC = cT2 TNMCNBC = cN1 TNMCMBC = cM0 
+            TNMCTBC = cT3 TNMCNBC = cN0 TNMCMBC = cMX
+            TNMCTBC = cT3 TNMCNBC = cN0 TNMCMBC = cM0 
+            Stage IIIA
+            TNMCTBC = cT0 TNMCNBC = cN2 TNMCMBC = cMX 
+            TNMCTBC = cT0 TNMCNBC = cN2 TNMCMBC = cM0
+            TNMCTBC = cT1 TNMCNBC = cN2 TNMCMBC = cMX
+            TNMCTBC = cT1 TNMCNBC = cN2 TNMCMBC = cM0 
+            TNMCTBC = cT2 TNMCNBC = cN2 TNMCMBC = cMX
+            TNMCTBC = cT2 TNMCNBC = cN2 TNMCMBC = cM0 
+            TNMCTBC = cT3 TNMCNBC = cN1 TNMCMBC = cMX 
+            TNMCTBC = cT3 TNMCNBC = cN1 TNMCMBC = cM0 
+            TNMCTBC = cT3 TNMCNBC = cN2 TNMCMBC = cMX
+            TNMCTBC = cT3 TNMCNBC = cN2 TNMCMBC = cM0 
+            Stage IIIB
+            TNMCTBC = cT4 TNMCNBC = cN0 TNMCMBC = cMX
+            TNMCTBC = cT4 TNMCNBC = cN0 TNMCMBC = cM0 
+            TNMCTBC = cT4 TNMCNBC = cN1 TNMCMBC = cMX
+            TNMCTBC = cT4 TNMCNBC = cN1 TNMCMBC = cM0 
+            TNMCTBC = cT4 TNMCNBC = cN2 TNMCMBC = cMX
+            TNMCTBC = cT4 TNMCNBC = cN2 TNMCMBC = cM0
+            Stage IIIC
+            TNMCTBC = cT0 TNMCNBC = cN3 TNMCMBC = cMX 
+            TNMCTBC = cT0 TNMCNBC = cN3 TNMCMBC = cM0
+            TNMCTBC = cT1 TNMCNBC = cN3 TNMCMBC = cMX
+            TNMCTBC = cT1 TNMCNBC = cN3 TNMCMBC = cM0
+            TNMCTBC = cT2 TNMCNBC = cN3 TNMCMBC = cMX 
+            TNMCTBC = cT2 TNMCNBC = cN3 TNMCMBC = cM0
+            TNMCTBC = cT3 TNMCNBC = cN3 TNMCMBC = cMX 
+            TNMCTBC = cT3 TNMCNBC = cN3 TNMCMBC = cM0
+            TNMCTBC = cT4 TNMCNBC = cN3 TNMCMBC = cMX
+            TNMCTBC = cT4 TNMCNBC = cN3 TNMCMBC = cM0 
+            Stage IV
+            TNMCTBC = cT* TNMCNBC = cN* TNMCMBC = cM1
+            """
+
+
 def lc_clinical_calcs():
     return """
     """
@@ -1068,6 +1121,17 @@ def BCCANCERSTAGE(patient, context):
 
 def BCCANCERSTAGE_inputs():
     return ["TNMPT", "TNMPN", "TNMPM"]
+
+
+def BCCLINICALCANCERSTAGE(patient, context):
+    logger.debug(f"calculating BCCLINICALCANCERSTAGE: patient = {patient} context = {context}")
+    context = fill_missing_input(context, 'BCCLINICALCANCERSTAGE_inputs')
+    evaluator = CancerStageEvaluator(spec=bc_cancer_stage_spec, cde_prefix="TNMC")
+    return evaluator.evaluate(patient, context)
+
+
+def BCCLINICALCANCERSTAGE_inputs():
+    return ["TNMCT", "TNMCN", "TNMCM"]
 
 
 def LCCANCERSTAGE(patient, context):
