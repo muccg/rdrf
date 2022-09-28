@@ -2074,7 +2074,7 @@ class CICImporterTestCase(TestCase):
         """
         for survey_in_yaml in self.surveys_in_yaml:
 
-            assert(survey_in_yaml["name"] in self.survey_names_in_db)
+            assert (survey_in_yaml["name"] in self.survey_names_in_db)
 
             if survey_in_yaml["name"] in self.survey_names_in_db:
                 survey = Survey.objects.get(name=survey_in_yaml["name"])
@@ -2961,3 +2961,12 @@ class CICCancerStageTestCase(RDRFTestCase):
         input_output_pairs = []
         calc = calculated_functions.OVCANCERSTAGE
         self.cic_cancer_stage("OV", calc, input_output_pairs)
+
+    def test_crc_clinical_cancer_stage(self):
+        self.import_registry("crc")
+        calc = calculated_functions.CRCCLINICALCANCERSTAGE
+        evaluator_class = calculated_functions.CancerStageEvaluator
+        spec = calculated_functions.get_crc_clinical_cancer_stage_spec()
+        evaluator = evaluator_class(spec=spec, cde_prefix="TNMCT")
+        input_output_pairs = evaluator.parse_test_spec(spec)
+        self.cic_cancer_stage("CRC", calc, input_output_pairs)

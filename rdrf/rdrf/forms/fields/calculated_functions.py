@@ -730,6 +730,80 @@ TNMPTLC = * TNMPNLC = * TNMPMLC = M1c
 ov_cancer_stage_spec = ""
 
 
+def get_crc_clinical_cancer_stage_spec():
+    return """
+        Stage 0
+        TNMCTCRC = cTis TNMCNCRC = cNX TNMCMCRC = cMX
+        TNMCTCRC = cTis TNMCNCRC = cNX TNMCMCRC = cM0
+        TNMCTCRC = cT0 TNMCNCRC = cN0 TNMCMCRC = cMX
+        TNMCTCRC = cT0 TNMCNCRC = cN0 TNMCMCRC = cM0
+        Stage I
+        TNMCTCRC = cT1 TNMCNCRC = cN0 TNMCMCRC = cMX
+        TNMCTCRC = cT1 TNMCNCRC = cN0 TNMCMCRC = cM0
+        TNMCTCRC = cT2 TNMCNCRC = cN0 TNMCMCRC = cMX
+        TNMCTCRC = cT2 TNMCNCRC = cN0 TNMCMCRC = cM0
+        Stage IIA
+        TNMCTCRC = cT3 TNMCNCRC = cN0 TNMCMCRC = cMX
+        TNMCTCRC = cT3 TNMCNCRC = cN0 TNMCMCRC = cM0
+        Stage IIB
+        TNMCTCRC = cT4a TNMCNCRC = cN0 TNMCMCRC = cMX
+        TNMCTCRC = cT4a TNMCNCRC = cN0 TNMCMCRC = cM0
+        Stage IIC
+        TNMCTCRC = cT4b TNMCNCRC = cN0 TNMCMCRC = cMX
+        TNMCTCRC = cT4b TNMCNCRC = cN0 TNMCMCRC = cM0
+        Stage IIIA
+        TNMCTCRC = cT1 TNMCNCRC = cN1 TNMCMCRC = cMX
+        TNMCTCRC = cT1 TNMCNCRC = cN1 TNMCMCRC = cM0
+        TNMCTCRC = cT2 TNMCNCRC = cN1 TNMCMCRC = cMX
+        TNMCTCRC = cT2 TNMCNCRC = cN1 TNMCMCRC = cM0
+        TNMCTCRC = cT1 TNMCNCRC = cN1c TNMCMCRC = cMX
+        TNMCTCRC = cT1 TNMCNCRC = cN1c TNMCMCRC = cM0
+        TNMCTCRC = cT2 TNMCNCRC = cN1c TNMCMCRC = cMX
+        TNMCTCRC = cT2 TNMCNCRC = cN1c TNMCMCRC = cM0
+        TNMCTCRC = cT1 TNMCNCRC = cN2a TNMCMCRC = cMX
+        TNMCTCRC = cT1 TNMCNCRC = cN2a TNMCMCRC = cM0
+        Stage IIIB
+        TNMCTCRC = cT3 TNMCNCRC = cN1 TNMCMCRC = cMX
+        TNMCTCRC = cT3 TNMCNCRC = cN1 TNMCMCRC = cM0
+        TNMCTCRC = cT3 TNMCNCRC = cN1c TNMCMCRC = cMX
+        TNMCTCRC = cT3 TNMCNCRC = cN1c TNMCMCRC = cM0
+        TNMCTCRC = cT4a TNMCNCRC = cN1 TNMCMCRC = cMX
+        TNMCTCRC = cT4a TNMCNCRC = cN1 TNMCMCRC = cM0
+        TNMCTCRC = cT4a TNMCNCRC = cN1c TNMCMCRC = cMX
+        TNMCTCRC = cT4a TNMCNCRC = cN1c TNMCMCRC = cM0
+        TNMCTCRC = cT2 TNMCNCRC = cN2a TNMCMCRC = cMX
+        TNMCTCRC = cT2 TNMCNCRC = cN2a TNMCMCRC = cM0
+        TNMCTCRC = cT3 TNMCNCRC = cN2a TNMCMCRC = cMX
+        TNMCTCRC = cT3 TNMCNCRC = cN2a TNMCMCRC = cM0
+        TNMCTCRC = cT1 TNMCNCRC = cN2b TNMCMCRC = cMX
+        TNMCTCRC = cT1 TNMCNCRC = cN2b TNMCMCRC = cM0
+        TNMCTCRC = cT2 TNMCNCRC = cN2b TNMCMCRC = cMX
+        TNMCTCRC = cT2 TNMCNCRC = cN2b TNMCMCRC = cM0
+        Stage IIIC
+        TNMCTCRC = cT4a TNMCNCRC = cN2a TNMCMCRC = cMX
+        TNMCTCRC = cT4a TNMCNCRC = cN2a TNMCMCRC = cM0
+        TNMCTCRC = cT3 TNMCNCRC = cN2b TNMCMCRC = cMX
+        TNMCTCRC = cT3 TNMCNCRC = cN2b TNMCMCRC = cM0
+        TNMCTCRC = cT4a TNMCNCRC = cN2b TNMCMCRC = cMX
+        TNMCTCRC = cT4a TNMCNCRC = cN2b TNMCMCRC = cM0
+        TNMCTCRC = cT4b TNMCNCRC = cN1 TNMCMCRC = cMX
+        TNMCTCRC = cT4b TNMCNCRC = cN1 TNMCMCRC = cM0
+        TNMCTCRC = cT4b TNMCNCRC = cN2 TNMCMCRC = cMX
+        TNMCTCRC = cT4b TNMCNCRC = cN2 TNMCMCRC = cM0
+        Stage IVA
+        TNMCTCRC = cT* TNMCNCRC = cN* TNMCMCRC = cM1a
+        Stage IVB
+        TNMCTCRC = cT* TNMCNCRC = cN* TNMCMCRC = cM1b (*any T and any N value including unknown)
+        Stage IVC
+        TNMCTCRC = cT* TNMCNCRC = cN* TNMCMCRC = cM1c (*any T and any N value including unknown)   
+        """
+
+
+def lc_clinical_calcs():
+    return """
+    """
+
+
 class RuleParser:
     def __init__(self, spec):
         self.spec = spec
