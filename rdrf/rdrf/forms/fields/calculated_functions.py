@@ -799,10 +799,7 @@ def get_crc_clinical_cancer_stage_spec():
 
 
 def get_bc_clinical_cancer_stage_spec():
-    return """Stage 0
-            TNMCT = cTis TNMCN = cN0 TNMCM = cMX 
-            TNMCT = cTis TNMCN = cN0 TNMCM = cM0 
-            Stage IA
+    return """Stage IA
             TNMCT = cT1 TNMCN = cN0 TNMCM = cMX
             TNMCT = cT1 TNMCN = cN0 TNMCM = cM0
             Stage IIA
