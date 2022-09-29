@@ -10,6 +10,7 @@ from decimal import Decimal, ROUND_HALF_UP
 from functools import reduce
 import math
 import logging
+import shlex
 logger = logging.getLogger(__name__)
 
 # This module (file) contains the calulated fields functions.
@@ -917,8 +918,7 @@ class CancerStageEvaluator:
     def parse_spec_inputs(self, line):
         logger.debug(f"parse_spec_inputs line = {line}")
         dicts = []
-        tokens = line.split(" ")
-        tokens = [token for token in tokens if token]
+        tokens = shlex.split(line)
         key = None
         value = None
 
@@ -990,7 +990,7 @@ class CancerStageEvaluator:
 
             else:
                 inputs_dict = {}
-                tokens = line.split(" ")
+                tokens = shlex.split(line)
                 key = None
                 value = None
                 for token in tokens:
