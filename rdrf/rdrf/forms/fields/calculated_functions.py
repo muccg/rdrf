@@ -993,6 +993,9 @@ class CancerStageEvaluator:
             else:
                 inputs_dict = {}
                 tokens = shlex.split(line)
+                if not tokens:
+                    continue
+                print(tokens)
                 key = None
                 value = None
                 for token in tokens:
