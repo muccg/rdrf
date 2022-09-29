@@ -2988,7 +2988,7 @@ class CICCancerStageTestCase(RDRFTestCase):
         spec = calculated_functions.get_lc_clinical_cancer_stage_spec()
         evaluator = evaluator_class(spec=spec, cde_prefix="TNMC")
         input_output_pairs = evaluator.parse_test_spec(spec)
-        self.sanity_check_spec(input_output_pairs, allow_inputs)
+        self.sanity_check_spec(input_output_pairs, allowed_inputs)
         self.cic_cancer_stage("LC", calc, input_output_pairs)
 
     def sanity_check_spec(self, input_output_pairs, allowed_inputs):
