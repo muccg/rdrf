@@ -919,6 +919,7 @@ class CancerStageEvaluator:
         logger.debug(f"parse_spec_inputs line = {line}")
         dicts = []
         tokens = shlex.split(line)
+        print(tokens)
         key = None
         value = None
 
@@ -978,9 +979,10 @@ class CancerStageEvaluator:
                 if output:
                     return True
 
-        for line in spec.split("\n"):
+        lines = [line.strip() for line in spec.split("\n") if line]
+        lines = [line for line in lines if line]
+        for line in lines:
             print(f"parsing spec line: [{line}]")
-            line = line.strip()
             if not line:
                 continue
             if line.startswith("Stage"):
