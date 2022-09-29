@@ -1192,7 +1192,7 @@ def get_lc_clinical_cancer_stage_spec():
            TNMCTLC = T2b TNMCNLC = N1b TNMCMLC = M0
            TNMCTLC = T3 TNMCNLC = N0 TNMCMLC = M0
            Stage IIIA
-           TNMCTLC = T1a TNMCNLC = N2a1 TNMCMLX = M0
+           TNMCTLC = T1a TNMCNLC = N2a1 TNMCMLC = M0
            TNMCTLC = T1a TNMCNLC = N2a2 TNMCMLC = M0
            TNMCTLC = T1a TNMCNLC = N2b  TNMCMLC = M0
            TNMCTLC = T1b TNMCNLC = N2a1 TNMCMLC = M0
