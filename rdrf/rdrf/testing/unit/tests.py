@@ -2996,4 +2996,4 @@ class CICCancerStageTestCase(RDRFTestCase):
             inputs_dict = pair[0]
             for spec_input in inputs_dict:
                 if spec_input not in allowed_inputs:
-                    raise Exception(f"input {spec_input} is not an allowed input: {allowed_input}")
+                    raise Exception(f"input {spec_input} is not an allowed input: {allowed_inputs}")
