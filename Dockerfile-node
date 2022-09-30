@@ -1,5 +1,5 @@
 # Container used to build rdrf frontend
-FROM node:10.16.3
+FROM node:16.17.1
 MAINTAINER https://github.com/muccg/rdrf
 
 RUN env | sort
