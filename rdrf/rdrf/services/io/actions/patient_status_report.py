@@ -239,6 +239,7 @@ class ReportGenerator:
                                      consent_code,
                                      get_date=True)
         elif col_type == ColumnType.DEMOGRAPHICS:
+            column_name = column["name"]
             return self._get_demographics_column(patient_model, column_name)
         else:
             return ""
