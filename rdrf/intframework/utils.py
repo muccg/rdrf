@@ -79,8 +79,8 @@ def patient_subscribed(message: hl7.Message) -> bool:
     """
     try:
         return message["MSA.1"] == "AA"
-    except Exception:
-        pass
+    except Exception as ex:
+        logger.error(f"intframework.utils.patient_subscribed error: {ex}")
     return False
 
 
