@@ -614,12 +614,13 @@ class PatientEditView(View):
         return section_blacklist
 
     def load_custom_actions(self, registry_model, user, patient_model):
-        if user and patient_model and registry_model:
-            return [CustomActionWrapper(registry_model,
+        if all([user,patient_model,registry_model]):
+            cas = [CustomActionWrapper(registry_model,
                                         user,
                                         custom_action,
                                         patient_model) for custom_action in
-                    user.get_custom_actions_by_scope(registry_model)]
+                    user.get_custom_actions_by_scope(registry_model, scope="P")]
+            return cas
         else:
             return []
 
@@ -701,6 +702,7 @@ class PatientEditView(View):
                                                             registry_model,
                                                             form_sections)
         context["hidden_sectionlist"] = hidden_sectionlist
+
 
         context['custom_actions'] = self.load_custom_actions(registry_model, request.user, patient)
 
