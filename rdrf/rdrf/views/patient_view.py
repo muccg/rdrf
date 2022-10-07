@@ -614,7 +614,7 @@ class PatientEditView(View):
         return section_blacklist
 
     def load_custom_actions(self, registry_model, user, patient_model):
-        if all([user,patient_model,registry_model]):
+        if all([user, patient_model, registry_model]):
             cas = [CustomActionWrapper(registry_model,
                                         user,
                                         custom_action,
