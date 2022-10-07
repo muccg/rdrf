@@ -702,8 +702,6 @@ class PatientEditView(View):
                                                             registry_model,
                                                             form_sections)
         context["hidden_sectionlist"] = hidden_sectionlist
-
-
         context['custom_actions'] = self.load_custom_actions(registry_model, request.user, patient)
 
         return render(request, 'rdrf_cdes/patient_edit.html', context)
