@@ -616,10 +616,10 @@ class PatientEditView(View):
     def load_custom_actions(self, registry_model, user, patient_model):
         if all([user, patient_model, registry_model]):
             cas = [CustomActionWrapper(registry_model,
-                                        user,
-                                        custom_action,
-                                        patient_model) for custom_action in
-                    user.get_custom_actions_by_scope(registry_model, scope="P")]
+                                       user,
+                                       custom_action,
+                                       patient_model) for custom_action in
+                   user.get_custom_actions_by_scope(registry_model, scope="P")]
             return cas
         else:
             return []
