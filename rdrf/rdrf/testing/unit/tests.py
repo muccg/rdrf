@@ -2074,7 +2074,7 @@ class CICImporterTestCase(TestCase):
         """
         for survey_in_yaml in self.surveys_in_yaml:
 
-            assert(survey_in_yaml["name"] in self.survey_names_in_db)
+            assert (survey_in_yaml["name"] in self.survey_names_in_db)
 
             if survey_in_yaml["name"] in self.survey_names_in_db:
                 survey = Survey.objects.get(name=survey_in_yaml["name"])
@@ -2961,3 +2961,39 @@ class CICCancerStageTestCase(RDRFTestCase):
         input_output_pairs = []
         calc = calculated_functions.OVCANCERSTAGE
         self.cic_cancer_stage("OV", calc, input_output_pairs)
+
+    def test_crc_clinical_cancer_stage(self):
+        self.import_registry("crc")
+        calc = calculated_functions.CRCCLINICALCANCERSTAGE
+        evaluator_class = calculated_functions.CancerStageEvaluator
+        spec = calculated_functions.get_crc_clinical_cancer_stage_spec()
+        evaluator = evaluator_class(spec=spec, cde_prefix="TNMC")
+        input_output_pairs = evaluator.parse_test_spec(spec)
+        self.cic_cancer_stage("CRC", calc, input_output_pairs)
+
+    def test_bc_clinical_cancer_stage(self):
+        self.import_registry("bc")
+        calc = calculated_functions.BCCLINICALCANCERSTAGE
+        evaluator_class = calculated_functions.CancerStageEvaluator
+        spec = calculated_functions.get_bc_clinical_cancer_stage_spec()
+        evaluator = evaluator_class(spec=spec, cde_prefix="TNMC")
+        input_output_pairs = evaluator.parse_test_spec(spec)
+        self.cic_cancer_stage("BC", calc, input_output_pairs)
+
+    def test_lc_clinical_cancer_stage(self):
+        self.import_registry("lc")
+        calc = calculated_functions.LCCLINICALCANCERSTAGE
+        allowed_inputs = calculated_functions.LCCLINICALCANCERSTAGE_inputs()
+        evaluator_class = calculated_functions.CancerStageEvaluator
+        spec = calculated_functions.get_lc_clinical_cancer_stage_spec()
+        evaluator = evaluator_class(spec=spec, cde_prefix="TNMC")
+        input_output_pairs = evaluator.parse_test_spec(spec)
+        self.sanity_check_spec(input_output_pairs, allowed_inputs)
+        self.cic_cancer_stage("LC", calc, input_output_pairs)
+
+    def sanity_check_spec(self, input_output_pairs, allowed_inputs):
+        for pair in input_output_pairs:
+            inputs_dict = pair[0]
+            for spec_input in inputs_dict:
+                if spec_input not in allowed_inputs:
+                    raise Exception(f"input {spec_input} is not an allowed input: {allowed_inputs}")
