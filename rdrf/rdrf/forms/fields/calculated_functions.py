@@ -790,6 +790,8 @@ def get_crc_clinical_cancer_stage_spec():
            TNMCTCRC = cT4b TNMCNCRC = cN1 TNMCMCRC = cM0
            TNMCTCRC = cT4b TNMCNCRC = cN2 TNMCMCRC = cMX
            TNMCTCRC = cT4b TNMCNCRC = cN2 TNMCMCRC = cM0
+           Stage IV
+           TNMCTCRC = cT* TNMCNCRC = cN* TNMCMCRC = cM1
            Stage IVA
            TNMCTCRC = cT* TNMCNCRC = cN* TNMCMCRC = cM1a
            Stage IVB
