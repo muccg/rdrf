@@ -791,13 +791,13 @@ def get_crc_clinical_cancer_stage_spec():
            TNMCTCRC = cT4b TNMCNCRC = cN2 TNMCMCRC = cMX
            TNMCTCRC = cT4b TNMCNCRC = cN2 TNMCMCRC = cM0
            Stage IV
-           TNMCTCRC = cT* TNMCNCRC = cN* TNMCMCRC = cM1
+           TNMCTCRC = * TNMCNCRC = * TNMCMCRC = cM1
            Stage IVA
-           TNMCTCRC = cT* TNMCNCRC = cN* TNMCMCRC = cM1a
+           TNMCTCRC = * TNMCNCRC = * TNMCMCRC = cM1a
            Stage IVB
-           TNMCTCRC = cT* TNMCNCRC = cN* TNMCMCRC = cM1b
+           TNMCTCRC = * TNMCNCRC = * TNMCMCRC = cM1b
            Stage IVC
-           TNMCTCRC = cT* TNMCNCRC = cN* TNMCMCRC = cM1c
+           TNMCTCRC = * TNMCNCRC = * TNMCMCRC = cM1c
            """
 
 
@@ -847,7 +847,7 @@ def get_bc_clinical_cancer_stage_spec():
            TNMCT = cT4 TNMCN = cN3 TNMCM = cMX
            TNMCT = cT4 TNMCN = cN3 TNMCM = cM0 
            Stage IV
-           TNMCT = cT* TNMCN = cN* TNMCM = cM1
+           TNMCT = * TNMCN = * TNMCM = cM1
            """
 
 
@@ -1230,10 +1230,10 @@ def get_lc_clinical_cancer_stage_spec():
            TNMCTLC = T3 TNMCNLC = N3 TNMCMLC = M0
            TNMCTLC = T4 TNMCNLC = N3 TNMCMLC = M0
            Stage IVA
-           TNMCTLC = T* TNMCNLC = N* TNMCMLC = M1a
-           TNMCTLC = T* TNMCNLC = N* TNMCMLC = M1b
+           TNMCTLC = * TNMCNLC = * TNMCMLC = M1a
+           TNMCTLC = * TNMCNLC = * TNMCMLC = M1b
            Stage IVB
-           TNMCTLC = T* TNMCNLC = N* TNMCMLC = M1c
+           TNMCTLC = * TNMCNLC = * TNMCMLC = M1c
            """
 
 
