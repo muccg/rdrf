@@ -54,6 +54,7 @@ from rdrf.views.copyright_view import CopyrightView
 from rdrf.views.review_views import ReviewWizardLandingView
 from rdrf.views.custom_actions import CustomActionView
 from rdrf.views.test_view import TestView, TestDBView
+from rdrf.views.dash_view import PatientsDashboardView
 
 from rdrf.views.actions import ActionExecutorView
 import logging
@@ -153,6 +154,12 @@ report_patterns = [
 ]
 
 normalpatterns += [
+    re_path("dash/", include("django_plotly_dash.urls")),
+    re_path(
+        r"^patientsdashboard/?$",
+        PatientsDashboardView.as_view(),
+        name="patientsdashboard",
+    ),
     re_path(r"^reviews/?", ReviewWizardLandingView.as_view(), name="wizard_landing"),
     re_path(r"^actions/?", ActionExecutorView.as_view(), name="action"),
     re_path(
@@ -454,7 +461,6 @@ normalpatterns += [
         include(("django.conf.urls.i18n", "django_conf_urls"), namespace=None),
     ),
     re_path(r"session_security/", include("session_security.urls")),
-    re_path("dash/", include("django_plotly_dash.urls")),
 ]
 
 if settings.REGISTRATION_ENABLED:
