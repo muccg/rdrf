@@ -236,13 +236,19 @@ class Downloader:
         self._write_patients_data(patients_data_csv_filepath, pids)
 
     @ cached(maxsize=None)
-    def _match(self, cde_code):
+    def _match(self, form_name, section_code, cde_code):
         if self.all_cdes:
             return True
         for pattern in self.patterns:
             if cde_code.startswith(pattern):
                 return True
         if cde_code in self.fields:
+            return True
+        rep1 = f"{form_name}/{section_code}/{cde_code}"
+        rep2 = f"{section_code}/{cde_code}"
+        if rep1 in self.fields:
+            return True
+        if rep2 in self.fields:
             return True
         return False
 
@@ -319,7 +325,7 @@ class Downloader:
                                 yield cde_data
 
     def _get_cde_data(self, pid, cde_dict, code, form_name, section_code, collection_date, response_type, index):
-        if self._match(code):
+        if self._match(form_name, section_code, code):
             logger.debug(f"code {code} matches")
             questionnaire, question = get_questionnaire_number(code)
             cde = get_cde_model(code)
