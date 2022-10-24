@@ -1,6 +1,6 @@
 {% extends "rdrf_cdes/base.html" %}
 
-{% load static from staticfiles %}
+{% load static %}
 {% load admin_urls %}
 {% load get_form %}
 {% load get_display_name %}
@@ -48,6 +48,9 @@
                 Registry YAML
             </div>
             <div class="card-body">
+	      <input type="checkbox"  id="id_just_cdes" name="just_cdes"/>
+	       <label for="just_cdes">Just CDEs</label><br>
+	      <p></p>
                 <input type="file" class="form-control" id="id_registry_yaml_file" name="registry_yaml_file" accept=".yaml"></input>
                 <p></p>
                 <textarea cols="100" class="form-control" id="id_registry_yaml" name="registry_yaml" rows="10"></textarea>

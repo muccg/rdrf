@@ -35,6 +35,26 @@ from registry.patients.models import State, PatientAddress, AddressType
 logger = logging.getLogger(__name__)
 
 
+def load_yaml(yaml_path):
+    from django.core.management import call_command
+    call_command("import_registry", "--file", yaml_path, "--format", "yaml")
+
+
+def get_yaml_path(yaml_filename):
+    this_dir = os.path.dirname(__file__)
+    return os.path.abspath(os.path.join(this_dir, "..", "..", "fixtures", yaml_filename))
+
+
+def use_yaml(yaml_filename):
+    def decorator(method):
+        def wrapper(self):
+            yaml_path = get_yaml_path(yaml_filename)
+            load_yaml(yaml_path)
+            return method()
+        return wrapper
+    return decorator
+
+
 class CalculatedFunctionsTestCase(TestCase):
 
     def setUp(self):
@@ -2054,7 +2074,7 @@ class CICImporterTestCase(TestCase):
         """
         for survey_in_yaml in self.surveys_in_yaml:
 
-            assert(survey_in_yaml["name"] in self.survey_names_in_db)
+            assert (survey_in_yaml["name"] in self.survey_names_in_db)
 
             if survey_in_yaml["name"] in self.survey_names_in_db:
                 survey = Survey.objects.get(name=survey_in_yaml["name"])
@@ -2828,3 +2848,152 @@ class FamilyLinkageTestCase(RDRFTestCase):
                         f"{error_string}{test_section_str}: Patient {patient2_test} is not a relative")
         self.assertFalse(self.patient_is_index(patient2_test),
                          f"{error_string}{test_section_str}: Patient {patient2_test} is an index")
+
+
+class LungCancerSmokingTestCase(RDRFTestCase):
+    # "CIGDAY", "SMOKING", "SMOKINGSTARTYEAR", "SMOKINGSTOPYEAR", "SMOKABSTINENTYRS"
+    def setUp(self):
+        from rdrf.forms.fields.calculated_functions import SMOKEPACKYEAR
+        self.func = SMOKEPACKYEAR
+
+    def values(self, smoking, cigday, start_year, abst, stop_year, expectation):
+        context = {}
+        context["SMOKING"] = smoking
+        context["CIGDAY"] = cigday
+        context["SMOKINGSTARTYEAR"] = start_year
+        context["SMOKINGSTOPYEAR"] = stop_year
+        context["SMOKABSTINENTYRS"] = abst
+        patient = {}
+        result = self.func(patient, context)
+        msg = f"SMOKEPACKYEAR wrong: {context} expected {expectation} actual {result}"
+        self.assertEqual(result, expectation, msg)
+
+    def test_smoking_pack_years(self):
+        # CIC use 999 as indicator for unknown sometimes ...
+        unknown = "999"
+        self.values("1", 20, 2010, 0, 2020, "0")  # non-smoker flag overrides
+        self.values("5", 20, 2010, 0, 2020, unknown)  # 5 unknown smoker type
+        self.values("2", 20, 2010, 5, 2020, "5")  # past smoker
+        self.values("2", 40, 2010, 0, 2020, "20")  # heavy past smoker
+        self.values("2", 60, 2010, 0, 2020, "30")
+        self.values("2", 65, 2010, 0, 2020, "32")  # rounds down
+        self.values("2", 66, 2010, 0, 2020, "33")
+        self.values("2", 60, 2010, 7, 2020, "9")  # user abstinence period
+        # unknown propagates
+        self.values("2", 60, "", 7, 2020, unknown)
+        self.values("2", 60, None, 7, 2020, unknown)
+        self.values("2", 60, unknown, 7, 2020, unknown)
+        self.values("2", unknown, 2010, 7, 2020, unknown)
+        self.values("2", 60, unknown, 7, 2020, unknown)
+        self.values("2", 60, 2010, unknown, 2020, unknown)
+        self.values("2", 60, 2010, 0, unknown, unknown)
+
+
+class CICCancerStageTestCase(RDRFTestCase):
+    """
+    This class tests calculated fields in CIC
+    """
+    patient_values = {}
+    yaml_map = {"crc": "crc44.yaml",
+                "lc": "lc22.yaml",
+                "bc": "bc29.yaml",
+                "ov": "ov41.yaml"}
+
+    def get_rules(self):
+        return []
+
+    def _get_yaml_file(self, filename):
+        this_dir = os.path.dirname(__file__)
+        test_yaml = os.path.abspath(os.path.join(this_dir, "..", "..", "fixtures", filename))
+        return test_yaml
+
+    def import_registry(self, name):
+        importer = Importer()
+        yaml_name = self.yaml_map[name]
+        yaml_file = self._get_yaml_file(yaml_name)
+        with open(yaml_file) as yf:
+            self.yaml_data = yaml.load(yf, Loader=yaml.FullLoader)
+
+        importer.load_yaml(yaml_file)
+        Registry.objects.all().delete()
+        importer.create_registry()
+
+    def cic_cancer_stage(self, name, calculation, input_output_pairs):
+        print(f"cic cancer stage test for {name}")
+        print(f"input output pairs =  {input_output_pairs}")
+        patient = self.patient_values
+        for input, expected_value in input_output_pairs:
+            actual_value = calculation(patient, input)
+            msg = f"{name} Cancer Stage test failed:input={input} expected=[{expected_value}] actual=[{actual_value}]"
+            msg = f"{msg}\nInput output pairs = {input_output_pairs}"
+            logger.info(f"input = {input}")
+            self.assertEquals(actual_value, expected_value, msg)
+
+    def test_crc_cancer_stage(self):
+        self.import_registry("crc")
+        calc = calculated_functions.CRCCANCERSTAGE
+        evaluator_class = calculated_functions.CancerStageEvaluator
+        spec = calculated_functions.crc_cancer_stage_spec
+        evaluator = evaluator_class(spec=spec, cde_prefix="TNMP")
+        input_output_pairs = evaluator.parse_test_spec(spec)
+        self.cic_cancer_stage("CRC", calc, input_output_pairs)
+
+    def test_bc_cancer_stage(self):
+        self.import_registry("bc")
+        evaluator_class = calculated_functions.CancerStageEvaluator
+        spec = calculated_functions.bc_cancer_stage_spec
+        evaluator = evaluator_class(spec=spec, cde_prefix="TNMP")
+        input_output_pairs = evaluator.parse_test_spec(spec)
+        calc = calculated_functions.BCCANCERSTAGE
+        self.cic_cancer_stage("BC", calc, input_output_pairs)
+
+    def test_lc_cancer_stage(self):
+        self.import_registry("lc")
+        calc = calculated_functions.LCCANCERSTAGE
+        spec = calculated_functions.lc_cancer_stage_spec
+        evaluator_class = calculated_functions.CancerStageEvaluator
+        evaluator = evaluator_class(spec=spec, cde_prefix="TNMP")
+        input_output_pairs = evaluator.parse_test_spec(spec)
+        self.cic_cancer_stage("LC", calc, input_output_pairs)
+
+    def test_ov_cancer_stage(self):
+        self.import_registry("ov")
+        input_output_pairs = []
+        calc = calculated_functions.OVCANCERSTAGE
+        self.cic_cancer_stage("OV", calc, input_output_pairs)
+
+    def test_crc_clinical_cancer_stage(self):
+        self.import_registry("crc")
+        calc = calculated_functions.CRCCLINICALCANCERSTAGE
+        evaluator_class = calculated_functions.CancerStageEvaluator
+        spec = calculated_functions.get_crc_clinical_cancer_stage_spec()
+        evaluator = evaluator_class(spec=spec, cde_prefix="TNMC")
+        input_output_pairs = evaluator.parse_test_spec(spec)
+        self.cic_cancer_stage("CRC", calc, input_output_pairs)
+
+    def test_bc_clinical_cancer_stage(self):
+        self.import_registry("bc")
+        calc = calculated_functions.BCCLINICALCANCERSTAGE
+        evaluator_class = calculated_functions.CancerStageEvaluator
+        spec = calculated_functions.get_bc_clinical_cancer_stage_spec()
+        evaluator = evaluator_class(spec=spec, cde_prefix="TNMC")
+        input_output_pairs = evaluator.parse_test_spec(spec)
+        self.cic_cancer_stage("BC", calc, input_output_pairs)
+
+    def test_lc_clinical_cancer_stage(self):
+        self.import_registry("lc")
+        calc = calculated_functions.LCCLINICALCANCERSTAGE
+        allowed_inputs = calculated_functions.LCCLINICALCANCERSTAGE_inputs()
+        evaluator_class = calculated_functions.CancerStageEvaluator
+        spec = calculated_functions.get_lc_clinical_cancer_stage_spec()
+        evaluator = evaluator_class(spec=spec, cde_prefix="TNMC")
+        input_output_pairs = evaluator.parse_test_spec(spec)
+        self.sanity_check_spec(input_output_pairs, allowed_inputs)
+        self.cic_cancer_stage("LC", calc, input_output_pairs)
+
+    def sanity_check_spec(self, input_output_pairs, allowed_inputs):
+        for pair in input_output_pairs:
+            inputs_dict = pair[0]
+            for spec_input in inputs_dict:
+                if spec_input not in allowed_inputs:
+                    raise Exception(f"input {spec_input} is not an allowed input: {allowed_inputs}")

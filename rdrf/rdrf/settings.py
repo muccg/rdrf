@@ -48,6 +48,13 @@ DEBUG = env.get("debug", not PRODUCTION)
 SITE_ID = env.get("site_id", 1)
 APPEND_SLASH = env.get("append_slash", True)
 
+# SITE_NAME this is the nginx site after the base url - empty in dev
+# but will be something like cicclinical on staging
+# or prod hss crc
+# https://ciccancersitesystem.hdwa.health.wa.gov.au/crc/account/login?next=/crc/router/
+# this makes redirecting easier from javascript
+
+SITE_NAME = env.get("SITE_NAME", "")
 FORM_SECTION_DELIMITER = "____"
 
 IMPORT_MODE = False
@@ -213,7 +220,6 @@ INSTALLED_APPS = [
     'ajax_select',
     'explorer',
     'useraudit',
-    'templatetag_handlebars',
     'iprestrict',
     'rest_framework',
     'anymail',
@@ -786,6 +792,7 @@ SESSION_SECURITY_ENABLE = env.get("session_security_enable", True)
 if SESSION_SECURITY_ENABLE:
     SESSION_SECURITY_WARN_AFTER = env.get("session_security_warn_after", 480)
     SESSION_SECURITY_EXPIRE_AFTER = env.get("session_security_expire_after", 600)
+    SESSION_SECURITY_WARNING = env.get("session_security_warning", 60)
 
     MIDDLEWARE.append('session_security.middleware.SessionSecurityMiddleware')
     INSTALLED_APPS.append('session_security')
@@ -874,3 +881,6 @@ if HUB_ENABLED:
     HUB_ENDPOINT = env.get("hub_endpoint", "mock")
     HUB_PORT = env.get("hub_port", 30000)
     HUB_MOCKED = HUB_ENDPOINT == "mock"
+
+
+DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'

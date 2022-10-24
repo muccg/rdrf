@@ -75,7 +75,8 @@ class ImportState:
 
 class Importer(object):
 
-    def __init__(self):
+    def __init__(self, options={}):
+        self.options = options
         self.yaml_data = None
         self.data = None
         self.state = ImportState.INITIAL
@@ -89,6 +90,9 @@ class Importer(object):
         self.yaml_data_file = "yaml string"
         self.data = yaml.load(yaml_string, Loader=yaml.FullLoader)
         self.state = ImportState.LOADED
+
+    def has_option(self, option):
+        return self.options.get(option, False)
 
     def load_yaml(self, yaml_data_file):
         try:
@@ -420,6 +424,7 @@ class Importer(object):
             return False
 
     def _create_registry_objects(self):
+        just_cdes = self.has_option("just_cdes")
         self._create_groups(self.data["pvgs"])
         logger.info("imported pvgs OK")
         self._create_cdes(self.data["cdes"])
@@ -443,7 +448,8 @@ class Importer(object):
         else:
             r.version = ""  # old style no version
 
-        r.splash_screen = self.data["splash_screen"]
+        if not just_cdes:
+            r.splash_screen = self.data["splash_screen"]
 
         if "patient_data_section" in self.data:
             patient_data_section_map = self.data["patient_data_section"]
@@ -455,7 +461,8 @@ class Importer(object):
         if "metadata_json" in self.data:
             metadata_json = self.data["metadata_json"]
             if self._check_metadata_json(metadata_json):
-                r.metadata_json = self.data["metadata_json"]
+                if not just_cdes:
+                    r.metadata_json = self.data["metadata_json"]
             else:
                 raise DefinitionFileInvalid(
                     "Invalid JSON for registry metadata ( should be a json dictionary")
@@ -530,19 +537,26 @@ class Importer(object):
             imported_forms.add(f.name)
 
     def _create_all_remaining_objects(self, r):
-        remaining_objects = [
-            "demographic_fields",
-            "complete_fields",
-            "reports",
-            "cde_policies",
-            "context_form_groups",
-            "email_notifications",
-            "consent_rules",
-            "surveys",
-            "reviews",
-            "custom_actions",
-            "hl7_mappings"
-        ]
+        just_cdes = self.has_option("just_cdes")
+        if not just_cdes:
+            remaining_objects = [
+                "demographic_fields",
+                "complete_fields",
+                "reports",
+                "cde_policies",
+                "context_form_groups",
+                "email_notifications",
+                "consent_rules",
+                "surveys",
+                "reviews",
+                "custom_actions",
+                "hl7_mappings"
+            ]
+        else:
+            remaining_objects = [
+                "surveys",
+                "custom_actions"
+            ]
 
         for import_obj in remaining_objects:
             if import_obj in self.data:

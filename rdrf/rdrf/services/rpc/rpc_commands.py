@@ -8,6 +8,14 @@ def rpc_visibility(request, element):
         return True
 
 
+def rpc_reset_session_timeout(request):
+    from datetime import datetime
+    dt = datetime.now()
+    logger.debug(f"resetting session time to {dt}")
+    request.session['_session_security'] = dt.strftime('%Y-%m-%dT%H:%M:%S.%f')
+    return {}
+
+
 def rpc_check_notifications(request):
     from rdrf.models.definition.models import Notification
     user = request.user
@@ -206,6 +214,38 @@ def rpc_create_patient_from_questionnaire(request, questionnaire_response_id):
             "patient_name": "%s" % created_patient,
             "patient_link": patient_link,
             "patient_blurb": patient_blurb}
+
+
+def rpc_get_timeout_config(request):
+    from django.conf import settings
+    from rdrf.helpers.utils import get_site_url
+    timeout = settings.SESSION_SECURITY_EXPIRE_AFTER
+    warning = settings.SESSION_SECURITY_WARNING
+    # login url looks like https://<SITE_URL>/<SITE_NAME>/account/login?next=/<SITE_NAME>/router/
+
+    site_url = get_site_url(request)
+    logger.debug(f"site_url = {site_url}")
+    site_name = settings.SITE_NAME  # this should only be set on prod really
+    if "localhost" not in site_url:
+        where = "prod"
+        if site_url.endswith("/"):
+            login_url = site_url + site_name + "/account/login?next=/" + site_name + "/router/"
+        else:
+            login_url = site_url + "/" + site_name + "/account/login?next=/" + site_name + "/router/"
+    else:
+        where = "dev"
+        # localhost in dev has no site_name
+        # http://localhost:8000/account/login?next=/router/
+        if site_url.endswith("/"):
+            login_url = site_url + "account/login?next=/router/"
+        else:
+            login_url = site_url + "/" + "account/login?next=/router/"
+
+    logger.debug(f"login_url = {where} {login_url} site_name = {site_name}")
+
+    return {"timeout": timeout,
+            "warning": warning,
+            "loginUrl": login_url}
 
 
 def rpc_get_forms_list(request, registry_code, patient_id, form_group_id):

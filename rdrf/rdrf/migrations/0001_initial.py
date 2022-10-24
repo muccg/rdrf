@@ -146,8 +146,8 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
                 ('field', models.CharField(max_length=50)),
-                ('readonly', models.NullBooleanField()),
-                ('hidden', models.NullBooleanField()),
+                ('readonly', models.BooleanField(null=True)),
+                ('hidden', models.BooleanField(null=True)),
                 ('group', models.ForeignKey(to='auth.Group', on_delete=models.CASCADE)),
             ],
             options={
@@ -257,7 +257,7 @@ class Migration(migrations.Migration):
             model_name='consentsection',
             name='registry',
             field=models.ForeignKey(related_name='consent_sections',
-                                    to='rdrf.Registry', 
+                                    to='rdrf.Registry',
                                     on_delete=models.CASCADE),
         ),
         migrations.AddField(
@@ -306,7 +306,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='adjudication',
             name='decision',
-            field=models.ForeignKey(to='rdrf.AdjudicationDecision', 
+            field=models.ForeignKey(to='rdrf.AdjudicationDecision',
                                     null=True,
                                     on_delete=models.CASCADE),
         ),

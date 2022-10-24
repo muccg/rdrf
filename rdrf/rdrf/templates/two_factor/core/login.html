@@ -84,10 +84,13 @@
           </div>
       </div>
 
+      {% if cic_system_role %}
+      {% else %}
       <div class="card-footer">
           <a href="{% url 'login_assistance' %}">{% trans "Trouble signing in?" %}</a>
           <div class="clearfix"></div>
       </div>
+      {% endif %}
 
   </form>
 

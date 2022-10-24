@@ -714,12 +714,29 @@ class CommonDataElement(models.Model):
                 return None
         return stored_value
 
+    def _get_display_value_datasource(self, stored_value):
+        import json
+        config = json.loads(self.widget_config)
+        # e.g.  {"tag":"clinicians"}
+        tag = config["tag"]
+        try:
+            item = DropdownLookup.objects.get(tag=tag, value=stored_value)
+            return item.label
+        except DropdownLookup.DoesNotExist:
+            logger.error(f"dropdown lookup error tag {tag} stored_value {stored_value} does not exist")
+            return ""
+        except DropdownLookup.MultipleObjectsReturned:
+            logger.error(f"dropdown lookup error tag {tag} stored_value {stored_value} has multiple values")
+            return ""
+
     def get_display_value(self, stored_value):
         if stored_value is None:
             return ""
         elif stored_value == "NaN":
             # the DataTable was not escaping this value and interpreting it as NaN
             return ":NaN"
+        elif self.widget_name == "DataSourceSelect" and self.widget_config:
+            return self._get_display_value_datasource(stored_value)
         elif self.pv_group:
             # if a range, return the display value
             try:
@@ -845,6 +862,21 @@ class CommonDataElement(models.Model):
             validation_rules_description += "<br>Has no validation requirements"
 
         return validation_rules_description
+
+    def calculate(self, patient, context):
+        if not self.datatype == "calculated":
+            raise ValueError("Can't calculate with a non-calculated field")
+        from rdrf.forms.fields import calculated_functions as cf
+        if hasattr(cf, self.code):
+            func = getattr(cf, self.code)
+            if callable(func):
+                logger.debug("found calc func")
+                result = func(patient, context)
+                logger.debug(f"result of calc = {result}")
+                return result
+            else:
+                logger.debug("func not callable: {func}")
+        return "ERROR?"
 
 
 def validate_abnormality_condition(abnormality_condition, datatype):
@@ -1476,8 +1508,8 @@ class DemographicFields(models.Model):
     registry = models.ForeignKey(Registry, on_delete=models.CASCADE)
     group = models.ForeignKey(Group, on_delete=models.CASCADE)
     field = models.CharField(max_length=50, choices=FIELD_CHOICES)
-    readonly = models.NullBooleanField(null=True, blank=True)
-    hidden = models.NullBooleanField(null=True, blank=True)
+    readonly = models.BooleanField(null=True, blank=True)
+    hidden = models.BooleanField(null=True, blank=True)
     custom_label = models.CharField(max_length=50, blank=True, null=True)
 
     class Meta:
@@ -2014,6 +2046,19 @@ def sync_patient_identifiers(sender, **kwargs):
             logger.error(f"error syncing pmi to umrn: {ex}")
 
 
+@receiver(clinical_data_saved_ok, sender=ClinicalData)
+def update_calculated_fields_depending_on_saved_data(sender, **kwargs):
+    from rdrf.helpers.recalc_logic import Recalculator
+    patient = kwargs["patient"]
+    section_infos = kwargs["saved_sections"]
+    # all section_infos come from same form
+    form_model = section_infos[0].patient_wrapper.current_form_model
+    registry_model = form_model.registry
+    recalculator = Recalculator(registry_model, patient)
+    for section_info in section_infos:
+        recalculator.check_recalc(section_info)
+
+
 def file_upload_to(instance, filename):
     return "/".join(filter(bool, [
         instance.registry_code,
@@ -2065,6 +2110,7 @@ class CustomAction(models.Model):
     ACTION_TYPES = (("PR", "Patient Report"),
                     ("SR", "Patient Status Report"),
                     ("DE", "Deidentified Data Extract"),
+                    ("RD", "Research Download"),
                     ("VD", "Visualisation Download"))
 
     SCOPES = (("U", "Universal"),
@@ -2199,6 +2245,11 @@ class CustomAction(models.Model):
             from rdrf.services.io.actions import visualisaton_download as vd
             vdlr = vd.VisualisationDownloader(user, self)
             return vdlr.task_result
+
+        if self.action_type == "RD":
+            from rdrf.services.io.actions import research_download as rd
+            dlr = rd.Downloader(user, self)
+            return dlr.task_result
 
         if self.scope == "P":
             if not self.check_security(user, patient_model):

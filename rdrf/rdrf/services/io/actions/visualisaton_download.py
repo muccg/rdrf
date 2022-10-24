@@ -17,12 +17,13 @@ logger = logging.getLogger(__name__)
 class VisDownload:
     ZIP_NAME = "CICVisualisationDownload%s%s.zip"
     PATIENTS_FILENAME = "patients.csv"
-    PATIENTS_HEADER = "PID,GIVENNAMES,FAMILYNAME,DOB,ADDRESS,SUBURB,POSTCODE\n"
+    PATIENTS_HEADER = "PID,UMRN,GIVENNAMES,FAMILYNAME,DOB,ADDRESS,SUBURB,POSTCODE\n"
     PATIENTS_DATA_FILENAME = "patients_data.csv"
-    PATIENTS_DATA_HEADER = "PID,QUESTIONNAIRE,CDE,QUESTION,VALUE,COLLECTIONDATE,RESPONSETYPE,FORM\n"
+    PATIENTS_DATA_HEADER = "PID,QUESTIONNAIRE,CDE,QUESTION,VALUE,COLLECTIONDATE,RESPONSETYPE,FORM,INDEX\n"
     ADDRESS_FIELD = "Ptaddress1"
     SUBURB_FIELD = "Ptaddress2"
     POSTCODE_FIELD = "Ptaddress3"
+    UMRN_FIELD = "PMI"
 
 
 @cached(maxsize=None)
@@ -37,16 +38,9 @@ def get_display_value(cde_code, raw_value):
     except CommonDataElement.DoesNotExist:
         logger.error(f"{cde_code} does not exist")
         return "NOCDE"
-    dv = cde_model.get_display_value(raw_value)
     if cde_model.datatype == "date":
-        try:
-            y, m, d = dv.split("-")
-            s = f"{d}/{m}/{y}"
-            return s
-        except ValueError:
-            return ""
-        except AttributeError:
-            return ""
+        return aus_date_string(raw_value)
+    dv = cde_model.get_display_value(raw_value)
     if type(dv) is list:
         return ";".join(dv)
     else:
@@ -124,6 +118,7 @@ class VisualisationDownloader:
         self.custom_action_model = custom_action_model
         self.registry = self.custom_action_model.registry
         self.address_map = {}  # pid -> address info from dynamic data
+        self.umrn_map = {}     # pid -> umrn/pmi
         self.all_cdes = False
         self.patterns = []
         self.fields = []
@@ -178,6 +173,10 @@ class VisualisationDownloader:
         elif cde_code == VisDownload.POSTCODE_FIELD:
             self._update_address(pid, "postcode", value)
 
+    def _check_umrn(self, pid, cde_code, value):
+        if cde_code == VisDownload.UMRN_FIELD:
+            self.umrn_map[pid] = value
+
     def _update_address(self, pid, field, value):
         if pid in self.address_map:
             m = self.address_map[pid]
@@ -198,11 +197,18 @@ class VisualisationDownloader:
             address = self._get_address_field(pid, "address")
             suburb = self._get_address_field(pid, "suburb")
             postcode = self._get_address_field(pid, "postcode")
-            file.write(f"{pid}{d}{given_names}{d}{family_name}{d}{dob}{d}{address}{d}{suburb}{d}{postcode}\n")
+            if patient.umrn:
+                umrn = patient.umrn
+            else:
+                umrn = self._get_umrn(pid)
+            file.write(f"{pid}{d}{umrn}{d}{given_names}{d}{family_name}{d}{dob}{d}{address}{d}{suburb}{d}{postcode}\n")
 
         except Patient.DoesNotExist:
             logger.error(f"vis download: patient {pid} does not exist")
             pass
+
+    def _get_umrn(self, pid):
+        return self.umrn_map.get(pid, "")
 
     @property
     def task_result(self):
@@ -266,43 +272,76 @@ class VisualisationDownloader:
             return True
         return False
 
+    def _get_collection_date_map(self, cd: ClinicalData) -> dict:
+        d = {}
+        if cd.data and "forms" in cd.data:
+            for f in cd.data["forms"]:
+                form_name = f["name"]
+                for s in f["sections"]:
+                    if not s["allow_multiple"]:
+                        for c in s["cdes"]:
+                            if c["code"] == "COLLECTIONDATE":
+                                value = c["value"]
+                                date_value = aus_date_string(value)
+                                d[form_name] = date_value
+        return d
+
     def _yield_cdes(self, cd):
         # this will only work if there is one form with collection date
         pid = cd.django_id
-        collection_date = get_collection_date(cd)
+        collection_date_map = self._get_collection_date_map(cd)
         response_type = get_response_type(cd)
         data = cd.data
         for f in data["forms"]:
             form_name = f["name"]
+            collection_date = collection_date_map.get(form_name, "")
             for s in f["sections"]:
                 section_code = s["code"]
                 if not s["allow_multiple"]:
+                    index = 1
                     for c in s["cdes"]:
                         code = c["code"]
-                        if self._match(code):
-                            questionnaire, question = get_questionnaire_number(code)
-                            cde = get_cde_model(code)
-                            name = cde.name
-                            value = c["value"]
+                        cde_data = self._get_cde_data(pid, c, code, form_name, section_code,
+                                                      collection_date, response_type, index)
+                        if cde_data:
+                            yield cde_data
+                else:
+                    for i, item in enumerate(s["cdes"]):
+                        index = i + 1
+                        for c in item:
+                            code = c["code"]
+                            cde_data = self._get_cde_data(pid, c, code, form_name, section_code,
+                                                          collection_date, response_type, index)
+                            if cde_data:
+                                yield cde_data
 
-                            try:
-                                if type(value) is list:
-                                    display_value = ";".join([get_display_value(code, x) for x in value])
-                                else:
-                                    display_value = get_display_value(code, value)
-                            except Exception as ex:
-                                logger.error(f"error {code}: {ex}")
-                                display_value = "ERROR"
-                            yield (pid,
-                                   form_name,
-                                   section_code,
-                                   code,
-                                   questionnaire,
-                                   question,
-                                   name,
-                                   display_value,
-                                   collection_date,
-                                   response_type)
+    def _get_cde_data(self, pid, cde_dict, code, form_name, section_code, collection_date, response_type, index):
+        if self._match(code):
+            logger.debug(f"code {code} matches")
+            questionnaire, question = get_questionnaire_number(code)
+            cde = get_cde_model(code)
+            name = cde.name
+            value = cde_dict["value"]
+
+            try:
+                if type(value) is list:
+                    display_value = ";".join([get_display_value(code, x) for x in value])
+                else:
+                    display_value = get_display_value(code, value)
+            except Exception as ex:
+                logger.error(f"error {code}: {ex}")
+                display_value = "ERROR"
+            return (pid,
+                    form_name,
+                    section_code,
+                    code,
+                    questionnaire,
+                    question,
+                    name,
+                    display_value,
+                    collection_date,
+                    response_type,
+                    index)  # index column
 
     def _write_patients_data(self, csv_path, pids):
         d = self.delimiter
@@ -319,7 +358,9 @@ class VisualisationDownloader:
                     n = t[6]
                     v = t[7]
                     self._check_address(pid, q, v)
+                    self._check_umrn(pid, q, v)
                     coll = t[8]
                     rt = t[9]
-                    line = f"{pid}{d}{qn}{d}{q}{d}{n}{d}{v}{d}{coll}{d}{rt}{d}{form_name}\n"
+                    index = t[10]
+                    line = f"{pid}{d}{qn}{d}{q}{d}{n}{d}{v}{d}{coll}{d}{rt}{d}{form_name}{d}{index}\n"
                     f.write(line)

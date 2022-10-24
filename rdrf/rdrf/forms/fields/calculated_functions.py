@@ -7,8 +7,10 @@
 from rest_framework.exceptions import ParseError
 from datetime import datetime
 from decimal import Decimal, ROUND_HALF_UP
+from functools import reduce
 import math
 import logging
+import shlex
 logger = logging.getLogger(__name__)
 
 # This module (file) contains the calulated fields functions.
@@ -61,14 +63,25 @@ class AcrossFormsInfo:
 
 
 def fill_missing_input(context, input_func_name, across_forms_info=None):
+    logger.debug(f"fill missing input context = {context}")
     mod = __import__('rdrf.forms.fields.calculated_functions', fromlist=['object'])
     func = getattr(mod, input_func_name)
     if across_forms_info is not None:
+        logger.debug("fill_missing_input checking across forms info")
         # the input cdes are on another form
         for cde_code in func():
+            logger.debug(f"checking for input cde {cde_code}")
             if cde_code not in context.keys():
-                cde_value = across_forms_info.get_cde_value(cde_code)
+                logger.debug(f"{cde_code} not in context - trying across forms")
+                try:
+                    cde_value = across_forms_info.get_cde_value(cde_code)
+                    logger.debug(f"found cde {cde_code} across forms value = {cde_value}")
+                except KeyError:
+                    logger.debug(f"{cde_code} could not be found across forms")
+                    cde_value = ""
                 context[cde_code] = cde_value
+            else:
+                logger.debug(f"input {cde_code} is in context ( value is {context[cde_code]}")
     else:
         for cde_code in func():
             if cde_code not in context.keys():
@@ -495,6 +508,745 @@ def LDLCholesterolAdjTreatment_inputs():
 
 ################ END OF LDLCholesterolAdjTreatment ################################
 
+crc_cancer_stage_spec = """Stage Unknown
+TNMPTCRC = pTX TNMPNCRC = pNX TNMPMCRC = pMX
+Stage 0
+TNMPTCRC = pTis TNMPNCRC = pNX TNMPMCRC = pMX
+TNMPTCRC = pT0 TNMPNCRC = pN0 TNMPMCRC = pMX
+TNMPTCRC = pTis TNMPNCRC = pNX TNMPMCRC = pM0
+TNMPTCRC = pT0 TNMPNCRC = pN0 TNMPMCRC = pM0
+Stage I
+TNMPTCRC = pT1 TNMPNCRC = pN0 TNMPMCRC = pMX
+TNMPTCRC = pT2 TNMPNCRC = pN0 TNMPMCRC = pMX
+TNMPTCRC = pT1 TNMPNCRC = pN0 TNMPMCRC = pM0
+TNMPTCRC = pT2 TNMPNCRC = pN0 TNMPMCRC = pM0
+Stage IIA
+TNMPTCRC = pT3 TNMPNCRC = pN0 TNMPMCRC = pMX
+TNMPTCRC = pT3 TNMPNCRC = pN0 TNMPMCRC = pM0
+Stage IIB
+TNMPTCRC = pT4a TNMPNCRC = pN0 TNMPMCRC = pMX
+TNMPTCRC = pT4a TNMPNCRC = pN0 TNMPMCRC = pM0
+Stage IIC
+TNMPTCRC = pT4b TNMPNCRC = pN0 TNMPMCRC = pMX
+TNMPTCRC = pT4b TNMPNCRC = pN0 TNMPMCRC = pM0
+Stage IIIA
+TNMPTCRC = pT1 TNMPNCRC = pN1 TNMPMCRC = pMX
+TNMPTCRC = pT1 TNMPNCRC = pN1a TNMPMCRC = pMX
+TNMPTCRC = pT1 TNMPNCRC = pN1b TNMPMCRC = pMX
+TNMPTCRC = pT2 TNMPNCRC = pN1 TNMPMCRC = pMX
+TNMPTCRC = pT2 TNMPNCRC = pN1a TNMPMCRC = pMX
+TNMPTCRC = pT2 TNMPNCRC = pN1b TNMPMCRC = pMX
+TNMPTCRC = pT1 TNMPNCRC = pN1c TNMPMCRC = pMX
+TNMPTCRC = pT2 TNMPNCRC = pN1c TNMPMCRC = pMX
+TNMPTCRC = pT1 TNMPNCRC = pN2a TNMPMCRC = pMX
+TNMPTCRC = pT1 TNMPNCRC = pN1 TNMPMCRC = pM0
+TNMPTCRC = pT1 TNMPNCRC = pN1a TNMPMCRC = pM0
+TNMPTCRC = pT1 TNMPNCRC = pN1b TNMPMCRC = pM0
+TNMPTCRC = pT2 TNMPNCRC = pN1 TNMPMCRC = pM0
+TNMPTCRC = pT2 TNMPNCRC = pN1a TNMPMCRC = pM0
+TNMPTCRC = pT2 TNMPNCRC = pN1b TNMPMCRC = pM0
+TNMPTCRC = pT1 TNMPNCRC = pN1c TNMPMCRC = pM0
+TNMPTCRC = pT2 TNMPNCRC = pN1c TNMPMCRC = pM0
+TNMPTCRC = pT1 TNMPNCRC = pN2a TNMPMCRC = pM0
+Stage IIIB
+TNMPTCRC = pT3 TNMPNCRC = pN1 TNMPMCRC = pMX
+TNMPTCRC = pT3 TNMPNCRC = pN1a TNMPMCRC = pMX
+TNMPTCRC = pT3 TNMPNCRC = pN1b TNMPMCRC = pMX
+TNMPTCRC = pT3 TNMPNCRC = pN1c TNMPMCRC = pMX
+TNMPTCRC = pT4a TNMPNCRC = pN1 TNMPMCRC = pMX
+TNMPTCRC = pT4a TNMPNCRC = pN1a TNMPMCRC = pMX
+TNMPTCRC = pT4a TNMPNCRC = pN1b TNMPMCRC = pMX
+TNMPTCRC = pT4a TNMPNCRC = pN1c TNMPMCRC = pMX
+TNMPTCRC = pT2 TNMPNCRC = pN2a TNMPMCRC = pMX
+TNMPTCRC = pT3 TNMPNCRC = pN2a TNMPMCRC = pMX
+TNMPTCRC = pT1 TNMPNCRC = pN2b TNMPMCRC = pMX
+TNMPTCRC = pT2 TNMPNCRC = pN2b TNMPMCRC = pMX
+TNMPTCRC = pT3 TNMPNCRC = pN1 TNMPMCRC = pM0
+TNMPTCRC = pT3 TNMPNCRC = pN1a TNMPMCRC = pM0
+TNMPTCRC = pT3 TNMPNCRC = pN1b TNMPMCRC = pM0
+TNMPTCRC = pT3 TNMPNCRC = pN1c TNMPMCRC = pM0
+TNMPTCRC = pT4a TNMPNCRC = pN1 TNMPMCRC = pM0
+TNMPTCRC = pT4a TNMPNCRC = pN1a TNMPMCRC = pM0
+TNMPTCRC = pT4a TNMPNCRC = pN1b TNMPMCRC = pM0
+TNMPTCRC = pT4a TNMPNCRC = pN1c TNMPMCRC = pM0
+TNMPTCRC = pT2 TNMPNCRC = pN2a TNMPMCRC = pM0
+TNMPTCRC = pT3 TNMPNCRC = pN2a TNMPMCRC = pM0
+TNMPTCRC = pT1 TNMPNCRC = pN2b TNMPMCRC = pM0
+TNMPTCRC = pT2 TNMPNCRC = pN2b TNMPMCRC = pM0
+Stage IIIC
+TNMPTCRC = pT4a TNMPNCRC = pN2a TNMPMCRC = pMX
+TNMPTCRC = pT3 TNMPNCRC = pN2b TNMPMCRC = pMX
+TNMPTCRC = pT4a TNMPNCRC = pN2b TNMPMCRC = pMX
+TNMPTCRC = pT4b TNMPNCRC = pN1 TNMPMCRC = pMX
+TNMPTCRC = pT4b TNMPNCRC = pN1a TNMPMCRC = pMX
+TNMPTCRC = pT4b TNMPNCRC = pN1b TNMPMCRC = pMX
+TNMPTCRC = pT4b TNMPNCRC = pN2 TNMPMCRC = pMX
+TNMPTCRC = pT4b TNMPNCRC = pN2a TNMPMCRC = pMX
+TNMPTCRC = pT4b TNMPNCRC = pN2b TNMPMCRC = pMX
+TNMPTCRC = pT4a TNMPNCRC = pN2a TNMPMCRC = pM0
+TNMPTCRC = pT3 TNMPNCRC = pN2b TNMPMCRC = pM0
+TNMPTCRC = pT4a TNMPNCRC = pN2b TNMPMCRC = pM0
+TNMPTCRC = pT4b TNMPNCRC = pN1 TNMPMCRC = pM0
+TNMPTCRC = pT4b TNMPNCRC = pN1a TNMPMCRC = pM0
+TNMPTCRC = pT4b TNMPNCRC = pN1b TNMPMCRC = pM0
+TNMPTCRC = pT4b TNMPNCRC = pN2 TNMPMCRC = pM0
+TNMPTCRC = pT4b TNMPNCRC = pN2a TNMPMCRC = pM0
+TNMPTCRC = pT4b TNMPNCRC = pN2b TNMPMCRC = pM0
+Stage IV
+TNMPTCRC = * TNMPNCRC = * TNMPMCRC = pM1
+Stage IVA
+TNMPTCRC = * TNMPNCRC = * TNMPMCRC = pM1a
+Stage IVB
+TNMPTCRC = * TNMPNCRC = * TNMPMCRC = pM1b
+Stage IVC
+TNMPTCRC = * TNMPNCRC = * TNMPMCRC = pM1c
+"""
+
+# force build
+bc_cancer_stage_spec = """Stage Unknown
+TNMPT = pTX TNMPN = pNX TNMPM = pMX
+Stage 0
+TNMPT = pTisSPACE(DCIS) TNMPN = pN0 TNMPM = pMX
+TNMPT = pTisSPACE(DCIS) TNMPN = pN0 TNMPM = pM0
+Stage IA
+TNMPT = pT1 TNMPN = pN0 TNMPM = pMX
+TNMPT = pT1 TNMPN = pN0 TNMPM = pM0
+Stage IIA
+TNMPT = pT0 TNMPN = pN1 TNMPM = pMX
+TNMPT = pT0 TNMPN = pN1 TNMPM = pM0
+TNMPT = pT1 TNMPN = pN1 TNMPM = pMX
+TNMPT = pT1 TNMPN = pN1 TNMPM = pM0
+TNMPT = pT2 TNMPN = pN0 TNMPM = pMX
+TNMPT = pT2 TNMPN = pN0 TNMPM = pM0
+Stage IIB
+TNMPT = pT2 TNMPN = pN1 TNMPM = pMX
+TNMPT = pT2 TNMPN = pN1 TNMPM = pM0
+TNMPT = pT3 TNMPN = pN0 TNMPM = pMX
+TNMPT = pT3 TNMPN = pN0 TNMPM = pM0
+Stage IIIA
+TNMPT = pT0 TNMPN = pN2 TNMPM = pMX
+TNMPT = pT0 TNMPN = pN2 TNMPM = pM0
+TNMPT = pT1 TNMPN = pN2 TNMPM = pMX
+TNMPT = pT1 TNMPN = pN2 TNMPM = pM0
+TNMPT = pT2 TNMPN = pN2 TNMPM = pMX
+TNMPT = pT2 TNMPN = pN2 TNMPM = pM0
+TNMPT = pT3 TNMPN = pN1 TNMPM = pMX
+TNMPT = pT3 TNMPN = pN1 TNMPM = pM0
+TNMPT = pT3 TNMPN = pN2 TNMPM = pMX
+TNMPT = pT3 TNMPN = pN2 TNMPM = pM0
+Stage IIIB
+TNMPT = T4 TNMPN = pN0 TNMPM = pMX
+TNMPT = T4 TNMPN = pN0 TNMPM = pM0
+TNMPT = T4 TNMPN = pN1 TNMPM = pMX
+TNMPT = T4 TNMPN = pN1 TNMPM = pM0
+TNMPT = T4 TNMPN = pN2 TNMPM = pMX
+TNMPT = T4 TNMPN = pN2 TNMPM = pM0
+Stage IIIC
+TNMPT = pTX TNMPN = pN3 TNMPM = pMX
+TNMPT = pTX TNMPN = pN3 TNMPM = pM0
+TNMPT = pT0 TNMPN = pN3 TNMPM = pMX
+TNMPT = pT0 TNMPN = pN3 TNMPM = pM0
+TNMPT = pT1 TNMPN = pN3 TNMPM = pMX
+TNMPT = pT1 TNMPN = pN3 TNMPM = pM0
+TNMPT = pT2 TNMPN = pN3 TNMPM = pMX
+TNMPT = pT2 TNMPN = pN3 TNMPM = pM0
+TNMPT = pT3 TNMPN = pN3 TNMPM = pMX
+TNMPT = pT3 TNMPN = pN3 TNMPM = pM0
+TNMPT = T4 TNMPN = pN3 TNMPM = pMX
+TNMPT = T4 TNMPN = pN3 TNMPM = pM0
+Stage IV
+TNMPT = * TNMPN = * TNMPM = pM1
+"""
+
+lc_cancer_stage_spec = """Stage Occult carcinoma
+TNMPTLC = Tx TNMPNLC = N0 TNMPMLC = M0
+Stage 0
+TNMPTLC = Tis TNMPNLC = N0 TNMPMLC = M0
+Stage IA1
+TNMPTLC = T1mi TNMPNLC = N0 TNMPMLC = M0
+TNMPTLC = T1a TNMPNLC = N0 TNMPMLC = M0
+Stage IA2
+TNMPTLC = T1b TNMPNLC = N0 TNMPMLC = M0
+Stage IA3
+TNMPTLC = T1c TNMPNLC = N0 TNMPMLC = M0
+Stage IB
+TNMPTLC = T2a TNMPNLC = N0 TNMPMLC = M0
+Stage IIA
+TNMPTLC = T2b TNMPNLC = N0 TNMPMLC = M0
+Stage IIB
+TNMPTLC = T1a TNMPNLC = N1a TNMPMLC = M0
+TNMPTLC = T1a TNMPNLC = N1b TNMPMLC = M0
+TNMPTLC = T1b TNMPNLC = N1a TNMPMLC = M0
+TNMPTLC = T1b TNMPNLC = N1b TNMPMLC = M0
+TNMPTLC = T1c TNMPNLC = N1a TNMPMLC = M0
+TNMPTLC = T1c TNMPNLC = N1b TNMPMLC = M0
+TNMPTLC = T2a TNMPNLC = N1a TNMPMLC = M0
+TNMPTLC = T2a TNMPNLC = N1b TNMPMLC = M0
+TNMPTLC = T2b TNMPNLC = N1a TNMPMLC = M0
+TNMPTLC = T2b TNMPNLC = N1b TNMPMLC = M0
+TNMPTLC = T3 TNMPNLC = N0 TNMPMLC = M0
+Stage IIIA
+TNMPTLC = T1a TNMPNLC = N2a1 TNMPMLC = M0
+TNMPTLC = T1a TNMPNLC = N2a2 TNMPMLC = M0
+TNMPTLC = T1a TNMPNLC = N2b TNMPMLC = M0
+TNMPTLC = T1b TNMPNLC = N2a1 TNMPMLC = M0
+TNMPTLC = T1b TNMPNLC = N2a2 TNMPMLC = M0
+TNMPTLC = T1b TNMPNLC = N2b TNMPMLC = M0
+TNMPTLC = T1c TNMPNLC = N2a1 TNMPMLC = M0
+TNMPTLC = T1c TNMPNLC = N2a2 TNMPMLC = M0
+TNMPTLC = T1c TNMPNLC = N2b TNMPMLC = M0
+TNMPTLC = T2a TNMPNLC = N2a1 TNMPMLC = M0
+TNMPTLC = T2a TNMPNLC = N2a2 TNMPMLC = M0
+TNMPTLC = T2a TNMPNLC = N2b TNMPMLC = M0
+TNMPTLC = T2b TNMPNLC = N2a1 TNMPMLC = M0
+TNMPTLC = T2b TNMPNLC = N2a2 TNMPMLC = M0
+TNMPTLC = T2b TNMPNLC = N2b TNMPMLC = M0
+TNMPTLC = T3 TNMPNLC = N1a TNMPMLC = M0
+TNMPTLC = T3 TNMPNLC = N1b TNMPMLC = M0
+TNMPTLC = T4 TNMPNLC = N0 TNMPMLC = M0
+TNMPTLC = T4 TNMPNLC = N1a TNMPMLC = M0
+TNMPTLC = T4 TNMPNLC = N1b TNMPMLC = M0
+Stage IIIB
+TNMPTLC = T1a TNMPNLC = N3 TNMPMLC = M0
+TNMPTLC = T1b TNMPNLC = N3 TNMPMLC = M0
+TNMPTLC = T1c TNMPNLC = N3 TNMPMLC = M0
+TNMPTLC = T2a TNMPNLC = N3 TNMPMLC = M0
+TNMPTLC = T2b TNMPNLC = N3 TNMPMLC = M0
+TNMPTLC = T3 TNMPNLC = N2a1 TNMPMLC = M0
+TNMPTLC = T3 TNMPNLC = N2a2 TNMPMLC = M0
+TNMPTLC = T3 TNMPNLC = N2b TNMPMLC = M0
+TNMPTLC = T4 TNMPNLC = N2a1 TNMPMLC = M0
+TNMPTLC = T4 TNMPNLC = N2a2 TNMPMLC = M0
+TNMPTLC = T4 TNMPNLC = N2b TNMPMLC = M0
+Stage IIIC
+TNMPTLC = T3 TNMPNLC = N3 TNMPMLC = M0
+TNMPTLC = T4 TNMPNLC = N3 TNMPMLC = M0
+Stage IVA
+TNMPTLC = * TNMPNLC = * TNMPMLC = M1a
+TNMPTLC = * TNMPNLC = * TNMPMLC = M1b
+Stage IVB
+TNMPTLC = * TNMPNLC = * TNMPMLC = M1c
+"""
+
+ov_cancer_stage_spec = ""
+
+
+def get_crc_clinical_cancer_stage_spec():
+    return """Stage 0
+           TNMCTCRC = cTis TNMCNCRC = cNX TNMCMCRC = cMX
+           TNMCTCRC = cTis TNMCNCRC = cNX TNMCMCRC = cM0
+           TNMCTCRC = cT0 TNMCNCRC = cN0 TNMCMCRC = cMX
+           TNMCTCRC = cT0 TNMCNCRC = cN0 TNMCMCRC = cM0
+           Stage I
+           TNMCTCRC = cT1 TNMCNCRC = cN0 TNMCMCRC = cMX
+           TNMCTCRC = cT1 TNMCNCRC = cN0 TNMCMCRC = cM0
+           TNMCTCRC = cT2 TNMCNCRC = cN0 TNMCMCRC = cMX
+           TNMCTCRC = cT2 TNMCNCRC = cN0 TNMCMCRC = cM0
+           Stage IIA
+           TNMCTCRC = cT3 TNMCNCRC = cN0 TNMCMCRC = cMX
+           TNMCTCRC = cT3 TNMCNCRC = cN0 TNMCMCRC = cM0
+           Stage IIB
+           TNMCTCRC = cT4a TNMCNCRC = cN0 TNMCMCRC = cMX
+           TNMCTCRC = cT4a TNMCNCRC = cN0 TNMCMCRC = cM0
+           Stage IIC
+           TNMCTCRC = cT4b TNMCNCRC = cN0 TNMCMCRC = cMX
+           TNMCTCRC = cT4b TNMCNCRC = cN0 TNMCMCRC = cM0
+           Stage IIIA
+           TNMCTCRC = cT1 TNMCNCRC = cN1 TNMCMCRC = cMX
+           TNMCTCRC = cT1 TNMCNCRC = cN1 TNMCMCRC = cM0
+           TNMCTCRC = cT2 TNMCNCRC = cN1 TNMCMCRC = cMX
+           TNMCTCRC = cT2 TNMCNCRC = cN1 TNMCMCRC = cM0
+           TNMCTCRC = cT1 TNMCNCRC = cN1c TNMCMCRC = cMX
+           TNMCTCRC = cT1 TNMCNCRC = cN1c TNMCMCRC = cM0
+           TNMCTCRC = cT2 TNMCNCRC = cN1c TNMCMCRC = cMX
+           TNMCTCRC = cT2 TNMCNCRC = cN1c TNMCMCRC = cM0
+           TNMCTCRC = cT1 TNMCNCRC = cN2a TNMCMCRC = cMX
+           TNMCTCRC = cT1 TNMCNCRC = cN2a TNMCMCRC = cM0
+           Stage IIIB
+           TNMCTCRC = cT3 TNMCNCRC = cN1 TNMCMCRC = cMX
+           TNMCTCRC = cT3 TNMCNCRC = cN1 TNMCMCRC = cM0
+           TNMCTCRC = cT3 TNMCNCRC = cN1c TNMCMCRC = cMX
+           TNMCTCRC = cT3 TNMCNCRC = cN1c TNMCMCRC = cM0
+           TNMCTCRC = cT4a TNMCNCRC = cN1 TNMCMCRC = cMX
+           TNMCTCRC = cT4a TNMCNCRC = cN1 TNMCMCRC = cM0
+           TNMCTCRC = cT4a TNMCNCRC = cN1c TNMCMCRC = cMX
+           TNMCTCRC = cT4a TNMCNCRC = cN1c TNMCMCRC = cM0
+           TNMCTCRC = cT2 TNMCNCRC = cN2a TNMCMCRC = cMX
+           TNMCTCRC = cT2 TNMCNCRC = cN2a TNMCMCRC = cM0
+           TNMCTCRC = cT3 TNMCNCRC = cN2a TNMCMCRC = cMX
+           TNMCTCRC = cT3 TNMCNCRC = cN2a TNMCMCRC = cM0
+           TNMCTCRC = cT1 TNMCNCRC = cN2b TNMCMCRC = cMX
+           TNMCTCRC = cT1 TNMCNCRC = cN2b TNMCMCRC = cM0
+           TNMCTCRC = cT2 TNMCNCRC = cN2b TNMCMCRC = cMX
+           TNMCTCRC = cT2 TNMCNCRC = cN2b TNMCMCRC = cM0
+           Stage IIIC
+           TNMCTCRC = cT4a TNMCNCRC = cN2a TNMCMCRC = cMX
+           TNMCTCRC = cT4a TNMCNCRC = cN2a TNMCMCRC = cM0
+           TNMCTCRC = cT3 TNMCNCRC = cN2b TNMCMCRC = cMX
+           TNMCTCRC = cT3 TNMCNCRC = cN2b TNMCMCRC = cM0
+           TNMCTCRC = cT4a TNMCNCRC = cN2b TNMCMCRC = cMX
+           TNMCTCRC = cT4a TNMCNCRC = cN2b TNMCMCRC = cM0
+           TNMCTCRC = cT4b TNMCNCRC = cN1 TNMCMCRC = cMX
+           TNMCTCRC = cT4b TNMCNCRC = cN1 TNMCMCRC = cM0
+           TNMCTCRC = cT4b TNMCNCRC = cN2 TNMCMCRC = cMX
+           TNMCTCRC = cT4b TNMCNCRC = cN2 TNMCMCRC = cM0
+           Stage IV
+           TNMCTCRC = * TNMCNCRC = * TNMCMCRC = cM1
+           Stage IVA
+           TNMCTCRC = * TNMCNCRC = * TNMCMCRC = cM1a
+           Stage IVB
+           TNMCTCRC = * TNMCNCRC = * TNMCMCRC = cM1b
+           Stage IVC
+           TNMCTCRC = * TNMCNCRC = * TNMCMCRC = cM1c
+           """
+
+
+def get_bc_clinical_cancer_stage_spec():
+    return """Stage IA
+           TNMCT = cT1 TNMCN = cN0 TNMCM = cMX
+           TNMCT = cT1 TNMCN = cN0 TNMCM = cM0
+           Stage IIA
+           TNMCT = cT0 TNMCN = cN1 TNMCM = cMX
+           TNMCT = cT0 TNMCN = cN1 TNMCM = cM0 
+           TNMCT = cT1 TNMCN = cN1 TNMCM = cMX
+           TNMCT = cT1 TNMCN = cN1 TNMCM = cM0 
+           TNMCT = cT2 TNMCN = cN0 TNMCM = cMX
+           TNMCT = cT2 TNMCN = cN0 TNMCM = cM0 
+           Stage IIB
+           TNMCT = cT2 TNMCN = cN1 TNMCM = cMX
+           TNMCT = cT2 TNMCN = cN1 TNMCM = cM0 
+           TNMCT = cT3 TNMCN = cN0 TNMCM = cMX
+           TNMCT = cT3 TNMCN = cN0 TNMCM = cM0 
+           Stage IIIA
+           TNMCT = cT0 TNMCN = cN2 TNMCM = cMX 
+           TNMCT = cT0 TNMCN = cN2 TNMCM = cM0
+           TNMCT = cT1 TNMCN = cN2 TNMCM = cMX
+           TNMCT = cT1 TNMCN = cN2 TNMCM = cM0 
+           TNMCT = cT2 TNMCN = cN2 TNMCM = cMX
+           TNMCT = cT2 TNMCN = cN2 TNMCM = cM0 
+           TNMCT = cT3 TNMCN = cN1 TNMCM = cMX 
+           TNMCT = cT3 TNMCN = cN1 TNMCM = cM0 
+           TNMCT = cT3 TNMCN = cN2 TNMCM = cMX
+           TNMCT = cT3 TNMCN = cN2 TNMCM = cM0 
+           Stage IIIB
+           TNMCT = cT4 TNMCN = cN0 TNMCM = cMX
+           TNMCT = cT4 TNMCN = cN0 TNMCM = cM0 
+           TNMCT = cT4 TNMCN = cN1 TNMCM = cMX
+           TNMCT = cT4 TNMCN = cN1 TNMCM = cM0 
+           TNMCT = cT4 TNMCN = cN2 TNMCM = cMX
+           TNMCT = cT4 TNMCN = cN2 TNMCM = cM0
+           Stage IIIC
+           TNMCT = cT0 TNMCN = cN3 TNMCM = cMX 
+           TNMCT = cT0 TNMCN = cN3 TNMCM = cM0
+           TNMCT = cT1 TNMCN = cN3 TNMCM = cMX
+           TNMCT = cT1 TNMCN = cN3 TNMCM = cM0
+           TNMCT = cT2 TNMCN = cN3 TNMCM = cMX 
+           TNMCT = cT2 TNMCN = cN3 TNMCM = cM0
+           TNMCT = cT3 TNMCN = cN3 TNMCM = cMX 
+           TNMCT = cT3 TNMCN = cN3 TNMCM = cM0
+           TNMCT = cT4 TNMCN = cN3 TNMCM = cMX
+           TNMCT = cT4 TNMCN = cN3 TNMCM = cM0 
+           Stage IV
+           TNMCT = * TNMCN = * TNMCM = cM1
+           """
+
+
+def lc_clinical_calcs():
+    return """
+    """
+
+
+class RuleParser:
+    def __init__(self, spec):
+        self.spec = spec
+
+
+class CancerStageEvaluator:
+    def __init__(self, rules_dict=None, spec=None, cde_prefix=None):
+        self.cde_prefix = cde_prefix
+        self.pattern = "*"
+        assert (self.cde_prefix is not None, "cde_prefix must not be None")
+        logger.debug("initialising canver stage evaluator")
+        if rules_dict is not None:
+            self.rules_dict = rules_dict
+        else:
+            self.rules_dict = self.parse_spec(spec)
+
+        for key in sorted(self.rules_dict.keys()):
+            logger.debug("******************************")
+            logger.debug(f"Rules for {key}:")
+            logger.debug(f"{self.rules_dict[key]}")
+            logger.debug("******************************")
+
+        self.cache = {}
+
+    def replace_space(self, s):
+        if "SPACE" in s:
+            return s.replace("SPACE", " ")
+        else:
+            return s
+
+    def is_possible(self, cde_code, value):
+        from rdrf.models.definition.models import CommonDataElement
+        try:
+            cde_model = CommonDataElement.objects.get(code=cde_code)
+        except CommonDataElement.DoesNotExist:
+            error_msg = f"rule contains cde {cde_code} which does not exist"
+            raise Exception(error_msg)
+        value_dicts = cde_model.pv_group.as_dict()["values"]
+        possible_values = [d["value"].lower() for d in value_dicts]
+
+        if self.pattern in value:
+            pattern_index = value.find(self.pattern)
+            if pattern_index == 0:
+                return True
+
+            prefix = value[0:pattern_index].lower()
+            for possible_value in possible_values:
+                if possible_value.startswith(prefix):
+                    return True
+        else:
+            return value.lower() in possible_values
+
+    def parse_spec_output(self, line):
+        return line.strip().replace("Stage ", "")
+
+    def is_value(self, token):
+        return not any([self.is_cde(token), token in [' ', '=']])
+
+    def is_cde(self, token):
+        return token.startswith(self.cde_prefix)
+
+    def parse_spec_inputs(self, line):
+        logger.debug(f"parse_spec_inputs line = {line}")
+        dicts = []
+        tokens = shlex.split(line)
+        print(tokens)
+        key = None
+        value = None
+
+        for token in tokens:
+            logger.debug(f"token = {token}")
+
+            if self.is_cde(token):
+                logger.debug(f"token is a cde")
+                key = token.strip()
+                logger.debug(f"key = {key}")
+            elif self.is_value(token):
+                logger.debug("token is a value")
+                value = token.strip()
+                value = self.replace_space(value)
+                if key and not self.is_possible(key, value):
+                    raise Exception(f"impossible value in rule: cde={key} value={value}")
+                logger.debug(f"value = {value}")
+            else:
+                logger.debug(f"unknown token: {token}")
+            if key and value:
+                dicts.append({"cde": key, "value": value})
+                key = None
+                value = None
+
+        return dicts
+
+    def parse_spec(self, spec: str):
+        stage = None
+        rules_dict = {}
+
+        for line in spec.split("\n"):
+            line = line.strip()
+            logger.debug(f"parsing line: {line}")
+            if line.startswith("Stage"):
+                logger.debug("is a stage!")
+                stage = self.parse_spec_output(line)
+                logger.debug(f"parse stage = {stage}")
+                rules_dict[stage] = []
+            else:
+                logger.debug("is not a stage")
+                dicts = self.parse_spec_inputs(line)
+                logger.debug(f"parsed dicts = {dicts}")
+                if dicts:
+                    rules_dict[stage].append(dicts)
+
+        return rules_dict
+
+    def parse_test_spec(self, spec: str) -> list:
+        input_output_pairs = []
+        output_index = 1
+        inputs_index = 0
+
+        def is_valid(pair):
+            output = pair[output_index]
+            input_dict = pair[inputs_index]
+            if input_dict:
+                if output:
+                    return True
+
+        lines = [line.strip() for line in spec.split("\n") if line]
+        lines = [line for line in lines if line]
+        for line in lines:
+            print(f"parsing spec line: [{line}]")
+            if not line:
+                continue
+            if line.startswith("Stage"):
+                pair = [None, None]
+                stage = self.parse_spec_output(line)
+                pair[output_index] = stage
+
+            else:
+                inputs_dict = {}
+                tokens = shlex.split(line)
+                if not tokens:
+                    continue
+                print(tokens)
+                key = None
+                value = None
+                for token in tokens:
+                    if self.is_cde(token):
+                        key = token.strip()
+                    elif self.is_value(token):
+                        value = token.strip()
+                        value = self.replace_space(value)
+                        if value == "":
+                            raise Exception(f"parse spec error on line [{line}]: value is empty string")
+                    if all([key, value]):
+                        inputs_dict[key] = value
+
+                pair[inputs_index] = inputs_dict
+                if is_valid(pair):
+                    input_output_pairs.append(pair)
+                pair = [None, stage]
+
+        return input_output_pairs
+
+    def evaluate(self, patient, context):
+        for stage, rules in self.rules_dict.items():
+            logger.debug(f"*** checking for cancer stage {stage}")
+            if self._evaluate_stage(rules, patient, context):
+                logger.debug(f"cancer stage: patient {patient} context {context} stage = {stage} evaluates to true")
+                return stage
+        logger.debug("No rules matched - stage is set to a blank string")
+        return "Unknown"
+
+    def _evaluate_stage(self, rules, patient, context):
+        stage_value = any([self._evaluate_conjuncts(patient, context, conjuncts) for conjuncts in rules])
+        logger.debug(f"stage_value = {stage_value}")
+        return stage_value
+
+    def _evaluate_conjuncts(self, patient, context, conjuncts):
+        result = all([self._evaluate_conjunct(patient, context, conjunct) for conjunct in conjuncts])
+        logger.debug(f"conjuncts = {conjuncts} evaluates to {result}")
+        return result
+
+    def _is_pattern(self, value):
+        logger.debug(f"checking whether value {value} is a pattern")
+        result = value[-1] == self.pattern
+        if result:
+            logger.debug(f"{value} IS a pattern")
+        else:
+            logger.debug(f"{value} IS NOT pattern")
+
+        return result
+
+    def _get_pattern_prefix(self, pattern):
+        return pattern[:-1]
+
+    def _evaluate_conjunct(self, patient, context, conjunct):
+        logger.debug(f"evaluate conjunct: patient {patient} context {context} conjunct {conjunct}")
+        from rdrf.models.definition.models import CommonDataElement
+        cde_code = conjunct["cde"]
+        logger.debug(f"cde code = {cde_code}")
+        try:
+            cde_model = CommonDataElement.objects.get(code=cde_code)
+        except CommonDataElement.DoesNotExist:
+            logger.error(f"cannot find cde {cde_code}")
+            return False
+        rule_display_value = conjunct["value"]
+        is_pattern = self._is_pattern(rule_display_value)
+
+        if is_pattern:
+            prefix = self._get_pattern_prefix(rule_display_value)
+        else:
+            prefix = None
+
+        patient_db_value = self._get_patient_value(patient, context, cde_code)
+        patient_display_value = cde_model.get_display_value(patient_db_value)
+
+        logger.debug(f"patient db value = {patient_db_value} display value = {patient_display_value}")
+
+        if not is_pattern:
+            logger.debug("not a pattern")
+            result = patient_display_value.lower() == rule_display_value.lower()
+        else:
+            logger.debug("pattern found")
+            result = patient_display_value.startswith(prefix)
+
+        logger.debug(f"{cde_code} rule {rule_display_value} patient {patient_display_value} result: {result}")
+        return result
+
+    def _get_patient_value(self, patient, context, cde_code):
+        pv = context[cde_code]  # ??
+        logger.debug(f"patient value of {cde_code} is {pv}")
+        return pv
+
+    def _get_db_value(self, cde_code, display_value):
+        from rdrf.models.definition.models import CommonDataElement
+        cde_model = CommonDataElement.objects.get(code=cde_code)
+        if cde_model.pv_group:
+            d = cde_model.pv_group.as_dict()
+            for value_dict in d["values"]:
+                if value_dict["value"] == display_value:
+                    return value_dict["code"]  # what gets stored in db
+
+
+def CRCCANCERSTAGE(patient, context):
+    logger.info("in cdecrc cancer stage")
+    context = fill_missing_input(context, 'CRCCANCERSTAGE_inputs')
+    evaluator = CancerStageEvaluator(spec=crc_cancer_stage_spec, cde_prefix="TNMP")
+    return evaluator.evaluate(patient, context)
+
+
+def CRCCANCERSTAGE_inputs():
+    return ['TNMPTCRC', 'TNMPNCRC', 'TNMPMCRC']
+
+
+def CRCCLINICALCANCERSTAGE(patient, context):
+    logger.info("in cde crc clinical cancer stage")
+    context = fill_missing_input(context, 'CRCCLINICALCANCERSTAGE_inputs')
+    spec = get_crc_clinical_cancer_stage_spec()
+    evaluator = CancerStageEvaluator(spec=spec, cde_prefix="TNMC")
+    return evaluator.evaluate(patient, context)
+
+
+def CRCCLINICALCANCERSTAGE_inputs():
+    return ['TNMCTCRC', 'TNMCNCRC', 'TNMCMCRC']
+
+
+def BCCANCERSTAGE(patient, context):
+    logger.debug(f"calculating BCCANCERSTAGE: patient = {patient} context = {context}")
+    context = fill_missing_input(context, 'BCCANCERSTAGE_inputs')
+    evaluator = CancerStageEvaluator(spec=bc_cancer_stage_spec, cde_prefix="TNMP")
+    return evaluator.evaluate(patient, context)
+
+
+def BCCANCERSTAGE_inputs():
+    return ["TNMPT", "TNMPN", "TNMPM"]
+
+
+def BCCLINICALCANCERSTAGE(patient, context):
+    logger.debug(f"calculating BCCLINICALCANCERSTAGE: patient = {patient} context = {context}")
+    context = fill_missing_input(context, 'BCCLINICALCANCERSTAGE_inputs')
+    spec = get_bc_clinical_cancer_stage_spec()
+    evaluator = CancerStageEvaluator(spec=spec, cde_prefix="TNMC")
+    return evaluator.evaluate(patient, context)
+
+
+def BCCLINICALCANCERSTAGE_inputs():
+    return ["TNMCT", "TNMCN", "TNMCM"]
+
+
+def LCCANCERSTAGE(patient, context):
+    context = fill_missing_input(context, 'LCCANCERSTAGE_inputs')
+    evaluator = CancerStageEvaluator(spec=lc_cancer_stage_spec, cde_prefix="TNMP")
+    return evaluator.evaluate(patient, context)
+
+
+def LCCANCERSTAGE_inputs():
+    return ["TNMPTLC", "TNMPNLC", "TNMPMLC"]
+
+
+def LCCLINICALCANCERSTAGE(patient, context):
+    context = fill_missing_input(context, 'LCCLINICALCANCERSTAGE_inputs')
+    spec = get_lc_clinical_cancer_stage_spec()
+    evaluator = CancerStageEvaluator(spec=spec, cde_prefix="TNMC")
+    return evaluator.evaluate(patient, context)
+
+
+def LCCLINICALCANCERSTAGE_inputs():
+    return ["TNMCTLC", "TNMCNLC", "TNMCMLC"]
+
+
+def get_lc_clinical_cancer_stage_spec():
+    return """Stage Occult carcinoma
+           TNMCTLC = Tx TNMCNLC = N0 TNMCMLC = M0
+           Stage 0
+           TNMCTLC = Tis TNMCNLC = N0 TNMCMLC = M0
+           Stage IA1
+           TNMCTLC = T1mi TNMCNLC = N0 TNMCMLC = M0
+           TNMCTLC = T1a TNMCNLC = N0 TNMCMLC = M0
+           Stage IA2
+           TNMCTLC = T1b TNMCNLC = N0 TNMCMLC = M0
+           Stage IA3
+           TNMCTLC = T1c TNMCNLC = N0 TNMCMLC = M0
+           Stage IB
+           TNMCTLC = T2a TNMCNLC = N0 TNMCMLC = M0
+           Stage IIA
+           TNMCTLC = T2b TNMCNLC = N0 TNMCMLC = M0
+           Stage IIB
+           TNMCTLC = T1a TNMCNLC = N1a TNMCMLC = M0
+           TNMCTLC = T1a TNMCNLC = N1b TNMCMLC = M0
+           TNMCTLC = T1b TNMCNLC = N1a TNMCMLC = M0
+           TNMCTLC = T1b TNMCNLC = N1b TNMCMLC = M0
+           TNMCTLC = T1c TNMCNLC = N1a TNMCMLC = M0
+           TNMCTLC = T1c TNMCNLC = N1b TNMCMLC = M0
+           TNMCTLC = T2a TNMCNLC = N1a TNMCMLC = M0
+           TNMCTLC = T2a TNMCNLC = N1b TNMCMLC = M0
+           TNMCTLC = T2b TNMCNLC = N1a TNMCMLC = M0
+           TNMCTLC = T2b TNMCNLC = N1b TNMCMLC = M0
+           TNMCTLC = T3 TNMCNLC = N0 TNMCMLC = M0
+           Stage IIIA
+           TNMCTLC = T1a TNMCNLC = N2a1 TNMCMLC = M0
+           TNMCTLC = T1a TNMCNLC = N2a2 TNMCMLC = M0
+           TNMCTLC = T1a TNMCNLC = N2b  TNMCMLC = M0
+           TNMCTLC = T1b TNMCNLC = N2a1 TNMCMLC = M0
+           TNMCTLC = T1b TNMCNLC = N2a2 TNMCMLC = M0
+           TNMCTLC = T1b TNMCNLC = N2b  TNMCMLC = M0
+           TNMCTLC = T1c TNMCNLC = N2a1 TNMCMLC = M0
+           TNMCTLC = T1c TNMCNLC = N2a2 TNMCMLC = M0
+           TNMCTLC = T1c TNMCNLC = N2b  TNMCMLC = M0
+           TNMCTLC = T2a TNMCNLC = N2a1 TNMCMLC = M0
+           TNMCTLC = T2a TNMCNLC = N2a2 TNMCMLC = M0
+           TNMCTLC = T2a TNMCNLC = N2b  TNMCMLC = M0
+           TNMCTLC = T2b TNMCNLC = N2a1 TNMCMLC = M0
+           TNMCTLC = T2b TNMCNLC = N2a2 TNMCMLC = M0
+           TNMCTLC = T2b TNMCNLC = N2b  TNMCMLC = M0
+           TNMCTLC = T3 TNMCNLC = N1a   TNMCMLC = M0
+           TNMCTLC = T3 TNMCNLC = N1b   TNMCMLC = M0
+           TNMCTLC = T4 TNMCNLC = N0    TNMCMLC = M0
+           TNMCTLC = T4 TNMCNLC = N1a   TNMCMLC = M0
+           TNMCTLC = T4 TNMCNLC = N1b   TNMCMLC = M0
+           Stage IIIB
+           TNMCTLC = T1a TNMCNLC = N3   TNMCMLC = M0
+           TNMCTLC = T1b TNMCNLC = N3   TNMCMLC = M0
+           TNMCTLC = T1c TNMCNLC = N3   TNMCMLC = M0
+           TNMCTLC = T2a TNMCNLC = N3   TNMCMLC = M0
+           TNMCTLC = T2b TNMCNLC = N3   TNMCMLC = M0
+           TNMCTLC = T3 TNMCNLC = N2a1  TNMCMLC = M0
+           TNMCTLC = T3 TNMCNLC = N2a2  TNMCMLC = M0
+           TNMCTLC = T3 TNMCNLC = N2b   TNMCMLC = M0
+           TNMCTLC = T4 TNMCNLC = N2a1  TNMCMLC = M0
+           TNMCTLC = T4 TNMCNLC = N2a2  TNMCMLC = M0
+           TNMCTLC = T4 TNMCNLC = N2b   TNMCMLC = M0
+           Stage IIIC
+           TNMCTLC = T3 TNMCNLC = N3 TNMCMLC = M0
+           TNMCTLC = T4 TNMCNLC = N3 TNMCMLC = M0
+           Stage IVA
+           TNMCTLC = * TNMCNLC = * TNMCMLC = M1a
+           TNMCTLC = * TNMCNLC = * TNMCMLC = M1b
+           Stage IVB
+           TNMCTLC = * TNMCNLC = * TNMCMLC = M1c
+           """
+
+
+def OVCANCERSTAGE(patient, context):
+    context = fill_missing_input(context, 'OVCANCERSTAGE_inputs')
+    evaluator = CancerStageEvaluator(ov_cancer_stage_spec)
+    return evaluator.evaluate(patient, context)
+
+
+def OVCANCERSTAGE_inputs():
+    return []
+
+
 ################ BEGINNING OF CDEBMI ################################
 
 def CDEBMI(patient, context):
@@ -811,11 +1563,12 @@ def ANGBMIimperial_inputs():
 
 ################ BEGINNING OF FHDeathAge ################################
 
+
 def APMATPlasmicRisk(patient, context):
     context = fill_missing_input(context, 'APMATPlasmicRisk_inputs')
 
     YES = "fh_yes_no_yes"
-    yes_selected = lambda value: value == YES
+    def yes_selected(value): return value == YES
 
     score = 0
     score += 1 if yes_selected(context["APMATPlateletCountLessThan30"]) else 0
@@ -828,11 +1581,13 @@ def APMATPlasmicRisk(patient, context):
 
     return "low risk" if score < 5 else "intermediate risk" if score == 5 else "high risk"
 
+
 def APMATPlasmicRisk_inputs():
     return ["APMATPlateletCountLessThan30", "APMATHaemolysisVariable", "APMATNoActiveCancer", "APMATNoTransplant",
             "APMATMCVLessThan90", "APMATINRLessThan1Dot5", "APMATCreatinineLessThan2"]
 
 ################ END OF FHDeathAge ################################
+
 
 def validate_date(date):
     try:
@@ -852,6 +1607,11 @@ def number_of_days(datestring1, datestring2):
     """
     return number of days between date1 < date2
     """
+    logger.debug(f"number_of_days s1=[{datestring1}] s2=[{datestring2}]")
+    if datestring1 is None:
+        return None
+    if datestring2 is None:
+        return None
     try:
         date1 = validate_date(datestring1)
     except ParseError:
@@ -877,9 +1637,14 @@ def date_diff_helper(patient, context, input_func_name, later_cde_code, earlier_
     across_forms_info = AcrossFormsInfo(registry_model,
                                         patient_model)
     context = fill_missing_input(context, input_func_name, across_forms_info)
+    logger.debug(f"calc context after filling missing input = {context}")
     later_date_string = context[later_cde_code]
     earlier_date_string = context[earlier_cde_code]
-    return str(number_of_days(earlier_date_string, later_date_string))
+    r = number_of_days(earlier_date_string, later_date_string)
+    if r is None:
+        return ""
+    else:
+        return str(r)
 
 
 def INITREVINTERVLC(patient, context):
@@ -899,7 +1664,11 @@ def INITREVINTERVLC(patient, context):
     context = fill_missing_input(context, 'INITREVINTERVLC_inputs', across_forms_info)
     first_seenlc = context["FIRSTSEENLC"]
     refdatelc = context["REFDATELC"]
-    return str(number_of_days(refdatelc, first_seenlc))
+    num_days = number_of_days(refdatelc, first_seenlc)
+    if num_days is None:
+        return ""
+    else:
+        return str(num_days)
 
 
 def INITREVINTERVLC_inputs():
@@ -949,3 +1718,86 @@ def MXINTERVAL1LC(patient, context):
 
 def MXINTERVAL1LC_inputs():
     return ['REFDATELC', 'MXDATELC']
+
+
+def SMOKEPACKYEAR(patient, context):
+    """
+    from AI
+    SMOKEPACKYEAR is an integer.
+    If SMOKING = 1  SMOKEPACKYEAR = 0
+    If SMOKING = 2 then SMOKEPACKYEAR = CIGDAY/20 x (SMOKINGSTOPYEAR – SMOKINGSTARTYEAR)
+    If SMOKING = 3 then SMOKEPACKYEAR = CIGDAY/20 x (THIS YEAR – SMOKINGSTARTYEAR)  THIS YEAR is the year in which the data is collected and entered.
+    If SMOKING = 999 then  SMOKEPACKYEAR = 999
+    deduct abstinence ( 300822 discussion)
+    """
+
+    unknown = "999"
+
+    class NoDataException(Exception):
+        pass
+
+    def maybe_int(s):
+        logger.debug(f"maybe_int value = {s} type = {type(s)}")
+        if s == unknown:
+            raise NoDataException()
+        if s == 999:
+            raise NoDataException()
+        if s == "":
+            raise NoDataException()
+        if s is None:
+            raise NoDataException()
+
+        try:
+            return int(s)
+        except:
+            raise NoDataException()
+
+    def get_abstinence_years(context):
+        ay = context["SMOKABSTINENTYRS"]
+        if not ay:
+            return 0
+        else:
+            ay = int(ay)
+            if ay == 999:
+                raise NoDataException()
+            else:
+                return ay
+
+    def get_current_year():
+        # this will be when the form is saved ..
+        return datetime.now().year
+
+    def calc(cigdays, a, b, c):
+        value = (float(cigdays) / 20.0) * (b - a - c)
+        return str(int(value))
+
+    smoking = context["SMOKING"]
+
+    if smoking == "1":
+        return "0"
+
+    if smoking == "2":
+        try:
+            cigday = maybe_int(context["CIGDAY"])
+            smoking_start_year = maybe_int(context["SMOKINGSTARTYEAR"])
+            smoking_stop_year = maybe_int(context["SMOKINGSTOPYEAR"])
+            abstinence_years = get_abstinence_years(context)
+            return calc(cigday, smoking_start_year, smoking_stop_year, abstinence_years)
+        except NoDataException:
+            return unknown
+
+    if smoking == "3":
+        try:
+            cigday = maybe_int(context["CIGDAY"])
+            smoking_start_year = maybe_int(context["SMOKINGSTARTYEAR"])
+            current_year = get_current_year()
+            abstinence_years = get_abstinence_years(context)
+            return calc(cigday, smoking_start_year, smoking_stop_year, abstinence_years)
+        except NoDataException:
+            return unknown
+
+    return unknown
+
+
+def SMOKEPACKYEAR_inputs():
+    return ["CIGDAY", "SMOKING", "SMOKINGSTARTYEAR", "SMOKINGSTOPYEAR", "SMOKABSTINENTYRS"]
