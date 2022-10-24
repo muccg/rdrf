@@ -43,7 +43,7 @@ requirements = [
     "django-otp==1.1.3",
     "django-phonenumber-field==4.0.0",
     "phonenumberslite==8.12.56",
-    "django-two-factor-auth==1.14.0",
+    "django-two-factor-auth==1.13.2",
     "Pillow==9.1.0",
     "qrcode==7.3",
     "django-reversion==3.0.8",
