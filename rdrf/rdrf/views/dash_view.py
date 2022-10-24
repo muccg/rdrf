@@ -8,15 +8,22 @@ from dash import dcc, html
 import dash
 from django_plotly_dash import DjangoDash
 
-logger.debug("loaded dash module")
+from rdrf.models.definition.models import Registry
+from rdrf.forms.dashboards import get_patients_dashboard_app
+
+
+import plotly.express as px
 
 
 class PatientsDashboardView(View):
     def get(self, request):
         logger.debug("in get request")
         context = {}
-        logger.debug("patientsdashboard view")
+        registry_model = Registry.objects.get()
+
         app = DjangoDash("SimpleExample")  # replaces dash.Dash
+        df = px.data.iris()  # iris is a pandas DataFrame
+        fig = px.scatter(df, x="sepal_width", y="sepal_length")
 
         app.layout = html.Div(
             [
@@ -38,6 +45,7 @@ class PatientsDashboardView(View):
                     value="medium",
                 ),
                 html.Div(id="output-size"),
+                html.Div([dcc.Graph(figure=fig)], id="graph"),
             ]
         )
 
