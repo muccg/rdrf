@@ -1,5 +1,3 @@
-from dash import dcc, html
-import dash
 from django_plotly_dash import DjangoDash
 
 
