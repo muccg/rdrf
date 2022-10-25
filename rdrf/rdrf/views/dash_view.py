@@ -4,8 +4,6 @@ from dash import dcc, html
 import dash
 import logging
 from django_plotly_dash import DjangoDash
-from rdrf.models.definition.models import Registry
-from rdrf.forms.dashboards import get_patients_dashboard_app
 import plotly.express as px
 
 logger = logging.getLogger(__name__)
@@ -14,8 +12,6 @@ logger = logging.getLogger(__name__)
 class PatientsDashboardView(View):
     def get(self, request):
         context = {}
-        registry_model = Registry.objects.get()
-
         app = DjangoDash("SimpleExample")  # replaces dash.Dash
         df = px.data.iris()  # iris is a pandas DataFrame
         fig = px.scatter(df, x="sepal_width", y="sepal_length")
