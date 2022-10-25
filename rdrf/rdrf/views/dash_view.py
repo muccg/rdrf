@@ -1,23 +1,18 @@
 from django.views.generic.base import View
 from django.shortcuts import render
-import logging
-
-logger = logging.getLogger(__name__)
-logger.debug("loading dash ...")
 from dash import dcc, html
 import dash
+import logging
 from django_plotly_dash import DjangoDash
-
 from rdrf.models.definition.models import Registry
 from rdrf.forms.dashboards import get_patients_dashboard_app
-
-
 import plotly.express as px
+
+logger = logging.getLogger(__name__)
 
 
 class PatientsDashboardView(View):
     def get(self, request):
-        logger.debug("in get request")
         context = {}
         registry_model = Registry.objects.get()
 
