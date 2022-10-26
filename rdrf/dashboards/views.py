@@ -69,4 +69,5 @@ class PatientsDashboardView(View):
     def get(self, request):
         context = {}
         app = get_test_app()
+        logger.debug("app ={app}")
         return render(request, "rdrf_cdes/patients_dashboard.html", context)
