@@ -242,6 +242,7 @@ INSTALLED_APPS = [
     "two_factor",
     "django_user_agents",
     "formtools",
+    "dashboards",
 ]
 
 if env.get("main_app", 0) == 1:
