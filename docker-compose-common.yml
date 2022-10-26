@@ -81,6 +81,7 @@ services:
       - WAIT_FOR_CACHE=1
       - DEIDENTIFIED_SITE_ID=testing
       - DJANGO_MAILGUN_API_KEY=${DJANGO_MAILGUN_API_KEY}
+      - MAIN_APP=1
       #- USE_CELERY=1
 
   celeryworker:
