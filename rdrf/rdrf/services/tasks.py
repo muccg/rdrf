@@ -53,7 +53,15 @@ def handle_hl7_message(umrn, message: hl7.Message):
 
 
 @app.task(name="rdrf.services.tasks.recalculate_cde")
-def recalculate_cde(patient_id, registry_code, context_id, form_name, section_code, section_index, cde_code):
+def recalculate_cde(
+    patient_id,
+    registry_code,
+    context_id,
+    form_name,
+    section_code,
+    section_index,
+    cde_code,
+):
     """
     Problem: If a user changes an input of a calculated field which sits on
     another form, the calculation will not be re-evaluated unless
@@ -74,12 +82,16 @@ def recalculate_cde(patient_id, registry_code, context_id, form_name, section_co
     registry: Registry = Registry.objects.get(code=registry_code)
 
     if not registry.has_feature("use_new_style_calcs"):
-        logger.info("recalc: will not recalculate cde as registry not using new style calcs feature")
+        logger.info(
+            "recalc: will not recalculate cde as registry not using new style calcs feature"
+        )
         return
 
     cde_model = CommonDataElement.objects.get(code=cde_code)
     if cde_model.datatype != "calculated":
-        logger.error(f"cannot recalculate cde {cde_code} as it is not a calculated field")
+        logger.error(
+            f"cannot recalculate cde {cde_code} as it is not a calculated field"
+        )
         return
 
     calculation_func = getattr(cf, cde_code)
@@ -94,8 +106,7 @@ def recalculate_cde(patient_id, registry_code, context_id, form_name, section_co
         return
 
     def get_patient_dict(patient_model):
-        return {"patient_id": patient_model.id,
-                "registry_code": registry.code}
+        return {"patient_id": patient_model.id, "registry_code": registry.code}
 
     patient_model = Patient.objects.get(id=patient_id)
     patient_dict = get_patient_dict(patient_model)
@@ -120,12 +131,9 @@ def recalculate_cde(patient_id, registry_code, context_id, form_name, section_co
                             return value
 
     def save_result(result):
-        patient_model.set_form_value(registry_code,
-                                     form_name,
-                                     section_code,
-                                     cde_code,
-                                     result,
-                                     context_model)
+        patient_model.set_form_value(
+            registry_code, form_name, section_code, cde_code, result, context_model
+        )
         logger.info(f"recalc successful")
 
     input_cde_codes = get_input_cde_codes_func()
@@ -146,3 +154,6 @@ def recalculate_cde(patient_id, registry_code, context_id, form_name, section_co
     # now save the result
     save_result(updated_result)
     logger.info(f"DONE {msg} new value = [{updated_result}]")
+
+
+logger.info("registered tasks")
