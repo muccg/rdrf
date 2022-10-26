@@ -5,11 +5,15 @@ import dash
 import logging
 from django_plotly_dash import DjangoDash
 import plotly.express as px
+from django.contrib.auth.decorators import login_required
+from rdrf.helpers.utils import anonymous_not_allowed
 
 logger = logging.getLogger(__name__)
 
 
 class PatientsDashboardView(View):
+    @method_decorator(anonymous_not_allowed)
+    @login_required_method
     def get(self, request):
         context = {}
         app = DjangoDash("SimpleExample")  # replaces dash.Dash
