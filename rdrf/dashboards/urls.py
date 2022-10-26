@@ -1,10 +1,12 @@
-from rdrf.views.dash_view import PatientsDashboardView
+from django.urls import re_path, include
+from .views import PatientsDashboardView
+
 
 urlpatterns = [
-    re_path("dash/", include("django_plotly_dash.urls")),
+    re_path("^dash/", include("django_plotly_dash.urls")),
     re_path(
-        r"^patientsdashboard/?$",
+        r"^patients/?$",
         PatientsDashboardView.as_view(),
-        name="patientsdashboard",
+        name="patients",
     ),
 ]
