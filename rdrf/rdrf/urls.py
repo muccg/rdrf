@@ -54,7 +54,6 @@ from rdrf.views.copyright_view import CopyrightView
 from rdrf.views.review_views import ReviewWizardLandingView
 from rdrf.views.custom_actions import CustomActionView
 from rdrf.views.test_view import TestView, TestDBView
-from rdrf.views.dash_view import PatientsDashboardView
 
 from rdrf.views.actions import ActionExecutorView
 import logging
