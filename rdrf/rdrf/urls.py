@@ -153,8 +153,6 @@ report_patterns = [
 ]
 
 normalpatterns += [
-    re_path("dash/", include("django_plotly_dash.urls")),
-    re_path(r"^dashboards/", include(("dashboards.urls", "dashboards"))),
     re_path(r"^reviews/?", ReviewWizardLandingView.as_view(), name="wizard_landing"),
     re_path(r"^actions/?", ActionExecutorView.as_view(), name="action"),
     re_path(
@@ -457,6 +455,14 @@ normalpatterns += [
     ),
     re_path(r"session_security/", include("session_security.urls")),
 ]
+
+if not settings.IS_WORKER:
+    dash_patterns = [
+        re_path("^dash/", include("django_plotly_dash.urls")),
+        re_path(r"^dashboards/", include(("dashboards.urls", "dashboards"))),
+    ]
+    normalpatterns = dash_patterns + normalpatterns
+
 
 if settings.REGISTRATION_ENABLED:
     registry_urls = [

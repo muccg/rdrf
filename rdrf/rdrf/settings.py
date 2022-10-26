@@ -242,9 +242,14 @@ INSTALLED_APPS = [
     "two_factor",
     "django_user_agents",
     "formtools",
-    "django_plotly_dash.apps.DjangoPlotlyDashConfig",
-    "dashboards",
 ]
+
+IS_WORKER = env.get("is_worker", 0)
+
+if not IS_WORKER:
+    INSTALLED_APPS.append("django_plotly_dash.apps.DjangoPlotlyDashConfig")
+    INSTALLED_APPS.append("dashboards")
+
 
 # LDAP
 
@@ -889,6 +894,7 @@ CELERY_ACCEPT_CONTENT = ["json", "pickle"]
 CELERY_TASK_SERIALIZER = "json"
 CELERY_RESULT_SERIALIZER = "json"
 CELERY_TIMEZONE = TIME_ZONE
+CELERY_IS_WORKER = True
 CELERY_IMPORTS = (
     "rdrf.celery",
     "rdrf.services.tasks",
