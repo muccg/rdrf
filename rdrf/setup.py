@@ -6,7 +6,7 @@ start_dir = os.getcwd()
 requirements = [
     "svglib==1.2.1",
     "ccg-django-utils==0.4.2",
-    "celery==5.1.0",
+    "celery==5.2.7",
     "Django==3.2.15",
     "django-anymail==8.1",
     "django-ajax-selects==2.2.0",
@@ -58,7 +58,7 @@ requirements = [
     "Markdown==3.1.1",
     "xhtml2pdf==0.2.6",
     "django-redis==4.12.1",
-    "kombu==5.0.2",
+    "kombu==5.2.4",
     "django-csp==3.7",
     "hl7==0.4.5",
     "pandas==1.5.0",

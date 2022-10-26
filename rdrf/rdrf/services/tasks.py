@@ -28,7 +28,12 @@ def run_custom_action(custom_action_id, user_id, patient_id, input_data):
 
     user = CustomUser.objects.get(id=user_id)
     logger.debug("user = %s" % user)
-    custom_action = CustomAction.objects.get(id=custom_action_id)
+    try:
+        custom_action = CustomAction.objects.get(id=custom_action_id)
+    except CustomAction.DoesNotExist:
+        logger.error(f"can't run custom action {custom_action_id} as it doesn't exist")
+        return
+        
 
     logger.debug("running custom action execute")
     return custom_action.execute(user, patient_model, input_data)
