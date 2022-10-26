@@ -242,12 +242,9 @@ INSTALLED_APPS = [
     "two_factor",
     "django_user_agents",
     "formtools",
+    "django_plotly_dash.apps.DjangoPlotlyDashConfig",
+    "dashboards",
 ]
-
-if env.get("main_app", 0) == 1:
-    INSTALLED_APPS.append("django_plotly_dash.apps.DjangoPlotlyDashConfig")
-    INSTALLED_APPS.append("dashboards")
-
 
 # LDAP
 
