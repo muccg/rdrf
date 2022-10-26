@@ -68,6 +68,5 @@ class PatientsDashboardView(View):
     @login_required_method
     def get(self, request):
         context = {}
-        app = get_test_app()
-        logger.debug("app ={app}")
+        _ = get_test_app()
         return render(request, "rdrf_cdes/patients_dashboard.html", context)
