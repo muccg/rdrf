@@ -7,8 +7,10 @@ from django_plotly_dash import DjangoDash
 import plotly.express as px
 from django.contrib.auth.decorators import login_required
 from rdrf.helpers.utils import anonymous_not_allowed
+from django.utils.decorators import method_decorator
 
 logger = logging.getLogger(__name__)
+login_required_method = method_decorator(login_required)
 
 
 class PatientsDashboardView(View):
