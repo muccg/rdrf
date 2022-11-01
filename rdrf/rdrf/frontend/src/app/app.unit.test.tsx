@@ -6,9 +6,18 @@ import thunk from "redux-thunk";
 import moxios from "moxios";
 import * as actions from "../pages/proms_page/reducers";
 import App from "./index";
+import { Type } from "typescript";
 
 const devtoolsExtension = "__REDUX_DEVTOOLS_EXTENSION_COMPOSE__";
 const composeEnhancers = window[devtoolsExtension] || compose;
+
+function sel(h: HTMLElement): HTMLInputElement {
+  return h as HTMLInputElement;
+}
+
+function btn(h: HTMLElement) : HTMLButtonElement {
+  return h as HTMLButtonElement;
+}
 
 /*
 const unsubscribe = testStore.subscribe(() =>
@@ -19,6 +28,7 @@ const unsubscribe = testStore.subscribe(() =>
 const regQ1String = "registryQ1";
 const regQ4String = "registryQ4";
 const regQ5String = "registryQ5";
+
 
 let actionList = [];
 const captureAction = state => next => action => {
@@ -270,7 +280,8 @@ describe("Component tests: A test App using Redux", () => {
         expect(screen.getByText("Question", { exact: false }).innerHTML).toEqual(
           expect.stringContaining("1")
         );
-        expect(screen.getByText("Previous").disabled).toEqual(true);
+        const previousBtn = screen.getByText("Previous") as HTMLButtonElement | null;
+        expect(previousBtn.disabled).toEqual(true);
       });
 
       /*
@@ -287,7 +298,7 @@ describe("Component tests: A test App using Redux", () => {
         );
 
         // act(()=>{testStore.dispatch(actions.goNext());});
-        const nextButton = screen.getByText("Next");
+        const nextButton = btn(screen.getByText("Next"));
         fireEvent.click(nextButton);
 
         rerender(
@@ -339,8 +350,10 @@ describe("Component tests: A test App using Redux", () => {
         expect(screen.getByText("Question", { exact: false }).innerHTML).toEqual(
           expect.stringContaining("1")
         );
-        expect(screen.getByText("Previous").disabled).toEqual(true);
-        expect(screen.getByText("Next").disabled).toEqual(false);
+        const previousBtn = screen.getByText("Previous") as HTMLButtonElement | null;
+        expect(previousBtn.disabled).toEqual(true);
+        const nextBtn = screen.getByText("Next") as HTMLButtonElement | null;
+        expect(nextBtn.disabled).toEqual(false);
         expect(testStore.getState().stage).toEqual(0);
 
         // Change to clicking Next button?
@@ -354,8 +367,9 @@ describe("Component tests: A test App using Redux", () => {
         expect(screen.getByText("Question", { exact: false }).innerHTML).toEqual(
           expect.stringContaining("2")
         );
-        expect(screen.getByText("Previous").disabled).toEqual(false);
-        expect(screen.getByText("Next").disabled).toEqual(false);
+        
+        expect(previousBtn.disabled).toEqual(false);
+        expect(nextBtn.disabled).toEqual(false);
         expect(testStore.getState().stage).toEqual(1);
 
         act(()=>{testStore.dispatch(actions.goNext());});
@@ -366,7 +380,8 @@ describe("Component tests: A test App using Redux", () => {
           </Provider>
         );
         expect(screen.getByText("Consent")).toBeDefined();
-        expect(screen.getByText("Previous").disabled).toEqual(false);
+
+        expect(previousBtn.disabled).toEqual(false);
         expect(() => {
           screen.getByText("Next");
         }).toThrow();
@@ -386,7 +401,9 @@ describe("Component tests: A test App using Redux", () => {
           </Provider>
         );
         const answer1Select = screen.getByLabelText("Answer 1", { exact: false });
-        expect(answer1Select.checked).toEqual(false);
+        const answer1Sel = answer1Select as HTMLInputElement;
+
+        expect(answer1Sel.checked).toEqual(false);
         
         // Unsure which to use - both work
         fireEvent.click(answer1Select);
@@ -397,7 +414,7 @@ describe("Component tests: A test App using Redux", () => {
             <App />
           </Provider>
         );
-        expect(answer1Select.checked).toEqual(true);
+        expect(answer1Sel.checked).toEqual(true);
         expect(testStore.getState().answers).toHaveProperty("registryQ1");
       });
 
@@ -413,9 +430,10 @@ describe("Component tests: A test App using Redux", () => {
         expect(screen.getByText("title", { exact: false }).innerHTML).toEqual(
           expect.stringContaining("Question 1")
         );
-        expect(screen.getByText("Previous").disabled).toEqual(true);
-        const nextButton = screen.getByText("Next");
-        expect(nextButton.disabled).toEqual(false);
+        expect((screen.getByText("Previous") as HTMLButtonElement).disabled).toEqual(true);
+        
+        const nextButton = btn(screen.getByText("Next"));
+        expect((nextButton as HTMLButtonElement).disabled).toEqual(false);
         expect(testStore.getState().stage).toEqual(0);
 
         // Change to clicking Next button?
@@ -430,8 +448,8 @@ describe("Component tests: A test App using Redux", () => {
         expect(screen.getByText("title", { exact: false }).innerHTML).toEqual(
           expect.stringContaining("Question 2")
         );
-        expect(screen.getByText("Previous").disabled).toEqual(false);
-        expect(nextButton.disabled).toEqual(false);
+        expect((screen.getByText("Previous") as HTMLButtonElement).disabled).toEqual(false);
+        expect((nextButton as HTMLButtonElement).disabled).toEqual(false);
         expect(testStore.getState().stage).toEqual(1);
 
         // act(()=>{testStore.dispatch(actions.goNext());});
@@ -445,8 +463,8 @@ describe("Component tests: A test App using Redux", () => {
         expect(screen.getByText("title", { exact: false }).innerHTML).toEqual(
           expect.stringContaining("Question 3")
         );
-        expect(screen.getByText("Previous").disabled).toEqual(false);
-        expect(nextButton.disabled).toEqual(false);
+        expect((screen.getByText("Previous") as HTMLButtonElement).disabled).toEqual(false);
+        expect((nextButton as HTMLButtonElement).disabled).toEqual(false);
         expect(testStore.getState().stage).toEqual(2);
 
         // act(()=>{testStore.dispatch(actions.goNext());});
@@ -458,7 +476,7 @@ describe("Component tests: A test App using Redux", () => {
           </Provider>
         );
         expect(screen.getByText("Consent")).toBeDefined();
-        expect(screen.getByText("Previous").disabled).toEqual(false);
+        expect((screen.getByText("Previous") as HTMLButtonElement).disabled).toEqual(false);
         expect(() => {
           screen.getByText("Next");
         }).toThrow();
@@ -479,10 +497,10 @@ describe("Component tests: A test App using Redux", () => {
           </Provider>
         );
 
-        let answer1Select = screen.getByLabelText("Answer 1", { exact: false });
-        let answer2Select = screen.getByLabelText("Answer 2", { exact: false });
-        const nextButton = screen.getByText("Next");
-        const prevButton = screen.getByText("Previous");
+        let answer1Select = (screen.getByLabelText("Answer 1", { exact: false }) as HTMLInputElement);
+        let answer2Select = (screen.getByLabelText("Answer 2", { exact: false }) as HTMLInputElement);
+        const nextButton = btn(screen.getByText("Next"));
+        const prevButton = btn(screen.getByText("Previous"));
 
         // We expect Answer 1 to be selected from Test 6
         expect(answer1Select.checked).toEqual(true);
@@ -571,11 +589,11 @@ describe("Component tests: A test App using Redux", () => {
         expect(screen.getByText("title", { exact: false }).innerHTML).toEqual(
           expect.stringContaining("Question 3")
         );
-        const nextButton = screen.getByText("Next");
-        const prevButton = screen.getByText("Previous");
-        let goodAnswerSelect = screen.getByLabelText("Good");
-        let notGoodSelect = screen.getByLabelText("Not so good");
-        let badAnswerSelect = screen.getByLabelText("Bad");
+        const nextButton = btn(screen.getByText("Next"));
+        const prevButton = btn(screen.getByText("Previous"));
+        let goodAnswerSelect = (screen.getByLabelText("Good") as HTMLInputElement);
+        let notGoodSelect = (screen.getByLabelText("Not so good") as HTMLInputElement);
+        let badAnswerSelect = (screen.getByLabelText("Bad") as HTMLInputElement);
 
         expect(goodAnswerSelect.checked).toEqual(false);
         expect(notGoodSelect.checked).toEqual(false);
@@ -600,8 +618,8 @@ describe("Component tests: A test App using Redux", () => {
         expect(screen.getByText("title", { exact: false }).innerHTML).toEqual(
           expect.stringContaining("Question 3")
         );
-        goodAnswerSelect = screen.getByLabelText("Good");
-        notGoodSelect = screen.getByLabelText("Not so good");
+        goodAnswerSelect = sel(screen.getByLabelText("Good"));
+        notGoodSelect = sel(screen.getByLabelText("Not so good"));
         badAnswerSelect = screen.getByLabelText("Bad");
 
         fireEvent.click(goodAnswerSelect);
@@ -639,11 +657,11 @@ describe("Component tests: A test App using Redux", () => {
         expect(screen.getByText("title", { exact: false }).innerHTML).toEqual(
           expect.stringContaining("Question 3")
         );
-        const nextButton = screen.getByText("Next");
-        const prevButton = screen.getByText("Previous");
-        let goodAnswerSelect = screen.getByLabelText("Good");
-        let notGoodSelect = screen.getByLabelText("Not so good");
-        let badAnswerSelect = screen.getByLabelText("Bad");
+        const nextButton = btn(screen.getByText("Next"));
+        const prevButton = btn(screen.getByText("Previous"));
+        let goodAnswerSelect =sel(screen.getByLabelText("Good"));
+        let notGoodSelect = sel(screen.getByLabelText("Not so good"));
+        let badAnswerSelect = sel(screen.getByLabelText("Bad"));
 
         expect(goodAnswerSelect.checked).toEqual(true);
         expect(notGoodSelect.checked).toEqual(false);
@@ -707,11 +725,11 @@ describe("Component tests: A test App using Redux", () => {
         expect(screen.getByText("title", { exact: false }).innerHTML).toEqual(
           expect.stringContaining("Question 3")
         );
-        const nextButton = screen.getByText("Next");
-        const prevButton = screen.getByText("Previous");
-        let goodAnswerSelect = screen.getByLabelText("Good");
-        let notGoodSelect = screen.getByLabelText("Not so good");
-        let badAnswerSelect = screen.getByLabelText("Bad");
+        const nextButton = btn(screen.getByText("Next"));
+        const prevButton = btn(screen.getByText("Previous"));
+        let goodAnswerSelect = sel(screen.getByLabelText("Good"));
+        let notGoodSelect = sel(screen.getByLabelText("Not so good"));
+        let badAnswerSelect = sel(screen.getByLabelText("Bad"));
 
         expect(goodAnswerSelect.checked).toEqual(false);
         expect(notGoodSelect.checked).toEqual(true);
@@ -778,12 +796,12 @@ describe("Component tests: A test App using Redux", () => {
           expect.stringContaining("Question 4")
         );
 
-        const nextButton = screen.getByText("Next");
-        const prevButton = screen.getByText("Previous");
-        let workSelect = screen.getByLabelText("Work is stressful");
-        let friendsSelect = screen.getByLabelText("Can't see my friends");
-        let reactSelect = screen.getByLabelText("React is difficult");
-        let daySelect = screen.getByLabelText("Just a bad day");
+        const nextButton = btn(screen.getByText("Next"));
+        const prevButton = btn(screen.getByText("Previous"));
+        let workSelect = sel(sel(screen.getByLabelText("Work is stressful")));
+        let friendsSelect = sel(sel(screen.getByLabelText("Can't see my friends")));
+        let reactSelect = sel(sel(screen.getByLabelText("React is difficult")));
+        let daySelect = sel(sel(screen.getByLabelText("Just a bad day")));
 
         expect(workSelect.checked).toEqual(false);
         expect(friendsSelect.checked).toEqual(false);
@@ -809,10 +827,10 @@ describe("Component tests: A test App using Redux", () => {
         expect(screen.getByText("title", { exact: false }).innerHTML).toEqual(
           expect.stringContaining("Question 4")
         );
-        workSelect = screen.getByLabelText("Work is stressful");
-        friendsSelect = screen.getByLabelText("Can't see my friends");
-        reactSelect = screen.getByLabelText("React is difficult");
-        daySelect = screen.getByLabelText("Just a bad day");
+        workSelect = sel(screen.getByLabelText("Work is stressful"));
+        friendsSelect = sel(screen.getByLabelText("Can't see my friends"));
+        reactSelect = sel(screen.getByLabelText("React is difficult"));
+        daySelect = sel(screen.getByLabelText("Just a bad day"));
 
         fireEvent.click(workSelect);
         rerender(
@@ -852,12 +870,12 @@ describe("Component tests: A test App using Redux", () => {
           expect.stringContaining("Question 4")
         );
 
-        const nextButton = screen.getByText("Next");
-        const prevButton = screen.getByText("Previous");
-        let workSelect = screen.getByLabelText("Work is stressful");
-        let friendsSelect = screen.getByLabelText("Can't see my friends");
-        let reactSelect = screen.getByLabelText("React is difficult");
-        let daySelect = screen.getByLabelText("Just a bad day");
+        const nextButton = btn(screen.getByText("Next"));
+        const prevButton = btn(screen.getByText("Previous"));
+        let workSelect = sel(sel(screen.getByLabelText("Work is stressful")));
+        let friendsSelect = sel(sel(screen.getByLabelText("Can't see my friends")));
+        let reactSelect = sel(sel(screen.getByLabelText("React is difficult")));
+        let daySelect = sel(sel(screen.getByLabelText("Just a bad day")));
 
         expect(workSelect.checked).toEqual(true);
         expect(friendsSelect.checked).toEqual(false);
@@ -883,10 +901,10 @@ describe("Component tests: A test App using Redux", () => {
         expect(screen.getByText("title", { exact: false }).innerHTML).toEqual(
           expect.stringContaining("Question 4")
         );
-        workSelect = screen.getByLabelText("Work is stressful");
-        friendsSelect = screen.getByLabelText("Can't see my friends");
-        reactSelect = screen.getByLabelText("React is difficult");
-        daySelect = screen.getByLabelText("Just a bad day");
+        workSelect = sel(screen.getByLabelText("Work is stressful"));
+        friendsSelect = sel(screen.getByLabelText("Can't see my friends"));
+        reactSelect = sel(screen.getByLabelText("React is difficult"));
+        daySelect = sel(screen.getByLabelText("Just a bad day"));
 
         fireEvent.click(friendsSelect);
         rerender(
@@ -926,12 +944,12 @@ describe("Component tests: A test App using Redux", () => {
           expect.stringContaining("Question 4")
         );
 
-        const nextButton = screen.getByText("Next");
-        const prevButton = screen.getByText("Previous");
-        let workSelect = screen.getByLabelText("Work is stressful");
-        let friendsSelect = screen.getByLabelText("Can't see my friends");
-        let reactSelect = screen.getByLabelText("React is difficult");
-        let daySelect = screen.getByLabelText("Just a bad day");
+        const nextButton = btn(screen.getByText("Next"));
+        const prevButton = btn(screen.getByText("Previous"));
+        let workSelect = sel(screen.getByLabelText("Work is stressful"));
+        let friendsSelect = sel(screen.getByLabelText("Can't see my friends"));
+        let reactSelect = sel(screen.getByLabelText("React is difficult"));
+        let daySelect = sel(screen.getByLabelText("Just a bad day"));
 
         expect(workSelect.checked).toEqual(true);
         expect(friendsSelect.checked).toEqual(true);
@@ -957,10 +975,10 @@ describe("Component tests: A test App using Redux", () => {
         expect(screen.getByText("title", { exact: false }).innerHTML).toEqual(
           expect.stringContaining("Question 4")
         );
-        workSelect = screen.getByLabelText("Work is stressful");
-        friendsSelect = screen.getByLabelText("Can't see my friends");
-        reactSelect = screen.getByLabelText("React is difficult");
-        daySelect = screen.getByLabelText("Just a bad day");
+        workSelect = sel(screen.getByLabelText("Work is stressful"));
+        friendsSelect = sel(screen.getByLabelText("Can't see my friends"));
+        reactSelect = sel(screen.getByLabelText("React is difficult"));
+        daySelect = sel(screen.getByLabelText("Just a bad day"));
 
         fireEvent.click(workSelect);
         rerender(
@@ -1006,12 +1024,12 @@ describe("Component tests: A test App using Redux", () => {
           expect.stringContaining("Question 4")
         );
 
-        const nextButton = screen.getByText("Next");
-        const prevButton = screen.getByText("Previous");
-        let workSelect = screen.getByLabelText("Work is stressful");
-        let friendsSelect = screen.getByLabelText("Can't see my friends");
-        let reactSelect = screen.getByLabelText("React is difficult");
-        let daySelect = screen.getByLabelText("Just a bad day");
+        const nextButton = btn(screen.getByText("Next"));
+        const prevButton = btn(screen.getByText("Previous"));
+        let workSelect = sel(screen.getByLabelText("Work is stressful"));
+        let friendsSelect = sel(screen.getByLabelText("Can't see my friends"));
+        let reactSelect = sel(screen.getByLabelText("React is difficult"));
+        let daySelect = sel(screen.getByLabelText("Just a bad day"));
 
         expect(workSelect.checked).toEqual(false);
         expect(friendsSelect.checked).toEqual(true);
@@ -1037,10 +1055,10 @@ describe("Component tests: A test App using Redux", () => {
         expect(screen.getByText("title", { exact: false }).innerHTML).toEqual(
           expect.stringContaining("Question 4")
         );
-        workSelect = screen.getByLabelText("Work is stressful");
-        friendsSelect = screen.getByLabelText("Can't see my friends");
-        reactSelect = screen.getByLabelText("React is difficult");
-        daySelect = screen.getByLabelText("Just a bad day");
+        workSelect = sel(screen.getByLabelText("Work is stressful"));
+        friendsSelect = sel(screen.getByLabelText("Can't see my friends"));
+        reactSelect = sel(screen.getByLabelText("React is difficult"));
+        daySelect = sel(screen.getByLabelText("Just a bad day"));
 
         fireEvent.click(reactSelect);
         rerender(
@@ -1075,10 +1093,10 @@ describe("Component tests: A test App using Redux", () => {
         expect(screen.getByText("title", { exact: false }).innerHTML).toEqual(
           expect.stringContaining("Question 4")
         );
-        workSelect = screen.getByLabelText("Work is stressful");
-        friendsSelect = screen.getByLabelText("Can't see my friends");
-        reactSelect = screen.getByLabelText("React is difficult");
-        daySelect = screen.getByLabelText("Just a bad day");
+        workSelect = sel(screen.getByLabelText("Work is stressful"));
+        friendsSelect = sel(screen.getByLabelText("Can't see my friends"));
+        reactSelect = sel(screen.getByLabelText("React is difficult"));
+        daySelect = sel(screen.getByLabelText("Just a bad day"));
 
         fireEvent.click(friendsSelect);
         rerender(
@@ -1113,10 +1131,10 @@ describe("Component tests: A test App using Redux", () => {
         expect(screen.getByText("title", { exact: false }).innerHTML).toEqual(
           expect.stringContaining("Question 4")
         );
-        workSelect = screen.getByLabelText("Work is stressful");
-        friendsSelect = screen.getByLabelText("Can't see my friends");
-        reactSelect = screen.getByLabelText("React is difficult");
-        daySelect = screen.getByLabelText("Just a bad day");
+        workSelect = sel(screen.getByLabelText("Work is stressful"));
+        friendsSelect = sel(screen.getByLabelText("Can't see my friends"));
+        reactSelect = sel(screen.getByLabelText("React is difficult"));
+        daySelect = sel(screen.getByLabelText("Just a bad day"));
 
         fireEvent.click(workSelect);
         rerender(
@@ -1151,10 +1169,10 @@ describe("Component tests: A test App using Redux", () => {
         expect(screen.getByText("title", { exact: false }).innerHTML).toEqual(
           expect.stringContaining("Question 4")
         );
-        workSelect = screen.getByLabelText("Work is stressful");
-        friendsSelect = screen.getByLabelText("Can't see my friends");
-        reactSelect = screen.getByLabelText("React is difficult");
-        daySelect = screen.getByLabelText("Just a bad day");
+        workSelect = sel(screen.getByLabelText("Work is stressful"));
+        friendsSelect = sel(screen.getByLabelText("Can't see my friends"));
+        reactSelect = sel(screen.getByLabelText("React is difficult"));
+        daySelect = sel(screen.getByLabelText("Just a bad day"));
 
         fireEvent.click(workSelect);
         rerender(
@@ -1199,12 +1217,12 @@ describe("Component tests: A test App using Redux", () => {
           expect.stringContaining("Question 5")
         );
 
-        const nextButton = screen.getByText("Next");
-        const prevButton = screen.getByText("Previous");
-        let hardToReadSelect = screen.getByLabelText("It's hard to read");
-        let dependenciesSelect = screen.getByLabelText("It has too many dependencies");
-        let facebookSelect = screen.getByLabelText("It's made by Facebook");
-        let noUnderstandingSelect = screen.getByLabelText("I don't understand it");
+        const nextButton = btn(screen.getByText("Next"));
+        const prevButton = btn(screen.getByText("Previous"));
+        let hardToReadSelect = sel(screen.getByLabelText("It's hard to read"));
+        let dependenciesSelect = sel(screen.getByLabelText("It has too many dependencies"));
+        let facebookSelect = sel(screen.getByLabelText("It's made by Facebook"));
+        let noUnderstandingSelect = sel(screen.getByLabelText("I don't understand it"));
 
         expect(hardToReadSelect.checked).toEqual(false);
         expect(dependenciesSelect.checked).toEqual(false);
@@ -1230,10 +1248,10 @@ describe("Component tests: A test App using Redux", () => {
         expect(screen.getByText("title", { exact: false }).innerHTML).toEqual(
           expect.stringContaining("Question 5")
         );
-        hardToReadSelect = screen.getByLabelText("It's hard to read");
-        dependenciesSelect = screen.getByLabelText("It has too many dependencies");
-        facebookSelect = screen.getByLabelText("It's made by Facebook");
-        noUnderstandingSelect = screen.getByLabelText("I don't understand it");
+        hardToReadSelect = sel(screen.getByLabelText("It's hard to read"));
+        dependenciesSelect = sel(screen.getByLabelText("It has too many dependencies"));
+        facebookSelect = sel(screen.getByLabelText("It's made by Facebook"));
+        noUnderstandingSelect = sel(screen.getByLabelText("I don't understand it"));
 
         fireEvent.click(hardToReadSelect);
         rerender(
@@ -1270,12 +1288,12 @@ describe("Component tests: A test App using Redux", () => {
           expect.stringContaining("Question 5")
         );
 
-        const nextButton = screen.getByText("Next");
-        const prevButton = screen.getByText("Previous");
-        let hardToReadSelect = screen.getByLabelText("It's hard to read");
-        let dependenciesSelect = screen.getByLabelText("It has too many dependencies");
-        let facebookSelect = screen.getByLabelText("It's made by Facebook");
-        let noUnderstandingSelect = screen.getByLabelText("I don't understand it");
+        const nextButton = btn(screen.getByText("Next"));
+        const prevButton = btn(screen.getByText("Previous"));
+        let hardToReadSelect = sel(screen.getByLabelText("It's hard to read"));
+        let dependenciesSelect = sel(screen.getByLabelText("It has too many dependencies"));
+        let facebookSelect = sel(screen.getByLabelText("It's made by Facebook"));
+        let noUnderstandingSelect = sel(screen.getByLabelText("I don't understand it"));
 
         expect(hardToReadSelect.checked).toEqual(true);
         expect(dependenciesSelect.checked).toEqual(false);
@@ -1301,10 +1319,10 @@ describe("Component tests: A test App using Redux", () => {
         expect(screen.getByText("title", { exact: false }).innerHTML).toEqual(
           expect.stringContaining("Question 5")
         );
-        hardToReadSelect = screen.getByLabelText("It's hard to read");
-        dependenciesSelect = screen.getByLabelText("It has too many dependencies");
-        facebookSelect = screen.getByLabelText("It's made by Facebook");
-        noUnderstandingSelect = screen.getByLabelText("I don't understand it");
+        hardToReadSelect = sel(screen.getByLabelText("It's hard to read"));
+        dependenciesSelect = sel(screen.getByLabelText("It has too many dependencies"));
+        facebookSelect = sel(screen.getByLabelText("It's made by Facebook"));
+        noUnderstandingSelect = sel(screen.getByLabelText("I don't understand it"));
 
         fireEvent.click(noUnderstandingSelect);
         rerender(
@@ -1341,12 +1359,12 @@ describe("Component tests: A test App using Redux", () => {
           expect.stringContaining("Question 5")
         );
 
-        const nextButton = screen.getByText("Next");
-        const prevButton = screen.getByText("Previous");
-        let hardToReadSelect = screen.getByLabelText("It's hard to read");
-        let dependenciesSelect = screen.getByLabelText("It has too many dependencies");
-        let facebookSelect = screen.getByLabelText("It's made by Facebook");
-        let noUnderstandingSelect = screen.getByLabelText("I don't understand it");
+        const nextButton = btn(screen.getByText("Next"));
+        const prevButton = btn(screen.getByText("Previous"));
+        let hardToReadSelect = sel(screen.getByLabelText("It's hard to read"));
+        let dependenciesSelect = sel(screen.getByLabelText("It has too many dependencies"));
+        let facebookSelect = sel(screen.getByLabelText("It's made by Facebook"));
+        let noUnderstandingSelect = sel(screen.getByLabelText("I don't understand it"));
 
         expect(hardToReadSelect.checked).toEqual(true);
         expect(dependenciesSelect.checked).toEqual(false);
@@ -1372,10 +1390,10 @@ describe("Component tests: A test App using Redux", () => {
         expect(screen.getByText("title", { exact: false }).innerHTML).toEqual(
           expect.stringContaining("Question 5")
         );
-        hardToReadSelect = screen.getByLabelText("It's hard to read");
-        dependenciesSelect = screen.getByLabelText("It has too many dependencies");
-        facebookSelect = screen.getByLabelText("It's made by Facebook");
-        noUnderstandingSelect = screen.getByLabelText("I don't understand it");
+        hardToReadSelect = sel(screen.getByLabelText("It's hard to read"));
+        dependenciesSelect = sel(screen.getByLabelText("It has too many dependencies"));
+        facebookSelect = sel(screen.getByLabelText("It's made by Facebook"));
+        noUnderstandingSelect = sel(screen.getByLabelText("I don't understand it"));
 
         fireEvent.click(dependenciesSelect);
         rerender(
@@ -1410,10 +1428,10 @@ describe("Component tests: A test App using Redux", () => {
         expect(screen.getByText("title", { exact: false }).innerHTML).toEqual(
           expect.stringContaining("Question 5")
         );
-        hardToReadSelect = screen.getByLabelText("It's hard to read");
-        dependenciesSelect = screen.getByLabelText("It has too many dependencies");
-        facebookSelect = screen.getByLabelText("It's made by Facebook");
-        noUnderstandingSelect = screen.getByLabelText("I don't understand it");
+        hardToReadSelect = sel(screen.getByLabelText("It's hard to read"));
+        dependenciesSelect = sel(screen.getByLabelText("It has too many dependencies"));
+        facebookSelect = sel(screen.getByLabelText("It's made by Facebook"));
+        noUnderstandingSelect = sel(screen.getByLabelText("I don't understand it"));
 
         fireEvent.click(hardToReadSelect);
         rerender(
@@ -1448,10 +1466,10 @@ describe("Component tests: A test App using Redux", () => {
         expect(screen.getByText("title", { exact: false }).innerHTML).toEqual(
           expect.stringContaining("Question 5")
         );
-        hardToReadSelect = screen.getByLabelText("It's hard to read");
-        dependenciesSelect = screen.getByLabelText("It has too many dependencies");
-        facebookSelect = screen.getByLabelText("It's made by Facebook");
-        noUnderstandingSelect = screen.getByLabelText("I don't understand it");
+        hardToReadSelect = sel(screen.getByLabelText("It's hard to read"));
+        dependenciesSelect = sel(screen.getByLabelText("It has too many dependencies"));
+        facebookSelect = sel(screen.getByLabelText("It's made by Facebook"));
+        noUnderstandingSelect = sel(screen.getByLabelText("I don't understand it"));
 
         fireEvent.click(noUnderstandingSelect);
         rerender(
@@ -1486,10 +1504,10 @@ describe("Component tests: A test App using Redux", () => {
         expect(screen.getByText("title", { exact: false }).innerHTML).toEqual(
           expect.stringContaining("Question 5")
         );
-        hardToReadSelect = screen.getByLabelText("It's hard to read");
-        dependenciesSelect = screen.getByLabelText("It has too many dependencies");
-        facebookSelect = screen.getByLabelText("It's made by Facebook");
-        noUnderstandingSelect = screen.getByLabelText("I don't understand it");
+        hardToReadSelect = sel(screen.getByLabelText("It's hard to read"));
+        dependenciesSelect = sel(screen.getByLabelText("It has too many dependencies"));
+        facebookSelect = sel(screen.getByLabelText("It's made by Facebook"));
+        noUnderstandingSelect = sel(screen.getByLabelText("I don't understand it"));
 
         fireEvent.click(dependenciesSelect);
         rerender(
@@ -1538,12 +1556,12 @@ describe("Component tests: A test App using Redux", () => {
           expect.stringContaining("Question 5")
         );
 
-        const nextButton = screen.getByText("Next");
-        const prevButton = screen.getByText("Previous");
-        let hardToReadSelect = screen.getByLabelText("It's hard to read");
-        let dependenciesSelect = screen.getByLabelText("It has too many dependencies");
-        let facebookSelect = screen.getByLabelText("It's made by Facebook");
-        let noUnderstandingSelect = screen.getByLabelText("I don't understand it");
+        const nextButton = btn(screen.getByText("Next"));
+        const prevButton = btn(screen.getByText("Previous"));
+        let hardToReadSelect = sel(screen.getByLabelText("It's hard to read"));
+        let dependenciesSelect = sel(screen.getByLabelText("It has too many dependencies"));
+        let facebookSelect = sel(screen.getByLabelText("It's made by Facebook"));
+        let noUnderstandingSelect = sel(screen.getByLabelText("I don't understand it"));
 
         expect(hardToReadSelect.checked).toEqual(true);
         expect(dependenciesSelect.checked).toEqual(false);
@@ -1569,10 +1587,10 @@ describe("Component tests: A test App using Redux", () => {
         expect(screen.getByText("title", { exact: false }).innerHTML).toEqual(
           expect.stringContaining("Question 5")
         );
-        hardToReadSelect = screen.getByLabelText("It's hard to read");
-        dependenciesSelect = screen.getByLabelText("It has too many dependencies");
-        facebookSelect = screen.getByLabelText("It's made by Facebook");
-        noUnderstandingSelect = screen.getByLabelText("I don't understand it");
+        hardToReadSelect = sel(screen.getByLabelText("It's hard to read"));
+        dependenciesSelect = sel(screen.getByLabelText("It has too many dependencies"));
+        facebookSelect = sel(screen.getByLabelText("It's made by Facebook"));
+        noUnderstandingSelect = sel(screen.getByLabelText("I don't understand it"));
 
         fireEvent.click(facebookSelect);
         rerender(
@@ -1607,10 +1625,10 @@ describe("Component tests: A test App using Redux", () => {
         expect(screen.getByText("title", { exact: false }).innerHTML).toEqual(
           expect.stringContaining("Question 5")
         );
-        hardToReadSelect = screen.getByLabelText("It's hard to read");
-        dependenciesSelect = screen.getByLabelText("It has too many dependencies");
-        facebookSelect = screen.getByLabelText("It's made by Facebook");
-        noUnderstandingSelect = screen.getByLabelText("I don't understand it");
+        hardToReadSelect = sel(screen.getByLabelText("It's hard to read"));
+        dependenciesSelect = sel(screen.getByLabelText("It has too many dependencies"));
+        facebookSelect = sel(screen.getByLabelText("It's made by Facebook"));
+        noUnderstandingSelect = sel(screen.getByLabelText("I don't understand it"));
 
         fireEvent.click(hardToReadSelect);
         rerender(
@@ -1645,10 +1663,10 @@ describe("Component tests: A test App using Redux", () => {
         expect(screen.getByText("title", { exact: false }).innerHTML).toEqual(
           expect.stringContaining("Question 5")
         );
-        hardToReadSelect = screen.getByLabelText("It's hard to read");
-        dependenciesSelect = screen.getByLabelText("It has too many dependencies");
-        facebookSelect = screen.getByLabelText("It's made by Facebook");
-        noUnderstandingSelect = screen.getByLabelText("I don't understand it");
+        hardToReadSelect = sel(screen.getByLabelText("It's hard to read"));
+        dependenciesSelect = sel(screen.getByLabelText("It has too many dependencies"));
+        facebookSelect = sel(screen.getByLabelText("It's made by Facebook"));
+        noUnderstandingSelect = sel(screen.getByLabelText("I don't understand it"));
 
         fireEvent.click(noUnderstandingSelect);
         rerender(
@@ -1683,10 +1701,10 @@ describe("Component tests: A test App using Redux", () => {
         expect(screen.getByText("title", { exact: false }).innerHTML).toEqual(
           expect.stringContaining("Question 5")
         );
-        hardToReadSelect = screen.getByLabelText("It's hard to read");
-        dependenciesSelect = screen.getByLabelText("It has too many dependencies");
-        facebookSelect = screen.getByLabelText("It's made by Facebook");
-        noUnderstandingSelect = screen.getByLabelText("I don't understand it");
+        hardToReadSelect = sel(screen.getByLabelText("It's hard to read"));
+        dependenciesSelect = sel(screen.getByLabelText("It has too many dependencies"));
+        facebookSelect = sel(screen.getByLabelText("It's made by Facebook"));
+        noUnderstandingSelect = sel(screen.getByLabelText("I don't understand it"));
 
         fireEvent.click(facebookSelect);
         rerender(
@@ -1735,12 +1753,12 @@ describe("Component tests: A test App using Redux", () => {
           expect.stringContaining("Question 5")
         );
 
-        const nextButton = screen.getByText("Next");
-        const prevButton = screen.getByText("Previous");
-        let hardToReadSelect = screen.getByLabelText("It's hard to read");
-        let dependenciesSelect = screen.getByLabelText("It has too many dependencies");
-        let facebookSelect = screen.getByLabelText("It's made by Facebook");
-        let noUnderstandingSelect = screen.getByLabelText("I don't understand it");
+        const nextButton = btn(screen.getByText("Next"));
+        const prevButton = btn(screen.getByText("Previous"));
+        let hardToReadSelect = sel(screen.getByLabelText("It's hard to read"));
+        let dependenciesSelect = sel(screen.getByLabelText("It has too many dependencies"));
+        let facebookSelect = sel(screen.getByLabelText("It's made by Facebook"));
+        let noUnderstandingSelect = sel(screen.getByLabelText("I don't understand it"));
 
         expect(hardToReadSelect.checked).toEqual(true);
         expect(dependenciesSelect.checked).toEqual(false);
@@ -1766,10 +1784,10 @@ describe("Component tests: A test App using Redux", () => {
         expect(screen.getByText("title", { exact: false }).innerHTML).toEqual(
           expect.stringContaining("Question 5")
         );
-        hardToReadSelect = screen.getByLabelText("It's hard to read");
-        dependenciesSelect = screen.getByLabelText("It has too many dependencies");
-        facebookSelect = screen.getByLabelText("It's made by Facebook");
-        noUnderstandingSelect = screen.getByLabelText("I don't understand it");
+        hardToReadSelect = sel(screen.getByLabelText("It's hard to read"));
+        dependenciesSelect = sel(screen.getByLabelText("It has too many dependencies"));
+        facebookSelect = sel(screen.getByLabelText("It's made by Facebook"));
+        noUnderstandingSelect = sel(screen.getByLabelText("I don't understand it"));
 
         fireEvent.click(dependenciesSelect);
         rerender(
@@ -1842,9 +1860,9 @@ describe("Component tests: A test App using Redux", () => {
         </Provider>
       );
 
-      const numberBox = screen.getByRole("textbox");
-      const nextButton = screen.getByText("Next");
-      const prevButton = screen.getByText("Previous");
+      const numberBox = screen.getByRole("textbox") as HTMLInputElement;
+      const nextButton = btn(screen.getByText("Next"));
+      const prevButton = btn(screen.getByText("Previous"));
 
       expect(numberBox.value).toEqual("");
       expect(nextButton.disabled).toEqual(false);
@@ -1869,9 +1887,9 @@ describe("Component tests: A test App using Redux", () => {
         </Provider>
       );
 
-      const numberBox = screen.getByRole("textbox");
-      const nextButton = screen.getByText("Next");
-      const prevButton = screen.getByText("Previous");
+      const numberBox = screen.getByRole("textbox") as HTMLInputElement;
+      const nextButton = btn(screen.getByText("Next"));
+      const prevButton = btn(screen.getByText("Previous"));
 
       expect(numberBox.value).toEqual("3");
       expect(nextButton.disabled).toEqual(false);
@@ -1899,9 +1917,9 @@ describe("Component tests: A test App using Redux", () => {
         </Provider>
       );
 
-      const numberBox = screen.getByRole("textbox");
-      const nextButton = screen.getByText("Next");
-      const prevButton = screen.getByText("Previous");
+      const numberBox = screen.getByRole("textbox") as HTMLInputElement;
+      const nextButton = btn(screen.getByText("Next"));
+      const prevButton = btn(screen.getByText("Previous"));
 
       expect(numberBox.value).toEqual("3");
       expect(nextButton.disabled).toEqual(false);
@@ -2028,9 +2046,9 @@ describe("Component tests: A test App using Redux", () => {
         </Provider>
       );
 
-      const floatBox = screen.getByRole("textbox");
-      const nextButton = screen.getByText("Next");
-      const prevButton = screen.getByText("Previous");
+      const floatBox = screen.getByRole("textbox") as HTMLInputElement;
+      const nextButton = btn(screen.getByText("Next"));
+      const prevButton = btn(screen.getByText("Previous"));
 
       expect(floatBox.value).toEqual("");
       expect(nextButton.disabled).toEqual(false);
@@ -2055,9 +2073,9 @@ describe("Component tests: A test App using Redux", () => {
         </Provider>
       );
 
-      const floatBox = screen.getByRole("textbox");
-      const nextButton = screen.getByText("Next");
-      const prevButton = screen.getByText("Previous");
+      const floatBox = screen.getByRole("textbox") as HTMLInputElement;
+      const nextButton = btn(screen.getByText("Next"));
+      const prevButton = btn(screen.getByText("Previous"));
 
       expect(floatBox.value).toEqual("3");
       expect(nextButton.disabled).toEqual(false);
@@ -2082,9 +2100,9 @@ describe("Component tests: A test App using Redux", () => {
         </Provider>
       );
 
-      const floatBox = screen.getByRole("textbox");
-      const nextButton = screen.getByText("Next");
-      const prevButton = screen.getByText("Previous");
+      const floatBox = screen.getByRole("textbox") as HTMLInputElement;
+      const nextButton = btn(screen.getByText("Next"));
+      const prevButton = btn(screen.getByText("Previous"));
 
       expect(floatBox.value).toEqual("3.5");
       expect(nextButton.disabled).toEqual(false);
@@ -2133,9 +2151,9 @@ describe("Component tests: A test App using Redux", () => {
         </Provider>
       );
 
-      const answerBox = screen.getByRole("textbox");
-      const nextButton = screen.getByText("Next");
-      const prevButton = screen.getByText("Previous");
+      const answerBox = screen.getByRole("textbox") as HTMLInputElement;
+      const nextButton = btn(screen.getByText("Next"));
+      const prevButton = btn(screen.getByText("Previous"));
 
       expect(answerBox.value).toEqual("");
       expect(nextButton.disabled).toEqual(false);
@@ -2190,11 +2208,11 @@ describe("Component tests: A test App using Redux", () => {
         expect.stringContaining("Question 10")
       );
 
-      let dateBox: HTMLElement;
+      let dateBox: HTMLInputElement;
 
       expect(() => {
         // dateBox = screen.getByRole("datetime");
-        dateBox = screen.getByDisplayValue("");
+        dateBox = screen.getByDisplayValue("") as HTMLInputElement;
       }).not.toThrow();
       expect(dateBox.type).toEqual("date");
     });
@@ -2206,9 +2224,9 @@ describe("Component tests: A test App using Redux", () => {
         </Provider>
       );
 
-      const dateBox = screen.getByDisplayValue("");
-      const nextButton = screen.getByText("Next");
-      const prevButton = screen.getByText("Previous");
+      const dateBox = screen.getByDisplayValue("") as HTMLInputElement;
+      const nextButton = btn(screen.getByText("Next"));
+      const prevButton = btn(screen.getByText("Previous"));
 
       expect(dateBox.type).toEqual("date");
       expect(nextButton.disabled).toEqual(false);
@@ -2233,9 +2251,9 @@ describe("Component tests: A test App using Redux", () => {
         </Provider>
       );
 
-      const dateBox = screen.getByDisplayValue("1979-08-27");
-      const nextButton = screen.getByText("Next");
-      const prevButton = screen.getByText("Previous");
+      const dateBox = screen.getByDisplayValue("1979-08-27") as HTMLInputElement;
+      const nextButton = btn(screen.getByText("Next"));
+      const prevButton = btn(screen.getByText("Previous"));
 
       expect(dateBox.type).toEqual("date");
       expect(nextButton.disabled).toEqual(false);
@@ -2262,9 +2280,9 @@ describe("Component tests: A test App using Redux", () => {
         </Provider>
       );
 
-      const dateBox = screen.getByDisplayValue("1979-08-27");
-      const nextButton = screen.getByText("Next");
-      const prevButton = screen.getByText("Previous");
+      const dateBox = screen.getByDisplayValue("1979-08-27") as HTMLInputElement;
+      const nextButton = btn(screen.getByText("Next"));
+      const prevButton = btn(screen.getByText("Previous"));
 
       expect(dateBox.type).toEqual("date");
       expect(nextButton.disabled).toEqual(false);
@@ -2291,9 +2309,9 @@ describe("Component tests: A test App using Redux", () => {
         </Provider>
       );
 
-      const dateBox = screen.getByDisplayValue("1979-08-27");
-      const nextButton = screen.getByText("Next");
-      const prevButton = screen.getByText("Previous");
+      const dateBox = screen.getByDisplayValue("1979-08-27") as HTMLInputElement;
+      const nextButton = btn(screen.getByText("Next"));
+      const prevButton = btn(screen.getByText("Previous"));
 
       expect(dateBox.type).toEqual("date");
       expect(nextButton.disabled).toEqual(false);
@@ -2344,7 +2362,7 @@ describe("Component tests: A test App using Redux", () => {
         radioButtons = screen.getAllByRole("radio");
       }).not.toThrow();
       expect(radioButtons.length).toEqual(3);
-      radioButtons.forEach((rButton) => {
+      radioButtons.forEach((rButton : HTMLInputElement) => {
           expect(rButton.type).toEqual("radio");
           expect(rButton.checked).toEqual(false);
       });
@@ -2357,7 +2375,7 @@ describe("Component tests: A test App using Redux", () => {
         </Provider>
       );
 
-      const answer1Select = screen.getByLabelText("First answer");
+      const answer1Select = screen.getByLabelText("First answer") as HTMLInputElement;
       
       expect(answer1Select.checked).toEqual(false);
 
@@ -2378,8 +2396,8 @@ describe("Component tests: A test App using Redux", () => {
         </Provider>
       );
 
-      const answer1Select = screen.getByLabelText("First answer");
-      const answer2Select = screen.getByLabelText("Second answer");
+      const answer1Select = screen.getByLabelText("First answer") as HTMLInputElement;
+      const answer2Select = screen.getByLabelText("Second answer") as HTMLInputElement;
       
       expect(answer1Select.checked).toEqual(true);
       expect(answer2Select.checked).toEqual(false);
@@ -2415,7 +2433,7 @@ describe("Component tests: A test App using Redux", () => {
         checkboxes = screen.getAllByRole("checkbox");
       }).not.toThrow();
       expect(checkboxes.length).toEqual(4);
-      checkboxes.forEach((cBox) => {
+      checkboxes.forEach((cBox: HTMLInputElement) => {
           expect(cBox.type).toEqual("checkbox");
           expect(cBox.checked).toEqual(false);
       });
@@ -2428,7 +2446,7 @@ describe("Component tests: A test App using Redux", () => {
         </Provider>
       );
 
-      const answer1Select = screen.getByLabelText("First answer");
+      const answer1Select = screen.getByLabelText("First answer") as HTMLInputElement;
       
       expect(answer1Select.checked).toEqual(false);
 
@@ -2449,8 +2467,8 @@ describe("Component tests: A test App using Redux", () => {
         </Provider>
       );
 
-      const answer1Select = screen.getByLabelText("First answer");
-      const answer2Select = screen.getByLabelText("Second answer");
+      const answer1Select = screen.getByLabelText("First answer") as HTMLInputElement;
+      const answer2Select = screen.getByLabelText("Second answer") as HTMLInputElement;
       
       expect(answer1Select.checked).toEqual(true);
       expect(answer2Select.checked).toEqual(false);
@@ -2497,7 +2515,7 @@ describe("Component tests: A test App using Redux", () => {
         </Provider>
       );
 
-      const checkBox = screen.getByRole("checkbox");
+      const checkBox = screen.getByRole("checkbox") as HTMLInputElement;
       
       expect(checkBox.checked).toEqual(false);
 
@@ -2789,7 +2807,7 @@ describe('Action tests: the app', () => {
       </Provider>
     );
 
-    const nextButton = screen.getByText("Next");
+    const nextButton = btn(screen.getByText("Next"));
     fireEvent.click(nextButton);
 
     expect(actionList).toEqual(expectedActions);
@@ -2809,7 +2827,7 @@ describe('Action tests: the app', () => {
       </Provider>
     );
 
-    const prevButton = screen.getByText("Previous");
+    const prevButton = btn(screen.getByText("Previous"));
     fireEvent.click(prevButton);
 
     expect(actionList).toEqual(expectedActions);
@@ -2932,7 +2950,7 @@ describe('Action tests: the app', () => {
       </Provider>
     );
 
-    const answerBox = screen.getByRole("textbox");
+    const answerBox = screen.getByRole("textbox") as HTMLInputElement;
     fireEvent.change(answerBox, { target: { value: 'blah' } });
     fireEvent.change(answerBox, { target: { value: 'Hello world' } });
     fireEvent.change(answerBox, { target: { value: 12345 } });
@@ -3056,10 +3074,10 @@ describe('Navigational tests: the app', () => {
       expect.stringContaining("Question 1")
     );
 
-    const nextButton = screen.getByText("Next");
-    const prevButton = screen.getByText("Previous");
-    let answer1Select = screen.getByLabelText("Answer 1", { exact: false });
-    let answer2Select = screen.getByLabelText("Answer 2", { exact: false });
+    const nextButton = btn(screen.getByText("Next"));
+    const prevButton = btn(screen.getByText("Previous"));
+    let answer1Select = sel(screen.getByLabelText("Answer 1", { exact: false }));
+    let answer2Select = sel(screen.getByLabelText("Answer 2", { exact: false }));
 
     expect(nextButton.disabled).toEqual(false);
     expect(prevButton.disabled).toEqual(true);
@@ -3119,12 +3137,12 @@ describe('Navigational tests: the app', () => {
       expect.stringContaining("Question 4")
     );
 
-    const nextButton = screen.getByText("Next");
-    const prevButton = screen.getByText("Previous");
-    let workSelect = screen.getByLabelText("Work is stressful");
-    let friendsSelect = screen.getByLabelText("Can't see my friends");
-    let reactSelect = screen.getByLabelText("React is difficult");
-    let daySelect = screen.getByLabelText("Just a bad day");
+    const nextButton = btn(screen.getByText("Next"));
+    const prevButton = btn(screen.getByText("Previous"));
+    let workSelect = sel(screen.getByLabelText("Work is stressful"));
+    let friendsSelect = sel(screen.getByLabelText("Can't see my friends"));
+    let reactSelect = sel(screen.getByLabelText("React is difficult"));
+    let daySelect = sel(screen.getByLabelText("Just a bad day"));
 
     expect(workSelect.checked).toEqual(false);
     expect(friendsSelect.checked).toEqual(false);
@@ -3166,10 +3184,10 @@ describe('Navigational tests: the app', () => {
       expect.stringContaining("Question 4")
     );
     
-    workSelect = screen.getByLabelText("Work is stressful");
-    friendsSelect = screen.getByLabelText("Can't see my friends");
-    reactSelect = screen.getByLabelText("React is difficult");
-    daySelect = screen.getByLabelText("Just a bad day");
+    workSelect = sel(screen.getByLabelText("Work is stressful"));
+    friendsSelect = sel(screen.getByLabelText("Can't see my friends"));
+    reactSelect = sel(screen.getByLabelText("React is difficult"));
+    daySelect = sel(screen.getByLabelText("Just a bad day"));
     expect(workSelect.checked).toEqual(true);
     expect(friendsSelect.checked).toEqual(false);
     expect(reactSelect.checked).toEqual(true);
@@ -3193,9 +3211,9 @@ describe('Navigational tests: the app', () => {
       expect.stringContaining("Question 7")
     );
 
-    const nextButton = screen.getByText("Next");
-    const prevButton = screen.getByText("Previous");
-    let numBox = screen.getByRole("textbox");
+    const nextButton = btn(screen.getByText("Next"));
+    const prevButton = btn(screen.getByText("Previous"));
+    let numBox = screen.getByRole("textbox") as HTMLInputElement;
 
     expect(nextButton.disabled).toEqual(false);
     expect(prevButton.disabled).toEqual(false);
@@ -3248,8 +3266,8 @@ describe('Navigational tests: the app', () => {
       expect.stringContaining("Question 8")
     );
 
-    const nextButton = screen.getByText("Next");
-    const prevButton = screen.getByText("Previous");
+    const nextButton = btn(screen.getByText("Next"));
+    const prevButton = btn(screen.getByText("Previous"));
     const slideWidget = screen.getByRole("slider").parentElement;
     let slideHandle = screen.getByRole("slider");
 
@@ -3318,9 +3336,9 @@ describe('Navigational tests: the app', () => {
       expect.stringContaining("Question 9")
     );
 
-    const nextButton = screen.getByText("Next");
-    const prevButton = screen.getByText("Previous");
-    let floatBox = screen.getByRole("textbox");
+    const nextButton = btn(screen.getByText("Next"));
+    const prevButton = btn(screen.getByText("Previous"));
+    let floatBox = screen.getByRole("textbox") as HTMLInputElement;
 
     expect(nextButton.disabled).toEqual(false);
     expect(prevButton.disabled).toEqual(false);
@@ -3372,9 +3390,9 @@ describe('Navigational tests: the app', () => {
       expect.stringContaining("Question 10")
     );
 
-    const nextButton = screen.getByText("Next");
-    const prevButton = screen.getByText("Previous");
-    let dateBox = screen.getByDisplayValue("");
+    const nextButton = btn(screen.getByText("Next"));
+    const prevButton = btn(screen.getByText("Previous"));
+    let dateBox = screen.getByDisplayValue("") as HTMLInputElement;
     expect(dateBox.type).toEqual("date");
 
     expect(nextButton.disabled).toEqual(false);
@@ -3428,9 +3446,9 @@ describe('Navigational tests: the app', () => {
       expect.stringContaining("Question 11")
     );
 
-    const nextButton = screen.getByText("Next");
-    const prevButton = screen.getByText("Previous");
-    let consentBox = screen.getByRole("checkbox");
+    const nextButton = btn(screen.getByText("Next"));
+    const prevButton = btn(screen.getByText("Previous"));
+    let consentBox = screen.getByRole("checkbox") as HTMLInputElement;
 
     expect(consentBox.checked).toEqual(false);
 
@@ -3480,9 +3498,9 @@ describe('Navigational tests: the app', () => {
       expect.stringContaining("Question 2")
     );
 
-    const nextButton = screen.getByText("Next");
-    const prevButton = screen.getByText("Previous");
-    let textBox = screen.getByRole("textbox");
+    const nextButton = btn(screen.getByText("Next"));
+    const prevButton = btn(screen.getByText("Previous"));
+    let textBox = screen.getByRole("textbox") as HTMLInputElement;
 
     expect(nextButton.disabled).toEqual(false);
     expect(prevButton.disabled).toEqual(false);

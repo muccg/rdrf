@@ -1,5 +1,6 @@
 import * as _ from 'lodash';
-import Slider, { Handle } from 'rc-slider';
+import Slider from 'rc-slider';
+import Handle from 'rc-slider/lib/Handles/Handle'
 import 'rc-slider/assets/index.css';
 import Tooltip from "rc-tooltip";
 import * as React from 'react';
@@ -10,6 +11,7 @@ import { QuestionInterface } from './interfaces';
 
 import * as actions from '../reducers';
 
+type MarksType = {[key:number]: { style, label }};
 
 class Question extends React.Component<QuestionInterface, object> {
     constructor(props) {
@@ -133,9 +135,11 @@ class Question extends React.Component<QuestionInterface, object> {
         this.props.enterData(code, value, true);
     }
 
-    public getMarks = (question) => {
-        const minValue = question.spec.params.min;
-        const maxValue = question.spec.params.max;
+    
+
+    public getMarks = (question) : MarksType => {
+        const minValue :number = question.spec.params.min;
+        const maxValue : number = question.spec.params.max;
 
         const minMark = {
             [minValue]: {

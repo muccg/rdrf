@@ -9,8 +9,6 @@ import { applyMiddleware, compose, createStore } from 'redux';
 import thunk from 'redux-thunk';
 import { promsPageReducer } from './pages/proms_page/reducers';
 import { createRoot } from 'react-dom/client';
-
-
 import 'bootstrap/dist/css/bootstrap.min.css';
 
 const devtoolsExtension = '__REDUX_DEVTOOLS_EXTENSION_COMPOSE__';
