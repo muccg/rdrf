@@ -44,9 +44,9 @@ services:
     command: "watch"
     working_dir: /app/rdrf/rdrf/frontend
     environment:
-        YARN_CACHE_FOLDER: /opt/yarn_cache
+        YARN_CACHE_FOLDER: /data/yarn_cache
     volumes:
-      - ./yarn_cache:/opt/yarn_cache
+      - ./yarn_cache:/data/yarn_cache
     volumes_from:
       - datadev
 
@@ -57,6 +57,8 @@ services:
     environment:
       - DJANGO_FIXTURES=dev
       - DESIGN_MODE=1
+      - SYSTEM_ROLE=CIC_DEV
+      - PROMS_SECRET_TOKEN=xxxxxxxxxxxxxxxxxxxx
     volumes_from:
       - datadev
     ports:
