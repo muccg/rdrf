@@ -35,10 +35,10 @@ services:
       working_dir: /data/app/rdrf/rdrf/frontend
       command: build
       environment:
-          YARN_CACHE_FOLDER: /data/yarn_cache
+          YARN_CACHE_FOLDER: /frontendbuild/yarn_cache
       volumes:
         - ./build:/data
-        - ./yarn_cache:/data/yarn_cache
+        - ./yarn_cache:/frontendbuild/yarn_cache
 
 
   dev:
