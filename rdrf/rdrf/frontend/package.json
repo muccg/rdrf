@@ -45,13 +45,13 @@
   "scripts": {
     "start": "react-scripts start",
     "prebuild": "./prebuild.sh",
-    "build": "BUILD_PATH='/data/frontend/build' react-scripts build",
+    "build": "BUILD_PATH='/frontendbuild/build' react-scripts build",
     "postbuild": "./postbuild.sh",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
     "build-rename": "npm run build-rename-js && npm run build-rename-css",
-    "build-rename-js": "renamer --find '/main(.*)/' --replace 'main-bundle.min.js' /data/frontend/build/static/js/*.js && renamer --find '/runtime(.*)/' --replace 'runtime-bundle.min.js' /data/frontend/build/static/js/*.js && renamer --find '/^\\d(.*)/' --replace 'vendors-bundle.min.js' /data/frontend/build/static/js/*.js ",
-    "build-rename-css": "renamer --find '/main(.*)/' --replace 'main.css' /data/frontend/build/static/css/*.css  && renamer --find '/^\\d(.*)/' --replace 'vendors.css' /data/frontend/build/static/css/*.css ",
+    "build-rename-js": "renamer --find '/main(.*)/' --replace 'main-bundle.min.js' /frontendbuild/build/static/js/*.js && renamer --find '/runtime(.*)/' --replace 'runtime-bundle.min.js' /frontendend/build/static/js/*.js && renamer --find '/^\\d(.*)/' --replace 'vendors-bundle.min.js' /frontendbuild/build/static/js/*.js ",
+    "build-rename-css": "renamer --find '/main(.*)/' --replace 'main.css' /frontendbuild/build/static/css/*.css  && renamer --find '/^\\d(.*)/' --replace 'vendors.css' /frontendbuild/build/static/css/*.css ",
     "lint": "tslint 'src/**/*.ts{,x}'",
     "watch": "npm-watch"
   },

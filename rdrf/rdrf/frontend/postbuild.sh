@@ -8,7 +8,7 @@ yarn run build-rename
 
 echo '2/2 Copy build files into'
 
-SRC=/data/frontend/build/static
+SRC=/frontendbuild/build/static
 DEST=/app/rdrf/rdrf/static/proms
 
 cp $SRC/js/main-bundle.min.js $DEST/js/

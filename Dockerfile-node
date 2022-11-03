@@ -9,9 +9,13 @@ COPY docker-entrypoint-node.sh /app/docker-entrypoint-node.sh
 
 VOLUME ["/data"]
 
+ENV YARN_CACHE_FOLDER /frontendbuild/yarn_cache
+RUN mkdir -p /frontendbuild/yarn_cache
+RUN mkdir -p /frontendbuild/build
+RUN chown -R node:node /frontendbuild
+ENV HOME /frontendbuild
 USER node
-ENV HOME /data
-WORKDIR /data
+WORKDIR /app/rdrf/rdrf/frontend
 
 ENTRYPOINT ["/app/docker-entrypoint-node.sh"]
 CMD ["build"]
