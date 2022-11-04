@@ -7,13 +7,8 @@ echo '1/2 Remove the hash from the generated CSS/JS file'
 yarn run build-rename
 
 echo '2/2 Copy build files into'
-
-SRC=/frontendbuild/build/static
-DEST=/app/rdrf/rdrf/static/proms
-
-cp $SRC/js/main-bundle.min.js $DEST/js/
-cp $SRC/js/runtime-bundle.min.js $DEST/js/
-cp $SRC/js/vendors-bundle.min.js $DEST/js/
-
-cp $SRC/css/main.css $DEST/css/
-cp $SRC/css/vendors.css $DEST/css/
+cp build/static/js/main-bundle.min.js ../static/proms/js/
+cp build/static/js/runtime-bundle.min.js ../static/proms/js/
+cp build/static/js/vendors-bundle.min.js ../static/proms/js/
+cp build/static/css/main.css ../static/proms/css/
+cp build/static/css/vendors.css ../static/proms/css/
