@@ -8,7 +8,9 @@ yarn run build-rename
 
 echo '2/2 Copy build files into'
 cp build/static/js/main-bundle.min.js ../static/proms/js/
-cp build/static/js/runtime-bundle.min.js ../static/proms/js/
-cp build/static/js/vendors-bundle.min.js ../static/proms/js/
+# React scripts 5.0.1 doesn't create these? commenting out for now
+
+#cp build/static/js/runtime-bundle.min.js ../static/proms/js/
+#cp build/static/js/vendors-bundle.min.js ../static/proms/js/
 cp build/static/css/main.css ../static/proms/css/
-cp build/static/css/vendors.css ../static/proms/css/
+#cp build/static/css/vendors.css ../static/proms/css/
