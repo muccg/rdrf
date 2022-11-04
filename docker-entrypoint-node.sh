@@ -40,6 +40,10 @@ fi
 
 if [ "$1" = 'test' ]; then
     info "[Run] Test the React components"
+    ls -lh /app
+    pwd
+    whoami
+    
     
     yarn install
     CI=true npm test
