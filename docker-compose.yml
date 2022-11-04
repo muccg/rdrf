@@ -44,9 +44,9 @@ services:
     command: "watch"
     working_dir: /app/rdrf/rdrf/frontend
     environment:
-        YARN_CACHE_FOLDER: /frontendbuild/yarn_cache
+        YARN_CACHE_FOLDER: /opt/yarn_cache
     volumes:
-      - ./yarn_cache:/data/yarn_cache
+      - ./yarn_cache:/opt/yarn_cache
     volumes_from:
       - datadev
 
