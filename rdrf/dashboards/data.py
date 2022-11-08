@@ -24,6 +24,17 @@ class DataLoader:
         self.registry = registry
         self.baseline_form = self.spec["baseline_form"]
         self.followup_form = self.spec["followup_form"]
+        self.column_names = self._get_column_names()
+
+    def _get_column_names(self):
+        cols = ["seq", "pid", "type", "form"]
+        for field in self.fields:
+            column_name = self._get_column_name(field)
+            cols.append(column_name)
+        return cols
+
+    def _get_column_name(self, field):
+        return field
 
     def _sanity_check_cd(self, cd):
         return cd.data and "forms" in cd.data
@@ -55,11 +66,11 @@ class DataLoader:
         rows = []
         pid = patient.id
         for index, cd in enumerate(self._get_cds(patient)):
-
             row = [index + 1, pid]
             cd_type = self._get_cd_type(cd)
             row.append(cd_type)
             form_name = self._get_form(cd_type)
+            row.append(form_name)
             field_row = self._get_cd_data(cd, form_name)
             if field_row is None:
                 field_row = [None] * self.num_fields
@@ -72,12 +83,19 @@ class DataLoader:
             collection="cdes", django_id=patient.id
         ).order_by("context_id")
 
-    def get_dataframe(self):
+    def get_dataframe(self, patient_id=None):
         rows = []
-        for patient in Patient.objects.all().order_by("id"):
+        if patient_id is None:
+            qry = Patient.objects.all().order_by("id")
+        else:
+            qry = Patient.objects.filter(id=patient_id)
+
+        for patient in qry:
             for row in self._get_patient_rows(patient):
                 rows.append(row)
-        return pd.DataFrame(rows)
+        df = pd.DataFrame(rows)
+        df.columns = self.column_names
+        return df
 
     def _get_field(self, form_name, field, cd):
         for form_dict in cd.data["forms"]:
