@@ -63,10 +63,29 @@ def get_test_app():
     return app
 
 
+def overall_app():
+    from .data import RegistryDataFrame
+    from .models import VisualisationConfig
+    from rdrf.models.definition.models import Registry
+    from datetime import datetime, timedelta
+
+    registry = Registry.objects.get()
+    vis_config = VisualisationConfig.objects.get(registry=registry, code="overall")
+
+    rdf = RegistryDataFrame(registry, vis_config.config)
+    cutoff = datetime.now() - timedelta(days=7)
+    types_forms_completed = rdf.types_of_forms_completed(cutoff)
+
+    app = DjangoDash("overallpatients")  # replaces dash.Dash
+    app.layout = html.Div([dcc.Div(id="overallpatients")])
+
+    return app
+
+
 class PatientsDashboardView(View):
     @method_decorator(anonymous_not_allowed)
     @login_required_method
     def get(self, request):
         context = {}
-        _ = get_test_app()
+        app = overall_app()
         return render(request, "rdrf_cdes/patients_dashboard.html", context)

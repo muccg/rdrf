@@ -125,6 +125,7 @@ class RegistryDataFrame:
                                 display_value = get_display_value(field, raw_value)
                                 return display_value
 
+    # API
     def types_of_forms_completed(self, cutoff):
         df = self.df[self.df[self.collection_date_field] >= cutoff]
         counts = df.value_counts("form", normalize=True)
