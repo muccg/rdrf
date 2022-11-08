@@ -59,3 +59,28 @@ def get_types_of_forms_completed_data(registry_model: Registry) -> dict:
         display_names[survey_name]: counts_dict[survey_name]
         for survey_name in survey_names
     }
+
+
+def get_rows(spec):
+    """
+                  SEQ|PID| CDE1 |CDE2 ..|COLLECTIONDATE|
+    baseline      1  | 1 | 3    | ...
+    followup1     2  | 1 | 6    |
+    followup2     3  | 1 | 4    |
+    """
+
+    # sequential version
+    for p in Patient.objects.all():
+        cds = ClinicalData.objects.filter(collection="cdes", django_id=p.id).order_by(
+            "context_id"
+        )
+
+        baseline_row = get_baseline(spec, cds)
+        yield baseline_row
+        followup_rows = get_followup_rows(spec, cds)
+        for followup_row in followup_rows:
+            yield followup_row
+
+
+def get_df(spec):
+    df = pd.DataFrame((tuple(t) for t in get_rows(spec)))
