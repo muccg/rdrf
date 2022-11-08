@@ -28,7 +28,9 @@ class RegistryDataFrame:
         self.registry = registry
         self.baseline_form = self.spec["baseline_form"]
         self.followup_form = self.spec["followup_form"]
+        self.collection_date_field = "COLLECTIONDATE"
         self.column_names = self._get_column_names()
+        self.form_names = [self.baseline_form, self.followup_form]
 
         if patient_id is None:
             self.mode = "all"
@@ -37,6 +39,9 @@ class RegistryDataFrame:
             self.patient_id = patient_id
 
         self.df = self._get_dataframe()
+        self.df[self.collection_date_field] = pd.to_datetime(
+            self.df[self.collection_date_field]
+        )
 
     def _get_column_names(self):
         cols = ["seq", "pid", "type", "form"]
@@ -119,6 +124,11 @@ class RegistryDataFrame:
                                 raw_value = cde_dict["value"]
                                 display_value = get_display_value(field, raw_value)
                                 return display_value
+
+    def types_of_forms_completed(self, cutoff):
+        df = self.df[self.df[self.collection_date_field] >= cutoff]
+        counts = df.value_counts("form", normalize=True)
+        return 100 * counts  # percentages
 
 
 def _get_survey_forms(cd: ClinicalData, survey_names, cutoff: datetime):
