@@ -16,8 +16,12 @@ def get_display_value(cde_code, raw_value):
     return raw_value
 
 
-class DataLoader:
-    def __init__(self, registry, spec):
+class RegistryDataFrame:
+    """
+    Loads all data into a Pandas DataFrame for analysis
+    """
+
+    def __init__(self, registry, spec, patient_id=None):
         self.spec = spec
         self.fields = self.spec["fields"]
         self.num_fields = len(self.fields)
@@ -25,6 +29,14 @@ class DataLoader:
         self.baseline_form = self.spec["baseline_form"]
         self.followup_form = self.spec["followup_form"]
         self.column_names = self._get_column_names()
+
+        if patient_id is None:
+            self.mode = "all"
+        else:
+            self.mode = "single"
+            self.patient_id = patient_id
+
+        self.df = self._get_dataframe()
 
     def _get_column_names(self):
         cols = ["seq", "pid", "type", "form"]
@@ -83,12 +95,12 @@ class DataLoader:
             collection="cdes", django_id=patient.id
         ).order_by("context_id")
 
-    def get_dataframe(self, patient_id=None):
+    def _get_dataframe(self):
         rows = []
-        if patient_id is None:
+        if self.mode == "all":
             qry = Patient.objects.all().order_by("id")
         else:
-            qry = Patient.objects.filter(id=patient_id)
+            qry = Patient.objects.filter(id=self.patient_id)
 
         for patient in qry:
             for row in self._get_patient_rows(patient):
