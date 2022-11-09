@@ -13,10 +13,13 @@ logger = logging.getLogger(__name__)
 login_required_method = method_decorator(login_required)
 
 
-def get_test_app():
-    app = DjangoDash("SimpleExample")  # replaces dash.Dash
+def test_app():
+    logger.debug("creating DashApp")
+    app = DjangoDash("App")  # replaces dash.Dash
+    logger.debug("created DashApp")
     df = px.data.iris()  # iris is a pandas DataFrame
     fig = px.scatter(df, x="sepal_width", y="sepal_length")
+    logger.debug("created fig")
     app.layout = html.Div(
         [
             dcc.RadioItems(
@@ -40,6 +43,8 @@ def get_test_app():
         ]
     )
 
+    logger.debug("created layout")
+
     @app.callback(
         dash.dependencies.Output("output-color", "children"),
         [dash.dependencies.Input("dropdown-color", "value")],
@@ -60,6 +65,8 @@ def get_test_app():
             dropdown_color,
         )
 
+    logger.debug("created callbacks")
+
     return app
 
 
@@ -76,8 +83,8 @@ def overall_app():
     cutoff = datetime.now() - timedelta(days=7)
     types_forms_completed = rdf.types_of_forms_completed(cutoff)
 
-    app = DjangoDash("overallpatients")  # replaces dash.Dash
-    app.layout = html.Div([dcc.Div(id="overallpatients")])
+    app = DjangoDash("DashApp")  # replaces dash.Dash
+    app.layout = html.Div("testing")
 
     return app
 
@@ -87,5 +94,8 @@ class PatientsDashboardView(View):
     @login_required_method
     def get(self, request):
         context = {}
-        app = overall_app()
+        app = test_app()
+        logger.debug("view instantiated app")
+        logger.debug("rendering template ...")
+
         return render(request, "rdrf_cdes/patients_dashboard.html", context)
