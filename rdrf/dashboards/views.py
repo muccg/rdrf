@@ -77,7 +77,7 @@ class TypesOfFormCompleted:
 
     @property
     def title(self):
-        return f"Types of Form Completed in Period {self.date_start} to {self.date_end}"
+        return f"{self.date_start} to {self.date_end}"
 
     @property
     def figure(self):
@@ -87,6 +87,19 @@ class TypesOfFormCompleted:
             y="percentage",
             range_y=[0, 100],
             title=self.title,
+            width=400,
+            height=400,
+        )
+
+    @property
+    def pie(self):
+        return px.pie(
+            self.df,
+            values="percentage",
+            names="form",
+            title=self.title,
+            width=400,
+            height=400,
         )
 
 
@@ -112,7 +125,8 @@ def overall_app():
     app.layout = html.Div(
         [
             html.H1("Overall Patients"),
-            html.Div([dcc.Graph(figure=tof.figure)], id="tof"),
+            html.H2("Types of Form Completed"),
+            html.Div([dcc.Graph(figure=tof.pie)], id="tof"),
         ]
     )
 

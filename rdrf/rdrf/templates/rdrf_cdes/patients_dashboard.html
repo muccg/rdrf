@@ -1,3 +1,7 @@
+
+{% extends "rdrf_cdes/base_contexts.html" %}
 {%load plotly_dash%}
 
-{%plotly_app name="App" ratio=0.5 %}
+{% block content %}
+    {%plotly_app name="App" ratio=0.5 %}
+{% endblock %}
