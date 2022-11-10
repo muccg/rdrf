@@ -11,9 +11,20 @@ from datetime import datetime, timedelta
 from itertools import chain
 from rdrf.helpers.utils import parse_iso_datetime
 
+import logging
+
+logger = logging.getLogger(__name__)
+
 
 def get_display_value(cde_code, raw_value):
     return raw_value
+
+
+def cde_iterator(registry):
+    for form in registry.forms:
+        for section in form.section_models:
+            for cde in section.cde_models:
+                yield cde
 
 
 class RegistryDataFrame:
@@ -22,21 +33,20 @@ class RegistryDataFrame:
     """
 
     def __init__(self, registry, spec, patient_id=None):
+        self.registry = registry
         self.spec = spec
+        self.patient_id = patient_id
+        self.prefix_fields = ["pid", "index", "type", "form"]
+        self.prefix_names = ["PID", "INDEX", "TYPE", "FORM"]
         self.fields = self.spec["fields"]
         self.num_fields = len(self.fields)
-        self.registry = registry
+        self.column_names = self._get_column_names()
+        self.dataframe_columns = self.prefix_names + self.column_names
         self.baseline_form = self.spec["baseline_form"]
         self.followup_form = self.spec["followup_form"]
         self.collection_date_field = "COLLECTIONDATE"
-        self.column_names = self._get_column_names()
         self.form_names = [self.baseline_form, self.followup_form]
-
-        if patient_id is None:
-            self.mode = "all"
-        else:
-            self.mode = "single"
-            self.patient_id = patient_id
+        self.mode = "all" if patient_id is None else "single"
 
         self.df = self._get_dataframe()
         self.df[self.collection_date_field] = pd.to_datetime(
@@ -44,10 +54,11 @@ class RegistryDataFrame:
         )
 
     def _get_column_names(self):
-        cols = ["seq", "pid", "type", "form"]
+        cols = []
         for field in self.fields:
             column_name = self._get_column_name(field)
             cols.append(column_name)
+        logger.debug(f"column_names = {cols}")
         return cols
 
     def _get_column_name(self, field):
@@ -67,7 +78,7 @@ class RegistryDataFrame:
 
     def _get_cd_data(self, cd, form_name):
         if not self._sanity_check_cd(cd):
-            return [None] * self.num_fields
+            return [None] * self.num_cdes
         else:
             return [
                 self._get_field(form_name, field, cd) for field in self.spec["fields"]
@@ -83,7 +94,7 @@ class RegistryDataFrame:
         rows = []
         pid = patient.id
         for index, cd in enumerate(self._get_cds(patient)):
-            row = [index + 1, pid]
+            row = [pid, index]
             cd_type = self._get_cd_type(cd)
             row.append(cd_type)
             form_name = self._get_form(cd_type)
@@ -111,10 +122,11 @@ class RegistryDataFrame:
             for row in self._get_patient_rows(patient):
                 rows.append(row)
         df = pd.DataFrame(rows)
-        df.columns = self.column_names
+        df.columns = self.dataframe_columns
         return df
 
     def _get_field(self, form_name, field, cd):
+        logger.debug(f"getting field {field} on {form_name} ...")
         for form_dict in cd.data["forms"]:
             if form_dict["name"] == form_name:
                 for section_dict in form_dict["sections"]:
@@ -123,10 +135,17 @@ class RegistryDataFrame:
                             if cde_dict["code"] == field:
                                 raw_value = cde_dict["value"]
                                 display_value = get_display_value(field, raw_value)
+                                logger.debug(f"found {field} = {display_value}")
                                 return display_value
+
+        logger.debug("not found returning None")
+        return None
 
     # API
     def types_of_forms_completed(self, cutoff):
         df = self.df[self.df[self.collection_date_field] >= cutoff]
-        counts = df.value_counts("form", normalize=True)
-        return 100 * counts  # percentages
+        counts = df.value_counts("FORM", normalize=True)
+        percentages = 100 * counts  # percentages
+        # this is a series , convert to another dataframe
+        df = percentages.rename_axis("form").reset_index(name="percentage")
+        return df

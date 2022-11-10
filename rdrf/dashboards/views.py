@@ -66,8 +66,28 @@ def test_app():
         )
 
     logger.debug("created callbacks")
-
     return app
+
+
+class TypesOfFormCompleted:
+    def __init__(self, df, date_start, date_end):
+        self.df = df
+        self.date_start = date_start.date()
+        self.date_end = date_end.date()
+
+    @property
+    def title(self):
+        return f"Types of Form Completed in Period {self.date_start} to {self.date_end}"
+
+    @property
+    def figure(self):
+        return px.bar(
+            self.df,
+            x="form",
+            y="percentage",
+            range_y=[0, 100],
+            title=self.title,
+        )
 
 
 def overall_app():
@@ -80,11 +100,21 @@ def overall_app():
     vis_config = VisualisationConfig.objects.get(registry=registry, code="overall")
 
     rdf = RegistryDataFrame(registry, vis_config.config)
-    cutoff = datetime.now() - timedelta(days=7)
-    types_forms_completed = rdf.types_of_forms_completed(cutoff)
+    date_end = datetime.now()
+    date_start = date_end - timedelta(days=7)
+    types_forms_completed_df = rdf.types_of_forms_completed(date_start)
 
-    app = DjangoDash("DashApp")  # replaces dash.Dash
-    app.layout = html.Div("testing")
+    tof = TypesOfFormCompleted(types_forms_completed_df, date_start, date_end)
+
+    logger.debug(tof.df)
+
+    app = DjangoDash("App")  # replaces dash.Dash
+    app.layout = html.Div(
+        [
+            html.H1("Overall Patients"),
+            html.Div([dcc.Graph(figure=tof.figure)], id="tof"),
+        ]
+    )
 
     return app
 
@@ -94,7 +124,7 @@ class PatientsDashboardView(View):
     @login_required_method
     def get(self, request):
         context = {}
-        app = test_app()
+        app = overall_app()
         logger.debug("view instantiated app")
         logger.debug("rendering template ...")
 
