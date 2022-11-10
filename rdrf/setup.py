@@ -63,7 +63,8 @@ requirements = [
     "hl7==0.4.5",
     "pandas==1.5.0",
     "flask==2.1.3",
-    "django_plotly_dash",
+    "dash==2.6.2",
+    "django_plotly_dash==2.0.0",
 ]
 
 
