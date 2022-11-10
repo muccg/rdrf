@@ -6,6 +6,6 @@ urlpatterns = [
     re_path(
         r"^patients/?$",
         PatientsDashboardView.as_view(),
-        name="patients",
+        name="overall",
     ),
 ]
