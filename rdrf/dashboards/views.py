@@ -4,12 +4,14 @@ from dash import dcc, html
 import dash
 import logging
 from django_plotly_dash import DjangoDash
+import dash_bootstrap_components as dbc
 import plotly.express as px
 from django.contrib.auth.decorators import login_required
 from rdrf.helpers.utils import anonymous_not_allowed
 from django.utils.decorators import method_decorator
 
 from .components.tofc import TypesOfFormCompleted
+from .components.common import card, chart
 
 logger = logging.getLogger(__name__)
 login_required_method = method_decorator(login_required)
@@ -71,17 +73,16 @@ def test_app():
     return app
 
 
-def chart(title, id, figure):
-    return html.Div([html.H2(title), dcc.Graph(figure=figure)], id=id)
-
-
 def overall_app():
     from .data import RegistryDataFrame
     from .models import VisualisationConfig
     from rdrf.models.definition.models import Registry
     from datetime import datetime, timedelta
 
+    t1 = datetime.now()
+
     registry = Registry.objects.get()
+
     vis_config = VisualisationConfig.objects.get(registry=registry, code="overall")
 
     rdf = RegistryDataFrame(registry, vis_config.config)
@@ -92,10 +93,21 @@ def overall_app():
     types_forms_completed_df = rdf.types_of_forms_completed(date_start)
     tof = TypesOfFormCompleted(types_forms_completed_df, date_start, date_end)
 
-    app = DjangoDash("App")
+    app = DjangoDash("App", external_stylesheets=[dbc.themes.BOOTSTRAP])
+
+    num_patients = rdf.get_number_patients(date_start, date_end)
+
     app.layout = html.Div(
-        [html.H1("Overall Patients"), chart("Types of Forms Completed", "tof", tof.pie)]
+        [
+            html.H1(f"Patient Reported Outcomes {registry.name}"),
+            card("Patients Who Completed Forms", num_patients),
+            chart("Types of Forms Completed", "tof", tof.pie),
+        ]
     )
+
+    t2 = datetime.now()
+    secs = (t2 - t1).total_seconds()
+    logger.debug(f"overall app generated in {secs} seconds")
 
     return app
 

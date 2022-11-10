@@ -27,6 +27,11 @@ def cde_iterator(registry):
                 yield cde
 
 
+# Abbreviations
+cdf = "COLLECTIONDATE"  # collection date field name
+pid = "PID"  # patient id field name
+
+
 class RegistryDataFrame:
     """
     Loads all data into a Pandas DataFrame for analysis
@@ -44,14 +49,11 @@ class RegistryDataFrame:
         self.dataframe_columns = self.prefix_names + self.column_names
         self.baseline_form = self.spec["baseline_form"]
         self.followup_form = self.spec["followup_form"]
-        self.collection_date_field = "COLLECTIONDATE"
         self.form_names = [self.baseline_form, self.followup_form]
         self.mode = "all" if patient_id is None else "single"
 
         self.df = self._get_dataframe()
-        self.df[self.collection_date_field] = pd.to_datetime(
-            self.df[self.collection_date_field]
-        )
+        self.df[cdf] = pd.to_datetime(self.df[cdf])
 
     def _get_column_names(self):
         cols = []
@@ -143,9 +145,11 @@ class RegistryDataFrame:
 
     # API
     def types_of_forms_completed(self, cutoff):
-        df = self.df[self.df[self.collection_date_field] >= cutoff]
-        counts = df.value_counts("FORM", normalize=True)
-        percentages = 100 * counts  # percentages
-        # this is a series , convert to another dataframe
-        df = percentages.rename_axis("form").reset_index(name="percentage")
+        df = self.df[self.df[cdf] >= cutoff]
+        counts = df.value_counts("FORM")
+        df = counts.rename_axis("form").reset_index(name="count")
         return df
+
+    def get_number_patients(self, start_date, end_date):
+        df = self.df
+        return len(df[(df[cdf] >= start_date) & (df[cdf] <= end_date)][pid].unique())

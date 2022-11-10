@@ -12,12 +12,11 @@ class TypesOfFormCompleted:
         return f"{self.date_start} to {self.date_end}"
 
     @property
-    def figure(self):
+    def bar(self):
         return px.bar(
             self.df,
             x="form",
-            y="percentage",
-            range_y=[0, 100],
+            y="count",
             title=self.title,
             width=400,
             height=400,
@@ -27,7 +26,7 @@ class TypesOfFormCompleted:
     def pie(self):
         return px.pie(
             self.df,
-            values="percentage",
+            values="count",
             names="form",
             title=self.title,
             width=400,
