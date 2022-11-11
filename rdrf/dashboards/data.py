@@ -128,7 +128,6 @@ class RegistryDataFrame:
         return df
 
     def _get_field(self, form_name, field, cd):
-        logger.debug(f"getting field {field} on {form_name} ...")
         for form_dict in cd.data["forms"]:
             if form_dict["name"] == form_name:
                 for section_dict in form_dict["sections"]:
@@ -137,10 +136,8 @@ class RegistryDataFrame:
                             if cde_dict["code"] == field:
                                 raw_value = cde_dict["value"]
                                 display_value = get_display_value(field, raw_value)
-                                logger.debug(f"found {field} = {display_value}")
                                 return display_value
 
-        logger.debug("not found returning None")
         return None
 
     # API

@@ -88,7 +88,7 @@ def overall_app():
     rdf = RegistryDataFrame(registry, vis_config.config)
 
     date_end = datetime.now()
-    date_start = date_end - timedelta(days=7)
+    date_start = date_end - timedelta(days=36500)
 
     types_forms_completed_df = rdf.types_of_forms_completed(date_start)
     tof = TypesOfFormCompleted(types_forms_completed_df, date_start, date_end)
@@ -109,7 +109,7 @@ def overall_app():
     secs = (t2 - t1).total_seconds()
     logger.debug(f"overall app generated in {secs} seconds")
 
-    return app
+    return app, secs
 
 
 class PatientsDashboardView(View):
@@ -117,8 +117,10 @@ class PatientsDashboardView(View):
     @login_required_method
     def get(self, request):
         context = {}
-        app = overall_app()
+        app, secs = overall_app()
         logger.debug("view instantiated app")
         logger.debug("rendering template ...")
+
+        context["seconds"] = secs
 
         return render(request, "rdrf_cdes/patients_dashboard.html", context)
