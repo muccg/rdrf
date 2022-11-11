@@ -112,6 +112,33 @@ def overall_app():
     return app, secs
 
 
+def all_patients_dashboard():
+    from .data import RegistryDataFrame
+    from .models import VisualisationConfig
+    from rdrf.models.definition.models import Registry
+    from datetime import datetime, timedelta
+
+    registry = Registry.objects.get()
+    app = DjangoDash("App", external_stylesheets=[dbc.themes.BOOTSTRAP])
+
+    components = []
+
+    data = get_data()
+
+    for vis_config in VisualisationConfig.objects.filter(
+        registry=registry, dashboard="A"
+    ):
+
+        if vis_config.code == "tof":
+            # todo
+            component = None
+
+        components.append(component)
+
+    app.layout = html.Div(components, id="allpatientsdashboard")
+    return app
+
+
 class PatientsDashboardView(View):
     @method_decorator(anonymous_not_allowed)
     @login_required_method
