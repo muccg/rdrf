@@ -51,9 +51,17 @@ class RegistryDataFrame:
         self.followup_form = self.spec["followup_form"]
         self.form_names = [self.baseline_form, self.followup_form]
         self.mode = "all" if patient_id is None else "single"
+        self.field_map = {field: None for field in self.spec["fields"]}
 
+        a = datetime.now()
+        logger.debug("getting dataframe")
         self.df = self._get_dataframe()
+        b = datetime.now()
         self.df[cdf] = pd.to_datetime(self.df[cdf])
+        c = datetime.now()
+        logger.debug(f"time taken to generate df = {b-a}")
+        logger.debug(f"time taken to convert dates  = {c-b}")
+        self.df.to_csv("/data/patients-data.csv")
 
     def _get_column_names(self):
         cols = []
@@ -82,9 +90,7 @@ class RegistryDataFrame:
         if not self._sanity_check_cd(cd):
             return [None] * self.num_cdes
         else:
-            return [
-                self._get_field(form_name, field, cd) for field in self.spec["fields"]
-            ]
+            return self._get_fields(form_name, cd)
 
     def _get_form(self, cd_type):
         if cd_type == "baseline":
@@ -127,18 +133,22 @@ class RegistryDataFrame:
         df.columns = self.dataframe_columns
         return df
 
-    def _get_field(self, form_name, field, cd):
+    def _get_fields(self, form_name, cd):
+        field_map = self.field_map.copy()
+
         for form_dict in cd.data["forms"]:
             if form_dict["name"] == form_name:
                 for section_dict in form_dict["sections"]:
                     if not section_dict["allow_multiple"]:
                         for cde_dict in section_dict["cdes"]:
-                            if cde_dict["code"] == field:
+                            cde_code = cde_dict["code"]
+                            if cde_code in field_map:
                                 raw_value = cde_dict["value"]
-                                display_value = get_display_value(field, raw_value)
-                                return display_value
+                                field_map[cde_code] = get_display_value(
+                                    cde_code, raw_value
+                                )
 
-        return None
+        return [field_map.get(field, None) for field in self.spec["fields"]]
 
     # API
     def types_of_forms_completed(self, cutoff):
