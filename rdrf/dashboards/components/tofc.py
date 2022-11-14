@@ -4,8 +4,9 @@ import plotly.express as px
 class TypesOfFormCompleted:
     def __init__(self, df, date_start, date_end):
         self.df = df
-        self.date_start = date_start.date()
-        self.date_end = date_end.date()
+        self.start_date = df["COLLECTIONDATE"].min()
+        self.end_date = df["COLLECTIONDATE"].max()
+
 
     @property
     def title(self):

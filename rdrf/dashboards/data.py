@@ -156,7 +156,3 @@ class RegistryDataFrame:
         counts = df.value_counts("FORM")
         df = counts.rename_axis("form").reset_index(name="count")
         return df
-
-    def get_number_patients(self, start_date, end_date):
-        df = self.df
-        return len(df[(df[cdf] >= start_date) & (df[cdf] <= end_date)][pid].unique())

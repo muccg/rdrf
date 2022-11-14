@@ -87,20 +87,13 @@ def overall_app():
 
     rdf = RegistryDataFrame(registry, vis_config.config)
 
-    date_end = datetime.now()
-    date_start = date_end - timedelta(days=36500)
-
-    types_forms_completed_df = rdf.types_of_forms_completed(date_start)
     tof = TypesOfFormCompleted(types_forms_completed_df, date_start, date_end)
 
     app = DjangoDash("App", external_stylesheets=[dbc.themes.BOOTSTRAP])
 
-    num_patients = rdf.get_number_patients(date_start, date_end)
-
     app.layout = html.Div(
         [
             html.H1(f"Patient Reported Outcomes {registry.name}"),
-            card("Patients Who Completed Forms", num_patients),
             chart("Types of Forms Completed", "tof", tof.pie),
         ]
     )
@@ -112,6 +105,23 @@ def overall_app():
     return app, secs
 
 
+def create_graphic(vis_config, data):
+    if vis_config.code == "pcf":
+        from dashboards.components.pcf import PatientsWhoCompletedForms
+
+        return PatientsWhoCompletedForms(vis_config.config, data).graphic
+    elif vis_config.code == "tfc":
+        from dashboards.components.tfc import TypesOfFormCompleted
+
+        return TypesOfFormCompleted(vis_config.config, data).graphic
+    elif vis_config.code == "fgc":
+        from dashboards.components.fgc import FieldGroupComparison
+
+        return FieldGroupComparison(vis_config.config, data).graphic
+    else:
+        raise Exception(f"Unknown code: {vis_config.code}")
+
+
 def all_patients_dashboard():
     from .data import RegistryDataFrame
     from .models import VisualisationConfig
@@ -121,7 +131,7 @@ def all_patients_dashboard():
     registry = Registry.objects.get()
     app = DjangoDash("App", external_stylesheets=[dbc.themes.BOOTSTRAP])
 
-    components = []
+    graphics = []
 
     data = get_data()
 
@@ -129,11 +139,9 @@ def all_patients_dashboard():
         registry=registry, dashboard="A"
     ):
 
-        if vis_config.code == "tof":
-            # todo
-            component = None
-
-        components.append(component)
+        graphic = create_graphic(vis_config, data)
+        if graphic is not None:
+            graphics.append(graphic)
 
     app.layout = html.Div(components, id="allpatientsdashboard")
     return app

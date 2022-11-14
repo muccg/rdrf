@@ -1,5 +1,6 @@
 from dash import dcc, html
 import dash_bootstrap_components as dbc
+import pandas as pd
 
 
 def chart(title, id, figure):
@@ -19,3 +20,16 @@ def card(title, data):
         ),
         style={"width": "18rem"},
     )
+
+
+class BaseGraphic:
+    def __init__(self, config: dict, data: pd.DataFrame):
+        self.config = config
+        self.data = data
+
+    @property
+    def graphic(self):
+        return self.get_graphic()
+
+    def get_graphic(self):
+        raise Exception("subclass responsibility")
