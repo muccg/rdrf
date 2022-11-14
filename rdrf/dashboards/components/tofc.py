@@ -1,35 +1,29 @@
 import plotly.express as px
+from .common import BaseGraphic
+
+title = "Types of Form Completed"
 
 
-class TypesOfFormCompleted:
-    def __init__(self, df, date_start, date_end):
-        self.df = df
-        self.start_date = df["COLLECTIONDATE"].min()
-        self.end_date = df["COLLECTIONDATE"].max()
-
-
-    @property
-    def title(self):
-        return f"{self.date_start} to {self.date_end}"
-
-    @property
+class TypesOfFormCompleted(BaseGraphic):
     def bar(self):
         return px.bar(
-            self.df,
+            self.data,
             x="form",
             y="count",
-            title=self.title,
+            title=title,
             width=400,
             height=400,
         )
 
-    @property
     def pie(self):
         return px.pie(
-            self.df,
+            self.data,
             values="count",
             names="form",
-            title=self.title,
+            title=title,
             width=400,
             height=400,
         )
+
+    def get_graphic(self):
+        return self.pie()

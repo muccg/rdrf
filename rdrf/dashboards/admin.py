@@ -1,5 +1,6 @@
 from django.contrib import admin
 from dashboards.models import VisualisationConfig
+from dashboards.models import VisualisationBaseDataConfig
 
 
 class VisualisationConfigAdmin(admin.ModelAdmin):
@@ -7,4 +8,10 @@ class VisualisationConfigAdmin(admin.ModelAdmin):
     list_display = ("registry", "dashboard", "code")
 
 
+class VisualisationBaseDataConfigAdmin(admin.ModelAdmin):
+    model = VisualisationBaseDataConfig
+    list_display = ("registry",)
+
+
+admin.site.register(VisualisationBaseDataConfig, VisualisationBaseDataConfigAdmin)
 admin.site.register(VisualisationConfig, VisualisationConfigAdmin)

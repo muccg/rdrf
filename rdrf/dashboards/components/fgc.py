@@ -6,7 +6,7 @@ def seq(data):
     names = {0: "Baseline", 1: "1st Follow Up", 2: "2nd Follow Up", 3: "3rd Follow Up"}
 
     yield 0, names[0]
-    max_seq_num = data["seq"].max()
+    max_seq_num = data["SEQ"].max()
     for i in range(1, max_seq_num + 1):
         name = names.get(i, f"{i}th Follow Up")
         yield i, name

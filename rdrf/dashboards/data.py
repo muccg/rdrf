@@ -11,6 +11,8 @@ from datetime import datetime, timedelta
 from itertools import chain
 from rdrf.helpers.utils import parse_iso_datetime
 
+from .models import VisualisationBaseDataConfig
+
 import logging
 
 logger = logging.getLogger(__name__)
@@ -37,21 +39,21 @@ class RegistryDataFrame:
     Loads all data into a Pandas DataFrame for analysis
     """
 
-    def __init__(self, registry, spec, patient_id=None):
+    def __init__(self, registry, config, patient_id=None):
         self.registry = registry
-        self.spec = spec
+        self.config = config
         self.patient_id = patient_id
-        self.prefix_fields = ["pid", "index", "type", "form"]
-        self.prefix_names = ["PID", "INDEX", "TYPE", "FORM"]
-        self.fields = self.spec["fields"]
+        self.prefix_fields = ["pid", "seq", "type", "form"]
+        self.prefix_names = ["PID", "SEQ", "TYPE", "FORM"]
+        self.fields = self.config["fields"]
         self.num_fields = len(self.fields)
         self.column_names = self._get_column_names()
         self.dataframe_columns = self.prefix_names + self.column_names
-        self.baseline_form = self.spec["baseline_form"]
-        self.followup_form = self.spec["followup_form"]
+        self.baseline_form = self.config["baseline_form"]
+        self.followup_form = self.config["followup_form"]
         self.form_names = [self.baseline_form, self.followup_form]
         self.mode = "all" if patient_id is None else "single"
-        self.field_map = {field: None for field in self.spec["fields"]}
+        self.field_map = {field: None for field in self.config["fields"]}
 
         a = datetime.now()
         logger.debug("getting dataframe")
@@ -101,8 +103,8 @@ class RegistryDataFrame:
     def _get_patient_rows(self, patient):
         rows = []
         pid = patient.id
-        for index, cd in enumerate(self._get_cds(patient)):
-            row = [pid, index]
+        for seq, cd in enumerate(self._get_cds(patient)):
+            row = [pid, seq]
             cd_type = self._get_cd_type(cd)
             row.append(cd_type)
             form_name = self._get_form(cd_type)
@@ -148,11 +150,19 @@ class RegistryDataFrame:
                                     cde_code, raw_value
                                 )
 
-        return [field_map.get(field, None) for field in self.spec["fields"]]
+        return [field_map.get(field, None) for field in self.config["fields"]]
 
-    # API
-    def types_of_forms_completed(self, cutoff):
-        df = self.df[self.df[cdf] >= cutoff]
-        counts = df.value_counts("FORM")
-        df = counts.rename_axis("form").reset_index(name="count")
-        return df
+    @property
+    def data(self):
+        return self.df
+
+
+def get_data(registry, pid=None):
+    try:
+        base_config = VisualisationBaseDataConfig.objects.get(registry=registry)
+        config = base_config.config
+    except VisualisationData.DoesNotExist:
+        config = None
+
+    rdf = RegistryDataFrame(registry, config, pid)
+    return rdf.data
