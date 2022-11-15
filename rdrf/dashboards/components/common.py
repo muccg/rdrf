@@ -33,3 +33,10 @@ class BaseGraphic:
 
     def get_graphic(self):
         raise Exception("subclass responsibility")
+
+    @property
+    def id(self):
+        return self.get_id()
+
+    def get_id(self):
+        raise Exception("subclass responsibility")
