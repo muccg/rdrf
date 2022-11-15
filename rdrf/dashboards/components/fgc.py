@@ -16,9 +16,13 @@ class FieldGroupComparison(BaseGraphic):
     """
     Calculate percentages of field groups
     for all baseline/followups
+    e.g. Quality of Life/Health Status
+    A field group is a set fields, averaged( I think.)
+
     """
 
     def get_graphic(self):
+
         bars = []
         for i, name in seq(self.data):
             percentages_dict = self._calculate_percentages(i)

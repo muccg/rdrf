@@ -30,8 +30,8 @@ def cde_iterator(registry):
 
 
 # Abbreviations
-cdf = "COLLECTIONDATE"  # collection date field name
-pid = "PID"  # patient id field name
+cdf = "COLLECTIONDATE"  # collection date field
+pid = "PID"  # patient id
 
 
 class RegistryDataFrame:
@@ -60,10 +60,25 @@ class RegistryDataFrame:
         self.df = self._get_dataframe()
         b = datetime.now()
         self.df[cdf] = pd.to_datetime(self.df[cdf])
+        self.df = self._assign_correct_seq_numbers(self.df)
         c = datetime.now()
         logger.debug(f"time taken to generate df = {b-a}")
         logger.debug(f"time taken to convert dates  = {c-b}")
         self.df.to_csv("/data/patients-data.csv")
+
+    def _assign_correct_seq_numbers(self, df) -> pd.DataFrame:
+        """
+        If patients miss followups, naively taking the existing
+        sequence of followups ( 0,1,2 etc as (e,g)  baseline, 6 months, 12 months
+        will be wrong.
+        If the baseline collection date is known ( call it B) and the
+        schedule is known ( e.g. every 6 months) then we can calculate the expected
+        collection dates as : B+6 months, B+12 months etc.
+        If a patient P has missed a followup but the collection date of a followup
+        is closest to a schedule date D with seq number i, we assign i to it
+        instead of counting 0,1,2..
+        """
+        return df  # todo
 
     def _get_column_names(self):
         cols = []

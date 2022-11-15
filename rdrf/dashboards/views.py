@@ -18,6 +18,7 @@ from .components.common import card, chart
 from .components.pcf import PatientsWhoCompletedForms
 from .components.fgc import FieldGroupComparison
 from .components.tofc import TypesOfFormCompleted
+from .components.cpr import ChangesInPatientResponses
 from .models import VisualisationConfig
 
 import logging
@@ -122,6 +123,8 @@ def create_graphic(vis_config, data):
         return TypesOfFormCompleted(vis_config.config, data).graphic
     elif vis_config.code == "fgc":
         return FieldGroupComparison(vis_config.config, data).graphic
+    elif vis_config.code == "cpr":
+        return ChangesInPatientResponses(vis_config.config, data).graphic
     else:
         raise Exception(f"Unknown code: {vis_config.code}")
 
@@ -142,6 +145,7 @@ def all_patients_app():
     ):
 
         try:
+            logger.debug(f"creating graphic {vis_config.code}")
             graphic = create_graphic(vis_config, data)
         except Exception as ex:
             code = vis_config.code
