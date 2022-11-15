@@ -39,21 +39,30 @@ class RegistryDataFrame:
     Loads all data into a Pandas DataFrame for analysis
     """
 
-    def __init__(self, registry, config, patient_id=None):
+    def __init__(self, registry, config_model, patient_id=None):
         self.registry = registry
-        self.config = config
+        self.config_model = config_model
+        if self.config_model.state == "D":
+            logger.debug("reading json ...")
+            t1 = datetime.now()
+            self.df = pd.read_json(self.config_model.data)
+            t2 = datetime.now()
+            logger.debug("time to load json = {t2-t1}")
+            return
+
+        # no data loaded
         self.patient_id = patient_id
         self.prefix_fields = ["pid", "seq", "type", "form"]
         self.prefix_names = ["PID", "SEQ", "TYPE", "FORM"]
-        self.fields = self.config["fields"]
+        self.fields = self.config_model.config["fields"]
         self.num_fields = len(self.fields)
         self.column_names = self._get_column_names()
         self.dataframe_columns = self.prefix_names + self.column_names
-        self.baseline_form = self.config["baseline_form"]
-        self.followup_form = self.config["followup_form"]
+        self.baseline_form = self.config_model.config["baseline_form"]
+        self.followup_form = self.config_model.config["followup_form"]
         self.form_names = [self.baseline_form, self.followup_form]
         self.mode = "all" if patient_id is None else "single"
-        self.field_map = {field: None for field in self.config["fields"]}
+        self.field_map = {field: None for field in self.config_model.config["fields"]}
 
         a = datetime.now()
         logger.debug("getting dataframe")
@@ -64,7 +73,9 @@ class RegistryDataFrame:
         c = datetime.now()
         logger.debug(f"time taken to generate df = {b-a}")
         logger.debug(f"time taken to convert dates  = {c-b}")
-        self.df.to_csv("/data/patients-data.csv")
+        self.config_model.data = self.df.to_json()
+        self.config_model.state = "D"
+        self.config_model.save()
 
     def _assign_correct_seq_numbers(self, df) -> pd.DataFrame:
         """
@@ -165,7 +176,9 @@ class RegistryDataFrame:
                                     cde_code, raw_value
                                 )
 
-        return [field_map.get(field, None) for field in self.config["fields"]]
+        return [
+            field_map.get(field, None) for field in self.config_model.config["fields"]
+        ]
 
     @property
     def data(self):
@@ -174,10 +187,10 @@ class RegistryDataFrame:
 
 def get_data(registry, pid=None):
     try:
-        base_config = VisualisationBaseDataConfig.objects.get(registry=registry)
-        config = base_config.config
+        config = VisualisationBaseDataConfig.objects.get(registry=registry)
     except VisualisationData.DoesNotExist:
         config = None
 
     rdf = RegistryDataFrame(registry, config, pid)
+
     return rdf.data

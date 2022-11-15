@@ -7,8 +7,13 @@ class VisualisationBaseDataConfig(models.Model):
     base data for visualisations for a registry
     """
 
+    states = (("E", "Empty"), ("D", "Data Loaded"))
+    created = models.DateTimeField(auto_now_add=True)
+    updated = models.DateTimeField(auto_now=True)
+    state = models.CharField(max_length=1, choices=states)
     registry = models.ForeignKey(Registry, on_delete=models.CASCADE)
     config = models.JSONField()
+    data = models.JSONField()
 
 
 class VisualisationConfig(models.Model):
