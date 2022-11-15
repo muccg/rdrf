@@ -5,6 +5,8 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+SEQ = "SEQ"  # seq column name
+
 
 def seqs(df):
     i = 0
@@ -33,7 +35,9 @@ class ChangesInPatientResponses(BaseGraphic):
     """
 
     def set_fields_of_interest(self, config):
-        self.fols = []  # config["fields_of_interest"]
+        # each fol is a dict {"code": <cde_code>,"label": <text>}
+
+        self.fols = config["fields_of_interest"]
 
     def _create_elements(self, items):
         return html.H2("Changes in Patient Responses will appear here")
@@ -54,3 +58,12 @@ class ChangesInPatientResponses(BaseGraphic):
         elements = self._create_elements(items)
 
         return html.Div(elements, id="cpr")
+
+    def _create_bar(self, fol, seq_name, seq):
+        code = fol["code"]
+        label = fol["label"]
+        df = self.data
+        percentages = 100.0 * df[df[SEQ] == seq][code].value_counts(normalize=True)
+        print(f"percentages = {percentages}")
+        percentages_df = percentages.rename_axis("PERCENTAGE").reset_index(label)
+        print(f"percentages_df = {percentages_df}")

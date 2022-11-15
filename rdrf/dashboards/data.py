@@ -43,6 +43,10 @@ class RegistryDataFrame:
         self.registry = registry
         self.config_model = config_model
         if self.config_model.state == "D":
+            # data has been cached as json from a previous run
+            # todo: invalidate this based on time
+            # or we could update on a cron
+            #
             logger.debug("reading json ...")
             t1 = datetime.now()
             self.df = pd.read_json(self.config_model.data)
@@ -67,13 +71,15 @@ class RegistryDataFrame:
         a = datetime.now()
         logger.debug("getting dataframe")
         self.df = self._get_dataframe()
-        b = datetime.now()
         self.df[cdf] = pd.to_datetime(self.df[cdf])
         self.df = self._assign_correct_seq_numbers(self.df)
         c = datetime.now()
-        logger.debug(f"time taken to generate df = {b-a}")
-        logger.debug(f"time taken to convert dates  = {c-b}")
-        self.config_model.data = self.df.to_json()
+        logger.debug(f"time taken to generate df = {c-a}")
+        json_data = self.df.to_json()
+        with open("/data/patients-data.json", "wb") as f:
+            f.write(json_data)
+
+        self.config_model.data = json_data
         self.config_model.state = "D"
         self.config_model.save()
 
