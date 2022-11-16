@@ -3,6 +3,7 @@ from rdrf.models.definition.models import Registry
 from rdrf.models.definition.models import ClinicalData
 from rdrf.models.definition.models import RDRFContext
 from rdrf.models.definition.models import ContextFormGroup
+from rdrf.models.definition.models import CommonDataElement
 
 from rdrf.models.proms.models import Survey
 from registry.patients.models import Patient
@@ -42,7 +43,8 @@ class RegistryDataFrame:
     def __init__(self, registry, config_model, patient_id=None):
         self.registry = registry
         self.config_model = config_model
-        if self.config_model.state == "D":
+        # if self.config_model.state == "D":
+        if False:
             # data has been cached as json from a previous run
             # todo: invalidate this based on time
             # or we could update on a cron
@@ -75,13 +77,6 @@ class RegistryDataFrame:
         self.df = self._assign_correct_seq_numbers(self.df)
         c = datetime.now()
         logger.debug(f"time taken to generate df = {c-a}")
-        json_data = self.df.to_json()
-        with open("/data/patients-data.json", "wb") as f:
-            f.write(json_data)
-
-        self.config_model.data = json_data
-        self.config_model.state = "D"
-        self.config_model.save()
 
     def _assign_correct_seq_numbers(self, df) -> pd.DataFrame:
         """
@@ -200,3 +195,24 @@ def get_data(registry, pid=None):
     rdf = RegistryDataFrame(registry, config, pid)
 
     return rdf.data
+
+
+def lookup_cde_value(cde_code, raw_value):
+    cde_model = CommonDataElement.objects.get(code=cde_code)
+    if cde_model.pv_group:
+        g = cde_model.pv_group.as_dict()
+        values = g["values"]
+        for d in values:
+            if d["code"] == str(raw_value):
+                return d["value"]
+    return raw_value
+
+
+def get_cde_values(cde_code):
+    cde_model = CommonDataElement.objects.get(code=cde_code)
+    if cde_model.pv_group:
+        g = cde_model.pv_group.as_dict()
+        dicts = g["values"]
+        return [d["value"] for d in dicts]  # value is the display value
+    else:
+        return []

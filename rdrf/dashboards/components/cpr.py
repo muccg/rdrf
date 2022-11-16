@@ -1,5 +1,8 @@
 from .common import BaseGraphic
 from dash import dcc, html
+from ..data import lookup_cde_value
+from ..data import get_cde_values
+import plotly.express as px
 
 import logging
 
@@ -39,9 +42,6 @@ class ChangesInPatientResponses(BaseGraphic):
 
         self.fols = config["fields_of_interest"]
 
-    def _create_elements(self, items):
-        return html.H2("Changes in Patient Responses will appear here")
-
     def get_graphic(self):
         logger.debug("creating Changes in Patient Responses")
         self.set_fields_of_interest(self.config)
@@ -51,19 +51,57 @@ class ChangesInPatientResponses(BaseGraphic):
             logger.debug(f"calculating {seq_name}...")
             for fol in self.fols:
                 logger.debug(f"checking {fol}...")
-                bar = self._create_bar(fol, seq_name, seq)
-                items.append((field, seq_name, seq, bar))
+                bar_div = self._create_bar(fol, seq_name, seq)
+                items.append(bar_div)
 
-        logger.debug(f"items = {items}")
-        elements = self._create_elements(items)
-
-        return html.Div(elements, id="cpr")
+        return html.Div(items, id="cpr")
 
     def _create_bar(self, fol, seq_name, seq):
         code = fol["code"]
         label = fol["label"]
         df = self.data
-        percentages = 100.0 * df[df[SEQ] == seq][code].value_counts(normalize=True)
-        print(f"percentages = {percentages}")
-        percentages_df = percentages.rename_axis("PERCENTAGE").reset_index(label)
-        print(f"percentages_df = {percentages_df}")
+        id = label + "_" + seq_name
+
+        p = (
+            df[df[SEQ] == seq][code]
+            .value_counts(normalize=True)
+            .rename_axis(label)
+            .reset_index(name="Percentage")
+        )
+        p["Percentage"] = p["Percentage"].apply(lambda value: 100.0 * value)
+        p[label] = p[label].apply(lambda value: lookup_cde_value(code, value))
+        logger.debug(p)
+
+        # fig = px.bar(
+        #    p, x="Percentage", barmode="stack", orientation="h", width=800, height=200
+        # )
+        fig = self._create_fig_go(p, fol, seq_name, seq)
+
+        div = html.Div([dcc.Graph(figure=fig)], id=id)
+        return div
+
+    def _create_fig_go(self, percentages_data, fol, seq_name, seq):
+        import plotly.graph_objects as go
+
+        cde_code = fol["code"]
+        logger.debug(f"code = {cde_code}")
+        label = fol["label"]
+        values = percentages_data[label]
+
+        logger.debug(f"{label} values = {values}")
+        percentages = percentages_data["Percentage"]
+
+        title = seq_name + " " + label
+
+        fig = go.Figure(
+            go.Bar(
+                x=values,
+                y=percentages,
+            )
+        )
+
+        fig.update_layout(
+            title=title, barmode="overlay", showlegend=False, template="presentation"
+        )
+
+        return fig
