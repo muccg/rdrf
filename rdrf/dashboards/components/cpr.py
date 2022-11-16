@@ -47,14 +47,14 @@ class ChangesInPatientResponses(BaseGraphic):
         self.set_fields_of_interest(self.config)
 
         items = []
-        for seq_name, seq in seqs(self.data):
-            logger.debug(f"calculating {seq_name}...")
-            for fol in self.fols:
-                logger.debug(f"checking {fol}...")
+        for fol in self.fols:
+            for seq_name, seq in seqs(self.data):
                 bar_div = self._create_bar(fol, seq_name, seq)
                 items.append(bar_div)
 
-        return html.Div(items, id="cpr")
+        cpr_div = html.Div([html.H3("Changes in Patient Responses"), *items])
+
+        return html.Div(cpr_div, id="cpr")
 
     def _create_bar(self, fol, seq_name, seq):
         code = fol["code"]
