@@ -216,3 +216,26 @@ def get_cde_values(cde_code):
         return [d["value"] for d in dicts]  # value is the display value
     else:
         return []
+
+
+def get_percentages_within_seq(df, field):
+    # produce grouped dataframe showing counts of field values
+    g = df.groupby([SEQ, field]).agg({field: "count"})
+    # add percentage within group
+    g["PERCENTAGE"] = 100.00 * g[field] / g.groupby(SEQ)[field].transform("sum")
+
+    # this will be the percentages of individual choices for a field for each
+    # seq ( ie, baseline, followup 1, follow up 2...
+    #   SEQ	EORTCQLQC29_Q31
+    # 0	0	1279	25.564661
+    #   1	1306	26.104337
+    #   2	1187	23.725765
+    #   3	1231	24.605237
+    # 1	0	1235	24.685189
+    # ...	...	...	...
+    # 319	3	1327	26.529388
+    # 20	0	1255	25.089964
+    # 1	1276	25.509796
+    # 2	1216	24.310276
+    # 3	1255	25.089964
+    return g
