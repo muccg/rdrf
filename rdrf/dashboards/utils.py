@@ -26,8 +26,6 @@ class Proms:
 
 
 def get_colour_map():
-    orange = "#FFA500"
-
     color_discrete_map = {
         "Not at all": "green",
         "A little": "lightgreen",
