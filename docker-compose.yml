@@ -57,6 +57,8 @@ services:
     environment:
       - DJANGO_FIXTURES=dev
       - DESIGN_MODE=1
+      - SYSTEM_ROLE=CIC_DEV
+      - PROMS_SECRET_TOKEN=xxxxxxxxxxxxxxxxxxxx
     volumes_from:
       - datadev
     ports:
