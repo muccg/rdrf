@@ -66,26 +66,19 @@ class ChangesInPatientResponses(BaseGraphic):
     def _get_percentages_over_followups(self, field, label) -> pd.DataFrame:
         logger.debug(f"get percentages over followups (pof) for {field} {label}")
         pof = self.data.groupby([SEQ, field]).agg({field: "count"})
-        pof["per"] = 100 * pof[field] / pof.groupby(SEQ)[field].transform("sum")
+        pof["Percentage"] = 100 * pof[field] / pof.groupby(SEQ)[field].transform("sum")
 
-        logger.debug(f"pof:\n{pof}")
+        pof = pof.rename(columns={field: "counts"}).reset_index()
+        pof[label] = pof[field].apply(lambda value: lookup_cde_value(field, value))
 
-        logger.debug(f"renaming column per to {label} and resetting index")
-        pof = pof.rename(columns={"per": label, field: "counts"}).reset_index()
-        logger.debug(f"{pof}")
-
-        logger.debug(f"pof columns = {pof.columns}")
-        logger.debug(f"pof index = {pof.index}")
         return pof
 
     def _create_stacked_bar_px(self, df, field, label):
-        logger.debug(f"creating stacked bar for {field} {label}:")
-        logger.debug(f"columns = {df.columns}")
         fig = px.bar(
             df,
             SEQ,
-            label,
-            color=field,
+            "Percentage",
+            color=label,
             barmode="stack",
         )
 
