@@ -72,7 +72,7 @@ class ChangesInPatientResponses(BaseGraphic):
             "Percentage",
             color=label,
             barmode="stack",
-            title=label,
+            title=f"Change in {label} over time for all patients",
             color_discrete_map=colour_map,
         )
 
