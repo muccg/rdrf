@@ -1,6 +1,7 @@
 from rdrf.models.definition.models import Registry
 from registry.patients.models import Patient
 
+
 class PromsType:
     baseline = "baseline"
     follow_up = "follow_up"
@@ -24,11 +25,13 @@ class Proms:
         pass
 
 
-def get_proms(registry: Registry, patient: Patient) -> List[Response]:
-    cds = ClinicalData.objects.filter(django_id=patient.id, collection="cdes").order_by(
-        "created"
-    )
+def get_colour_map():
+    orange = "#FFA500"
 
-    return sorted([ Proms(registry, patient, cd) for cd in cds,
-                    key=lambda p: p.collection_date])
-        
+    color_discrete_map = {
+        "Not at all": "green",
+        "A little": "lightgreen",
+        "Quite a bit": "orange",
+        "Very much": "red",
+    }
+    return color_discrete_map

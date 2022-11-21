@@ -3,6 +3,7 @@ from dash import dcc, html
 from ..data import lookup_cde_value
 from ..data import get_cde_values
 from ..data import get_percentages_within_seq
+from ..utils import get_colour_map
 import plotly.express as px
 import plotly.graph_objects as go
 import pandas as pd
@@ -74,12 +75,14 @@ class ChangesInPatientResponses(BaseGraphic):
         return pof
 
     def _create_stacked_bar_px(self, df, field, label):
+        colour_map = get_colour_map()
         fig = px.bar(
             df,
             SEQ,
             "Percentage",
             color=label,
             barmode="stack",
+            color_discrete_map=colour_map,
         )
 
         logger.debug("created bar")
