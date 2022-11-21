@@ -1,8 +1,6 @@
 from dash import dcc, html
-from .components import ChangeInPatientResponses
+from ..components.cpr import ChangesInPatientResponses
 
 
-
-class FieldGroupComparision(ChangeInPatientResponses):
-    
-
+class FieldGroupComparison(ChangesInPatientResponses):
+    pass
