@@ -38,20 +38,6 @@ class RegistryDataFrame:
     def __init__(self, registry, config_model, patient_id=None):
         self.registry = registry
         self.config_model = config_model
-        # if self.config_model.state == "D":
-        if False:
-            # data has been cached as json from a previous run
-            # todo: invalidate this based on time
-            # or we could update on a cron
-            #
-            logger.debug("reading json ...")
-            t1 = datetime.now()
-            self.df = pd.read_json(self.config_model.data)
-            t2 = datetime.now()
-            logger.debug("time to load json = {t2-t1}")
-            return
-
-        # no data loaded
         self.patient_id = patient_id
         self.prefix_fields = ["pid", "seq", "type", "form"]
         self.prefix_names = ["PID", "SEQ", "TYPE", "FORM"]
