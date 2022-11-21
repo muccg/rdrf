@@ -15,17 +15,6 @@ logger = logging.getLogger(__name__)
 SEQ = "SEQ"  # seq column name
 
 
-def seqs(df):
-    i = 0
-    max_seq = df["SEQ"].max()
-    logger.debug(f"seq max = {max_seq}")
-    yield "Baseline", i
-    i += 1
-    while i <= max_seq:
-        yield f"Follow Up {i}", i
-        i += 1
-
-
 class ChangesInPatientResponses(BaseGraphic):
     """
     A particular list of cdes
@@ -35,9 +24,11 @@ class ChangesInPatientResponses(BaseGraphic):
 
     for Fatigue
     e.g. 11% Not at all ( green , ie good)
-         22% A little   ( beige)
+         22% A little   ( dark greeb)
          ..
          33% Very much ( red , ie bad)
+
+    Uses colour map defined in utils
 
     """
 
@@ -65,10 +56,8 @@ class ChangesInPatientResponses(BaseGraphic):
         return html.Div(cpr_div, id="cpr")
 
     def _get_percentages_over_followups(self, field, label) -> pd.DataFrame:
-        logger.debug(f"get percentages over followups (pof) for {field} {label}")
         pof = self.data.groupby([SEQ, field]).agg({field: "count"})
         pof["Percentage"] = 100 * pof[field] / pof.groupby(SEQ)[field].transform("sum")
-
         pof = pof.rename(columns={field: "counts"}).reset_index()
         pof[label] = pof[field].apply(lambda value: lookup_cde_value(field, value))
 
@@ -76,6 +65,7 @@ class ChangesInPatientResponses(BaseGraphic):
 
     def _create_stacked_bar_px(self, df, field, label):
         colour_map = get_colour_map()
+        labels = self._get_labels(df)
         fig = px.bar(
             df,
             SEQ,
@@ -90,3 +80,14 @@ class ChangesInPatientResponses(BaseGraphic):
         id = f"bar-{label}"
         div = html.Div([dcc.Graph(figure=fig)], id=id)
         return div
+
+    def _get_labels(self, df):
+        d = {0: "Baseline"}
+
+        def seq_name(value):
+            return d.get(value, f"Follow Up {value}")
+
+        seq_values = [seq_name(value) for value in df[SEQ]]
+        logger.debug(f"seq values = {seq_values}")
+
+        return {"SEQ": seq_values}
