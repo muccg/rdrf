@@ -3,18 +3,14 @@ from django.shortcuts import render
 from django.views.generic.base import View
 from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
-from dash import dcc, html
-import dash
+from dash import html
 from django_plotly_dash import DjangoDash
 import dash_bootstrap_components as dbc
-import plotly.express as px
 
 from rdrf.models.definition.models import Registry
 from rdrf.helpers.utils import anonymous_not_allowed
 
-from .data import RegistryDataFrame
 from .data import get_data
-from .components.common import card, chart
 from .components.pcf import PatientsWhoCompletedForms
 from .components.fgc import FieldGroupComparison
 from .components.tofc import TypesOfFormCompleted
