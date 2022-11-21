@@ -184,7 +184,7 @@ class RegistryDataFrame:
 def get_data(registry, pid=None):
     try:
         config = VisualisationBaseDataConfig.objects.get(registry=registry)
-    except VisualisationBaseData.DoesNotExist:
+    except VisualisationBaseDataConfig.DoesNotExist:
         config = None
 
     rdf = RegistryDataFrame(registry, config, pid)
