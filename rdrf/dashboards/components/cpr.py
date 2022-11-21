@@ -5,6 +5,7 @@ from ..data import get_cde_values
 from ..data import get_percentages_within_seq
 import plotly.express as px
 import plotly.graph_objects as go
+import pandas as pd
 
 import logging
 
@@ -47,97 +48,48 @@ class ChangesInPatientResponses(BaseGraphic):
     def get_graphic(self):
         logger.debug("creating Changes in Patient Responses")
         self.set_fields_of_interest(self.config)
-        seq_nums = list(set(self.data[SEQ]))
-
+        logger.debug(f"fields of interest = {self.fols}")
         items = []
-        for fol in self.fols:
-            data = get_percentages_within_seq(self.data, fol)
-            bar = px.bar(x=seq_nums, y=data["per"])
-            items.append(bar)
+        for fol_dict in self.fols:
+            field = fol_dict["code"]
+            label = fol_dict["label"]
+            logger.debug(f"field = {field}")
+            pof = self._get_percentages_over_followups(field, label)
+            bar_div = self._create_stacked_bar_px(pof, field, label)
+            items.append(bar_div)
 
         cpr_div = html.Div([html.H3("Changes in Patient Responses"), *items])
+        logger.debug("created cpr graphic")
 
         return html.Div(cpr_div, id="cpr")
 
-    def _create_bar(self, fol, seq_name, seq):
-        code = fol["code"]
-        label = fol["label"]
-        df = self.data
-        id = label + "_" + seq_name
+    def _get_percentages_over_followups(self, field, label) -> pd.DataFrame:
+        logger.debug(f"get percentages over followups (pof) for {field} {label}")
+        pof = self.data.groupby([SEQ, field]).agg({field: "count"})
+        pof["per"] = 100 * pof[field] / pof.groupby(SEQ)[field].transform("sum")
 
-        p = (
-            df[df[SEQ] == seq][code]
-            .value_counts(normalize=True)
-            .rename_axis(label)
-            .reset_index(name="Percentage")
+        logger.debug(f"pof:\n{pof}")
+
+        logger.debug(f"renaming column per to {label} and resetting index")
+        pof = pof.rename(columns={"per": label, field: "counts"}).reset_index()
+        logger.debug(f"{pof}")
+
+        logger.debug(f"pof columns = {pof.columns}")
+        logger.debug(f"pof index = {pof.index}")
+        return pof
+
+    def _create_stacked_bar_px(self, df, field, label):
+        logger.debug(f"creating stacked bar for {field} {label}:")
+        logger.debug(f"columns = {df.columns}")
+        fig = px.bar(
+            df,
+            SEQ,
+            label,
+            color=field,
+            barmode="stack",
         )
-        p["Percentage"] = p["Percentage"].apply(lambda value: 100.0 * value)
-        p[label] = p[label].apply(lambda value: lookup_cde_value(code, value))
 
-        # fig = px.bar(
-        #    p, x="Percentage", barmode="stack", orientation="h", width=800, height=200
-        # )
-        fig = self._create_fig_go(p, fol, seq_name, seq)
-        # fig = self._create_stacked_bar(p, fol, seq_name, seq)
-
+        logger.debug("created bar")
+        id = f"bar-{label}"
         div = html.Div([dcc.Graph(figure=fig)], id=id)
         return div
-
-    def _create_fig_go(self, percentages_data, fol, seq_name, seq):
-
-        cde_code = fol["code"]
-        logger.debug(f"code = {cde_code}")
-        label = fol["label"]
-        values = percentages_data[label]
-
-        logger.debug(f"{label} values = {values}")
-        percentages = percentages_data["Percentage"]
-
-        title = seq_name + " " + label
-
-        fig = go.Figure(
-            go.Bar(
-                x=values,
-                y=percentages,
-            )
-        )
-
-        fig.update_layout(
-            title=title, barmode="stack", showlegend=False, template="presentation"
-        )
-
-        return fig
-
-    # def _create_stacked_bar(self, percentages_data, fol, seq_name, seq):
-    #     cde_code = fol["code"]
-    #     label = fol["label"]
-    #     values = percentages_data[label]
-    #     percentages = percentages_data["Percentage"]
-    #     d = percentages_data
-    #     colour_map = {}
-    #     colour_map["Very much"] = "red"
-    #     colour_map["Quite a bit"] = "orange"
-    #     colour_map["A little"] = "pink"
-    #     colour_map["Not at all"] = "green"
-
-    #     title = seq_name + " " + label
-    #     bar = go.Bar(
-    #             x=values,
-    #             y=percentages
-    #             marker={"color": colour_map["value"]},
-    #         )
-
-    #     fig = go.Figure(bar, title=title)
-
-    #     follow_ups=[pair[1] for pair in seqs(self.data)]
-    #     follow_up_names = [pair[0] for pair in seqs(self.data)]
-
-    #     fig = go.Figure(data=[
-    #         go.Bar(name=value, x=animals, y=[12, 18, 29])
-    #                for value in values]
-    #     ])
-    #     # Change the bar mode
-    #     fig.update_layout(barmode='stack')
-    #     fig.show()
-
-    #     return fig
