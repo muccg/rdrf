@@ -1,16 +1,11 @@
 import pandas as pd
-from rdrf.models.definition.models import Registry
 from rdrf.models.definition.models import ClinicalData
 from rdrf.models.definition.models import RDRFContext
-from rdrf.models.definition.models import ContextFormGroup
 from rdrf.models.definition.models import CommonDataElement
 
-from rdrf.models.proms.models import Survey
 from registry.patients.models import Patient
 
-from datetime import datetime, timedelta
-from itertools import chain
-from rdrf.helpers.utils import parse_iso_datetime
+from datetime import datetime
 
 from .models import VisualisationBaseDataConfig
 
@@ -189,7 +184,7 @@ class RegistryDataFrame:
 def get_data(registry, pid=None):
     try:
         config = VisualisationBaseDataConfig.objects.get(registry=registry)
-    except VisualisationData.DoesNotExist:
+    except VisualisationBaseData.DoesNotExist:
         config = None
 
     rdf = RegistryDataFrame(registry, config, pid)
