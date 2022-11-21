@@ -82,6 +82,7 @@ class ChangesInPatientResponses(BaseGraphic):
             "Percentage",
             color=label,
             barmode="stack",
+            title=label,
             color_discrete_map=colour_map,
         )
 
