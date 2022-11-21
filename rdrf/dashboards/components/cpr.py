@@ -3,12 +3,16 @@ from dash import dcc, html
 from ..data import lookup_cde_value
 from ..utils import get_colour_map
 import plotly.express as px
-import plotly.graph_objects as go
 import pandas as pd
 
 import logging
 
 logger = logging.getLogger(__name__)
+
+
+def log(msg):
+    logger.debug(f"cpr: {msg}")
+
 
 SEQ = "SEQ"  # seq column name
 
@@ -36,15 +40,15 @@ class ChangesInPatientResponses(BaseGraphic):
         self.fols = config["fields_of_interest"]
 
     def get_graphic(self):
-        logger.debug("creating Changes in Patient Responses")
+        log("creating Changes in Patient Responses")
         self.set_fields_of_interest(self.config)
-        logger.debug(f"fields of interest = {self.fols}")
+        log(f"fields of interest = {self.fols}")
         items = []
         for fol_dict in self.fols:
             field = fol_dict["code"]
             label = fol_dict["label"]
             field_type = fol_dict.get("type", "cde")
-            logger.debug(f"field = {field}")
+            log(f"field = {field}")
             if field_type == "calculation":
                 self.data[field] = self.perform_calculation(field)
             pof = self._get_percentages_over_followups(field, label)
@@ -52,7 +56,7 @@ class ChangesInPatientResponses(BaseGraphic):
             items.append(bar_div)
 
         cpr_div = html.Div([html.H3("Changes in Patient Responses"), *items])
-        logger.debug("created cpr graphic")
+        log("created cpr graphic")
 
         return html.Div(cpr_div, id="cpr")
 
@@ -73,7 +77,6 @@ class ChangesInPatientResponses(BaseGraphic):
 
     def _create_stacked_bar_px(self, df, field, label):
         colour_map = self.get_colour_map()
-        labels = self._get_labels(df)
         fig = px.bar(
             df,
             SEQ,
@@ -84,18 +87,7 @@ class ChangesInPatientResponses(BaseGraphic):
             color_discrete_map=colour_map,
         )
 
-        logger.debug("created bar")
+        log("created bar")
         id = f"bar-{label}"
         div = html.Div([dcc.Graph(figure=fig)], id=id)
         return div
-
-    def _get_labels(self, df):
-        d = {0: "Baseline"}
-
-        def seq_name(value):
-            return d.get(value, f"Follow Up {value}")
-
-        seq_values = [seq_name(value) for value in df[SEQ]]
-        logger.debug(f"seq values = {seq_values}")
-
-        return {"SEQ": seq_values}

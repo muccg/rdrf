@@ -12,7 +12,6 @@ from rdrf.helpers.utils import anonymous_not_allowed
 
 from .data import get_data
 from .components.pcf import PatientsWhoCompletedForms
-from .components.fgc import FieldGroupComparison
 from .components.tofc import TypesOfFormCompleted
 from .components.cpr import ChangesInPatientResponses
 from .models import VisualisationConfig

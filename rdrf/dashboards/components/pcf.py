@@ -1,4 +1,3 @@
-import plotly.express as px
 from dashboards.components.common import card, BaseGraphic
 import logging
 
