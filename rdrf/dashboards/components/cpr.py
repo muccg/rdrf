@@ -45,7 +45,10 @@ class ChangesInPatientResponses(BaseGraphic):
         for fol_dict in self.fols:
             field = fol_dict["code"]
             label = fol_dict["label"]
+            field_type = fol_dict.get("type", "cde")
             logger.debug(f"field = {field}")
+            if field_type == "calculation":
+                self.data[field] = self.perform_calculation(field)
             pof = self._get_percentages_over_followups(field, label)
             bar_div = self._create_stacked_bar_px(pof, field, label)
             items.append(bar_div)
@@ -55,6 +58,10 @@ class ChangesInPatientResponses(BaseGraphic):
 
         return html.Div(cpr_div, id="cpr")
 
+    def perform_calculation(self, field):
+        # base "normal" cpr just works on cde fields so not used
+        raise Exception("subclass responsiblity")
+
     def _get_percentages_over_followups(self, field, label) -> pd.DataFrame:
         pof = self.data.groupby([SEQ, field]).agg({field: "count"})
         pof["Percentage"] = 100 * pof[field] / pof.groupby(SEQ)[field].transform("sum")
@@ -63,8 +70,11 @@ class ChangesInPatientResponses(BaseGraphic):
 
         return pof
 
+    def get_colour_map(self):
+        return get_colour_map()
+
     def _create_stacked_bar_px(self, df, field, label):
-        colour_map = get_colour_map()
+        colour_map = self.get_colour_map()
         labels = self._get_labels(df)
         fig = px.bar(
             df,

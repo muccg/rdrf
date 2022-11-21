@@ -3,4 +3,9 @@ from ..components.cpr import ChangesInPatientResponses
 
 
 class FieldGroupComparison(ChangesInPatientResponses):
-    pass
+    def perform_calculation(self, field: str, config: dict):
+
+        """
+        Return a calculation column based on config dict
+        """
+        pass
