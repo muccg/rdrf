@@ -33,7 +33,6 @@ def run_custom_action(custom_action_id, user_id, patient_id, input_data):
     except CustomAction.DoesNotExist:
         logger.error(f"can't run custom action {custom_action_id} as it doesn't exist")
         return
-        
 
     logger.debug("running custom action execute")
     return custom_action.execute(user, patient_model, input_data)
