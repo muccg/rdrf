@@ -28,6 +28,7 @@ def cde_iterator(registry):
 # Abbreviations
 cdf = "COLLECTIONDATE"  # collection date field
 pid = "PID"  # patient id
+SEQ = "SEQ"
 
 
 class RegistryDataFrame:
