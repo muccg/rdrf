@@ -30,7 +30,8 @@ def create_graphic(vis_config, data):
     elif vis_config.code == "tofc":
         return TypesOfFormCompleted(vis_config.config, data).graphic
     elif vis_config.code == "fgc":
-        return FieldGroupComparison(vis_config.config, data).graphic
+        return None
+        # return FieldGroupComparison(vis_config.config, data).graphic
     elif vis_config.code == "cpr":
         return ChangesInPatientResponses(vis_config.config, data).graphic
     else:

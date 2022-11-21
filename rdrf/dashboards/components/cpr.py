@@ -1,8 +1,6 @@
 from .common import BaseGraphic
 from dash import dcc, html
 from ..data import lookup_cde_value
-from ..data import get_cde_values
-from ..data import get_percentages_within_seq
 from ..utils import get_colour_map
 import plotly.express as px
 import plotly.graph_objects as go

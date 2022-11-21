@@ -1,7 +1,6 @@
 import plotly.express as px
 from dash import dcc, html
 from .common import BaseGraphic
-from .common import card
 
 title = "Types of Form Completed"
 
