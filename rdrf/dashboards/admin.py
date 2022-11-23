@@ -5,7 +5,7 @@ from dashboards.models import VisualisationBaseDataConfig
 
 class VisualisationConfigAdmin(admin.ModelAdmin):
     model = VisualisationConfig
-    list_display = ("registry", "dashboard", "code")
+    list_display = ("registry", "dashboard", "code", "title")
 
 
 class VisualisationBaseDataConfigAdmin(admin.ModelAdmin):

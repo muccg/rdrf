@@ -21,7 +21,7 @@ class VisualisationConfig(models.Model):
     codes = (
         ("tofc", "Types of Forms Completed"),
         ("pcf", "Patients Who Completed Forms"),
-        ("fgc", "Field Group Comparison"),
+        ("cfc", "Combined Field Comparison"),
         ("cpr", "Changes in Patient Responses"),
     )
     registry = models.ForeignKey(Registry, on_delete=models.CASCADE)

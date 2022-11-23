@@ -14,6 +14,8 @@ from .data import get_data
 from .components.pcf import PatientsWhoCompletedForms
 from .components.tofc import TypesOfFormCompleted
 from .components.cpr import ChangesInPatientResponses
+from .components.cfc import CombinedFieldComparison
+
 from .models import VisualisationConfig
 
 import logging
@@ -28,9 +30,8 @@ def create_graphic(vis_config, data):
         return PatientsWhoCompletedForms(vis_config.config, data).graphic
     elif vis_config.code == "tofc":
         return TypesOfFormCompleted(vis_config.config, data).graphic
-    elif vis_config.code == "fgc":
-        return None
-        # return FieldGroupComparison(vis_config.config, data).graphic
+    elif vis_config.code == "cfc":
+        return CombinedFieldComparison(vis_config.config, data).graphic
     elif vis_config.code == "cpr":
         return ChangesInPatientResponses(vis_config.config, data).graphic
     else:
