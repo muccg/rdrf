@@ -23,9 +23,10 @@ def card(title, data):
 
 
 class BaseGraphic:
-    def __init__(self, config, data: pd.DataFrame):
+    def __init__(self, title, config, data: pd.DataFrame):
         self.config = config
         self.data = data
+        self.title = title
 
     @property
     def graphic(self):

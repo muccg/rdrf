@@ -26,14 +26,15 @@ login_required_method = method_decorator(login_required)
 
 
 def create_graphic(vis_config, data):
+    title = vis_config.title
     if vis_config.code == "pcf":
-        return PatientsWhoCompletedForms(vis_config.config, data).graphic
+        return PatientsWhoCompletedForms(title, vis_config.config, data).graphic
     elif vis_config.code == "tofc":
-        return TypesOfFormCompleted(vis_config.config, data).graphic
+        return TypesOfFormCompleted(title, vis_config.config, data).graphic
     elif vis_config.code == "cfc":
-        return CombinedFieldComparison(vis_config.config, data).graphic
+        return CombinedFieldComparison(title, vis_config.config, data).graphic
     elif vis_config.code == "cpr":
-        return ChangesInPatientResponses(vis_config.config, data).graphic
+        return ChangesInPatientResponses(title, vis_config.config, data).graphic
     else:
         logger.error(f"dashboard error - unknown visualisation {vis_config.code}")
         raise Exception(f"Unknown code: {vis_config.code}")
