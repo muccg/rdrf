@@ -6,6 +6,7 @@ from django.utils.decorators import method_decorator
 from dash import html
 from django_plotly_dash import DjangoDash
 import dash_bootstrap_components as dbc
+from dash import Input, Output, dcc, html
 
 from rdrf.models.definition.models import Registry
 from rdrf.helpers.utils import anonymous_not_allowed
@@ -40,35 +41,42 @@ def create_graphic(vis_config, data):
         raise Exception(f"Unknown code: {vis_config.code}")
 
 
-def all_patients_app():
-
-    registry = Registry.objects.get()
-    app = DjangoDash("App", external_stylesheets=[dbc.themes.BOOTSTRAP])
-
-    graphics = []
-
-    t1 = datetime.now()
-
+def tabbed_app(registry, main_title):
     data = get_data(registry)
+    vis_configs = [
+        vc
+        for vc in VisualisationConfig.objects.filter(registry=registry).order_by(
+            "position"
+        )
+    ]
 
-    for vis_config in VisualisationConfig.objects.filter(
-        registry=registry, dashboard="A"
-    ).order_by("position"):
+    graphics_map = {vc.code: create_graphic(vc, data) for vc in vis_configs}
 
-        try:
-            logger.debug(f"creating graphic {vis_config.code}")
-            graphic = create_graphic(vis_config, data)
-        except Exception as ex:
-            code = vis_config.code
-            logger.error(f"Error creating graphic {code}: {ex}")
-            graphic = None
+    app = DjangoDash("App", external_stylesheets=[dbc.themes.BOOTSTRAP])
+    app.layout = dbc.Container(
+        [
+            dcc.Store(id="store"),
+            dbc.Tabs(
+                [
+                    dbc.Tab(label=f"{vc.title}", tab_id=f"{vc.code}")
+                    for vc in vis_configs
+                ],
+                id="tabs",
+                active_tab=f"{vis_configs[0].code}",
+            ),
+            html.Div(id="tab-content", className="p-4"),
+        ]
+    )
 
-        if graphic is not None:
-            graphics.append(graphic)
-
-    app.layout = html.Div(graphics, id="allpatientsdashboard")
-    t2 = datetime.now()
-    return app, (t2 - t1).total_seconds()
+    @app.callback(
+        Output("tab-content", "children"),
+        [Input("tabs", "active_tab")],
+    )
+    def render_tab_content(active_tab):
+        if not active_tab:
+            return "No tab selected"
+        else:
+            return graphics_map[active_tab]
 
 
 class PatientsDashboardView(View):
@@ -76,11 +84,12 @@ class PatientsDashboardView(View):
     @login_required_method
     def get(self, request):
         context = {}
-        app, secs = all_patients_app()
-        logger.debug("view instantiated app")
-        logger.debug("rendering template ...")
+        t1 = datetime.now()
+        registry = Registry.objects.get()
+        app = tabbed_app(registry, "Tabbed App")
+        t2 = datetime.now()
 
-        context["seconds"] = secs
+        context["seconds"] = (t2 - t1).total_seconds
         context["location"] = "Patients Dashboard"
 
         return render(request, "rdrf_cdes/patients_dashboard.html", context)

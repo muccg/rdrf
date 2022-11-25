@@ -19,21 +19,19 @@ SEQ = "SEQ"
 class CombinedFieldComparison(BaseGraphic):
     def get_graphic(self):
         log("creating Combined Field Comparison")
-        inputs = self.config["inputs"]  # e.g. ["EORTCQLQC30_Q29","EORTCQLQC30_Q30"]
-        log(f"inputs = {inputs}")
+        fields = self.config["fields"]
+        inputs = [field["code"] for field in fields]
+        labels = [field["label"] for field in fields]
+        combined_name = "/".join(labels)
         colour_map = self.config.get("colour_map", None)
         data = self._get_combined_data(self.data, inputs)
-        log(f"combined data  = {data}")
-        bars_div = self._create_bars_div(data, inputs, colour_map)
+        bars_div = self._create_bars_div(data, inputs, colour_map, combined_name)
         div = html.Div([html.H3(self.title), bars_div])
-        log("created combined field comparision graphic")
         return html.Div(div, id="fgc")
 
-    def _create_bars_div(self, data, inputs, colour_map):
+    def _create_bars_div(self, data, inputs, colour_map, combined_name):
         if colour_map is None:
             colour_map = get_colour_map()
-
-        combined_name = self._get_combined_name(inputs)
 
         fig = px.bar(
             data,
@@ -49,9 +47,6 @@ class CombinedFieldComparison(BaseGraphic):
         id = f"bar-combined"
         div = html.Div([dcc.Graph(figure=fig)], id=id)
         return div
-
-    def _get_combined_name(self, inputs):
-        return "Health Status/Quality of Life"
 
     def _get_combined_data(self, df: pd.DataFrame, inputs) -> pd.DataFrame:
         """
