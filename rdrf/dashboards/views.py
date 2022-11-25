@@ -3,7 +3,6 @@ from django.shortcuts import render
 from django.views.generic.base import View
 from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
-from dash import html
 from django_plotly_dash import DjangoDash
 import dash_bootstrap_components as dbc
 from dash import Input, Output, dcc, html
@@ -86,7 +85,7 @@ class PatientsDashboardView(View):
         context = {}
         t1 = datetime.now()
         registry = Registry.objects.get()
-        app = tabbed_app(registry, "Tabbed App")
+        _ = tabbed_app(registry, "Tabbed App")
         t2 = datetime.now()
 
         context["seconds"] = (t2 - t1).total_seconds

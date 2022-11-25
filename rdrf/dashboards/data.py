@@ -146,8 +146,12 @@ class RegistryDataFrame:
 
     def _get_fields(self, form_name, cd):
         field_map = self.field_map.copy()
+        if not cd.data or "forms" not in cd.data:
+            form_dicts = []
+        else:
+            form_dicts = cd.data["forms"]
 
-        for form_dict in cd.data["forms"]:
+        for form_dict in form_dicts:
             if form_dict["name"] == form_name:
                 for section_dict in form_dict["sections"]:
                     if not section_dict["allow_multiple"]:
