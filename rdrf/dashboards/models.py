@@ -36,3 +36,4 @@ class VisualisationConfig(models.Model):
     )  # used as a tag to run the correct vis
     title = models.CharField(max_length=80)
     config = models.JSONField(null=True)
+    position = models.IntegerField(null=True, blank=True)
