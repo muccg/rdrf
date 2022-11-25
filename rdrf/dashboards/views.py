@@ -53,7 +53,7 @@ def all_patients_app():
 
     for vis_config in VisualisationConfig.objects.filter(
         registry=registry, dashboard="A"
-    ):
+    ).order_by("position"):
 
         try:
             logger.debug(f"creating graphic {vis_config.code}")
@@ -81,5 +81,6 @@ class PatientsDashboardView(View):
         logger.debug("rendering template ...")
 
         context["seconds"] = secs
+        context["location"] = "Patients Dashboard"
 
         return render(request, "rdrf_cdes/patients_dashboard.html", context)
