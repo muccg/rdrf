@@ -11,7 +11,6 @@ logger = logging.getLogger(__name__)
 
 
 class QuickLink(object):
-
     def __init__(self, url, text):
         self.url = url
         self.translation = _(text)
@@ -27,122 +26,191 @@ class Links:
     Links are also grouped into related functional areas to make for easier assignment to menus
     """
 
-    if settings.SYSTEM_ROLE in (SystemRoles.NORMAL, SystemRoles.CIC_DEV, SystemRoles.CIC_CLINICAL):
-        HL7Mappings = QuickLink(reverse("admin:intframework_hl7mapping_changelist"), _("HL7 Mappings"))
-        HL7Messages = QuickLink(reverse("admin:intframework_hl7message_changelist"), _("HL7 Messages"))
-        HL7MessageConfigs = QuickLink(reverse("admin:intframework_hl7messageconfig_changelist"), _("HL7 Message Config"))
+    if settings.SYSTEM_ROLE in (
+        SystemRoles.NORMAL,
+        SystemRoles.CIC_DEV,
+        SystemRoles.CIC_CLINICAL,
+    ):
+        HL7Mappings = QuickLink(
+            reverse("admin:intframework_hl7mapping_changelist"), _("HL7 Mappings")
+        )
+        HL7Messages = QuickLink(
+            reverse("admin:intframework_hl7message_changelist"), _("HL7 Messages")
+        )
+        HL7MessageConfigs = QuickLink(
+            reverse("admin:intframework_hl7messageconfig_changelist"),
+            _("HL7 Message Config"),
+        )
         PatientsListing = QuickLink(reverse("patientslisting"), _("Patient List"))
-        QuestionnaireResponses = QuickLink(reverse("admin:rdrf_questionnaireresponse_changelist"),
-                                           _("Questionnaire Responses"))
+
+        PatientsDashboard = QuickLink(
+            reverse("dashboards:overall"), _("Patients Dashboard")
+        )
+        QuestionnaireResponses = QuickLink(
+            reverse("admin:rdrf_questionnaireresponse_changelist"),
+            _("Questionnaire Responses"),
+        )
         Doctors = QuickLink(reverse("admin:patients_doctor_changelist"), _("Doctors"))
         ArchivedPatients = QuickLink(
-            reverse("admin:patients_archivedpatient_changelist"),
-            _("Archived Patients"))
+            reverse("admin:patients_archivedpatient_changelist"), _("Archived Patients")
+        )
         Genes = QuickLink(reverse("admin:genetic_gene_changelist"), _("Genes"))
-        Laboratories = QuickLink(reverse("admin:genetic_laboratory_changelist"), _("Laboratories"))
+        Laboratories = QuickLink(
+            reverse("admin:genetic_laboratory_changelist"), _("Laboratories")
+        )
         if settings.SYSTEM_ROLE == SystemRoles.NORMAL:
             Explorer = QuickLink(reverse("rdrf:explorer_main"), _("Explorer"))
             Reports = QuickLink(reverse("reports"), _("Reports"))
-        Users = QuickLink(reverse("admin:groups_customuser_changelist"), _('Users'))
+        Users = QuickLink(reverse("admin:groups_customuser_changelist"), _("Users"))
         WorkingGroups = QuickLink(
-            reverse("admin:groups_workinggroup_changelist"),
-            _("Working Groups"))
-        Registries = QuickLink(reverse("admin:rdrf_registry_changelist"), _("Registries"))
+            reverse("admin:groups_workinggroup_changelist"), _("Working Groups")
+        )
+        Registries = QuickLink(
+            reverse("admin:rdrf_registry_changelist"), _("Registries")
+        )
 
         Importer = QuickLink(reverse("import_registry"), _("Importer"))
         Groups = QuickLink(reverse("admin:auth_group_changelist"), _("Groups"))
         NextOfKinRelationship = QuickLink(
             reverse("admin:patients_nextofkinrelationship_changelist"),
-            _("Next of Kin Relationship"))
+            _("Next of Kin Relationship"),
+        )
         States = QuickLink(reverse("admin:patients_state_changelist"), _("States"))
         ClinicianOther = QuickLink(
-            reverse("admin:patients_clinicianother_changelist"),
-            _("Other Clinicians"))
+            reverse("admin:patients_clinicianother_changelist"), _("Other Clinicians")
+        )
         EmailNotification = QuickLink(
-            reverse("admin:rdrf_emailnotification_changelist"),
-            _("Email Notifications"))
+            reverse("admin:rdrf_emailnotification_changelist"), _("Email Notifications")
+        )
         EmailTemplate = QuickLink(
-            reverse("admin:rdrf_emailtemplate_changelist"),
-            _("Email Templates"))
+            reverse("admin:rdrf_emailtemplate_changelist"), _("Email Templates")
+        )
         EmailNotificationHistory = QuickLink(
             reverse("admin:rdrf_emailnotificationhistory_changelist"),
-            _("Email Notifications History"))
+            _("Email Notifications History"),
+        )
         RegistrationProfiles = QuickLink(
             reverse("admin:registration_registrationprofile_changelist"),
-            _("Registration Profiles"))
-        LoginLog = QuickLink(reverse("admin:useraudit_loginlog_changelist"), _("User Login Log"))
+            _("Registration Profiles"),
+        )
+        LoginLog = QuickLink(
+            reverse("admin:useraudit_loginlog_changelist"), _("User Login Log")
+        )
         FailedLoginLog = QuickLink(
             reverse("admin:useraudit_failedloginlog_changelist"),
-            _("User Failed Login Log"))
+            _("User Failed Login Log"),
+        )
         LoginAttempts = QuickLink(
             reverse("admin:useraudit_loginattempt_changelist"),
-            _("User Login Attempts Log"))
+            _("User Login Attempts Log"),
+        )
         IPRestrictRangeGroup = QuickLink(
             reverse("admin:iprestrict_rangebasedipgroup_changelist"),
-            _("IP Restrict Ranges"))
-        IPRestrictGeoGroup = QuickLink(reverse("admin:iprestrict_locationbasedipgroup_changelist"),
-                                       _("IP Restrict Geolocations"))
+            _("IP Restrict Ranges"),
+        )
+        IPRestrictGeoGroup = QuickLink(
+            reverse("admin:iprestrict_locationbasedipgroup_changelist"),
+            _("IP Restrict Geolocations"),
+        )
         IPRestrictRule = QuickLink(
-            reverse("admin:iprestrict_rule_changelist"),
-            _("IP Restrict Rules"))
+            reverse("admin:iprestrict_rule_changelist"), _("IP Restrict Rules")
+        )
         Sites = QuickLink(reverse("admin:sites_site_changelist"), _("Sites"))
         ParentGuardian = QuickLink(
-            reverse("admin:patients_parentguardian_changelist"),
-            _("Parents/Guardians"))
+            reverse("admin:patients_parentguardian_changelist"), _("Parents/Guardians")
+        )
 
         Doctors = QuickLink(reverse("admin:patients_doctor_changelist"), _("Doctors"))
         DemographicsFields = QuickLink(
             reverse("admin:rdrf_demographicfields_changelist"),
-            _("Registry Demographics Fields"))
-        ConsentRules = QuickLink(reverse("admin:rdrf_consentrule_changelist"), _("Consent Rules"))
+            _("Registry Demographics Fields"),
+        )
+        ConsentRules = QuickLink(
+            reverse("admin:rdrf_consentrule_changelist"), _("Consent Rules")
+        )
         Reviews = QuickLink(reverse("admin:rdrf_review_changelist"), _("Reviews"))
-        PatientReviews = QuickLink(reverse("admin:rdrf_patientreview_changelist"), _("Patient Reviews"))
-        Verifications = QuickLink(reverse("admin:rdrf_verification_changelist"), _("Verifications"))
-        Custom_Actions = QuickLink(reverse("admin:rdrf_customaction_changelist"), _("Custom Actions"))
+        PatientReviews = QuickLink(
+            reverse("admin:rdrf_patientreview_changelist"), _("Patient Reviews")
+        )
+        Verifications = QuickLink(
+            reverse("admin:rdrf_verification_changelist"), _("Verifications")
+        )
+        Custom_Actions = QuickLink(
+            reverse("admin:rdrf_customaction_changelist"), _("Custom Actions")
+        )
         Custom_Action_Executions = QuickLink(
-            reverse("admin:rdrf_customactionexecution_changelist"), _("Custom Action Executions"))
-        Dropdown_Lookups = QuickLink(reverse("admin:rdrf_dropdownlookup_changelist"), _("Dropdown Lookups"))
+            reverse("admin:rdrf_customactionexecution_changelist"),
+            _("Custom Action Executions"),
+        )
+        Dropdown_Lookups = QuickLink(
+            reverse("admin:rdrf_dropdownlookup_changelist"), _("Dropdown Lookups")
+        )
 
-    if settings.SYSTEM_ROLE in (SystemRoles.CIC_DEV, SystemRoles.CIC_PROMS, SystemRoles.CIC_CLINICAL):
+    if settings.SYSTEM_ROLE in (
+        SystemRoles.CIC_DEV,
+        SystemRoles.CIC_PROMS,
+        SystemRoles.CIC_CLINICAL,
+    ):
         Surveys = QuickLink(reverse("admin:rdrf_survey_changelist"), _("Surveys"))
-        SurveyAssignments = QuickLink(reverse("admin:rdrf_surveyassignment_changelist"), _("Survey Assignments"))
-        SurveyRequest = QuickLink(reverse("admin:rdrf_surveyrequest_changelist"), _("Survey Request"))
+        SurveyAssignments = QuickLink(
+            reverse("admin:rdrf_surveyassignment_changelist"), _("Survey Assignments")
+        )
+        SurveyRequest = QuickLink(
+            reverse("admin:rdrf_surveyrequest_changelist"), _("Survey Request")
+        )
         if settings.SYSTEM_ROLE != SystemRoles.CIC_PROMS:
-            RegistryYamls = QuickLink(reverse("admin:rdrf_registryyaml_changelist"), _('Registry Yamls'))
+            RegistryYamls = QuickLink(
+                reverse("admin:rdrf_registryyaml_changelist"), _("Registry Yamls")
+            )
 
     if settings.DESIGN_MODE and settings.SYSTEM_ROLE != SystemRoles.CIC_PROMS:
-        Registries = QuickLink(reverse("admin:rdrf_registry_changelist"), _("Registries"))
+        Registries = QuickLink(
+            reverse("admin:rdrf_registry_changelist"), _("Registries")
+        )
         RegistryForms = QuickLink(
-            reverse("admin:rdrf_registryform_changelist"),
-            _("Registry Forms"))
-        Sections = QuickLink(reverse("admin:rdrf_section_changelist"), _("Registry Sections"))
+            reverse("admin:rdrf_registryform_changelist"), _("Registry Forms")
+        )
+        Sections = QuickLink(
+            reverse("admin:rdrf_section_changelist"), _("Registry Sections")
+        )
         DataElements = QuickLink(
             reverse("admin:rdrf_commondataelement_changelist"),
-            _("Registry Common Data Elements"))
+            _("Registry Common Data Elements"),
+        )
         PermissibleValueGroups = QuickLink(
             reverse("admin:rdrf_cdepermittedvaluegroup_changelist"),
-            _("Registry Permissible Value Groups"))
+            _("Registry Permissible Value Groups"),
+        )
         PermissibleValues = QuickLink(
             reverse("admin:rdrf_cdepermittedvalue_changelist"),
-            _("Registry Permissible Values"))
+            _("Registry Permissible Values"),
+        )
         ConsentSections = QuickLink(
             reverse("admin:rdrf_consentsection_changelist"),
-            _("Registry Consent Sections"))
+            _("Registry Consent Sections"),
+        )
         ConsentValues = QuickLink(
             reverse("admin:patients_consentvalue_changelist"),
-            _("Registry Consent Values"))
+            _("Registry Consent Values"),
+        )
         CdePolicy = QuickLink(
             reverse("admin:rdrf_cdepolicy_changelist"),
-            _("Registry Common Data Elements Policy"))
+            _("Registry Common Data Elements Policy"),
+        )
         ContextFormGroups = QuickLink(
             reverse("admin:rdrf_contextformgroup_changelist"),
-            _("Registry Context Form Groups"))
+            _("Registry Context Form Groups"),
+        )
 
     if settings.SYSTEM_ROLE == SystemRoles.CIC_PROMS:
         Importer = QuickLink(reverse("import_registry"), _("Importer"))
-        Users = QuickLink(reverse("admin:groups_customuser_changelist"), _('Users'))
+        Users = QuickLink(reverse("admin:groups_customuser_changelist"), _("Users"))
 
-    if settings.SYSTEM_ROLE in (SystemRoles.NORMAL, SystemRoles.CIC_DEV, SystemRoles.CIC_CLINICAL):
+    if settings.SYSTEM_ROLE in (
+        SystemRoles.NORMAL,
+        SystemRoles.CIC_DEV,
+        SystemRoles.CIC_CLINICAL,
+    ):
         # related links are grouped or convenience
         HL7_LINKS = {
             HL7Mappings.text: HL7Mappings,
@@ -152,10 +220,11 @@ class Links:
         AUDITING = {
             LoginLog.text: LoginLog,
             FailedLoginLog.text: FailedLoginLog,
-            LoginAttempts.text: LoginAttempts
+            LoginAttempts.text: LoginAttempts,
         }
         DATA_ENTRY = {
             PatientsListing.text: PatientsListing,
+            PatientsDashboard.text: PatientsDashboard,
         }
         EMAIL = {
             EmailNotification.text: EmailNotification,
@@ -169,7 +238,7 @@ class Links:
         IP_RESTRICT = {
             IPRestrictRangeGroup.text: IPRestrictRangeGroup,
             IPRestrictGeoGroup.text: IPRestrictGeoGroup,
-            IPRestrictRule.text: IPRestrictRule
+            IPRestrictRule.text: IPRestrictRule,
         }
         if settings.DESIGN_MODE:
             OTHER = {
@@ -224,9 +293,7 @@ class Links:
                 ContextFormGroups.text: ContextFormGroups,
             }
 
-        STATE_MANAGEMENT = {
-            States.text: States
-        }
+        STATE_MANAGEMENT = {States.text: States}
         WORKING_GROUPS = {
             WorkingGroups.text: WorkingGroups,
         }
@@ -243,7 +310,7 @@ class Links:
         ENABLED_REGISTRATION = {
             ParentGuardian.text: ParentGuardian,
             RegistrationProfiles.text: RegistrationProfiles,
-            ClinicianOther.text: ClinicianOther
+            ClinicianOther.text: ClinicianOther,
         }
 
         # only appear if related registry specific feature is set
@@ -267,14 +334,22 @@ class Links:
         Users.text: Users,
     }
 
-    if settings.SYSTEM_ROLE in (SystemRoles.CIC_PROMS, SystemRoles.CIC_DEV, SystemRoles.CIC_CLINICAL):
+    if settings.SYSTEM_ROLE in (
+        SystemRoles.CIC_PROMS,
+        SystemRoles.CIC_DEV,
+        SystemRoles.CIC_CLINICAL,
+    ):
         PROMS = {
             Surveys.text: Surveys,
             SurveyAssignments.text: SurveyAssignments,
             SurveyRequest.text: SurveyRequest,
         }
         if settings.SYSTEM_ROLE != SystemRoles.CIC_PROMS:
-            PROMS.update({RegistryYamls.text: RegistryYamls, })
+            PROMS.update(
+                {
+                    RegistryYamls.text: RegistryYamls,
+                }
+            )
 
 
 class MenuConfig(object):
@@ -284,8 +359,7 @@ class MenuConfig(object):
     """
 
     class MenuConfigInner:
-
-        def __init__(self, arg='default'):
+        def __init__(self, arg="default"):
             self.val = arg
 
         def __str__(self):
@@ -319,7 +393,11 @@ class QuickLinks(object):
                 **Links.REGISTRY_DESIGN,
             }
 
-        if settings.SYSTEM_ROLE in (SystemRoles.CIC_DEV, SystemRoles.NORMAL, SystemRoles.CIC_CLINICAL):
+        if settings.SYSTEM_ROLE in (
+            SystemRoles.CIC_DEV,
+            SystemRoles.NORMAL,
+            SystemRoles.CIC_CLINICAL,
+        ):
             normal_menus = {
                 **Links.AUDITING,
                 **Links.CONSENT,
@@ -336,11 +414,15 @@ class QuickLinks(object):
                 **Links.STATE_MANAGEMENT,
                 **Links.USER_MANAGEMENT,
                 **Links.WORKING_GROUPS,
-                **Links.HL7_LINKS
+                **Links.HL7_LINKS,
             }
 
             if settings.SYSTEM_ROLE == SystemRoles.NORMAL:
-                normal_menus.update({**Links.REPORTING, })
+                normal_menus.update(
+                    {
+                        **Links.REPORTING,
+                    }
+                )
 
             MenuConfig().patient = {}
 
@@ -348,13 +430,19 @@ class QuickLinks(object):
 
             if settings.SYSTEM_ROLE in (SystemRoles.CIC_DEV, SystemRoles.CIC_CLINICAL):
                 if settings.DESIGN_MODE:
-                    design_menus.update({**Links.PROMS, })
+                    design_menus.update(
+                        {
+                            **Links.PROMS,
+                        }
+                    )
                 else:
-                    normal_menus.update({**Links.PROMS, })
+                    normal_menus.update(
+                        {
+                            **Links.PROMS,
+                        }
+                    )
 
-            MenuConfig().working_group_staff = {
-                **Links.DATA_ENTRY
-            }
+            MenuConfig().working_group_staff = {**Links.DATA_ENTRY}
 
             MenuConfig().working_group_curator = {
                 **Links.CONSENT,
@@ -367,14 +455,9 @@ class QuickLinks(object):
             if settings.SYSTEM_ROLE == SystemRoles.NORMAL:
                 MenuConfig().working_group_curator.update(Links.REPORTING)
 
-            MenuConfig().genetic_staff = {
-                **Links.DATA_ENTRY
-            }
+            MenuConfig().genetic_staff = {**Links.DATA_ENTRY}
 
-            MenuConfig().genetic_curator = {
-                **Links.DATA_ENTRY,
-                **Links.GENETIC
-            }
+            MenuConfig().genetic_curator = {**Links.DATA_ENTRY, **Links.GENETIC}
 
             MenuConfig().clinical = {
                 **Links.DATA_ENTRY,
@@ -391,7 +474,7 @@ class QuickLinks(object):
                 **MenuConfig().clinical,
             }
 
-        # settings menu
+            # settings menu
             MenuConfig().settings = {
                 **Links.AUDITING,
                 **Links.DOCTORS,
@@ -465,20 +548,22 @@ class QuickLinks(object):
                 continue
 
             try:
-                text = label + ' (' + registry.name + ')'
+                text = label + " (" + registry.name + ")"
                 qlink = QuickLink(reverse(url, args=(registry.code,)), _(text))
                 rval[text] = qlink
             except NoReverseMatch:
                 logging.exception(
-                    'No reverse url for {0} with registry code {1}'.format(
-                        url, registry.code))
+                    "No reverse url for {0} with registry code {1}".format(
+                        url, registry.code
+                    )
+                )
         return rval
 
     def _registration_links(self):
         # enable registration links if any registry uses registration
         for registry in self._registries:
             # don't provide per registry links to a registy that doesn't support feature
-            if registry.has_feature('registration'):
+            if registry.has_feature("registration"):
                 Links.REGISTRATION = Links.ENABLED_REGISTRATION
                 break
 
@@ -490,7 +575,9 @@ class QuickLinks(object):
 
     def _questionnaire_links(self):
         # enable questionnaire links if any registry uses questionnaires
-        links = self._per_registry_links('Questionnaires', 'questionnaire', 'questionnaires')
+        links = self._per_registry_links(
+            "Questionnaires", "questionnaire", "questionnaires"
+        )
 
         # special case: if we have questionnaires enabled, we enable questionnaire links
         if len(links) > 0:
@@ -500,38 +587,41 @@ class QuickLinks(object):
     def _family_linkage_links(self):
         # enable family linkage links if any registry uses family linkage
         Links.FAMILY_LINKAGE = self._per_registry_links(
-            'Family Linkage', 'family_linkage', 'family_linkage')
+            "Family Linkage", "family_linkage", "family_linkage"
+        )
 
         # special case: if we have family linkage enabled, we enable doctors links
         if len(Links.FAMILY_LINKAGE) > 0:
             Links.DOCTORS = Links.ENABLED_DOCTORS
 
     def _verification_links(self):
-        Links.VERIFICATION = self._per_registry_links('Verifications',
-                                                      'verifications_list',
-                                                      'verification')
+        Links.VERIFICATION = self._per_registry_links(
+            "Verifications", "verifications_list", "verification"
+        )
 
     def _custom_action_links(self):
-        Links.CUSTOM_ACTIONS = self._per_registry_links('Custom Actions',
-                                                        'customactions_list',
-                                                        'custom_actions')
+        Links.CUSTOM_ACTIONS = self._per_registry_links(
+            "Custom Actions", "customactions_list", "custom_actions"
+        )
 
     def _custom_action_execution_links(self):
-        Links.CUSTOM_ACTION_EXECUTION_LINKS = self._per_registry_links('Custom Action Executions',
-                                                                       'customactionexecutions_list',
-                                                                       'custom_actionexecutions')
+        Links.CUSTOM_ACTION_EXECUTION_LINKS = self._per_registry_links(
+            "Custom Action Executions",
+            "customactionexecutions_list",
+            "custom_actionexecutions",
+        )
 
     def _permission_matrix_links(self):
         if settings.SYSTEM_ROLE == SystemRoles.CIC_PROMS:
             return {}
         # enable permission links
-        Links.PERMISSIONS = self._per_registry_links('Permissions', 'permission_matrix')
+        Links.PERMISSIONS = self._per_registry_links("Permissions", "permission_matrix")
 
     def _consent_links(self):
         if settings.SYSTEM_ROLE == SystemRoles.CIC_PROMS:
             return {}
         # enable consent links
-        Links.CONSENT = self._per_registry_links('Consents', 'consent_list')
+        Links.CONSENT = self._per_registry_links("Consents", "consent_list")
 
     def menu_links(self, groups):
         # get links for the 'menu' menu

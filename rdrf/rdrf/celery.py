@@ -1,19 +1,16 @@
-import logging
 from celery import Celery
 from celery.signals import setup_logging
-from django.conf import settings
 from logging.config import dictConfig
+from django.conf import settings
 
-logger = logging.getLogger(__name__)
+app = Celery("rdrf")
 
-logger.info("loading celery.py ...")
-app = Celery('rdrf')
-
-app.config_from_object('django.conf:settings', namespace='CELERY')
-
-app.autodiscover_tasks()
+app.config_from_object("django.conf:settings", namespace="CELERY")
 
 
 @setup_logging.connect
-def config_loggers(*args, **kwags):
+def config_loggers(*args, **kwargs):
     dictConfig(settings.LOGGING)
+
+
+app.autodiscover_tasks(["rdrf"])

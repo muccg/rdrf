@@ -260,6 +260,10 @@ form .aligned ul.errorlist {
     padding-top: 110px;
 }
 
+.dashboard-container {
+    padding-left: 30px;
+}
+
 .sidebar-bg {
     background-color: #eeeeee;
 }
