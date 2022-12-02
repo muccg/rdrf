@@ -926,13 +926,30 @@ if SYSTEM_ROLE in [
 
 
 # Django CSP settings
-CSP_SCRIPT_SRC = ["'self'", "'sha256-r8Ei+YwP2DFcnblmk8Dzmb7Kh1iRT/3fv8R9JsfGd/Y='"]
+CSP_SCRIPT_SRC = [
+    "'self'",
+    "'sha256-r8Ei+YwP2DFcnblmk8Dzmb7Kh1iRT/3fv8R9JsfGd/Y='",
+    "'sha256-hrJUUQGqwvUn6vHiNbJvnKMvoNUImDZW4BWYS1+DveE='",
+    "'sha256-zd5y/MAtmfhfwgK8yvn/mFUcFE7BXp6UcAv3jnE5zZw='",
+    "'sha256-ehPVrgdV2GwJCE7DAMSg8aCgaSH3TZmA66nZZv8XrTg='",
+    "'sha256-hrJUUQGqwvUn6vHiNbJvnKMvoNUImDZW4BWYS1+DveE='",
+    "unpkg.com",
+]
+
+
 CSP_STYLE_SRC = [
     "'self'",
     "'unsafe-hashes'",
     "'sha256-aqNNdDLnnrDOnTNdkJpYlAxKVJtLt9CtFLklmInuUAE='",
     "'sha256-ILezS+pYH/m5JXDQav+PE/702qHfcybyTQN3LgCWO8Y='",
     "'sha256-95UDRqT5lxsVhRRfuJa6qGWsZAFhKXqS7cvo1bxVHcE='",
+    "'sha256-79N0PCus1ItTrODBcppilxJWMQWeWolzFPLtXZFXRSg='",
+    "'sha256-emeTF2a3X40J0nFSPvpt1OLLXerDe/PvLorOzUezxdY='",
+    "'sha256-jZlsGVOhUAIcH+4PVs7QuGZkthRMgvT2n0ilH6/zTM0='",
+    "'sha256-79N0PCus1ItTrODBcppilxJWMQWeWolzFPLtXZFXRSg='",
+    "'sha256-emeTF2a3X40J0nFSPvpt1OLLXerDe/PvLorOzUezxdY='",
+    "stackpath.bootstrapcdn.com",
+    "cdn.jsdelivr.net",
 ]
 CSP_IMG_SRC = ["'self'"]
 
