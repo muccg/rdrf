@@ -70,6 +70,18 @@
 </div>
 {% endif %}
 
+{% if dashboard_link %}
+<div class="card collapsible mb-2">
+  <div class="card-body">
+    {% if current_form_name == "Dashboard" %}
+    <i>{% trans 'Dashboard' %}</i>
+    {% else %}
+    <a href="{{dashboard_link}}">{% trans 'Dashboard' %}</a>
+    {% endif %}
+  </div>
+</div>
+{% endif %}
+
 
 {% if family_linkage_link %}
 <div class="card collapsible mb-2">

@@ -1,0 +1,12 @@
+
+{% extends "rdrf_cdes/base-dashboard.html" %}
+{%load plotly_dash%}
+
+{% block content %}
+    <br>Time taken: {{seconds}} seconds</br>
+    {% if state == "good" %}
+        {%plotly_app name="SinglePatientDashboardApp" ratio=0.5 %}
+    {% else %}
+        No dashboard items have been configured!
+    {% endif %}
+{% endblock %}

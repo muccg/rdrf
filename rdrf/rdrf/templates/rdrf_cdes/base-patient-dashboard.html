@@ -1,0 +1,253 @@
+{% load static %}
+{% load admin_urls %}
+{% load get_form %}
+{% load get_forms %}
+{% load get_elements %}
+{% load i18n %}
+{% load project_logo %}
+{% load project_logo_link %}
+{% load project_stylesheet %}
+{% load project_title %}
+{% load project_title_link %}
+{% load translate %}
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+
+<head>
+    <title>{% trans "Rare Disease Registry Framework" %}</title>
+
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <link rel="stylesheet" href="{% static 'css/vendor/font-awesome.css' %}">
+    <link rel="stylesheet" href="{% static 'bootstrap-5.0.0/css/bootstrap.min.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'css/rdrf.css' %}" media="all">
+    <!-- link rel="stylesheet" type="text/css" href="{% static 'css/simple-sidebar.css' %}" media="all" -->
+
+    {% project_stylesheet as PSS %}
+    {% if PSS %}
+    {% static "" as baseUrl %}
+    <link rel="stylesheet" type="text/css" href="{{ baseUrl }}/{{ PSS }}" media="all">
+    {% endif %}
+
+    <script type="text/javascript" src="{% static 'js/vendor/jquery-3.6.0.min.js' %}"></script>
+    <script type="text/javascript" src="{% static 'js/vendor/jquery-ui-1.12.1.min.js' %}"></script>
+
+    {% if request.LANGUAGE_CODE.lower != "en" %}
+    {% static "" as baseUrl %}
+    <script src="{{ baseUrl }}/js/vendor/i18n/datepicker-{{ request.LANGUAGE_CODE }}.js"></script>
+    {% endif %}
+
+    <script type="text/javascript" src="{% static 'js/calculated_field_plugin.js' %}"></script>
+    <script type="text/javascript" src="{% static 'js/toggle_disabled.js' %}"></script>
+    <script type="text/javascript" src="{% static 'js/vendor/underscore-1.5.2.min.js' %}"></script>
+    <script type="text/javascript" src="{% url 'javascript-catalog' %}"></script>
+    <script type="text/javascript" src="{% static 'js/rpc_module.js' %}"></script>
+    <script type="text/javascript" src="{% static 'js/rdrf.js' %}"></script>
+    <script type="text/javascript" nonce="{{request.csp_nonce}}">var django = { $: $.noConflict() }; if (!$) $ = django.$; </script>
+    <script type="text/javascript" src="{% static 'js/timeout_warning.js' %}"></script>
+
+
+    {% block extrastyle %}
+    {% endblock %}
+
+    {% block extrahead %}
+    {% endblock %}
+
+    {% project_logo as PL %}
+    <script nonce="{{request.csp_nonce}}">
+        $(document).ready(function () {
+            $("#submit-btn").click(function () {
+                $("#main-form").submit();
+            });
+
+            hide_empty_menu();
+
+            $(".navbar .dropdown-menu").addClass("mt-{% if PL %}3{% else %}2{% endif %}");
+	     var rpc = new RPC.RPC("{% url 'rpc' %}", "{{csrf_token}}");
+	    
+	    rpc.send("get_timeout_config",[], function(data) {
+
+		const timeout = data.result.timeout;
+		const warning = data.result.warning;
+		const config = {"timeout": timeout,
+				"loginUrl": data.result.loginUrl,
+				"warning": warning};
+		config.rpc = rpc;
+		inactivityTimeoutSetup(config);
+            });
+
+        });
+    </script>
+
+</head>
+
+<body>
+    <div id="wrap">
+        <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
+            <div class="container">
+                <div class="navbar-header">
+                    {% if PL %}
+                    {% static "" as baseUrl %}
+                    <a href="{% project_logo_link %}" target="_blank">
+                        <img src="{{ baseUrl }}/{{ PL }}" class="project_logo">
+                    </a>
+                    {% project_title as PT %}
+                    {% if PT %}
+                    <a class="navbar-brand project_title" href="{% project_title_link %}">
+                        {% project_title %}
+                    </a>
+                    {% endif %}
+                    {% else %}
+                    <a class="navbar-brand" href="{% project_title_link %}">
+                        {% project_title %}
+                    </a>
+                    {% endif %}
+                </div>
+
+                <!-- Collect the nav links, forms, and other content for toggling -->
+                <div class="navbar-expanded-lg">
+                    <ul class="navbar-nav me-auto my-2 my-lg-0 navbar-nav-scroll">
+                        {% if request.user.is_authenticated %}
+                        {% block parent_menu %}
+                        {% endblock %}
+
+                        {% if request.user.registry_code %}
+                        {% if request.user.is_parent %}
+                        <li class="nav-item"><a class="nav-link" href="{% url 'parent_page' request.user.registry_code %}"><span class="fa fa-home"></span>
+                            {% trans "Home Page" %}</a></li>
+                        {% elif request.user.is_patient %}
+                        <li class="nav-item"><a class="nav-link" href="{% url 'patient_page' request.user.registry_code %}"><span class="fa fa-home"></span>
+                            {% trans "Home Page" %}</a></li>
+                        {% endif %}
+                        {% endif %}
+
+                        {% block actions %}
+                        {% endblock %}
+
+                        {% block formlinks %}
+                        {% endblock %}
+
+                        <li class="nav-item dropdown">
+                            <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown" role="button"
+                                aria-expanded="false">
+                                <span class="fa fa-tasks"></span> {% trans 'Menu' %}<span class="caret"></span>
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-end" data-bs-display="static">
+                                {% for quick_link in request.user.menu_links %}
+                                    <li><a class="dropdown-item" href="{{quick_link.url}}">{% trans quick_link.text %}</a></li>
+                                {% endfor %}
+                                {% block extra_menu %}
+                                {% endblock %}
+                            </ul>
+                        </li>
+
+                        {% if request.user.is_superuser %}
+                        <li class="nav-item dropdown">
+                            <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown" role="button"
+                                aria-expanded="false">
+
+                                <span class="fa fa-wrench"></span> {% trans 'Settings' %}<span
+                                    class="caret"></span>
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-end" data-bs-display="static" role="menu">
+                                {% for quick_link in request.user.settings_links %}
+                                <li><a class="dropdown-item" href="{{quick_link.url}}">{{quick_link.text|translate}}</a></li>
+                                {% endfor %}
+                            </ul>
+                        </li>
+                        {% endif %}
+
+                        <li class="nav-item dropdown">
+                            <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown" role="button"
+                                aria-expanded="false">
+                                {% if request.user.is_parent %}
+                                <span class="fa fa-user"></span> {{ parent.first_name }}
+                                {{ parent.last_name }} <span class="caret"></span></a>
+                            {% else %}
+                            <span class="fa fa-user"></span>
+                            {{ request.user.first_name }} {{ request.user.last_name }}
+                            <span class="caret"></span></a>
+                            {% endif %}
+                            <ul class="dropdown-menu dropdown-menu-end" data-bs-display="static">
+                                {% if request.user.is_superuser %}
+                                <li><a class="dropdown-item" href="{% url 'admin:index' %}"><span class="fa fa-wrench"></span>
+                                        {% trans 'Admin Page' %}</a></li>
+                                <li class="dropdown-divider"></li>
+                                {% endif %}
+                                {% if request.user.is_parent and registry_code %}
+                                <li><a class="dropdown-item" href="{% url 'parent_edit' registry_code parent.id %}"><span class="fa fa-wrench"></span>
+                                        {% trans 'Account' %}</a></li>
+                                {% endif %}
+                                {% if enable_pwd_change %}
+                                <li><a class="dropdown-item" href="{% url 'password_change' %}"><span
+                                            class="fa fa-random"></span>
+                                        {% trans 'Change Password' %}</a></li>
+                                {% endif %}
+                                {% if user.is_verified %}
+                                <li><a class="dropdown-item" href="{% url 'two_factor:disable' %}"><span class="fa fa-times"></span>
+                                        {% trans "Disable two-factor auth" %}</a></li>
+                                {% else %}
+                                <li><a class="dropdown-item" href="{% url 'two_factor:setup' %}"><span class="fa fa-check"></span>
+                                        {% trans "Enable two-factor auth" %}</a></li>
+                                {% endif %}
+                                <li><a class="dropdown-item" href="{% url 'logout' %}?next={% url 'login_router' %}"><span class="fa fa-sign-out"></span>
+                                        {% trans 'Logout' %}</a></li>
+                            </ul>
+                        </li>
+                        {% else %}
+                        <li class="nav-item"><a class="nav-link" href="{% url 'two_factor:login' %}?next={% url 'login_router' %}"><span class="fa fa-sign-in"></span>
+                                {% trans 'Log in' %}</a></li>
+                        {% endif %}
+                    </ul>
+                </div><!-- /.navbar-collapse -->
+            </div><!-- /.container -->
+        </nav>
+
+        {% if location %}
+        <nav class="navbar navbar-expand-lg navbar-light bg-light fixed-top border-bottom border-2 pb-0 pt-{% if PL %}2{% else %}1{% endif %} location-navbar">
+            <div class="container{% if PL %} mt-3{% endif %}">
+                <h3 class="navbar-brand fs-3 flex-fill mb-1"><span class="fa fa-list-alt" aria-hidden="true"></span>
+                    {% block location %}
+                    {{ location|safe|translate }}
+                    {% endblock %}
+                </h3>
+                {% if patient_link %}
+                {{ patient_link | safe}}
+                {% elif patient %}
+                <i class="text-muted"><span class="fa fa-user" aria-hidden="true"></span> {{ patient
+                    }}</i>
+                {% endif %}
+                <div class="col">
+                {% block formbtns %}
+                {% endblock %}
+                </div>
+            </div>
+        </nav>
+        {% endif %}
+        
+        
+
+        <div class="dashboard-container">
+        
+        
+           
+	    {% include "rdrf_cdes/timeout_warning_modal.html" %}
+
+                  
+               
+                    {% block content %}
+                    
+
+                    
+
+                    {% endblock%}
+               
+           
+       </div>
+    </div>
+
+    {% include 'rdrf_cdes/footer.html' %}
+    <script type="text/javascript" src="{% static 'bootstrap-5.0.0/js/bootstrap.bundle.min.js' %}"></script>
+</body>
+
+</html>

@@ -141,6 +141,7 @@ class RegistryDataFrame:
             for row in self._get_patient_rows(patient):
                 rows.append(row)
         df = pd.DataFrame(rows)
+        logger.debug(f"df = {df}")
         df.columns = self.dataframe_columns
         return df
 
@@ -172,11 +173,15 @@ class RegistryDataFrame:
         return self.df
 
 
-def get_data(registry, pid=None):
+def get_data(registry, patient=None):
+    logger.debug(f"getting data for {registry} patient={patient}")
     try:
         config = VisualisationBaseDataConfig.objects.get(registry=registry)
     except VisualisationBaseDataConfig.DoesNotExist:
         config = None
+
+    pid = None if patient is None else patient.id
+    logger.debug(f"pid = {pid}")
 
     rdf = RegistryDataFrame(registry, config, pid)
 

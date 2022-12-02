@@ -23,6 +23,7 @@ class VisualisationConfig(models.Model):
         ("pcf", "Patients Who Completed Forms"),
         ("cfc", "Combined Field Comparison"),
         ("cpr", "Changes in Patient Responses"),
+        ("sgc", "Scale Group Comparison"),
     )
     registry = models.ForeignKey(Registry, on_delete=models.CASCADE)
     base_data = models.ForeignKey(
