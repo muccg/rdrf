@@ -24,6 +24,7 @@ class ScaleGroupError(Exception):
 class ScaleGroupComparison(BaseGraphic):
     def get_graphic(self):
         log("creating Scale Group Comparison")
+        self.mode = "single" if self.patient else "all"
         fields = [field["code"] for field in self.config["fields"]]
         self.scale = self.get_scale()
         range_value = self.get_range_value(fields)
@@ -32,7 +33,8 @@ class ScaleGroupComparison(BaseGraphic):
 
         data = self.calculate_scores(fields, score_function, self.data)
 
-        data = self.calculate_average_scores_over_time(data)
+        if self.mode == "all":
+            data = self.calculate_average_scores_over_time(data)
 
         chart_title = f"{self.scale} score  over time for {self.patient}"
 
@@ -45,14 +47,18 @@ class ScaleGroupComparison(BaseGraphic):
         fig = px.line(data, x=SEQ, y="score", title=title, markers=True)
         fig.update_xaxes(type="category")
 
-        id = f"line-chart-{self.scale}-{self.patient.id}"
+        if self.patient:
+            id = f"line-chart-{self.scale}-{self.patient.id}"
+        else:
+            id = f"line-chart-{self.scale}-all"
+
         div = html.Div([dcc.Graph(figure=fig)], id=id)
         return div
 
     def calculate_average_scores_over_time(self, data):
+        # this only makes sense if this chart is passed
+        # all patients scores
         df = data.groupby(SEQ).agg({"score": "mean"}).reset_index()
-        log(f"average scores for {self.scale} over time = ")
-        log(f"{df}")
         return df
 
     def get_scale(self):
@@ -119,7 +125,7 @@ class ScaleGroupComparison(BaseGraphic):
             try:
                 cde_model = CommonDataElement.objects.get(code=field)
             except CommonDataElement.DoesNotExist:
-                raise ScaleGroupError(f"{field} is nota CDE")
+                raise ScaleGroupError(f"{field} is not CDE")
             range_value = get_range(cde_model)
             if range_value is None:
                 # not an integer range

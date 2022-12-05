@@ -42,6 +42,7 @@ class CombinedFieldComparison(BaseGraphic):
             title=f"Change in {combined_name} over time for all patients",
             color_discrete_map=colour_map,
         )
+        fig.update_xaxes(type="category")
 
         log("created bar")
         id = f"bar-combined"

@@ -77,6 +77,7 @@ class ChangesInPatientResponses(BaseGraphic):
             title=f"Change in {label} over time for all patients",
             color_discrete_map=colour_map,
         )
+        fig.update_xaxes(type="category")
 
         log("created bar")
         id = f"bar-{label}"
