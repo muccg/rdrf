@@ -8,6 +8,7 @@ from registry.patients.models import Patient
 from datetime import datetime
 
 from .models import VisualisationBaseDataConfig
+from .utils import get_seq_name
 
 import logging
 
@@ -57,8 +58,13 @@ class RegistryDataFrame:
         self.df = self._get_dataframe()
         self.df[cdf] = pd.to_datetime(self.df[cdf])
         self.df = self._assign_correct_seq_numbers(self.df)
+        self.df = self._assign_seq_names(self.df)
         c = datetime.now()
         logger.debug(f"time taken to generate df = {c-a}")
+
+    def _assign_seq_names(self, df):
+        df["SEQ_NAME"] = df.apply(lambda row: get_seq_name(row["SEQ"]), axis=1)
+        return df
 
     def _assign_correct_seq_numbers(self, df) -> pd.DataFrame:
         """

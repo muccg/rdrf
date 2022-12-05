@@ -45,7 +45,8 @@ class ScaleGroupComparison(BaseGraphic):
 
     def get_line_chart(self, data, title):
         fig = px.line(data, x=SEQ, y="score", title=title, markers=True)
-        fig.update_xaxes(type="category")
+
+        self.fix_xaxis(fig, data)
 
         if self.patient:
             id = f"line-chart-{self.scale}-{self.patient.id}"

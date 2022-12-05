@@ -42,3 +42,14 @@ class BaseGraphic:
 
     def get_id(self):
         raise Exception("subclass responsibility")
+
+    def fix_xaxis(self, fig, data):
+        # this replaces the SEQ numbers on the x-axis
+        # with names
+        fig.update_xaxes(type="category")
+
+        fig.update_layout(
+            xaxis=dict(
+                tickmode="array", tickvals=data["SEQ"], ticktext=data["SEQ_NAME"]
+            )
+        )

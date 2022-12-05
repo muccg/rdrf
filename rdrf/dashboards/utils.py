@@ -46,3 +46,27 @@ def get_range(cde_model):
     max_value = max(values)
     min_value = min(values)
     return max_value - min_value
+
+
+seq_names = {
+    0: "Baseline",
+    1: "1st Followup",
+    2: "2nd Followup",
+    3: "3rd Followup",
+    4: "4th Followup",
+    5: "5th Followup",
+    6: "6th Followup",
+    7: "7th Followup",
+    8: "8th Followup",
+    9: "9th Followup",
+    10: "10th Followup",
+}
+
+
+def get_seq_name(seq_num):
+    return seq_names.get(seq_num, f"Followup {seq_num}")
+
+
+def add_seq_name(df):
+    df["SEQ_NAME"] = df.apply(lambda row: get_seq_name(row["SEQ"]), axis=1)
+    return df
