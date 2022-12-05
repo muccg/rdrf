@@ -32,7 +32,10 @@ class DashboardLocation:
     SINGLE_PATIENT = "S"
 
 
-def create_graphic(vis_config, data):
+def create_graphic(vis_config, data, patient):
+    # patient is None for all patients graphics
+    # contextual single patient components
+    # should be supplied with the patient
     title = vis_config.title
     if vis_config.code == "pcf":
         return PatientsWhoCompletedForms(title, vis_config.config, data).graphic
@@ -43,7 +46,7 @@ def create_graphic(vis_config, data):
     elif vis_config.code == "cpr":
         return ChangesInPatientResponses(title, vis_config.config, data).graphic
     elif vis_config.code == "sgc":
-        return ScaleGroupComparison(title, vis_config.config, data).graphic
+        return ScaleGroupComparison(title, vis_config.config, data, patient).graphic
     else:
         logger.error(f"dashboard error - unknown visualisation {vis_config.code}")
         raise Exception(f"Unknown code: {vis_config.code}")
@@ -130,7 +133,7 @@ def tabbed_app(registry, main_title, patient=None):
     if not vis_configs:
         return None
 
-    graphics_map = {vc.code: create_graphic(vc, data) for vc in vis_configs}
+    graphics_map = {vc.code: create_graphic(vc, data, patient) for vc in vis_configs}
 
     if dashboard == DashboardLocation.ALL_PATIENTS:
         app = all_patients_app(vis_configs, graphics_map)

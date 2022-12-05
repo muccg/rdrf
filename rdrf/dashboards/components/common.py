@@ -23,10 +23,11 @@ def card(title, data):
 
 
 class BaseGraphic:
-    def __init__(self, title, config, data: pd.DataFrame):
+    def __init__(self, title, config, data: pd.DataFrame, patient=None):
         self.config = config
         self.data = data
         self.title = title
+        self.patient = patient  # none if all patients
 
     @property
     def graphic(self):
