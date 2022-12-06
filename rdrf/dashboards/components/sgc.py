@@ -25,33 +25,55 @@ class ScaleGroupComparison(BaseGraphic):
     def get_graphic(self):
         log("creating Scale Group Comparison")
         self.mode = "single" if self.patient else "all"
-        fields = [field["code"] for field in self.config["fields"]]
-        self.scale = self.get_scale()
-        range_value = self.get_range_value(fields)
-        log(f"range = {range_value}")
-        score_function = self.get_score_function(range_value)
+        data = self.data
+        scores_map = {}
 
-        data = self.calculate_scores(fields, score_function, self.data)
+        for index, group in enumerate(self.config["groups"]):
+            group_title = group["title"]
+            group_fields = group["fields"]
+            if len(group_fields) == 0:
+                continue
+            group_range = self.get_range_value(group_fields)
+            group_scale = group["scale"]
+            group_score_function = self.get_score_function(group_range, group_scale)
+            score_name = f"score_{index}"
+            data = self.calculate_scores(
+                score_name, group_fields, group_score_function, data
+            )
+            if self.mode == "all":
+                data = self.calculate_average_scores_over_time(data)
 
-        if self.mode == "all":
-            data = self.calculate_average_scores_over_time(data)
+            scores_map[score_name] = group_title  # track so we can plot/annotate
 
-        chart_title = f"{self.scale} score  over time for {self.patient}"
+        if self.patient:
+            chart_title = f"Scale Group score  over time for {self.patient}"
+        else:
+            chart_title = f"Scale group score over time for all patients"
 
-        line_chart = self.get_line_chart(data, chart_title)
+        line_chart = self.get_line_chart(data, chart_title, scores_map)
 
         div = html.Div([html.H3(self.title), line_chart])
-        return html.Div(div, id=f"sgc-{self.scale}-{self.patient.id}")
+        if self.patient:
+            id = f"sgc-{self.patient.id}"
+        else:
+            id = "sgc"
 
-    def get_line_chart(self, data, title):
-        fig = px.line(data, x=SEQ, y="score", title=title, markers=True)
+        return html.Div(div, id=id)
+
+    def get_line_chart(self, data, title, scores_map):
+
+        scores_columns = list(scores_map.keys())
+
+        # using multiple lines should be possible now
+
+        fig = px.line(data, x=SEQ, y=scores_columns, title=title, markers=True)
 
         self.fix_xaxis(fig, data)
 
         if self.patient:
-            id = f"line-chart-{self.scale}-{self.patient.id}"
+            id = f"sgc-line-chart-{title}-{self.patient.id}"
         else:
-            id = f"line-chart-{self.scale}-all"
+            id = f"sgc-line-chart-{title}-all"
 
         div = html.Div([dcc.Graph(figure=fig)], id=id)
         return div
@@ -65,7 +87,7 @@ class ScaleGroupComparison(BaseGraphic):
     def get_scale(self):
         return self.config.get("scale", None)
 
-    def calculate_scores(self, fields, score_function, data):
+    def calculate_scores(self, score_name, fields, score_function, data):
         def filled(value):
             return value not in [None, ""]
 
@@ -79,12 +101,10 @@ class ScaleGroupComparison(BaseGraphic):
 
             return avg
 
-        data["score"] = data.apply(lambda row: score_function(rs(row)), axis=1)
-        log(f"data = {data}")
+        data[score_name] = data.apply(lambda row: score_function(rs(row)), axis=1)
         return data
 
-    def get_score_function(self, range_value):
-        scale = self.config["scale"]
+    def get_score_function(self, range_value, scale):
         if scale == "functional":
             log("scale is functional")
 
