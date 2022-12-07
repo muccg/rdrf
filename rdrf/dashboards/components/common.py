@@ -53,3 +53,6 @@ class BaseGraphic:
                 tickmode="array", tickvals=data["SEQ"], ticktext=data["SEQ_NAME"]
             )
         )
+
+    def fix_yaxis(self, fig, low=0, high=100):
+        fig.update_yaxes(range=[low, high])

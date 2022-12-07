@@ -68,6 +68,7 @@ class ScaleGroupComparison(BaseGraphic):
         )
 
         self.fix_xaxis(fig, data)
+        self.fix_yaxis(fig)
 
         scores_map["seq"] = "Time"
         fig.for_each_trace(
