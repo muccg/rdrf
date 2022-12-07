@@ -58,9 +58,25 @@ class ScaleGroupComparison(BaseGraphic):
 
     def get_line_chart(self, data, title, scores_map):
         score_names = sorted(list(scores_map.keys()))
-        fig = px.line(data, x=SEQ, y=score_names, title=title, markers=True)
+        fig = px.line(
+            data,
+            x=SEQ,
+            y=score_names,
+            title=title,
+            markers=True,
+            labels={"SEQ": "Time"},
+        )
 
         self.fix_xaxis(fig, data)
+
+        scores_map["seq"] = "Time"
+        fig.for_each_trace(
+            lambda t: t.update(
+                name=scores_map[t.name],
+                legendgroup=scores_map[t.name],
+                hovertemplate=t.hovertemplate.replace(t.name, scores_map[t.name]),
+            )
+        )
 
         if self.patient:
             id = f"sgc-line-chart-{title}-{self.patient.id}"
