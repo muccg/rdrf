@@ -5,7 +5,7 @@ from dash import dcc, html
 from rdrf.models.definition.models import CommonDataElement
 from ..components.common import BaseGraphic
 from ..utils import get_colour_map
-from ..utils import get_range
+from ..utils import get_range, get_base
 
 logger = logging.getLogger(__name__)
 
@@ -40,33 +40,25 @@ class ScaleGroupComparison(BaseGraphic):
             data = self.calculate_scores(
                 score_name, group_fields, group_score_function, data
             )
-            if self.mode == "all":
-                data = self.calculate_average_scores_over_time(data)
-
             scores_map[score_name] = group_title  # track so we can plot/annotate
 
-        if self.patient:
-            chart_title = f"Scale Group score  over time for {self.patient}"
-        else:
+        if self.mode == "all":
+            data = self.calculate_average_scores_over_time(data, score_names)
             chart_title = f"Scale group score over time for all patients"
+            id = "sgc"
+        else:
+            chart_title = f"Scale group scores over time for {self.patient.link}"
+            id = f"sgc-{self.patient.id}"
 
         line_chart = self.get_line_chart(data, chart_title, scores_map)
 
         div = html.Div([html.H3(self.title), line_chart])
-        if self.patient:
-            id = f"sgc-{self.patient.id}"
-        else:
-            id = "sgc"
 
         return html.Div(div, id=id)
 
     def get_line_chart(self, data, title, scores_map):
-
-        scores_columns = list(scores_map.keys())
-
-        # using multiple lines should be possible now
-
-        fig = px.line(data, x=SEQ, y=scores_columns, title=title, markers=True)
+        score_names = sorted(list(scores_map.keys()))
+        fig = px.line(data, x=SEQ, y=score_names, title=title, markers=True)
 
         self.fix_xaxis(fig, data)
 
@@ -78,26 +70,50 @@ class ScaleGroupComparison(BaseGraphic):
         div = html.Div([dcc.Graph(figure=fig)], id=id)
         return div
 
-    def calculate_average_scores_over_time(self, data):
+    def calculate_average_scores_over_time(self, data, score_names):
         # this only makes sense if this chart is passed
         # all patients scores
-        df = data.groupby(SEQ).agg({"score": "mean"}).reset_index()
+        aggregations_map = {score_name: "mean" for score_names in score_names}
+
+        df = data.groupby(SEQ).agg(aggregations_map).reset_index()
         return df
 
     def get_scale(self):
         return self.config.get("scale", None)
 
     def calculate_scores(self, score_name, fields, score_function, data):
+        logger.debug(f"calculate scores for {score_name} {fields}")
+
+        detected_bases = set([get_base(field) for field in fields])
+        if len(detected_bases) > 1:
+            raise Exception(f"different bases for fields {fields}: {detected_bases}")
+
+        detected_base = list(detected_bases)[0]  # 0 or 1
+
+        if detected_base == 0:
+            delta = 1.0
+        elif detected_base == 1:
+            delta = 0.0
+        else:
+            raise Exception(f"base of fields {fields} is {detected_base}")
+
         def filled(value):
             return value not in [None, ""]
 
         def rs(row):
-            values = [float(row[field]) for field in fields if filled(row[field])]
+            logger.debug(f"calculating raw score for fields")
+            values = [
+                float(row[field]) + delta for field in fields if filled(row[field])
+            ]
+            logger.debug(f"values = {values}")
             n = len(values)
+            logger.debug(f"num values = {n}")
             if n == 0:
                 return None
             else:
                 avg = sum(values) / len(values)
+
+            logger.debug(f"rs(avg) = {avg}")
 
             return avg
 
@@ -109,10 +125,17 @@ class ScaleGroupComparison(BaseGraphic):
             log("scale is functional")
 
             def score(rs):
+                logger.debug(f"functional score: rs = {rs}")
+                logger.debug(
+                    f"functional score: range value = {range_value} scale = {scale}"
+                )
                 # rs: raw score = average of values
                 if rs is None:
+                    logger.debug(f"scaled score returning None")
                     return None
-                return (1.0 - (rs - 1.0) / range_value) * 100.0
+                s = (1.0 - (rs - 1.0) / range_value) * 100.0
+                logger.debug(f"scaled score = {s}")
+                return s
 
             return score
 
@@ -141,6 +164,7 @@ class ScaleGroupComparison(BaseGraphic):
 
     def get_range_value(self, fields):
         ranges = set([])
+        bases = set([])
         for field in fields:
             print(f"checking field {field}")
             try:
@@ -148,6 +172,7 @@ class ScaleGroupComparison(BaseGraphic):
             except CommonDataElement.DoesNotExist:
                 raise ScaleGroupError(f"{field} is not CDE")
             range_value = get_range(cde_model)
+
             if range_value is None:
                 # not an integer range
                 raise ScaleGroupError(f"field {field} not an integer range")

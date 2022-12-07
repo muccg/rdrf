@@ -48,6 +48,35 @@ def get_range(cde_model):
     return max_value - min_value
 
 
+def get_numeric_values(cde_model):
+    if not cde_model.pv_group:
+        logger.debug("no pv group returning None")
+        return None
+
+    d = cde_model.pv_group.as_dict()
+    values = set([])
+    for value_dict in d["values"]:
+        try:
+            i = float(value_dict["code"])
+            values.add(i)
+        except ValueError:
+            return None
+
+    return values
+
+
+def get_base(cde_code):
+    # i.e min value of the range
+    from rdrf.models.definition.models import CommonDataElement
+
+    cde_model = CommonDataElement.objects.get(code=cde_code)
+    values = get_numeric_values(cde_model)
+    if values is None:
+        raise ValueError("not a numeric range")
+
+    return min(values)
+
+
 seq_names = {
     0: "Baseline",
     1: "1st Followup",
