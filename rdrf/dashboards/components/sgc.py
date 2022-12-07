@@ -47,12 +47,12 @@ class ScaleGroupComparison(BaseGraphic):
             chart_title = f"Scale group score over time for all patients"
             id = "sgc"
         else:
-            chart_title = f"Scale group scores over time for {self.patient.link}"
+            chart_title = f"Scores over time for {self.patient.link}"
             id = f"sgc-{self.patient.id}"
 
         line_chart = self.get_line_chart(data, chart_title, scores_map)
 
-        div = html.Div([html.H3(self.title), line_chart])
+        div = html.Div([line_chart])
 
         return html.Div(div, id=id)
 
