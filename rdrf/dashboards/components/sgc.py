@@ -52,7 +52,9 @@ class ScaleGroupComparison(BaseGraphic):
 
         line_chart = self.get_line_chart(data, chart_title, scores_map)
 
-        div = html.Div([line_chart])
+        table = self.get_table(data, scores_map)
+
+        div = html.Div([line_chart, table])
 
         return html.Div(div, id=id)
 
@@ -64,7 +66,7 @@ class ScaleGroupComparison(BaseGraphic):
             y=score_names,
             title=title,
             markers=True,
-            labels={"SEQ": "Time"},
+            labels={"SEQ": "Survey Time Period"},
         )
 
         self.fix_xaxis(fig, data)
@@ -85,6 +87,18 @@ class ScaleGroupComparison(BaseGraphic):
             id = f"sgc-line-chart-{title}-all"
 
         div = html.Div([dcc.Graph(figure=fig)], id=id)
+        return div
+
+    def get_table(self, data, scores_map):
+        logger.debug(f"data = \n{data}")
+        import plotly.graph_objects as go
+
+        columns = [k for k in scores_map]
+        subdata = data.reindex(columns=columns)
+
+        fig = go.Figure(data=[go.Table(cells=dict(values=subdata))])
+
+        div = html.Div([dcc.Graph(figure=fig)], id="fkdflkdfdf")
         return div
 
     def calculate_average_scores_over_time(self, data, score_names):
