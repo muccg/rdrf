@@ -116,7 +116,7 @@ class ScaleGroupComparison(BaseGraphic):
                     yield k
 
         columns_required = ["SEQ_NAME"] + [score_name for score_name in score_names()]
-        df = data[columns_required]
+        df = data[columns_required].round(1)
         # rename columns
         logger.debug(f"df = {df}")
 
