@@ -27,6 +27,8 @@ class ScaleGroupComparison(BaseGraphic):
         self.mode = "single" if self.patient else "all"
         data = self.data
         scores_map = {}
+        self.group_info = {}
+        self.rev_group = {}
 
         for index, group in enumerate(self.config["groups"]):
             group_title = group["title"]
@@ -37,6 +39,8 @@ class ScaleGroupComparison(BaseGraphic):
             group_scale = group["scale"]
             group_score_function = self.get_score_function(group_range, group_scale)
             score_name = f"score_{index}"
+            self.group_info[score_name] = group_title
+            self.rev_group[group_title] = score_name
             data = self.calculate_scores(
                 score_name, group_fields, group_score_function, data
             )
@@ -93,11 +97,44 @@ class ScaleGroupComparison(BaseGraphic):
         logger.debug(f"data = \n{data}")
         import plotly.graph_objects as go
 
-        columns = [k for k in scores_map]
-        subdata = data.reindex(columns=columns)
+        # data frame looks like
+        #       PID     SEQ      TYPE  ...      SEQ_NAME    score_0    score_1
+        #  0    1032    0  baseline  ...      Baseline  23.809524  54.166667
+        #  1    1032    1  followup  ...  1st Followup  37.500000  29.166667
+        #  2    1032    2  followup  ...  2nd Followup  45.833333  33.333333
+        #  3    1032    3  followup  ...  3rd Followup  75.000000  83.333333
 
-        fig = go.Figure(data=[go.Table(cells=dict(values=subdata))])
+        # they want (e.g.):
 
+        # scale group name    baseline 1st followup  2nd followup ...
+        # Functional           34.4       45.9         55.99
+        # Cognitive etc        23.5       0.5          10.0
+
+        def score_names():
+            for k in scores_map:
+                if k.startswith("score_"):
+                    yield k
+
+        columns_required = ["SEQ_NAME"] + [score_name for score_name in score_names()]
+        df = data[columns_required]
+        # rename columns
+        logger.debug(f"df = {df}")
+
+        columns = []
+        # scale group name
+        scale_group_col = [self.group_info[k] for k in score_names()]
+        logger.debug(f"scale_group_col = {scale_group_col}")
+        columns.append(scale_group_col)
+        seq_cols = {}
+
+        for index, row in df.iterrows():
+            columns.append([row[k] for k in score_names()])
+
+        headers = ["Scale Group"] + list(data["SEQ_NAME"])
+
+        fig = go.Figure(
+            data=[go.Table(header=dict(values=headers), cells=dict(values=columns))]
+        )
         div = html.Div([dcc.Graph(figure=fig)], id="fkdflkdfdf")
         return div
 
