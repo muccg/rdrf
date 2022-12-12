@@ -1179,11 +1179,16 @@ class Patient(models.Model):
         except ContextFormGroup.DoesNotExist:
             raise Exception("supplied context form group not in registry")
 
+        def has_cfg(c):
+            return c.context_form_group
+
+        def cfg_name(c, name):
+            return c.context_form_group.name == name
+
         context_ids = [
             context.id
             for context in self.context_models
-            if context.context_form_group
-            and context.context_form_group.name == context_form_group_name
+            if has_cfg(c) and cfg_name(c, context_form_group_name)
         ]
 
         return [
