@@ -1,4 +1,3 @@
-# noqa: W503
 from django.template import loader, Context
 from rdrf.models.definition.models import RegistryType, RDRFContext, ContextFormGroup
 from django.contrib.contenttypes.models import ContentType
@@ -244,6 +243,7 @@ class RDRFContextLauncherComponent(RDRFComponent):
         ).order_by("name"):
             name = _("All " + context_form_group.direct_name)
             filter_url = (
+                # noqa: W503
                 patients_listing_url
                 + "?registry_code=%s&patient_id=%s&context_form_group_id=%s"
                 % (
