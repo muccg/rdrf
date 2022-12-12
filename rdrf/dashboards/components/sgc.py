@@ -19,20 +19,39 @@ class ScaleGroupError(Exception):
     pass
 
 
+class AllPatientsScoreHelper:
+    def __init__(self, scg, score_name, title, fields, score_function):
+        self.sgc = scg
+        self.score_name = score_name
+        self.title = title
+        self.fields = fields
+        self.score_function = score_function
+
+    def calculate_score(self, data):
+        data = self.sgc.calculate_scores(
+            self.score_name, self.fields, self.score_function, data
+        )
+        return data
+
+
 class ScaleGroupComparison(BaseGraphic):
     def get_graphic(self):
-        log("creating Scale Group Comparison")
+        log(f"creating Scale Group Comparison")
         self.mode = "single" if self.patient else "all"
         data = self.data
         scores_map = {}
         self.group_info = {}
         self.rev_group = {}
+        self.all_patients_helpers = []
+        self.all_patients_data = None
+        self.average_scores = None
 
         for index, group in enumerate(self.config["groups"]):
             group_title = group["title"]
             group_fields = group["fields"]
             if len(group_fields) == 0:
                 continue
+
             group_range = self.get_range_value(group_fields)
             group_scale = group["scale"]
             group_score_function = self.get_score_function(group_range, group_scale)
@@ -42,9 +61,33 @@ class ScaleGroupComparison(BaseGraphic):
             data = self.calculate_scores(
                 score_name, group_fields, group_score_function, data
             )
+
             scores_map[score_name] = group_title  # track so we can plot/annotate
+            compare_all = group.get("compare_all", False)
+            if False:
+                helper = AllPatientsScoreHelper(
+                    self, score_name, group_title, group_fields, group_score_function
+                )
+                self.all_patients_helpers.append(helper)
 
         score_names = list(scores_map.keys())
+
+        if self.all_patients_helpers:
+            # if we do need to compare to the average scores
+            # with all the patients, we need to append columns
+            # to the dataframe showing the average scores
+            if not self.all_patients_data:
+                self.load_all_patients_data()
+
+            for helper in self.all_patients_helpers:
+                self.all_patients_data = helper.calculate_score(self.all_patients_data)
+
+            all_patients_score_names = [h.score_name for h in self.all_patients_helpers]
+            self.average_scores = self.calculate_average_scores_over_time(
+                self.all_patients_data, all_patients_score_names
+            )
+
+            logger.debug(f"average scores = {self.average_scores}")
 
         if self.mode == "all":
             data = self.calculate_average_scores_over_time(data, score_names)
@@ -61,6 +104,18 @@ class ScaleGroupComparison(BaseGraphic):
         div = html.Div([line_chart, table])
 
         return html.Div(div, id=id)
+
+    def calculate_all_patients_scores(self, data):
+        # data is one single patients data
+        if not self.all_patients_data:
+            self.load_all_patients_data()
+
+        avg_data = self.calculate_average_scores_over_time(
+            self.all_patients_data, self.all_patients_scores
+        )
+
+        logger.debug(f"avg data = {avg_data}")
+        return avg_data
 
     def get_line_chart(self, data, title, scores_map):
         score_names = sorted(list(scores_map.keys()))
@@ -254,3 +309,11 @@ class ScaleGroupComparison(BaseGraphic):
             range_value = float(ranges[0])
 
         return range_value
+
+    def load_all_patients_data(self):
+        if not self.all_patients_data:
+            from rdrf.models.definition.models import Registry
+            from dashboards.data import get_data
+
+            registry = Registry.objects.get()
+            self.all_patients_data = get_data(registry)

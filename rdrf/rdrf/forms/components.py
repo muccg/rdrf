@@ -295,8 +295,9 @@ class RDRFContextLauncherComponent(RDRFComponent):
         registry_type = self.registry_model.registry_type
         fg = None
         if registry_type == RegistryType.HAS_CONTEXT_GROUPS:
-            has_cfg = self.current_rdrf_context_model.context_form_group
-            if self.current_rdrf_context_model and has_cfg:
+            from rdrf.helpers.utils import has_cfg
+
+            if has_cfg(self.current_rdrf_context_model):
                 cfg = self.current_rdrf_context_model.context_form_group
                 if cfg.context_type == "M":
                     fg = _FormGroup(self.current_rdrf_context_model.display_name)

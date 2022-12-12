@@ -38,15 +38,15 @@ def create_graphic(vis_config, data, patient):
     # should be supplied with the patient
     title = vis_config.title
     if vis_config.code == "pcf":
-        return PatientsWhoCompletedForms(title, vis_config.config, data).graphic
+        return PatientsWhoCompletedForms(title, vis_config, data).graphic
     elif vis_config.code == "tofc":
-        return TypesOfFormCompleted(title, vis_config.config, data).graphic
+        return TypesOfFormCompleted(title, vis_config, data).graphic
     elif vis_config.code == "cfc":
-        return CombinedFieldComparison(title, vis_config.config, data).graphic
+        return CombinedFieldComparison(title, vis_config, data).graphic
     elif vis_config.code == "cpr":
-        return ChangesInPatientResponses(title, vis_config.config, data).graphic
+        return ChangesInPatientResponses(title, vis_config, data).graphic
     elif vis_config.code == "sgc":
-        return ScaleGroupComparison(title, vis_config.config, data, patient).graphic
+        return ScaleGroupComparison(title, vis_config, data, patient).graphic
     else:
         logger.error(f"dashboard error - unknown visualisation {vis_config.code}")
         raise Exception(f"Unknown code: {vis_config.code}")
@@ -61,11 +61,11 @@ def all_patients_app(vis_configs, graphics_map):
             dcc.Store(id="store"),
             dbc.Tabs(
                 [
-                    dbc.Tab(label=f"{vc.title}", tab_id=f"{vc.code}")
+                    dbc.Tab(label=f"{vc.title}", tab_id=f"tab_{vc.id}")
                     for vc in vis_configs
                 ],
                 id="tabs",
-                active_tab=f"{vis_configs[0].code}",
+                active_tab=f"tab_{vis_configs[0].id}",
             ),
             html.Div(id="tab-content", className="p-4"),
         ]
@@ -93,11 +93,11 @@ def single_patient_app(vis_configs, graphics_map, patient):
             dcc.Store(id="store"),
             dbc.Tabs(
                 [
-                    dbc.Tab(label=f"{vc.title}", tab_id=f"{vc.code}")
+                    dbc.Tab(label=f"{vc.title}", tab_id=f"tab_{vc.id}")
                     for vc in vis_configs
                 ],
                 id="tabs",
-                active_tab=f"{vis_configs[0].code}",
+                active_tab=None,
             ),
             html.Div(id="tab-content", className="p-4"),
         ]
@@ -133,7 +133,9 @@ def tabbed_app(registry, main_title, patient=None):
     if not vis_configs:
         return None
 
-    graphics_map = {vc.code: create_graphic(vc, data, patient) for vc in vis_configs}
+    graphics_map = {
+        f"tab_{vc.id}": create_graphic(vc, data, patient) for vc in vis_configs
+    }
 
     if dashboard == DashboardLocation.ALL_PATIENTS:
         app = all_patients_app(vis_configs, graphics_map)
