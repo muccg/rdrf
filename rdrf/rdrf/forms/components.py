@@ -425,10 +425,9 @@ class FormsButton(RDRFComponent):
 
         @property
         def title(self):
-            if (
-                not self.context_form_group
-                or self.context_form_group.context_type == "F"
-            ):
+            no_cfg = not self.context_form_group
+
+            if no_cfg or self.context_form_group.context_type == "F":
                 return self.form_model.nice_name
             else:
                 # multiple group
