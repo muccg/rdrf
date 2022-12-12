@@ -1,3 +1,4 @@
+# flake8: noqa: W503
 from django.conf import settings
 from django.contrib.auth.models import Permission
 from django.contrib.auth.decorators import user_passes_test, REDIRECT_FIELD_NAME
