@@ -1,10 +1,8 @@
 import logging
-import pandas as pd
 import plotly.express as px
 from dash import dcc, html
 from rdrf.models.definition.models import CommonDataElement
 from ..components.common import BaseGraphic
-from ..utils import get_colour_map
 from ..utils import get_range, get_base
 
 logger = logging.getLogger(__name__)
@@ -45,6 +43,8 @@ class ScaleGroupComparison(BaseGraphic):
                 score_name, group_fields, group_score_function, data
             )
             scores_map[score_name] = group_title  # track so we can plot/annotate
+
+        score_names = list(scores_map.keys())
 
         if self.mode == "all":
             data = self.calculate_average_scores_over_time(data, score_names)
@@ -125,7 +125,6 @@ class ScaleGroupComparison(BaseGraphic):
         scale_group_col = [self.group_info[k] for k in score_names()]
         logger.debug(f"scale_group_col = {scale_group_col}")
         columns.append(scale_group_col)
-        seq_cols = {}
 
         for index, row in df.iterrows():
             columns.append([row[k] for k in score_names()])
