@@ -1144,12 +1144,13 @@ class Patient(models.Model):
             def key_func(c):
                 return c.created_at
 
-        contexts = [
-            c
-            for c in self.context_models
-            if c.context_form_group is not None
-            and c.context_form_group.pk == multiple_form_group.pk
-        ]
+        def is_mul(c):
+            return c.context_form_group.pk == multiple_form_group.pk
+
+        def has_cfg(c):
+            return c.context_form_group is not None
+
+        contexts = [c for c in self.context_models if has_cfg(c) and is_mul(c)]
 
         return sorted(contexts, key=key_func, reverse=True)
 

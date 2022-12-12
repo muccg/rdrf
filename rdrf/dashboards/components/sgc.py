@@ -140,7 +140,7 @@ class ScaleGroupComparison(BaseGraphic):
     def calculate_average_scores_over_time(self, data, score_names):
         # this only makes sense if this chart is passed
         # all patients scores
-        aggregations_map = {score_name: "mean" for score_names in score_names}
+        aggregations_map = {score_name: "mean" for score_name in score_names}
 
         df = data.groupby(SEQ).agg(aggregations_map).reset_index()
         return df
@@ -231,7 +231,6 @@ class ScaleGroupComparison(BaseGraphic):
 
     def get_range_value(self, fields):
         ranges = set([])
-        bases = set([])
         for field in fields:
             print(f"checking field {field}")
             try:
