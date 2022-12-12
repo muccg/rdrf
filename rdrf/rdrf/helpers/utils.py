@@ -1161,7 +1161,8 @@ def update_patient_calculated_fields(registry_code, patient_id):
 
 
 def has_cfg(context_model):
-    return context_model.context_form_group
+    if context_model:
+        return context_model.context_form_group
 
 
 def has_cfg_named(context_model, name):
