@@ -1187,7 +1187,7 @@ class Patient(models.Model):
 
         context_ids = [
             context.id
-            for context in self.context_models
+            for c in self.context_models
             if has_cfg(c) and cfg_name(c, context_form_group_name)
         ]
 
@@ -1213,11 +1213,10 @@ class Patient(models.Model):
         ), "Context Form group must only contain one form"
         form_model = context_form_group.form_models[0]
 
+        from rdrf.helpers.utils import has_cfg_pk
+
         def matches_context_form_group(cm):
-            return (
-                cm.context_form_group
-                and cm.context_form_group.pk == context_form_group.pk
-            )
+            return has_cfg_pk(cm, context_form_group.pk)
 
         context_models = sorted(
             [cm for cm in self.context_models if matches_context_form_group(cm)],
