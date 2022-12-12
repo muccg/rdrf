@@ -1186,7 +1186,7 @@ class Patient(models.Model):
             return c.context_form_group.name == name
 
         context_ids = [
-            context.id
+            c.id
             for c in self.context_models
             if has_cfg(c) and cfg_name(c, context_form_group_name)
         ]
