@@ -9,6 +9,8 @@ from django.urls import reverse
 from django.utils.translation import ugettext_lazy as _
 from rdrf.forms.progress.form_progress import FormProgress
 
+# noqa: W503
+
 import logging
 
 logger = logging.getLogger("registry_log")

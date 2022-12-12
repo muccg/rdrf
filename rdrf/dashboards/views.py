@@ -152,6 +152,7 @@ class PatientsDashboardView(View):
         t1 = datetime.now()
         registry = Registry.objects.get()
         app = tabbed_app(registry, "Tabbed App")
+        logger.debug(f"app = {app}")
         t2 = datetime.now()
 
         context["seconds"] = (t2 - t1).total_seconds
