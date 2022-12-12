@@ -64,7 +64,7 @@ class ScaleGroupComparison(BaseGraphic):
 
             scores_map[score_name] = group_title  # track so we can plot/annotate
             compare_all = group.get("compare_all", False)
-            if False:
+            if compare_all:
                 helper = AllPatientsScoreHelper(
                     self, score_name, group_title, group_fields, group_score_function
                 )
@@ -82,6 +82,7 @@ class ScaleGroupComparison(BaseGraphic):
             for helper in self.all_patients_helpers:
                 self.all_patients_data = helper.calculate_score(self.all_patients_data)
 
+            # now work out the average per SEQ
             all_patients_score_names = [h.score_name for h in self.all_patients_helpers]
             self.average_scores = self.calculate_average_scores_over_time(
                 self.all_patients_data, all_patients_score_names
