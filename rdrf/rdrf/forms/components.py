@@ -243,14 +243,13 @@ class RDRFContextLauncherComponent(RDRFComponent):
         ).order_by("name"):
             name = _("All " + context_form_group.direct_name)
             filter_url = (
-                # noqa: W503
                 patients_listing_url
                 + "?registry_code=%s&patient_id=%s&context_form_group_id=%s"
                 % (
                     self.registry_model.code,
                     self.patient_model.pk,
                     context_form_group.pk,
-                )
+                )  # noqa: W503
             )
 
             link_pair = context_form_group.get_add_action(self.patient_model)
