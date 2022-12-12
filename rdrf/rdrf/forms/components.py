@@ -238,18 +238,16 @@ class RDRFContextLauncherComponent(RDRFComponent):
         # reuses the patient/context listing
         patients_listing_url = reverse("patientslisting")
         links = []
+        path = "?registry_code=%s&patient_id=%s&context_form_group_id=%s"
+
         for context_form_group in ContextFormGroup.objects.filter(
             registry=self.registry_model, context_type="M"
         ).order_by("name"):
             name = _("All " + context_form_group.direct_name)
-            filter_url = (
-                patients_listing_url
-                + "?registry_code=%s&patient_id=%s&context_form_group_id=%s"
-                % (
-                    self.registry_model.code,
-                    self.patient_model.pk,
-                    context_form_group.pk,
-                )  # noqa: W503
+            filter_url = patients_listing_url + path % (
+                self.registry_model.code,
+                self.patient_model.pk,
+                context_form_group.pk,
             )
 
             link_pair = context_form_group.get_add_action(self.patient_model)
