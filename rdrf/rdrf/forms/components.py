@@ -1,3 +1,4 @@
+# noqa: W503
 from django.template import loader, Context
 from rdrf.models.definition.models import RegistryType, RDRFContext, ContextFormGroup
 from django.contrib.contenttypes.models import ContentType
@@ -9,7 +10,6 @@ from django.urls import reverse
 from django.utils.translation import ugettext_lazy as _
 from rdrf.forms.progress.form_progress import FormProgress
 
-# noqa: W503
 
 import logging
 
