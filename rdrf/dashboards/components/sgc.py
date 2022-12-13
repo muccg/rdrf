@@ -5,7 +5,6 @@ from rdrf.models.definition.models import CommonDataElement
 from ..components.common import BaseGraphic
 from ..utils import get_range, get_base
 from ..data import combine_data
-import pandas as pd
 
 logger = logging.getLogger(__name__)
 
@@ -201,7 +200,7 @@ class ScaleGroupComparison(BaseGraphic):
         df = data[columns_required].round(1)
 
         columns = []
-        # scale group name
+
         def get_scale_group_name(k):
             if k.startswith("avg_score"):
                 j = k.replace("avg_", "")
