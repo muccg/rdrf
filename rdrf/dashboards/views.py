@@ -123,7 +123,10 @@ def single_patient_app(vis_configs, graphics_map, patient):
 
 
 def tabbed_app(registry, main_title, patient=None):
-    data = get_data(registry, patient)
+    try:
+        data = get_data(registry, patient)
+    except ValueError:
+        return None
     dashboard = (
         DashboardLocation.ALL_PATIENTS
         if patient is None
