@@ -103,7 +103,7 @@ def single_patient_app(vis_configs, graphics_map, patient):
                     for vc in vis_configs
                 ],
                 id="tabs",
-                active_tab=None,
+                active_tab=f"tab_{vis_configs[0].id}",
             ),
             html.Div(id="tab-content", className="p-4"),
         ]
