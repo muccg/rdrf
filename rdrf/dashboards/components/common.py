@@ -27,14 +27,25 @@ def card(title, data):
 
 
 class BaseGraphic:
-    def __init__(self, title, config_model, data: pd.DataFrame, patient=None):
+    def __init__(
+        self,
+        title,
+        config_model,
+        data: pd.DataFrame,
+        patient=None,
+        all_patients_data=None,
+    ):
         self.config_model = config_model
         logger.debug(f"{title} config model = {config_model}")
         self.config = config_model.config
-        logger.debug(f"config json = {self.config}")
         self.data = data
         self.title = title
         self.patient = patient  # none if all patients
+        self.all_patients_data = all_patients_data  # this gets provided for some single patient components which need to compare
+
+    @property
+    def needs_global_data(self):
+        return False
 
     @property
     def graphic(self):

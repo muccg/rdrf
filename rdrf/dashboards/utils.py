@@ -99,3 +99,13 @@ def get_seq_name(seq_num):
 def add_seq_name(df):
     df["SEQ_NAME"] = df.apply(lambda row: get_seq_name(row["SEQ"]), axis=1)
     return df
+
+
+def needs_all_patients_data(vis_configs):
+    for vis_config in vis_configs:
+        config = vis_config.config
+        if "groups" in config:
+            for group in config["groups"]:
+                if "compare_all" in group:
+                    if group["compare_all"]:
+                        return True

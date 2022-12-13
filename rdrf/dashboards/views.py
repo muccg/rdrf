@@ -19,6 +19,8 @@ from .components.cfc import CombinedFieldComparison
 from .components.sgc import ScaleGroupComparison
 
 from .models import VisualisationConfig
+from .utils import needs_all_patients_data
+
 
 import logging
 
@@ -32,10 +34,12 @@ class DashboardLocation:
     SINGLE_PATIENT = "S"
 
 
-def create_graphic(vis_config, data, patient):
+def create_graphic(vis_config, data, patient, all_patients_data=None):
     # patient is None for all patients graphics
     # contextual single patient components
     # should be supplied with the patient
+    # all_patients_data is supplied only to Scale group Comparisons
+    # that
     title = vis_config.title
     if vis_config.code == "pcf":
         return PatientsWhoCompletedForms(title, vis_config, data).graphic
@@ -46,7 +50,9 @@ def create_graphic(vis_config, data, patient):
     elif vis_config.code == "cpr":
         return ChangesInPatientResponses(title, vis_config, data).graphic
     elif vis_config.code == "sgc":
-        return ScaleGroupComparison(title, vis_config, data, patient).graphic
+        return ScaleGroupComparison(
+            title, vis_config, data, patient, all_patients_data
+        ).graphic
     else:
         logger.error(f"dashboard error - unknown visualisation {vis_config.code}")
         raise Exception(f"Unknown code: {vis_config.code}")
@@ -133,14 +139,21 @@ def tabbed_app(registry, main_title, patient=None):
     if not vis_configs:
         return None
 
+    if dashboard == DashboardLocation.SINGLE_PATIENT and needs_all_patients_data(
+        vis_configs
+    ):
+        all_patients_data = get_data(registry, None)
+    else:
+        all_patients_data = None
+
     graphics_map = {
-        f"tab_{vc.id}": create_graphic(vc, data, patient) for vc in vis_configs
+        f"tab_{vc.id}": create_graphic(vc, data, patient, all_patients_data)
+        for vc in vis_configs
     }
 
     if dashboard == DashboardLocation.ALL_PATIENTS:
         app = all_patients_app(vis_configs, graphics_map)
     else:
-
         app = single_patient_app(vis_configs, graphics_map, patient)
 
     return app

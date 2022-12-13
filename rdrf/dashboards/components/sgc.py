@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 
 
 def log(msg):
-    logger.debug(f"sgc: {msg}")
+    logger.info(f"sgc: {msg}")
 
 
 SEQ = "SEQ"
@@ -120,6 +120,14 @@ class ScaleGroupComparison(BaseGraphic):
         div = html.Div([line_chart, table])
 
         return html.Div(div, id=id)
+
+    @property
+    def needs_global_data(self):
+        if "groups" in self.config:
+            for scale_group in self.config["groups"]:
+                if "compare_all" in scale_group:
+                    if scale_group["compare_all"]:
+                        return True
 
     def calculate_all_patients_scores(self, data):
         # data is one single patients data
