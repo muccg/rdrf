@@ -90,8 +90,6 @@ class ScaleGroupComparison(BaseGraphic):
                 self.all_patients_data, all_patients_score_names
             )
 
-            logger.debug(f"average scores = {average_scores}")
-
         else:
             average_scores = None
 
@@ -132,7 +130,6 @@ class ScaleGroupComparison(BaseGraphic):
             self.all_patients_data, self.all_patients_scores
         )
 
-        logger.debug(f"avg data = {avg_data}")
         return avg_data
 
     def get_line_chart(self, data, title, scores_map):
@@ -168,7 +165,6 @@ class ScaleGroupComparison(BaseGraphic):
         return div
 
     def get_table(self, data, scores_map):
-        logger.debug(f"data = \n{data}")
         import plotly.graph_objects as go
 
         # data frame looks like
@@ -184,6 +180,10 @@ class ScaleGroupComparison(BaseGraphic):
         # Functional           34.4       45.9         55.99
         # Cognitive etc        23.5       0.5          10.0
 
+        # With Symptom and QOL/Health Score, the spec has a comparison
+        # with the average score for all patients, if so avg_score_
+        # columns will have already been added
+
         def score_names():
             for k in scores_map:
                 if k.startswith("score_") or k.startswith("avg_score_"):
@@ -191,8 +191,6 @@ class ScaleGroupComparison(BaseGraphic):
 
         columns_required = ["SEQ_NAME"] + [score_name for score_name in score_names()]
         df = data[columns_required].round(1)
-        # rename columns
-        logger.debug(f"df = {df}")
 
         columns = []
         # scale group name
@@ -204,7 +202,6 @@ class ScaleGroupComparison(BaseGraphic):
                 return self.group_info[k]
 
         scale_group_col = [get_scale_group_name(k) for k in score_names()]
-        logger.debug(f"scale_group_col = {scale_group_col}")
         columns.append(scale_group_col)
 
         for index, row in df.iterrows():
@@ -230,8 +227,6 @@ class ScaleGroupComparison(BaseGraphic):
         return self.config.get("scale", None)
 
     def calculate_scores(self, score_name, fields, score_function, data):
-        logger.debug(f"calculate scores for {score_name} {fields}")
-
         detected_bases = set([get_base(field) for field in fields])
         if len(detected_bases) > 1:
             raise Exception(f"different bases for fields {fields}: {detected_bases}")
@@ -249,19 +244,14 @@ class ScaleGroupComparison(BaseGraphic):
             return value not in [None, ""]
 
         def rs(row):
-            logger.debug(f"calculating raw score for fields")
             values = [
                 float(row[field]) + delta for field in fields if filled(row[field])
             ]
-            logger.debug(f"values = {values}")
             n = len(values)
-            logger.debug(f"num values = {n}")
             if n == 0:
                 return None
             else:
                 avg = sum(values) / len(values)
-
-            logger.debug(f"rs(avg) = {avg}")
 
             return avg
 
@@ -273,16 +263,10 @@ class ScaleGroupComparison(BaseGraphic):
             log("scale is functional")
 
             def score(rs):
-                logger.debug(f"functional score: rs = {rs}")
-                logger.debug(
-                    f"functional score: range value = {range_value} scale = {scale}"
-                )
                 # rs: raw score = average of values
                 if rs is None:
-                    logger.debug(f"scaled score returning None")
                     return None
                 s = (1.0 - (rs - 1.0) / range_value) * 100.0
-                logger.debug(f"scaled score = {s}")
                 return s
 
             return score
