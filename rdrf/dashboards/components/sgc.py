@@ -4,6 +4,8 @@ from dash import dcc, html
 from rdrf.models.definition.models import CommonDataElement
 from ..components.common import BaseGraphic
 from ..utils import get_range, get_base
+from ..data import combine_data
+import pandas as pd
 
 logger = logging.getLogger(__name__)
 
@@ -84,19 +86,34 @@ class ScaleGroupComparison(BaseGraphic):
 
             # now work out the average per SEQ
             all_patients_score_names = [h.score_name for h in self.all_patients_helpers]
-            self.average_scores = self.calculate_average_scores_over_time(
+            average_scores = self.calculate_average_scores_over_time(
                 self.all_patients_data, all_patients_score_names
             )
 
-            logger.debug(f"average scores = {self.average_scores}")
+            logger.debug(f"average scores = {average_scores}")
+
+        else:
+            average_scores = None
 
         if self.mode == "all":
+            # not sure if this is actually required
             data = self.calculate_average_scores_over_time(data, score_names)
             chart_title = f"Scale group score over time for all patients"
             id = "sgc"
         else:
             chart_title = f"Scores over time for {self.patient.link}"
             id = f"sgc-{self.patient.id}"
+
+        if average_scores is not None:
+            data = combine_data(data, average_scores)
+            score_names = [sn for sn in scores_map if sn.startswith("score_")]
+            score_names = score_names + ["avg_" + sn for sn in score_names]
+            for sn in score_names:
+                if sn.startswith("avg_score"):
+                    orig = sn.replace("avg_", "")
+                    orig_display_name = scores_map[orig]
+                    avg_display_name = "Average " + orig_display_name
+                    scores_map[sn] = avg_display_name
 
         line_chart = self.get_line_chart(data, chart_title, scores_map)
 
@@ -120,6 +137,7 @@ class ScaleGroupComparison(BaseGraphic):
 
     def get_line_chart(self, data, title, scores_map):
         score_names = sorted(list(scores_map.keys()))
+
         fig = px.line(
             data,
             x=SEQ,

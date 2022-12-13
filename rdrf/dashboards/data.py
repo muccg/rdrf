@@ -236,3 +236,36 @@ def get_percentages_within_seq(df, field):
     # 2	1216	24.310276
     # 3	1255	25.089964
     return g
+
+
+def combine_data(indiv_data: pd.DataFrame, avg_data: pd.DataFrame) -> pd.DataFrame:
+    """
+    This function takes individual patient scores for scale groups  and combines
+    with a dataframe of average data for the same scores to produce a single dataframe
+    showing the average data scores as avg_score_0 avg_score_1 etc.
+    I use a left join as if a patient has only completed 2 followups we're only interested
+    in the comparison with the average of those ( even if other patients have completed three for
+    example.)
+    """
+    # [DEBUG:2022-12-13 10:54:17,541:sgc.py:91:get_graphic] average scores =    SEQ     score_0
+    # runserver_1     | 0    0   66.666667
+    # runserver_1     | 1    1  100.000000
+    # runserver_1     | 2    2  100.000000
+    # runserver_1     | 3    3   33.333333
+    # runserver_1     | [DEBUG:2022-12-13 10:54:17,655:sgc.py:153:get_table] data =
+    # runserver_1     |     PID  SEQ      TYPE  ...      SEQ_NAME     score_0    score_1
+    # runserver_1     | 0  1032    0  baseline  ...      Baseline   66.666667  54.166667
+    # runserver_1     | 1  1032    1  followup  ...  1st Followup  100.000000  29.166667
+    # runserver_1     | 2  1032    2  followup  ...  2nd Followup  100.000000  33.333333
+    # runserver_1     | 3  1032    3  followup  ...  3rd Followup   33.333333  83.333333
+
+    avg_data = avg_data.rename(
+        columns={
+            col: "avg_" + col for col in avg_data.columns if col.startswith("score_")
+        }
+    )
+    # now merge on SEQ column
+
+    combined_data = indiv_data.merge(avg_data, how="left", on="SEQ")
+    logger.debug(f"combined dataframe = {combined_data}")
+    return combined_data
