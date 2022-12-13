@@ -1,6 +1,7 @@
 from datetime import datetime
 from django.shortcuts import render
 from django.shortcuts import get_object_or_404
+from django.http import Http404
 from django.views.generic.base import View
 from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
@@ -168,7 +169,9 @@ class PatientsDashboardView(View):
     def get(self, request):
         context = {}
         t1 = datetime.now()
-        registry = Registry.objects.get()
+        registry = get_object_or_404(Registry)
+        if not registry.has_feature("patient_dashboard"):
+            raise Http404
         app = tabbed_app(registry, "Tabbed App")
         logger.debug(f"app = {app}")
         t2 = datetime.now()
@@ -192,7 +195,12 @@ class PatientDashboardView(View):
 
         context = {}
         t1 = datetime.now()
-        registry = Registry.objects.get()
+
+        registry = get_object_or_404(Registry)
+
+        if not registry.has_feature("patient_dashboard"):
+            raise Http404
+
         logger.debug("creating DjangoDash app..")
         app = tabbed_app(registry, "Tabbed App Single", patient)
         if app is None:
