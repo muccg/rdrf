@@ -186,7 +186,7 @@ class ScaleGroupComparison(BaseGraphic):
 
         def score_names():
             for k in scores_map:
-                if k.startswith("score_"):
+                if k.startswith("score_") or k.startswith("avg_score_"):
                     yield k
 
         columns_required = ["SEQ_NAME"] + [score_name for score_name in score_names()]
@@ -196,7 +196,14 @@ class ScaleGroupComparison(BaseGraphic):
 
         columns = []
         # scale group name
-        scale_group_col = [self.group_info[k] for k in score_names()]
+        def get_scale_group_name(k):
+            if k.startswith("avg_score"):
+                j = k.replace("avg_", "")
+                return "Average " + self.group_info[j]
+            else:
+                return self.group_info[k]
+
+        scale_group_col = [get_scale_group_name(k) for k in score_names()]
         logger.debug(f"scale_group_col = {scale_group_col}")
         columns.append(scale_group_col)
 
