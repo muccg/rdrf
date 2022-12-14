@@ -1213,16 +1213,17 @@ class Patient(models.Model):
         ), "Context Form group must only contain one form"
         form_model = context_form_group.form_models[0]
 
-        from rdrf.helpers.utils import has_cfg_pk
-
         def matches_context_form_group(cm):
-            return has_cfg_pk(cm, context_form_group.pk)
+            if cm.context_form_group:
+                return cm.context_form_group.pk == context_form_group.pk
 
         context_models = sorted(
             [cm for cm in self.context_models if matches_context_form_group(cm)],
             key=lambda cm: cm.context_form_group.get_ordering_value(self, cm),
             reverse=True,
         )
+
+        logger.debug(f"context_models = {context_models}")
 
         def link_text(cm):
             return cm.context_form_group.get_name_from_cde(self, cm)

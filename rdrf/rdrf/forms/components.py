@@ -244,6 +244,7 @@ class RDRFContextLauncherComponent(RDRFComponent):
             registry=self.registry_model, context_type="M"
         ).order_by("name"):
             name = _("All " + context_form_group.direct_name)
+            logger.debug(f"multiple context: {name}")
             filter_url = patients_listing_url + path % (
                 self.registry_model.code,
                 self.patient_model.pk,
@@ -251,6 +252,7 @@ class RDRFContextLauncherComponent(RDRFComponent):
             )
 
             link_pair = context_form_group.get_add_action(self.patient_model)
+            logger.debug(f"link_pair  = {link_pair}")
             if link_pair:
                 add_link_url, add_link_text = link_pair
                 form = _Form(
@@ -282,10 +284,13 @@ class RDRFContextLauncherComponent(RDRFComponent):
         for url, text, locking in self.patient_model.get_forms_by_group(
             context_form_group
         ):
+            logger.debug(f"existing link: {url} {text}")
             if not text:
                 text = "Not set"
             link_obj = Link(url, text, is_current(url), locking)
             links.append(link_obj)
+
+        logger.debug(f"links = {links}")
         return links
 
     def _get_current_multiple_context(self):
