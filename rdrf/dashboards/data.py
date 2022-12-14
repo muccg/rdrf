@@ -54,13 +54,12 @@ class RegistryDataFrame:
         self.field_map = {field: None for field in self.config_model.config["fields"]}
 
         a = datetime.now()
-        logger.debug("getting dataframe")
         self.df = self._get_dataframe()
         self.df[cdf] = pd.to_datetime(self.df[cdf])
         self.df = self._assign_correct_seq_numbers(self.df)
         self.df = self._assign_seq_names(self.df)
         c = datetime.now()
-        logger.debug(f"time taken to generate df = {c-a}")
+        logger.debug(f"time taken to generate df = {(c-a).total_seconds()} seconds")
 
     def _assign_seq_names(self, df):
         df["SEQ_NAME"] = df.apply(lambda row: get_seq_name(row["SEQ"]), axis=1)
@@ -85,7 +84,6 @@ class RegistryDataFrame:
         for field in self.fields:
             column_name = self._get_column_name(field)
             cols.append(column_name)
-        logger.debug(f"column_names = {cols}")
         return cols
 
     def _get_column_name(self, field):
@@ -147,7 +145,6 @@ class RegistryDataFrame:
             for row in self._get_patient_rows(patient):
                 rows.append(row)
         df = pd.DataFrame(rows)
-        logger.debug(f"df = {df}")
         df.columns = self.dataframe_columns
         return df
 
@@ -180,14 +177,12 @@ class RegistryDataFrame:
 
 
 def get_data(registry, patient=None):
-    logger.debug(f"getting data for {registry} patient={patient}")
     try:
         config = VisualisationBaseDataConfig.objects.get(registry=registry)
     except VisualisationBaseDataConfig.DoesNotExist:
         config = None
 
     pid = None if patient is None else patient.id
-    logger.debug(f"pid = {pid}")
 
     rdf = RegistryDataFrame(registry, config, pid)
 
@@ -267,5 +262,4 @@ def combine_data(indiv_data: pd.DataFrame, avg_data: pd.DataFrame) -> pd.DataFra
     # now merge on SEQ column
 
     combined_data = indiv_data.merge(avg_data, how="left", on="SEQ")
-    logger.debug(f"combined dataframe = {combined_data}")
     return combined_data

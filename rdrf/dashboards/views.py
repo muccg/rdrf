@@ -22,6 +22,8 @@ from .components.sgc import ScaleGroupComparison
 from .models import VisualisationConfig
 from .utils import needs_all_patients_data
 
+from registry.patients.models import Patient
+
 
 import logging
 
@@ -125,7 +127,19 @@ def single_patient_app(vis_configs, graphics_map, patient):
 
 def tabbed_app(registry, main_title, patient=None):
     try:
+        t1 = datetime.now()
         data = get_data(registry, patient)
+        t2 = datetime.now()
+        if patient is None:
+            s = "all patients'"
+        else:
+            s = "one patient's"
+
+        num_patients = Patient.objects.all().count()
+        logger.info(
+            f"time to get data for dashboard {main_title} ( {num_patients} patients )  = {(t2-t1).total_seconds()} seconds"
+        )
+
     except ValueError:
         return None
     dashboard = (
@@ -141,12 +155,19 @@ def tabbed_app(registry, main_title, patient=None):
     ]
 
     if not vis_configs:
+        logger.info("No visualisation configs. Won't create dashboard")
         return None
 
     if dashboard == DashboardLocation.SINGLE_PATIENT and needs_all_patients_data(
         vis_configs
     ):
+        logger.info("getting all patients data for dashboard..")
+        t1 = datetime.now()
         all_patients_data = get_data(registry, None)
+        t2 = datetime.now()
+        logger.info(
+            f"time to get all patients data = {(t2-t1).total_seconds()} seconds"
+        )
     else:
         all_patients_data = None
 
@@ -186,7 +207,6 @@ class PatientDashboardView(View):
     @method_decorator(anonymous_not_allowed)
     @login_required_method
     def get(self, request, patient_id):
-        logger.debug("in patient dashboard view")
         from registry.patients.models import Patient
         from rdrf.security.security_checks import security_check_user_patient
 
@@ -201,7 +221,6 @@ class PatientDashboardView(View):
         if not registry.has_feature("patient_dashboard"):
             raise Http404
 
-        logger.debug("creating DjangoDash app..")
         app = tabbed_app(registry, "Tabbed App Single", patient)
         if app is None:
             context["state"] = "bad"

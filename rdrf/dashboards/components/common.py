@@ -36,7 +36,6 @@ class BaseGraphic:
         all_patients_data=None,
     ):
         self.config_model = config_model
-        logger.debug(f"{title} config model = {config_model}")
         self.config = config_model.config
         self.data = data
         self.title = title

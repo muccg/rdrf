@@ -1,4 +1,5 @@
 import logging
+from datetime import datetime
 import plotly.express as px
 from dash import dcc, html
 from rdrf.models.definition.models import CommonDataElement
@@ -44,7 +45,6 @@ class ScaleGroupComparison(BaseGraphic):
         self.group_info = {}
         self.rev_group = {}
         self.all_patients_helpers = []
-        self.all_patients_data = None
         self.average_scores = None
 
         for index, group in enumerate(self.config["groups"]):
@@ -59,6 +59,7 @@ class ScaleGroupComparison(BaseGraphic):
             score_name = f"score_{index}"
             self.group_info[score_name] = group_title
             self.rev_group[group_title] = score_name
+            logger.info(f"calculating score for {group_title}")
             data = self.calculate_scores(
                 score_name, group_fields, group_score_function, data
             )
@@ -77,16 +78,33 @@ class ScaleGroupComparison(BaseGraphic):
             # if we do need to compare to the average scores
             # with all the patients, we need to append columns
             # to the dataframe showing the average scores
-            if not self.all_patients_data:
+            if self.all_patients_data is None:
+                logger.info("all patients data not loaded - loading ..")
+                t1 = datetime.now()
                 self.load_all_patients_data()
+                t2 = datetime.now()
+                logger.info(f"time taken = {(t2-t1).total_seconds()} seconds")
 
+            logger.info("calculating scores for all patients..")
+            t1 = datetime.now()
             for helper in self.all_patients_helpers:
                 self.all_patients_data = helper.calculate_score(self.all_patients_data)
 
+            t2 = datetime.now()
+            logger.info(
+                f"time taken to calculate all scores for all patients = {(t2-t1).total_seconds()} seconds"
+            )
+
             # now work out the average per SEQ
+            logger.info("calculating averages for the scores..")
+            t1 = datetime.now()
             all_patients_score_names = [h.score_name for h in self.all_patients_helpers]
             average_scores = self.calculate_average_scores_over_time(
                 self.all_patients_data, all_patients_score_names
+            )
+            t2 = datetime.now()
+            logger.info(
+                f"time taken to calculate average scores for all patients = {(t2-t1).total_seconds()} seconds"
             )
 
         else:
@@ -130,7 +148,7 @@ class ScaleGroupComparison(BaseGraphic):
 
     def calculate_all_patients_scores(self, data):
         # data is one single patients data
-        if not self.all_patients_data:
+        if self.all_patients_data is None:
             self.load_all_patients_data()
 
         avg_data = self.calculate_average_scores_over_time(
@@ -262,7 +280,16 @@ class ScaleGroupComparison(BaseGraphic):
 
             return avg
 
+        from datetime import datetime
+
+        start_time = datetime.now()
         data[score_name] = data.apply(lambda row: score_function(rs(row)), axis=1)
+        end_time = datetime.now()
+
+        logger.debug(
+            f"score {score_name} time = {(end_time - start_time).total_seconds() } seconds"
+        )
+
         return data
 
     def get_score_function(self, range_value, scale):
@@ -304,7 +331,6 @@ class ScaleGroupComparison(BaseGraphic):
     def get_range_value(self, fields):
         ranges = set([])
         for field in fields:
-            print(f"checking field {field}")
             try:
                 cde_model = CommonDataElement.objects.get(code=field)
             except CommonDataElement.DoesNotExist:

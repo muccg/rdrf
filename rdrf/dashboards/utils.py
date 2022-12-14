@@ -25,17 +25,13 @@ def get_range(cde_model):
     the range is 3 - 1 = 2
     """
 
-    logger.debug(f"getting range for {cde_model.code}")
-
     if not cde_model.pv_group:
-        logger.debug("no pv group returning None")
         return None
 
     d = cde_model.pv_group.as_dict()
 
     values = set([])
     for value_dict in d["values"]:
-        print(f"checking {value_dict}")
         try:
             # The numeric values are stored with the code key
             i = float(value_dict["code"])
@@ -50,7 +46,6 @@ def get_range(cde_model):
 
 def get_numeric_values(cde_model):
     if not cde_model.pv_group:
-        logger.debug("no pv group returning None")
         return None
 
     d = cde_model.pv_group.as_dict()
