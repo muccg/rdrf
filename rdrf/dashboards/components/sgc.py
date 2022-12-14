@@ -1,6 +1,7 @@
 import logging
 from datetime import datetime
 import plotly.express as px
+import pandas as pd
 from dash import dcc, html
 from rdrf.models.definition.models import CommonDataElement
 from ..components.common import BaseGraphic
@@ -266,9 +267,11 @@ class ScaleGroupComparison(BaseGraphic):
             raise Exception(f"base of fields {fields} is {detected_base}")
 
         def filled(value):
+            # non vectorised
             return value not in [None, ""]
 
         def rs(row):
+            # non vectorised
             values = [
                 float(row[field]) + delta for field in fields if filled(row[field])
             ]
@@ -280,10 +283,22 @@ class ScaleGroupComparison(BaseGraphic):
 
             return avg
 
+        def vec_rs(df):
+            # vectorised
+            # problem here is the empty values propagate NA?
+            values = [pd.to_numeric(df[field]) + delta for field in fields]
+            avg = sum(values) / len(values)
+            return avg
+
         from datetime import datetime
 
         start_time = datetime.now()
+        # unvectorised
         data[score_name] = data.apply(lambda row: score_function(rs(row)), axis=1)
+
+        # vectorised
+        # data[score_name] = score_function(vec_rs(data))
+
         end_time = datetime.now()
 
         logger.debug(
