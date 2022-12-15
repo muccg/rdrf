@@ -5,7 +5,7 @@ logger = logging.getLogger(__name__)
 
 
 def log(msg):
-    logger.debug(f"pcf: {msg}")
+    logger.info(f"pcf: {msg}")
 
 
 class PatientsWhoCompletedForms(BaseGraphic):

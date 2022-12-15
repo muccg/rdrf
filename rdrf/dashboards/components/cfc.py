@@ -10,7 +10,7 @@ logger = logging.getLogger(__name__)
 
 
 def log(msg):
-    logger.debug(f"cfc: {msg}")
+    logger.info(f"cfc: {msg}")
 
 
 SEQ = "SEQ"

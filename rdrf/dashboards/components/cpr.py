@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 
 
 def log(msg):
-    logger.debug(f"cpr: {msg}")
+    logger.info(f"cpr: {msg}")
 
 
 SEQ = "SEQ"  # seq column name

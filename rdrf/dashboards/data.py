@@ -59,7 +59,7 @@ class RegistryDataFrame:
         self.df = self._assign_correct_seq_numbers(self.df)
         self.df = self._assign_seq_names(self.df)
         c = datetime.now()
-        logger.debug(f"time taken to generate df = {(c-a).total_seconds()} seconds")
+        logger.info(f"time taken to generate df = {(c-a).total_seconds()} seconds")
 
     def _assign_seq_names(self, df):
         df["SEQ_NAME"] = df.apply(lambda row: get_seq_name(row["SEQ"]), axis=1)

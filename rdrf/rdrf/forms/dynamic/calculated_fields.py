@@ -11,16 +11,16 @@ class CalculatedFieldScriptCreatorError(Exception):
 
 
 class CalculatedFieldScriptCreator(object):
-
     def __init__(
-            self,
-            registry,
-            registry_form,
-            section,
-            cde,
-            injected_model=None,
-            injected_model_id=None,
-            csp_nonce=None):
+        self,
+        registry,
+        registry_form,
+        section,
+        cde,
+        injected_model=None,
+        injected_model_id=None,
+        csp_nonce=None,
+    ):
 
         self.registry_form = registry_form
         self.section = section
@@ -32,18 +32,23 @@ class CalculatedFieldScriptCreator(object):
         self.csp_nonce = csp_nonce
 
     def get_script(self):
-        prefix = self.registry_form.name + settings.FORM_SECTION_DELIMITER + \
-            self.section.code + settings.FORM_SECTION_DELIMITER
+        prefix = (
+            self.registry_form.name
+            + settings.FORM_SECTION_DELIMITER
+            + self.section.code
+            + settings.FORM_SECTION_DELIMITER
+        )
         observer_code = self.cde.code
-        logger.debug("generating script for %s" % observer_code)
 
-        mod = __import__('rdrf.forms.fields.calculated_functions', fromlist=['object'])
+        mod = __import__("rdrf.forms.fields.calculated_functions", fromlist=["object"])
         func = getattr(mod, f"{self.cde.code}_inputs")
         # required_cde_inputs = {}
         if func:
             cde_inputs = func()
         else:
-            raise Exception(f"Trying to call an unknown calculated cde inputs function {self.cde.code}_inputs()")
+            raise Exception(
+                f"Trying to call an unknown calculated cde inputs function {self.cde.code}_inputs()"
+            )
 
         patient_model = Patient.objects.get(id=self.injected_model_id)
         registry_model = self.registry
@@ -65,6 +70,17 @@ class CalculatedFieldScriptCreator(object):
                     });
                 });
 
-            </script>""" % (self.csp_nonce, prefix, observer_code, cde_inputs, patient_model.id, registry_model.code, patient_model.sex, patient_date_of_birth, observer_code, wsurl)
+            </script>""" % (
+            self.csp_nonce,
+            prefix,
+            observer_code,
+            cde_inputs,
+            patient_model.id,
+            registry_model.code,
+            patient_model.sex,
+            patient_date_of_birth,
+            observer_code,
+            wsurl,
+        )
 
         return javascript

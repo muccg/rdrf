@@ -377,7 +377,6 @@ def timed(func):
         b = datetime.datetime.now()
         c = b - a
         func_name = func.__name__
-        logger.debug("%s time = %s secs" % (func_name, c))
         return result
 
     return wrapper
@@ -447,7 +446,6 @@ def wrap_uploaded_files(registry_code, post_files_data):
     from rdrf.forms.file_upload import FileUpload
 
     def wrap(key, value):
-        logger.debug("key = %s value = %s" % (key, value))
         if isinstance(value, UploadedFile):
             return FileUpload(
                 registry_code, key, {"file_name": value.name, "django_file_id": 0}
@@ -1020,10 +1018,6 @@ def cde_completed(
             cde_model.code,
             cde_model.datatype,
         )
-        if filled:
-            logger.debug("%s is filled: [%s]" % (moniker, value))
-        else:
-            logger.debug("%s is NOT filled: [%s]" % (moniker, value))
 
     for form_dict in data["forms"]:
         if form_dict["name"] == form_model.name:

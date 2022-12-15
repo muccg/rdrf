@@ -17,7 +17,9 @@ logger = logging.getLogger(__name__)
 class ResearchDownload:
     ZIP_NAME = "CICResearchDownload%s%s.zip"
     PATIENTS_DATA_FILENAME = "patients_data.csv"
-    PATIENTS_DATA_HEADER = "PID,QUESTIONNAIRE,CDE,QUESTION,VALUE,COLLECTIONDATE,RESPONSETYPE,FORM,INDEX\n"
+    PATIENTS_DATA_HEADER = (
+        "PID,QUESTIONNAIRE,CDE,QUESTION,VALUE,COLLECTIONDATE,RESPONSETYPE,FORM,INDEX\n"
+    )
 
 
 @cached(maxsize=None)
@@ -105,9 +107,9 @@ def e(value):
 
 
 def yield_cds(pids):
-    for cd in ClinicalData.objects.filter(collection="cdes",
-                                          django_model="Patient",
-                                          django_id__in=pids):
+    for cd in ClinicalData.objects.filter(
+        collection="cdes", django_model="Patient", django_id__in=pids
+    ):
         if cd.data and "forms" in cd.data:
             yield cd
 
@@ -131,48 +133,55 @@ class Downloader:
 
     def _get_deident(self, pid):
         deident = self._get_field(pid, "deident")
-        return (pid,
-                "",
-                "",
-                "deident",
-                "",
-                "",
-                "Deidentified Token",
-                deident,
-                "",
-                "",
-                1)  # index column
+        return (
+            pid,
+            "",
+            "",
+            "deident",
+            "",
+            "",
+            "Deidentified Token",
+            deident,
+            "",
+            "",
+            1,
+        )  # index column
 
     def _get_dob(self, pid):
         dob = self._get_field(pid, "dob")
-        return (pid,
-                "Demographics",
-                "",
-                "DOB",
-                "",
-                "",
-                "Date of Birth",
-                dob,
-                "",
-                "",
-                1)  # index column
+        return (
+            pid,
+            "Demographics",
+            "",
+            "DOB",
+            "",
+            "",
+            "Date of Birth",
+            dob,
+            "",
+            "",
+            1,
+        )  # index column
 
     def _get_sex(self, pid):
         sex = self._get_field(pid, "sex")
-        return (pid,
-                "Demographics",
-                "",
-                "Sex",
-                "",
-                "",
-                "Sex",
-                sex,
-                "",
-                "",
-                1)  # index column
+        return (
+            pid,
+            "Demographics",
+            "",
+            "Sex",
+            "",
+            "",
+            "Sex",
+            sex,
+            "",
+            "",
+            1,
+        )  # index column
 
     def _parse_fields(self, custom_action_model):
         import json
+
         data = json.loads(custom_action_model.data)
         self.patterns = []
         self.fields = []
@@ -192,7 +201,9 @@ class Downloader:
 
     @property
     def zip_name(self):
-        user_groups = "_".join(sorted([wg.name.upper() for wg in self.user.working_groups.all()]))
+        user_groups = "_".join(
+            sorted([wg.name.upper() for wg in self.user.working_groups.all()])
+        )
         registry_code = self.registry.code
         name = f"CICResearchDownload_{registry_code}_{user_groups}_{self.datestamp}.zip"
         return name
@@ -204,6 +215,7 @@ class Downloader:
     def task_result(self):
         import os.path
         from django.conf import settings
+
         task_subfolder_name = generate_token()
         task_dir = os.path.join(settings.TASK_FILE_DIRECTORY, task_subfolder_name)
         zip_filename = os.path.join(settings.TASK_FILE_DIRECTORY, generate_token())
@@ -212,16 +224,19 @@ class Downloader:
         self.extract_long(patients_data_csv_filepath)
 
         zf = ZipFile(zip_filename, "w")
-        zf.write(patients_data_csv_filepath, os.path.basename(patients_data_csv_filepath))
+        zf.write(
+            patients_data_csv_filepath, os.path.basename(patients_data_csv_filepath)
+        )
         zf.close()
         shutil.rmtree(task_dir)
 
-        result = {"filepath": zip_filename,
-                  "content_type": "text/csv",
-                  "username": self.user.username,
-                  "user_id": self.user.id,
-                  "filename": self.zip_name,
-                  }
+        result = {
+            "filepath": zip_filename,
+            "content_type": "text/csv",
+            "username": self.user.username,
+            "user_id": self.user.id,
+            "filename": self.zip_name,
+        }
         return result
 
     def _get_patients_in_users_groups(self):
@@ -232,10 +247,10 @@ class Downloader:
 
     def extract_long(self, patients_data_csv_filepath):
         patients = self._get_patients_in_users_groups()
-        pids = [id for id in patients.values_list('id', flat=True)]
+        pids = [id for id in patients.values_list("id", flat=True)]
         self._write_patients_data(patients_data_csv_filepath, pids)
 
-    @ cached(maxsize=None)
+    @cached(maxsize=None)
     def _match(self, form_name, section_code, cde_code):
         if self.all_cdes:
             return True
@@ -310,8 +325,16 @@ class Downloader:
                     index = 1
                     for c in s["cdes"]:
                         code = c["code"]
-                        cde_data = self._get_cde_data(pid, c, code, form_name, section_code,
-                                                      collection_date, response_type, index)
+                        cde_data = self._get_cde_data(
+                            pid,
+                            c,
+                            code,
+                            form_name,
+                            section_code,
+                            collection_date,
+                            response_type,
+                            index,
+                        )
                         if cde_data:
                             yield cde_data
                 else:
@@ -319,14 +342,31 @@ class Downloader:
                         index = i + 1
                         for c in item:
                             code = c["code"]
-                            cde_data = self._get_cde_data(pid, c, code, form_name, section_code,
-                                                          collection_date, response_type, index)
+                            cde_data = self._get_cde_data(
+                                pid,
+                                c,
+                                code,
+                                form_name,
+                                section_code,
+                                collection_date,
+                                response_type,
+                                index,
+                            )
                             if cde_data:
                                 yield cde_data
 
-    def _get_cde_data(self, pid, cde_dict, code, form_name, section_code, collection_date, response_type, index):
+    def _get_cde_data(
+        self,
+        pid,
+        cde_dict,
+        code,
+        form_name,
+        section_code,
+        collection_date,
+        response_type,
+        index,
+    ):
         if self._match(form_name, section_code, code):
-            logger.debug(f"code {code} matches")
             questionnaire, question = get_questionnaire_number(code)
             cde = get_cde_model(code)
             name = cde.name
@@ -334,23 +374,27 @@ class Downloader:
 
             try:
                 if type(value) is list:
-                    display_value = ";".join([get_display_value(code, x) for x in value])
+                    display_value = ";".join(
+                        [get_display_value(code, x) for x in value]
+                    )
                 else:
                     display_value = get_display_value(code, value)
             except Exception as ex:
                 logger.error(f"error {code}: {ex}")
                 display_value = "ERROR"
-            return (pid,
-                    form_name,
-                    section_code,
-                    code,
-                    questionnaire,
-                    question,
-                    name,
-                    display_value,
-                    collection_date,
-                    response_type,
-                    index)  # index column
+            return (
+                pid,
+                form_name,
+                section_code,
+                code,
+                questionnaire,
+                question,
+                name,
+                display_value,
+                collection_date,
+                response_type,
+                index,
+            )  # index column
 
     def _write_patients_data(self, csv_path, pids):
         d = self.delimiter

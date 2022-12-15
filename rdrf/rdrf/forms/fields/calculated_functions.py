@@ -11,6 +11,7 @@ from functools import reduce
 import math
 import logging
 import shlex
+
 logger = logging.getLogger(__name__)
 
 # This module (file) contains the calulated fields functions.
@@ -31,9 +32,7 @@ class AcrossFormsError(Exception):
 
 
 class AcrossFormsInfo:
-    def __init__(self,
-                 registry_model,
-                 patient_model):
+    def __init__(self, registry_model, patient_model):
         self.registry_model = registry_model
         self.patient_model = patient_model
 
@@ -54,34 +53,28 @@ class AcrossFormsInfo:
         form_model, section_model = self._get_location(cde_code)
         if form_model is None or section_model is None:
             raise AcrossFormsError("Cannot locate %s" % cde_code)
-        return self.patient_model.get_form_value(self.registry_model.code,
-                                                 form_model.name,
-                                                 section_model.code,
-                                                 cde_code,
-                                                 multisection=False,
-                                                 context_id=context_model.id)
+        return self.patient_model.get_form_value(
+            self.registry_model.code,
+            form_model.name,
+            section_model.code,
+            cde_code,
+            multisection=False,
+            context_id=context_model.id,
+        )
 
 
 def fill_missing_input(context, input_func_name, across_forms_info=None):
-    logger.debug(f"fill missing input context = {context}")
-    mod = __import__('rdrf.forms.fields.calculated_functions', fromlist=['object'])
+    mod = __import__("rdrf.forms.fields.calculated_functions", fromlist=["object"])
     func = getattr(mod, input_func_name)
     if across_forms_info is not None:
-        logger.debug("fill_missing_input checking across forms info")
         # the input cdes are on another form
         for cde_code in func():
-            logger.debug(f"checking for input cde {cde_code}")
             if cde_code not in context.keys():
-                logger.debug(f"{cde_code} not in context - trying across forms")
                 try:
                     cde_value = across_forms_info.get_cde_value(cde_code)
-                    logger.debug(f"found cde {cde_code} across forms value = {cde_value}")
                 except KeyError:
-                    logger.debug(f"{cde_code} could not be found across forms")
                     cde_value = ""
                 context[cde_code] = cde_value
-            else:
-                logger.debug(f"input {cde_code} is in context ( value is {context[cde_code]}")
     else:
         for cde_code in func():
             if cde_code not in context.keys():
@@ -91,6 +84,7 @@ def fill_missing_input(context, input_func_name, across_forms_info=None):
 
 
 ####################### BEGIN OF CDEfhDutchLipidClinicNetwork ###################################
+
 
 def bad(value):
     return (value is None) or (math.isnan(value))
@@ -127,7 +121,9 @@ def getLDL(context):
 def getScore(context, patient):
     assessmentDate = context["DateOfAssessment"]
 
-    isAdult = calculate_age(patient["date_of_birth"], validate_date(assessmentDate)) >= 18
+    isAdult = (
+        calculate_age(patient["date_of_birth"], validate_date(assessmentDate)) >= 18
+    )
     index = context["CDEIndexOrRelative"] == "fh_is_index"
     relative = context["CDEIndexOrRelative"] == "fh_is_relative"
 
@@ -153,11 +149,15 @@ def getScore(context, patient):
     def familyHistoryScore():
         score = 0
 
-        if ((FAM_HIST_PREM_CVD_FIRST_DEGREE_RELATIVE == YES) or (FAM_HIST_HYPERCHOL_FIRST_DEGREE_RELATIVE == YES)):
+        if (FAM_HIST_PREM_CVD_FIRST_DEGREE_RELATIVE == YES) or (
+            FAM_HIST_HYPERCHOL_FIRST_DEGREE_RELATIVE == YES
+        ):
             score += 1
 
-        if (((FAM_HIST_TENDON_FIRST_DEGREE_RELATIVE == YES) or (
-                FAM_HIST_ARCUS_CORNEALIS_FIRST_DEGREE_RELATIVE == YES)) or (FAM_HIST_CHILD_HYPERCOL == YES_CHILD)):
+        if (
+            (FAM_HIST_TENDON_FIRST_DEGREE_RELATIVE == YES)
+            or (FAM_HIST_ARCUS_CORNEALIS_FIRST_DEGREE_RELATIVE == YES)
+        ) or (FAM_HIST_CHILD_HYPERCOL == YES_CHILD):
             score += 2
 
         if score > 2:
@@ -168,10 +168,10 @@ def getScore(context, patient):
     def clinicalHistoryScore():
         score = 0
 
-        if (PERS_HIST_COR_HEART == HAS_COR_HEART_DISEASE):
+        if PERS_HIST_COR_HEART == HAS_COR_HEART_DISEASE:
             score += 2
 
-        if (PERS_HIST_CVD == YES):
+        if PERS_HIST_CVD == YES:
             score += 1
 
         if score > 2:
@@ -182,10 +182,10 @@ def getScore(context, patient):
     def physicalExaminationScore():
         score = 0
 
-        if (TENDON_XANTHOMA == "y"):
+        if TENDON_XANTHOMA == "y":
             score += 6
 
-        if (ARCUS_CORNEALIS == "y"):
+        if ARCUS_CORNEALIS == "y":
             score += 4
 
         if score > 6:
@@ -224,7 +224,12 @@ def getScore(context, patient):
         if isAdult:
 
             try:
-                score = familyHistoryScore() + clinicalHistoryScore() + physicalExaminationScore() + investigationScore()
+                score = (
+                    familyHistoryScore()
+                    + clinicalHistoryScore()
+                    + physicalExaminationScore()
+                    + investigationScore()
+                )
                 return score
             except:
                 return ""
@@ -240,7 +245,7 @@ def getScore(context, patient):
 
 def CDEfhDutchLipidClinicNetwork(patient, context):
 
-    context = fill_missing_input(context, 'CDEfhDutchLipidClinicNetwork_inputs')
+    context = fill_missing_input(context, "CDEfhDutchLipidClinicNetwork_inputs")
 
     if context["DateOfAssessment"] is None or context["DateOfAssessment"] == "":
         return ""
@@ -253,13 +258,28 @@ def CDEfhDutchLipidClinicNetwork(patient, context):
 
 
 def CDEfhDutchLipidClinicNetwork_inputs():
-    return ["DateOfAssessment", "CDEIndexOrRelative", "CDE00004", "CDE00003", "FHFamilyHistoryChild", "FHFamHistTendonXanthoma",
-            "FHFamHistArcusCornealis", "CDE00011", "FHPersHistCerebralVD", "CDE00001", "CDE00002", "CDE00013", "LDLCholesterolAdjTreatment"]
+    return [
+        "DateOfAssessment",
+        "CDEIndexOrRelative",
+        "CDE00004",
+        "CDE00003",
+        "FHFamilyHistoryChild",
+        "FHFamHistTendonXanthoma",
+        "FHFamHistArcusCornealis",
+        "CDE00011",
+        "FHPersHistCerebralVD",
+        "CDE00001",
+        "CDE00002",
+        "CDE00013",
+        "LDLCholesterolAdjTreatment",
+    ]
+
 
 ################ END OF CDEfhDutchLipidClinicNetwork ################################
 
 
 ################ BEGINNING OF CD00024 ################################
+
 
 def getFloat(x):
     if x is not None:
@@ -289,8 +309,12 @@ def catchild(context):
         return ""
 
     def anyrel(context):
-        return (context["CDE00003"] == "fh2_y") or (context["CDE00004"] == "fh2_y") or (
-            context["FHFamHistTendonXanthoma"] == "fh2_y") or (context["FHFamHistArcusCornealis"] == "fh2_y")
+        return (
+            (context["CDE00003"] == "fh2_y")
+            or (context["CDE00004"] == "fh2_y")
+            or (context["FHFamHistTendonXanthoma"] == "fh2_y")
+            or (context["FHFamHistArcusCornealis"] == "fh2_y")
+        )
 
     # Definite if DNA Analysis is Yes
     # other wise
@@ -339,7 +363,8 @@ def catrelative(sex, age, lipid_score):
         [[25, 34], [[-1, 3.799], [3.8, 4.599], [4.6, BIG]]],
         [[35, 44], [[-1, 3.999], [4.0, 4.799], [4.8, BIG]]],
         [[45, 54], [[-1, 4.399], [4.4, 5.299], [5.3, BIG]]],
-        [[55, 999], [[-1, 4.299], [4.3, 5.299], [5.3, BIG]]]]
+        [[55, 999], [[-1, 4.299], [4.3, 5.299], [5.3, BIG]]],
+    ]
 
     FEMALE_TABLE = [
         # AGE         Unlikely    Uncertain       Likely
@@ -348,7 +373,8 @@ def catrelative(sex, age, lipid_score):
         [[25, 34], [[-1, 3.599], [3.6, 4.299], [4.3, BIG]]],
         [[35, 44], [[-1, 3.699], [3.7, 4.399], [4.4, BIG]]],
         [[45, 54], [[-1, 3.999], [4.0, 4.899], [4.9, BIG]]],
-        [[55, 999], [[-1, 4.399], [4.4, 5.299], [5.3, BIG]]]]
+        [[55, 999], [[-1, 4.399], [4.4, 5.299], [5.3, BIG]]],
+    ]
 
     def inRange(value, a, b):
         return (value >= a) and (value <= b)
@@ -360,22 +386,22 @@ def catrelative(sex, age, lipid_score):
             ageInterval = row[0]
             ageMin = ageInterval[0]
             ageMax = ageInterval[1]
-            if (inRange(cat_age, ageMin, ageMax)):
+            if inRange(cat_age, ageMin, ageMax):
                 catRanges = row[1]
                 for j in range(0, 3):
                     ranges = catRanges[j]
                     rangeMin = ranges[0]
                     rangeMax = ranges[1]
 
-                    if (inRange(cat_score, rangeMin, rangeMax)):
+                    if inRange(cat_score, rangeMin, rangeMax):
                         category = cats[j]
                         return category
         return ""
 
-    if sex == '1':
+    if sex == "1":
         table = MALE_TABLE
 
-    if sex == '2':
+    if sex == "2":
         table = FEMALE_TABLE
 
     if table is None:
@@ -385,19 +411,22 @@ def catrelative(sex, age, lipid_score):
 
 
 def categorise(context, patient):
-    dutch_lipid_network_score = None if context["CDEfhDutchLipidClinicNetwork"] == "" else validate_float(
-        context["CDEfhDutchLipidClinicNetwork"])
+    dutch_lipid_network_score = (
+        None
+        if context["CDEfhDutchLipidClinicNetwork"] == ""
+        else validate_float(context["CDEfhDutchLipidClinicNetwork"])
+    )
     assessmentDate = validate_date(context["DateOfAssessment"])
     isAdult = calculate_age(patient["date_of_birth"], assessmentDate) >= 18.0
     index = context["CDEIndexOrRelative"] == "fh_is_index"
     relative = context["CDEIndexOrRelative"] == "fh_is_relative"
 
-    if (index):
-        if (isAdult):
+    if index:
+        if isAdult:
             return catadult(dutch_lipid_network_score)
         return catchild(context)
 
-    if (relative):
+    if relative:
         age = calculate_age(patient["date_of_birth"], assessmentDate)
         L = CDE00024_getLDL(context)
         sex = patient["sex"]
@@ -407,7 +436,7 @@ def categorise(context, patient):
 
 def CDE00024(patient, context):
 
-    context = fill_missing_input(context, 'CDE00024_inputs')
+    context = fill_missing_input(context, "CDE00024_inputs")
 
     if context["DateOfAssessment"] is None or context["DateOfAssessment"] == "":
         return ""
@@ -421,8 +450,17 @@ def CDE00024(patient, context):
 
 
 def CDE00024_inputs():
-    return ["CDEIndexOrRelative", "DateOfAssessment", "CDEfhDutchLipidClinicNetwork", "FHFamHistTendonXanthoma", "FHFamHistArcusCornealis",
-            "CDE00003", "CDE00004", "LDLCholesterolAdjTreatment", "CDE00013"]
+    return [
+        "CDEIndexOrRelative",
+        "DateOfAssessment",
+        "CDEfhDutchLipidClinicNetwork",
+        "FHFamHistTendonXanthoma",
+        "FHFamHistArcusCornealis",
+        "CDE00003",
+        "CDE00004",
+        "LDLCholesterolAdjTreatment",
+        "CDE00013",
+    ]
 
 
 ################ END OF CD00024 ################################
@@ -472,12 +510,12 @@ def correction_factor(dose):
 
 def roundToTwo(num):
     # rounding function: 1.0049 => 1.00, 1.0050 => 1.01, 1.0060 => 1.01
-    return Decimal(num).quantize(Decimal('0.00'), rounding=ROUND_HALF_UP)
+    return Decimal(num).quantize(Decimal("0.00"), rounding=ROUND_HALF_UP)
 
 
 def LDLCholesterolAdjTreatment(patient, context):
 
-    context = fill_missing_input(context, 'LDLCholesterolAdjTreatment_inputs')
+    context = fill_missing_input(context, "LDLCholesterolAdjTreatment_inputs")
 
     # if empty CDE000019 return a NaN error
     if context["CDE00019"] is None or context["CDE00019"] == "":
@@ -492,10 +530,15 @@ def LDLCholesterolAdjTreatment(patient, context):
     dose = context["PlasmaLipidTreatment"]
 
     try:
-        LDLCholesterolAdjTreatment = str(roundToTwo(Decimal(str(ldl_chol * correction_factor(dose)))))
+        LDLCholesterolAdjTreatment = str(
+            roundToTwo(Decimal(str(ldl_chol * correction_factor(dose))))
+        )
         # remove trailing 0: 14.23 => 14.23, 14.20 => 14.2, 14.00 => 14
-        trimmed_LDLCholesterolAdjTreatment = LDLCholesterolAdjTreatment.rstrip('0').rstrip(
-            '.') if '.' in LDLCholesterolAdjTreatment else LDLCholesterolAdjTreatment
+        trimmed_LDLCholesterolAdjTreatment = (
+            LDLCholesterolAdjTreatment.rstrip("0").rstrip(".")
+            if "." in LDLCholesterolAdjTreatment
+            else LDLCholesterolAdjTreatment
+        )
         return trimmed_LDLCholesterolAdjTreatment
 
     except:
@@ -866,17 +909,10 @@ class CancerStageEvaluator:
         self.cde_prefix = cde_prefix
         self.pattern = "*"
         assert (self.cde_prefix is not None, "cde_prefix must not be None")
-        logger.debug("initialising canver stage evaluator")
         if rules_dict is not None:
             self.rules_dict = rules_dict
         else:
             self.rules_dict = self.parse_spec(spec)
-
-        for key in sorted(self.rules_dict.keys()):
-            logger.debug("******************************")
-            logger.debug(f"Rules for {key}:")
-            logger.debug(f"{self.rules_dict[key]}")
-            logger.debug("******************************")
 
         self.cache = {}
 
@@ -888,6 +924,7 @@ class CancerStageEvaluator:
 
     def is_possible(self, cde_code, value):
         from rdrf.models.definition.models import CommonDataElement
+
         try:
             cde_model = CommonDataElement.objects.get(code=cde_code)
         except CommonDataElement.DoesNotExist:
@@ -912,13 +949,12 @@ class CancerStageEvaluator:
         return line.strip().replace("Stage ", "")
 
     def is_value(self, token):
-        return not any([self.is_cde(token), token in [' ', '=']])
+        return not any([self.is_cde(token), token in [" ", "="]])
 
     def is_cde(self, token):
         return token.startswith(self.cde_prefix)
 
     def parse_spec_inputs(self, line):
-        logger.debug(f"parse_spec_inputs line = {line}")
         dicts = []
         tokens = shlex.split(line)
         print(tokens)
@@ -926,21 +962,17 @@ class CancerStageEvaluator:
         value = None
 
         for token in tokens:
-            logger.debug(f"token = {token}")
-
             if self.is_cde(token):
-                logger.debug(f"token is a cde")
                 key = token.strip()
-                logger.debug(f"key = {key}")
             elif self.is_value(token):
-                logger.debug("token is a value")
                 value = token.strip()
                 value = self.replace_space(value)
                 if key and not self.is_possible(key, value):
-                    raise Exception(f"impossible value in rule: cde={key} value={value}")
-                logger.debug(f"value = {value}")
+                    raise Exception(
+                        f"impossible value in rule: cde={key} value={value}"
+                    )
             else:
-                logger.debug(f"unknown token: {token}")
+                logger.info(f"unknown token: {token}")
             if key and value:
                 dicts.append({"cde": key, "value": value})
                 key = None
@@ -954,16 +986,11 @@ class CancerStageEvaluator:
 
         for line in spec.split("\n"):
             line = line.strip()
-            logger.debug(f"parsing line: {line}")
             if line.startswith("Stage"):
-                logger.debug("is a stage!")
                 stage = self.parse_spec_output(line)
-                logger.debug(f"parse stage = {stage}")
                 rules_dict[stage] = []
             else:
-                logger.debug("is not a stage")
                 dicts = self.parse_spec_inputs(line)
-                logger.debug(f"parsed dicts = {dicts}")
                 if dicts:
                     rules_dict[stage].append(dicts)
 
@@ -1007,7 +1034,9 @@ class CancerStageEvaluator:
                         value = token.strip()
                         value = self.replace_space(value)
                         if value == "":
-                            raise Exception(f"parse spec error on line [{line}]: value is empty string")
+                            raise Exception(
+                                f"parse spec error on line [{line}]: value is empty string"
+                            )
                     if all([key, value]):
                         inputs_dict[key] = value
 
@@ -1020,41 +1049,39 @@ class CancerStageEvaluator:
 
     def evaluate(self, patient, context):
         for stage, rules in self.rules_dict.items():
-            logger.debug(f"*** checking for cancer stage {stage}")
             if self._evaluate_stage(rules, patient, context):
-                logger.debug(f"cancer stage: patient {patient} context {context} stage = {stage} evaluates to true")
                 return stage
-        logger.debug("No rules matched - stage is set to a blank string")
         return "Unknown"
 
     def _evaluate_stage(self, rules, patient, context):
-        stage_value = any([self._evaluate_conjuncts(patient, context, conjuncts) for conjuncts in rules])
-        logger.debug(f"stage_value = {stage_value}")
+        stage_value = any(
+            [
+                self._evaluate_conjuncts(patient, context, conjuncts)
+                for conjuncts in rules
+            ]
+        )
         return stage_value
 
     def _evaluate_conjuncts(self, patient, context, conjuncts):
-        result = all([self._evaluate_conjunct(patient, context, conjunct) for conjunct in conjuncts])
-        logger.debug(f"conjuncts = {conjuncts} evaluates to {result}")
+        result = all(
+            [
+                self._evaluate_conjunct(patient, context, conjunct)
+                for conjunct in conjuncts
+            ]
+        )
         return result
 
     def _is_pattern(self, value):
-        logger.debug(f"checking whether value {value} is a pattern")
         result = value[-1] == self.pattern
-        if result:
-            logger.debug(f"{value} IS a pattern")
-        else:
-            logger.debug(f"{value} IS NOT pattern")
-
         return result
 
     def _get_pattern_prefix(self, pattern):
         return pattern[:-1]
 
     def _evaluate_conjunct(self, patient, context, conjunct):
-        logger.debug(f"evaluate conjunct: patient {patient} context {context} conjunct {conjunct}")
         from rdrf.models.definition.models import CommonDataElement
+
         cde_code = conjunct["cde"]
-        logger.debug(f"cde code = {cde_code}")
         try:
             cde_model = CommonDataElement.objects.get(code=cde_code)
         except CommonDataElement.DoesNotExist:
@@ -1071,25 +1098,20 @@ class CancerStageEvaluator:
         patient_db_value = self._get_patient_value(patient, context, cde_code)
         patient_display_value = cde_model.get_display_value(patient_db_value)
 
-        logger.debug(f"patient db value = {patient_db_value} display value = {patient_display_value}")
-
         if not is_pattern:
-            logger.debug("not a pattern")
             result = patient_display_value.lower() == rule_display_value.lower()
         else:
-            logger.debug("pattern found")
             result = patient_display_value.startswith(prefix)
 
-        logger.debug(f"{cde_code} rule {rule_display_value} patient {patient_display_value} result: {result}")
         return result
 
     def _get_patient_value(self, patient, context, cde_code):
         pv = context[cde_code]  # ??
-        logger.debug(f"patient value of {cde_code} is {pv}")
         return pv
 
     def _get_db_value(self, cde_code, display_value):
         from rdrf.models.definition.models import CommonDataElement
+
         cde_model = CommonDataElement.objects.get(code=cde_code)
         if cde_model.pv_group:
             d = cde_model.pv_group.as_dict()
@@ -1100,30 +1122,29 @@ class CancerStageEvaluator:
 
 def CRCCANCERSTAGE(patient, context):
     logger.info("in cdecrc cancer stage")
-    context = fill_missing_input(context, 'CRCCANCERSTAGE_inputs')
+    context = fill_missing_input(context, "CRCCANCERSTAGE_inputs")
     evaluator = CancerStageEvaluator(spec=crc_cancer_stage_spec, cde_prefix="TNMP")
     return evaluator.evaluate(patient, context)
 
 
 def CRCCANCERSTAGE_inputs():
-    return ['TNMPTCRC', 'TNMPNCRC', 'TNMPMCRC']
+    return ["TNMPTCRC", "TNMPNCRC", "TNMPMCRC"]
 
 
 def CRCCLINICALCANCERSTAGE(patient, context):
     logger.info("in cde crc clinical cancer stage")
-    context = fill_missing_input(context, 'CRCCLINICALCANCERSTAGE_inputs')
+    context = fill_missing_input(context, "CRCCLINICALCANCERSTAGE_inputs")
     spec = get_crc_clinical_cancer_stage_spec()
     evaluator = CancerStageEvaluator(spec=spec, cde_prefix="TNMC")
     return evaluator.evaluate(patient, context)
 
 
 def CRCCLINICALCANCERSTAGE_inputs():
-    return ['TNMCTCRC', 'TNMCNCRC', 'TNMCMCRC']
+    return ["TNMCTCRC", "TNMCNCRC", "TNMCMCRC"]
 
 
 def BCCANCERSTAGE(patient, context):
-    logger.debug(f"calculating BCCANCERSTAGE: patient = {patient} context = {context}")
-    context = fill_missing_input(context, 'BCCANCERSTAGE_inputs')
+    context = fill_missing_input(context, "BCCANCERSTAGE_inputs")
     evaluator = CancerStageEvaluator(spec=bc_cancer_stage_spec, cde_prefix="TNMP")
     return evaluator.evaluate(patient, context)
 
@@ -1133,8 +1154,7 @@ def BCCANCERSTAGE_inputs():
 
 
 def BCCLINICALCANCERSTAGE(patient, context):
-    logger.debug(f"calculating BCCLINICALCANCERSTAGE: patient = {patient} context = {context}")
-    context = fill_missing_input(context, 'BCCLINICALCANCERSTAGE_inputs')
+    context = fill_missing_input(context, "BCCLINICALCANCERSTAGE_inputs")
     spec = get_bc_clinical_cancer_stage_spec()
     evaluator = CancerStageEvaluator(spec=spec, cde_prefix="TNMC")
     return evaluator.evaluate(patient, context)
@@ -1145,7 +1165,7 @@ def BCCLINICALCANCERSTAGE_inputs():
 
 
 def LCCANCERSTAGE(patient, context):
-    context = fill_missing_input(context, 'LCCANCERSTAGE_inputs')
+    context = fill_missing_input(context, "LCCANCERSTAGE_inputs")
     evaluator = CancerStageEvaluator(spec=lc_cancer_stage_spec, cde_prefix="TNMP")
     return evaluator.evaluate(patient, context)
 
@@ -1155,7 +1175,7 @@ def LCCANCERSTAGE_inputs():
 
 
 def LCCLINICALCANCERSTAGE(patient, context):
-    context = fill_missing_input(context, 'LCCLINICALCANCERSTAGE_inputs')
+    context = fill_missing_input(context, "LCCLINICALCANCERSTAGE_inputs")
     spec = get_lc_clinical_cancer_stage_spec()
     evaluator = CancerStageEvaluator(spec=spec, cde_prefix="TNMC")
     return evaluator.evaluate(patient, context)
@@ -1238,7 +1258,7 @@ def get_lc_clinical_cancer_stage_spec():
 
 
 def OVCANCERSTAGE(patient, context):
-    context = fill_missing_input(context, 'OVCANCERSTAGE_inputs')
+    context = fill_missing_input(context, "OVCANCERSTAGE_inputs")
     evaluator = CancerStageEvaluator(ov_cancer_stage_spec)
     return evaluator.evaluate(patient, context)
 
@@ -1249,9 +1269,10 @@ def OVCANCERSTAGE_inputs():
 
 ################ BEGINNING OF CDEBMI ################################
 
+
 def CDEBMI(patient, context):
 
-    context = fill_missing_input(context, 'CDEBMI_inputs')
+    context = fill_missing_input(context, "CDEBMI_inputs")
 
     height = context["CDEHeight"]
     weight = context["CDEWeight"]
@@ -1269,7 +1290,7 @@ def CDEBMI(patient, context):
 
     CDEBMI = str(roundToTwo(bmi))
     # remove trailing 0: 14.23 => 14.23, 14.20 => 14.2, 14.00 => 14
-    trimmed_CDEBMI = CDEBMI.rstrip('0').rstrip('.') if '.' in CDEBMI else CDEBMI
+    trimmed_CDEBMI = CDEBMI.rstrip("0").rstrip(".") if "." in CDEBMI else CDEBMI
     return trimmed_CDEBMI
 
 
@@ -1289,7 +1310,7 @@ def unix_time_millis(dt):
 
 def FHDeathAge(patient, context):
 
-    context = fill_missing_input(context, 'FHDeathAge_inputs')
+    context = fill_missing_input(context, "FHDeathAge_inputs")
 
     if not context["FHDeathDate"]:
         return "NaN"
@@ -1307,6 +1328,7 @@ def FHDeathAge(patient, context):
 def FHDeathAge_inputs():
     return ["FHDeathDate"]
 
+
 ################ END OF FHDeathAge ################################
 
 ################ BEGINNING OF fhAgeAtConsent ################################
@@ -1314,7 +1336,7 @@ def FHDeathAge_inputs():
 
 def fhAgeAtConsent(patient, context):
 
-    context = fill_missing_input(context, 'fhAgeAtConsent_inputs')
+    context = fill_missing_input(context, "fhAgeAtConsent_inputs")
 
     if not context["FHconsentDate"]:
         return "NaN"
@@ -1332,6 +1354,7 @@ def fhAgeAtConsent(patient, context):
 def fhAgeAtConsent_inputs():
     return ["FHconsentDate"]
 
+
 ################ END OF fhAgeAtConsent ################################
 
 ################ BEGINNING OF fhAgeAtAssessment ################################
@@ -1339,7 +1362,7 @@ def fhAgeAtConsent_inputs():
 
 def fhAgeAtAssessment(patient, context):
 
-    context = fill_missing_input(context, 'fhAgeAtAssessment_inputs')
+    context = fill_missing_input(context, "fhAgeAtAssessment_inputs")
 
     if not context["DateOfAssessment"]:
         return "NaN"
@@ -1357,14 +1380,16 @@ def fhAgeAtAssessment(patient, context):
 def fhAgeAtAssessment_inputs():
     return ["DateOfAssessment"]
 
+
 ################ END OF fhAgeAtAssessment ################################
 
 
 ################ BEGINNING OF DDAgeAtDiagnosis ################################
 
+
 def DDAgeAtDiagnosis(patient, context):
 
-    context = fill_missing_input(context, 'DDAgeAtDiagnosis_inputs')
+    context = fill_missing_input(context, "DDAgeAtDiagnosis_inputs")
 
     if not context["DateOfDiagnosis"]:
         return "NaN"
@@ -1381,6 +1406,7 @@ def DDAgeAtDiagnosis(patient, context):
 
 def DDAgeAtDiagnosis_inputs():
     return ["DateOfDiagnosis"]
+
 
 ################ END OF DDAgeAtDiagnosis ################################
 
@@ -1431,7 +1457,7 @@ def getCategory(score):
 
 def poemScore(patient, context):
 
-    context = fill_missing_input(context, 'poemScore_inputs')
+    context = fill_missing_input(context, "poemScore_inputs")
 
     q1 = context["poemQ1"]
     q2 = context["poemQ2"]
@@ -1467,7 +1493,16 @@ def poemScore(patient, context):
 
 
 def poemScore_inputs():
-    return ["poemQ1", "poemQ2", "poemQ3", "poemQ4", "poemQ5", "poemQ6", "poemQ7", ]
+    return [
+        "poemQ1",
+        "poemQ2",
+        "poemQ3",
+        "poemQ4",
+        "poemQ5",
+        "poemQ6",
+        "poemQ7",
+    ]
+
 
 ################ END OF poemScore ################################
 
@@ -1492,6 +1527,7 @@ def ANGCurrentPatientAge(patient, context):
 def ANGCurrentPatientAge_inputs():
     return []
 
+
 ################ END OF ANGCurrentPatientAge ################################
 
 ################ BEGINNING OF ANGBMImetric ################################
@@ -1499,7 +1535,7 @@ def ANGCurrentPatientAge_inputs():
 
 def ANGBMImetric(patient, context):
 
-    context = fill_missing_input(context, 'ANGBMImetric_inputs')
+    context = fill_missing_input(context, "ANGBMImetric_inputs")
 
     height = context["ANGObesityHeight"]
     weight = context["ANGObesityWeight"]
@@ -1517,7 +1553,9 @@ def ANGBMImetric(patient, context):
 
     ANGObesityBMI = str(roundToTwo(bmi))
     # remove trailing 0: 14.23 => 14.23, 14.20 => 14.2, 14.00 => 14
-    trimmed_ANGObesityBMI = ANGObesityBMI.rstrip('0').rstrip('.') if '.' in ANGObesityBMI else ANGObesityBMI
+    trimmed_ANGObesityBMI = (
+        ANGObesityBMI.rstrip("0").rstrip(".") if "." in ANGObesityBMI else ANGObesityBMI
+    )
     return trimmed_ANGObesityBMI
 
 
@@ -1529,9 +1567,10 @@ def ANGBMImetric_inputs():
 
 ################ BEGINNING OF ANGBMIimperial ################################
 
+
 def ANGBMIimperial(patient, context):
 
-    context = fill_missing_input(context, 'ANGBMIimperial_inputs')
+    context = fill_missing_input(context, "ANGBMIimperial_inputs")
 
     feet = context["ANGObesityHeightft"]
     inches = context["ANGHeightIn"]
@@ -1552,12 +1591,17 @@ def ANGBMIimperial(patient, context):
 
     ANGimperialBMI = str(roundToTwo(bmi))
     # remove trailing 0: 14.23 => 14.23, 14.20 => 14.2, 14.00 => 14
-    trimmed_ANGimperialBMI = ANGimperialBMI.rstrip('0').rstrip('.') if '.' in ANGimperialBMI else ANGimperialBMI
+    trimmed_ANGimperialBMI = (
+        ANGimperialBMI.rstrip("0").rstrip(".")
+        if "." in ANGimperialBMI
+        else ANGimperialBMI
+    )
     return trimmed_ANGimperialBMI
 
 
 def ANGBMIimperial_inputs():
     return ["ANGObesityHeightft", "ANGHeightIn", "ANGObesityWeightlb"]
+
 
 ################ END OF ANGBMIimperial ################################
 
@@ -1565,10 +1609,12 @@ def ANGBMIimperial_inputs():
 
 
 def APMATPlasmicRisk(patient, context):
-    context = fill_missing_input(context, 'APMATPlasmicRisk_inputs')
+    context = fill_missing_input(context, "APMATPlasmicRisk_inputs")
 
     YES = "fh_yes_no_yes"
-    def yes_selected(value): return value == YES
+
+    def yes_selected(value):
+        return value == YES
 
     score = 0
     score += 1 if yes_selected(context["APMATPlateletCountLessThan30"]) else 0
@@ -1579,19 +1625,29 @@ def APMATPlasmicRisk(patient, context):
     score += 1 if yes_selected(context["APMATINRLessThan1Dot5"]) else 0
     score += 1 if yes_selected(context["APMATCreatinineLessThan2"]) else 0
 
-    return "low risk" if score < 5 else "intermediate risk" if score == 5 else "high risk"
+    return (
+        "low risk" if score < 5 else "intermediate risk" if score == 5 else "high risk"
+    )
 
 
 def APMATPlasmicRisk_inputs():
-    return ["APMATPlateletCountLessThan30", "APMATHaemolysisVariable", "APMATNoActiveCancer", "APMATNoTransplant",
-            "APMATMCVLessThan90", "APMATINRLessThan1Dot5", "APMATCreatinineLessThan2"]
+    return [
+        "APMATPlateletCountLessThan30",
+        "APMATHaemolysisVariable",
+        "APMATNoActiveCancer",
+        "APMATNoTransplant",
+        "APMATMCVLessThan90",
+        "APMATINRLessThan1Dot5",
+        "APMATCreatinineLessThan2",
+    ]
+
 
 ################ END OF FHDeathAge ################################
 
 
 def validate_date(date):
     try:
-        return datetime.strptime(date, '%Y-%m-%d')
+        return datetime.strptime(date, "%Y-%m-%d")
     except ValueError:
         raise ParseError(detail="Bad date format")
 
@@ -1607,7 +1663,6 @@ def number_of_days(datestring1, datestring2):
     """
     return number of days between date1 < date2
     """
-    logger.debug(f"number_of_days s1=[{datestring1}] s2=[{datestring2}]")
     if datestring1 is None:
         return None
     if datestring2 is None:
@@ -1624,20 +1679,21 @@ def number_of_days(datestring1, datestring2):
     return delta.days
 
 
-def date_diff_helper(patient, context, input_func_name, later_cde_code, earlier_cde_code):
+def date_diff_helper(
+    patient, context, input_func_name, later_cde_code, earlier_cde_code
+):
     """
     return number of days between two date cdes in registry
     """
     from registry.patients.models import Patient
     from rdrf.models.definition.models import Registry
+
     patient_id = patient["patient_id"]
     registry_code = patient["registry_code"]
     patient_model = Patient.objects.get(id=patient_id)
     registry_model = Registry.objects.get(code=registry_code)
-    across_forms_info = AcrossFormsInfo(registry_model,
-                                        patient_model)
+    across_forms_info = AcrossFormsInfo(registry_model, patient_model)
     context = fill_missing_input(context, input_func_name, across_forms_info)
-    logger.debug(f"calc context after filling missing input = {context}")
     later_date_string = context[later_cde_code]
     earlier_date_string = context[earlier_cde_code]
     r = number_of_days(earlier_date_string, later_date_string)
@@ -1654,14 +1710,14 @@ def INITREVINTERVLC(patient, context):
     """
     from registry.patients.models import Patient
     from rdrf.models.definition.models import Registry
+
     patient_id = patient["patient_id"]
     registry_code = patient["registry_code"]
     patient_model = Patient.objects.get(id=patient_id)
     registry_model = Registry.objects.get(code=registry_code)
-    across_forms_info = AcrossFormsInfo(registry_model,
-                                        patient_model)
+    across_forms_info = AcrossFormsInfo(registry_model, patient_model)
 
-    context = fill_missing_input(context, 'INITREVINTERVLC_inputs', across_forms_info)
+    context = fill_missing_input(context, "INITREVINTERVLC_inputs", across_forms_info)
     first_seenlc = context["FIRSTSEENLC"]
     refdatelc = context["REFDATELC"]
     num_days = number_of_days(refdatelc, first_seenlc)
@@ -1672,52 +1728,46 @@ def INITREVINTERVLC(patient, context):
 
 
 def INITREVINTERVLC_inputs():
-    return ['FIRSTSEENLC', 'REFDATELC']
+    return ["FIRSTSEENLC", "REFDATELC"]
 
 
 def DXINTERVALLC(patient, context):
     """
     DXINTERVALLC = INCIDENDATELC – FIRSTSEENLC
     """
-    return date_diff_helper(patient,
-                            context,
-                            'DXINTERVALLC_inputs',
-                            'INCIDENDATELC',
-                            'FIRSTSEENLC')
+    return date_diff_helper(
+        patient, context, "DXINTERVALLC_inputs", "INCIDENDATELC", "FIRSTSEENLC"
+    )
 
 
 def DXINTERVALLC_inputs():
-    return ['INCIDENDATELC', 'FIRSTSEENLC']
+    return ["INCIDENDATELC", "FIRSTSEENLC"]
 
 
 def MXINTERVAL2LC(patient, context):
     """
     MXINTERVAL2LC = MXDATELC – INCIDENDATELC
     """
-    return date_diff_helper(patient,
-                            context,
-                            'MXINTERVAL2LC_inputs',
-                            'MXDATELC',
-                            'INCIDENDATELC')
+    return date_diff_helper(
+        patient, context, "MXINTERVAL2LC_inputs", "MXDATELC", "INCIDENDATELC"
+    )
 
 
 def MXINTERVAL2LC_inputs():
-    return ['INCIDENDATELC', 'MXDATELC']
+    return ["INCIDENDATELC", "MXDATELC"]
 
 
 def MXINTERVAL1LC(patient, context):
     """
     MXINTERVAL1LC = MXDATELC – REFDATELC
     """
-    return date_diff_helper(patient,
-                            context,
-                            'MXINTERVAL1LC_inputs',
-                            'MXDATELC',
-                            'REFDATELC')
+    return date_diff_helper(
+        patient, context, "MXINTERVAL1LC_inputs", "MXDATELC", "REFDATELC"
+    )
 
 
 def MXINTERVAL1LC_inputs():
-    return ['REFDATELC', 'MXDATELC']
+    return ["REFDATELC", "MXDATELC"]
 
 
 def SMOKEPACKYEAR(patient, context):
@@ -1737,7 +1787,6 @@ def SMOKEPACKYEAR(patient, context):
         pass
 
     def maybe_int(s):
-        logger.debug(f"maybe_int value = {s} type = {type(s)}")
         if s == unknown:
             raise NoDataException()
         if s == 999:
@@ -1800,4 +1849,10 @@ def SMOKEPACKYEAR(patient, context):
 
 
 def SMOKEPACKYEAR_inputs():
-    return ["CIGDAY", "SMOKING", "SMOKINGSTARTYEAR", "SMOKINGSTOPYEAR", "SMOKABSTINENTYRS"]
+    return [
+        "CIGDAY",
+        "SMOKING",
+        "SMOKINGSTARTYEAR",
+        "SMOKINGSTOPYEAR",
+        "SMOKABSTINENTYRS",
+    ]

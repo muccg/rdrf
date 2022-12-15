@@ -301,7 +301,7 @@ class ScaleGroupComparison(BaseGraphic):
 
         end_time = datetime.now()
 
-        logger.debug(
+        logger.info(
             f"score {score_name} time = {(end_time - start_time).total_seconds() } seconds"
         )
 
