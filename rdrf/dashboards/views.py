@@ -21,6 +21,7 @@ from .components.sgc import ScaleGroupComparison
 
 from .models import VisualisationConfig
 from .utils import needs_all_patients_data
+from .utils import load_apps
 
 from registry.patients.models import Patient
 
@@ -200,6 +201,8 @@ class PatientsDashboardView(View):
         context["seconds"] = (t2 - t1).total_seconds
         context["location"] = "Patients Dashboard"
 
+        load_apps()
+
         return render(request, "rdrf_cdes/patients_dashboard.html", context)
 
 
@@ -230,5 +233,7 @@ class PatientDashboardView(View):
 
         context["seconds"] = (t2 - t1).total_seconds
         context["location"] = "Patient Dashboard"
+
+        load_apps()
 
         return render(request, "rdrf_cdes/patient_dashboard.html", context)
