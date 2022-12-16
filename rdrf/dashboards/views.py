@@ -227,6 +227,4 @@ class PatientDashboardView(View):
         context["seconds"] = (t2 - t1).total_seconds
         context["location"] = "Patient Dashboard"
 
-        load_apps()
-
         return render(request, "rdrf_cdes/patient_dashboard.html", context)
