@@ -21,9 +21,10 @@ from .components.sgc import ScaleGroupComparison
 
 from .models import VisualisationConfig
 from .utils import needs_all_patients_data
-from .utils import load_apps
 
 from registry.patients.models import Patient
+
+from .apps import all_app, single_app
 
 
 import logging
@@ -63,10 +64,7 @@ def create_graphic(vis_config, data, patient, all_patients_data=None):
 
 
 def all_patients_app(vis_configs, graphics_map):
-    app = DjangoDash(
-        "AllPatientsDashboardApp", external_stylesheets=[dbc.themes.BOOTSTRAP]
-    )
-    app.layout = dbc.Container(
+    all_app.layout = dbc.Container(
         [
             dcc.Store(id="store"),
             dbc.Tabs(
@@ -81,7 +79,7 @@ def all_patients_app(vis_configs, graphics_map):
         ]
     )
 
-    @app.callback(
+    @all_app.callback(
         Output("tab-content", "children"),
         [Input("tabs", "active_tab")],
     )
@@ -91,14 +89,11 @@ def all_patients_app(vis_configs, graphics_map):
         else:
             return graphics_map[active_tab]
 
-    return app
+    return all_app
 
 
 def single_patient_app(vis_configs, graphics_map, patient):
-    app = DjangoDash(
-        "SinglePatientDashboardApp", external_stylesheets=[dbc.themes.BOOTSTRAP]
-    )
-    app.layout = dbc.Container(
+    single_app.layout = dbc.Container(
         [
             dcc.Store(id="store"),
             dbc.Tabs(
@@ -113,7 +108,7 @@ def single_patient_app(vis_configs, graphics_map, patient):
         ]
     )
 
-    @app.callback(
+    @single_app.callback(
         Output("tab-content", "children"),
         [Input("tabs", "active_tab")],
     )
@@ -123,7 +118,7 @@ def single_patient_app(vis_configs, graphics_map, patient):
         else:
             return graphics_map[active_tab]
 
-    return app
+    return single_app
 
 
 def tabbed_app(registry, main_title, patient=None):
@@ -200,8 +195,6 @@ class PatientsDashboardView(View):
 
         context["seconds"] = (t2 - t1).total_seconds
         context["location"] = "Patients Dashboard"
-
-        load_apps()
 
         return render(request, "rdrf_cdes/patients_dashboard.html", context)
 

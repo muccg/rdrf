@@ -105,10 +105,3 @@ def needs_all_patients_data(vis_configs):
                 if "compare_all" in group:
                     if group["compare_all"]:
                         return True
-
-
-def load_apps():
-    # see https://community.plotly.com/t/django-plotly-dash-unable-to-find-stateless-djangoapp-called-simpleexample/42417
-    # seeing if putting this in the view will fix the "Unable to find StatelessApp error"
-    for sa in StatelessApp.objects.all():
-        logger.debug(f"loaded {sa}")
