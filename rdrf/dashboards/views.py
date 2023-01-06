@@ -24,7 +24,7 @@ from .utils import needs_all_patients_data
 
 from registry.patients.models import Patient
 
-from .apps import all_app, single_app
+# from .dash_apps import all_app, single_app
 
 
 import logging
@@ -138,6 +138,7 @@ def tabbed_app(registry, main_title, patient=None):
 
     except ValueError:
         return None
+
     dashboard = (
         DashboardLocation.ALL_PATIENTS
         if patient is None
