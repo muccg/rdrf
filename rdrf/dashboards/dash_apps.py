@@ -37,14 +37,21 @@ single_app.layout = dbc.Container(
 )
 
 
-@single_app.callback(
+@single_app.expanded_callback(
     Output("tab-content", "children"),
     [Input("tabs", "active_tab")],
 )
-def render_tab_content(active_tab):
+def render_tab_content(*args, **kwargs):
     logger.info("dash app single_app callback")
-    patient_id = request
-    graphics_map = {}
+
+    active_tab = args[0]
+    logger.info(f"single app callback: active_tab = {active_tab}")
+
+    session_state = kwargs["session_state"]
+    patient_id = session_state["patient_id"]
+    logger.debug(f"patient id from session = {patient_id}")
+
+    graphics_map = get_single_patient_graphics_map(registry, single_configs, patient_id)
 
     if not active_tab:
         return "No tab selected"
@@ -77,7 +84,6 @@ all_app.layout = dbc.Container(
 def render_tab_content(*args, **kwargs):
     logger.info("dash app all_app callback")
     active_tab = args[0]
-    logger.debug(f"all patients callback - active tab = {active_tab}")
     all_patients_graphics_map = get_all_patients_graphics_map(registry, all_configs)
 
     if not active_tab:

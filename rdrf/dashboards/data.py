@@ -37,7 +37,14 @@ class RegistryDataFrame:
     Loads all data into a Pandas DataFrame for analysis
     """
 
-    def __init__(self, registry, config_model, patient_id=None, force_reload=False):
+    def __init__(
+        self,
+        registry,
+        config_model,
+        patient_id=None,
+        force_reload=False,
+        needs_all=False,
+    ):
         self.registry = registry
         self.config_model = config_model
         self.patient_id = patient_id
@@ -52,6 +59,7 @@ class RegistryDataFrame:
         self.form_names = [self.baseline_form, self.followup_form]
         self.mode = "all" if patient_id is None else "single"
         self.field_map = {field: None for field in self.config_model.config["fields"]}
+        self.needs_all = needs_all
 
         a = datetime.now()
         if force_reload:
@@ -185,7 +193,7 @@ class RegistryDataFrame:
         return self.df
 
 
-def get_data(registry, patient=None):
+def get_data(registry, patient=None, needs_all=False):
     try:
         config = VisualisationBaseDataConfig.objects.get(registry=registry)
     except VisualisationBaseDataConfig.DoesNotExist:
@@ -193,7 +201,7 @@ def get_data(registry, patient=None):
 
     pid = None if patient is None else patient.id
 
-    rdf = RegistryDataFrame(registry, config, pid)
+    rdf = RegistryDataFrame(registry, config, pid, needs_all)
 
     return rdf.data
 

@@ -160,11 +160,12 @@ class PatientDashboardView(View):
         if not registry.has_feature("patient_dashboard"):
             raise Http404
 
-        app = tabbed_app(registry, "Tabbed App Single", patient)
-        if app is None:
-            context["state"] = "bad"
-        else:
-            context["state"] = "good"
+        session = request.session
+
+        dash_context = request.session.get("django_plotly_dash", dict())
+        dash_context["patient_id"] = patient_id
+        session["django_plotly_dash"] = dash_context
+        context["state"] = "good"
         t2 = datetime.now()
 
         context["seconds"] = (t2 - t1).total_seconds

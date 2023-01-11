@@ -149,10 +149,20 @@ def get_all_patients_graphics_map(registry, vis_configs):
     return graphics_map
 
 
-def get_single_patient_graphics_map(registry):
+def get_single_patient_graphics_map(registry, vis_configs, patient_id):
     from dashboards.models import VisualisationConfig
+    from registry.patients.models import Patient
+    from .data import get_data
 
-    vis_configs = VisualisationConfig.objects.filter(
-        registry=registry, dashboard="S"
-    ).order_by("position")
-    return {}
+    logger.debug(f"get single patient graphics for {patient_id}")
+
+    patient = Patient.objects.get(id=patient_id)
+
+    needs_all = needs_all_patients_data(vis_configs)
+    data = get_data(registry, patient, needs_all)
+
+    graphics_map = {
+        f"tab_{vc.id}": create_graphic(vc, data, patient, None) for vc in vis_configs
+    }
+
+    return graphics_map
