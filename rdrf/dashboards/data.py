@@ -62,12 +62,14 @@ class RegistryDataFrame:
         self.needs_all = needs_all
 
         a = datetime.now()
-        if force_reload:
+        if self.mode == "all" and force_reload:
             logger.info("forcing reload of dataframe..")
             self._reload_dataframe()
-        else:
+        elif self.mode == "all":
             logger.info("loading dataframe from base config json")
             self.df = pd.read_json(self.config_model.data)
+        elif self.mode == "single":
+            self._reload_dataframe()
 
         c = datetime.now()
         logger.info(f"time taken to load/generate df = {(c-a).total_seconds()} seconds")
