@@ -37,7 +37,7 @@ class RegistryDataFrame:
     Loads all data into a Pandas DataFrame for analysis
     """
 
-    def __init__(self, registry, config_model, patient_id=None):
+    def __init__(self, registry, config_model, patient_id=None, force_reload=False):
         self.registry = registry
         self.config_model = config_model
         self.patient_id = patient_id
@@ -54,12 +54,21 @@ class RegistryDataFrame:
         self.field_map = {field: None for field in self.config_model.config["fields"]}
 
         a = datetime.now()
+        if force_reload:
+            logger.info("forcing reload of dataframe..")
+            self._reload_dataframe()
+        else:
+            logger.info("loading dataframe from base config json")
+            self.df = pd.read_json(self.config_model.data)
+
+        c = datetime.now()
+        logger.info(f"time taken to load/generate df = {(c-a).total_seconds()} seconds")
+
+    def _reload_dataframe(self):
         self.df = self._get_dataframe()
         self.df[cdf] = pd.to_datetime(self.df[cdf])
         self.df = self._assign_correct_seq_numbers(self.df)
         self.df = self._assign_seq_names(self.df)
-        c = datetime.now()
-        logger.info(f"time taken to generate df = {(c-a).total_seconds()} seconds")
 
     def _assign_seq_names(self, df):
         df["SEQ_NAME"] = df.apply(lambda row: get_seq_name(row["SEQ"]), axis=1)

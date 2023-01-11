@@ -963,6 +963,8 @@ X_FRAME_OPTIONS = "SAMEORIGIN"
 
 # see https://github.com/GibbsConsulting/django-plotly-dash/issues/75
 # inserting this to see whether the staging issue ( prod build) issue gets fixed
-PLOTLY_DASH = {}
 
-PLOTLY_DASH["cache_arguments"] = False
+PLOTLY_DASH = {
+    # Flag to control location of initial argument storage
+    "cache_arguments": False,
+}

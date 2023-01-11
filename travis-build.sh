@@ -11,11 +11,6 @@ set -e
 mkdir -p data/
 sudo chown 1000:1000 data/
 
-
-# turn off lint for now - we need to
-# to ignore W503 with lint but the muccg/linter
-# can't seem to ignore it
-# so we should use the alpine flake8 image
 #./develop.sh run build lint
 ./develop.sh build base
 ./develop.sh build builder

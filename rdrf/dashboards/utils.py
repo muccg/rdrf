@@ -105,3 +105,54 @@ def needs_all_patients_data(vis_configs):
                 if "compare_all" in group:
                     if group["compare_all"]:
                         return True
+
+
+def create_graphic(vis_config, data, patient, all_patients_data=None):
+    # patient is None for all patients graphics
+    # contextual single patient components
+    # should be supplied with the patient
+    # all_patients_data is supplied only to Scale group Comparisons
+    # that
+    from .components.pcf import PatientsWhoCompletedForms
+    from .components.tofc import TypesOfFormCompleted
+    from .components.cfc import CombinedFieldComparison
+    from .components.cpr import ChangesInPatientResponses
+    from .components.sgc import ScaleGroupComparison
+
+    title = vis_config.title
+    if vis_config.code == "pcf":
+        return PatientsWhoCompletedForms(title, vis_config, data).graphic
+    elif vis_config.code == "tofc":
+        return TypesOfFormCompleted(title, vis_config, data).graphic
+    elif vis_config.code == "cfc":
+        return CombinedFieldComparison(title, vis_config, data).graphic
+    elif vis_config.code == "cpr":
+        return ChangesInPatientResponses(title, vis_config, data).graphic
+    elif vis_config.code == "sgc":
+        return ScaleGroupComparison(
+            title, vis_config, data, patient, all_patients_data
+        ).graphic
+    else:
+        logger.error(f"dashboard error - unknown visualisation {vis_config.code}")
+        raise Exception(f"Unknown code: {vis_config.code}")
+
+
+def get_all_patients_graphics_map(registry, vis_configs):
+    from .data import get_data
+
+    data = get_data(registry, None)
+
+    graphics_map = {
+        f"tab_{vc.id}": create_graphic(vc, data, None, None) for vc in vis_configs
+    }
+
+    return graphics_map
+
+
+def get_single_patient_graphics_map(registry):
+    from dashboards.models import VisualisationConfig
+
+    vis_configs = VisualisationConfig.objects.filter(
+        registry=registry, dashboard="S"
+    ).order_by("position")
+    return {}

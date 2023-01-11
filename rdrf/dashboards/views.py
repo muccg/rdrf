@@ -24,9 +24,6 @@ from .utils import needs_all_patients_data
 
 from registry.patients.models import Patient
 
-# from .dash_apps import all_app, single_app
-
-
 import logging
 
 logger = logging.getLogger(__name__)
@@ -63,65 +60,7 @@ def create_graphic(vis_config, data, patient, all_patients_data=None):
         raise Exception(f"Unknown code: {vis_config.code}")
 
 
-def all_patients_app(vis_configs, graphics_map):
-    all_app.layout = dbc.Container(
-        [
-            dcc.Store(id="store"),
-            dbc.Tabs(
-                [
-                    dbc.Tab(label=f"{vc.title}", tab_id=f"tab_{vc.id}")
-                    for vc in vis_configs
-                ],
-                id="tabs",
-                active_tab=f"tab_{vis_configs[0].id}",
-            ),
-            html.Div(id="tab-content", className="p-4"),
-        ]
-    )
-
-    @all_app.callback(
-        Output("tab-content", "children"),
-        [Input("tabs", "active_tab")],
-    )
-    def render_tab_content(active_tab):
-        if not active_tab:
-            return "No tab selected"
-        else:
-            return graphics_map[active_tab]
-
-    return all_app
-
-
-def single_patient_app(vis_configs, graphics_map, patient):
-    single_app.layout = dbc.Container(
-        [
-            dcc.Store(id="store"),
-            dbc.Tabs(
-                [
-                    dbc.Tab(label=f"{vc.title}", tab_id=f"tab_{vc.id}")
-                    for vc in vis_configs
-                ],
-                id="tabs",
-                active_tab=f"tab_{vis_configs[0].id}",
-            ),
-            html.Div(id="tab-content", className="p-4"),
-        ]
-    )
-
-    @single_app.callback(
-        Output("tab-content", "children"),
-        [Input("tabs", "active_tab")],
-    )
-    def render_tab_content(active_tab):
-        if not active_tab:
-            return "No tab selected"
-        else:
-            return graphics_map[active_tab]
-
-    return single_app
-
-
-def tabbed_app(registry, main_title, patient=None):
+def tabbed_app(user, registry, main_title, patient=None):
     try:
         t1 = datetime.now()
         data = get_data(registry, patient)
@@ -176,7 +115,7 @@ def tabbed_app(registry, main_title, patient=None):
     if dashboard == DashboardLocation.ALL_PATIENTS:
         app = all_patients_app(vis_configs, graphics_map)
     else:
-        app = single_patient_app(vis_configs, graphics_map, patient)
+        app = single_patient_app(user, vis_configs, graphics_map, patient)
 
     return app
 
@@ -185,17 +124,20 @@ class PatientsDashboardView(View):
     @method_decorator(anonymous_not_allowed)
     @login_required_method
     def get(self, request):
-        context = {}
+        logger.debug("in patients dashboard view")
         t1 = datetime.now()
         registry = get_object_or_404(Registry)
         if not registry.has_feature("patient_dashboard"):
             raise Http404
-        app = tabbed_app(registry, "Tabbed App")
-        logger.debug(f"app = {app}")
+
+        # app = tabbed_app(user, registry, "Tabbed App")
         t2 = datetime.now()
 
+        context = {}
         context["seconds"] = (t2 - t1).total_seconds
         context["location"] = "Patients Dashboard"
+
+        logger.debug("rendering all patients dashboard")
 
         return render(request, "rdrf_cdes/patients_dashboard.html", context)
 

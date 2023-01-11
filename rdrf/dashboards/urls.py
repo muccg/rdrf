@@ -2,6 +2,10 @@ from django.urls import re_path
 from .views import PatientsDashboardView
 from .views import PatientDashboardView
 
+# register the DjangoDashApps once on load
+from .dash_apps import single_app, all_app
+
+
 
 urlpatterns = [
     re_path(
