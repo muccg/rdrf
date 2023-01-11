@@ -15,7 +15,7 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         for config in VisualisationBaseDataConfig.objects.all():
             self.print(f"generating json data for {config.registry.code}")
-            rdf = RegistryDataFrame(config.registry, config, None)
+            rdf = RegistryDataFrame(config.registry, config, None, force_reload=True)
             json_data = rdf.data.to_json()
             config.data = json_data
             config.state = "D"
