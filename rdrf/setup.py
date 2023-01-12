@@ -24,7 +24,7 @@ requirements = [
     "django-uwsgi==0.2.2",
     "geoip2==4.1.0",
     "jsonschema==4.0.0",
-    "openpyxl==3.0.5",
+    "openpyxl==3.0.10",
     "polib==1.1.1",
     "psycopg2==2.8.6",
     "pycountry==20.7.3",
