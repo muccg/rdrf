@@ -33,6 +33,11 @@ if load:
         registry=registry, dashboard="S"
     ).order_by("position")
 
+    if len(single_configs) == 0:
+        tab = ""
+    else:
+        tab = f"tab_{single_configs[0].id}"
+
     single_app.layout = dbc.Container(
         [
             dcc.Store(id="store"),
@@ -42,7 +47,7 @@ if load:
                     for vc in single_configs
                 ],
                 id="tabs",
-                active_tab=f"tab_{single_configs[0].id}",
+                active_tab=f"{tab}",
             ),
             html.Div(id="tab-content", className="p-4"),
         ]
@@ -75,6 +80,11 @@ if load:
         registry=registry, dashboard="A"
     ).order_by("position")
 
+    if len(all_configs) == 0:
+        tab = ""
+    else:
+        tab = f"tab_{all_configs[0].id}"
+
     all_app.layout = dbc.Container(
         [
             dcc.Store(id="session", storage_type="session"),
@@ -84,7 +94,7 @@ if load:
                     for vc in all_configs
                 ],
                 id="tabs",
-                active_tab=f"tab_{all_configs[0].id}",
+                active_tab=f"{tab}",
             ),
             html.Div(id="tab-content", className="p-4"),
         ]
