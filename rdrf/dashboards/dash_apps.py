@@ -13,8 +13,15 @@ logger = logging.getLogger(__name__)
 
 load = True
 
-
 # this fails during a fresh build because schema not created?
+single_app = DjangoDash(
+    "SinglePatientDashboardApp", external_stylesheets=[dbc.themes.BOOTSTRAP]
+)
+
+all_app = DjangoDash(
+    "AllPatientsDashboardApp", external_stylesheets=[dbc.themes.BOOTSTRAP]
+)
+
 
 try:
     registry = Registry.objects.get()
@@ -25,10 +32,6 @@ if load:
     single_configs = VisualisationConfig.objects.filter(
         registry=registry, dashboard="S"
     ).order_by("position")
-
-    single_app = DjangoDash(
-        "SinglePatientDashboardApp", external_stylesheets=[dbc.themes.BOOTSTRAP]
-    )
 
     single_app.layout = dbc.Container(
         [
@@ -71,10 +74,6 @@ if load:
     all_configs = VisualisationConfig.objects.filter(
         registry=registry, dashboard="A"
     ).order_by("position")
-
-    all_app = DjangoDash(
-        "AllPatientsDashboardApp", external_stylesheets=[dbc.themes.BOOTSTRAP]
-    )
 
     all_app.layout = dbc.Container(
         [
