@@ -2,6 +2,10 @@ from dash import dcc, html
 import dash_bootstrap_components as dbc
 import pandas as pd
 
+import logging
+
+logger = logging.getLogger(__name__)
+
 
 def chart(title, id, figure):
     return html.Div([html.H2(title), dcc.Graph(figure=figure)], id=id)
@@ -23,10 +27,24 @@ def card(title, data):
 
 
 class BaseGraphic:
-    def __init__(self, title, config, data: pd.DataFrame):
-        self.config = config
+    def __init__(
+        self,
+        title,
+        config_model,
+        data: pd.DataFrame,
+        patient=None,
+        all_patients_data=None,
+    ):
+        self.config_model = config_model
+        self.config = config_model.config
         self.data = data
         self.title = title
+        self.patient = patient  # none if all patients
+        self.all_patients_data = all_patients_data  # this gets provided for some single patient components which need to compare
+
+    @property
+    def needs_global_data(self):
+        return False
 
     @property
     def graphic(self):
@@ -41,3 +59,17 @@ class BaseGraphic:
 
     def get_id(self):
         raise Exception("subclass responsibility")
+
+    def fix_xaxis(self, fig, data):
+        # this replaces the SEQ numbers on the x-axis
+        # with names
+        fig.update_xaxes(type="category")
+
+        fig.update_layout(
+            xaxis=dict(
+                tickmode="array", tickvals=data["SEQ"], ticktext=data["SEQ_NAME"]
+            )
+        )
+
+    def fix_yaxis(self, fig, low=0, high=100):
+        fig.update_yaxes(range=[low, high])

@@ -2,6 +2,7 @@ from .common import BaseGraphic
 from dash import dcc, html
 from ..data import lookup_cde_value
 from ..utils import get_colour_map
+from ..utils import add_seq_name
 import plotly.express as px
 import pandas as pd
 
@@ -11,7 +12,7 @@ logger = logging.getLogger(__name__)
 
 
 def log(msg):
-    logger.debug(f"cpr: {msg}")
+    logger.info(f"cpr: {msg}")
 
 
 SEQ = "SEQ"  # seq column name
@@ -68,6 +69,9 @@ class ChangesInPatientResponses(BaseGraphic):
         if colour_map is None:
             colour_map = get_colour_map()
 
+        df = add_seq_name(df)
+        df = df.round(1)
+
         fig = px.bar(
             df,
             SEQ,
@@ -76,7 +80,10 @@ class ChangesInPatientResponses(BaseGraphic):
             barmode="stack",
             title=f"Change in {label} over time for all patients",
             color_discrete_map=colour_map,
+            labels={"SEQ": "Survey Time Period"},
         )
+
+        self.fix_xaxis(fig, df)
 
         log("created bar")
         id = f"bar-{label}"

@@ -8,6 +8,7 @@ from registry.patients.models import Patient
 from datetime import datetime
 
 from .models import VisualisationBaseDataConfig
+from .utils import get_seq_name
 
 import logging
 
@@ -36,7 +37,14 @@ class RegistryDataFrame:
     Loads all data into a Pandas DataFrame for analysis
     """
 
-    def __init__(self, registry, config_model, patient_id=None):
+    def __init__(
+        self,
+        registry,
+        config_model,
+        patient_id=None,
+        force_reload=False,
+        needs_all=False,
+    ):
         self.registry = registry
         self.config_model = config_model
         self.patient_id = patient_id
@@ -51,14 +59,30 @@ class RegistryDataFrame:
         self.form_names = [self.baseline_form, self.followup_form]
         self.mode = "all" if patient_id is None else "single"
         self.field_map = {field: None for field in self.config_model.config["fields"]}
+        self.needs_all = needs_all
 
         a = datetime.now()
-        logger.debug("getting dataframe")
+        if self.mode == "all" and force_reload:
+            logger.info("forcing reload of dataframe..")
+            self._reload_dataframe()
+        elif self.mode == "all":
+            logger.info("loading dataframe from base config json")
+            self.df = pd.read_json(self.config_model.data)
+        elif self.mode == "single":
+            self._reload_dataframe()
+
+        c = datetime.now()
+        logger.info(f"time taken to load/generate df = {(c-a).total_seconds()} seconds")
+
+    def _reload_dataframe(self):
         self.df = self._get_dataframe()
         self.df[cdf] = pd.to_datetime(self.df[cdf])
         self.df = self._assign_correct_seq_numbers(self.df)
-        c = datetime.now()
-        logger.debug(f"time taken to generate df = {c-a}")
+        self.df = self._assign_seq_names(self.df)
+
+    def _assign_seq_names(self, df):
+        df["SEQ_NAME"] = df.apply(lambda row: get_seq_name(row["SEQ"]), axis=1)
+        return df
 
     def _assign_correct_seq_numbers(self, df) -> pd.DataFrame:
         """
@@ -79,7 +103,6 @@ class RegistryDataFrame:
         for field in self.fields:
             column_name = self._get_column_name(field)
             cols.append(column_name)
-        logger.debug(f"column_names = {cols}")
         return cols
 
     def _get_column_name(self, field):
@@ -172,13 +195,15 @@ class RegistryDataFrame:
         return self.df
 
 
-def get_data(registry, pid=None):
+def get_data(registry, patient=None, needs_all=False):
     try:
         config = VisualisationBaseDataConfig.objects.get(registry=registry)
     except VisualisationBaseDataConfig.DoesNotExist:
         config = None
 
-    rdf = RegistryDataFrame(registry, config, pid)
+    pid = None if patient is None else patient.id
+
+    rdf = RegistryDataFrame(registry, config, pid, needs_all)
 
     return rdf.data
 
@@ -225,3 +250,35 @@ def get_percentages_within_seq(df, field):
     # 2	1216	24.310276
     # 3	1255	25.089964
     return g
+
+
+def combine_data(indiv_data: pd.DataFrame, avg_data: pd.DataFrame) -> pd.DataFrame:
+    """
+    This function takes individual patient scores for scale groups  and combines
+    with a dataframe of average data for the same scores to produce a single dataframe
+    showing the average data scores as avg_score_0 avg_score_1 etc.
+    I use a left join as if a patient has only completed 2 followups we're only interested
+    in the comparison with the average of those ( even if other patients have completed three for
+    example.)
+    """
+    # [DEBUG:2022-12-13 10:54:17,541:sgc.py:91:get_graphic] average scores =    SEQ     score_0
+    # runserver_1     | 0    0   66.666667
+    # runserver_1     | 1    1  100.000000
+    # runserver_1     | 2    2  100.000000
+    # runserver_1     | 3    3   33.333333
+    # runserver_1     | [DEBUG:2022-12-13 10:54:17,655:sgc.py:153:get_table] data =
+    # runserver_1     |     PID  SEQ      TYPE  ...      SEQ_NAME     score_0    score_1
+    # runserver_1     | 0  1032    0  baseline  ...      Baseline   66.666667  54.166667
+    # runserver_1     | 1  1032    1  followup  ...  1st Followup  100.000000  29.166667
+    # runserver_1     | 2  1032    2  followup  ...  2nd Followup  100.000000  33.333333
+    # runserver_1     | 3  1032    3  followup  ...  3rd Followup   33.333333  83.333333
+
+    avg_data = avg_data.rename(
+        columns={
+            col: "avg_" + col for col in avg_data.columns if col.startswith("score_")
+        }
+    )
+    # now merge on SEQ column
+
+    combined_data = indiv_data.merge(avg_data, how="left", on="SEQ")
+    return combined_data

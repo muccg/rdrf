@@ -5,7 +5,7 @@ from django.apps import AppConfig
 
 
 class RDRFConfig(AppConfig):
-    name = 'rdrf'
+    name = "rdrf"
 
     def ready(self):
         # migration wasn't being found - importing here fixed that
@@ -16,3 +16,4 @@ class RDRFConfig(AppConfig):
         import rdrf.models.definition.review_models
         import rdrf.models.definition.verification_models
         import rdrf.models.task_models
+        import dashboards.models

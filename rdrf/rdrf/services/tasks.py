@@ -11,10 +11,6 @@ logger.info("registering tasks ...")
 
 @app.task(name="rdrf.services.tasks.run_custom_action")
 def run_custom_action(custom_action_id, user_id, patient_id, input_data):
-    logger.debug("running custom action %s async" % custom_action_id)
-    logger.debug("user_id = %s" % user_id)
-    logger.debug("patient_id = %s" % patient_id)
-    logger.debug("input_data = %s" % input_data)
     from rdrf.models.definition.models import CustomAction
     from registry.groups.models import CustomUser
     from registry.patients.models import Patient
@@ -24,17 +20,13 @@ def run_custom_action(custom_action_id, user_id, patient_id, input_data):
     else:
         patient_model = None
 
-    logger.debug("patient model = %s" % patient_model)
-
     user = CustomUser.objects.get(id=user_id)
-    logger.debug("user = %s" % user)
     try:
         custom_action = CustomAction.objects.get(id=custom_action_id)
     except CustomAction.DoesNotExist:
         logger.error(f"can't run custom action {custom_action_id} as it doesn't exist")
         return
 
-    logger.debug("running custom action execute")
     return custom_action.execute(user, patient_model, input_data)
 
 
@@ -146,9 +138,6 @@ def recalculate_cde(
         input_value = get_input_value(input_cde_code)
         input_context[input_cde_code] = input_value
 
-    logger.debug(f"about to recalculate {cde_code} for {patient_model}")
-    logger.debug(f"patient_dict = {patient_dict}")
-    logger.debug(f"input_context = {input_context}")
     try:
         updated_result = calculation_func(patient_dict, input_context)
     except Exception as ex:

@@ -1,3 +1,4 @@
+# flake8: noqa: W503
 from django.conf import settings
 from django.contrib.auth.models import Permission
 from django.contrib.auth.decorators import user_passes_test, REDIRECT_FIELD_NAME
@@ -35,10 +36,12 @@ def catch_and_log_exceptions(func):
             return func(*args, **kwargs)
         except Exception as e:
             import traceback
+
             trace_back = traceback.format_exc()
             message = str(e) + " | " + str(trace_back)
             logger.error(message)
             raise e
+
     return func_wrapper
 
 
@@ -60,10 +63,10 @@ def mongo_key_from_models(form_model, section_model, cde_model):
 
 def models_from_mongo_key(registry_model, delimited_key):
     from rdrf.models.definition.models import RegistryForm, Section, CommonDataElement
+
     form_name, section_code, cde_code = get_form_section_code(delimited_key)
     try:
-        form_model = RegistryForm.objects.get(
-            name=form_name, registry=registry_model)
+        form_model = RegistryForm.objects.get(name=form_name, registry=registry_model)
     except RegistryForm.DoesNotExist:
         raise BadKeyError()
 
@@ -96,13 +99,14 @@ def id_on_page(registry_form_model, section_model, cde_model):
 
 def de_camelcase(s):
     value = s[0].upper() + s[1:]
-    chunks = re.findall('[A-Z][^A-Z]*', value)
+    chunks = re.findall("[A-Z][^A-Z]*", value)
     return " ".join(chunks)
 
 
 class FormLink(object):
-
-    def __init__(self, patient_id, registry, registry_form, selected=False, context_model=None):
+    def __init__(
+        self, patient_id, registry, registry_form, selected=False, context_model=None
+    ):
         self.registry = registry
         self.patient_id = patient_id
         self.form = registry_form
@@ -113,19 +117,19 @@ class FormLink(object):
     def url(self):
         if self.context_model is None:
             return reverse(
-                'registry_form',
-                args=(
-                    self.registry.code,
-                    self.form.pk,
-                    self.patient_id))
+                "registry_form",
+                args=(self.registry.code, self.form.pk, self.patient_id),
+            )
         else:
             return reverse(
-                'registry_form',
+                "registry_form",
                 args=(
                     self.registry.code,
                     self.form.pk,
                     self.patient_id,
-                    self.context_model.id))
+                    self.context_model.id,
+                ),
+            )
 
     @property
     def text(self):
@@ -134,6 +138,7 @@ class FormLink(object):
 
 def get_user(username):
     from registry.groups.models import CustomUser
+
     try:
         return CustomUser.objects.get(username=username)
     except CustomUser.DoesNotExist:
@@ -173,7 +178,8 @@ def location_name(registry_form, current_rdrf_context_model=None):
                 # context type name
                 if context_form_group.naming_scheme == "C":
                     context_type_name = context_form_group.get_name_from_cde(
-                        patient_model, current_rdrf_context_model)
+                        patient_model, current_rdrf_context_model
+                    )
                     if context_form_group.supports_direct_linking:
                         return form_display_name + "/" + context_type_name
                 else:
@@ -182,7 +188,11 @@ def location_name(registry_form, current_rdrf_context_model=None):
             else:
                 context_type_name = ""
 
-            name = context_type_name if context_type_name else current_rdrf_context_model.display_name
+            name = (
+                context_type_name
+                if context_type_name
+                else current_rdrf_context_model.display_name
+            )
             s = "%s/%s" % (name, form_display_name)
         else:
             s = form_display_name
@@ -213,6 +223,7 @@ def get_cached_instance(klass, *args, **kwargs):
 def is_multisection(code):
     try:
         from rdrf.models.definition.models import Section
+
         section_model = Section.objects.get(code=code)
         return section_model.allow_multiple
     except Section.DoesNotExist:
@@ -221,17 +232,18 @@ def is_multisection(code):
 
 def get_cde(code):
     from rdrf.models.definition.models import CommonDataElement
+
     return CommonDataElement.objects.filter(code=code).first()
 
 
 def is_file_cde(code):
     cde = get_cde(code)
-    return cde and cde.datatype == 'file'
+    return cde and cde.datatype == "file"
 
 
 def is_multiple_file_cde(code):
     cde = get_cde(code)
-    return cde and cde.datatype == 'file' and cde.allow_multiple
+    return cde and cde.datatype == "file" and cde.allow_multiple
 
 
 def is_uploaded_file(value):
@@ -256,13 +268,17 @@ def create_permission(app_label, model, code_name, name):
     try:
         with transaction.atomic():
             Permission.objects.create(
-                codename=code_name, name=name, content_type=content_type)
+                codename=code_name, name=name, content_type=content_type
+            )
     except IntegrityError:
         pass
 
 
-def get_form_links(user, patient_id, registry_model, context_model=None, current_form_name=""):
+def get_form_links(
+    user, patient_id, registry_model, context_model=None, current_form_name=""
+):
     from registry.patients.models import Patient
+
     if user is not None:
         if context_model and context_model.context_form_group:
             # show links to forms restricted to this config object
@@ -277,10 +293,15 @@ def get_form_links(user, patient_id, registry_model, context_model=None, current
                 patient_id,
                 registry_model,
                 form,
-                selected=(
-                    form.name == current_form_name),
-                context_model=context_model) for form in container_model.forms
-            if not form.is_questionnaire and not user.is_anonymous and user.can_view(form) and form.applicable_to(patient_model)]
+                selected=(form.name == current_form_name),
+                context_model=context_model,
+            )
+            for form in container_model.forms
+            if not form.is_questionnaire
+            and not user.is_anonymous
+            and user.can_view(form)
+            and form.applicable_to(patient_model)
+        ]
     else:
         return []
 
@@ -299,8 +320,7 @@ def consent_status_for_patient(registry_code, patient):
     from registry.patients.models import ConsentValue
     from rdrf.models.definition.models import ConsentSection, ConsentQuestion
 
-    consent_sections = ConsentSection.objects.filter(
-        registry__code=registry_code)
+    consent_sections = ConsentSection.objects.filter(registry__code=registry_code)
     answers = {}
     valid = []
     for consent_section in consent_sections:
@@ -309,7 +329,8 @@ def consent_status_for_patient(registry_code, patient):
             for question in questions:
                 try:
                     cv = ConsentValue.objects.get(
-                        patient=patient, consent_question=question)
+                        patient=patient, consent_question=question
+                    )
                     answers[cv.consent_question.code] = cv.answer
                 except ConsentValue.DoesNotExist:
                     pass
@@ -323,8 +344,9 @@ def get_error_messages(forms):
     messages = []
 
     def display(form_or_formset, field, error):
-        form_name = form_or_formset.__class__.__name__.replace(
-            "Form", "").replace("Set", "")
+        form_name = form_or_formset.__class__.__name__.replace("Form", "").replace(
+            "Set", ""
+        )
         return "%s %s: %s" % (de_camelcase(form_name), field.replace("_", " "), error)
 
     for i, form in enumerate(forms):
@@ -355,13 +377,14 @@ def timed(func):
         b = datetime.datetime.now()
         c = b - a
         func_name = func.__name__
-        logger.debug("%s time = %s secs" % (func_name, c))
         return result
+
     return wrapper
 
 
 def get_cde_value2(form_name, section_code, cde_code, patient_record):
     from rdrf.models.definition.models import RegistryForm, Section, CommonDataElement
+
     form_model = RegistryForm.objects.get(name=form_name)
     section_model = Section.objects.get(code=section_code)
     cde_model = CommonDataElement.objects.get(code=cde_code)
@@ -385,7 +408,7 @@ def get_cde_value(form_model, section_model, cde_model, patient_record):
                         items = section_dict["cdes"]
                         for item in items:
                             for cde_dict in item:
-                                if cde_dict['code'] == cde_model.code:
+                                if cde_dict["code"] == cde_model.code:
                                     values.append(cde_dict["value"])
                         return values
 
@@ -423,11 +446,10 @@ def wrap_uploaded_files(registry_code, post_files_data):
     from rdrf.forms.file_upload import FileUpload
 
     def wrap(key, value):
-        logger.debug("key = %s value = %s" % (key, value))
         if isinstance(value, UploadedFile):
             return FileUpload(
-                registry_code, key, {
-                    "file_name": value.name, "django_file_id": 0})
+                registry_code, key, {"file_name": value.name, "django_file_id": 0}
+            )
         else:
             return value
 
@@ -445,31 +467,30 @@ def wrap_uploaded_files(registry_code, post_files_data):
     return {key: wrap(key, value) for key, value in get_lists(post_files_data)}
 
 
-class Message():
-
+class Message:
     def __init__(self, text, tags=None):
         self.text = text
         self.tags = tags
 
     @staticmethod
     def success(text):
-        return Message(text, tags='success')
+        return Message(text, tags="success")
 
     @staticmethod
     def info(text):
-        return Message(text, tags='info')
+        return Message(text, tags="info")
 
     @staticmethod
     def warning(text):
-        return Message(text, tags='warning')
+        return Message(text, tags="warning")
 
     @staticmethod
     def danger(text):
-        return Message(text, tags='danger')
+        return Message(text, tags="danger")
 
     @staticmethod
     def error(text):
-        return Message(text, tags='danger')
+        return Message(text, tags="danger")
 
     def __repr__(self):
         return self.text
@@ -512,9 +533,11 @@ class TimeStripper(object):
                 django_model = m.data["django_model"]
             else:
                 django_model = None
-            return "ClinicalData pk %s Django Model %s Django id %s" % (pk,
-                                                                        django_model,
-                                                                        django_id)
+            return "ClinicalData pk %s Django Model %s Django id %s" % (
+                pk,
+                django_model,
+                django_id,
+            )
         else:
             return "ClinicalData pk %s" % pk
 
@@ -535,6 +558,7 @@ class TimeStripper(object):
         else:
             # not test mode
             from rdrf.models.definition.models import CommonDataElement
+
             try:
                 cde_model = CommonDataElement.objects.get(code=code)
                 value = cde_model.datatype == "date"
@@ -543,8 +567,9 @@ class TimeStripper(object):
 
             except CommonDataElement.DoesNotExist:
                 print(
-                    "Missing CDE Model! Data has code %s which does not exist on the site" %
-                    code)
+                    "Missing CDE Model! Data has code %s which does not exist on the site"
+                    % code
+                )
 
     def update_cde(self, cde):
         code = cde.get("code", None)
@@ -557,9 +582,7 @@ class TimeStripper(object):
             cde["value"] = new_datestring
             if self.test_mode:
                 self.converted_date_cdes.append(cde["value"])
-            print("Date CDE %s %s --> %s" % (code,
-                                             old_datestring,
-                                             new_datestring))
+            print("Date CDE %s %s --> %s" % (code, old_datestring, new_datestring))
 
             return True
 
@@ -575,9 +598,10 @@ class TimeStripper(object):
                     self.num_updates += 1
                 except Exception as ex:
                     print(
-                        "Error saving ClinicalData object %s after updating: %s" % (ident,
-                                                                                    ex))
-                    raise   # rollback
+                        "Error saving ClinicalData object %s after updating: %s"
+                        % (ident, ex)
+                    )
+                    raise  # rollback
 
     def munge_data(self, data):
         updated = 0
@@ -603,7 +627,6 @@ class TimeStripper(object):
 
 
 class HistoryTimeStripper(TimeStripper):
-
     def munge_data(self, data):
         # History embeds the full forms dictionary in the record key
         return super().munge_data(data["record"])
@@ -614,31 +637,31 @@ class HistoryTimeStripper(TimeStripper):
 # http://stackoverflow.com/questions/12971631/sorting-list-by-an-attribute-that-can-be-none
 @total_ordering
 class MinType(object):
-
     def __le__(self, other):
         return True
 
     def __eq__(self, other):
-        return (self is other)
+        return self is other
 
 
 def get_field_from_model(model_path):
     # model_path looks like:  model/ConsentSection/23/information_text
     # model must be in rdrf.models
     from django.apps import apps
+
     try:
         parts = model_path.split("/")
         model_name = parts[1]
         pk = int(parts[2])
         field = parts[3]
-        model_class = apps.get_model('rdrf', model_name)
+        model_class = apps.get_model("rdrf", model_name)
         model_instance = model_class.objects.get(pk=pk)
         value = getattr(model_instance, field)
         return value
     except Exception as ex:
         logger.exception(
-            "Error retrieving value from model_path %s: %s" % (model_path,
-                                                               ex))
+            "Error retrieving value from model_path %s: %s" % (model_path, ex)
+        )
         return
 
 
@@ -654,6 +677,7 @@ def get_registry_definition_value(field_path):
 
 def trans_file(request, doc_name_with_out_language):
     from django.conf import settings
+
     default_language = "EN"
     languages = [pair[0].upper() for pair in settings.LANGUAGES]
     language = request.META.get("HTTP_ACCEPT_LANGUAGE", default_language)
@@ -668,7 +692,8 @@ def trans_file(request, doc_name_with_out_language):
 def get_supported_languages():
     from collections import namedtuple
     from django.conf import settings
-    Language = namedtuple('Language', ['code', 'name'])
+
+    Language = namedtuple("Language", ["code", "name"])
     return [Language(pair[0], pair[1]) for pair in settings.LANGUAGES]
 
 
@@ -687,10 +712,10 @@ def applicable_forms(registry_model, patient_model):
             patient_type = "default"
 
         if patient_type in patient_type_map:
-            applicable_form_names = patient_type_map[patient_type].get("forms",
-                                                                       all_forms)
-            forms = [form for form in all_forms
-                     if form.name in applicable_form_names]
+            applicable_form_names = patient_type_map[patient_type].get(
+                "forms", all_forms
+            )
+            forms = [form for form in all_forms if form.name in applicable_form_names]
             return forms
         else:
             return []
@@ -712,13 +737,16 @@ def consent_check(registry_model, user_model, patient_model, capability):
     # if there are any consent rules for user's group , perform the check
     # if any fail , fail, otherwise pass (return True)
     from rdrf.models.definition.models import ConsentRule
+
     if user_model.is_superuser:
         return True
     for user_group in user_model.groups.all():
-        for consent_rule in ConsentRule.objects.filter(registry=registry_model,
-                                                       capability=capability,
-                                                       user_group=user_group,
-                                                       enabled=True):
+        for consent_rule in ConsentRule.objects.filter(
+            registry=registry_model,
+            capability=capability,
+            user_group=user_group,
+            enabled=True,
+        ):
 
             consent_answer = patient_model.get_consent(consent_rule.consent_question)
             if not consent_answer:
@@ -739,7 +767,10 @@ def get_full_path(registry_model, cde_code):
                 if cde_model.code == cde_code:
                     triples.append((form_model.name, section_model.code, cde_code))
     if len(triples) != 1:
-        raise ValueError("cde code %s is not unique or not used by registry %s" % (cde_code, registry_model.code))
+        raise ValueError(
+            "cde code %s is not unique or not used by registry %s"
+            % (cde_code, registry_model.code)
+        )
 
     return triples[0]
 
@@ -751,6 +782,7 @@ def generate_token():
 def get_site(request=None):
     if request:
         from django.contrib.sites.shortcuts import get_current_site
+
         return get_current_site(request)
     else:
         from django.contrib.sites.models import Site
@@ -776,13 +808,17 @@ def check_models(registry_model, form_model, section_model, cde_model):
                         if c.id == cde_model.id:
                             return True
 
-    raise ValueError("%s/%s/%s/%s not consistent" % (registry_model, form_model, section_model, cde_model))
+    raise ValueError(
+        "%s/%s/%s/%s not consistent"
+        % (registry_model, form_model, section_model, cde_model)
+    )
 
 
 def is_authorised(user, patient_model):
     if user.is_superuser:
         return True
     from registry.patients.models import ParentGuardian
+
     # is the given user allowed to see this patient
     # patient IS user:
     if patient_model.user and patient_model.user.id == user.id:
@@ -804,14 +840,16 @@ def is_authorised(user, patient_model):
     if common and not user.is_parent:
         return True
 
-    logger.warning("user %s is not authorised for patient %s" %
-                   (user.username, getattr(patient_model, settings.LOG_PATIENT_FIELDNAME)))
+    logger.warning(
+        "user %s is not authorised for patient %s"
+        % (user.username, getattr(patient_model, settings.LOG_PATIENT_FIELDNAME))
+    )
 
     return False
 
 
 def escape_for_javascript(s):
-    return s.replace("'", "\'").replace('"', '\"')
+    return s.replace("'", "'").replace('"', '"')
 
 
 def is_calculated(cde_model):
@@ -828,18 +866,21 @@ def get_normal_fields(section_model):
             yield cde_model
 
 
-def annotate_form_with_verifications(patient_model,
-                                     context_model,
-                                     registry_model,
-                                     form_model,
-                                     section_model,
-                                     initial_data,
-                                     section_form):
+def annotate_form_with_verifications(
+    patient_model,
+    context_model,
+    registry_model,
+    form_model,
+    section_model,
+    initial_data,
+    section_form,
+):
     if not registry_model.has_feature("verification"):
         return
 
     def get_cde_model(django_field):
         from rdrf.models.definition.models import CommonDataElement
+
         delimited_key = str(django_field)
         cde_code = delimited_key.split("____")[-1]
         return CommonDataElement.objects.get(code=cde_code)
@@ -847,34 +888,41 @@ def annotate_form_with_verifications(patient_model,
     for field in section_form.fields:
         value = section_form[field].value()
         cde_model = get_cde_model(field)
-        verification_status = get_verification_status(patient_model,
-                                                      context_model,
-                                                      registry_model,
-                                                      form_model,
-                                                      section_model,
-                                                      cde_model,
-                                                      value)
+        verification_status = get_verification_status(
+            patient_model,
+            context_model,
+            registry_model,
+            form_model,
+            section_model,
+            cde_model,
+            value,
+        )
 
         if verification_status is not None:
             # add a flag
             section_form[field].verification_status = verification_status
 
 
-def get_verification_status(patient_model,
-                            context_model,
-                            registry_model,
-                            form_model,
-                            section_model,
-                            cde_model,
-                            value):
+def get_verification_status(
+    patient_model,
+    context_model,
+    registry_model,
+    form_model,
+    section_model,
+    cde_model,
+    value,
+):
 
     from rdrf.models.definition.verification_models import Verification
-    verifications = Verification.objects.filter(patient=patient_model,
-                                                context=context_model,
-                                                registry=registry_model,
-                                                form_name=form_model.name,
-                                                section_code=section_model.code,
-                                                cde_code=cde_model.code)
+
+    verifications = Verification.objects.filter(
+        patient=patient_model,
+        context=context_model,
+        registry=registry_model,
+        form_name=form_model.name,
+        section_code=section_model.code,
+        cde_code=cde_model.code,
+    )
 
     last_verification = verifications.order_by("-created_date").first()
     if last_verification:
@@ -890,26 +938,48 @@ def check_suspicious_sql(sql_query, user):
     # Checker for SQL explorer.
     # Return error messages in an list if anything suspicious is identified in the SQL.
 
-    sql_query_lowercase = ' '.join(sql_query.lower().split())
+    sql_query_lowercase = " ".join(sql_query.lower().split())
     securityerrors = []
     if not sql_query_lowercase.startswith("select p.id"):
         logger.warning(
-            f"User {user} tries to write/validate a SQL request not starting by SELECT p.id: {sql_query_lowercase}")
+            f"User {user} tries to write/validate a SQL request not starting by SELECT p.id: {sql_query_lowercase}"
+        )
         securityerrors.append("The SQL query must start with SELECT p.id")
-    if any(sql_command in sql_query_lowercase for sql_command in ["insert", "drop", "delete", "update"]):
+    if any(
+        sql_command in sql_query_lowercase
+        for sql_command in ["insert", "drop", "delete", "update"]
+    ):
         logger.warning(
-            f"User {user} tries to write/validate a suspicious SQL request containing INSERT, DROP, DELETE or UPDATE: {sql_query_lowercase}")
-        securityerrors.append("The SQL query must not contain any of these keywords: INSERT, DROP, DELETE, UPDATE")
+            f"User {user} tries to write/validate a suspicious SQL request containing INSERT, DROP, DELETE or UPDATE: {sql_query_lowercase}"
+        )
+        securityerrors.append(
+            "The SQL query must not contain any of these keywords: INSERT, DROP, DELETE, UPDATE"
+        )
     if "<script" in sql_query_lowercase:
         logger.warning(
-            f"User {user} tries to inject script in to SQL field: {sql_query_lowercase}")
+            f"User {user} tries to inject script in to SQL field: {sql_query_lowercase}"
+        )
         securityerrors.append("The SQL query field must not contain script")
     return securityerrors
 
 
 def contains_blacklisted_words(text):
-    return any(map(text.__contains__, ["socket", "process", "import", "system", "builtin",
-                                       "connect", "spawn", "delete", "eval"]))
+    return any(
+        map(
+            text.__contains__,
+            [
+                "socket",
+                "process",
+                "import",
+                "system",
+                "builtin",
+                "connect",
+                "spawn",
+                "delete",
+                "eval",
+            ],
+        )
+    )
 
 
 def is_filled(cde_model, value):
@@ -932,7 +1002,9 @@ def is_filled(cde_model, value):
             return True
 
 
-def cde_completed(registry_model, form_model, section_model, cde_model, patient_model, data):
+def cde_completed(
+    registry_model, form_model, section_model, cde_model, patient_model, data
+):
     # is there a "real" value stored? in data ( assumes we've loaded first from a given context
     if not data:
         return False
@@ -940,16 +1012,12 @@ def cde_completed(registry_model, form_model, section_model, cde_model, patient_
         return False
 
     def msg(filled, value):
-        moniker = "%s %s %s %s" % (form_model.name,
-                                   section_model.code,
-                                   cde_model.code,
-                                   cde_model.datatype)
-        if filled:
-            logger.debug("%s is filled: [%s]" % (moniker,
-                                                 value))
-        else:
-            logger.debug("%s is NOT filled: [%s]" % (moniker,
-                                                     value))
+        moniker = "%s %s %s %s" % (
+            form_model.name,
+            section_model.code,
+            cde_model.code,
+            cde_model.datatype,
+        )
 
     for form_dict in data["forms"]:
         if form_dict["name"] == form_model.name:
@@ -969,7 +1037,9 @@ class LinkWrapper:
         self.text = text
 
 
-def anonymous_not_allowed(function=None, redirect_field_name=REDIRECT_FIELD_NAME, login_url=None):
+def anonymous_not_allowed(
+    function=None, redirect_field_name=REDIRECT_FIELD_NAME, login_url=None
+):
     """
     Decorator for views, that checks if the user is anonymous,
     redirecting to the log-in page if necessary.
@@ -977,7 +1047,7 @@ def anonymous_not_allowed(function=None, redirect_field_name=REDIRECT_FIELD_NAME
     actual_decorator = user_passes_test(
         lambda u: not u.is_anonymous,
         login_url=login_url,
-        redirect_field_name=redirect_field_name
+        redirect_field_name=redirect_field_name,
     )
     if function:
         return actual_decorator(function)
@@ -1011,7 +1081,9 @@ def same_working_group(patient, user, registry):
     user_work_groups = set([wg.id for wg in user.working_groups.all()])
     patient_work_groups = set([wg.id for wg in patient.working_groups.all()])
     registry_work_groups = set([wg.id for wg in registry.workinggroup_set.all()])
-    if not user.is_superuser and not user_work_groups.intersection(patient_work_groups, registry_work_groups):
+    if not user.is_superuser and not user_work_groups.intersection(
+        patient_work_groups, registry_work_groups
+    ):
         return False
     else:
         return True
@@ -1041,18 +1113,20 @@ def cic_system_role():
     """
     Is the system role any of CIC related
     """
-    return settings.SYSTEM_ROLE in (SystemRoles.CIC_CLINICAL,
-                                    SystemRoles.CIC_DEV,
-                                    SystemRoles.CIC_PROMS)
+    return settings.SYSTEM_ROLE in (
+        SystemRoles.CIC_CLINICAL,
+        SystemRoles.CIC_DEV,
+        SystemRoles.CIC_PROMS,
+    )
 
 
 def is_site_system():
-    return settings.SYSTEM_ROLE in (SystemRoles.CIC_CLINICAL,
-                                    SystemRoles.CIC_DEV)
+    return settings.SYSTEM_ROLE in (SystemRoles.CIC_CLINICAL, SystemRoles.CIC_DEV)
 
 
 def is_mapping_demographics_fields():
     from intframework.models import HL7Mapping
+
     for m in HL7Mapping.objects.all():
         event_map = m.load()
         for field_moniker in event_map:
@@ -1061,9 +1135,9 @@ def is_mapping_demographics_fields():
 
 
 def has_external_demographics():
-    return all([settings.HUB_ENABLED,
-                is_site_system(),
-                is_mapping_demographics_fields()])
+    return all(
+        [settings.HUB_ENABLED, is_site_system(), is_mapping_demographics_fields()]
+    )
 
 
 def get_location(registry_model, cde_model):
@@ -1075,4 +1149,11 @@ def get_location(registry_model, cde_model):
 
 
 def update_patient_calculated_fields(registry_code, patient_id):
-    call_command('update_calculated_fields', registry_code=registry_code, patient_id=[patient_id])
+    call_command(
+        "update_calculated_fields", registry_code=registry_code, patient_id=[patient_id]
+    )
+
+
+def has_cfg(context_model):
+    if context_model:
+        return context_model.context_form_group

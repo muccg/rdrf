@@ -12,6 +12,7 @@ class VisualisationConfigAdmin(admin.ModelAdmin):
 class VisualisationBaseDataConfigAdmin(admin.ModelAdmin):
     model = VisualisationBaseDataConfig
     list_display = ("registry",)
+    exclude = ("data",)
 
 
 admin.site.register(VisualisationBaseDataConfig, VisualisationBaseDataConfigAdmin)

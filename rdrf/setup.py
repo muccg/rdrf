@@ -23,8 +23,9 @@ requirements = [
     "django-useraudit==1.7.1",
     "django-uwsgi==0.2.2",
     "geoip2==4.1.0",
+    "numpy==1.23.5",
     "jsonschema==4.0.0",
-    "openpyxl==3.0.5",
+    "openpyxl==3.0.10",
     "polib==1.1.1",
     "psycopg2==2.8.6",
     "pycountry==20.7.3",
@@ -162,7 +163,7 @@ for package in [
 
 setup(
     name="django-rdrf",
-    version="6.6.37",
+    version="6.6.38",
     packages=find_packages(),
     description="RDRF",
     long_description="Rare Disease Registry Framework",

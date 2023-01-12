@@ -4,6 +4,7 @@ from rdrf.models.definition.models import RegistryForm
 from rdrf.helpers.utils import has_external_demographics
 
 import logging
+
 logger = logging.getLogger(__name__)
 
 
@@ -19,21 +20,21 @@ class NavigationFormType:
 
 
 class NavigationWizard(object):
-
     def __init__(
-            self,
-            user,
-            registry_model,
-            patient_model,
-            form_type,
-            context_id,
-            current_form_model=None):
+        self,
+        user,
+        registry_model,
+        patient_model,
+        form_type,
+        context_id,
+        current_form_model=None,
+    ):
         self.user = user
         self.registry_model = registry_model
         self.patient_model = patient_model
         self.form_type = form_type
         self.context_id = context_id
-        self.on_create_form_view = context_id == 'add'
+        self.on_create_form_view = context_id == "add"
         self.current_form_model = current_form_model
         self.links = []
         self.current_index = None  # set by method below
@@ -59,13 +60,15 @@ class NavigationWizard(object):
             for form_model in fixed_form_group.form_models:
                 if self.user.can_view(form_model):
                     self.links.append(
-                        self._construct_fixed_form_link(
-                            fixed_form_group, form_model))
+                        self._construct_fixed_form_link(fixed_form_group, form_model)
+                    )
 
         # for each multiple group, link through each assessment created for that group
         # in form order
         for multiple_form_group in self._multiple_form_groups():
-            for context_model in self.patient_model.get_multiple_contexts(multiple_form_group):
+            for context_model in self.patient_model.get_multiple_contexts(
+                multiple_form_group
+            ):
                 for form_model in multiple_form_group.form_models:
                     if self.user.can_view(form_model):
                         self.links.append(self._form_link(form_model, context_model))
@@ -86,12 +89,14 @@ class NavigationWizard(object):
 
     def _form_link(self, form_model, context_model):
         link = reverse(
-            'registry_form',
+            "registry_form",
             args=(
                 self.registry_model.code,
                 form_model.id,
                 self.patient_model.pk,
-                context_model.id))
+                context_model.id,
+            ),
+        )
         return "clinical", form_model.pk, link
 
     def _fixed_form_groups(self):
@@ -101,25 +106,23 @@ class NavigationWizard(object):
         return [cfg for cfg in self.registry_model.multiple_form_groups]
 
     def _construct_demographics_link(self):
-        logger.debug("constructing demographics link")
         if has_external_demographics():
-            logger.debug("has external demographics")
             return (
                 "demographic",
                 None,
-                reverse("externaldemographics",
-                        args=[self.registry_model.code,
-                              self.patient_model.pk]))
+                reverse(
+                    "externaldemographics",
+                    args=[self.registry_model.code, self.patient_model.pk],
+                ),
+            )
 
-        logger.debug("using normal demographics")
         return (
             "demographic",
             None,
             reverse(
-                "patient_edit",
-                args=[
-                    self.registry_model.code,
-                    self.patient_model.pk]))
+                "patient_edit", args=[self.registry_model.code, self.patient_model.pk]
+            ),
+        )
 
     def _construct_consents_link(self):
         return (
@@ -127,9 +130,9 @@ class NavigationWizard(object):
             None,
             reverse(
                 "consent_form_view",
-                args=[
-                    self.registry_model.code,
-                    self.patient_model.pk]))
+                args=[self.registry_model.code, self.patient_model.pk],
+            ),
+        )
 
     def _construct_clinican_form_link(self):
         return (
@@ -137,17 +140,24 @@ class NavigationWizard(object):
             None,
             reverse(
                 "clinician_form_view",
-                args=[
-                    self.registry_model.code,
-                    self.patient_model.pk]))
+                args=[self.registry_model.code, self.patient_model.pk],
+            ),
+        )
 
     def _construct_fixed_form_link(self, fixed_form_group, form_model):
-        context_models = list(RDRFContext.objects.filter(context_form_group=fixed_form_group,
-                                                         object_id=self.patient_model.pk,
-                                                         content_type__model="patient"))
+        context_models = list(
+            RDRFContext.objects.filter(
+                context_form_group=fixed_form_group,
+                object_id=self.patient_model.pk,
+                content_type__model="patient",
+            )
+        )
 
         num_contexts = len(context_models)
-        assert num_contexts == 1, "There should only be one context model for this fixed context there are: %s" % num_contexts
+        assert num_contexts == 1, (
+            "There should only be one context model for this fixed context there are: %s"
+            % num_contexts
+        )
 
         context_model = context_models[0]
 
@@ -156,8 +166,10 @@ class NavigationWizard(object):
     def _free_forms(self):
         if self.registry_model.is_normal:
             return [
-                f for f in self.registry_model.forms if not f.is_questionnaire and f.applicable_to(
-                    self.patient_model)]
+                f
+                for f in self.registry_model.forms
+                if not f.is_questionnaire and f.applicable_to(self.patient_model)
+            ]
         else:
             return []
 
@@ -172,9 +184,9 @@ class NavigationWizard(object):
         else:
             # we're on some form
             if self.has_clinician_form:
-                special_names = ['demographic', 'consents', 'clinician']
+                special_names = ["demographic", "consents", "clinician"]
             else:
-                special_names = ['demographic', 'consents']
+                special_names = ["demographic", "consents"]
 
             for index, (name, form_id, link) in enumerate(self.links):
                 if name in special_names:
