@@ -173,7 +173,7 @@ class ScaleGroupComparison(BaseGraphic):
         self.fix_xaxis(fig, data)
         self.fix_yaxis(fig)
 
-        scores_map["seq"] = "Time"
+        scores_map["seq"] = "Survey Time Period"
         fig.for_each_trace(
             lambda t: t.update(
                 name=scores_map[t.name],

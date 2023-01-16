@@ -45,7 +45,7 @@ class CombinedFieldComparison(BaseGraphic):
             barmode="stack",
             title=f"Change in {combined_name} over time for all patients",
             color_discrete_map=colour_map,
-            labels={"SEQ": "Time", "y": "Percentage"},
+            labels={"SEQ": "Survey Time Period", "y": "Percentage"},
         )
         fig.update_xaxes(type="category")
 
