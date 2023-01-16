@@ -10,6 +10,7 @@ def get_colour_map():
         "A little": "orange",
         "Quite a bit": "darkorange",
         "Very much": "red",
+        "Blank": "lightgrey",
     }
     return color_discrete_map
 

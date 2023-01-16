@@ -216,6 +216,8 @@ def lookup_cde_value(cde_code, raw_value):
         for d in values:
             if d["code"] == str(raw_value):
                 return d["value"]
+        if raw_value == "":
+            return "Blank"
     return raw_value
 
 
