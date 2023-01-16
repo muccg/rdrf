@@ -135,7 +135,7 @@ class PatientsDashboardView(View):
 
         context = {}
         context["seconds"] = (t2 - t1).total_seconds
-        context["location"] = "Patients Dashboard"
+        context["location"] = "All Patients Dashboard"
 
         logger.debug("rendering all patients dashboard")
 

@@ -44,7 +44,7 @@ class Links:
         PatientsListing = QuickLink(reverse("patientslisting"), _("Patient List"))
 
         PatientsDashboard = QuickLink(
-            reverse("dashboards:overall"), _("Patients Dashboard")
+            reverse("dashboards:overall"), _("All Patients Dashboard")
         )
         QuestionnaireResponses = QuickLink(
             reverse("admin:rdrf_questionnaireresponse_changelist"),
