@@ -167,7 +167,7 @@ class ScaleGroupComparison(BaseGraphic):
             y=score_names,
             title=title,
             markers=True,
-            labels={"SEQ": "Survey Time Period"},
+            labels={"SEQ": "Survey Time Period", "y": "Score", "value": "Score"},
         )
 
         self.fix_xaxis(fig, data)
