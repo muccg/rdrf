@@ -132,6 +132,14 @@ class Links:
         PatientReviews = QuickLink(
             reverse("admin:rdrf_patientreview_changelist"), _("Patient Reviews")
         )
+        VisualisationConfigs = QuickLink(
+            reverse("admin:dashboards_visualisationconfig_changelist"),
+            _("Visualisations Configs"),
+        )
+        VisualisationBaseDataConfigs = QuickLink(
+            reverse("admin:dashboards_visualisationbasedataconfig_changelist"),
+            _("Visualisations Base Data Configs"),
+        )
         Verifications = QuickLink(
             reverse("admin:rdrf_verification_changelist"), _("Verifications")
         )
@@ -255,6 +263,8 @@ class Links:
                 Custom_Actions.text: Custom_Actions,
                 Custom_Action_Executions.text: Custom_Action_Executions,
                 Dropdown_Lookups.text: Dropdown_Lookups,
+                VisualisationConfigs.text: VisualisationConfigs,
+                VisualisationBaseDataConfigs.text: VisualisationBaseDataConfigs,
             }
         else:
             OTHER = {
@@ -268,6 +278,8 @@ class Links:
                 Reviews.text: Reviews,
                 PatientReviews.text: PatientReviews,
                 Verifications.text: Verifications,
+                VisualisationConfigs.text: VisualisationConfigs,
+                VisualisationBaseDataConfigs.text: VisualisationBaseDataConfigs,
                 Custom_Actions.text: Custom_Actions,
                 Custom_Action_Executions.text: Custom_Action_Executions,
                 Dropdown_Lookups.text: Dropdown_Lookups,
