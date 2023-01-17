@@ -6,13 +6,28 @@ logger = logging.getLogger(__name__)
 
 def get_colour_map():
     color_discrete_map = {
-        "Not at all": "lightgreen",
-        "A little": "orange",
+        "Blank": "lightgrey",
+        "Not at all": "green",
+        "A little": "lightgreen",
         "Quite a bit": "darkorange",
         "Very much": "red",
-        "Blank": "lightgrey",
     }
     return color_discrete_map
+
+
+def get_sevenscale_colour_map():
+    # 1 = Very poor and 7 = Excellent
+    # used by Health Status and Quality of Life
+    return {
+        "": "lightgrey",
+        "1": "red",
+        "2": "lightred",
+        "3": "orange",
+        "4": "lightblue",
+        "5": "blue",
+        "6": "lightgreen",
+        "7": "green",
+    }
 
 
 def get_range(cde_model):

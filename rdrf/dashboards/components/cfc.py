@@ -3,7 +3,7 @@ import pandas as pd
 import plotly.express as px
 from dash import dcc, html
 from ..components.common import BaseGraphic
-from ..utils import get_colour_map
+from ..utils import get_colour_map, get_sevenscale_colour_map
 from ..utils import add_seq_name
 
 
@@ -24,7 +24,7 @@ class CombinedFieldComparison(BaseGraphic):
         inputs = [field["code"] for field in fields]
         labels = [field["label"] for field in fields]
         combined_name = "/".join(labels)
-        colour_map = self.config.get("colour_map", None)
+        colour_map = self.config.get("colour_map", get_sevenscale_colour_map())
         data = self._get_combined_data(self.data, inputs)
         data = add_seq_name(data)
         data = data.round(1)
@@ -34,9 +34,6 @@ class CombinedFieldComparison(BaseGraphic):
         return html.Div(div, id="fgc")
 
     def _create_bars_div(self, data, inputs, colour_map, combined_name):
-        if colour_map is None:
-            colour_map = get_colour_map()
-
         fig = px.bar(
             data,
             SEQ,
@@ -45,7 +42,7 @@ class CombinedFieldComparison(BaseGraphic):
             barmode="stack",
             title=f"Change in {combined_name} over time for all patients",
             color_discrete_map=colour_map,
-            labels={"SEQ": "Survey Time Period", "y": "Percentage"},
+            labels={"SEQ": "Survey Time Period"},
         )
         fig.update_xaxes(type="category")
 
