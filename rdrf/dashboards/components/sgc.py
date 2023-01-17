@@ -173,11 +173,26 @@ class ScaleGroupComparison(BaseGraphic):
         self.fix_xaxis(fig, data)
         self.fix_yaxis(fig)
 
+        def get_legend_group(name):
+            return "average_group" if name.startswith("avg_") else "patient_group"
+
+        def get_legend_group_title(name):
+            d = {
+                "average_group": "Average Values Over All Patients",
+                "patient_group": "Individual Patient Values",
+            }
+            return d[get_legend_group(name)]
+
+        def get_opacity(name):
+            return 0.3 if name.startswith("avg_") else 1.0
+
         scores_map["seq"] = "Survey Time Period"
         fig.for_each_trace(
             lambda t: t.update(
                 name=scores_map[t.name],
-                legendgroup=scores_map[t.name],
+                legendgroup=get_legend_group(t.name),
+                legendgrouptitle_text=get_legend_group_title(t.name),
+                opacity=get_opacity(t.name),
                 hovertemplate=t.hovertemplate.replace(t.name, scores_map[t.name]),
             )
         )
