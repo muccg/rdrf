@@ -28,10 +28,22 @@ class CombinedFieldComparison(BaseGraphic):
         data = self._get_combined_data(self.data, inputs)
         data = add_seq_name(data)
         data = data.round(1)
+        data = self._replace_blanks(data)
 
         bars_div = self._create_bars_div(data, inputs, colour_map, combined_name)
         div = html.Div([html.H3(self.title), bars_div])
         return html.Div(div, id="fgc")
+
+    def _replace_blanks(self, data):
+        def op(row):
+            value = row["value"]
+            if value == "":
+                return "Blank"
+            else:
+                return value
+
+        data["value"] = data.apply(op, axis=1)
+        return data
 
     def _create_bars_div(self, data, inputs, colour_map, combined_name):
         fig = px.bar(
