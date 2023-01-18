@@ -83,7 +83,9 @@ class RegistryDataFrame:
     def _assign_seq_names(self, df):
         def cd(row):
             try:
-                return f" ({row['COLLECTIONDATE'].date()})"
+                d = row["COLLECTIONDATE"].date()
+                aus_date = f"{d.day}-{d.month}-{d.year}"
+                return f" ({aus_date})"
             except:
                 return ""
 
