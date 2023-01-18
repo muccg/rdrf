@@ -81,7 +81,15 @@ class RegistryDataFrame:
         self.df = self._assign_seq_names(self.df)
 
     def _assign_seq_names(self, df):
-        df["SEQ_NAME"] = df.apply(lambda row: get_seq_name(row["SEQ"]), axis=1)
+        def cd(row):
+            try:
+                return f" ({row['COLLECTIONDATE'].date()})"
+            except:
+                return ""
+
+        df["SEQ_NAME"] = df.apply(
+            lambda row: get_seq_name(row["SEQ"]) + cd(row), axis=1
+        )
         return df
 
     def _assign_correct_seq_numbers(self, df) -> pd.DataFrame:

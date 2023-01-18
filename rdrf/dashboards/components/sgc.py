@@ -8,6 +8,7 @@ from ..components.common import BaseGraphic
 from ..utils import get_range, get_base
 from ..data import combine_data
 
+
 logger = logging.getLogger(__name__)
 
 
@@ -250,6 +251,14 @@ class ScaleGroupComparison(BaseGraphic):
 
         headers = ["Scale Group"] + list(data["SEQ_NAME"])
 
+        def remove_date(h):
+            if "(" in h:
+                return h[: h.find(" (")]
+            else:
+                return h
+
+        headers = [remove_date(h) for h in headers]
+
         fig = go.Figure(
             data=[go.Table(header=dict(values=headers), cells=dict(values=columns))]
         )
@@ -280,6 +289,8 @@ class ScaleGroupComparison(BaseGraphic):
             delta = 0.0
         else:
             raise Exception(f"base of fields {fields} is {detected_base}")
+
+        logger.debug(f"{score_name} delta = {delta}")
 
         def filled(value):
             # non vectorised

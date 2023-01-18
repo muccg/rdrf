@@ -110,7 +110,16 @@ def get_seq_name(seq_num):
 
 
 def add_seq_name(df):
-    df["SEQ_NAME"] = df.apply(lambda row: get_seq_name(row["SEQ"]), axis=1)
+    def colldate(row):
+        if "COLLECTIONDATE" in row:
+            return f"({row['COLLECTIONDATE']})"
+        else:
+            return ""
+
+    df["SEQ_NAME"] = df.apply(
+        lambda row: get_seq_name(row["SEQ"]) + colldate(row),
+        axis=1,
+    )
     return df
 
 
