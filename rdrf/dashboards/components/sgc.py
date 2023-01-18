@@ -48,6 +48,7 @@ class ScaleGroupComparison(BaseGraphic):
         self.rev_group = {}
         self.all_patients_helpers = []
         self.average_scores = None
+        group_scales = set([])
 
         for index, group in enumerate(self.config["groups"]):
             group_title = group["title"]
@@ -57,6 +58,7 @@ class ScaleGroupComparison(BaseGraphic):
 
             group_range = self.get_range_value(group_fields)
             group_scale = group["scale"]
+            group_scales.add(group_scale)
             group_score_function = self.get_score_function(group_range, group_scale)
             score_name = f"score_{index}"
             self.group_info[score_name] = group_title
@@ -132,8 +134,22 @@ class ScaleGroupComparison(BaseGraphic):
                     avg_display_name = "Average " + orig_display_name
                     scores_map[sn] = avg_display_name
 
-        line_chart = self.get_line_chart(data, chart_title, scores_map)
+        scales = list(group_scales)
+        if len(scales) == 1:
+            scale = scales[0]
+            if scale == "symptom":
+                self.better = "down"
+            else:
+                self.better = "up"
+        else:
+            self.better = None
 
+        if self.better == "up":
+            chart_title += " <i>( Higher score is better )</i>"
+        else:
+            chart_title += " <i>( Lower score is better )</i>"
+
+        line_chart = self.get_line_chart(data, chart_title, scores_map)
         table = self.get_table(data, scores_map)
 
         div = html.Div([line_chart, table])
@@ -203,8 +219,16 @@ class ScaleGroupComparison(BaseGraphic):
         else:
             id = f"sgc-line-chart-{title}-all"
 
+        if self.better is not None:
+            logger.debug(f"adding indicator better is {self.better}")
+            self.add_indicator(fig)
         div = html.Div([dcc.Graph(figure=fig)], id=id)
         return div
+
+    def add_indicator(self, fig):
+        image_src = self.better_indicator_image(self.better)
+        # image_src = "https://images.plot.ly/language-icons/api-home/python-logo.png"
+        self.add_image(fig, image_src, 7, 80, 2, 30, opacity=0.5)
 
     def get_table(self, data, scores_map):
         import plotly.graph_objects as go

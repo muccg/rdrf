@@ -112,7 +112,7 @@ def get_seq_name(seq_num):
 def add_seq_name(df):
     def colldate(row):
         if "COLLECTIONDATE" in row:
-            return f"({row['COLLECTIONDATE']})"
+            return f" ({row['COLLECTIONDATE']})"
         else:
             return ""
 
