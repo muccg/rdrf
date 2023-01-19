@@ -40,6 +40,7 @@ class AllPatientsScoreHelper:
 
 class ScaleGroupComparison(BaseGraphic):
     def get_graphic(self):
+        self.better = None
         log(f"creating Scale Group Comparison")
         self.mode = "single" if self.patient else "all"
         data = self.data
@@ -141,12 +142,14 @@ class ScaleGroupComparison(BaseGraphic):
                 self.better = "down"
             elif scale in ["functional", "hs/qol"]:
                 self.better = "up"
+            else:
+                self.better = None
         else:
             self.better = None
 
         if self.better == "up":
             chart_title += " <i>( Higher score is better )</i>"
-        else:
+        elif self.better == "down":
             chart_title += " <i>( Lower score is better )</i>"
 
         line_chart = self.get_line_chart(data, chart_title, scores_map)
@@ -176,6 +179,7 @@ class ScaleGroupComparison(BaseGraphic):
         return avg_data
 
     def get_line_chart(self, data, title, scores_map):
+        logger.debug(f"get line chart for {title}")
         score_names = sorted(list(scores_map.keys()))
 
         fig = px.line(
@@ -224,17 +228,36 @@ class ScaleGroupComparison(BaseGraphic):
 
         if self.better is not None:
             logger.debug(f"adding indicator better is {self.better}")
-            self.add_indicator(fig)
+            self.add_indicator(fig, data)
+        else:
+            logger.debug("self.better is None no indicator added?")
         div = html.Div([dcc.Graph(figure=fig)], id=id)
         return div
 
-    def add_indicator(self, fig):
+    def add_indicator(self, fig, data):
+        import math
+
         logger.debug(f"add indicator: {self.better}")
         image_src = self.better_indicator_image(self.better)
+        r, _ = data.shape
+        logger.debug(f"num collection dates = {r}")
+
+        x_pos = math.floor(0.5 * r)
+        if x_pos == 0:
+            x_pos = 0.50
+
+        logger.debug(f"x_pos = {x_pos}")
+        x_size = math.floor(0.1 * r)
+        if x_size == 0:
+            x_size = 0.5
+        y_size = 30
+
+        logger.debug(f"x_pos = {x_pos} x_size = {x_size} y_size = {y_size}")
+
         if self.better == "up":
-            self.add_image(fig, image_src, 7, 80, 2, 30, opacity=0.5)
+            self.add_image(fig, image_src, x_pos, 80, x_size, y_size, opacity=0.5)
         elif self.better == "down":
-            self.add_image(fig, image_src, 7, 40, 2, 30, opacity=0.5)
+            self.add_image(fig, image_src, x_pos, 40, x_size, y_size, opacity=0.5)
 
     def get_table(self, data, scores_map):
         import plotly.graph_objects as go
