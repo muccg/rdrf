@@ -139,7 +139,7 @@ class ScaleGroupComparison(BaseGraphic):
             scale = scales[0]
             if scale == "symptom":
                 self.better = "down"
-            else:
+            elif scale in ["functional", "hs/qol"]:
                 self.better = "up"
         else:
             self.better = None
@@ -229,8 +229,8 @@ class ScaleGroupComparison(BaseGraphic):
         return div
 
     def add_indicator(self, fig):
+        logger.debug(f"add indicator: {self.better}")
         image_src = self.better_indicator_image(self.better)
-        # image_src = "https://images.plot.ly/language-icons/api-home/python-logo.png"
         if self.better == "up":
             self.add_image(fig, image_src, 7, 80, 2, 30, opacity=0.5)
         elif self.better == "down":
