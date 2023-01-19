@@ -210,6 +210,9 @@ class ScaleGroupComparison(BaseGraphic):
                 legendgroup=get_legend_group(t.name),
                 legendgrouptitle_text=get_legend_group_title(t.name),
                 opacity=get_opacity(t.name),
+                line={"dash": "dash"}
+                if t.name.startswith("avg_")
+                else {"dash": "solid"},
                 hovertemplate=t.hovertemplate.replace(t.name, scores_map[t.name]),
             )
         )
