@@ -231,7 +231,10 @@ class ScaleGroupComparison(BaseGraphic):
     def add_indicator(self, fig):
         image_src = self.better_indicator_image(self.better)
         # image_src = "https://images.plot.ly/language-icons/api-home/python-logo.png"
-        self.add_image(fig, image_src, 7, 80, 2, 30, opacity=0.5)
+        if self.better == "up":
+            self.add_image(fig, image_src, 7, 80, 2, 30, opacity=0.5)
+        elif self.better == "down":
+            self.add_image(fig, image_src, 7, 40, 2, 30, opacity=0.5)
 
     def get_table(self, data, scores_map):
         import plotly.graph_objects as go
