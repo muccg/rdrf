@@ -167,6 +167,7 @@ def get_all_patients_graphics_map(registry, vis_configs):
     from .data import get_data
 
     data = get_data(registry, None)
+    logger.debug(f"{data}")
 
     graphics_map = {
         f"tab_{vc.id}": create_graphic(vc, data, None, None) for vc in vis_configs
@@ -179,13 +180,24 @@ def get_single_patient_graphics_map(registry, vis_configs, patient_id):
     from dashboards.models import VisualisationConfig
     from registry.patients.models import Patient
     from .data import get_data
+    from dash import html
 
+    no_data = True
     logger.debug(f"get single patient graphics for {patient_id}")
 
     patient = Patient.objects.get(id=patient_id)
 
     needs_all = needs_all_patients_data(vis_configs)
-    data = get_data(registry, patient, needs_all)
+    try:
+        data = get_data(registry, patient, needs_all)
+        if data is not None:
+            no_data = False
+    except Exception as ex:
+        logger.debug(f"Error getting data for {patient}: {ex}")
+        return {f"tab_{vc.id}": html.H3(f"Error: {ex}") for vc in vis_configs}
+
+    if no_data:
+        return {f"tab_{vc.id}": html.H3(f"No data") for vc in vis_configs}
 
     graphics_map = {
         f"tab_{vc.id}": create_graphic(vc, data, patient, None) for vc in vis_configs

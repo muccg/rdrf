@@ -46,6 +46,7 @@ class RegistryDataFrame:
         needs_all=False,
     ):
         self.registry = registry
+        self.state = None
         self.config_model = config_model
         self.patient_id = patient_id
         self.prefix_fields = ["pid", "seq", "type", "form"]
@@ -75,7 +76,21 @@ class RegistryDataFrame:
         logger.info(f"time taken to load/generate df = {(c-a).total_seconds()} seconds")
 
     def _reload_dataframe(self):
-        self.df = self._get_dataframe()
+        try:
+            self.df = self._get_dataframe()
+            if self.df is None:
+                self.state = "empty"
+            else:
+                self.state = "ok"
+
+            if self.state == "empty":
+                return
+
+        except ValueError as ve:
+            msg = ve.message
+            if "0 elements" in msg:
+                logger.debug("no data?")
+
         self.df[cdf] = pd.to_datetime(self.df[cdf])
         self.df = self._assign_correct_seq_numbers(self.df)
         self.df = self._assign_seq_names(self.df)
@@ -173,6 +188,9 @@ class RegistryDataFrame:
         for patient in qry:
             for row in self._get_patient_rows(patient):
                 rows.append(row)
+        logger.debug(f" number of rows = {len(rows)}")
+        if len(rows) == 0:
+            return None
         df = pd.DataFrame(rows)
         df.columns = self.dataframe_columns
         return df
