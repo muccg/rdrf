@@ -6,28 +6,32 @@ from rdrf.services.rest.views.proms_api import PromsSystemManager
 
 
 class Command(BaseCommand):
-    help = 'Syncs the definition from this site system to the associated proms system'
+    help = "Syncs the definition from this site system to the associated proms system"
 
     def add_arguments(self, parser):
-        parser.add_argument('-c',
-                            '--code',
-                            action='store',
-                            dest='code',
-                            default=None,
-                            help='The registry code on the site system')
-        parser.add_argument('-o',
-                            '--overwrite-metadata',
-                            action='store_true',
-                            dest='override',
-                            default=False,
-                            help='To overwrite proms system metadata with site system metadata. Skip this option to preserve metadata.')
+        parser.add_argument(
+            "-c",
+            "--code",
+            action="store",
+            dest="code",
+            default=None,
+            help="The registry code on the site system",
+        )
+        parser.add_argument(
+            "-o",
+            "--overwrite-metadata",
+            action="store_true",
+            dest="override",
+            default=False,
+            help="To overwrite proms system metadata with site system metadata. Skip this option to preserve metadata.",
+        )
 
     def handle(self, *args, **options):
         override = options.get("override")
         code = options.get("code")
 
         if code is None:
-            self.stderr.write(f"Error: --code argument is required")
+            self.stderr.write("Error: --code argument is required")
             sys.exit(1)
             return
 
