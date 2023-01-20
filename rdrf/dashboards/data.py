@@ -96,16 +96,18 @@ class RegistryDataFrame:
         self.df = self._assign_seq_names(self.df)
 
     def _assign_seq_names(self, df):
-        def cd(row):
+        def get_aus_date(row):
             try:
                 d = row["COLLECTIONDATE"].date()
                 aus_date = f"{d.day}-{d.month}-{d.year}"
                 return f" ({aus_date})"
-            except:
+            except KeyError:
+                return ""
+            except ValueError:
                 return ""
 
         df["SEQ_NAME"] = df.apply(
-            lambda row: get_seq_name(row["SEQ"]) + cd(row), axis=1
+            lambda row: get_seq_name(row["SEQ"]) + get_aus_date(row), axis=1
         )
         return df
 

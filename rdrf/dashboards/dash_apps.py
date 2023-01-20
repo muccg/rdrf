@@ -25,7 +25,9 @@ all_app = DjangoDash(
 
 try:
     registry = Registry.objects.get()
-except:
+except Registry.DoesNotExist:
+    load = False
+except Registry.MultipleObjectsReturned:
     load = False
 
 if load:
@@ -101,7 +103,7 @@ if load:
     )
 
     @all_app.callback(Output("tab-content", "children"), Input("tabs", "active_tab"))
-    def render_tab_content(*args, **kwargs):
+    def render_all_app_tab_content(*args, **kwargs):
         logger.info("dash app all_app callback")
         active_tab = args[0]
         all_patients_graphics_map = get_all_patients_graphics_map(registry, all_configs)
