@@ -110,7 +110,7 @@ def recalculate_cde(
     patient_contexts = patient_model.context_models
     ids = [c.id for c in patient_contexts]
     if context_id not in ids:
-        logger.error(f"recalc not possible in passed in context")
+        logger.error("recalc not possible in passed in context")
         return
 
     context_model = RDRFContext.objects.get(id=context_id)
@@ -130,7 +130,7 @@ def recalculate_cde(
         patient_model.set_form_value(
             registry_code, form_name, section_code, cde_code, result, context_model
         )
-        logger.info(f"recalc successful")
+        logger.info("recalc successful")
 
     input_cde_codes = get_input_cde_codes_func()
     input_context = {}
