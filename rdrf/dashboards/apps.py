@@ -7,5 +7,5 @@ class DashboardsConfig(AppConfig):
     verbose_name = "Visualisation Dashboards"
 
     def ready(self):
-        import dashboards.models.VisualisationBaseDataConfig
-        import dashboards.models.VisualisationConfig
+        from dashboards.models import VisualisationBaseDataConfig
+        from dashboards.models import VisualisationConfig
