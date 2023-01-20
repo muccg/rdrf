@@ -41,7 +41,7 @@ class AllPatientsScoreHelper:
 class ScaleGroupComparison(BaseGraphic):
     def get_graphic(self):
         self.better = None
-        log(f"creating Scale Group Comparison")
+        log("creating Scale Group Comparison")
         self.mode = "single" if self.patient else "all"
         data = self.data
         scores_map = {}
@@ -118,11 +118,11 @@ class ScaleGroupComparison(BaseGraphic):
         if self.mode == "all":
             # not sure if this is actually required
             data = self.calculate_average_scores_over_time(data, score_names)
-            chart_title = f"Scale group score over time for all patients"
-            id = "sgc"
+            chart_title = "Scale group score over time for all patients"
+            sgc_id = "sgc"
         else:
             chart_title = f"Scores over time for {self.patient.link}"
-            id = f"sgc-{self.patient.id}"
+            sgc_id = f"sgc-{self.patient.id}"
 
         if average_scores is not None:
             data = combine_data(data, average_scores)
@@ -157,7 +157,7 @@ class ScaleGroupComparison(BaseGraphic):
 
         div = html.Div([line_chart, table])
 
-        return html.Div(div, id=id)
+        return html.Div(div, id=sgc_id)
 
     @property
     def needs_global_data(self):
