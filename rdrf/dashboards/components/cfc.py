@@ -3,7 +3,7 @@ import pandas as pd
 import plotly.express as px
 from dash import dcc, html
 from ..components.common import BaseGraphic
-from ..utils import get_colour_map, get_sevenscale_colour_map
+from ..utils import get_sevenscale_colour_map
 from ..utils import add_seq_name
 
 
