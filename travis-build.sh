@@ -12,7 +12,8 @@ mkdir -p data/
 sudo chown 1000:1000 data/
 
 echo LINTING
-./develop.sh  run build lint --ignore W503,E501,C901 ./rdrf
+# ignoring some errors that Black creates like W503 and E203
+./develop.sh  run build lint --ignore W503,E501,C901,E203 ./rdrf
 echo BUILDING BASE
 ./develop.sh build base
 echo BUILDING BUILDER
