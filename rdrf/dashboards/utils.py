@@ -1,5 +1,4 @@
 import logging
-from django_plotly_dash.models import StatelessApp
 
 logger = logging.getLogger(__name__)
 
@@ -177,7 +176,6 @@ def get_all_patients_graphics_map(registry, vis_configs):
 
 
 def get_single_patient_graphics_map(registry, vis_configs, patient_id):
-    from dashboards.models import VisualisationConfig
     from registry.patients.models import Patient
     from .data import get_data
     from dash import html
@@ -197,7 +195,7 @@ def get_single_patient_graphics_map(registry, vis_configs, patient_id):
         return {f"tab_{vc.id}": html.H3(f"Error: {ex}") for vc in vis_configs}
 
     if no_data:
-        return {f"tab_{vc.id}": html.H3(f"No data") for vc in vis_configs}
+        return {f"tab_{vc.id}": html.H3("No data") for vc in vis_configs}
 
     graphics_map = {
         f"tab_{vc.id}": create_graphic(vc, data, patient, None) for vc in vis_configs
