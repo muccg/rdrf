@@ -11,7 +11,8 @@ set -e
 mkdir -p data/
 sudo chown 1000:1000 data/
 
-#./develop.sh run build lint
+echo LINTING
+./develop.sh  run build lint --ignore W503,E501,C901 ./rdrf
 echo BUILDING BASE
 ./develop.sh build base
 echo BUILDING BUILDER
