@@ -61,8 +61,8 @@ class CombinedFieldComparison(BaseGraphic):
         self.fix_xaxis(fig, data)
 
         log("created bar")
-        id = f"bar-combined"
-        div = html.Div([dcc.Graph(figure=fig)], id=id)
+        bar_id = "bar-combined"
+        div = html.Div([dcc.Graph(figure=fig)], id=bar_id)
         return div
 
     def _get_combined_data(self, df: pd.DataFrame, inputs) -> pd.DataFrame:
