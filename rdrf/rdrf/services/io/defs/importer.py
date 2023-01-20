@@ -256,8 +256,7 @@ class Importer(object):
                             imported_section_cdes.add(cde_model.code)
                         except CommonDataElement.DoesNotExist:
                             raise RegistryImportError(
-                                "CDE %s.%s does not exist"
-                                % (form.name, section_code, section_cde_code)
+                                f"CDE {form.name}.{section_code}.{section_cde_code} does not exist"
                             )
 
                     yaml_section_cdes = set([])
