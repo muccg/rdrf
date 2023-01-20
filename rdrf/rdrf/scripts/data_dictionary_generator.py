@@ -5,8 +5,8 @@ from string import strip
 import codecs
 
 
-def decode(l):
-    return map(lambda s: s.decode('utf-8'), l)
+def decode(letters):
+    return map(lambda s: s.decode("utf-8"), letters)
 
 
 RANGE_DELIMITER = "|"
@@ -39,7 +39,8 @@ ETHNICITIES = [
     "Latin American",
     "Black African/African American",
     "Other Ethnicity",
-    "Decline to Answer"]
+    "Decline to Answer",
+]
 
 SEXES = ["Male", "Female", "Indeterminate"]
 
@@ -56,15 +57,15 @@ class DemographicForm:
 
 
 class DemographicField(object):
-
     def __init__(
-            self,
-            section,
-            name,
-            datatype="STRING",
-            members=[],
-            validation="",
-            required=False):
+        self,
+        section,
+        name,
+        datatype="STRING",
+        members=[],
+        validation="",
+        required=False,
+    ):
         self.name = name
         self.section = section
         self._members = members
@@ -83,7 +84,6 @@ class DemographicField(object):
 
 
 class CDEWrapper(object):
-
     def __init__(self, data, cde_dict):
         self.data = data
         self.cde_dict = cde_dict
@@ -114,8 +114,9 @@ class CDEWrapper(object):
             if self.cde_dict["max_length"]:
                 vals.append("Length <= %s" % self.cde_dict["max_length"])
             if self.cde_dict["pattern"]:
-                vals.append("Must conform to regular expression %s" %
-                            self.cde_dict["pattern"])
+                vals.append(
+                    "Must conform to regular expression %s" % self.cde_dict["pattern"]
+                )
         elif self.datatype == "INTEGER":
             if self.cde_dict["min_value"]:
                 vals.append("Minimum value = %s" % self.cde_dict["min_value"])
@@ -140,7 +141,6 @@ class CDEWrapper(object):
 
 
 class DataDefinitionReport(object):
-
     def __init__(self, data, stream):
         self.data = data
         self.stream = stream
@@ -167,8 +167,16 @@ class DataDefinitionReport(object):
         self.new_line()
 
     def write_header(self):
-        self.write_values("FIELDNUM", "FORM", "SECTION", "CDE",
-                          "DATATYPE", "REQUIRED", "ALLOWED VALUES", "VALIDATION")
+        self.write_values(
+            "FIELDNUM",
+            "FORM",
+            "SECTION",
+            "CDE",
+            "DATATYPE",
+            "REQUIRED",
+            "ALLOWED VALUES",
+            "VALIDATION",
+        )
 
     def _get_cdes_from_section(self, section_dict):
         cdes = []
@@ -186,50 +194,93 @@ class DataDefinitionReport(object):
 
     def _get_demographic_fields(self):
         fields = []
-        fields.append(DemographicField(
-            DemographicForm.SECTION_REGISTRY, "Centre", required=True))
+        fields.append(
+            DemographicField(DemographicForm.SECTION_REGISTRY, "Centre", required=True)
+        )
         # fields.append(DemographicField(DemographicForm.SECTION_REGISTRY, "Clinician"))
-        fields.append(DemographicField(
-            DemographicForm.SECTION_PATIENT_DETAILS, "Family name", required=True))
-        fields.append(DemographicField(
-            DemographicForm.SECTION_PATIENT_DETAILS, "Given names", required=True))
-        fields.append(DemographicField(
-            DemographicForm.SECTION_PATIENT_DETAILS, "Maiden name"))
-        fields.append(DemographicField(
-            DemographicForm.SECTION_PATIENT_DETAILS, "Hospital/Clinic ID"))
-        fields.append(DemographicField(
-            DemographicForm.SECTION_PATIENT_DETAILS, "Date of birth", "DATE", required=True))
-        fields.append(DemographicField(
-            DemographicForm.SECTION_PATIENT_DETAILS, "Country of birth", "RANGE", COUNTRIES))
-        fields.append(DemographicField(
-            DemographicForm.SECTION_PATIENT_DETAILS, "Ethnic Origin", "RANGE", ETHNICITIES))
-        fields.append(DemographicField(
-            DemographicForm.SECTION_PATIENT_DETAILS, "Sex", "RANGE", SEXES, required=True))
-        fields.append(DemographicField(
-            DemographicForm.SECTION_PATIENT_DETAILS, "Home Phone"))
-        fields.append(DemographicField(
-            DemographicForm.SECTION_PATIENT_DETAILS, "Mobile Phone"))
-        fields.append(DemographicField(
-            DemographicForm.SECTION_PATIENT_DETAILS, "Work Phone"))
-        fields.append(DemographicField(
-            DemographicForm.SECTION_PATIENT_DETAILS, "Email"))
+        fields.append(
+            DemographicField(
+                DemographicForm.SECTION_PATIENT_DETAILS, "Family name", required=True
+            )
+        )
+        fields.append(
+            DemographicField(
+                DemographicForm.SECTION_PATIENT_DETAILS, "Given names", required=True
+            )
+        )
+        fields.append(
+            DemographicField(DemographicForm.SECTION_PATIENT_DETAILS, "Maiden name")
+        )
+        fields.append(
+            DemographicField(
+                DemographicForm.SECTION_PATIENT_DETAILS, "Hospital/Clinic ID"
+            )
+        )
+        fields.append(
+            DemographicField(
+                DemographicForm.SECTION_PATIENT_DETAILS,
+                "Date of birth",
+                "DATE",
+                required=True,
+            )
+        )
+        fields.append(
+            DemographicField(
+                DemographicForm.SECTION_PATIENT_DETAILS,
+                "Country of birth",
+                "RANGE",
+                COUNTRIES,
+            )
+        )
+        fields.append(
+            DemographicField(
+                DemographicForm.SECTION_PATIENT_DETAILS,
+                "Ethnic Origin",
+                "RANGE",
+                ETHNICITIES,
+            )
+        )
+        fields.append(
+            DemographicField(
+                DemographicForm.SECTION_PATIENT_DETAILS,
+                "Sex",
+                "RANGE",
+                SEXES,
+                required=True,
+            )
+        )
+        fields.append(
+            DemographicField(DemographicForm.SECTION_PATIENT_DETAILS, "Home Phone")
+        )
+        fields.append(
+            DemographicField(DemographicForm.SECTION_PATIENT_DETAILS, "Mobile Phone")
+        )
+        fields.append(
+            DemographicField(DemographicForm.SECTION_PATIENT_DETAILS, "Work Phone")
+        )
+        fields.append(
+            DemographicField(DemographicForm.SECTION_PATIENT_DETAILS, "Email")
+        )
         fields.append(
             DemographicField(
                 DemographicForm.SECTION_PATIENT_DETAILS,
                 "Living status",
                 "RANGE",
                 LIVING_STATUSES,
-                required=True))
-        fields.append(DemographicField(
-            DemographicForm.HOME_ADDRESS, "Address"))
-        fields.append(DemographicField(
-            DemographicForm.HOME_ADDRESS, "Suburb/Town"))
-        fields.append(DemographicField(
-            DemographicForm.HOME_ADDRESS, "State", "RANGE", AUS_STATES))
-        fields.append(DemographicField(
-            DemographicForm.HOME_ADDRESS, "Postcode"))
-        fields.append(DemographicField(
-            DemographicForm.HOME_ADDRESS, "Country", "RANGE", COUNTRIES))
+                required=True,
+            )
+        )
+        fields.append(DemographicField(DemographicForm.HOME_ADDRESS, "Address"))
+        fields.append(DemographicField(DemographicForm.HOME_ADDRESS, "Suburb/Town"))
+        fields.append(
+            DemographicField(DemographicForm.HOME_ADDRESS, "State", "RANGE", AUS_STATES)
+        )
+        fields.append(DemographicField(DemographicForm.HOME_ADDRESS, "Postcode"))
+        fields.append(
+            DemographicField(
+                DemographicForm.HOME_ADDRESS, "Country", "RANGE", COUNTRIES
+            )
+        )
 
         return fields
 
@@ -237,7 +288,9 @@ class DataDefinitionReport(object):
         fields = []
 
         def mk_consent(sec, field, required=False):
-            fields.append(DemographicField(sec, field, "RANGE", BOOLEAN, required=required))
+            fields.append(
+                DemographicField(sec, field, "RANGE", BOOLEAN, required=required)
+            )
 
         mk_consent("FH Registry Consent", "Adult Consent")
         mk_consent("FH Registry Consent", "Child Consent")
@@ -255,11 +308,15 @@ class DataDefinitionReport(object):
         col += 1
 
         for demographic_field in self._get_demographic_fields():
-            yield str(col), "DEMOGRAPHICS", demographic_field.section, demographic_field.name, demographic_field.datatype, demographic_field.required, demographic_field.members, demographic_field.validation
+            yield str(
+                col
+            ), "DEMOGRAPHICS", demographic_field.section, demographic_field.name, demographic_field.datatype, demographic_field.required, demographic_field.members, demographic_field.validation
             col += 1
 
         for field in self._get_consent_fields():
-            yield str(col), "CONSENTS", field.section, field.name, field.datatype, field.required, field.members, field.validation
+            yield str(
+                col
+            ), "CONSENTS", field.section, field.name, field.datatype, field.required, field.members, field.validation
             col += 1
 
         for form_dict in self.data["forms"]:
@@ -269,7 +326,9 @@ class DataDefinitionReport(object):
                 if not section_dict["allow_multiple"]:
                     cdes = self._get_cdes_from_section(section_dict)
                     for cde in cdes:
-                        yield str(col), form_dict["name"], section_dict["display_name"], cde.name, cde.datatype, cde.required, cde.members, cde.validation
+                        yield str(col), form_dict["name"], section_dict[
+                            "display_name"
+                        ], cde.name, cde.datatype, cde.required, cde.members, cde.validation
 
                         col += 1
 
