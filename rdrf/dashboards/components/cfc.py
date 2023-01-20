@@ -100,7 +100,7 @@ class CombinedFieldComparison(BaseGraphic):
         This merged dataframe is then grouped and aggregated to get the percentage..
         maybe there is an easier way.
         """
-        log(f"in get combined data")
+        log("in get combined data")
         df_counts = []
         num_inputs = len(inputs)
         log(f"number of inputs = {num_inputs}")
