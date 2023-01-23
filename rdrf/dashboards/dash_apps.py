@@ -6,6 +6,8 @@ from dash import Input, Output, dcc, html
 
 from .utils import get_all_patients_graphics_map
 from .utils import get_single_patient_graphics_map
+from django.db.utils import ProgrammingError
+
 
 import logging
 
@@ -28,6 +30,9 @@ try:
 except Registry.DoesNotExist:
     load = False
 except Registry.MultipleObjectsReturned:
+    load = False
+except ProgrammingError:
+    # this occurs in the migration check ?
     load = False
 
 if load:
