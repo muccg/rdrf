@@ -143,6 +143,7 @@ def create_graphic(vis_config, data, patient, all_patients_data=None):
     from .components.cfc import CombinedFieldComparison
     from .components.cpr import ChangesInPatientResponses
     from .components.sgc import ScaleGroupComparison
+    from .components.tl import TrafficLights
 
     title = vis_config.title
     if vis_config.code == "pcf":
@@ -157,6 +158,8 @@ def create_graphic(vis_config, data, patient, all_patients_data=None):
         return ScaleGroupComparison(
             title, vis_config, data, patient, all_patients_data
         ).graphic
+    elif vis_config.code == "tl":
+        return TrafficLights(title, vis_config, data, all_patients_data).graphic
     else:
         logger.error(f"dashboard error - unknown visualisation {vis_config.code}")
         raise Exception(f"Unknown code: {vis_config.code}")
