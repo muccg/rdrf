@@ -1,7 +1,6 @@
 from django.core.management.base import BaseCommand
 from dashboards.models import VisualisationBaseDataConfig
 from dashboards.data import RegistryDataFrame
-import pandas as pd
 from datetime import datetime
 
 
@@ -20,4 +19,4 @@ class Command(BaseCommand):
             config.data = json_data
             config.state = "D"
             config.save()
-            self.print(f"saved OK")
+            self.print("saved OK")

@@ -8,6 +8,7 @@ from ..components.common import BaseGraphic
 from ..utils import get_range, get_base
 from ..data import combine_data
 
+
 logger = logging.getLogger(__name__)
 
 
@@ -39,7 +40,8 @@ class AllPatientsScoreHelper:
 
 class ScaleGroupComparison(BaseGraphic):
     def get_graphic(self):
-        log(f"creating Scale Group Comparison")
+        self.better = None
+        log("creating Scale Group Comparison")
         self.mode = "single" if self.patient else "all"
         data = self.data
         scores_map = {}
@@ -47,6 +49,7 @@ class ScaleGroupComparison(BaseGraphic):
         self.rev_group = {}
         self.all_patients_helpers = []
         self.average_scores = None
+        group_scales = set([])
 
         for index, group in enumerate(self.config["groups"]):
             group_title = group["title"]
@@ -56,6 +59,7 @@ class ScaleGroupComparison(BaseGraphic):
 
             group_range = self.get_range_value(group_fields)
             group_scale = group["scale"]
+            group_scales.add(group_scale)
             group_score_function = self.get_score_function(group_range, group_scale)
             score_name = f"score_{index}"
             self.group_info[score_name] = group_title
@@ -114,11 +118,11 @@ class ScaleGroupComparison(BaseGraphic):
         if self.mode == "all":
             # not sure if this is actually required
             data = self.calculate_average_scores_over_time(data, score_names)
-            chart_title = f"Scale group score over time for all patients"
-            id = "sgc"
+            chart_title = "Scale group score over time for all patients"
+            sgc_id = "sgc"
         else:
             chart_title = f"Scores over time for {self.patient.link}"
-            id = f"sgc-{self.patient.id}"
+            sgc_id = f"sgc-{self.patient.id}"
 
         if average_scores is not None:
             data = combine_data(data, average_scores)
@@ -131,13 +135,29 @@ class ScaleGroupComparison(BaseGraphic):
                     avg_display_name = "Average " + orig_display_name
                     scores_map[sn] = avg_display_name
 
-        line_chart = self.get_line_chart(data, chart_title, scores_map)
+        scales = list(group_scales)
+        if len(scales) == 1:
+            scale = scales[0]
+            if scale == "symptom":
+                self.better = "down"
+            elif scale in ["functional", "hs/qol"]:
+                self.better = "up"
+            else:
+                self.better = None
+        else:
+            self.better = None
 
+        if self.better == "up":
+            chart_title += " <i>( Higher score is better )</i>"
+        elif self.better == "down":
+            chart_title += " <i>( Lower score is better )</i>"
+
+        line_chart = self.get_line_chart(data, chart_title, scores_map)
         table = self.get_table(data, scores_map)
 
         div = html.Div([line_chart, table])
 
-        return html.Div(div, id=id)
+        return html.Div(div, id=sgc_id)
 
     @property
     def needs_global_data(self):
@@ -159,6 +179,7 @@ class ScaleGroupComparison(BaseGraphic):
         return avg_data
 
     def get_line_chart(self, data, title, scores_map):
+        logger.debug(f"get line chart for {title}")
         score_names = sorted(list(scores_map.keys()))
 
         fig = px.line(
@@ -167,17 +188,35 @@ class ScaleGroupComparison(BaseGraphic):
             y=score_names,
             title=title,
             markers=True,
-            labels={"SEQ": "Survey Time Period"},
+            labels={"SEQ": "Survey Time Period", "y": "Score", "value": "Score"},
         )
 
         self.fix_xaxis(fig, data)
         self.fix_yaxis(fig)
 
-        scores_map["seq"] = "Time"
+        def get_legend_group(name):
+            return "average_group" if name.startswith("avg_") else "patient_group"
+
+        def get_legend_group_title(name):
+            d = {
+                "average_group": "Average Values Over All Patients",
+                "patient_group": "Individual Patient Values",
+            }
+            return d[get_legend_group(name)]
+
+        def get_opacity(name):
+            return 0.3 if name.startswith("avg_") else 1.0
+
+        scores_map["seq"] = "Survey Time Period"
         fig.for_each_trace(
             lambda t: t.update(
                 name=scores_map[t.name],
-                legendgroup=scores_map[t.name],
+                legendgroup=get_legend_group(t.name),
+                legendgrouptitle_text=get_legend_group_title(t.name),
+                opacity=get_opacity(t.name),
+                line={"dash": "dash"}
+                if t.name.startswith("avg_")
+                else {"dash": "solid"},
                 hovertemplate=t.hovertemplate.replace(t.name, scores_map[t.name]),
             )
         )
@@ -187,8 +226,38 @@ class ScaleGroupComparison(BaseGraphic):
         else:
             id = f"sgc-line-chart-{title}-all"
 
+        if self.better is not None:
+            logger.debug(f"adding indicator better is {self.better}")
+            self.add_indicator(fig, data)
+        else:
+            logger.debug("self.better is None no indicator added?")
         div = html.Div([dcc.Graph(figure=fig)], id=id)
         return div
+
+    def add_indicator(self, fig, data):
+        import math
+
+        logger.debug(f"add indicator: {self.better}")
+        image_src = self.better_indicator_image(self.better)
+        r, _ = data.shape
+        logger.debug(f"num collection dates = {r}")
+
+        x_pos = math.floor(0.5 * r)
+        if x_pos == 0:
+            x_pos = 0.50
+
+        logger.debug(f"x_pos = {x_pos}")
+        x_size = math.floor(0.1 * r)
+        if x_size == 0:
+            x_size = 0.5
+        y_size = 30
+
+        logger.debug(f"x_pos = {x_pos} x_size = {x_size} y_size = {y_size}")
+
+        if self.better == "up":
+            self.add_image(fig, image_src, x_pos, 80, x_size, y_size, opacity=0.5)
+        elif self.better == "down":
+            self.add_image(fig, image_src, x_pos, 40, x_size, y_size, opacity=0.5)
 
     def get_table(self, data, scores_map):
         import plotly.graph_objects as go
@@ -235,6 +304,14 @@ class ScaleGroupComparison(BaseGraphic):
 
         headers = ["Scale Group"] + list(data["SEQ_NAME"])
 
+        def remove_date(h):
+            if "(" in h:
+                return h[: h.find(" (")]
+            else:
+                return h
+
+        headers = [remove_date(h) for h in headers]
+
         fig = go.Figure(
             data=[go.Table(header=dict(values=headers), cells=dict(values=columns))]
         )
@@ -265,6 +342,8 @@ class ScaleGroupComparison(BaseGraphic):
             delta = 0.0
         else:
             raise Exception(f"base of fields {fields} is {detected_base}")
+
+        logger.debug(f"{score_name} delta = {delta}")
 
         def filled(value):
             # non vectorised

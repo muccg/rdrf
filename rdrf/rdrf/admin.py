@@ -41,7 +41,6 @@ from rdrf.system_role import SystemRoles
 from rdrf.models.definition.models import CustomAction
 from rdrf.models.task_models import CustomActionExecution
 
-
 from reversion.admin import VersionAdmin
 
 import logging
@@ -63,15 +62,16 @@ logger = logging.getLogger(__name__)
 
 
 if settings.SYSTEM_ROLE != SystemRoles.CIC_PROMS:
+
     @admin.register(ClinicalData)
     class BaseReversionAdmin(VersionAdmin):
         pass
 
 
 class SectionAdmin(admin.ModelAdmin):
-    list_display = ('code', 'display_name')
-    ordering = ['code']
-    search_fields = ['code', 'display_name']
+    list_display = ("code", "display_name")
+    ordering = ["code"]
+    search_fields = ["code", "display_name"]
 
     def has_add_permission(self, request, *args, **kwargs):
         if request.user.is_superuser:
@@ -90,11 +90,11 @@ class SectionAdmin(admin.ModelAdmin):
 
 
 class RegistryFormAdmin(admin.ModelAdmin):
-    list_display = ('registry', 'name', 'is_questionnaire', 'position')
-    ordering = ['registry', 'name']
+    list_display = ("registry", "name", "is_questionnaire", "position")
+    ordering = ["registry", "name"]
     form = RegistryFormAdminForm
 
-    list_filter = ['registry']
+    list_filter = ["registry"]
 
     def has_add_permission(self, request, *args, **kwargs):
         if request.user.is_superuser:
@@ -114,25 +114,29 @@ class RegistryFormAdmin(admin.ModelAdmin):
 
 def export_registry_action(modeladmin, request, registry_models_selected):
     from datetime import datetime
+
     export_time = str(datetime.now())
 
     def export_registry(registry, request):
         from rdrf.services.io.defs.exporter import Exporter
+
         exporter = Exporter(registry)
-        logger.info("EXPORTYAML %s %s" % (request.user,
-                                          registry.code))
+        logger.info("EXPORTYAML %s %s" % (request.user, registry.code))
         try:
             yaml_data, errors = exporter.export_yaml()
             if errors:
                 logger.error("Error(s) exporting %s:" % registry.name)
                 for error in errors:
                     logger.error("Export Error: %s" % error)
-                    messages.error(request, "Error in export of %s: %s" %
-                                   (registry.name, error))
+                    messages.error(
+                        request, "Error in export of %s: %s" % (registry.name, error)
+                    )
                 return None
             return yaml_data
         except Exception as ex:
-            logger.error("export registry action for %s error: %s" % (registry.name, ex))
+            logger.error(
+                "export registry action for %s error: %s" % (registry.name, ex)
+            )
             messages.error(request, "Custom Action Failed: %s" % ex)
             return None
 
@@ -150,31 +154,39 @@ def export_registry_action(modeladmin, request, registry_models_selected):
         myfile.flush()
         myfile.seek(0)
 
-        response = HttpResponse(FileWrapper(myfile), content_type='text/yaml')
+        response = HttpResponse(FileWrapper(myfile), content_type="text/yaml")
         yaml_export_filename = "export_%s_%s" % (export_time, yaml_export_filename)
-        response['Content-Disposition'] = 'attachment; filename="%s"' % yaml_export_filename
+        response["Content-Disposition"] = (
+            'attachment; filename="%s"' % yaml_export_filename
+        )
 
         return response
     else:
         import zipfile
+
         zippedfile = StringIO.StringIO()
-        zf = zipfile.ZipFile(zippedfile, mode='w', compression=zipfile.ZIP_DEFLATED)
+        zf = zipfile.ZipFile(zippedfile, mode="w", compression=zipfile.ZIP_DEFLATED)
 
         for registry in registrys:
             yaml_data = export_registry(registry, request)
             if yaml_data is None:
                 return HttpResponseRedirect("")
 
-            zf.writestr(registry.code + '.yaml', yaml_data)
+            zf.writestr(registry.code + ".yaml", yaml_data)
 
         zf.close()
         zippedfile.flush()
         zippedfile.seek(0)
 
-        response = HttpResponse(FileWrapper(zippedfile), content_type='application/zip')
-        name = "export_" + export_time + "_" + \
-            reduce(lambda x, y: x + '_and_' + y, [r.code for r in registrys]) + ".zip"
-        response['Content-Disposition'] = 'attachment; filename="%s"' % name
+        response = HttpResponse(FileWrapper(zippedfile), content_type="application/zip")
+        name = (
+            "export_"
+            + export_time
+            + "_"
+            + reduce(lambda x, y: x + "_and_" + y, [r.code for r in registrys])
+            + ".zip"
+        )
+        response["Content-Disposition"] = 'attachment; filename="%s"' % name
 
         return response
 
@@ -191,13 +203,15 @@ generate_questionnaire_action.short_description = _("Generate Questionnaire")
 
 
 class RegistryAdmin(admin.ModelAdmin):
-    list_display = ('name', 'code', 'version')
+    list_display = ("name", "code", "version")
     actions = [export_registry_action, generate_questionnaire_action]
 
     def get_queryset(self, request):
         if not request.user.is_superuser:
             user = get_user_model().objects.get(username=request.user)
-            return Registry.objects.filter(registry__in=[reg.id for reg in user.registry.all()])
+            return Registry.objects.filter(
+                registry__in=[reg.id for reg in user.registry.all()]
+            )
 
         return Registry.objects.all()
 
@@ -227,8 +241,14 @@ class RegistryAdmin(admin.ModelAdmin):
 
 
 class QuestionnaireResponseAdmin(admin.ModelAdmin):
-    list_display = ('registry', 'date_submitted', 'process_link', 'name', 'date_of_birth')
-    list_filter = ('registry', 'date_submitted')
+    list_display = (
+        "registry",
+        "date_submitted",
+        "process_link",
+        "name",
+        "date_of_birth",
+    )
+    list_filter = ("registry", "date_submitted")
 
     def process_link(self, obj):
         if not obj.has_mongo_data:
@@ -236,7 +256,7 @@ class QuestionnaireResponseAdmin(admin.ModelAdmin):
 
         link = "-"
         if not obj.processed:
-            url = reverse('questionnaire_response', args=(obj.registry.code, obj.id))
+            url = reverse("questionnaire_response", args=(obj.registry.code, obj.id))
             link = "<a href='%s'>Review</a>" % url
         return link
 
@@ -247,20 +267,16 @@ class QuestionnaireResponseAdmin(admin.ModelAdmin):
             return query_set
         else:
             return query_set.filter(
-                registry__in=[
-                    reg for reg in user.registry.all()],
+                registry__in=[reg for reg in user.registry.all()],
             )
 
     process_link.allow_tags = True
-    process_link.short_description = _('Process questionnaire')
+    process_link.short_description = _("Process questionnaire")
 
 
 def create_restricted_model_admin_class(
-        model_class,
-        search_fields=None,
-        ordering=None,
-        list_display=None):
-
+    model_class, search_fields=None, ordering=None, list_display=None
+):
     def query_set_func(model_class):
         def queryset(myself, request):
             if not request.user.is_superuser:
@@ -273,6 +289,7 @@ def create_restricted_model_admin_class(
     def make_perm_func():
         def perm(self, request, *args, **kwargs):
             return request.user.is_superuser
+
         return perm
 
     overrides = {
@@ -297,7 +314,10 @@ class CDEPermittedValueAdmin(admin.StackedInline):
     extra = 0
 
     fieldsets = (
-        (None, {'fields': ('code', 'value', 'questionnaire_value', 'desc', 'position')}),
+        (
+            None,
+            {"fields": ("code", "value", "questionnaire_value", "desc", "position")},
+        ),
     )
 
 
@@ -306,7 +326,7 @@ class CDEPermittedValueGroupAdmin(admin.ModelAdmin):
 
 
 class NotificationAdmin(admin.ModelAdmin):
-    list_display = ('created', 'from_username', 'to_username', 'message')
+    list_display = ("created", "from_username", "to_username", "message")
 
 
 class ConsentQuestionAdmin(admin.StackedInline):
@@ -314,13 +334,23 @@ class ConsentQuestionAdmin(admin.StackedInline):
     extra = 0
 
     fieldsets = (
-        (None, {
-            'fields': (
-                'position', 'code', 'question_label', 'questionnaire_label', 'instructions')}), )
+        (
+            None,
+            {
+                "fields": (
+                    "position",
+                    "code",
+                    "question_label",
+                    "questionnaire_label",
+                    "instructions",
+                )
+            },
+        ),
+    )
 
 
 class ConsentSectionAdmin(admin.ModelAdmin):
-    list_display = ('registry', 'section_label')
+    list_display = ("registry", "section_label")
     inlines = [ConsentQuestionAdmin]
 
 
@@ -342,11 +372,18 @@ class CdePolicyAdmin(admin.ModelAdmin):
 
 class EmailNotificationAdmin(admin.ModelAdmin):
     model = EmailNotification
-    list_display = ("description", "registry", "email_from", "recipient", "group_recipient")
+    list_display = (
+        "description",
+        "registry",
+        "email_from",
+        "recipient",
+        "group_recipient",
+    )
 
     def get_changeform_initial_data(self, request):
         from django.conf import settings
-        return {'email_from': settings.DEFAULT_FROM_EMAIL}
+
+        return {"email_from": settings.DEFAULT_FROM_EMAIL}
 
 
 class EmailTemplateAdmin(admin.ModelAdmin):
@@ -357,11 +394,19 @@ class EmailTemplateAdmin(admin.ModelAdmin):
 
 class EmailNotificationHistoryAdmin(admin.ModelAdmin):
     model = EmailNotificationHistory
-    list_display = ("date_stamp", "email_notification", "registry", "full_language", "resend")
+    list_display = (
+        "date_stamp",
+        "email_notification",
+        "registry",
+        "full_language",
+        "resend",
+    )
 
     def registry(self, obj):
-        return "%s (%s)" % (obj.email_notification.registry.name,
-                            obj.email_notification.registry.code.upper())
+        return "%s (%s)" % (
+            obj.email_notification.registry.name,
+            obj.email_notification.registry.code.upper(),
+        )
 
     def full_language(self, obj):
         return dict(settings.LANGUAGES).get(obj.language, obj.language)
@@ -369,25 +414,34 @@ class EmailNotificationHistoryAdmin(admin.ModelAdmin):
     full_language.short_description = "Language"
 
     def resend(self, obj):
-        email_url = reverse('resend_email', args=(obj.id,))
-        return format_html(u"<a class='btn btn-info btn-xs' href='%s'>Resend</a>" % email_url)
+        email_url = reverse("resend_email", args=(obj.id,))
+        return format_html(
+            "<a class='btn btn-info btn-xs' href='%s'>Resend</a>" % email_url
+        )
+
     resend.allow_tags = True
 
 
 class ConsentRuleAdmin(admin.ModelAdmin):
     model = ConsentRule
-    list_display = ("registry", "user_group", "capability", "consent_question", "enabled")
+    list_display = (
+        "registry",
+        "user_group",
+        "capability",
+        "consent_question",
+        "enabled",
+    )
 
 
 class PreconditionAdmin(admin.ModelAdmin):
     model = Precondition
-    list_display = ('survey', 'cde', 'value')
+    list_display = ("survey", "cde", "value")
 
 
 class SurveyQuestionAdmin(admin.StackedInline):
     model = SurveyQuestion
     extra = 0
-    ordering = ('position',)
+    ordering = ("position",)
     list_display = ("registry", "name", "expression")
     inlines = [PreconditionAdmin]
 
@@ -400,15 +454,31 @@ class SurveyAdmin(admin.ModelAdmin):
 
 class SurveyRequestAdmin(admin.ModelAdmin):
     model = SurveyRequest
-    list_display = ("patient_name", "survey_name", "patient_token",
-                    "created", "updated", "state", "error_detail", "user")
+    list_display = (
+        "patient_name",
+        "survey_name",
+        "patient_token",
+        "created",
+        "updated",
+        "state",
+        "error_detail",
+        "user",
+    )
     search_fields = ("survey_name", "patient__family_name", "patient__given_names")
     list_display_links = None
 
 
 class SurveyAssignmentAdmin(admin.ModelAdmin):
     model = SurveyAssignment
-    list_display = ("registry", "survey_name", "patient_token", "state", "created", "updated", "response")
+    list_display = (
+        "registry",
+        "survey_name",
+        "patient_token",
+        "state",
+        "created",
+        "updated",
+        "response",
+    )
 
 
 class ContextFormGroupItemAdmin(admin.StackedInline):
@@ -429,7 +499,7 @@ class ContextFormGroupItemAdmin(admin.StackedInline):
 
 class ContextFormGroupAdmin(admin.ModelAdmin):
     model = ContextFormGroup
-    list_display = ('name', 'registry')
+    list_display = ("name", "registry")
     inlines = [ContextFormGroupItemAdmin]
 
     def registry(self, obj):
@@ -443,7 +513,7 @@ class CDEFileAdmin(admin.ModelAdmin):
 
 class ReviewItemAdmin(admin.StackedInline):
     model = ReviewItem
-    ordering = ['position']
+    ordering = ["position"]
 
 
 class ReviewAdmin(admin.ModelAdmin):
@@ -458,35 +528,36 @@ class PatientReviewItemAdmin(admin.StackedInline):
 
 class PatientReviewAdmin(admin.ModelAdmin):
     model = PatientReview
-    list_display = ("moniker",
-                    "patient",
-                    "parent",
-                    "token",
-                    "created_date",
-                    "completed_date",
-                    "state")
+    list_display = (
+        "moniker",
+        "patient",
+        "parent",
+        "token",
+        "created_date",
+        "completed_date",
+        "state",
+    )
     inlines = [PatientReviewItemAdmin]
 
 
 class VerificationAdmin(admin.ModelAdmin):
     model = Verification
-    list_display = ("patient",
-                    "registry",
-                    "form_name",
-                    "section_code",
-                    "cde_code",
-                    "created_date",
-                    "status",
-                    "username",
-                    "data")
+    list_display = (
+        "patient",
+        "registry",
+        "form_name",
+        "section_code",
+        "cde_code",
+        "created_date",
+        "status",
+        "username",
+        "data",
+    )
 
 
 class CustomActionAdmin(admin.ModelAdmin):
     model = CustomAction
-    list_display = ("registry",
-                    "code",
-                    "name",
-                    "action_type")
+    list_display = ("registry", "code", "name", "action_type")
 
     class Media:
         js = ("js/custom_action.js",)
@@ -494,14 +565,16 @@ class CustomActionAdmin(admin.ModelAdmin):
 
 class CustomActionExecutionAdmin(admin.ModelAdmin):
     model = CustomActionExecution
-    list_display = ("custom_action_code",
-                    "name",
-                    "created",
-                    "updated",
-                    "status",
-                    "user",
-                    "patient",
-                    "runtime")
+    list_display = (
+        "custom_action_code",
+        "name",
+        "created",
+        "updated",
+        "status",
+        "user",
+        "patient",
+        "runtime",
+    )
 
     def has_add_permission(self, request, obj=None):
         return False
@@ -511,44 +584,39 @@ class CustomActionExecutionAdmin(admin.ModelAdmin):
 
 
 class RegistryYamlAdmin(admin.ModelAdmin):
-    list_display = ('code',
-                    'created_at',
-                    'processed_at',
-                    'import_succeeded',
-                    'registry_version_before',
-                    'registry_version_after')
+    list_display = (
+        "code",
+        "created_at",
+        "processed_at",
+        "import_succeeded",
+        "registry_version_before",
+        "registry_version_after",
+    )
 
 
 class DropdownLookupAdmin(admin.ModelAdmin):
-    list_display = ('tag', 'label', 'value')
+    list_display = ("tag", "label", "value")
 
 
 CDEPermittedValueAdmin = create_restricted_model_admin_class(
     CDEPermittedValue,
-    ordering=['code'],
-    search_fields=[
-        'code',
-        'value',
-        'pv_group__code'],
+    ordering=["code"],
+    search_fields=["code", "value", "pv_group__code"],
     list_display=[
-        'code',
-        'value',
-        'questionnaire_value_formatted',
-        'pvg_link',
-        'position_formatted'])
+        "code",
+        "value",
+        "questionnaire_value_formatted",
+        "pvg_link",
+        "position_formatted",
+    ],
+)
 
 CommonDataElementAdmin = create_restricted_model_admin_class(
     CommonDataElement,
-    ordering=['code'],
-    search_fields=[
-        'code',
-        'name',
-        'datatype'],
-    list_display=[
-        'code',
-        'name',
-        'datatype',
-        'widget_name'])
+    ordering=["code"],
+    search_fields=["code", "name", "datatype"],
+    list_display=["code", "name", "datatype", "widget_name"],
+)
 
 
 DESIGN_MODE_ADMIN_COMPONENTS = [
@@ -604,10 +672,20 @@ if settings.SYSTEM_ROLE == SystemRoles.NORMAL:
     ADMIN_COMPONENTS = ADMIN_COMPONENTS + NORMAL_MODE_ADMIN_COMPONENTS
 
 if settings.SYSTEM_ROLE == SystemRoles.CIC_DEV:
-    ADMIN_COMPONENTS = ADMIN_COMPONENTS + NORMAL_MODE_ADMIN_COMPONENTS + PROMS_ADMIN_COMPONENTS + PROMS_ADMIN_OTHER_COMPONENTS
+    ADMIN_COMPONENTS = (
+        ADMIN_COMPONENTS
+        + NORMAL_MODE_ADMIN_COMPONENTS
+        + PROMS_ADMIN_COMPONENTS
+        + PROMS_ADMIN_OTHER_COMPONENTS
+    )
 
 if settings.SYSTEM_ROLE == SystemRoles.CIC_CLINICAL:
-    ADMIN_COMPONENTS = ADMIN_COMPONENTS + NORMAL_MODE_ADMIN_COMPONENTS + PROMS_ADMIN_COMPONENTS + PROMS_ADMIN_OTHER_COMPONENTS
+    ADMIN_COMPONENTS = (
+        ADMIN_COMPONENTS
+        + NORMAL_MODE_ADMIN_COMPONENTS
+        + PROMS_ADMIN_COMPONENTS
+        + PROMS_ADMIN_OTHER_COMPONENTS
+    )
 
 for model_class, model_admin in ADMIN_COMPONENTS:
     if not admin.site.is_registered(model_class):

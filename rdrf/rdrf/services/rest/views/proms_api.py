@@ -18,7 +18,10 @@ from rest_framework import status
 from rdrf.helpers.cache_utils import get_rdrf_model_id
 from rdrf.services.io.defs.exporter import Exporter
 from rdrf.services.io.defs.importer import Importer
-from rdrf.services.rest.serializers import SurveyAssignmentSerializer, RegistryYamlSerializer
+from rdrf.services.rest.serializers import (
+    SurveyAssignmentSerializer,
+    RegistryYamlSerializer,
+)
 from rdrf.services.rest.auth import PromsAuthentication
 from rest_framework.permissions import AllowAny
 import requests
@@ -27,6 +30,7 @@ import sys
 
 
 import logging
+
 logger = logging.getLogger(__name__)
 
 
@@ -35,9 +39,8 @@ def multicde(cde_model):
     return datatype == "range" and cde_model.allow_multiple
 
 
-@method_decorator(csrf_exempt, name='dispatch')
+@method_decorator(csrf_exempt, name="dispatch")
 class SurveyEndpoint(View):
-
     def post(self, request):
         data = json.loads(request.body)
         patient_token = data.get("patient_token")
@@ -47,11 +50,17 @@ class SurveyEndpoint(View):
 
         try:
             registry_id = get_rdrf_model_id(Registry, "code", registry_code)
-            survey_assignment = SurveyAssignment.objects.get(registry=registry_id,
-                                                             survey_name=survey_name,
-                                                             patient_token=patient_token,
-                                                             state=SurveyStates.REQUESTED)
-        except (Registry.DoesNotExist, Survey.DoesNotExist, SurveyAssignment.DoesNotExist):
+            survey_assignment = SurveyAssignment.objects.get(
+                registry=registry_id,
+                survey_name=survey_name,
+                patient_token=patient_token,
+                state=SurveyStates.REQUESTED,
+            )
+        except (
+            Registry.DoesNotExist,
+            Survey.DoesNotExist,
+            SurveyAssignment.DoesNotExist,
+        ):
             return HttpResponseBadRequest("Invalid survey request")
 
         survey_assignment.response = json.dumps(survey_answers)
@@ -87,11 +96,15 @@ class PromsDelete(APIView):
         registry_code = request.POST.get("registry_code")
         survey_ids = request.POST.getlist("survey_ids")
         self.get_queryset(registry_code, survey_ids).delete()
-        logger.info(f"deleted {len(survey_ids)} completed surveys that were downloaded for {registry_code} registry")
+        logger.info(
+            f"deleted {len(survey_ids)} completed surveys that were downloaded for {registry_code} registry"
+        )
         return Response("deleted")
 
     def get_queryset(self, registry_code, survey_ids):
-        return SurveyAssignment.objects.filter(state="completed", registry__code=registry_code, id__in=survey_ids)
+        return SurveyAssignment.objects.filter(
+            state="completed", registry__code=registry_code, id__in=survey_ids
+        )
 
 
 class PromsDownload(APIView):
@@ -102,16 +115,21 @@ class PromsDownload(APIView):
     def post(self, request, format=None):
         registry_code = request.POST.get("registry_code", "")
         completed_survey_assignments = self.get_queryset(registry_code)
-        completed_surveys = SurveyAssignmentSerializer(completed_survey_assignments, many=True)
+        completed_surveys = SurveyAssignmentSerializer(
+            completed_survey_assignments, many=True
+        )
         response = Response(completed_surveys.data)
         logger.info(
-            f"downloaded {len(completed_survey_assignments)} completed surveys that were downloaded for {registry_code} registry")
+            f"downloaded {len(completed_survey_assignments)} completed surveys that were downloaded for {registry_code} registry"
+        )
         return response
 
     def get_queryset(self, registry_code):
         # we order the survey by updated date so the last answered survey will overwrite previous answered survey
         # (in case there are multiple answers for the same survey/patient)
-        return SurveyAssignment.objects.filter(state="completed", registry__code=registry_code).order_by('updated')
+        return SurveyAssignment.objects.filter(
+            state="completed", registry__code=registry_code
+        ).order_by("updated")
 
 
 class RegistryYamlAPIView(APIView):
@@ -119,9 +137,14 @@ class RegistryYamlAPIView(APIView):
     permission_classes = (AllowAny,)
 
     def _mark_success(self, id, version_before, version_after):
-        RegistryYaml.objects.update_or_create(pk=id, defaults={'registry_version_before': version_before,
-                                                               'registry_version_after': version_after,
-                                                               'import_succeeded': True})
+        RegistryYaml.objects.update_or_create(
+            pk=id,
+            defaults={
+                "registry_version_before": version_before,
+                "registry_version_after": version_after,
+                "import_succeeded": True,
+            },
+        )
 
     def _import(self, request, registry_yaml):
         importer = Importer()
@@ -131,7 +154,7 @@ class RegistryYamlAPIView(APIView):
         version_before = None
         current_metadata = None
         try:
-            registry = Registry.objects.get(code=importer.data['code'])
+            registry = Registry.objects.get(code=importer.data["code"])
             version_before = registry.version
         except Registry.DoesNotExist:
             pass
@@ -143,13 +166,17 @@ class RegistryYamlAPIView(APIView):
         with transaction.atomic():
             try:
                 importer.create_registry()
-                if not override_metadata and current_metadata is not None:  # restore metadata
-                    registry = Registry.objects.get(code=importer.data['code'])
+                if (
+                    not override_metadata and current_metadata is not None
+                ):  # restore metadata
+                    registry = Registry.objects.get(code=importer.data["code"])
                     registry.metadata_json = current_metadata
                     try:
                         registry.save()
                     except Exception as e:
-                        logger.error(f"Definition import failed. Exception while saving registry: {e}")
+                        logger.error(
+                            f"Definition import failed. Exception while saving registry: {e}"
+                        )
                         raise e
                 self._mark_success(registry_yaml.pk, version_before, registry.version)
                 succeeded = True
@@ -188,32 +215,43 @@ class PromsSystemManager:
 
     def update_definition(self, override_metadata):
         if not self.proms_url:
-            raise Exception("Registry %s does not have an associated proms system" % self.registry_model)
+            raise Exception(
+                "Registry %s does not have an associated proms system"
+                % self.registry_model
+            )
 
         api = "/api/proms/v1/definitionimport"
         api_url = self.proms_url + api
 
         definition_yaml = self._get_definition(self.registry_model)
-        post_data = {'proms_secret_token': settings.PROMS_SECRET_TOKEN,
-                     'code': self.registry_model.code,
-                     'override': override_metadata,
-                     'definition': definition_yaml}
+        post_data = {
+            "proms_secret_token": settings.PROMS_SECRET_TOKEN,
+            "code": self.registry_model.code,
+            "override": override_metadata,
+            "definition": definition_yaml,
+        }
         response = requests.post(api_url, data=post_data)
 
         if response.status_code != 200:
-            logger.error(f"Error updating proms definition")
+            logger.error("Error updating proms definition")
             sys.exit(1)
         else:
             logger.info(f"Done updating proms definition: {self.proms_url}")
 
     def download_proms(self):
         if not self.proms_url:
-            raise Exception("Registry %s does not have an associated proms system" % self.registry_model)
+            raise Exception(
+                "Registry %s does not have an associated proms system"
+                % self.registry_model
+            )
 
         api = "/api/proms/v1/promsdownload"
 
         api_url = self.proms_url + api
-        post_data = {'proms_secret_token': settings.PROMS_SECRET_TOKEN, 'registry_code': self.registry_model.code}
+        post_data = {
+            "proms_secret_token": settings.PROMS_SECRET_TOKEN,
+            "registry_code": self.registry_model.code,
+        }
         response = requests.post(api_url, data=post_data)
 
         if response.status_code != 200:
@@ -229,15 +267,19 @@ class PromsSystemManager:
                 survey_data = json.loads(survey_response["response"])
 
                 # Sanity check: the survey registry must the same as the current registry
-                if survey_response['registry_code'] != self.registry_model.code:
-                    raise Exception(f"survey response registry code '{survey_response['registry_code']}' "
-                                    f"not equal to pull_proms registry code '{self.registry_model.code}'")
+                if survey_response["registry_code"] != self.registry_model.code:
+                    raise Exception(
+                        f"survey response registry code '{survey_response['registry_code']}' "
+                        f"not equal to pull_proms registry code '{self.registry_model.code}'"
+                    )
 
                 try:
-                    survey_request = SurveyRequest.objects.get(patient_token=patient_token,
-                                                               survey_name=survey_name,
-                                                               state=SurveyRequestStates.REQUESTED,
-                                                               registry__code=survey_response['registry_code'])
+                    survey_request = SurveyRequest.objects.get(
+                        patient_token=patient_token,
+                        survey_name=survey_name,
+                        state=SurveyRequestStates.REQUESTED,
+                        registry__code=survey_response["registry_code"],
+                    )
                 except SurveyRequest.DoesNotExist:
                     logger.error("could not find survey request")
                     continue
@@ -247,37 +289,51 @@ class PromsSystemManager:
                     continue
 
                 # Remember the patient ids so we can later update the calculated field for this patient.
-                logger.info(f"pulling proms for survey request token {survey_request.patient_token}")
+                logger.info(
+                    f"pulling proms for survey request token {survey_request.patient_token}"
+                )
                 survey_request.state = SurveyRequestStates.IN_PROCESS
                 survey_request.save()
                 patient_ids.add(survey_request.patient.id)
 
                 self._update_proms_fields(survey_request, survey_data)
-                logger.info(f"finished pulling proms for survey request token {survey_request.patient_token}")
+                logger.info(
+                    f"finished pulling proms for survey request token {survey_request.patient_token}"
+                )
 
                 # Store the survey id so we can delete it on the PROMS site once all surveys are downloaded.
                 survey_ids.append(survey_response["id"])
 
             # All went well, we can now delete the downloaded surveys from the PROMS site.
             if len(survey_ids) > 0:
-                delete_post_data = {**post_data, 'survey_ids': survey_ids}
+                delete_post_data = {**post_data, "survey_ids": survey_ids}
                 self.delete_registry_proms(delete_post_data)
 
             # Fix calculation for this registry.
             if patient_ids:
                 from django.core.management import call_command
-                call_command('update_calculated_fields', registry_code=self.registry_model.code, patient_id=patient_ids)
+
+                call_command(
+                    "update_calculated_fields",
+                    registry_code=self.registry_model.code,
+                    patient_id=patient_ids,
+                )
 
     def delete_registry_proms(self, post_data):
         api_delete = "/api/proms/v1/promsdelete"
         api_delete_url = self.proms_url + api_delete
         delete_response = requests.post(api_delete_url, data=post_data)
         if delete_response.status_code != 200:
-            logger.warning(f"Error deleting proms for {self.registry_model.code} registry")
-            raise Exception(f"Error deleting proms for {self.registry_model.code} registry")
+            logger.warning(
+                f"Error deleting proms for {self.registry_model.code} registry"
+            )
+            raise Exception(
+                f"Error deleting proms for {self.registry_model.code} registry"
+            )
 
     def _update_proms_fields(self, survey_request, survey_data):
         from rdrf.models.definition.models import RDRFContext
+
         # pokes downloaded proms into correct fields inside
         # clinical system
         context_model = None
@@ -293,7 +349,10 @@ class PromsSystemManager:
         is_followup = survey_request.survey.is_followup
         context_form_group = survey_request.survey.context_form_group
         if context_form_group is None and self.registry_model.has_feature("contexts"):
-            error_msg = "No Context Form Group selected on Survey %s" % survey_request.survey.name
+            error_msg = (
+                "No Context Form Group selected on Survey %s"
+                % survey_request.survey.name
+            )
             raise Exception(error_msg)
 
         if survey_request.survey.form:
@@ -302,27 +361,42 @@ class PromsSystemManager:
             target_form_model = None
 
         if is_followup:
-            context_model = RDRFContext(registry=self.registry_model, context_form_group=context_form_group,
-                                        content_object=patient_model, display_name="Follow Up")
+            context_model = RDRFContext(
+                registry=self.registry_model,
+                context_form_group=context_form_group,
+                content_object=patient_model,
+                display_name="Follow Up",
+            )
             context_model.save()
         else:
             if self.registry_model.has_feature("contexts"):
                 try:
-                    context_model = RDRFContext.objects.get(registry=self.registry_model,
-                                                            context_form_group=context_form_group,
-                                                            object_id=patient_model.pk)
+                    context_model = RDRFContext.objects.get(
+                        registry=self.registry_model,
+                        context_form_group=context_form_group,
+                        object_id=patient_model.pk,
+                    )
 
-                    if target_form_model and target_form_model not in context_form_group.forms:
-                        error_msg = "The target form %s is not in the form group %s" % (target_form_model.name,
-                                                                                        context_form_group.name)
+                    if (
+                        target_form_model
+                        and target_form_model not in context_form_group.forms
+                    ):
+                        error_msg = "The target form %s is not in the form group %s" % (
+                            target_form_model.name,
+                            context_form_group.name,
+                        )
                         raise Exception(error_msg)
                 except RDRFContext.DoesNotExist:
-                    error_msg = "Cannot locate context for group %s patient %s" % (context_form_group,
-                                                                                   getattr(patient_model, settings.LOG_PATIENT_FIELDNAME))
+                    error_msg = "Cannot locate context for group %s patient %s" % (
+                        context_form_group,
+                        getattr(patient_model, settings.LOG_PATIENT_FIELDNAME),
+                    )
                     raise Exception(error_msg)
                 except RDRFContext.MultipleObjectsReturned:
-                    error_msg = "Expecting one context for group %s patient %s" % (context_form_group,
-                                                                                   getattr(patient_model, settings.LOG_PATIENT_FIELDNAME))
+                    error_msg = "Expecting one context for group %s patient %s" % (
+                        context_form_group,
+                        getattr(patient_model, settings.LOG_PATIENT_FIELDNAME),
+                    )
                     raise Exception(error_msg)
 
             else:
@@ -330,8 +404,10 @@ class PromsSystemManager:
                 context_model = patient_model.default_context(self.registry_model)
 
         if context_model is None:
-            raise Exception("cannot determine proms pull context for patient %s" %
-                            getattr(patient_model, settings.LOG_PATIENT_FIELDNAME))
+            raise Exception(
+                "cannot determine proms pull context for patient %s"
+                % getattr(patient_model, settings.LOG_PATIENT_FIELDNAME)
+            )
 
         proms_gender = self._remove_sex(survey_data)
         if proms_gender is not None:
@@ -354,20 +430,29 @@ class PromsSystemManager:
                 if consent_exists:
                     consent_question_code = consent_dict.get(cde_code, None)
                     if consent_question_code is not None:
-                        self._update_consentvalue(patient_model, consent_question_code, value)
+                        self._update_consentvalue(
+                            patient_model, consent_question_code, value
+                        )
                         is_consent = True
 
                 if not is_consent:
                     # Find the cde code in the survey questions and check existance of cde_path
                     if cde_code in cde_paths.keys() and cde_paths[cde_code]:
-                        form_name, section_code = list(filter(None, cde_paths[cde_code].split("/")))
-                        form_model = RegistryForm.objects.get(name=form_name, registry__code=self.registry_model.code)
+                        form_name, section_code = list(
+                            filter(None, cde_paths[cde_code].split("/"))
+                        )
+                        form_model = RegistryForm.objects.get(
+                            name=form_name, registry__code=self.registry_model.code
+                        )
                         section_model = Section.objects.get(code=section_code)
                     else:
                         # override target_form_model if cde_path exists
-                        form_model, section_model = self._locate_cde(cde_model, context_model, target_form_model)
+                        form_model, section_model = self._locate_cde(
+                            cde_model, context_model, target_form_model
+                        )
             except BaseException as e:
                 import traceback
+
                 trace_back = traceback.format_exc()
                 message = str(e) + " | " + str(trace_back)
                 logger.error(f"could not locate cde {cde_code}: {message}")
@@ -382,16 +467,18 @@ class PromsSystemManager:
                     context_arg = context_model
 
                 if not is_consent:
-                    patient_model.set_form_value(self.registry_model.code,
-                                                 form_model.name,
-                                                 section_model.code,
-                                                 cde_model.code,
-                                                 value,
-                                                 context_arg)
+                    patient_model.set_form_value(
+                        self.registry_model.code,
+                        form_model.name,
+                        section_model.code,
+                        cde_model.code,
+                        value,
+                        context_arg,
+                    )
             except Exception as ex:
-                logger.error("Error updating proms field %s->%s: %s" % (cde_code,
-                                                                        value,
-                                                                        ex))
+                logger.error(
+                    "Error updating proms field %s->%s: %s" % (cde_code, value, ex)
+                )
                 continue
 
         survey_request.state = SurveyRequestStates.RECEIVED
@@ -400,6 +487,7 @@ class PromsSystemManager:
 
     def _update_consentvalue(self, patient_model, consent_code, answer):
         from rdrf.models.definition.models import ConsentQuestion
+
         consent_question_model = ConsentQuestion.objects.get(code=consent_code)
         patient_model.set_consent(consent_question_model, answer)
 

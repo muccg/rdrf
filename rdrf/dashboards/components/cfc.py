@@ -3,7 +3,7 @@ import pandas as pd
 import plotly.express as px
 from dash import dcc, html
 from ..components.common import BaseGraphic
-from ..utils import get_colour_map
+from ..utils import get_sevenscale_colour_map
 from ..utils import add_seq_name
 
 
@@ -24,19 +24,28 @@ class CombinedFieldComparison(BaseGraphic):
         inputs = [field["code"] for field in fields]
         labels = [field["label"] for field in fields]
         combined_name = "/".join(labels)
-        colour_map = self.config.get("colour_map", None)
+        colour_map = self.config.get("colour_map", get_sevenscale_colour_map())
         data = self._get_combined_data(self.data, inputs)
         data = add_seq_name(data)
         data = data.round(1)
+        data = self._replace_blanks(data)
 
         bars_div = self._create_bars_div(data, inputs, colour_map, combined_name)
         div = html.Div([html.H3(self.title), bars_div])
         return html.Div(div, id="fgc")
 
-    def _create_bars_div(self, data, inputs, colour_map, combined_name):
-        if colour_map is None:
-            colour_map = get_colour_map()
+    def _replace_blanks(self, data):
+        def op(row):
+            value = row["value"]
+            if value == "":
+                return "Blank"
+            else:
+                return value
 
+        data["value"] = data.apply(op, axis=1)
+        return data
+
+    def _create_bars_div(self, data, inputs, colour_map, combined_name):
         fig = px.bar(
             data,
             SEQ,
@@ -45,14 +54,15 @@ class CombinedFieldComparison(BaseGraphic):
             barmode="stack",
             title=f"Change in {combined_name} over time for all patients",
             color_discrete_map=colour_map,
+            labels={"SEQ": "Survey Time Period"},
         )
         fig.update_xaxes(type="category")
 
         self.fix_xaxis(fig, data)
 
         log("created bar")
-        id = f"bar-combined"
-        div = html.Div([dcc.Graph(figure=fig)], id=id)
+        bar_id = "bar-combined"
+        div = html.Div([dcc.Graph(figure=fig)], id=bar_id)
         return div
 
     def _get_combined_data(self, df: pd.DataFrame, inputs) -> pd.DataFrame:
@@ -90,7 +100,7 @@ class CombinedFieldComparison(BaseGraphic):
         This merged dataframe is then grouped and aggregated to get the percentage..
         maybe there is an easier way.
         """
-        log(f"in get combined data")
+        log("in get combined data")
         df_counts = []
         num_inputs = len(inputs)
         log(f"number of inputs = {num_inputs}")

@@ -68,13 +68,14 @@ class ImportState:
     LOADED = "LOADED"
     VALID = "VALID"
     INVALID = "INVALID"
-    SOUND = "SOUND"   # the registry has been created and check to have no dangling cde codes
+    SOUND = (
+        "SOUND"  # the registry has been created and check to have no dangling cde codes
+    )
     UNSOUND = "UNSOUND"  # the spec contains references to cdes which don't exist
     IMPORTED = "IMPORTED"
 
 
 class Importer(object):
-
     def __init__(self, options={}):
         self.options = options
         self.yaml_data = None
@@ -103,19 +104,24 @@ class Importer(object):
             self.state = ImportState.LOADED
         except Exception as ex:
             self.state = ImportState.MALFORMED
-            logger.error("Could not parse yaml data:\n%s\n\nError:\n%s" % (yaml_data_file, ex))
+            logger.error(
+                "Could not parse yaml data:\n%s\n\nError:\n%s" % (yaml_data_file, ex)
+            )
             raise BadDefinitionFile("YAML file is malformed: %s" % ex)
 
     def create_registry(self):
         if self.state == ImportState.MALFORMED:
-            logger.error("Cannot create registry as yaml is not well formed: %s" % self.errors)
+            logger.error(
+                "Cannot create registry as yaml is not well formed: %s" % self.errors
+            )
             return
 
         if self.check_validity:
             self._validate()
             if self.state == ImportState.INVALID:
                 raise DefinitionFileInvalid(
-                    "Definition File does not have correct structure: %s" % self.errors)
+                    "Definition File does not have correct structure: %s" % self.errors
+                )
         else:
             self.state = ImportState.VALID
 
@@ -125,7 +131,8 @@ class Importer(object):
             self._check_soundness()
             if self.state == ImportState.UNSOUND:
                 raise DefinitionFileUnsound(
-                    "Definition File refers to CDEs that don't exist: %s" % self.errors)
+                    "Definition File refers to CDEs that don't exist: %s" % self.errors
+                )
 
         else:
             self.state = ImportState.SOUND
@@ -174,7 +181,8 @@ class Importer(object):
         if missing_codes:
             self.state = ImportState.UNSOUND
             self.errors.append(
-                "Unsound: The following cde codes do not exist: %s" % missing_codes)
+                "Unsound: The following cde codes do not exist: %s" % missing_codes
+            )
         else:
             registry = Registry.objects.get(code=self.data["code"])
             # Perform some double checking on the imported registry's structure
@@ -187,13 +195,19 @@ class Importer(object):
     def _check_forms(self, imported_registry):
         # double check the import_registry model instance we've created against
         # the original yaml data
-        form_codes_in_db = set([frm.name for frm in RegistryForm.objects.filter(
-            registry=imported_registry) if frm.name != imported_registry.generated_questionnaire_name])
+        form_codes_in_db = set(
+            [
+                frm.name
+                for frm in RegistryForm.objects.filter(registry=imported_registry)
+                if frm.name != imported_registry.generated_questionnaire_name
+            ]
+        )
         form_codes_in_yaml = set([frm_map["name"] for frm_map in self.data["forms"]])
         if form_codes_in_db != form_codes_in_yaml:
             msg = "in db: %s in yaml: %s" % (form_codes_in_db, form_codes_in_yaml)
             raise RegistryImportError(
-                "Imported registry has different forms to yaml file: %s" % msg)
+                "Imported registry has different forms to yaml file: %s" % msg
+            )
 
     def _check_sections(self, imported_registry):
         for form in RegistryForm.objects.filter(registry=imported_registry):
@@ -205,8 +219,9 @@ class Importer(object):
                     Section.objects.get(code=section_code)
                 except Section.DoesNotExist:
                     raise RegistryImportError(
-                        "Section %s in form %s has not been created?!" %
-                        (section_code, form.name))
+                        "Section %s in form %s has not been created?!"
+                        % (section_code, form.name)
+                    )
 
             yaml_sections = set([])
             for yaml_form_map in self.data["forms"]:
@@ -216,10 +231,13 @@ class Importer(object):
 
             if sections_in_db != yaml_sections:
                 msg = "sections in imported reg: %s\nsections in yaml: %s" % (
-                    sections_in_db, yaml_sections)
+                    sections_in_db,
+                    yaml_sections,
+                )
                 raise RegistryImportError(
-                    "Imported registry has different sections for form %s: %s" %
-                    (form.name, msg))
+                    "Imported registry has different sections for form %s: %s"
+                    % (form.name, msg)
+                )
 
     def _check_cdes(self, imported_registry):
         for form in RegistryForm.objects.filter(registry=imported_registry):
@@ -232,12 +250,14 @@ class Importer(object):
                     imported_section_cdes = set([])
                     for section_cde_code in section_cdes:
                         try:
-                            cde_model = CommonDataElement.objects.get(code=section_cde_code)
+                            cde_model = CommonDataElement.objects.get(
+                                code=section_cde_code
+                            )
                             imported_section_cdes.add(cde_model.code)
                         except CommonDataElement.DoesNotExist:
                             raise RegistryImportError(
-                                "CDE %s.%s does not exist" %
-                                (form.name, section_code, section_cde_code))
+                                f"CDE {form.name}.{section_code}.{section_cde_code} does not exist"
+                            )
 
                     yaml_section_cdes = set([])
                     for form_map in self.data["forms"]:
@@ -249,26 +269,39 @@ class Importer(object):
                                         yaml_section_cdes.add(cde_code)
                     if yaml_section_cdes != imported_section_cdes:
                         db_msg = "in DB %s.%s has cdes %s" % (
-                            form.name, section.code, imported_section_cdes)
+                            form.name,
+                            section.code,
+                            imported_section_cdes,
+                        )
                         yaml_msg = "in YAML %s.%s has cdes %s" % (
-                            form.name, section.code, yaml_section_cdes)
+                            form.name,
+                            section.code,
+                            yaml_section_cdes,
+                        )
                         msg = "%s\n%s" % (db_msg, yaml_msg)
 
                         raise RegistryImportError(
-                            "CDE codes on imported registry do not match those specified in data file: %s" % msg)
+                            "CDE codes on imported registry do not match those specified in data file: %s"
+                            % msg
+                        )
 
                 except Section.DoesNotExist:
                     raise RegistryImportError(
-                        "Section %s in form %s has not been created?!" %
-                        (section_code, form.name))
+                        "Section %s in form %s has not been created?!"
+                        % (section_code, form.name)
+                    )
 
     def _create_groups(self, permissible_value_group_maps):
         for pvg_map in permissible_value_group_maps:
-            pvg, created = CDEPermittedValueGroup.objects.get_or_create(code=pvg_map["code"])
+            pvg, created = CDEPermittedValueGroup.objects.get_or_create(
+                code=pvg_map["code"]
+            )
             pvg.save()
             if not created:
                 logger.warning("Import is updating an existing group %s" % pvg.code)
-                existing_values = [pv for pv in CDEPermittedValue.objects.filter(pv_group=pvg)]
+                existing_values = [
+                    pv for pv in CDEPermittedValue.objects.filter(pv_group=pvg)
+                ]
                 existing_value_codes = set([pv.code for pv in existing_values])
                 import_value_codes = set([v["code"] for v in pvg_map["values"]])
                 import_missing = existing_value_codes - import_value_codes
@@ -278,13 +311,18 @@ class Importer(object):
 
                 for value_code in import_missing:
                     try:
-                        value = CDEPermittedValue.objects.get(code=value_code, pv_group=pvg)
+                        value = CDEPermittedValue.objects.get(
+                            code=value_code, pv_group=pvg
+                        )
                         logger.warning(
-                            "deleting value %s.%s as it is not in import!" %
-                            (pvg.code, value.code))
+                            "deleting value %s.%s as it is not in import!"
+                            % (pvg.code, value.code)
+                        )
                         value.delete()
                     except CDEPermittedValue.DoesNotExist:
-                        logger.warning(f"CDEPermittedValue value does not exist for pvg {pvg.code} value {value_code}")
+                        logger.warning(
+                            f"CDEPermittedValue value does not exist for pvg {pvg.code} value {value_code}"
+                        )
 
                     except Exception as ex:
                         logger.error("err: %s" % ex)
@@ -293,48 +331,60 @@ class Importer(object):
             for value_map in pvg_map["values"]:
                 try:
                     value, created = CDEPermittedValue.objects.get_or_create(
-                        code=value_map["code"], pv_group=pvg)
+                        code=value_map["code"], pv_group=pvg
+                    )
                 except MultipleObjectsReturned:
                     raise ValidationError(
-                        "range %s code %s is duplicated" %
-                        (pvg.code, value_map["code"]))
+                        "range %s code %s is duplicated" % (pvg.code, value_map["code"])
+                    )
 
                 if not created:
                     if value.value != value_map["value"]:
-                        logger.warning("Existing value code %s.%s = '%s'" %
-                                       (value.pv_group.code, value.code, value.value))
-                        logger.warning("Import value code %s.%s = '%s'" %
-                                       (pvg_map["code"], value_map["code"], value_map["value"]))
+                        logger.warning(
+                            "Existing value code %s.%s = '%s'"
+                            % (value.pv_group.code, value.code, value.value)
+                        )
+                        logger.warning(
+                            "Import value code %s.%s = '%s'"
+                            % (pvg_map["code"], value_map["code"], value_map["value"])
+                        )
 
                     if value.desc != value_map["desc"]:
-                        logger.warning("Existing value desc%s.%s = '%s'" %
-                                       (value.pv_group.code, value.code, value.desc))
-                        logger.warning("Import value desc %s.%s = '%s'" %
-                                       (pvg_map["code"], value_map["code"], value_map["desc"]))
+                        logger.warning(
+                            "Existing value desc%s.%s = '%s'"
+                            % (value.pv_group.code, value.code, value.desc)
+                        )
+                        logger.warning(
+                            "Import value desc %s.%s = '%s'"
+                            % (pvg_map["code"], value_map["code"], value_map["desc"])
+                        )
 
                 # update the value ...
                 value.value = value_map["value"]
                 value.desc = value_map["desc"]
 
-                if 'questionnaire_value' in value_map:
-                    value.questionnaire_value = value_map['questionnaire_value']
+                if "questionnaire_value" in value_map:
+                    value.questionnaire_value = value_map["questionnaire_value"]
 
-                if 'position' in value_map:
-                    value.position = value_map['position']
+                if "position" in value_map:
+                    value.position = value_map["position"]
 
                 value.save()
 
     def _create_cdes(self, cde_maps):
         for cde_map in cde_maps:
-            cde_model, created = CommonDataElement.objects.get_or_create(code=cde_map["code"])
+            cde_model, created = CommonDataElement.objects.get_or_create(
+                code=cde_map["code"]
+            )
 
             if not created:
                 registries_already_using = _registries_using_cde(cde_model)
                 if len(registries_already_using) > 0:
                     logger.warning("Import is modifying existing CDE %s" % cde_model)
                     logger.warning(
-                        "This cde is used by the following registries: %s" %
-                        registries_already_using)
+                        "This cde is used by the following registries: %s"
+                        % registries_already_using
+                    )
 
             for field in cde_map:
                 if field not in ["code", "pv_group"]:
@@ -343,8 +393,9 @@ class Importer(object):
                         old_value = getattr(cde_model, field)
                         if old_value != import_value:
                             logger.warning(
-                                "import will change cde %s: import value = %s new value = %s" %
-                                (cde_model.code, old_value, import_value))
+                                "import will change cde %s: import value = %s new value = %s"
+                                % (cde_model.code, old_value, import_value)
+                            )
 
                     setattr(cde_model, field, cde_map[field])
 
@@ -356,13 +407,16 @@ class Importer(object):
                     if not created:
                         if cde_model.pv_group != pvg:
                             logger.warning(
-                                "import will change cde %s: old group = %s new group = %s" %
-                                (cde_model.code, cde_model.pv_group, pvg))
+                                "import will change cde %s: old group = %s new group = %s"
+                                % (cde_model.code, cde_model.pv_group, pvg)
+                            )
 
                     cde_model.pv_group = pvg
                 except CDEPermittedValueGroup.DoesNotExist as ex:
-                    raise ConsistencyError("Assign of group %s to imported CDE %s failed: %s" %
-                                           (cde_map["pv_group"], cde_model.code, ex))
+                    raise ConsistencyError(
+                        "Assign of group %s to imported CDE %s failed: %s"
+                        % (cde_map["pv_group"], cde_model.code, ex)
+                    )
 
             cde_model.save()
 
@@ -420,7 +474,10 @@ class Importer(object):
                 raise ValueError("Not a dictionary")
             return True
         except ValueError as verr:
-            logger.error("invalid metadata ( should be json dictionary): %s Error %s" % (metadata_json, verr))
+            logger.error(
+                "invalid metadata ( should be json dictionary): %s Error %s"
+                % (metadata_json, verr)
+            )
             return False
 
     def _create_registry_objects(self):
@@ -455,7 +512,8 @@ class Importer(object):
             patient_data_section_map = self.data["patient_data_section"]
             if patient_data_section_map:
                 patient_data_section = self._create_patient_data_section(
-                    patient_data_section_map)
+                    patient_data_section_map
+                )
                 r.patient_data_section = patient_data_section
 
         if "metadata_json" in self.data:
@@ -465,7 +523,8 @@ class Importer(object):
                     r.metadata_json = self.data["metadata_json"]
             else:
                 raise DefinitionFileInvalid(
-                    "Invalid JSON for registry metadata ( should be a json dictionary")
+                    "Invalid JSON for registry metadata ( should be a json dictionary"
+                )
 
         r.save()
         logger.info("imported registry object OK")
@@ -478,7 +537,9 @@ class Importer(object):
             try:
                 extra_form = RegistryForm.objects.get(registry=r, name=form_name)
                 assert form_name not in imported_forms
-                logger.info("deleting extra form not present in import file: %s" % form_name)
+                logger.info(
+                    "deleting extra form not present in import file: %s" % form_name
+                )
                 extra_form.delete()
             except RegistryForm.DoesNotExist:
                 # shouldn't happen but if so just continue
@@ -494,24 +555,40 @@ class Importer(object):
         for frm_map in self.data["forms"]:
             logger.info("starting import of form map %s" % frm_map)
 
-            sections = ",".join([section_map["code"] for section_map in frm_map["sections"]])
+            sections = ",".join(
+                [section_map["code"] for section_map in frm_map["sections"]]
+            )
 
             # First create section models so the form save validation passes
             self._create_form_sections(frm_map)
 
-            f, created = RegistryForm.objects.get_or_create(registry=registry, name=frm_map["name"],
-                                                            defaults={'sections': sections})
+            f, created = RegistryForm.objects.get_or_create(
+                registry=registry, name=frm_map["name"], defaults={"sections": sections}
+            )
             if not created:
                 f.sections = sections
 
             permission_code_name = "form_%s_is_readonly" % f.id
-            permission_name = "Form '%s' is readonly (%s)" % (f.name, f.registry.code.upper())
-            create_permission("rdrf", "registryform", permission_code_name, permission_name)
+            permission_name = "Form '%s' is readonly (%s)" % (
+                f.name,
+                f.registry.code.upper(),
+            )
+            create_permission(
+                "rdrf", "registryform", permission_code_name, permission_name
+            )
 
             # Create can unlock permission.
             can_lock_permission_code_name = "form_%s_can_lock" % f.id
-            can_lock_permission_name = "Form '%s' can be locked (%s)" % (f.name, f.registry.code.upper())
-            create_permission("rdrf", "registryform", can_lock_permission_code_name, can_lock_permission_name)
+            can_lock_permission_name = "Form '%s' can be locked (%s)" % (
+                f.name,
+                f.registry.code.upper(),
+            )
+            create_permission(
+                "rdrf",
+                "registryform",
+                can_lock_permission_code_name,
+                can_lock_permission_name,
+            )
 
             f.name = frm_map["name"]
             if "display_name" in frm_map:
@@ -530,8 +607,8 @@ class Importer(object):
                 f.applicability_condition = frm_map["applicability_condition"]
 
             f.registry = registry
-            if 'position' in frm_map:
-                f.position = frm_map['position']
+            if "position" in frm_map:
+                f.position = frm_map["position"]
             f.save()
             logger.info("imported form %s OK" % f.name)
             imported_forms.add(f.name)
@@ -550,12 +627,16 @@ class Importer(object):
                 "surveys",
                 "reviews",
                 "custom_actions",
-                "hl7_mappings"
+                "hl7_mappings",
+                "vis_base_data_configs",
+                "vis_configs",
             ]
         else:
             remaining_objects = [
                 "surveys",
-                "custom_actions"
+                "custom_actions",
+                "vis_base_data_configs",
+                "vis_configs",
             ]
 
         for import_obj in remaining_objects:
@@ -572,6 +653,7 @@ class Importer(object):
 
     def _create_consent_rules(self, registry_model):
         from rdrf.models.definition.models import ConsentRule
+
         ConsentRule.objects.filter(registry=registry_model).delete()
         logger.info("Deleted existing consent rules ...")
         for consent_rule_dict in self.data["consent_rules"]:
@@ -586,20 +668,24 @@ class Importer(object):
 
             consent_question_code = consent_rule_dict["consent_question_code"]
             logger.info("consent question code = %s" % consent_question_code)
-            consent_section_model = ConsentSection.objects.get(registry=registry_model,
-                                                               code=consent_section_code)
-            consent_question_model = ConsentQuestion.objects.get(section=consent_section_model,
-                                                                 code=consent_question_code)
+            consent_section_model = ConsentSection.objects.get(
+                registry=registry_model, code=consent_section_code
+            )
+            consent_question_model = ConsentQuestion.objects.get(
+                section=consent_section_model, code=consent_question_code
+            )
 
             cr.consent_question = consent_question_model
             cr.save()
-            logger.info("Imported Consent Rule for %s %s" % (cr.capability,
-                                                             cr.user_group))
+            logger.info(
+                "Imported Consent Rule for %s %s" % (cr.capability, cr.user_group)
+            )
 
     def _create_surveys(self, registry_model):
         from rdrf.models.proms.models import Survey
         from rdrf.models.proms.models import SurveyQuestion
         from rdrf.models.proms.models import Precondition
+
         Survey.objects.filter(registry=registry_model).delete()
         logger.info("Deleted existing surveys ...")
         for survey_dict in self.data["surveys"]:
@@ -611,8 +697,10 @@ class Importer(object):
             context_form_group_name = survey_dict.get("context_form_group", None)
             if context_form_group_name:
                 from rdrf.models.definition.models import ContextFormGroup
-                cfg = ContextFormGroup.objects.get(name=context_form_group_name,
-                                                   registry=registry_model)
+
+                cfg = ContextFormGroup.objects.get(
+                    name=context_form_group_name, registry=registry_model
+                )
             else:
                 cfg = None
 
@@ -624,8 +712,10 @@ class Importer(object):
             form_name = survey_dict.get("form", None)
             if form_name:
                 from rdrf.models.definition.models import RegistryForm
-                form_model = RegistryForm.objects.get(registry=registry_model,
-                                                      name=form_name)
+
+                form_model = RegistryForm.objects.get(
+                    registry=registry_model, name=form_name
+                )
                 survey_model.form = form_model
                 survey_model.save()
 
@@ -646,16 +736,22 @@ class Importer(object):
                 logger.info("saved sq %s" % sq_model)
 
                 if sq["precondition"]:
-                    precondition_cde_model = CommonDataElement.objects.get(code=sq["precondition"]["cde"])
-                    precondition_model = Precondition(cde=precondition_cde_model, survey=survey_model)
+                    precondition_cde_model = CommonDataElement.objects.get(
+                        code=sq["precondition"]["cde"]
+                    )
+                    precondition_model = Precondition(
+                        cde=precondition_cde_model, survey=survey_model
+                    )
                     precondition_model.value = sq["precondition"]["value"]
                     precondition_model.save()
                     sq_model.precondition = precondition_model
                 sq_model.save()
                 logger.info("Imported survey question %s" % sq_model.cde.code)
                 if sq_model.precondition:
-                    logger.info("Imported precondition: %s = %s" % (sq_model.precondition.cde.code,
-                                                                    sq_model.precondition.value))
+                    logger.info(
+                        "Imported precondition: %s = %s"
+                        % (sq_model.precondition.cde.code, sq_model.precondition.value)
+                    )
             survey_model.recalc_client_rep()
             survey_model.save()
             logger.info("Imported Survey %s" % survey_model.name)
@@ -675,9 +771,9 @@ class Importer(object):
                 review_model.delete()
 
         for review_dict in self.data["reviews"]:
-            review_model = goc(Review,
-                               registry=registry_model,
-                               code=review_dict["code"])
+            review_model = goc(
+                Review, registry=registry_model, code=review_dict["code"]
+            )
 
             review_model.name = review_dict["name"]
             review_model.review_type = review_dict["review_type"]
@@ -687,14 +783,15 @@ class Importer(object):
             existing_item_codes = set([ri.code for ri in review_model.items.all()])
             imported_item_codes = set([rd["code"] for rd in review_dict["items"]])
             items_to_delete = existing_item_codes - imported_item_codes
-            ReviewItem.objects.filter(review=review_model,
-                                      code__in=items_to_delete).delete()
+            ReviewItem.objects.filter(
+                review=review_model, code__in=items_to_delete
+            ).delete()
 
             # now update/create items
             for item_dict in review_dict["items"]:
-                review_item = goc(ReviewItem,
-                                  review=review_model,
-                                  code=item_dict["code"])
+                review_item = goc(
+                    ReviewItem, review=review_model, code=item_dict["code"]
+                )
                 review_item.category = item_dict["category"]
                 review_item.name = item_dict["name"]
                 review_item.position = item_dict["position"]
@@ -705,8 +802,9 @@ class Importer(object):
                 review_item.save()
 
                 if item_dict["form"]:
-                    form_model = RegistryForm.objects.get(registry=registry_model,
-                                                          name=item_dict["form"])
+                    form_model = RegistryForm.objects.get(
+                        registry=registry_model, name=item_dict["form"]
+                    )
                     review_item.form = form_model
                 if item_dict["section"]:
                     section_model = Section.objects.get(code=item_dict["section"])
@@ -716,6 +814,7 @@ class Importer(object):
 
     def _create_custom_actions(self, registry):
         from rdrf.models.definition.models import CustomAction
+
         CustomAction.objects.filter(registry=registry).delete()
         for action_dict in self.data["custom_actions"]:
             action = CustomAction(registry=registry)
@@ -736,19 +835,60 @@ class Importer(object):
             action.groups_allowed.set(groups)
             action.save()
 
+    def _create_vis_base_data_configs(self, registry):
+        from dashboards.models import VisualisationBaseDataConfig as B
+
+        B.objects.filter(registry=registry).delete()
+
+        for d in self.data["vis_base_data_configs"]:
+            bdc = B()
+            bdc.registry = registry
+            bdc.code = d["code"]
+            bdc.state = "E"
+            bdc.config = d["config"]
+            bdc.data = {}  # this gets populated via a cron
+            bdc.save()
+
+    def _create_vis_configs(self, registry):
+        from dashboards.models import VisualisationBaseDataConfig as B
+        from dashboards.models import VisualisationConfig as V
+
+        # we have already loaded the new base data in the method above
+        V.objects.filter(registry=registry).delete()
+
+        for c in self.data["vis_configs"]:
+            v = V()
+            v.registry = registry
+            if c["base_data"]:
+                base_data = B.objects.get(registry=registry, code=c["base_data"])
+                v.base_data = base_data
+            v.dashboard = c["dashboard"]
+            v.code = c["code"]
+            v.title = c["title"]
+            v.config = c["config"]
+            v.position = c["position"]
+            v.save()
+
     def _create_email_notifications(self, registry):
         from rdrf.models.definition.models import EmailNotification
         from rdrf.models.definition.models import EmailTemplate
+
         our_registry_tuple_list = [(registry.pk,)]
         # delete non-shared templates in use by this registry
 
         def non_shared(template_model):
             using_regs = [
-                x for x in template_model.emailnotification_set.all().values_list('registry__pk')]
+                x
+                for x in template_model.emailnotification_set.all().values_list(
+                    "registry__pk"
+                )
+            ]
             if using_regs == our_registry_tuple_list:
                 return True
 
-        templates_to_delete = set([t.id for t in EmailTemplate.objects.all() if non_shared(t)])
+        templates_to_delete = set(
+            [t.id for t in EmailTemplate.objects.all() if non_shared(t)]
+        )
 
         EmailTemplate.objects.filter(id__in=templates_to_delete).delete()
         EmailNotification.objects.filter(registry=registry).delete()
@@ -814,7 +954,8 @@ class Importer(object):
             if cfg_dict is None:
                 continue
             cfg, created = ContextFormGroup.objects.get_or_create(
-                registry=registry, name=cfg_dict["name"])
+                registry=registry, name=cfg_dict["name"]
+            )
             cfg.context_type = cfg_dict["context_type"]
             cfg.name = cfg_dict["name"]
             cfg.naming_scheme = cfg_dict["naming_scheme"]
@@ -833,7 +974,8 @@ class Importer(object):
             for form_name in cfg_dict["forms"]:
                 registry_form = get_form(form_name)
                 cfg_item, created = ContextFormGroupItem.objects.get_or_create(
-                    context_form_group=cfg, registry_form=registry_form)
+                    context_form_group=cfg, registry_form=registry_form
+                )
                 cfg_item.save()
 
             logger.info("imported cfg %s" % cfg.name)
@@ -863,18 +1005,23 @@ class Importer(object):
     def _create_working_groups(self, registry):
         if "working_groups" in self.data:
             working_group_names = self.data["working_groups"]
-            existing_groups = set([wg for wg in WorkingGroup.objects.filter(registry=registry)])
+            existing_groups = set(
+                [wg for wg in WorkingGroup.objects.filter(registry=registry)]
+            )
             new_groups = set([])
             for working_group_name in working_group_names:
                 working_group, created = WorkingGroup.objects.get_or_create(
-                    name=working_group_name, registry=registry)
+                    name=working_group_name, registry=registry
+                )
                 working_group.save()
                 new_groups.add(working_group)
 
             groups_to_unlink = existing_groups - new_groups
             for wg in groups_to_unlink:
-                logger.info("deleting delete()working group %s for %s registry import" %
-                            (wg.name, registry.name))
+                logger.info(
+                    "deleting delete()working group %s for %s registry import"
+                    % (wg.name, registry.name)
+                )
                 # if we delete the group the patients get deleted .. todo need to confirm
                 # behaviour
                 wg.registry = None
@@ -886,15 +1033,22 @@ class Importer(object):
                 code = section_dict["code"]
                 section_label = section_dict["section_label"]
                 section_model, created = ConsentSection.objects.get_or_create(
-                    code=code, registry=registry, defaults={'section_label': section_label})
+                    code=code,
+                    registry=registry,
+                    defaults={"section_label": section_label},
+                )
                 section_model.section_label = section_label
                 section_model.information_link = section_dict.get(
-                    "information_link", section_model.information_link)
+                    "information_link", section_model.information_link
+                )
                 section_model.information_text = section_dict.get(
-                    "information_text", section_model.information_text)
-                section_model.applicability_condition = section_dict["applicability_condition"]
+                    "information_text", section_model.information_text
+                )
+                section_model.applicability_condition = section_dict[
+                    "applicability_condition"
+                ]
                 if "validation_rule" in section_dict:
-                    section_model.validation_rule = section_dict['validation_rule']
+                    section_model.validation_rule = section_dict["validation_rule"]
                 section_model.save()
                 for question_dict in section_dict["questions"]:
                     question_code = question_dict["code"]
@@ -911,7 +1065,8 @@ class Importer(object):
                         instructions = ""
 
                     question_model, created = ConsentQuestion.objects.get_or_create(
-                        code=question_code, section=section_model)
+                        code=question_code, section=section_model
+                    )
                     question_model.position = question_position
                     question_model.question_label = question_label
                     question_model.instructions = instructions
@@ -929,23 +1084,29 @@ class Importer(object):
                 group_obj.save()
 
             demo_field, created = DemographicFields.objects.get_or_create(
-                registry=registry_obj, group=group_obj, field=d["field"])
+                registry=registry_obj, group=group_obj, field=d["field"]
+            )
             demo_field.hidden = d["hidden"]
             demo_field.readonly = d["readonly"]
             demo_field.save()
 
     def _create_complete_form_fields(self, registry_model, data):
         for d in data:
-            form = RegistryForm.objects.get(name=d["form_name"], registry=registry_model)
+            form = RegistryForm.objects.get(
+                name=d["form_name"], registry=registry_model
+            )
             for cde_code in d["cdes"]:
-                form.complete_form_cdes.add(CommonDataElement.objects.get(code=cde_code))
+                form.complete_form_cdes.add(
+                    CommonDataElement.objects.get(code=cde_code)
+                )
             form.save()
 
     def _create_reports(self, data):
         for d in data:
             registry_obj = Registry.objects.get(code=d["registry"])
             query, created = Query.objects.get_or_create(
-                registry=registry_obj, title=d["title"])
+                registry=registry_obj, title=d["title"]
+            )
             for ag in d["access_group"]:
                 group, created = Group.objects.get_or_create(name=ag)
                 if created:
@@ -967,25 +1128,32 @@ class Importer(object):
 
         for pol in CdePolicy.objects.filter(registry=registry_model):
             logger.info(
-                "deleting old cde policy object for registry %s cde %s" %
-                (registry_model.code, pol.cde.code))
+                "deleting old cde policy object for registry %s cde %s"
+                % (registry_model.code, pol.cde.code)
+            )
             pol.delete()
 
         if "cde_policies" in self.data:
-            cde_policies = self.data['cde_policies']
+            cde_policies = self.data["cde_policies"]
             for cde_pol_dict in cde_policies:
                 try:
-                    cde_model = CommonDataElement.objects.get(code=cde_pol_dict["cde_code"])
+                    cde_model = CommonDataElement.objects.get(
+                        code=cde_pol_dict["cde_code"]
+                    )
                 except CommonDataElement.DoesNotExist:
-                    logger.error("cde code does not exist for cde policy %s" % cde_pol_dict)
+                    logger.error(
+                        "cde code does not exist for cde policy %s" % cde_pol_dict
+                    )
                     continue
 
                 group_names = cde_pol_dict["groups_allowed"]
                 groups = [g for g in Group.objects.filter(name__in=group_names)]
 
-                cde_policy = CdePolicy(registry=registry_model,
-                                       cde=cde_model,
-                                       condition=cde_pol_dict['condition'])
+                cde_policy = CdePolicy(
+                    registry=registry_model,
+                    cde=cde_model,
+                    condition=cde_pol_dict["condition"],
+                )
                 cde_policy.save()
                 cde_policy.groups_allowed.set(groups)
                 cde_policy.save()

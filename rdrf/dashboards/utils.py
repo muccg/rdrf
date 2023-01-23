@@ -1,17 +1,33 @@
 import logging
-from django_plotly_dash.models import StatelessApp
 
 logger = logging.getLogger(__name__)
 
 
 def get_colour_map():
     color_discrete_map = {
-        "Not at all": "lightgreen",
-        "A little": "orange",
+        "Blank": "lightgrey",
+        "Not at all": "green",
+        "A little": "lightgreen",
         "Quite a bit": "darkorange",
         "Very much": "red",
     }
     return color_discrete_map
+
+
+def get_sevenscale_colour_map():
+    # 1 = Very poor and 7 = Excellent
+    # used by Health Status and Quality of Life
+    return {
+        "": "lightgrey",
+        "Blank": "lightgrey",
+        "1": "red",
+        "2": "lightred",
+        "3": "orange",
+        "4": "lightblue",
+        "5": "blue",
+        "6": "lightgreen",
+        "7": "green",
+    }
 
 
 def get_range(cde_model):
@@ -93,7 +109,16 @@ def get_seq_name(seq_num):
 
 
 def add_seq_name(df):
-    df["SEQ_NAME"] = df.apply(lambda row: get_seq_name(row["SEQ"]), axis=1)
+    def colldate(row):
+        if "COLLECTIONDATE" in row:
+            return f" ({row['COLLECTIONDATE']})"
+        else:
+            return ""
+
+    df["SEQ_NAME"] = df.apply(
+        lambda row: get_seq_name(row["SEQ"]) + colldate(row),
+        axis=1,
+    )
     return df
 
 
@@ -141,6 +166,7 @@ def get_all_patients_graphics_map(registry, vis_configs):
     from .data import get_data
 
     data = get_data(registry, None)
+    logger.debug(f"{data}")
 
     graphics_map = {
         f"tab_{vc.id}": create_graphic(vc, data, None, None) for vc in vis_configs
@@ -150,16 +176,26 @@ def get_all_patients_graphics_map(registry, vis_configs):
 
 
 def get_single_patient_graphics_map(registry, vis_configs, patient_id):
-    from dashboards.models import VisualisationConfig
     from registry.patients.models import Patient
     from .data import get_data
+    from dash import html
 
+    no_data = True
     logger.debug(f"get single patient graphics for {patient_id}")
 
     patient = Patient.objects.get(id=patient_id)
 
     needs_all = needs_all_patients_data(vis_configs)
-    data = get_data(registry, patient, needs_all)
+    try:
+        data = get_data(registry, patient, needs_all)
+        if data is not None:
+            no_data = False
+    except Exception as ex:
+        logger.debug(f"Error getting data for {patient}: {ex}")
+        return {f"tab_{vc.id}": html.H3(f"Error: {ex}") for vc in vis_configs}
+
+    if no_data:
+        return {f"tab_{vc.id}": html.H3("No data") for vc in vis_configs}
 
     graphics_map = {
         f"tab_{vc.id}": create_graphic(vc, data, patient, None) for vc in vis_configs

@@ -7,6 +7,8 @@ class VisualisationBaseDataConfig(models.Model):
     base data for visualisations for a registry
     """
 
+    code = models.CharField(max_length=80)
+
     states = (("E", "Empty"), ("D", "Data Loaded"))
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)

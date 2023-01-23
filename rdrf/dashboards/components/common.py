@@ -73,3 +73,48 @@ class BaseGraphic:
 
     def fix_yaxis(self, fig, low=0, high=100):
         fig.update_yaxes(range=[low, high])
+
+    def better_indicator_image(self, good="up"):
+        from django.conf import settings
+
+        if settings.SITE_NAME:
+            # e.g. cicclinical etc
+            base_path = f"/{settings.SITE_NAME}/static"
+        else:
+            base_path = "/static"
+
+        if good == "up":
+            image_src = f"{base_path}/images/dashboards/better_up.png"
+        elif good == "down":
+            image_src = f"{base_path}/images/dashboards/better_down.png"
+        else:
+            raise Exception(f"add_indicator should be good=up or good=down not: {good}")
+
+        return image_src
+
+    def add_image(
+        self,
+        fig,
+        image_src,
+        x,
+        y,
+        sizex,
+        sizey,
+        opacity=0.5,
+        layer="below",
+        sizing="stretch",
+    ):
+        fig.add_layout_image(
+            dict(
+                source=f"{image_src}",
+                xref="x",
+                yref="y",
+                x=x,
+                y=y,
+                sizex=sizex,
+                sizey=sizey,
+                sizing=sizing,
+                opacity=opacity,
+                layer=layer,
+            )
+        )

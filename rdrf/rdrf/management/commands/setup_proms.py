@@ -6,29 +6,35 @@ from rdrf.services.io.defs.importer import Importer
 
 
 class Command(BaseCommand):
-    help = "Setup PROMS system: overwrite metadata(optional), clear existing models, import yaml. " \
-           "(Preserves metadata by default.)"
+    help = (
+        "Setup PROMS system: overwrite metadata(optional), clear existing models, import yaml. "
+        "(Preserves metadata by default.)"
+    )
 
     def add_arguments(self, parser):
-        parser.add_argument('-y',
-                            '--yaml-file',
-                            action='store',
-                            dest='yaml',
-                            default=None,
-                            help='The registry definition yaml file')
-        parser.add_argument('-o',
-                            '--overwrite-metadata',
-                            action='store_true',
-                            dest='override',
-                            default=False,
-                            help='To overwrite metadata with metadata in yaml. Skip this option to preserve metadata.')
+        parser.add_argument(
+            "-y",
+            "--yaml-file",
+            action="store",
+            dest="yaml",
+            default=None,
+            help="The registry definition yaml file",
+        )
+        parser.add_argument(
+            "-o",
+            "--overwrite-metadata",
+            action="store_true",
+            dest="override",
+            default=False,
+            help="To overwrite metadata with metadata in yaml. Skip this option to preserve metadata.",
+        )
 
     def handle(self, *args, **options):
         yaml_file = options.get("yaml")
         override_metadata = options.get("override")
 
         if yaml_file is None:
-            self.stderr.write(f"Error: --yaml argument is required")
+            self.stderr.write("Error: --yaml argument is required")
             sys.exit(1)
             return
 
@@ -39,7 +45,7 @@ class Command(BaseCommand):
 
             current_metadata = None
             try:
-                registry = Registry.objects.get(code=importer.data['code'])
+                registry = Registry.objects.get(code=importer.data["code"])
             except Registry.DoesNotExist:
                 pass
             else:
@@ -49,8 +55,10 @@ class Command(BaseCommand):
             with transaction.atomic():
                 try:
                     importer.create_registry()
-                    if not override_metadata and current_metadata is not None:  # restore metadata
-                        registry = Registry.objects.get(code=importer.data['code'])
+                    if (
+                        not override_metadata and current_metadata is not None
+                    ):  # restore metadata
+                        registry = Registry.objects.get(code=importer.data["code"])
                         registry.metadata_json = current_metadata
                         try:
                             registry.save()

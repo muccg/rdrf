@@ -6,8 +6,17 @@ from decimal import Decimal
 from django.forms.models import model_to_dict
 from explorer.models import Query
 from operator import attrgetter
-from rdrf.models.definition.models import DemographicFields, RegistryForm, DropdownLookup
-from rdrf.models.definition.models import Section, CommonDataElement, CDEPermittedValueGroup, CDEPermittedValue
+from rdrf.models.definition.models import (
+    DemographicFields,
+    RegistryForm,
+    DropdownLookup,
+)
+from rdrf.models.definition.models import (
+    Section,
+    CommonDataElement,
+    CDEPermittedValueGroup,
+    CDEPermittedValue,
+)
 
 from rdrf import VERSION
 
@@ -40,10 +49,10 @@ class ExportType:
     REGISTRY_ONLY = "REGISTRY_ONLY"
     # As above with cdes used by the registry
     REGISTRY_PLUS_CDES = "REGISTRY_PLUS_CDES"
-    REGISTRY_PLUS_ALL_CDES = "REGISTRY_PLUS_ALL_CDES"   # registry + all cdes in the site
+    REGISTRY_PLUS_ALL_CDES = "REGISTRY_PLUS_ALL_CDES"  # registry + all cdes in the site
     # only the cdes in the supplied registry ( no forms)
     REGISTRY_CDES = "REGISTRY_CDES"
-    ALL_CDES = "ALL_CDES"                               # All CDEs in the site
+    ALL_CDES = "ALL_CDES"  # All CDEs in the site
 
 
 class Exporter(object):
@@ -147,7 +156,9 @@ class Exporter(object):
         try:
             section_model = Section.objects.get(code=section_code)
             section_map["display_name"] = section_model.display_name
-            section_map["questionnaire_display_name"] = section_model.questionnaire_display_name
+            section_map[
+                "questionnaire_display_name"
+            ] = section_model.questionnaire_display_name
             section_map["code"] = section_model.code
             section_map["extra"] = section_model.extra
             section_map["allow_multiple"] = section_model.allow_multiple
@@ -204,17 +215,21 @@ class Exporter(object):
         data["custom_actions"] = self._get_custom_actions()
         data["hl7_mappings"] = self._get_hl7_mappings()
         data["dropdown_lookups"] = self._get_dropdown_lookups()
+        data["vis_base_data_configs"] = self._get_vis_base_data_configs()
+        data["vis_configs"] = self._get_vis_configs()
 
         if self.registry.patient_data_section:
             data["patient_data_section"] = self._create_section_map(
-                self.registry.patient_data_section.code)
+                self.registry.patient_data_section.code
+            )
         else:
             data["patient_data_section"] = {}
 
         if export_type in [
-                ExportType.REGISTRY_ONLY,
-                ExportType.REGISTRY_PLUS_ALL_CDES,
-                ExportType.REGISTRY_PLUS_CDES]:
+            ExportType.REGISTRY_ONLY,
+            ExportType.REGISTRY_PLUS_ALL_CDES,
+            ExportType.REGISTRY_PLUS_CDES,
+        ]:
             data["name"] = self.registry.name
             data["code"] = self.registry.code
             data["desc"] = self.registry.desc
@@ -224,7 +239,9 @@ class Exporter(object):
             for section_code in self.registry.generic_sections:
                 data["generic_sections"].append(self._create_section_map(section_code))
 
-            for frm in RegistryForm.objects.filter(registry=self.registry).order_by("name"):
+            for frm in RegistryForm.objects.filter(registry=self.registry).order_by(
+                "name"
+            ):
                 if frm.name == self.registry.generated_questionnaire_name:
                     # don't export the generated questionnaire
                     continue
@@ -308,8 +325,9 @@ class Exporter(object):
             pvg = CDEPermittedValueGroup.objects.get(code=group_code)
             group_map["code"] = pvg.code
             group_map["values"] = []
-            for value in CDEPermittedValue.objects.filter(
-                    pv_group=pvg).order_by("position", "code"):
+            for value in CDEPermittedValue.objects.filter(pv_group=pvg).order_by(
+                "position", "code"
+            ):
                 value_map = {}
                 value_map["code"] = value.code
                 value_map["value"] = value.value
@@ -337,7 +355,9 @@ class Exporter(object):
             cdes = cdes.union(self._get_cdes_for_sections(section_codes))
 
         if registry_model.patient_data_section:
-            patient_data_section_cdes = set(registry_model.patient_data_section.cde_models)
+            patient_data_section_cdes = set(
+                registry_model.patient_data_section.cde_models
+            )
         else:
             patient_data_section_cdes = set([])
 
@@ -354,32 +374,39 @@ class Exporter(object):
     def _get_survey_cdes(self):
         # ensure if a registry has (proms) surveys we're exporting relevant cdes
         from rdrf.models.proms.models import Survey
+
         cdes = set([])
         for survey_model in Survey.objects.filter(registry=self.registry):
             for survey_question in survey_model.survey_questions.all():
                 cde_model = CommonDataElement.objects.get(code=survey_question.cde.code)
                 cdes.add(cde_model)
                 if survey_question.precondition:
-                    precondition_cde_model = CommonDataElement.objects.get(code=survey_question.precondition.cde.code)
+                    precondition_cde_model = CommonDataElement.objects.get(
+                        code=survey_question.precondition.cde.code
+                    )
                     cdes.add(precondition_cde_model)
         return cdes
 
     def _get_consent_sections(self):
         section_dicts = []
         for consent_section in self.registry.consent_sections.order_by("code"):
-            section_dict = {"code": consent_section.code,
-                            "section_label": consent_section.section_label,
-                            "information_link": consent_section.information_link,
-                            "information_text": consent_section.information_text,
-                            "applicability_condition": consent_section.applicability_condition,
-                            "validation_rule": consent_section.validation_rule,
-                            "questions": []}
+            section_dict = {
+                "code": consent_section.code,
+                "section_label": consent_section.section_label,
+                "information_link": consent_section.information_link,
+                "information_text": consent_section.information_text,
+                "applicability_condition": consent_section.applicability_condition,
+                "validation_rule": consent_section.validation_rule,
+                "questions": [],
+            }
             for consent_model in consent_section.questions.order_by("position", "code"):
-                cm = {"code": consent_model.code,
-                      "position": consent_model.position,
-                      "question_label": consent_model.question_label,
-                      "questionnaire_label": consent_model.questionnaire_label,
-                      "instructions": consent_model.instructions}
+                cm = {
+                    "code": consent_model.code,
+                    "position": consent_model.position,
+                    "question_label": consent_model.question_label,
+                    "questionnaire_label": consent_model.questionnaire_label,
+                    "instructions": consent_model.instructions,
+                }
                 section_dict["questions"].append(cm)
             section_dicts.append(section_dict)
 
@@ -407,37 +434,45 @@ class Exporter(object):
 
     def _get_working_groups(self):
         from registry.groups.models import WorkingGroup
+
         return [wg.name for wg in WorkingGroup.objects.filter(registry=self.registry)]
 
     def _get_hl7_mappings(self):
         from intframework.models import HL7Mapping
+
         hl7_mappings = []
         for hl7_mapping in HL7Mapping.objects.all():
-            hl7_dict = {"event_code": hl7_mapping.event_code,
-                        "event_map": hl7_mapping.event_map}
+            hl7_dict = {
+                "event_code": hl7_mapping.event_code,
+                "event_map": hl7_mapping.event_map,
+            }
             hl7_mappings.append(hl7_dict)
         return hl7_mappings
 
     def _get_dropdown_lookups(self):
         dropdown_lookups = []
         for dropdown_lookup in DropdownLookup.objects.all():
-            dropdown_lookups.append({
-                "tag": dropdown_lookup.tag,
-                "label": dropdown_lookup.label,
-                "value": dropdown_lookup.value
-            })
+            dropdown_lookups.append(
+                {
+                    "tag": dropdown_lookup.tag,
+                    "label": dropdown_lookup.label,
+                    "value": dropdown_lookup.value,
+                }
+            )
         return dropdown_lookups
 
     def _get_demographic_fields(self):
         demographic_fields = []
 
-        for demographic_field in DemographicFields.objects.filter(registry=self.registry):
+        for demographic_field in DemographicFields.objects.filter(
+            registry=self.registry
+        ):
             fields = {}
-            fields['registry'] = demographic_field.registry.code
-            fields['group'] = demographic_field.group.name
-            fields['field'] = demographic_field.field
-            fields['hidden'] = demographic_field.hidden
-            fields['readonly'] = demographic_field.readonly
+            fields["registry"] = demographic_field.registry.code
+            fields["group"] = demographic_field.group.name
+            fields["field"] = demographic_field.field
+            fields["hidden"] = demographic_field.hidden
+            fields["readonly"] = demographic_field.readonly
             demographic_fields.append(fields)
 
         return demographic_fields
@@ -451,7 +486,8 @@ class Exporter(object):
                 form_cdes = {}
                 form_cdes["form_name"] = form.name
                 form_cdes["cdes"] = [
-                    cde.code for cde in form.complete_form_cdes.order_by("code")]
+                    cde.code for cde in form.complete_form_cdes.order_by("code")
+                ]
                 complete_fields.append(form_cdes)
 
         return complete_fields
@@ -480,21 +516,27 @@ class Exporter(object):
 
     def _get_cde_policies(self):
         from rdrf.models.definition.models import CdePolicy
+
         cde_policies = []
-        for cde_policy in CdePolicy.objects.filter(
-                registry=self.registry).order_by("cde__code"):
+        for cde_policy in CdePolicy.objects.filter(registry=self.registry).order_by(
+            "cde__code"
+        ):
             cde_pol_dict = {}
             cde_pol_dict["cde_code"] = cde_policy.cde.code
             cde_pol_dict["groups_allowed"] = [
-                group.name for group in cde_policy.groups_allowed.order_by("name")]
+                group.name for group in cde_policy.groups_allowed.order_by("name")
+            ]
             cde_pol_dict["condition"] = cde_policy.condition
             cde_policies.append(cde_pol_dict)
         return cde_policies
 
     def _get_context_form_groups(self):
         from rdrf.models.definition.models import ContextFormGroup
+
         data = []
-        for cfg in ContextFormGroup.objects.filter(registry=self.registry).order_by("name"):
+        for cfg in ContextFormGroup.objects.filter(registry=self.registry).order_by(
+            "name"
+        ):
             cfg_dict = {}
             cfg_dict["context_type"] = cfg.context_type
             cfg_dict["name"] = cfg.name
@@ -510,16 +552,20 @@ class Exporter(object):
 
     def _get_email_notifications(self):
         from rdrf.models.definition.models import EmailNotification
+
         data = []
 
         def get_template_dict(t):
-            return {"language": t.language,
-                    "description": t.description,
-                    "subject": t.subject,
-                    "body": t.body}
+            return {
+                "language": t.language,
+                "description": t.description,
+                "subject": t.subject,
+                "body": t.body,
+            }
 
         for email_notification in EmailNotification.objects.filter(
-                registry=self.registry).order_by("description"):
+            registry=self.registry
+        ).order_by("description"):
             en_dict = {}
             en_dict["description"] = email_notification.description
             en_dict["email_from"] = email_notification.email_from
@@ -528,8 +574,9 @@ class Exporter(object):
                 en_dict["group_recipient"] = email_notification.group_recipient.name
             else:
                 en_dict["group_recipient"] = None
-            en_dict["email_templates"] = [get_template_dict(t) for t in
-                                          email_notification.email_templates.all()]
+            en_dict["email_templates"] = [
+                get_template_dict(t) for t in email_notification.email_templates.all()
+            ]
 
             en_dict["disabled"] = email_notification.disabled
             data.append(en_dict)
@@ -537,19 +584,25 @@ class Exporter(object):
 
     def _get_consent_rules(self):
         from rdrf.models.definition.models import ConsentRule
+
         data = []
         for consent_rule in ConsentRule.objects.filter(registry=self.registry):
             consent_rule_dict = {}
             consent_rule_dict["user_group"] = consent_rule.user_group.name
             consent_rule_dict["capability"] = consent_rule.capability
-            consent_rule_dict["consent_section_code"] = consent_rule.consent_question.section.code
-            consent_rule_dict["consent_question_code"] = consent_rule.consent_question.code
+            consent_rule_dict[
+                "consent_section_code"
+            ] = consent_rule.consent_question.section.code
+            consent_rule_dict[
+                "consent_question_code"
+            ] = consent_rule.consent_question.code
             consent_rule_dict["enabled"] = consent_rule.enabled
             data.append(consent_rule_dict)
         return data
 
     def _get_surveys(self):
         from rdrf.models.proms.models import Survey
+
         data = []
         for survey_model in Survey.objects.filter(registry=self.registry):
             survey_dict = {}
@@ -580,16 +633,21 @@ class Exporter(object):
                 sq_dict["source"] = sq.source
                 sq_dict["widget_config"] = sq.widget_config
                 if sq.precondition:
-                    sq_dict["precondition"] = {"cde": sq.precondition.cde.code,
-                                               "value": sq.precondition.value}
+                    sq_dict["precondition"] = {
+                        "cde": sq.precondition.cde.code,
+                        "value": sq.precondition.value,
+                    }
                 survey_dict["questions"].append(sq_dict)
             data.append(survey_dict)
         return data
 
     def _get_reviews(self):
         from rdrf.models.definition.review_models import Review
+
         review_dicts = []
-        for review_model in Review.objects.filter(registry=self.registry).order_by("name"):
+        for review_model in Review.objects.filter(registry=self.registry).order_by(
+            "name"
+        ):
             review_dict = {}
             review_dict["name"] = review_model.name
             review_dict["code"] = review_model.code
@@ -616,8 +674,41 @@ class Exporter(object):
             review_dicts.append(review_dict)
         return review_dicts
 
+    def _get_vis_configs(self):
+        from dashboards.models import VisualisationConfig
+
+        configs = []
+        for vc in VisualisationConfig.objects.filter(registry=self.registry):
+            vc_config = {}
+            vc_config["dashboard"] = vc.dashboard
+            vc_config["code"] = vc.code
+            vc_config["title"] = vc.title
+            vc_config["config"] = vc.config
+            vc_config["position"] = vc.position
+            if vc.base_data:
+                vc_config["base_data"] = vc.base_data.code
+            else:
+                vc_config["base_data"] = ""
+
+            configs.append(vc_config)
+        return configs
+
+    def _get_vis_base_data_configs(self):
+        from dashboards.models import VisualisationBaseDataConfig
+
+        configs = []
+        for b in VisualisationBaseDataConfig.objects.filter(registry=self.registry):
+            c = {}
+            c["code"] = b.code
+            c["state"] = "E"  # empty, this will get set on site when updated
+            c["config"] = b.config
+            c["data"] = {}  # will get populated on site
+            configs.append(c)
+        return configs
+
     def _get_custom_actions(self):
         from rdrf.models.definition.models import CustomAction
+
         actions = []
         for action in CustomAction.objects.filter(registry=self.registry):
             action_dict = {}
@@ -626,7 +717,9 @@ class Exporter(object):
             action_dict["scope"] = action.scope
             action_dict["include_all"] = action.include_all
             action_dict["action_type"] = action.action_type
-            action_dict["groups_allowed"] = [g.name for g in action.groups_allowed.all()]
+            action_dict["groups_allowed"] = [
+                g.name for g in action.groups_allowed.all()
+            ]
             action_dict["data"] = action.data
             action_dict["runtime_spec"] = action.runtime_spec
             actions.append(action_dict)
@@ -640,9 +733,9 @@ def str_presenter(dumper, data):
         # and otherwise the dumper will use the quoted and escaped
         # string style.
         data = "\n".join(map(str.rstrip, lines))
-        return dumper.represent_scalar('tag:yaml.org,2002:str', data, style="|")
+        return dumper.represent_scalar("tag:yaml.org,2002:str", data, style="|")
     else:
-        return dumper.represent_scalar('tag:yaml.org,2002:str', data)
+        return dumper.represent_scalar("tag:yaml.org,2002:str", data)
 
 
 class ExportDumper(yaml.SafeDumper):
@@ -653,5 +746,6 @@ ExportDumper.add_representer(str, str_presenter)
 
 
 def dump_yaml(data):
-    return yaml.dump(data, Dumper=ExportDumper, allow_unicode=True,
-                     default_flow_style=False)
+    return yaml.dump(
+        data, Dumper=ExportDumper, allow_unicode=True, default_flow_style=False
+    )

@@ -258,7 +258,6 @@ def rpc_get_timeout_config(request):
     site_url = get_site_url(request)
     site_name = settings.SITE_NAME  # this should only be set on prod really
     if "localhost" not in site_url:
-        where = "prod"
         if site_url.endswith("/"):
             login_url = (
                 site_url + site_name + "/account/login?next=/" + site_name + "/router/"
@@ -273,7 +272,6 @@ def rpc_get_timeout_config(request):
                 + "/router/"
             )
     else:
-        where = "dev"
         # localhost in dev has no site_name
         # http://localhost:8000/account/login?next=/router/
         if site_url.endswith("/"):

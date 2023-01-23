@@ -5,7 +5,10 @@ from django.views.generic.base import View
 from django.utils.safestring import mark_safe
 from django.utils.translation import ugettext as _, ungettext
 
-from useraudit.password_expiry import should_warn_about_password_expiry, days_to_password_expiry
+from useraudit.password_expiry import (
+    should_warn_about_password_expiry,
+    days_to_password_expiry,
+)
 
 from rdrf.services.io.notifications.email_notification import process_notification
 from rdrf.events.events import EventType
@@ -28,7 +31,6 @@ _PATIENTS_LISTING = "patientslisting"
 
 
 class RouterView(View):
-
     def get(self, request):
         user = request.user
 
@@ -56,11 +58,15 @@ class RouterView(View):
                     registry_code = user.get_registries()[0].code
                     redirect_url = reverse(
                         "parent_page" if user.is_parent else "patient_page",
-                        args=[registry_code])
+                        args=[registry_code],
+                    )
             else:
                 redirect_url = reverse(_PATIENTS_LISTING)
         else:
-            redirect_url = "%s?next=%s" % (reverse("two_factor:login"), reverse("login_router"))
+            redirect_url = "%s?next=%s" % (
+                reverse("two_factor:login"),
+                reverse("login_router"),
+            )
 
         self._maybe_warn_about_password_expiry(request)
 
@@ -78,23 +84,24 @@ class RouterView(View):
 
     def _display_message(self, request, days_left):
         sentence1 = ungettext(
-            'Your password will expire in %(days)d days.',
-            'Your password will expire in %(days)d days.', days_left) % {'days': days_left}
-        link = '<a href="%(url)s" class="alert-link">' + _('Change Password') + \
-            '</a>' % {'url': reverse('password_change')}
-        sentence2 = _('Please use %(link)s to change it.') % {'link': link}
-        msg = sentence1 + ' ' + sentence2
+            "Your password will expire in %(days)d days.",
+            "Your password will expire in %(days)d days.",
+            days_left,
+        ) % {"days": days_left}
+        url = reverse("password_change")
+        link = f'<a href="{url}" class="alert-link">' + _("Change Password") + "</a>"
+        sentence2 = _("Please use %(link)s to change it.") % {"link": link}
+        msg = sentence1 + " " + sentence2
 
         messages.warning(request, mark_safe(msg))
 
     def _send_email_notification(self, user, days_left):
         template_data = {
-            'user': user,
-            'days_left': days_left,
+            "user": user,
+            "days_left": days_left,
         }
 
         for registry_model in user.registry.all():
             process_notification(
-                registry_model.code,
-                EventType.PASSWORD_EXPIRY_WARNING,
-                template_data)
+                registry_model.code, EventType.PASSWORD_EXPIRY_WARNING, template_data
+            )

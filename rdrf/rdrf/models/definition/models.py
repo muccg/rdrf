@@ -928,9 +928,10 @@ class CommonDataElement(models.Model):
             self.abnormality_condition, self.datatype
         ):
             raise ValidationError(
-                f"""The abnormality condition is incorrect. It should something like
-                     x in ("code_1", "code_2"), or x <= 10
-                    """
+                """The abnormality condition is incorrect:
+                   It should something like
+                   x in ("code_1", "code_2"), or x <= 10
+                """
             )
 
     def is_abnormal(self, value):

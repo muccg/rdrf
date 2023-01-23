@@ -16,4 +16,3 @@ class RDRFConfig(AppConfig):
         import rdrf.models.definition.review_models
         import rdrf.models.definition.verification_models
         import rdrf.models.task_models
-        import dashboards.models
