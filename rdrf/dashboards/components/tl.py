@@ -13,7 +13,14 @@ def log(msg):
     logger.info(f"tl: {msg}")
 
 
-colour_map = {"1": "green", "2": "yellow", "3": "orange", "4": "red", "": "lightgrey"}
+colour_map = {
+    "1": "green",
+    "2": "yellow",
+    "3": "orange",
+    "4": "red",
+    "": "lightgrey",
+    None: "lightgrey",
+}
 
 
 class TrafficLights(BaseGraphic):
@@ -36,6 +43,16 @@ class TrafficLights(BaseGraphic):
 
         logger.debug(self.data)
         df = self.data[cdes]
+
+        for cde in cdes:
+            df = self._add_colour_column(cde, df)
+
         logger.debug(f"table data:\n{df}")
 
+        return df
+
+    def _add_colour_column(self, cde, df):
+        # https://pandas.pydata.org/docs/reference/api/pandas.Series.map.html
+        column_name = cde + "_colour"
+        df[column_name] = df[cde].map(colour_map)
         return df
