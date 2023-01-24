@@ -1341,6 +1341,23 @@ class Patient(models.Model):
 
             return PatientLocator(registry_model, self).link
 
+    @property
+    def cds(self):
+        for cd in ClinicalData.objects.filter(
+            collection="cdes", django_id=self.id
+        ).order_by("id"):
+            yield cd
+
+    @property
+    def follow_ups(self):
+        return filter(lambda cd: cd.record_type == "follow_up", self.cds)
+
+    @property
+    def baseline(self):
+        baselines = [cd for cd in self.cds if cd.record_type == "baseline"]
+        if len(baselines) == 1:
+            return baselines[0]
+
 
 class Speciality(models.Model):
     registry = models.ForeignKey(Registry, on_delete=models.CASCADE)
