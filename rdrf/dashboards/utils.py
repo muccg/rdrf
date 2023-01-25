@@ -169,7 +169,6 @@ def get_all_patients_graphics_map(registry, vis_configs):
     from .data import get_data
 
     data = get_data(registry, None)
-    logger.debug(f"{data}")
 
     graphics_map = {
         f"tab_{vc.id}": create_graphic(vc, data, None, None) for vc in vis_configs
@@ -184,7 +183,6 @@ def get_single_patient_graphics_map(registry, vis_configs, patient_id):
     from dash import html
 
     no_data = True
-    logger.debug(f"get single patient graphics for {patient_id}")
 
     patient = Patient.objects.get(id=patient_id)
 
@@ -194,8 +192,8 @@ def get_single_patient_graphics_map(registry, vis_configs, patient_id):
         if data is not None:
             no_data = False
     except Exception as ex:
-        logger.debug(f"Error getting data for {patient}: {ex}")
-        return {f"tab_{vc.id}": html.H3(f"Error: {ex}") for vc in vis_configs}
+        logger.error(f"Error getting patient data for {patient_id}: {ex}")
+        return {f"tab_{vc.id}": html.H3(f"An error occurred") for vc in vis_configs}
 
     if no_data:
         return {f"tab_{vc.id}": html.H3("No data") for vc in vis_configs}
