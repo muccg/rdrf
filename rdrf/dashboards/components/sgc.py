@@ -199,8 +199,8 @@ class ScaleGroupComparison(BaseGraphic):
 
         def get_legend_group_title(name):
             d = {
-                "average_group": "Average Values Over All Patients",
-                "patient_group": "Individual Patient Values",
+                "average_group": "<b>Average Values Over All Patients</b>",
+                "patient_group": "<b>Individual Patient Values</b>",
             }
             return d[get_legend_group(name)]
 
