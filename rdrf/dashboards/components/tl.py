@@ -20,6 +20,7 @@ colour_map = {
     "4": "red",
     "": "lightgrey",
     None: "lightgrey",
+    pd.NA: "white",
 }
 
 
