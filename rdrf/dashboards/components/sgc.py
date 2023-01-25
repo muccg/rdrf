@@ -192,7 +192,7 @@ class ScaleGroupComparison(BaseGraphic):
                 "SEQ": "Survey Time Period",
                 "y": "Score",
                 "value": "Score",
-                "variable": "Measure",
+                "variable": "Variable",
             },
         )
 
