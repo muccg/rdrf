@@ -1,4 +1,5 @@
-from dashboards.components.common import card, BaseGraphic
+from dashboards.components.common import BaseGraphic
+from dash import html
 import logging
 
 logger = logging.getLogger(__name__)
@@ -10,15 +11,19 @@ def log(msg):
 
 class PatientsWhoCompletedForms(BaseGraphic):
     def get_graphic(self):
+
         start_date = self.data["COLLECTIONDATE"].min()
         end_date = self.data["COLLECTIONDATE"].max()
-        log(f"start date = {start_date}")
-        log(f"end date = {end_date}")
 
         num_patients = self._get_number_patients(start_date, end_date)
-        log(f"num_patients = {num_patients}")
 
-        return card("Patients Who Have Completed Forms", str(num_patients))
+        text = html.P(
+            "Number of Patients completing PROMS ( Baseline or FollowUps) over all time:"
+        )
+
+        p = html.B(f"{num_patients}")
+
+        return html.Div([text, p], "pcf-content")
 
     def _get_number_patients(self, start_date, end_date):
         df = self.data
