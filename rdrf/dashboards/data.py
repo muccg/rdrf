@@ -123,6 +123,24 @@ class RegistryDataFrame:
         is closest to a schedule date D with seq number i, we assign i to it
         instead of counting 0,1,2..
         """
+
+        def get_patients(df):
+            return df["pid"].unique()
+
+        def fix_baseline_for_patient(pid, df):
+            return df
+
+        def fix_missing_baseline(df):
+            for pid in get_patients(df):
+                df = fix_baseline_for_patient(pid, df)
+            return df
+
+        def fix_skipped(df):
+            return df
+
+        # df = fix_missing_baseline(df)
+        # df = fix_skipped(df)
+
         return df  # todo
 
     def _get_column_names(self):
