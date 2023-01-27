@@ -52,7 +52,15 @@ class ChangesInPatientResponses(BaseGraphic):
             bar_div = self._create_stacked_bar_px(pof, field, label, colour_map)
             items.append(bar_div)
 
-        cpr_div = html.Div([html.H3("Changes in Patient Responses"), *items])
+        blurb_text = """
+                This tab displays EORTC QLQ-C30 symptom scale results for all patients
+                over the time intervals that PROMs have been completed.
+                Scroll down to see all variables.
+                """
+
+        blurb = html.P(blurb_text)
+
+        cpr_div = html.Div([html.H3("Changes in Patient Responses"), blurb, *items])
         log("created cpr graphic")
 
         return html.Div(cpr_div, id="cpr")
