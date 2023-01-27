@@ -111,7 +111,7 @@ class ChangesInPatientResponses(BaseGraphic):
             seq = row["SEQ"]
             seq_total = seq_totals[seq]
             seq_name = row["SEQ_NAME"]
-            return seq_name + " (" + str(seq_total) + " responses)"
+            return seq_name + " (" + str(seq_total) + ")"
 
         data["ticktext"] = data.apply(get_ticktext, axis=1)
 
