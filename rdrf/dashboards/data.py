@@ -102,6 +102,8 @@ class RegistryDataFrame:
             try:
                 d = row["COLLECTIONDATE"].date()
                 aus_date = f"{d.day}-{d.month}-{d.year}"
+                if "nan" in aus_date:
+                    return ""
                 return f" ({aus_date})"
             except KeyError:
                 return ""
@@ -210,7 +212,6 @@ class RegistryDataFrame:
         for patient in qry:
             for row in self._get_patient_rows(patient):
                 rows.append(row)
-        logger.debug(f" number of rows = {len(rows)}")
         if len(rows) == 0:
             return None
         df = pd.DataFrame(rows)

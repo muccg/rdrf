@@ -1348,6 +1348,14 @@ class Patient(models.Model):
         ).order_by("id"):
             yield cd
 
+    def has_saved_form(self, form_name, record_type="baseline"):
+        for cd in self.cds:
+            if cd.record_type == record_type:
+                if cd.data and "forms" in cd.data:
+                    form_names = [f["name"] for f in cd.data["forms"]]
+                    if form_name in form_names:
+                        return True
+
     @property
     def follow_ups(self):
         return filter(lambda cd: cd.record_type == "follow_up", self.cds)

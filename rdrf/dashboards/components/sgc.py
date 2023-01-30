@@ -155,9 +155,23 @@ class ScaleGroupComparison(BaseGraphic):
         line_chart = self.get_line_chart(data, chart_title, scores_map)
         table = self.get_table(data, scores_map)
 
-        div = html.Div([line_chart, table])
+        notes = self._get_notes()
+        if notes:
+            div = html.Div([notes, line_chart, table])
+        else:
+            div = html.Div([line_chart, table])
 
         return html.Div(div, id=sgc_id)
+
+    def _get_notes(self):
+        if self._is_missing_baseline():
+            return "Note: Patient is missing a Baseline Form"
+
+    def _is_missing_baseline(self):
+        base_config = self.config_model.base_data
+        if base_config:
+            baseline_form = base_config.config["baseline_form"]
+            return not self.patient.has_saved_form(baseline_form)
 
     @property
     def needs_global_data(self):
@@ -179,7 +193,6 @@ class ScaleGroupComparison(BaseGraphic):
         return avg_data
 
     def get_line_chart(self, data, title, scores_map):
-        logger.debug(f"get line chart for {title}")
         score_names = sorted(list(scores_map.keys()))
 
         fig = px.line(
@@ -235,10 +248,7 @@ class ScaleGroupComparison(BaseGraphic):
             id = f"sgc-line-chart-{title}-all"
 
         if self.better is not None:
-            logger.debug(f"adding indicator better is {self.better}")
             self.add_indicator(fig, data)
-        else:
-            logger.debug("self.better is None no indicator added?")
         div = html.Div([dcc.Graph(figure=fig)], id=id)
         return div
 
@@ -264,22 +274,17 @@ class ScaleGroupComparison(BaseGraphic):
     def add_indicator(self, fig, data):
         import math
 
-        logger.debug(f"add indicator: {self.better}")
         image_src = self.better_indicator_image(self.better)
         r, _ = data.shape
-        logger.debug(f"num collection dates = {r}")
 
         x_pos = math.floor(0.5 * r)
         if x_pos == 0:
             x_pos = 0.50
 
-        logger.debug(f"x_pos = {x_pos}")
         x_size = math.floor(0.1 * r)
         if x_size == 0:
             x_size = 0.5
         y_size = 30
-
-        logger.debug(f"x_pos = {x_pos} x_size = {x_size} y_size = {y_size}")
 
         if self.better == "up":
             self.add_image(fig, image_src, x_pos, 80, x_size, y_size, opacity=0.5)
@@ -369,8 +374,6 @@ class ScaleGroupComparison(BaseGraphic):
             delta = 0.0
         else:
             raise Exception(f"base of fields {fields} is {detected_base}")
-
-        logger.debug(f"{score_name} delta = {delta}")
 
         def filled(value):
             # non vectorised
