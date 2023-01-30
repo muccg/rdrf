@@ -138,7 +138,8 @@ def create_graphic(vis_config, data, patient, all_patients_data=None):
     # should be supplied with the patient
     # all_patients_data is supplied only to Scale group Comparisons
     # that
-    from .components.pcf import PatientsWhoCompletedForms
+
+    from .components.proms_stats import PatientsWhoCompletedForms
     from .components.tofc import TypesOfFormCompleted
     from .components.cfc import CombinedFieldComparison
     from .components.cpr import ChangesInPatientResponses
@@ -146,10 +147,13 @@ def create_graphic(vis_config, data, patient, all_patients_data=None):
     from .components.tl import TrafficLights
 
     title = vis_config.title
-    if vis_config.code == "pcf":
-        return PatientsWhoCompletedForms(title, vis_config, data).graphic
-    elif vis_config.code == "tofc":
-        return TypesOfFormCompleted(title, vis_config, data).graphic
+    if vis_config.code == "proms_stats":
+        from dash import html
+
+        pcf_graphic = PatientsWhoCompletedForms(
+            "Patients Who Completed Forms", vis_config, data
+        ).graphic
+        return html.Div([pcf_graphic], "proms_stats")
     elif vis_config.code == "cfc":
         return CombinedFieldComparison(title, vis_config, data).graphic
     elif vis_config.code == "cpr":

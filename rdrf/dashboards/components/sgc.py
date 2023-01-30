@@ -213,6 +213,8 @@ class ScaleGroupComparison(BaseGraphic):
             return 0.3 if name.startswith("avg_") else 1.0
 
         scores_map["seq"] = "Survey Time Period"
+        colour_map = self._get_colour_map(scores_map)
+
         fig.for_each_trace(
             lambda t: t.update(
                 name=scores_map[t.name],
@@ -238,6 +240,9 @@ class ScaleGroupComparison(BaseGraphic):
             logger.debug("self.better is None no indicator added?")
         div = html.Div([dcc.Graph(figure=fig)], id=id)
         return div
+
+    def _get_colour_map(self, scores_map):
+        measures = set([k.replace("avg_", "") for k in scores_map])
 
     def add_indicator(self, fig, data):
         import math

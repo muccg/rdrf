@@ -69,6 +69,8 @@ class RegistryDataFrame:
         elif self.mode == "all":
             logger.info("loading dataframe from base config json")
             self.df = pd.read_json(self.config_model.data)
+            self.df[cdf] = pd.to_datetime(self.df[cdf], unit="ms")
+            logger.debug(f"json cdf = {self.df[cdf]}")
         elif self.mode == "single":
             self._reload_dataframe()
 

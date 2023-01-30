@@ -16,11 +16,6 @@ logger = logging.getLogger(__name__)
 login_required_method = method_decorator(login_required)
 
 
-class DashboardLocation:
-    ALL_PATIENTS = "A"
-    SINGLE_PATIENT = "S"
-
-
 class PatientsDashboardView(View):
     @method_decorator(anonymous_not_allowed)
     @login_required_method
