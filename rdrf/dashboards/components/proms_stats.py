@@ -20,7 +20,7 @@ class PatientsWhoCompletedForms(BaseGraphic):
 
         headers = [
             "Time Period",
-            "Number of Patients Completing Forms",
+            "Number of Patients Completing PROMS",
             "PROMS Completed",
         ]
         rows = [html.Tr([html.Th(h, style=style) for h in headers])]
