@@ -42,13 +42,10 @@ class TrafficLights(BaseGraphic):
         for group in groups:
             cdes.extend(group["fields"])
 
-        logger.debug(self.data)
         df = self.data[cdes]
 
         for cde in cdes:
             df = self._add_colour_column(cde, df)
-
-        logger.debug(f"table data:\n{df}")
 
         return df
 
