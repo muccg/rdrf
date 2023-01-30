@@ -194,6 +194,7 @@ class ScaleGroupComparison(BaseGraphic):
                 "value": "Score",
                 "variable": "Variable",
             },
+            color_discrete_map=self._get_colour_map(scores_map),
         )
 
         self.fix_xaxis(fig, data)
@@ -242,7 +243,23 @@ class ScaleGroupComparison(BaseGraphic):
         return div
 
     def _get_colour_map(self, scores_map):
-        measures = set([k.replace("avg_", "") for k in scores_map])
+
+        base_colours = px.colors.qualitative.Safe
+        i = 0
+        assigned = {}
+
+        for k in scores_map:
+            if not k.startswith("avg_"):
+                assigned[k] = base_colours[i]
+                i += 1
+
+        for k in scores_map:
+            if k.startswith("avg_"):
+                base_score_name = k.replace("avg_", "")
+                # we should always have a base..
+                assigned[k] = assigned[base_score_name]
+
+        return assigned
 
     def add_indicator(self, fig, data):
         import math
