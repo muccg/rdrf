@@ -20,7 +20,6 @@ class PatientsDashboardView(View):
     @method_decorator(anonymous_not_allowed)
     @login_required_method
     def get(self, request):
-        logger.debug("in patients dashboard view")
         t1 = datetime.now()
         registry = get_object_or_404(Registry)
         if not registry.has_feature("patient_dashboard"):
@@ -31,8 +30,6 @@ class PatientsDashboardView(View):
         context = {}
         context["seconds"] = (t2 - t1).total_seconds
         context["location"] = "All Patients Dashboard"
-
-        logger.debug("rendering all patients dashboard")
 
         return render(request, "rdrf_cdes/patients_dashboard.html", context)
 

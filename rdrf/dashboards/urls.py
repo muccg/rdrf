@@ -7,8 +7,6 @@ from .views import PatientDashboardView
 from .dash_apps import single_app, all_app
 
 logger = logging.getLogger(__name__)
-logger.debug(f"loaded {single_app}")
-logger.debug(f"loaded {all_app}")
 
 urlpatterns = [
     re_path(

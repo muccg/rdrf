@@ -65,14 +65,11 @@ if load:
         [Input("tabs", "active_tab")],
     )
     def render_tab_content(*args, **kwargs):
-        logger.info("dash app single_app callback")
 
         active_tab = args[0]
-        logger.info(f"single app callback: active_tab = {active_tab}")
 
         session_state = kwargs["session_state"]
         patient_id = session_state["patient_id"]
-        logger.debug(f"patient id from session = {patient_id}")
 
         graphics_map = get_single_patient_graphics_map(
             registry, single_configs, patient_id
