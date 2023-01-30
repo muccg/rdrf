@@ -36,10 +36,26 @@ class PatientsWhoCompletedForms(BaseGraphic):
             else:
                 desc = f"Last {time_period} days"
 
+            if time_period == 7:
+                links = self._get_links(start_date, end_date)
+            else:
+                links = []
+
+            if links:
+                links_div = html.Div(links)
+            else:
+                links_div = None
+
+            desc_td = (
+                html.Td(desc, style=style)
+                if links_div is None
+                else html.Td([desc, links_div], style=style)
+            )
+
             rows.append(
                 html.Tr(
                     [
-                        html.Td(desc, style=style),
+                        desc_td,
                         html.Td(str(n), style=style),
                         html.Td(self._get_pie_chart(time_period), style=style),
                     ],
@@ -88,3 +104,24 @@ class PatientsWhoCompletedForms(BaseGraphic):
         n = len(df[(df[cdf] >= start_date) & (df[cdf] <= end_date)][pid].unique())
         log(f"n = {n}")
         return n
+
+    def _get_links(self, start_date, end_date):
+        from rdrf.helpers.utils import get_form_url
+
+        df = self.data
+        df = df[(df[cdf] >= start_date) & (df[cdf] <= end_date)]
+        for row in df.iterrows():
+            try:
+                logger.debug(f"row = {row}")
+                context_id = row["context_id"]
+                form_name = row["form"]
+                record_type = row["record_type"]
+
+                url = get_form_url(
+                    self.config_model.registry, self.patient, context_id, form_name
+                )
+                title = f"{record_type} {self.patient}"
+                links.append(html.A(href=url, title=title))
+            except TypeError:
+                pass
+        return links

@@ -1157,3 +1157,13 @@ def update_patient_calculated_fields(registry_code, patient_id):
 def has_cfg(context_model):
     if context_model:
         return context_model.context_form_group
+
+
+def get_form_url(registry_model, patient_model, context_id, form_name):
+    from rdrf.models.definition.models import RegistryForm
+
+    form_model = RegistryForm.objects.get(name=form_name, registry=registry_model)
+    return reverse(
+        "registry_form",
+        args=(registry_model.code, form_model.id, patient_model.id, context_id),
+    )

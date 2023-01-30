@@ -49,8 +49,8 @@ class RegistryDataFrame:
         self.state = None
         self.config_model = config_model
         self.patient_id = patient_id
-        self.prefix_fields = ["pid", "seq", "type", "form"]
-        self.prefix_names = ["PID", "SEQ", "TYPE", "FORM"]
+        self.prefix_fields = ["pid", "seq", "type", "context_id", "form"]
+        self.prefix_names = ["PID", "SEQ", "TYPE", "CONTEXT_ID", "FORM"]
         self.fields = self.config_model.config["fields"]
         self.num_fields = len(self.fields)
         self.column_names = self._get_column_names()
@@ -187,6 +187,8 @@ class RegistryDataFrame:
             row = [pid, seq]
             cd_type = self._get_cd_type(cd)
             row.append(cd_type)
+            context_id = cd.context_id
+            row.append(context_id)
             form_name = self._get_form(cd_type)
             row.append(form_name)
             field_row = self._get_cd_data(cd, form_name)
