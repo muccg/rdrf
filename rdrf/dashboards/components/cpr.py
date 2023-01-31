@@ -40,9 +40,7 @@ class ChangesInPatientResponses(BaseGraphic):
         self.fols = config["fields"]
 
     def get_graphic(self):
-        log("creating Changes in Patient Responses")
         self.set_fields_of_interest(self.config)
-        log(f"fields of interest = {self.fols}")
         items = []
         for fol_dict in self.fols:
             field = fol_dict["code"]
@@ -61,7 +59,6 @@ class ChangesInPatientResponses(BaseGraphic):
         blurb = html.P(blurb_text)
 
         cpr_div = html.Div([html.H3("Changes in Patient Responses"), blurb, *items])
-        log("created cpr graphic")
 
         return html.Div(cpr_div, id="cpr")
 
@@ -103,7 +100,6 @@ class ChangesInPatientResponses(BaseGraphic):
 
         self.fix_xaxis(fig, df)
 
-        log("created bar")
         id = f"bar-{label}"
         div = html.Div([dcc.Graph(figure=fig)], id=id)
         return div

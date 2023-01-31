@@ -19,7 +19,6 @@ SEQ = "SEQ"
 
 class CombinedFieldComparison(BaseGraphic):
     def get_graphic(self):
-        log("creating Combined Field Comparison")
         fields = self.config["fields"]
         inputs = [field["code"] for field in fields]
         labels = [field["label"] for field in fields]
@@ -60,7 +59,6 @@ class CombinedFieldComparison(BaseGraphic):
 
         self.fix_xaxis(fig, data)
 
-        log("created bar")
         bar_id = "bar-combined"
         div = html.Div([dcc.Graph(figure=fig)], id=bar_id)
         return div
@@ -100,29 +98,19 @@ class CombinedFieldComparison(BaseGraphic):
         This merged dataframe is then grouped and aggregated to get the percentage..
         maybe there is an easier way.
         """
-        log("in get combined data")
         df_counts = []
         num_inputs = len(inputs)
-        log(f"number of inputs = {num_inputs}")
-        log(f"df = {df}")
         for index, input in enumerate(inputs):
             input_df = df[[SEQ, input]].value_counts().reset_index()
             input_df = input_df.rename(columns={input: "value", 0: f"count_{index}"})
-            log(f"input {input} df columns = {input_df.columns}")
-            log(f"input df for input {input}: {input_df}")
 
             df_counts.append(input_df)
 
         count_columns = [f"count_{index}" for index in range(num_inputs)]
-        log(f"count columns = {count_columns}")
 
         merged = pd.merge(*df_counts, how="outer", on=[SEQ, "value"])
         merged = merged.fillna(0)
-        log(f"merged df columns = {merged.columns}")
-        log(f"merged data frame = \n{merged}")
         merged["count"] = sum([merged[count_column] for count_column in count_columns])
-
-        log(f"merged with count column:\n{merged}")
 
         # count the total number of  value counts per seq
         counted = merged.groupby(["SEQ", "value"])[["count"]].agg({"count": "sum"})
@@ -131,7 +119,6 @@ class CombinedFieldComparison(BaseGraphic):
             100.0 * counted["count"] / counted.groupby("SEQ")["count"].sum()
         )
 
-        log(f"counted df = {counted}")
         # reset index
         counted = counted.reset_index()
         return counted
