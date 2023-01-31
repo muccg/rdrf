@@ -41,7 +41,6 @@ class AllPatientsScoreHelper:
 class ScaleGroupComparison(BaseGraphic):
     def get_graphic(self):
         self.better = None
-        log("creating Scale Group Comparison")
         self.mode = "single" if self.patient else "all"
         data = self.data
         scores_map = {}
@@ -64,7 +63,6 @@ class ScaleGroupComparison(BaseGraphic):
             score_name = f"score_{index}"
             self.group_info[score_name] = group_title
             self.rev_group[group_title] = score_name
-            logger.info(f"calculating score for {group_title}")
             data = self.calculate_scores(
                 score_name, group_fields, group_score_function, data
             )
@@ -84,33 +82,22 @@ class ScaleGroupComparison(BaseGraphic):
             # with all the patients, we need to append columns
             # to the dataframe showing the average scores
             if self.all_patients_data is None:
-                logger.info("all patients data not loaded - loading ..")
                 t1 = datetime.now()
                 self.load_all_patients_data()
                 t2 = datetime.now()
-                logger.info(f"time taken = {(t2-t1).total_seconds()} seconds")
 
-            logger.info("calculating scores for all patients..")
             t1 = datetime.now()
             for helper in self.all_patients_helpers:
                 self.all_patients_data = helper.calculate_score(self.all_patients_data)
 
             t2 = datetime.now()
-            logger.info(
-                f"time taken to calculate all scores for all patients = {(t2-t1).total_seconds()} seconds"
-            )
-
             # now work out the average per SEQ
-            logger.info("calculating averages for the scores..")
             t1 = datetime.now()
             all_patients_score_names = [h.score_name for h in self.all_patients_helpers]
             average_scores = self.calculate_average_scores_over_time(
                 self.all_patients_data, all_patients_score_names
             )
             t2 = datetime.now()
-            logger.info(
-                f"time taken to calculate average scores for all patients = {(t2-t1).total_seconds()} seconds"
-            )
 
         else:
             average_scores = None
@@ -410,15 +397,10 @@ class ScaleGroupComparison(BaseGraphic):
 
         end_time = datetime.now()
 
-        logger.info(
-            f"score {score_name} time = {(end_time - start_time).total_seconds() } seconds"
-        )
-
         return data
 
     def get_score_function(self, range_value, scale):
         if scale == "functional":
-            log("scale is functional")
 
             def score(rs):
                 # rs: raw score = average of values
@@ -430,7 +412,6 @@ class ScaleGroupComparison(BaseGraphic):
             return score
 
         elif scale == "symptom":
-            log("scale is symptom")
 
             def score(rs):
                 if rs is None:
@@ -440,7 +421,6 @@ class ScaleGroupComparison(BaseGraphic):
             return score
 
         elif scale == "hs/qol":
-            log("scale is hs/qol")
 
             def score(rs):
                 if rs is None:
@@ -449,7 +429,6 @@ class ScaleGroupComparison(BaseGraphic):
 
             return score
         else:
-            log(f"scale is unknown: {scale}")
             raise ScaleGroupError(f"Unknown scale: {scale}")
 
     def get_range_value(self, fields):
