@@ -30,6 +30,7 @@ def cde_iterator(registry):
 cdf = "COLLECTIONDATE"  # collection date field
 pid = "PID"  # patient id
 SEQ = "SEQ"
+con = "CON"  # context id
 
 
 class RegistryDataFrame:

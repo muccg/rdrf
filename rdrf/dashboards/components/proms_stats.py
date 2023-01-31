@@ -3,6 +3,7 @@ from dash import html
 import logging
 from datetime import datetime, timedelta
 from ..components.tofc import TypesOfFormCompleted
+import dash_bootstrap_components as dbc
 
 logger = logging.getLogger(__name__)
 
@@ -16,17 +17,17 @@ cdf = "COLLECTIONDATE"
 
 class PatientsWhoCompletedForms(BaseGraphic):
     def get_graphic(self):
-        style = {"border": "1px solid"}
 
         headers = [
             "Time Period",
             "Number of Patients Completing PROMS",
             "PROMS Completed",
         ]
-        rows = [html.Tr([html.Th(h, style=style) for h in headers])]
+        table_header = [html.Thead(html.Tr([html.Th(h) for h in headers]))]
         default_periods = ["all", 7, 30, 365]
 
         time_periods = self.config.get("time_periods", default_periods)
+        rows = []
 
         for time_period in time_periods:
             start_date, end_date = self._get_start_end(time_period)
@@ -38,6 +39,7 @@ class PatientsWhoCompletedForms(BaseGraphic):
 
             if time_period == 7:
                 links = self._get_links(start_date, end_date)
+                logger.debug(f"links = {links}")
             else:
                 links = []
 
@@ -46,24 +48,21 @@ class PatientsWhoCompletedForms(BaseGraphic):
             else:
                 links_div = None
 
-            desc_td = (
-                html.Td(desc, style=style)
-                if links_div is None
-                else html.Td([desc, links_div], style=style)
-            )
+            desc_td = html.Td(desc)
+            logger.debug(f"desc td = {desc_td}")
 
             rows.append(
                 html.Tr(
                     [
                         desc_td,
-                        html.Td(str(n), style=style),
-                        html.Td(self._get_pie_chart(time_period), style=style),
-                    ],
-                    style={"border": "1px solid"},
+                        html.Td([str(n), links_div]),
+                        html.Td(self._get_pie_chart(time_period)),
+                    ]
                 )
             )
 
-        table = html.Table(rows, style={"border": "1px solid", "width": "100%"})
+        table_body = [html.Tbody([*rows])]
+        table = dbc.Table(table_header + table_body)
 
         return html.Div([table], "pcf-content")
 
@@ -107,21 +106,26 @@ class PatientsWhoCompletedForms(BaseGraphic):
 
     def _get_links(self, start_date, end_date):
         from rdrf.helpers.utils import get_form_url
+        from registry.patients.models import Patient
 
+        links = []
         df = self.data
         df = df[(df[cdf] >= start_date) & (df[cdf] <= end_date)]
-        for row in df.iterrows():
+
+        for index, row in df.iterrows():
             try:
-                logger.debug(f"row = {row}")
-                context_id = row["context_id"]
-                form_name = row["form"]
-                record_type = row["record_type"]
+                pid = row["PID"]
+                patient = Patient.objects.get(id=pid)
+                context_id = row["CONTEXT_ID"]
+                collection_date = row["COLLECTIONDATE"].date()
+                form_name = row["FORM"]
+                record_type = row["TYPE"]
 
                 url = get_form_url(
-                    self.config_model.registry, self.patient, context_id, form_name
+                    self.config_model.registry, pid, context_id, form_name
                 )
-                title = f"{record_type} {self.patient}"
-                links.append(html.A(href=url, title=title))
-            except TypeError:
-                pass
+                title = f"{record_type} {patient} ({collection_date})"
+                links.append(html.A(html.P(title), href=url))
+            except Exception as ex:
+                logger.error(f"error building link: {ex}")
         return links
