@@ -37,24 +37,33 @@ def image_src(name):
     return src
 
 
-def circle(colour):
-    return html.Img(src=image_src(f"{colour}-circle"))
+def circle(colour, id):
+    return html.Img(src=image_src(f"{colour}-circle"), id=id)
 
 
-def get_image(value):
+def get_image(value, image_id):
+    if value is None:
+        return circle("grey", image_id)
+    if value == "":
+        return circle("grey", image_id)
+
     try:
         value = int(value)
     except ValueError:
-        value = -1
+        return circle("grey", image_id)
 
     if value in [6, 7]:
-        return circle("green")
+        return circle("green", image_id)
     elif value in [1, 2]:
-        return circle("red")
+        return circle("red", image_id)
     elif value in [3, 4, 5]:
-        return circle("blue")
+        return circle("blue", image_id)
     else:
-        return circle("grey")
+        return circle("grey", image_id)
+
+
+def get_popup_info(group_name, field, value):
+    return f"Group: {group_name} {field} {value}"
 
 
 def get_fields():
@@ -72,6 +81,14 @@ def get_field_label(cde_code):
         return cde_model.name
     except CommonDataElement.DoesNotExist:
         return cde_code
+
+
+def get_popover_target(target_id, body):
+    return dbc.Popover(
+        dbc.PopoverBody(body),
+        target=target_id,
+        trigger="hover",
+    )
 
 
 class TrafficLights(BaseGraphic):
@@ -93,16 +110,30 @@ class TrafficLights(BaseGraphic):
 
             for field in fields2:
                 field_values = table_data[field]
+                image_id = f"image_{field}_"
+                logger.debug(f"image id = {image_id}")
+
                 table_row = html.Tr(
                     [
-                        html.Td(get_field_label(field)),
-                        *[html.Td(get_image(value)) for value in field_values],
+                        html.Td(html.Small(get_field_label(field))),
+                        *[
+                            html.Td(
+                                [
+                                    get_image(value, image_id + "_" + str(index)),
+                                    get_popover_target(
+                                        image_id + "_" + str(index),
+                                        get_popup_info(group_name, field, value),
+                                    ),
+                                ],
+                            )
+                            for index, value in enumerate(field_values)
+                        ],
                     ]
                 )
                 table_rows.append(table_row)
 
         table_body = [html.Tbody(table_rows)]
-        table = dbc.Table(table_header + table_body)
+        table = dbc.Table(table_header + table_body, className="table-striped table-sm")
 
         return table
 
