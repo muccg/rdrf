@@ -61,6 +61,6 @@ class PatientDashboardView(View):
         t2 = datetime.now()
 
         context["seconds"] = (t2 - t1).total_seconds
-        context["location"] = "Patient Dashboard"
+        context["location"] = "Patient Dashboard ( " + patient.link + ")"
 
         return render(request, "rdrf_cdes/patient_dashboard.html", context)

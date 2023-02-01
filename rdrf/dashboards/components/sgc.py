@@ -108,7 +108,7 @@ class ScaleGroupComparison(BaseGraphic):
             chart_title = "Scale group score over time for all patients"
             sgc_id = "sgc"
         else:
-            chart_title = f"Scores over time for {self.patient.link}"
+            chart_title = f"Scores over time"
             sgc_id = f"sgc-{self.patient.id}"
 
         if average_scores is not None:
