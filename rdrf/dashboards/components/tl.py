@@ -37,8 +37,41 @@ def image_src(name):
     return src
 
 
-def get_image(colour):
-    return html.Img(src=image_src("green-circle"))
+def circle(colour):
+    return html.Img(src=image_src(f"{colour}-circle"))
+
+
+def get_image(value):
+    try:
+        value = int(value)
+    except ValueError:
+        value = -1
+
+    if value in [6, 7]:
+        return circle("green")
+    elif value in [1, 2]:
+        return circle("red")
+    elif value in [3, 4, 5]:
+        return circle("blue")
+    else:
+        return circle("grey")
+
+
+def get_fields():
+    from dashboards.models import VisualisationBaseDataConfig
+
+    c = VisualisationBaseDataConfig.objects.get()
+    return [code for code in c.config["fields"] if code.startswith("EORTCQLQC30")]
+
+
+def get_field_label(cde_code):
+    from rdrf.models.definition.models import CommonDataElement
+
+    try:
+        cde_model = CommonDataElement.objects.get(code=cde_code)
+        return cde_model.name
+    except CommonDataElement.DoesNotExist:
+        return cde_code
 
 
 class TrafficLights(BaseGraphic):
@@ -56,14 +89,14 @@ class TrafficLights(BaseGraphic):
         table_rows = []
 
         for group_name, fields in groups_dict.items():
+            fields2 = get_fields()
 
-            for field in fields:
-                field_colour = field + "_colour"
-                field_colours = table_data[field_colour]
+            for field in fields2:
+                field_values = table_data[field]
                 table_row = html.Tr(
                     [
-                        html.Td(field),
-                        *[html.Td(get_image(colour)) for colour in field_colours],
+                        html.Td(get_field_label(field)),
+                        *[html.Td(get_image(value)) for value in field_values],
                     ]
                 )
                 table_rows.append(table_row)
@@ -80,7 +113,9 @@ class TrafficLights(BaseGraphic):
         for group in groups:
             cdes.extend(group["fields"])
 
-        df = self.data[prefix + cdes]
+        fields = get_fields()
+
+        df = self.data[prefix + fields]
 
         logger.debug(f"dataframe columns: {df.columns}")
 
