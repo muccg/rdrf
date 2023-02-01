@@ -20,12 +20,8 @@ base_colour_map = {
 }
 
 
-class ColourMap:
-    def __getitem__(self, index):
-        return base_colour_map.get(index, "white")
-
-    def __call__(self, index):
-        return self[index]
+def get_colour(value):
+    return base_colour_map.get(value, "white")
 
 
 class TrafficLights(BaseGraphic):
@@ -34,20 +30,10 @@ class TrafficLights(BaseGraphic):
         return self.get_table(data)
 
     def get_table(self, table_data):
-        # first column is the field
-        # field, baseline , fu1 , fu2 , .. fuN
-        logger.debug(table_data.columns)
-
-        num_followups = len(table_data.columns) - 2
-
-        headers = ["Scale Group", "Baseline"] + [
-            f"Follow {i}" for i in range(1, num_followups + 1)
-        ]
-
-        table_header = [html.Thead(html.Tr([html.Th(h) for h in headers]))]
+        seq_names = [html.Th(x) for x in table_data["SEQ_NAME"]]
+        table_header = [html.Thead(html.Tr([html.Th("Scale Group"), *seq_names]))]
 
         groups_config = self.config["groups"]
-
         groups_dict = {g["name"]: g["fields"] for g in groups_config}
 
         table_rows = []
@@ -55,16 +41,11 @@ class TrafficLights(BaseGraphic):
         for group_name, fields in groups_dict.items():
 
             for field in fields:
-                logger.debug(f"checking {field}")
-                table_row = []
-                table_row.append(field)
                 field_colour = field + "_colour"
-                for index, row in table_data.iterrows():
-                    colour = row[field_colour]
-                    table_row.append(colour)
-
-                table_row = html.Tr([html.Td(x) for x in table_row])
-
+                field_colours = table_data[field_colour]
+                table_row = html.Tr(
+                    [html.Td(field), *[html.Td(x) for x in field_colours]]
+                )
                 table_rows.append(table_row)
 
         table_body = [html.Tbody(table_rows)]
@@ -73,7 +54,6 @@ class TrafficLights(BaseGraphic):
         return table
 
     def _get_table_data(self) -> pd.DataFrame:
-        cm = ColourMap()
         groups = self.config["groups"]
         prefix = ["PID", "SEQ", "SEQ_NAME", "TYPE"]
         cdes = []
@@ -85,12 +65,12 @@ class TrafficLights(BaseGraphic):
         logger.debug(f"dataframe columns: {df.columns}")
 
         for cde in cdes:
-            df = self._add_colour_column(cde, df, cm)
+            df = self._add_colour_column(cde, df)
 
         return df
 
-    def _add_colour_column(self, cde, df, cm):
+    def _add_colour_column(self, cde, df):
         # https://pandas.pydata.org/docs/reference/api/pandas.Series.map.html
         column_name = cde + "_colour"
-        df[column_name] = df[cde].map(cm)
+        df[column_name] = df[cde].map(get_colour)
         return df
