@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 base_colour_map = {
     "1": "green",
     "2": "yellow",
-    "3": "orange",
+    "3": "amber",
     "4": "red",
     "": "lightgrey",
     None: "lightgrey",
@@ -22,6 +22,23 @@ base_colour_map = {
 
 def get_colour(value):
     return base_colour_map.get(value, "white")
+
+
+def image_src(name):
+    from django.conf import settings
+
+    if settings.SITE_NAME:
+        # e.g. cicclinical etc
+        base_path = f"/{settings.SITE_NAME}/static"
+    else:
+        base_path = "/static"
+
+    src = f"{base_path}/images/dashboards/{name}.png"
+    return src
+
+
+def get_image(colour):
+    return html.Img(src=image_src("green-circle"))
 
 
 class TrafficLights(BaseGraphic):
@@ -44,7 +61,10 @@ class TrafficLights(BaseGraphic):
                 field_colour = field + "_colour"
                 field_colours = table_data[field_colour]
                 table_row = html.Tr(
-                    [html.Td(field), *[html.Td(x) for x in field_colours]]
+                    [
+                        html.Td(field),
+                        *[html.Td(get_image(colour)) for colour in field_colours],
+                    ]
                 )
                 table_rows.append(table_row)
 
