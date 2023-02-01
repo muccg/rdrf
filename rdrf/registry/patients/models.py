@@ -1358,7 +1358,7 @@ class Patient(models.Model):
 
     @property
     def follow_ups(self):
-        return filter(lambda cd: cd.record_type == "follow_up", self.cds)
+        return list(filter(lambda cd: cd.record_type == "followup", self.cds))
 
     @property
     def baseline(self):
