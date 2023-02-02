@@ -1167,3 +1167,11 @@ def get_form_url(registry_model, patient_id, context_id, form_name):
         "registry_form",
         args=(registry_model.code, form_model.id, patient_id, context_id),
     )
+
+
+@cached
+def get_display_value(cde_code, raw_value):
+    from rdrf.models.definition.models import CommonDataElement
+
+    cde_model = CommonDataElement.objects.get(code=cde_code)
+    return cde_model.get_display_value(raw_value)

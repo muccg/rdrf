@@ -5,18 +5,37 @@ import dash_bootstrap_components as dbc
 from dash import dash_table
 import plotly.graph_objects as go
 import pandas as pd
+from rdrf.helpers.utils import get_display_value
 
 logger = logging.getLogger(__name__)
 
 
+# {'code': 'EORTCQLQC30', 'values': [
+# {'code': '0', 'value': 'Not at all', 'questionnaire_value': '', 'desc': 'Not at all', 'position': 1}]}
+# {'code': '1', 'value': 'A little', 'questionnaire_value': '', 'desc': 'A little', 'position': 2},
+# {'code': '2', 'value': 'Quite a bit', 'questionnaire_value': '', 'desc': 'Quite a bit', 'position': 3},
+# {'code': '3', 'value': 'Very much', 'questionnaire_value': '', 'desc': 'Very much', 'position': 4},
+
+
+missing = "grey"
+
 base_colour_map = {
-    "1": "green",
-    "2": "yellow",
-    "3": "amber",
-    "4": "red",
-    "": "lightgrey",
-    None: "lightgrey",
-    pd.NA: "white",
+    "0": "green",
+    "1": "yellow",
+    "2": "orange",
+    "3": "red",
+    "": missing,
+    pd.NA: missing,
+    None: missing,
+}
+
+
+display_map = {
+    "missing": "lightgrey",
+    "not at all": "green",
+    "a little": "yellow",
+    "quite a bit": "orange",
+    "very much": "red",
 }
 
 
@@ -42,28 +61,31 @@ def circle(colour, id):
 
 
 def get_image(value, image_id):
-    if value is None:
-        return circle("grey", image_id)
-    if value == "":
-        return circle("grey", image_id)
-
-    try:
-        value = int(value)
-    except ValueError:
-        return circle("grey", image_id)
-
-    if value in [6, 7]:
-        return circle("green", image_id)
-    elif value in [1, 2]:
+    colour = base_colour_map.get(value, "blue")
+    if colour == "red":
         return circle("red", image_id)
-    elif value in [3, 4, 5]:
-        return circle("blue", image_id)
+    elif colour == "orange":
+        return circle("orange", image_id)
+    elif colour == "yellow":
+        return circle("yellow", image_id)
+    elif colour == "grey":
+        return circle("grey", image_id)
+    elif colour == "green":
+        return circle("green", image_id)
     else:
         return circle("grey", image_id)
 
 
-def get_popup_info(group_name, field, value):
-    return f"Group: {group_name} {field} {value}"
+def get_display(field, value):
+    d = get_display_value(field, value)
+    if not d:
+        return "Not entered"
+    else:
+        return d
+
+
+def get_popup_info(group_name, field, value, display):
+    return f"{field}: {display}"
 
 
 def get_fields():
@@ -122,7 +144,12 @@ class TrafficLights(BaseGraphic):
                                     get_image(value, image_id + "_" + str(index)),
                                     get_popover_target(
                                         image_id + "_" + str(index),
-                                        get_popup_info(group_name, field, value),
+                                        get_popup_info(
+                                            group_name,
+                                            field,
+                                            value,
+                                            get_display(field, value),
+                                        ),
                                     ),
                                 ],
                             )
@@ -152,6 +179,12 @@ class TrafficLights(BaseGraphic):
 
         for cde in cdes:
             df = self._add_colour_column(cde, df)
+
+        for field in fields:
+            display_field = field + "_display"
+            df[display_field] = df[field].map(lambda v: get_display_value(field, v))
+
+        logger.debug(f"{df}")
 
         return df
 
