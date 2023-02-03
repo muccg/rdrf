@@ -1,9 +1,7 @@
 import logging
-from dash import html, dcc
+from dash import html
 from ..components.common import BaseGraphic
 import dash_bootstrap_components as dbc
-from dash import dash_table
-import plotly.graph_objects as go
 import pandas as pd
 from rdrf.helpers.utils import get_display_value
 
@@ -119,12 +117,6 @@ class TrafficLights(BaseGraphic):
         return html.Div([blurb, table])
 
     def _get_blurb(self):
-        red = circle("red", "legend-red")
-        orange = circle("orange", "legend-orange")
-        green = circle("green", "legend-green")
-        yellow = circle("yellow", "legend-yellow")
-        grey = circle("grey", "legend-yellow")
-
         legend_map = {
             "Not entered": circle("grey", "legend-grey"),
             "Not at all": circle("green", "legend-green"),

@@ -140,7 +140,6 @@ def create_graphic(vis_config, data, patient, all_patients_data=None):
     # that
 
     from .components.proms_stats import PatientsWhoCompletedForms
-    from .components.tofc import TypesOfFormCompleted
     from .components.cfc import CombinedFieldComparison
     from .components.cpr import ChangesInPatientResponses
     from .components.sgc import ScaleGroupComparison
@@ -197,7 +196,7 @@ def get_single_patient_graphics_map(registry, vis_configs, patient_id):
             no_data = False
     except Exception as ex:
         logger.error(f"Error getting patient data for {patient_id}: {ex}")
-        return {f"tab_{vc.id}": html.H3(f"An error occurred") for vc in vis_configs}
+        return {f"tab_{vc.id}": html.H3("An error occurred") for vc in vis_configs}
 
     if no_data:
         return {f"tab_{vc.id}": html.H3("No data") for vc in vis_configs}

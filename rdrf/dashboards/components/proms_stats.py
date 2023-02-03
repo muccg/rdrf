@@ -33,7 +33,7 @@ class PatientsWhoCompletedForms(BaseGraphic):
             start_date, end_date = self._get_start_end(time_period)
             n = self._get_num_patients(time_period)
             if time_period == "all":
-                desc = f"All time"
+                desc = "All time"
             else:
                 desc = f"Last {time_period} days"
 

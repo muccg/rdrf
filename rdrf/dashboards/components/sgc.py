@@ -1,7 +1,5 @@
 import logging
-from datetime import datetime
 import plotly.express as px
-import pandas as pd
 from dash import dcc, html
 from rdrf.models.definition.models import CommonDataElement
 from ..components.common import BaseGraphic
@@ -82,22 +80,16 @@ class ScaleGroupComparison(BaseGraphic):
             # with all the patients, we need to append columns
             # to the dataframe showing the average scores
             if self.all_patients_data is None:
-                t1 = datetime.now()
                 self.load_all_patients_data()
-                t2 = datetime.now()
 
-            t1 = datetime.now()
             for helper in self.all_patients_helpers:
                 self.all_patients_data = helper.calculate_score(self.all_patients_data)
 
-            t2 = datetime.now()
             # now work out the average per SEQ
-            t1 = datetime.now()
             all_patients_score_names = [h.score_name for h in self.all_patients_helpers]
             average_scores = self.calculate_average_scores_over_time(
                 self.all_patients_data, all_patients_score_names
             )
-            t2 = datetime.now()
 
         else:
             average_scores = None
@@ -108,7 +100,7 @@ class ScaleGroupComparison(BaseGraphic):
             chart_title = "Scale group score over time for all patients"
             sgc_id = "sgc"
         else:
-            chart_title = f"Scores over time"
+            chart_title = "Scores over time"
             sgc_id = f"sgc-{self.patient.id}"
 
         if average_scores is not None:
@@ -214,8 +206,6 @@ class ScaleGroupComparison(BaseGraphic):
             return 0.3 if name.startswith("avg_") else 1.0
 
         scores_map["seq"] = "Survey Time Period"
-        colour_map = self._get_colour_map(scores_map)
-
         fig.for_each_trace(
             lambda t: t.update(
                 name=scores_map[t.name],
@@ -379,23 +369,7 @@ class ScaleGroupComparison(BaseGraphic):
 
             return avg
 
-        def vec_rs(df):
-            # vectorised
-            # problem here is the empty values propagate NA?
-            values = [pd.to_numeric(df[field]) + delta for field in fields]
-            avg = sum(values) / len(values)
-            return avg
-
-        from datetime import datetime
-
-        start_time = datetime.now()
-        # unvectorised
         data[score_name] = data.apply(lambda row: score_function(rs(row)), axis=1)
-
-        # vectorised
-        # data[score_name] = score_function(vec_rs(data))
-
-        end_time = datetime.now()
 
         return data
 
