@@ -114,7 +114,34 @@ class TrafficLights(BaseGraphic):
     def get_graphic(self):
         self.fields = get_fields(self.config)
         data = self._get_table_data()
-        return self.get_table(data)
+        table = self.get_table(data)
+        blurb = self._get_blurb()
+        return html.Div([blurb, table])
+
+    def _get_blurb(self):
+        red = circle("red", "legend-red")
+        orange = circle("orange", "legend-orange")
+        green = circle("green", "legend-green")
+        yellow = circle("yellow", "legend-yellow")
+        grey = circle("grey", "legend-yellow")
+
+        legend_map = {
+            "Not entered": circle("grey", "legend-grey"),
+            "Not at all": circle("green", "legend-green"),
+            "A little": circle("yellow", "legend-yellow"),
+            "Quite a bit": circle("orange", "legend-orange"),
+            "Very much": circle("red", "legend-red"),
+        }
+
+        children = ["Legend: "]
+
+        for value, image in legend_map.items():
+            children.append(image)
+            children.append(" " + value + " ")
+
+        legend = html.Div(children)
+
+        return html.Div([legend])
 
     def get_table(self, table_data):
         seq_names = [html.Th(x) for x in table_data["SEQ_NAME"]]
