@@ -1341,6 +1341,31 @@ class Patient(models.Model):
 
             return PatientLocator(registry_model, self).link
 
+    @property
+    def cds(self):
+        for cd in ClinicalData.objects.filter(
+            collection="cdes", django_id=self.id
+        ).order_by("id"):
+            yield cd
+
+    def has_saved_form(self, form_name, record_type="baseline"):
+        for cd in self.cds:
+            if cd.record_type == record_type:
+                if cd.data and "forms" in cd.data:
+                    form_names = [f["name"] for f in cd.data["forms"]]
+                    if form_name in form_names:
+                        return True
+
+    @property
+    def follow_ups(self):
+        return list(filter(lambda cd: cd.record_type == "followup", self.cds))
+
+    @property
+    def baseline(self):
+        baselines = [cd for cd in self.cds if cd.record_type == "baseline"]
+        if len(baselines) == 1:
+            return baselines[0]
+
 
 class Speciality(models.Model):
     registry = models.ForeignKey(Registry, on_delete=models.CASCADE)

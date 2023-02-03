@@ -36,7 +36,10 @@ class BaseGraphic:
         all_patients_data=None,
     ):
         self.config_model = config_model
-        self.config = config_model.config
+        if self.config_model is not None:
+            self.config = config_model.config
+        else:
+            self.config = None
         self.data = data
         self.title = title
         self.patient = patient  # none if all patients

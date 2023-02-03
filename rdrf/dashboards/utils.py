@@ -138,17 +138,21 @@ def create_graphic(vis_config, data, patient, all_patients_data=None):
     # should be supplied with the patient
     # all_patients_data is supplied only to Scale group Comparisons
     # that
-    from .components.pcf import PatientsWhoCompletedForms
-    from .components.tofc import TypesOfFormCompleted
+
+    from .components.proms_stats import PatientsWhoCompletedForms
     from .components.cfc import CombinedFieldComparison
     from .components.cpr import ChangesInPatientResponses
     from .components.sgc import ScaleGroupComparison
+    from .components.tl import TrafficLights
 
     title = vis_config.title
-    if vis_config.code == "pcf":
-        return PatientsWhoCompletedForms(title, vis_config, data).graphic
-    elif vis_config.code == "tofc":
-        return TypesOfFormCompleted(title, vis_config, data).graphic
+    if vis_config.code == "proms_stats":
+        from dash import html
+
+        pcf_graphic = PatientsWhoCompletedForms(
+            "Patients Who Completed Forms", vis_config, data
+        ).graphic
+        return html.Div([pcf_graphic], "proms_stats")
     elif vis_config.code == "cfc":
         return CombinedFieldComparison(title, vis_config, data).graphic
     elif vis_config.code == "cpr":
@@ -157,6 +161,8 @@ def create_graphic(vis_config, data, patient, all_patients_data=None):
         return ScaleGroupComparison(
             title, vis_config, data, patient, all_patients_data
         ).graphic
+    elif vis_config.code == "tl":
+        return TrafficLights(title, vis_config, data, all_patients_data).graphic
     else:
         logger.error(f"dashboard error - unknown visualisation {vis_config.code}")
         raise Exception(f"Unknown code: {vis_config.code}")
@@ -166,7 +172,6 @@ def get_all_patients_graphics_map(registry, vis_configs):
     from .data import get_data
 
     data = get_data(registry, None)
-    logger.debug(f"{data}")
 
     graphics_map = {
         f"tab_{vc.id}": create_graphic(vc, data, None, None) for vc in vis_configs
@@ -181,7 +186,6 @@ def get_single_patient_graphics_map(registry, vis_configs, patient_id):
     from dash import html
 
     no_data = True
-    logger.debug(f"get single patient graphics for {patient_id}")
 
     patient = Patient.objects.get(id=patient_id)
 
@@ -191,8 +195,8 @@ def get_single_patient_graphics_map(registry, vis_configs, patient_id):
         if data is not None:
             no_data = False
     except Exception as ex:
-        logger.debug(f"Error getting data for {patient}: {ex}")
-        return {f"tab_{vc.id}": html.H3(f"Error: {ex}") for vc in vis_configs}
+        logger.error(f"Error getting patient data for {patient_id}: {ex}")
+        return {f"tab_{vc.id}": html.H3("An error occurred") for vc in vis_configs}
 
     if no_data:
         return {f"tab_{vc.id}": html.H3("No data") for vc in vis_configs}

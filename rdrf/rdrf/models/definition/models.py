@@ -2190,10 +2190,6 @@ class ClinicalDataQuerySet(models.QuerySet):
 
 
 class ClinicalData(models.Model):
-    """
-    MongoDB collections in Django.
-    """
-
     COLLECTIONS = (
         ("cdes", "cdes"),
         ("history", "history"),
@@ -2311,6 +2307,22 @@ class ClinicalData(models.Model):
                 logger.warning("Failed to validate: %s" % e)
             else:
                 raise ValidationError({"data": e})
+
+    @property
+    def record_type(self):
+        try:
+            context_model = RDRFContext.objects.get(id=self.context_id)
+        except RDRFContext.DoesNotExist:
+            return "unknown"
+
+        if context_model.context_form_group:
+            form_group = context_model.context_form_group
+            if form_group.context_type == "F":
+                return "baseline"
+            else:
+                return "followup"
+        else:
+            return "normal"  # no associated form group
 
 
 @receiver(clinical_data_saved_ok, sender=ClinicalData)

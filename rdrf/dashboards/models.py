@@ -21,11 +21,11 @@ class VisualisationBaseDataConfig(models.Model):
 class VisualisationConfig(models.Model):
     dashboards = (("S", "Single Patient"), ("A", "All Patients"))
     codes = (
-        ("tofc", "Types of Forms Completed"),
-        ("pcf", "Patients Who Completed Forms"),
+        ("proms_stats", "Proms Statistics"),
         ("cfc", "Combined Field Comparison"),
         ("cpr", "Changes in Patient Responses"),
         ("sgc", "Scale Group Comparison"),
+        ("tl", "Traffic Lights Display"),
     )
     registry = models.ForeignKey(Registry, on_delete=models.CASCADE)
     base_data = models.ForeignKey(

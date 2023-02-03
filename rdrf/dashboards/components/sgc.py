@@ -1,7 +1,5 @@
 import logging
-from datetime import datetime
 import plotly.express as px
-import pandas as pd
 from dash import dcc, html
 from rdrf.models.definition.models import CommonDataElement
 from ..components.common import BaseGraphic
@@ -41,7 +39,6 @@ class AllPatientsScoreHelper:
 class ScaleGroupComparison(BaseGraphic):
     def get_graphic(self):
         self.better = None
-        log("creating Scale Group Comparison")
         self.mode = "single" if self.patient else "all"
         data = self.data
         scores_map = {}
@@ -64,7 +61,6 @@ class ScaleGroupComparison(BaseGraphic):
             score_name = f"score_{index}"
             self.group_info[score_name] = group_title
             self.rev_group[group_title] = score_name
-            logger.info(f"calculating score for {group_title}")
             data = self.calculate_scores(
                 score_name, group_fields, group_score_function, data
             )
@@ -84,32 +80,15 @@ class ScaleGroupComparison(BaseGraphic):
             # with all the patients, we need to append columns
             # to the dataframe showing the average scores
             if self.all_patients_data is None:
-                logger.info("all patients data not loaded - loading ..")
-                t1 = datetime.now()
                 self.load_all_patients_data()
-                t2 = datetime.now()
-                logger.info(f"time taken = {(t2-t1).total_seconds()} seconds")
 
-            logger.info("calculating scores for all patients..")
-            t1 = datetime.now()
             for helper in self.all_patients_helpers:
                 self.all_patients_data = helper.calculate_score(self.all_patients_data)
 
-            t2 = datetime.now()
-            logger.info(
-                f"time taken to calculate all scores for all patients = {(t2-t1).total_seconds()} seconds"
-            )
-
             # now work out the average per SEQ
-            logger.info("calculating averages for the scores..")
-            t1 = datetime.now()
             all_patients_score_names = [h.score_name for h in self.all_patients_helpers]
             average_scores = self.calculate_average_scores_over_time(
                 self.all_patients_data, all_patients_score_names
-            )
-            t2 = datetime.now()
-            logger.info(
-                f"time taken to calculate average scores for all patients = {(t2-t1).total_seconds()} seconds"
             )
 
         else:
@@ -121,7 +100,7 @@ class ScaleGroupComparison(BaseGraphic):
             chart_title = "Scale group score over time for all patients"
             sgc_id = "sgc"
         else:
-            chart_title = f"Scores over time for {self.patient.link}"
+            chart_title = "Scores over time"
             sgc_id = f"sgc-{self.patient.id}"
 
         if average_scores is not None:
@@ -155,9 +134,23 @@ class ScaleGroupComparison(BaseGraphic):
         line_chart = self.get_line_chart(data, chart_title, scores_map)
         table = self.get_table(data, scores_map)
 
-        div = html.Div([line_chart, table])
+        notes = self._get_notes()
+        if notes:
+            div = html.Div([notes, line_chart, table])
+        else:
+            div = html.Div([line_chart, table])
 
         return html.Div(div, id=sgc_id)
+
+    def _get_notes(self):
+        if self._is_missing_baseline():
+            return "Note: Patient is missing a Baseline Form"
+
+    def _is_missing_baseline(self):
+        base_config = self.config_model.base_data
+        if base_config:
+            baseline_form = base_config.config["baseline_form"]
+            return not self.patient.has_saved_form(baseline_form)
 
     @property
     def needs_global_data(self):
@@ -179,7 +172,6 @@ class ScaleGroupComparison(BaseGraphic):
         return avg_data
 
     def get_line_chart(self, data, title, scores_map):
-        logger.debug(f"get line chart for {title}")
         score_names = sorted(list(scores_map.keys()))
 
         fig = px.line(
@@ -188,7 +180,13 @@ class ScaleGroupComparison(BaseGraphic):
             y=score_names,
             title=title,
             markers=True,
-            labels={"SEQ": "Survey Time Period", "y": "Score", "value": "Score"},
+            labels={
+                "SEQ": "Survey Time Period",
+                "y": "Score",
+                "value": "Score",
+                "variable": "Variable",
+            },
+            color_discrete_map=self._get_colour_map(scores_map),
         )
 
         self.fix_xaxis(fig, data)
@@ -199,8 +197,8 @@ class ScaleGroupComparison(BaseGraphic):
 
         def get_legend_group_title(name):
             d = {
-                "average_group": "Average Values Over All Patients",
-                "patient_group": "Individual Patient Values",
+                "average_group": "<b>Average Values Over All Patients</b>",
+                "patient_group": "<b>Individual Patient Values</b>",
             }
             return d[get_legend_group(name)]
 
@@ -227,32 +225,43 @@ class ScaleGroupComparison(BaseGraphic):
             id = f"sgc-line-chart-{title}-all"
 
         if self.better is not None:
-            logger.debug(f"adding indicator better is {self.better}")
             self.add_indicator(fig, data)
-        else:
-            logger.debug("self.better is None no indicator added?")
         div = html.Div([dcc.Graph(figure=fig)], id=id)
         return div
+
+    def _get_colour_map(self, scores_map):
+
+        base_colours = px.colors.qualitative.Safe
+        i = 0
+        assigned = {}
+
+        for k in scores_map:
+            if not k.startswith("avg_"):
+                assigned[k] = base_colours[i]
+                i += 1
+
+        for k in scores_map:
+            if k.startswith("avg_"):
+                base_score_name = k.replace("avg_", "")
+                # we should always have a base..
+                assigned[k] = assigned[base_score_name]
+
+        return assigned
 
     def add_indicator(self, fig, data):
         import math
 
-        logger.debug(f"add indicator: {self.better}")
         image_src = self.better_indicator_image(self.better)
         r, _ = data.shape
-        logger.debug(f"num collection dates = {r}")
 
         x_pos = math.floor(0.5 * r)
         if x_pos == 0:
             x_pos = 0.50
 
-        logger.debug(f"x_pos = {x_pos}")
         x_size = math.floor(0.1 * r)
         if x_size == 0:
             x_size = 0.5
         y_size = 30
-
-        logger.debug(f"x_pos = {x_pos} x_size = {x_size} y_size = {y_size}")
 
         if self.better == "up":
             self.add_image(fig, image_src, x_pos, 80, x_size, y_size, opacity=0.5)
@@ -343,8 +352,6 @@ class ScaleGroupComparison(BaseGraphic):
         else:
             raise Exception(f"base of fields {fields} is {detected_base}")
 
-        logger.debug(f"{score_name} delta = {delta}")
-
         def filled(value):
             # non vectorised
             return value not in [None, ""]
@@ -362,33 +369,12 @@ class ScaleGroupComparison(BaseGraphic):
 
             return avg
 
-        def vec_rs(df):
-            # vectorised
-            # problem here is the empty values propagate NA?
-            values = [pd.to_numeric(df[field]) + delta for field in fields]
-            avg = sum(values) / len(values)
-            return avg
-
-        from datetime import datetime
-
-        start_time = datetime.now()
-        # unvectorised
         data[score_name] = data.apply(lambda row: score_function(rs(row)), axis=1)
-
-        # vectorised
-        # data[score_name] = score_function(vec_rs(data))
-
-        end_time = datetime.now()
-
-        logger.info(
-            f"score {score_name} time = {(end_time - start_time).total_seconds() } seconds"
-        )
 
         return data
 
     def get_score_function(self, range_value, scale):
         if scale == "functional":
-            log("scale is functional")
 
             def score(rs):
                 # rs: raw score = average of values
@@ -400,7 +386,6 @@ class ScaleGroupComparison(BaseGraphic):
             return score
 
         elif scale == "symptom":
-            log("scale is symptom")
 
             def score(rs):
                 if rs is None:
@@ -410,7 +395,6 @@ class ScaleGroupComparison(BaseGraphic):
             return score
 
         elif scale == "hs/qol":
-            log("scale is hs/qol")
 
             def score(rs):
                 if rs is None:
@@ -419,7 +403,6 @@ class ScaleGroupComparison(BaseGraphic):
 
             return score
         else:
-            log(f"scale is unknown: {scale}")
             raise ScaleGroupError(f"Unknown scale: {scale}")
 
     def get_range_value(self, fields):

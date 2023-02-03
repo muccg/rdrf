@@ -30,6 +30,7 @@ def cde_iterator(registry):
 cdf = "COLLECTIONDATE"  # collection date field
 pid = "PID"  # patient id
 SEQ = "SEQ"
+con = "CON"  # context id
 
 
 class RegistryDataFrame:
@@ -49,8 +50,8 @@ class RegistryDataFrame:
         self.state = None
         self.config_model = config_model
         self.patient_id = patient_id
-        self.prefix_fields = ["pid", "seq", "type", "form"]
-        self.prefix_names = ["PID", "SEQ", "TYPE", "FORM"]
+        self.prefix_fields = ["pid", "seq", "type", "context_id", "form"]
+        self.prefix_names = ["PID", "SEQ", "TYPE", "CONTEXT_ID", "FORM"]
         self.fields = self.config_model.config["fields"]
         self.num_fields = len(self.fields)
         self.column_names = self._get_column_names()
@@ -69,6 +70,7 @@ class RegistryDataFrame:
         elif self.mode == "all":
             logger.info("loading dataframe from base config json")
             self.df = pd.read_json(self.config_model.data)
+            self.df[cdf] = pd.to_datetime(self.df[cdf], unit="ms")
         elif self.mode == "single":
             self._reload_dataframe()
 
@@ -100,6 +102,8 @@ class RegistryDataFrame:
             try:
                 d = row["COLLECTIONDATE"].date()
                 aus_date = f"{d.day}-{d.month}-{d.year}"
+                if "nan" in aus_date:
+                    return ""
                 return f" ({aus_date})"
             except KeyError:
                 return ""
@@ -123,6 +127,24 @@ class RegistryDataFrame:
         is closest to a schedule date D with seq number i, we assign i to it
         instead of counting 0,1,2..
         """
+
+        def get_patients(df):
+            return df["pid"].unique()
+
+        def fix_baseline_for_patient(pid, df):
+            return df
+
+        def fix_missing_baseline(df):
+            for pid in get_patients(df):
+                df = fix_baseline_for_patient(pid, df)
+            return df
+
+        def fix_skipped(df):
+            return df
+
+        # df = fix_missing_baseline(df)
+        # df = fix_skipped(df)
+
         return df  # todo
 
     def _get_column_names(self):
@@ -166,6 +188,8 @@ class RegistryDataFrame:
             row = [pid, seq]
             cd_type = self._get_cd_type(cd)
             row.append(cd_type)
+            context_id = cd.context_id
+            row.append(context_id)
             form_name = self._get_form(cd_type)
             row.append(form_name)
             field_row = self._get_cd_data(cd, form_name)
@@ -190,7 +214,6 @@ class RegistryDataFrame:
         for patient in qry:
             for row in self._get_patient_rows(patient):
                 rows.append(row)
-        logger.debug(f" number of rows = {len(rows)}")
         if len(rows) == 0:
             return None
         df = pd.DataFrame(rows)

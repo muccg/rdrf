@@ -21,7 +21,7 @@ class TypesOfFormCompleted(BaseGraphic):
             self.form_counts,
             values="COUNT",
             names="FORM",
-            title=title,
+            title=self.title,
             width=400,
             height=400,
         )

@@ -40,9 +40,7 @@ class ChangesInPatientResponses(BaseGraphic):
         self.fols = config["fields"]
 
     def get_graphic(self):
-        log("creating Changes in Patient Responses")
         self.set_fields_of_interest(self.config)
-        log(f"fields of interest = {self.fols}")
         items = []
         for fol_dict in self.fols:
             field = fol_dict["code"]
@@ -52,8 +50,15 @@ class ChangesInPatientResponses(BaseGraphic):
             bar_div = self._create_stacked_bar_px(pof, field, label, colour_map)
             items.append(bar_div)
 
-        cpr_div = html.Div([html.H3("Changes in Patient Responses"), *items])
-        log("created cpr graphic")
+        blurb_text = """
+                This tab displays EORTC QLQ-C30 symptom scale results for all patients
+                over the time intervals that PROMs have been completed.
+                Scroll down to see all variables.
+                """
+
+        blurb = html.P(blurb_text)
+
+        cpr_div = html.Div([html.H3("Changes in Patient Responses"), blurb, *items])
 
         return html.Div(cpr_div, id="cpr")
 
@@ -71,6 +76,15 @@ class ChangesInPatientResponses(BaseGraphic):
 
         df = add_seq_name(df)
         df = df.round(1)
+        df["text"] = df.apply(
+            lambda row: "<b>"
+            + str(row["counts"])
+            + " ("
+            + str(row["Percentage"])
+            + "%)"
+            + "</b>",
+            axis=1,
+        )
 
         fig = px.bar(
             df,
@@ -80,12 +94,33 @@ class ChangesInPatientResponses(BaseGraphic):
             barmode="stack",
             title=f"Change in {label} over time for all patients",
             color_discrete_map=colour_map,
-            labels={"SEQ": "Survey Time Period"},
+            text="text",
+            labels={"SEQ": "Survey Time Period", "text": "Summary"},
         )
 
         self.fix_xaxis(fig, df)
 
-        log("created bar")
         id = f"bar-{label}"
         div = html.Div([dcc.Graph(figure=fig)], id=id)
         return div
+
+    def fix_xaxis(self, fig, data):
+        # this replaces the SEQ numbers on the x-axis
+        # with names
+        fig.update_xaxes(type="category")
+
+        seq_totals = data.groupby(["SEQ"])["counts"].sum()
+
+        def get_ticktext(row):
+            seq = row["SEQ"]
+            seq_total = seq_totals[seq]
+            seq_name = row["SEQ_NAME"]
+            return seq_name + " (" + str(seq_total) + ")"
+
+        data["ticktext"] = data.apply(get_ticktext, axis=1)
+
+        fig.update_layout(
+            xaxis=dict(
+                tickmode="array", tickvals=data["SEQ"], ticktext=data["ticktext"]
+            )
+        )
