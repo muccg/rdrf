@@ -114,7 +114,8 @@ class TrafficLights(BaseGraphic):
         data = self._get_table_data()
         table = self.get_table(data)
         blurb = self._get_blurb()
-        return html.Div([blurb, table])
+
+        return html.Div([blurb, html.Br(), table])
 
     def _get_blurb(self):
         legend_map = {
