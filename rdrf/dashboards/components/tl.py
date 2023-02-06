@@ -130,11 +130,11 @@ class TrafficLights(BaseGraphic):
 
     def _get_blurb(self):
         legend_map = {
-            "Missing": circle("grey", "legend-grey"),
             "Not at all": circle("green", "legend-green"),
             "A little": circle("yellow", "legend-yellow"),
             "Quite a bit": circle("orange", "legend-orange"),
             "Very much": circle("red", "legend-red"),
+            "Missing": circle("grey", "legend-grey"),
         }
 
         children = ["Legend: "]
