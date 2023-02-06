@@ -62,9 +62,11 @@ class PatientsWhoCompletedForms(BaseGraphic):
             )
 
         table_body = [html.Tbody([*rows])]
+        blurb = self.config.get("blurb", "")
+
         table = dbc.Table(table_header + table_body)
 
-        return html.Div([table], "pcf-content")
+        return html.Div([blurb, table], "pcf-content")
 
     def _get_start_end(self, time_period):
         if time_period == "all":
