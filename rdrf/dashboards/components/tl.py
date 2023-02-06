@@ -84,11 +84,13 @@ def get_display(field, value):
         return d
 
 
-def get_yes_no(value, _):
+def get_yes_no(value, image_id):
     if value == "1":
-        return html.B("Yes")
+        return "Yes"
+    elif value == "0":
+        return "No"
     else:
-        return html.B("No")
+        return circle("grey", image_id)
 
 
 def get_popup_info(field, display):
