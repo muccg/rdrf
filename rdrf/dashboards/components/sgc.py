@@ -48,6 +48,8 @@ class ScaleGroupComparison(BaseGraphic):
         self.average_scores = None
         group_scales = set([])
 
+        blurb = self.config.get("blurb", "")
+
         for index, group in enumerate(self.config["groups"]):
             group_title = group["title"]
             group_fields = group["fields"]
@@ -136,9 +138,9 @@ class ScaleGroupComparison(BaseGraphic):
 
         notes = self._get_notes()
         if notes:
-            div = html.Div([notes, line_chart, table])
+            div = html.Div([blurb, notes, line_chart, table])
         else:
-            div = html.Div([line_chart, table])
+            div = html.Div([blurb, line_chart, table])
 
         return html.Div(div, id=sgc_id)
 
