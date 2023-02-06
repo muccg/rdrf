@@ -5,6 +5,8 @@ import dash_bootstrap_components as dbc
 import pandas as pd
 from rdrf.helpers.utils import get_display_value
 
+from rdrf.models.definition.models import CommonDataElement
+
 logger = logging.getLogger(__name__)
 
 
@@ -82,6 +84,13 @@ def get_display(field, value):
         return d
 
 
+def get_yes_no(value, _):
+    if value == "1":
+        return html.B("Yes")
+    else:
+        return html.B("No")
+
+
 def get_popup_info(field, display):
     return f"{field}: {display}"
 
@@ -136,6 +145,18 @@ class TrafficLights(BaseGraphic):
 
         return html.Div([legend])
 
+    def _get_graphic_function(self, field):
+        yes_no = set(["Yes", "No"])
+        cde_model = CommonDataElement.objects.get(code=field)
+        func = get_image
+        if cde_model.pv_group:
+            display_values = set(cde_model.get_range_members(get_code=False))
+            if display_values == yes_no:
+                func = get_yes_no
+
+        logger.debug(f"{field} {func}")
+        return func
+
     def get_table(self, table_data):
         seq_names = [html.Th(x) for x in table_data["SEQ_NAME"]]
         table_header = [html.Thead(html.Tr([html.Th("Field"), *seq_names]))]
@@ -145,13 +166,15 @@ class TrafficLights(BaseGraphic):
             field_values = table_data[field]
             image_id = f"image_{field}_"
 
+            graphic_function = self._get_graphic_function(field)
+
             table_row = html.Tr(
                 [
                     html.Td(html.Small(get_field_label(field))),
                     *[
                         html.Td(
                             [
-                                get_image(value, image_id + "_" + str(index)),
+                                graphic_function(value, image_id + "_" + str(index)),
                                 get_popover_target(
                                     image_id + "_" + str(index),
                                     get_popup_info(field, get_display(field, value)),
