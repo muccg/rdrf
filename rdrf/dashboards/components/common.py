@@ -74,6 +74,9 @@ class BaseGraphic:
             )
         )
 
+    def set_background_colour(self, fig, colour="white"):
+        fig.update_layout(dict(plot_bgcolor=colour))
+
     def fix_yaxis(self, fig, low=0, high=100):
         fig.update_yaxes(range=[low, high])
 

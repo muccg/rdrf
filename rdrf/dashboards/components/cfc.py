@@ -58,6 +58,7 @@ class CombinedFieldComparison(BaseGraphic):
         fig.update_xaxes(type="category")
 
         self.fix_xaxis(fig, data)
+        self.set_background_colour(fig, "rgb(250, 250, 250)")
 
         bar_id = "bar-combined"
         div = html.Div([dcc.Graph(figure=fig)], id=bar_id)

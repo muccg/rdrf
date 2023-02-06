@@ -193,6 +193,7 @@ class ScaleGroupComparison(BaseGraphic):
 
         self.fix_xaxis(fig, data)
         self.fix_yaxis(fig)
+        self.set_background_colour(fig, "rgb(250, 250, 250)")
 
         def get_legend_group(name):
             return "average_group" if name.startswith("avg_") else "patient_group"
