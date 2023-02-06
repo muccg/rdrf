@@ -79,7 +79,7 @@ def get_image(value, image_id):
 def get_display(field, value):
     d = get_display_value(field, value)
     if not d:
-        return "Not entered"
+        return "Missing"
     else:
         return d
 
@@ -130,7 +130,7 @@ class TrafficLights(BaseGraphic):
 
     def _get_blurb(self):
         legend_map = {
-            "Not entered": circle("grey", "legend-grey"),
+            "Missing": circle("grey", "legend-grey"),
             "Not at all": circle("green", "legend-green"),
             "A little": circle("yellow", "legend-yellow"),
             "Quite a bit": circle("orange", "legend-orange"),
