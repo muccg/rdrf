@@ -5,7 +5,7 @@ logger = logging.getLogger(__name__)
 
 def get_colour_map():
     color_discrete_map = {
-        "Blank": "lightgrey",
+        "Missing": "lightgrey",
         "Not at all": "green",
         "A little": "lightgreen",
         "Quite a bit": "darkorange",

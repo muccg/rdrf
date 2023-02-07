@@ -101,6 +101,7 @@ class ChangesInPatientResponses(BaseGraphic):
 
         self.fix_xaxis(fig, df)
         self.set_background_colour(fig, "rgb(250, 250, 250)")
+        fig.update_layout(legend_traceorder="reversed")
 
         id = f"bar-{label}"
         div = html.Div([dcc.Graph(figure=fig)], id=id)
