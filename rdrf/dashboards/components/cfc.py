@@ -65,7 +65,8 @@ class CombinedFieldComparison(BaseGraphic):
             barmode="stack",
             title=f"Change in {combined_name} over time for all patients" + s,
             color_discrete_map=colour_map,
-            labels={"SEQ": "Survey Time Period", "value": "Value"},
+            hover_data={"count": True},
+            labels={"SEQ": "Survey Time Period", "value": "Value", "count": "Count"},
         )
         fig.update_xaxes(type="category")
 
@@ -135,4 +136,5 @@ class CombinedFieldComparison(BaseGraphic):
 
         # reset index
         counted = counted.reset_index()
+        logger.debug(f"counted = \n{counted}")
         return counted
