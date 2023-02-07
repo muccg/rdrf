@@ -351,14 +351,6 @@ class ScaleGroupComparison(BaseGraphic):
 
         headers = ["Scale Group"] + list(data["SEQ_NAME"])
 
-        def remove_date(h):
-            if "(" in h:
-                return h[: h.find(" (")]
-            else:
-                return h
-
-        headers = [remove_date(h) for h in headers]
-
         fig = go.Figure(
             data=[go.Table(header=dict(values=headers), cells=dict(values=columns))]
         )
