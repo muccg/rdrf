@@ -205,7 +205,7 @@ class ScaleGroupComparison(BaseGraphic):
 
         for col in counts.columns:
             if col.startswith("count_"):
-                labels[col] = "Number of patients in Average"
+                labels[col] = "Number of records in Average"
 
         fig = px.line(
             data,
@@ -248,6 +248,26 @@ class ScaleGroupComparison(BaseGraphic):
                 hovertemplate=t.hovertemplate.replace(t.name, scores_map[t.name]),
             )
         )
+
+        def fix_hovertemplate(hovertemplate):
+            logger.debug(hovertemplate)
+            if "Variable=Average" in hovertemplate:
+                # keep the number of records count
+                return hovertemplate
+            else:
+                # don't show the number of records count
+                # in the average
+                # NB.
+                # hovertemplate looks like:
+                # Variable=Financial Difficulties<br>Survey Time Period=%{x}<br>Score=%{y}<br>Number of records in Average=%{customdata[0]}<extra></extra>
+                search_string = "<br>Number of records"
+                index = hovertemplate.find(search_string)
+                return hovertemplate[:index]
+
+        def remove_avg_record_count_for_indiv(t):
+            t.update(hovertemplate=fix_hovertemplate(t.hovertemplate))
+
+        fig.for_each_trace(remove_avg_record_count_for_indiv)
 
         if self.patient:
             id = f"sgc-line-chart-{title}-{self.patient.id}"
