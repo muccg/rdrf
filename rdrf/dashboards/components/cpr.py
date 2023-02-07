@@ -95,6 +95,7 @@ class ChangesInPatientResponses(BaseGraphic):
             title=f"Change in {label} over time for all patients",
             color_discrete_map=colour_map,
             text="text",
+            hover_data={"Percentage": False},
             labels={"SEQ": "Survey Time Period", "text": "Summary"},
         )
 
