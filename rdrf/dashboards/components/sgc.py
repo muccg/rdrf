@@ -306,7 +306,7 @@ class ScaleGroupComparison(BaseGraphic):
                 j = k.replace("avg_", "")
                 return "Average " + self.group_info[j]
             else:
-                return self.group_info[k]
+                return self.group_info[k] + " - this patient"
 
         scale_group_col = [get_scale_group_name(k) for k in score_names()]
         columns.append(scale_group_col)
