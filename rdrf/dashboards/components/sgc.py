@@ -9,11 +9,6 @@ from ..data import combine_data
 
 logger = logging.getLogger(__name__)
 
-
-def log(msg):
-    logger.info(f"sgc: {msg}")
-
-
 SEQ = "SEQ"
 
 
@@ -98,8 +93,6 @@ class ScaleGroupComparison(BaseGraphic):
                 self.all_patients_data, all_patients_score_names
             )
 
-            logger.debug(f"count_scores = {count_scores}")
-
         else:
             average_scores = None
             count_scores = None
@@ -182,11 +175,7 @@ class ScaleGroupComparison(BaseGraphic):
         return avg_data
 
     def get_line_chart(self, data, title, scores_map):
-        logger.debug("get_line_chart")
-        logger.debug("data =\n")
-        logger.debug(f"{data}")
         score_names = sorted(list(scores_map.keys()))
-        logger.debug(f"score_names = {score_names}")
         count_names = [
             name.replace("avg_", "count_")
             for name in score_names
@@ -250,7 +239,6 @@ class ScaleGroupComparison(BaseGraphic):
         )
 
         def fix_hovertemplate(hovertemplate):
-            logger.debug(hovertemplate)
             if "Variable=Average" in hovertemplate:
                 # keep the number of records count
                 return hovertemplate
@@ -381,16 +369,12 @@ class ScaleGroupComparison(BaseGraphic):
         # this only makes sense if this chart is passed
         # all patients scores
         aggregations_map = {score_name: "mean" for score_name in score_names}
-
         df = data.groupby(SEQ).agg(aggregations_map).reset_index()
-        logger.debug(f"av scores = {df}")
         return df
 
     def calculate_score_counts_over_time(self, data, score_names):
         aggregations_map = {score_name: "count" for score_name in score_names}
-
         df = data.groupby(SEQ).agg(aggregations_map).reset_index()
-        logger.debug(f"counts of scores = {df}")
         return df
 
     def get_scale(self):
