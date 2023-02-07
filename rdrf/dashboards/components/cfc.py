@@ -42,7 +42,9 @@ class CombinedFieldComparison(BaseGraphic):
         def op(row):
             value = row["value"]
             if value == "":
-                return "Blank"
+                return "Missing"
+            elif value is None:
+                return "Missing"
             else:
                 return value
 
@@ -69,6 +71,7 @@ class CombinedFieldComparison(BaseGraphic):
 
         self.fix_xaxis(fig, data)
         self.set_background_colour(fig, "rgb(250, 250, 250)")
+        fig.update_layout(legend_traceorder="reversed")
 
         bar_id = "bar-combined"
         div = html.Div([dcc.Graph(figure=fig)], id=bar_id)
