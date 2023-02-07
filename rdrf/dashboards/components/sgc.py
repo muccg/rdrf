@@ -38,7 +38,7 @@ class AllPatientsScoreHelper:
 
 class ScaleGroupComparison(BaseGraphic):
     def get_graphic(self):
-        self.better = None
+        self.better = None  # an indicator showing whether up is better
         self.mode = "single" if self.patient else "all"
         data = self.data
         scores_map = {}
@@ -92,9 +92,17 @@ class ScaleGroupComparison(BaseGraphic):
             average_scores = self.calculate_average_scores_over_time(
                 self.all_patients_data, all_patients_score_names
             )
+            # score counts is the number of patient responses
+            # comprising the average
+            count_scores = self.calculate_score_counts_over_time(
+                self.all_patients_data, all_patients_score_names
+            )
+
+            logger.debug(f"count_scores = {count_scores}")
 
         else:
             average_scores = None
+            count_scores = None
 
         if self.mode == "all":
             # not sure if this is actually required
@@ -106,7 +114,7 @@ class ScaleGroupComparison(BaseGraphic):
             sgc_id = f"sgc-{self.patient.id}"
 
         if average_scores is not None:
-            data = combine_data(data, average_scores)
+            data = combine_data(data, average_scores, count_scores)
             score_names = [sn for sn in scores_map if sn.startswith("score_")]
             score_names = score_names + ["avg_" + sn for sn in score_names]
             for sn in score_names:
@@ -174,7 +182,30 @@ class ScaleGroupComparison(BaseGraphic):
         return avg_data
 
     def get_line_chart(self, data, title, scores_map):
+        logger.debug("get_line_chart")
+        logger.debug("data =\n")
+        logger.debug(f"{data}")
         score_names = sorted(list(scores_map.keys()))
+        logger.debug(f"score_names = {score_names}")
+        count_names = [
+            name.replace("avg_", "count_")
+            for name in score_names
+            if name.startswith("avg_")
+        ]
+
+        # dataframe
+        counts = data[["SEQ"] + count_names]
+
+        labels = {
+            "SEQ": "Survey Time Period",
+            "y": "Score",
+            "value": "Score",
+            "variable": "Variable",
+        }
+
+        for col in counts.columns:
+            if col.startswith("count_"):
+                labels[col] = "Number of patients in Average"
 
         fig = px.line(
             data,
@@ -182,13 +213,9 @@ class ScaleGroupComparison(BaseGraphic):
             y=score_names,
             title=title,
             markers=True,
-            labels={
-                "SEQ": "Survey Time Period",
-                "y": "Score",
-                "value": "Score",
-                "variable": "Variable",
-            },
+            labels=labels,
             color_discrete_map=self._get_colour_map(scores_map),
+            hover_data=counts,
         )
 
         self.fix_xaxis(fig, data)
@@ -336,6 +363,14 @@ class ScaleGroupComparison(BaseGraphic):
         aggregations_map = {score_name: "mean" for score_name in score_names}
 
         df = data.groupby(SEQ).agg(aggregations_map).reset_index()
+        logger.debug(f"av scores = {df}")
+        return df
+
+    def calculate_score_counts_over_time(self, data, score_names):
+        aggregations_map = {score_name: "count" for score_name in score_names}
+
+        df = data.groupby(SEQ).agg(aggregations_map).reset_index()
+        logger.debug(f"counts of scores = {df}")
         return df
 
     def get_scale(self):

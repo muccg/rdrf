@@ -314,7 +314,9 @@ def get_percentages_within_seq(df, field):
     return g
 
 
-def combine_data(indiv_data: pd.DataFrame, avg_data: pd.DataFrame) -> pd.DataFrame:
+def combine_data(
+    indiv_data: pd.DataFrame, avg_data: pd.DataFrame, count_data: pd.DataFrame
+) -> pd.DataFrame:
     """
     This function takes individual patient scores for scale groups  and combines
     with a dataframe of average data for the same scores to produce a single dataframe
@@ -340,7 +342,18 @@ def combine_data(indiv_data: pd.DataFrame, avg_data: pd.DataFrame) -> pd.DataFra
             col: "avg_" + col for col in avg_data.columns if col.startswith("score_")
         }
     )
+
+    count_data = count_data.rename(
+        columns={
+            col: "count_" + col
+            for col in count_data.columns
+            if col.startswith("score_")
+        }
+    )
+
     # now merge on SEQ column
 
     combined_data = indiv_data.merge(avg_data, how="left", on="SEQ")
+    combined_data = combined_data.merge(count_data, how="left", on="SEQ")
+    logger.debug(f"combined data including counts = {combined_data}")
     return combined_data
