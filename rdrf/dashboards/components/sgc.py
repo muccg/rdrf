@@ -196,6 +196,8 @@ class ScaleGroupComparison(BaseGraphic):
             if col.startswith("count_"):
                 labels[col] = "Number of records in Average"
 
+        data = data.fillna(-1)  # avoid runtime error with None
+
         fig = px.line(
             data,
             x=SEQ,
@@ -408,12 +410,13 @@ class ScaleGroupComparison(BaseGraphic):
         return data
 
     def get_score_function(self, range_value, scale):
+        missing = None
         if scale == "functional":
 
             def score(rs):
                 # rs: raw score = average of values
                 if rs is None:
-                    return None
+                    return missing
                 s = (1.0 - (rs - 1.0) / range_value) * 100.0
                 return s
 
@@ -423,7 +426,7 @@ class ScaleGroupComparison(BaseGraphic):
 
             def score(rs):
                 if rs is None:
-                    return None
+                    return missing
                 return ((rs - 1.0) / range_value) * 100.0
 
             return score
@@ -432,7 +435,7 @@ class ScaleGroupComparison(BaseGraphic):
 
             def score(rs):
                 if rs is None:
-                    return None
+                    return missing
                 return ((rs - 1.0) / range_value) * 100.0
 
             return score
