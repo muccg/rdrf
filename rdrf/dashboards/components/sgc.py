@@ -138,6 +138,8 @@ class ScaleGroupComparison(BaseGraphic):
         elif self.better == "down":
             chart_title += " <i>( Lower score is better )</i>"
 
+        data = data.round(1)
+
         line_chart = self.get_line_chart(data, chart_title, scores_map)
         table = self.get_table(data, scores_map)
 
