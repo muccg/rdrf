@@ -376,6 +376,7 @@ class ScaleGroupComparison(BaseGraphic):
 
     def calculate_scores(self, score_name, fields, score_function, data):
         detected_bases = set([get_base(field) for field in fields])
+        half_fields = float(len(fields)) / 2.0
         if len(detected_bases) > 1:
             raise Exception(f"different bases for fields {fields}: {detected_bases}")
 
@@ -398,7 +399,9 @@ class ScaleGroupComparison(BaseGraphic):
                 float(row[field]) + delta for field in fields if filled(row[field])
             ]
             n = len(values)
-            if n == 0:
+
+            if n < half_fields:
+                # not enough data for score calc
                 return None
             else:
                 avg = sum(values) / len(values)
