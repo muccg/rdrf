@@ -6,6 +6,10 @@ from ..components.common import BaseGraphic
 from ..utils import get_range, get_base
 from ..data import combine_data
 
+from ..score_functions import sgc_functional_score
+from ..score_functions import sgc_symptom_score
+from ..score_functions import sgc_hsqol_score
+
 
 logger = logging.getLogger(__name__)
 
@@ -195,8 +199,6 @@ class ScaleGroupComparison(BaseGraphic):
         for col in counts.columns:
             if col.startswith("count_"):
                 labels[col] = "Number of records in Average"
-
-        data = data.fillna(-1)  # avoid runtime error with None
 
         fig = px.line(
             data,
@@ -416,35 +418,26 @@ class ScaleGroupComparison(BaseGraphic):
         return data
 
     def get_score_function(self, range_value, scale):
-        missing = None
         if scale == "functional":
 
-            def score(rs):
-                # rs: raw score = average of values
-                if rs is None:
-                    return missing
-                s = (1.0 - (rs - 1.0) / range_value) * 100.0
-                return s
+            def func(rs):
+                return sgc_functional_score(rs, range_value)
 
-            return score
+            return func
 
         elif scale == "symptom":
 
-            def score(rs):
-                if rs is None:
-                    return missing
-                return ((rs - 1.0) / range_value) * 100.0
+            def func(rs):
+                return sgc_symptom_score(rs, range_value)
 
-            return score
+            return func
 
         elif scale == "hs/qol":
 
-            def score(rs):
-                if rs is None:
-                    return missing
-                return ((rs - 1.0) / range_value) * 100.0
+            def func(rs):
+                return sgc_hsqol_score(rs, range_value)
 
-            return score
+            return func
         else:
             raise ScaleGroupError(f"Unknown scale: {scale}")
 
