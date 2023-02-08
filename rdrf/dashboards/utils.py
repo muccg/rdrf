@@ -7,8 +7,8 @@ def get_colour_map():
     color_discrete_map = {
         "Missing": "lightgrey",
         "Not at all": "green",
-        "A little": "lightgreen",
-        "Quite a bit": "darkorange",
+        "A little": "yellow",
+        "Quite a bit": "orange",
         "Very much": "red",
     }
     return color_discrete_map
