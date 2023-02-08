@@ -108,7 +108,7 @@ class BaseGraphic:
         sizey,
         opacity=0.5,
         layer="below",
-        sizing="stretch",
+        sizing="contain",
     ):
         fig.add_layout_image(
             dict(

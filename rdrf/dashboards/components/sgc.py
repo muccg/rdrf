@@ -303,6 +303,9 @@ class ScaleGroupComparison(BaseGraphic):
             x_size = 0.5
         y_size = 30
 
+        if r == 2:
+            x_pos = 0.5
+
         if self.better == "up":
             self.add_image(fig, image_src, x_pos, 80, x_size, y_size, opacity=0.5)
         elif self.better == "down":
