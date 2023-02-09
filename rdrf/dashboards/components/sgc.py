@@ -10,6 +10,8 @@ from ..score_functions import sgc_functional_score
 from ..score_functions import sgc_symptom_score
 from ..score_functions import sgc_hsqol_score
 
+import numpy as np
+
 
 logger = logging.getLogger(__name__)
 
@@ -139,9 +141,9 @@ class ScaleGroupComparison(BaseGraphic):
             chart_title += " <i>( Lower score is better )</i>"
 
         data = data.round(1)
-
-        line_chart = self.get_line_chart(data, chart_title, scores_map)
         table = self.get_table(data, scores_map)
+        data = data.fillna(-1)
+        line_chart = self.get_line_chart(data, chart_title, scores_map)
 
         notes = self._get_notes()
         if notes:
@@ -211,6 +213,7 @@ class ScaleGroupComparison(BaseGraphic):
             labels=labels,
             color_discrete_map=self._get_colour_map(scores_map),
             hover_data=counts,
+            line_shape="spline",
         )
 
         self.fix_xaxis(fig, data)
@@ -262,6 +265,13 @@ class ScaleGroupComparison(BaseGraphic):
             t.update(hovertemplate=fix_hovertemplate(t.hovertemplate))
 
         fig.for_each_trace(remove_avg_record_count_for_indiv)
+
+        def remove_minus_one(trace):
+            minus_ones = np.where(trace.y == -1)
+            trace.x = np.delete(trace.x, minus_ones)
+            trace.y = np.delete(trace.y, minus_ones)
+
+        fig.for_each_trace(remove_minus_one)
 
         if self.patient:
             id = f"sgc-line-chart-{title}-{self.patient.id}"

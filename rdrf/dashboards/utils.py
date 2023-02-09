@@ -132,6 +132,18 @@ def needs_all_patients_data(vis_configs):
                         return True
 
 
+def handle_value_error(func):
+    def wrapper(vis_config, data, patient, all_patients_data=None):
+        try:
+            return func(vis_config, data, patient, all_patients_data)
+        except ValueError as ve:
+            logger.error(f"Error in create graphic {vis_config.code}: {ve}")
+            return "Not enough data"
+
+    return wrapper
+
+
+@handle_value_error
 def create_graphic(vis_config, data, patient, all_patients_data=None):
     # patient is None for all patients graphics
     # contextual single patient components
