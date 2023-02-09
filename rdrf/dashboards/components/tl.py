@@ -156,7 +156,6 @@ class TrafficLights(BaseGraphic):
             if display_values == yes_no:
                 func = get_yes_no
 
-        logger.debug(f"{field} {func}")
         return func
 
     def get_table(self, table_data):
@@ -198,8 +197,6 @@ class TrafficLights(BaseGraphic):
         prefix = ["PID", "SEQ", "SEQ_NAME", "TYPE"]
         cdes = self.fields
         df = self.data[prefix + cdes]
-
-        logger.debug(f"dataframe columns: {df.columns}")
 
         for cde in cdes:
             df = self._add_colour_column(cde, df)
