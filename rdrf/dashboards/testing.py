@@ -1,9 +1,9 @@
 from django.test import TestCase
+from dashboards.score_functions import sgc_symptom_score as f
 
 
 class VisTestCase(TestCase):
     def test_scg_symptom_score(self):
-        from dashboards.score_functions import sgc_symptom_score as f
 
         range_value = 3.0
         EORTCQLQC30_Q09 = 1.0
@@ -13,7 +13,8 @@ class VisTestCase(TestCase):
         raw_score = sum(raw_scores) / 2.0
 
         correct_value = 16.67
-        result = f(raw_score, 3.0)
+
+        result = f(raw_score, range_value)
 
         self.assertEquals(
             raw_score,
