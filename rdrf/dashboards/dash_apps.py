@@ -69,7 +69,18 @@ if load:
         active_tab = args[0]
 
         session_state = kwargs["session_state"]
-        patient_id = session_state["patient_id"]
+        try:
+            patient_id = session_state["patient_id"]
+        except KeyError:
+            # if session times out we get this
+            from django.urls import reverse
+            from django.shortcuts import redirect
+
+            login_url = "%s?next=%s" % (
+                reverse("two_factor:login"),
+                reverse("login_router"),
+            )
+            return redirect(login_url)
 
         graphics_map = get_single_patient_graphics_map(
             registry, single_configs, patient_id

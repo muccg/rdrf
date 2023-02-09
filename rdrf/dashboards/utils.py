@@ -5,10 +5,10 @@ logger = logging.getLogger(__name__)
 
 def get_colour_map():
     color_discrete_map = {
-        "Blank": "lightgrey",
+        "Missing": "lightgrey",
         "Not at all": "green",
-        "A little": "lightgreen",
-        "Quite a bit": "darkorange",
+        "A little": "yellow",
+        "Quite a bit": "orange",
         "Very much": "red",
     }
     return color_discrete_map
@@ -19,7 +19,6 @@ def get_sevenscale_colour_map():
     # used by Health Status and Quality of Life
     return {
         "": "lightgrey",
-        "Blank": "lightgrey",
         "1": "red",
         "2": "lightred",
         "3": "orange",
@@ -27,6 +26,7 @@ def get_sevenscale_colour_map():
         "5": "blue",
         "6": "lightgreen",
         "7": "green",
+        "Missing": "lightgrey",
     }
 
 
@@ -132,6 +132,18 @@ def needs_all_patients_data(vis_configs):
                         return True
 
 
+def handle_value_error(func):
+    def wrapper(vis_config, data, patient, all_patients_data=None):
+        try:
+            return func(vis_config, data, patient, all_patients_data)
+        except ValueError as ve:
+            logger.error(f"Error in create graphic {vis_config.code}: {ve}")
+            return "Not enough data"
+
+    return wrapper
+
+
+@handle_value_error
 def create_graphic(vis_config, data, patient, all_patients_data=None):
     # patient is None for all patients graphics
     # contextual single patient components

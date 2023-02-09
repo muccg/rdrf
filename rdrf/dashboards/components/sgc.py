@@ -6,13 +6,14 @@ from ..components.common import BaseGraphic
 from ..utils import get_range, get_base
 from ..data import combine_data
 
+from ..score_functions import sgc_functional_score
+from ..score_functions import sgc_symptom_score
+from ..score_functions import sgc_hsqol_score
+
+import numpy as np
+
 
 logger = logging.getLogger(__name__)
-
-
-def log(msg):
-    logger.info(f"sgc: {msg}")
-
 
 SEQ = "SEQ"
 
@@ -38,7 +39,7 @@ class AllPatientsScoreHelper:
 
 class ScaleGroupComparison(BaseGraphic):
     def get_graphic(self):
-        self.better = None
+        self.better = None  # an indicator showing whether up is better
         self.mode = "single" if self.patient else "all"
         data = self.data
         scores_map = {}
@@ -47,6 +48,8 @@ class ScaleGroupComparison(BaseGraphic):
         self.all_patients_helpers = []
         self.average_scores = None
         group_scales = set([])
+
+        blurb = self.config.get("blurb", "")
 
         for index, group in enumerate(self.config["groups"]):
             group_title = group["title"]
@@ -90,9 +93,15 @@ class ScaleGroupComparison(BaseGraphic):
             average_scores = self.calculate_average_scores_over_time(
                 self.all_patients_data, all_patients_score_names
             )
+            # score counts is the number of patient responses
+            # comprising the average
+            count_scores = self.calculate_score_counts_over_time(
+                self.all_patients_data, all_patients_score_names
+            )
 
         else:
             average_scores = None
+            count_scores = None
 
         if self.mode == "all":
             # not sure if this is actually required
@@ -104,7 +113,7 @@ class ScaleGroupComparison(BaseGraphic):
             sgc_id = f"sgc-{self.patient.id}"
 
         if average_scores is not None:
-            data = combine_data(data, average_scores)
+            data = combine_data(data, average_scores, count_scores)
             score_names = [sn for sn in scores_map if sn.startswith("score_")]
             score_names = score_names + ["avg_" + sn for sn in score_names]
             for sn in score_names:
@@ -131,14 +140,16 @@ class ScaleGroupComparison(BaseGraphic):
         elif self.better == "down":
             chart_title += " <i>( Lower score is better )</i>"
 
-        line_chart = self.get_line_chart(data, chart_title, scores_map)
+        data = data.round(1)
         table = self.get_table(data, scores_map)
+        data = data.fillna(-1)
+        line_chart = self.get_line_chart(data, chart_title, scores_map)
 
         notes = self._get_notes()
         if notes:
-            div = html.Div([notes, line_chart, table])
+            div = html.Div([blurb, notes, line_chart, table])
         else:
-            div = html.Div([line_chart, table])
+            div = html.Div([blurb, line_chart, table])
 
         return html.Div(div, id=sgc_id)
 
@@ -173,6 +184,25 @@ class ScaleGroupComparison(BaseGraphic):
 
     def get_line_chart(self, data, title, scores_map):
         score_names = sorted(list(scores_map.keys()))
+        count_names = [
+            name.replace("avg_", "count_")
+            for name in score_names
+            if name.startswith("avg_")
+        ]
+
+        # dataframe
+        counts = data[["SEQ"] + count_names]
+
+        labels = {
+            "SEQ": "Survey Time Period",
+            "y": "Score",
+            "value": "Score",
+            "variable": "Variable",
+        }
+
+        for col in counts.columns:
+            if col.startswith("count_"):
+                labels[col] = "Number of records in Average"
 
         fig = px.line(
             data,
@@ -180,17 +210,15 @@ class ScaleGroupComparison(BaseGraphic):
             y=score_names,
             title=title,
             markers=True,
-            labels={
-                "SEQ": "Survey Time Period",
-                "y": "Score",
-                "value": "Score",
-                "variable": "Variable",
-            },
+            labels=labels,
             color_discrete_map=self._get_colour_map(scores_map),
+            hover_data=counts,
+            line_shape="spline",
         )
 
         self.fix_xaxis(fig, data)
         self.fix_yaxis(fig)
+        self.set_background_colour(fig, "rgb(250, 250, 250)")
 
         def get_legend_group(name):
             return "average_group" if name.startswith("avg_") else "patient_group"
@@ -218,6 +246,32 @@ class ScaleGroupComparison(BaseGraphic):
                 hovertemplate=t.hovertemplate.replace(t.name, scores_map[t.name]),
             )
         )
+
+        def fix_hovertemplate(hovertemplate):
+            if "Variable=Average" in hovertemplate:
+                # keep the number of records count
+                return hovertemplate
+            else:
+                # don't show the number of records count
+                # in the average
+                # NB.
+                # hovertemplate looks like:
+                # Variable=Financial Difficulties<br>Survey Time Period=%{x}<br>Score=%{y}<br>Number of records in Average=%{customdata[0]}<extra></extra>
+                search_string = "<br>Number of records"
+                index = hovertemplate.find(search_string)
+                return hovertemplate[:index]
+
+        def remove_avg_record_count_for_indiv(t):
+            t.update(hovertemplate=fix_hovertemplate(t.hovertemplate))
+
+        fig.for_each_trace(remove_avg_record_count_for_indiv)
+
+        def remove_minus_one(trace):
+            minus_ones = np.where(trace.y == -1)
+            trace.x = np.delete(trace.x, minus_ones)
+            trace.y = np.delete(trace.y, minus_ones)
+
+        fig.for_each_trace(remove_minus_one)
 
         if self.patient:
             id = f"sgc-line-chart-{title}-{self.patient.id}"
@@ -263,6 +317,9 @@ class ScaleGroupComparison(BaseGraphic):
             x_size = 0.5
         y_size = 30
 
+        if r == 2:
+            x_pos = 0.5
+
         if self.better == "up":
             self.add_image(fig, image_src, x_pos, 80, x_size, y_size, opacity=0.5)
         elif self.better == "down":
@@ -303,7 +360,7 @@ class ScaleGroupComparison(BaseGraphic):
                 j = k.replace("avg_", "")
                 return "Average " + self.group_info[j]
             else:
-                return self.group_info[k]
+                return self.group_info[k] + " - this patient"
 
         scale_group_col = [get_scale_group_name(k) for k in score_names()]
         columns.append(scale_group_col)
@@ -312,14 +369,6 @@ class ScaleGroupComparison(BaseGraphic):
             columns.append([row[k] for k in score_names()])
 
         headers = ["Scale Group"] + list(data["SEQ_NAME"])
-
-        def remove_date(h):
-            if "(" in h:
-                return h[: h.find(" (")]
-            else:
-                return h
-
-        headers = [remove_date(h) for h in headers]
 
         fig = go.Figure(
             data=[go.Table(header=dict(values=headers), cells=dict(values=columns))]
@@ -331,7 +380,11 @@ class ScaleGroupComparison(BaseGraphic):
         # this only makes sense if this chart is passed
         # all patients scores
         aggregations_map = {score_name: "mean" for score_name in score_names}
+        df = data.groupby(SEQ).agg(aggregations_map).reset_index()
+        return df
 
+    def calculate_score_counts_over_time(self, data, score_names):
+        aggregations_map = {score_name: "count" for score_name in score_names}
         df = data.groupby(SEQ).agg(aggregations_map).reset_index()
         return df
 
@@ -340,6 +393,7 @@ class ScaleGroupComparison(BaseGraphic):
 
     def calculate_scores(self, score_name, fields, score_function, data):
         detected_bases = set([get_base(field) for field in fields])
+        half_fields = float(len(fields)) / 2.0
         if len(detected_bases) > 1:
             raise Exception(f"different bases for fields {fields}: {detected_bases}")
 
@@ -362,7 +416,9 @@ class ScaleGroupComparison(BaseGraphic):
                 float(row[field]) + delta for field in fields if filled(row[field])
             ]
             n = len(values)
-            if n == 0:
+
+            if n < half_fields:
+                # not enough data for score calc
                 return None
             else:
                 avg = sum(values) / len(values)
@@ -376,32 +432,24 @@ class ScaleGroupComparison(BaseGraphic):
     def get_score_function(self, range_value, scale):
         if scale == "functional":
 
-            def score(rs):
-                # rs: raw score = average of values
-                if rs is None:
-                    return None
-                s = (1.0 - (rs - 1.0) / range_value) * 100.0
-                return s
+            def func(rs):
+                return sgc_functional_score(rs, range_value)
 
-            return score
+            return func
 
         elif scale == "symptom":
 
-            def score(rs):
-                if rs is None:
-                    return None
-                return ((rs - 1.0) / range_value) * 100.0
+            def func(rs):
+                return sgc_symptom_score(rs, range_value)
 
-            return score
+            return func
 
         elif scale == "hs/qol":
 
-            def score(rs):
-                if rs is None:
-                    return None
-                return ((rs - 1.0) / range_value) * 100.0
+            def func(rs):
+                return sgc_hsqol_score(rs, range_value)
 
-            return score
+            return func
         else:
             raise ScaleGroupError(f"Unknown scale: {scale}")
 

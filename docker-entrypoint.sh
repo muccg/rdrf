@@ -284,7 +284,7 @@ if [ "$1" = 'runtests' ]; then
 	exec django-admin.py test --noinput -v 3 "$single_test"
 
     else
-	exec django-admin.py test --noinput -v 3 rdrf
+	exec django-admin.py test --noinput -v 3 dashboards rdrf
     fi
 fi
 

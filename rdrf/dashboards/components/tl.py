@@ -5,6 +5,8 @@ import dash_bootstrap_components as dbc
 import pandas as pd
 from rdrf.helpers.utils import get_display_value
 
+from rdrf.models.definition.models import CommonDataElement
+
 logger = logging.getLogger(__name__)
 
 
@@ -77,9 +79,18 @@ def get_image(value, image_id):
 def get_display(field, value):
     d = get_display_value(field, value)
     if not d:
-        return "Not entered"
+        return "Missing"
     else:
         return d
+
+
+def get_yes_no(value, image_id):
+    if value == "1":
+        return "Yes"
+    elif value == "0":
+        return "No"
+    else:
+        return circle("grey", image_id)
 
 
 def get_popup_info(field, display):
@@ -119,11 +130,11 @@ class TrafficLights(BaseGraphic):
 
     def _get_blurb(self):
         legend_map = {
-            "Not entered": circle("grey", "legend-grey"),
             "Not at all": circle("green", "legend-green"),
             "A little": circle("yellow", "legend-yellow"),
             "Quite a bit": circle("orange", "legend-orange"),
             "Very much": circle("red", "legend-red"),
+            "Missing": circle("grey", "legend-grey"),
         }
 
         children = ["Legend: "]
@@ -136,6 +147,17 @@ class TrafficLights(BaseGraphic):
 
         return html.Div([legend])
 
+    def _get_graphic_function(self, field):
+        yes_no = set(["Yes", "No"])
+        cde_model = CommonDataElement.objects.get(code=field)
+        func = get_image
+        if cde_model.pv_group:
+            display_values = set(cde_model.get_range_members(get_code=False))
+            if display_values == yes_no:
+                func = get_yes_no
+
+        return func
+
     def get_table(self, table_data):
         seq_names = [html.Th(x) for x in table_data["SEQ_NAME"]]
         table_header = [html.Thead(html.Tr([html.Th("Field"), *seq_names]))]
@@ -145,13 +167,15 @@ class TrafficLights(BaseGraphic):
             field_values = table_data[field]
             image_id = f"image_{field}_"
 
+            graphic_function = self._get_graphic_function(field)
+
             table_row = html.Tr(
                 [
                     html.Td(html.Small(get_field_label(field))),
                     *[
                         html.Td(
                             [
-                                get_image(value, image_id + "_" + str(index)),
+                                graphic_function(value, image_id + "_" + str(index)),
                                 get_popover_target(
                                     image_id + "_" + str(index),
                                     get_popup_info(field, get_display(field, value)),
@@ -173,8 +197,6 @@ class TrafficLights(BaseGraphic):
         prefix = ["PID", "SEQ", "SEQ_NAME", "TYPE"]
         cdes = self.fields
         df = self.data[prefix + cdes]
-
-        logger.debug(f"dataframe columns: {df.columns}")
 
         for cde in cdes:
             df = self._add_colour_column(cde, df)

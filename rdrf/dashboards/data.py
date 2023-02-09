@@ -74,8 +74,15 @@ class RegistryDataFrame:
         elif self.mode == "single":
             self._reload_dataframe()
 
+        self._order_by_collection_date(self.df)
         c = datetime.now()
         logger.info(f"time taken to load/generate df = {(c-a).total_seconds()} seconds")
+
+    def _order_by_collection_date(self, df: pd.DataFrame):
+        self.df.sort_values(by=[cdf], inplace=True)
+        # this resequences the seq number for each patient
+        # from 0 ( the first collected survey to the last)
+        self.df["SEQ"] = self.df.groupby("PID").cumcount()
 
     def _reload_dataframe(self):
         try:
@@ -270,7 +277,9 @@ def lookup_cde_value(cde_code, raw_value):
             if d["code"] == str(raw_value):
                 return d["value"]
         if raw_value == "":
-            return "Blank"
+            return "Missing"
+        if raw_value is None:
+            return "Missing"
     return raw_value
 
 
@@ -307,7 +316,9 @@ def get_percentages_within_seq(df, field):
     return g
 
 
-def combine_data(indiv_data: pd.DataFrame, avg_data: pd.DataFrame) -> pd.DataFrame:
+def combine_data(
+    indiv_data: pd.DataFrame, avg_data: pd.DataFrame, count_data: pd.DataFrame
+) -> pd.DataFrame:
     """
     This function takes individual patient scores for scale groups  and combines
     with a dataframe of average data for the same scores to produce a single dataframe
@@ -333,7 +344,18 @@ def combine_data(indiv_data: pd.DataFrame, avg_data: pd.DataFrame) -> pd.DataFra
             col: "avg_" + col for col in avg_data.columns if col.startswith("score_")
         }
     )
+
+    count_data = count_data.rename(
+        columns={
+            col: "count_" + col
+            for col in count_data.columns
+            if col.startswith("score_")
+        }
+    )
+
     # now merge on SEQ column
 
     combined_data = indiv_data.merge(avg_data, how="left", on="SEQ")
+    combined_data = combined_data.merge(count_data, how="left", on="SEQ")
+    logger.debug(f"combined data including counts = {combined_data}")
     return combined_data

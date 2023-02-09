@@ -20,8 +20,10 @@ SEQ = "SEQ"
 class CombinedFieldComparison(BaseGraphic):
     def get_graphic(self):
         fields = self.config["fields"]
+        blurb = self.config.get("blurb", "")
         inputs = [field["code"] for field in fields]
         labels = [field["label"] for field in fields]
+
         combined_name = "/".join(labels)
         colour_map = self.config.get("colour_map", get_sevenscale_colour_map())
         data = self._get_combined_data(self.data, inputs)
@@ -29,35 +31,48 @@ class CombinedFieldComparison(BaseGraphic):
         data = data.round(1)
         data = self._replace_blanks(data)
 
-        bars_div = self._create_bars_div(data, inputs, colour_map, combined_name)
+        bars_div = self._create_bars_div(data, inputs, colour_map, combined_name, blurb)
         div = html.Div([html.H3(self.title), bars_div])
         return html.Div(div, id="fgc")
+
+    def _get_value_range(self):
+        return self.config.get("value_range", "")
 
     def _replace_blanks(self, data):
         def op(row):
             value = row["value"]
             if value == "":
-                return "Blank"
+                return "Missing"
+            elif value is None:
+                return "Missing"
             else:
                 return value
 
         data["value"] = data.apply(op, axis=1)
         return data
 
-    def _create_bars_div(self, data, inputs, colour_map, combined_name):
+    def _create_bars_div(self, data, inputs, colour_map, combined_name, blurb=""):
+        if blurb:
+            s = " ( " + blurb + " )"
+        else:
+            s = ""
+
         fig = px.bar(
             data,
             SEQ,
             "Percentage",
             color="value",
             barmode="stack",
-            title=f"Change in {combined_name} over time for all patients",
+            title=f"Change in {combined_name} over time for all patients" + s,
             color_discrete_map=colour_map,
-            labels={"SEQ": "Survey Time Period"},
+            hover_data={"count": True},
+            labels={"SEQ": "Survey Time Period", "value": "Value", "count": "Count"},
         )
         fig.update_xaxes(type="category")
 
         self.fix_xaxis(fig, data)
+        self.set_background_colour(fig, "rgb(250, 250, 250)")
+        fig.update_layout(legend_traceorder="reversed")
 
         bar_id = "bar-combined"
         div = html.Div([dcc.Graph(figure=fig)], id=bar_id)
@@ -121,4 +136,5 @@ class CombinedFieldComparison(BaseGraphic):
 
         # reset index
         counted = counted.reset_index()
+        logger.debug(f"counted = \n{counted}")
         return counted
