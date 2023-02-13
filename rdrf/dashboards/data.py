@@ -359,3 +359,59 @@ def combine_data(
     combined_data = combined_data.merge(count_data, how="left", on="SEQ")
     logger.debug(f"combined data including counts = {combined_data}")
     return combined_data
+
+
+def is_missing(value):
+    if value is None:
+        return True
+    if value == "":
+        return True
+
+
+def get_triples(registry_model, form_model):
+    for form in registry_model.forms:
+        if form.name == form_model.name:
+            for section in form.section_models:
+                for cde in section.cde_models:
+                    yield form.name, section.code, cde.code
+
+
+def missing_data(registry_model, form_model, cd):
+    triples = set([t for t in get_triples(registry_model, form_model)])
+    filled_triples = set([])
+
+    if cd.data and "forms" in cd.data:
+        for form in cd.data["forms"]:
+            if form["name"] == form_model.name:
+                for section in form["sections"]:
+                    if not section["allow_multiple"]:
+                        for cde in section["cdes"]:
+                            value = cde["value"]
+                            if not is_missing(value):
+                                filled_triples.add(
+                                    (form["name"], section["code"], cde["code"])
+                                )
+                    else:
+                        for cde_list in section["cdes"]:
+                            for cde in cde_list:
+                                value = cde["value"]
+                                if not is_missing(value):
+                                    filled_triples.add(
+                                        (form["name"], section["code"], cde["code"])
+                                    )
+    missing_triples = triples - filled_triples
+
+    for form_name, section_code, cde_code in missing_triples:
+        logger.debug(f"{form_name} {section_code} {cde_code}")
+
+    return missing_triples
+
+
+def missing_data_all_forms(patient, registry_model):
+    missing = {}
+    cd = patient.baseline
+
+    for form_model in registry_model.forms:
+        missing[form_model.name] = missing_data(registry_model, form_model, cd)
+
+    return missing
