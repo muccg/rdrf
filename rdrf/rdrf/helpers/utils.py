@@ -1175,3 +1175,24 @@ def get_display_value(cde_code, raw_value):
 
     cde_model = CommonDataElement.objects.get(code=cde_code)
     return cde_model.get_display_value(raw_value)
+
+
+def update_datarep(cd):
+    if cd.data and "forms" in cd.data:
+        forms = cd.data["forms"]
+        cd.data["v2"] = []
+        for form in forms:
+            for section in form["sections"]:
+                if not section["allow_multiple"]:
+                    for cde in section["cdes"]:
+                        cde_code = cde["code"]
+                        cde_value = cde["value"]
+                        if cde_code not in cd.data["v2"]:
+                            cde.data["v2"][cde_code] = {
+                                "value": cde_value,
+                                "form": form["name"],
+                                "section": section["code"],
+                                "index": 0,
+                                "registry": "",
+                            }
+        cd.save()

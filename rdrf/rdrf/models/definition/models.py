@@ -29,6 +29,8 @@ from django.forms.models import model_to_dict
 from django.utils.safestring import mark_safe
 from django.core.exceptions import PermissionDenied
 
+from django.contrib.postgres.fields import JSONField
+
 from rdrf.helpers.cache_utils import use_query_cache
 from rdrf.helpers.utils import (
     format_date,
@@ -2406,6 +2408,62 @@ class CDEFile(models.Model):
 
     def __str__(self):
         return self.item.name
+
+
+class CDEValue(models.Model):
+    data = DataField()
+    # results = Profile.objects.filter(preferences__sms__isnull=True)
+    # cdes = CDEValue.objects.filter(patient=fred)
+    # fred's data for one form:  cdes.filter(data__form="Blah")
+
+
+def load_dynamic_data(patient, form="all"):
+    if form == "all":
+        return CDEValue.objects.Filter(patient=patient)
+
+
+def convert_data(patient, registry):
+    for cd in ClinicalData.objects.filter(collection="cdes", django_id=patient.id):
+        context_id = cd.context_id
+        if cd.data and "forms" in cd.data:
+            for form in cd.data["forms"]:
+                form_name = form["name"]
+                for section in form["sections"]:
+                    section_code = section["code"]
+                    if not section["allow_multiple"]:
+                        index = 0
+                        for cde in section["cdes"]:
+                            value = cde["value"]
+                            code = cde["code"]
+                            cde_value = CDEValue()
+                            cde_value.data["cde"] = code
+                            cde_value.data["value"] = value
+                            cde_value.data["form"] = form_name
+                            cde_value.data["section"] = section_code
+                            cde_value.data["index"] = index
+                            cde_value.data["registry"] = registry.code
+                            cde_value.data["multi"] = False
+                            cde_value.data["pid"] = patient.id
+                            cde_value.data["context_id"] = context_id
+                            cde_value.save()
+                    else:
+                        for index, item in enumerate(section["cdes"]):
+                            for cde in item:
+                                value = cde["value"]
+                                code = cde["code"]
+                                cde_value = CDEValue()
+                                cde_value.patient = patient
+                                cde_value.data["django_id"] = patient.id
+                                cde_value.registry = registry
+                                cde_value.data["cde"] = code
+                                cde_value.data["value"] = value
+                                cde_value.data["form"] = form_name
+                                cde_value.data["section"] = section_code
+                                cde_value.data["index"] = index
+                                cde_value.data["pid"] = patient.id
+                                cde_value.data["registry"] = registry.code
+                                cde_value.data["multi"] = True
+                                cde_value.save()
 
 
 @receiver(pre_delete, sender=CDEFile)

@@ -10,7 +10,13 @@ from rdrf.helpers.utils import BadKeyError
 from rdrf.db import filestorage
 from rdrf.forms.file_upload import FileUpload, wrap_fs_data_for_form
 from rdrf.models.definition.models import Registry, ClinicalData
-from rdrf.helpers.utils import get_code, models_from_mongo_key, is_delimited_key, mongo_key, is_multisection
+from rdrf.helpers.utils import (
+    get_code,
+    models_from_mongo_key,
+    is_delimited_key,
+    mongo_key,
+    is_multisection,
+)
 from rdrf.helpers.utils import is_file_cde, is_multiple_file_cde, is_uploaded_file
 
 logger = logging.getLogger(__name__)
@@ -24,7 +30,14 @@ class KeyValueMissing(Exception):
     pass
 
 
-def find_sections(doc, form_name=None, section_code=None, formp=None, sectionp=None, multisection=False):
+def find_sections(
+    doc,
+    form_name=None,
+    section_code=None,
+    formp=None,
+    sectionp=None,
+    multisection=False,
+):
     """
     Iterates through form sections of a mongo doc.
       form_name: Filter by form
@@ -37,9 +50,11 @@ def find_sections(doc, form_name=None, section_code=None, formp=None, sectionp=N
     sectionp = sectionp or (lambda s, i: True)
 
     for f, form in enumerate(doc.get("forms") or []):
-        if (form_name is None or (form.get("name") == form_name and formp(form, f))):
+        if form_name is None or (form.get("name") == form_name and formp(form, f)):
             for s, section in enumerate(form.get("sections") or []):
-                if (section_code is None or section.get("code") == section_code) and bool(multisection) == bool(section.get("allow_multiple")):
+                if (
+                    section_code is None or section.get("code") == section_code
+                ) and bool(multisection) == bool(section.get("allow_multiple")):
                     if multisection:
                         for s2, section2 in enumerate(section.get("cdes") or []):
                             product = dict(section)
@@ -50,23 +65,27 @@ def find_sections(doc, form_name=None, section_code=None, formp=None, sectionp=N
                         yield section
 
 
-def find_cdes(doc,
-              form_name=None,
-              section_code=None,
-              cde_code=None,
-              formp=None,
-              sectionp=None,
-              cdep=None,
-              multisection=False):
+def find_cdes(
+    doc,
+    form_name=None,
+    section_code=None,
+    cde_code=None,
+    formp=None,
+    sectionp=None,
+    cdep=None,
+    multisection=False,
+):
     """
     Iterates through CDEs stored in a mongo doc.
     """
     cdep = cdep or (lambda c, i: True)
 
-    sections = find_sections(doc, form_name, section_code, formp, sectionp, multisection=multisection)
+    sections = find_sections(
+        doc, form_name, section_code, formp, sectionp, multisection=multisection
+    )
     for section in sections:
         for c, cde in enumerate(section.get("cdes") or []):
-            if (cde_code is None or (cde.get("code") == cde_code and cdep(cde, c))):
+            if cde_code is None or (cde.get("code") == cde_code and cdep(cde, c)):
                 yield cde
 
 
@@ -85,7 +104,9 @@ def get_mongo_value(registry_code, nested_data, delimited_key, multisection_inde
       delimited_key: form_name____section_code____cde_code
     """
     registry_model = Registry.objects.get(code=registry_code)
-    form_model, section_model, cde_model = models_from_mongo_key(registry_model, delimited_key)
+    form_model, section_model, cde_model = models_from_mongo_key(
+        registry_model, delimited_key
+    )
 
     if multisection_index is None:
         sectionp = None
@@ -100,14 +121,21 @@ def get_mongo_value(registry_code, nested_data, delimited_key, multisection_inde
         section_model.code,
         cde_model.code,
         sectionp=sectionp,
-        multisection=multisection_index is not None)
+        multisection=multisection_index is not None,
+    )
     for cde in cdes:
         return cde["value"]
     return None
 
 
-def update_multisection_file_cdes(registry_code, multisection_code, form_section_items, form_model,
-                                  existing_nested_data, index_map):
+def update_multisection_file_cdes(
+    registry_code,
+    multisection_code,
+    form_section_items,
+    form_model,
+    existing_nested_data,
+    index_map,
+):
 
     updates = []
 
@@ -118,13 +146,21 @@ def update_multisection_file_cdes(registry_code, multisection_code, form_section
                 actual_index = index_map[item_index]
 
                 existing_value = get_mongo_value(
-                    registry_code, existing_nested_data, key, multisection_index=actual_index)
+                    registry_code,
+                    existing_nested_data,
+                    key,
+                    multisection_index=actual_index,
+                )
 
                 # antecedent here will never return true and the definition is not correct
                 if is_multiple_file_cde(cde_code):
-                    new_val = DynamicDataWrapper.handle_file_uploads(registry_code, key, value, existing_value)
+                    new_val = DynamicDataWrapper.handle_file_uploads(
+                        registry_code, key, value, existing_value
+                    )
                 else:
-                    new_val = DynamicDataWrapper.handle_file_upload(registry_code, key, value, existing_value)
+                    new_val = DynamicDataWrapper.handle_file_upload(
+                        registry_code, key, value, existing_value
+                    )
                 updates.append((item_index, key, new_val))
 
     for index, key, value in updates:
@@ -150,7 +186,9 @@ def build_form_data(data):
             if not section_dict["allow_multiple"]:
                 for cde_dict in section_dict["cdes"]:
                     value = cde_dict["value"]
-                    delimited_key = mongo_key(form_dict["name"], section_dict["code"], cde_dict["code"])
+                    delimited_key = mongo_key(
+                        form_dict["name"], section_dict["code"], cde_dict["code"]
+                    )
                     flattened[delimited_key] = value
             else:
                 multisection_code = section_dict["code"]
@@ -159,21 +197,25 @@ def build_form_data(data):
                 for cde_list in multisection_items:
                     d = {}
                     for cde_dict in cde_list:
-                        delimited_key = mongo_key(form_dict["name"], section_dict["code"], cde_dict["code"])
+                        delimited_key = mongo_key(
+                            form_dict["name"], section_dict["code"], cde_dict["code"]
+                        )
                         d[delimited_key] = cde_dict["value"]
                     flattened[multisection_code].append(d)
 
     return flattened
 
 
-def parse_form_data(registry,
-                    form,
-                    data,
-                    existing_record=None,
-                    is_multisection=False,
-                    parse_all_forms=False,
-                    django_instance=None,
-                    skip_bad_key=False):
+def parse_form_data(
+    registry,
+    form,
+    data,
+    existing_record=None,
+    is_multisection=False,
+    parse_all_forms=False,
+    django_instance=None,
+    skip_bad_key=False,
+):
     """
     This class takes a bag of values with keys like:
     Takes a bag of values with keys like:
@@ -183,8 +225,16 @@ def parse_form_data(registry,
 
     This is more or less the opposite of `build_form_data`.
     """
-    return FormDataParser(registry, form, data, existing_record, is_multisection, parse_all_forms,
-                          django_instance, skip_bad_key).nested_data
+    return FormDataParser(
+        registry,
+        form,
+        data,
+        existing_record,
+        is_multisection,
+        parse_all_forms,
+        django_instance,
+        skip_bad_key,
+    ).nested_data
 
 
 class FormDataParser(object):
@@ -196,15 +246,17 @@ class FormDataParser(object):
     an object.
     """
 
-    def __init__(self,
-                 registry_model,
-                 form_model,
-                 form_data,
-                 existing_record=None,
-                 is_multisection=False,
-                 parse_all_forms=False,
-                 django_instance=None,
-                 skip_bad_key=False):
+    def __init__(
+        self,
+        registry_model,
+        form_model,
+        form_data,
+        existing_record=None,
+        is_multisection=False,
+        parse_all_forms=False,
+        django_instance=None,
+        skip_bad_key=False,
+    ):
         self.registry_model = registry_model
         self.form_data = form_data
         self.parsed_data = {}
@@ -273,7 +325,10 @@ class FormDataParser(object):
 
                 cde_dict["value"] = value
 
-        for (form_model, section_model), items_list in self.parsed_multisections.items():
+        for (
+            form_model,
+            section_model,
+        ), items_list in self.parsed_multisections.items():
             section_dict = self._get_section_dict(form_model, section_model, d)
             section_dict["allow_multiple"] = True
             section_dict["cdes"] = items_list
@@ -308,9 +363,13 @@ class FormDataParser(object):
             elif is_multisection(key):
                 self._parse_multisection(key)
             elif is_delimited_key(key):
-                form_model, section_model, cde_model = models_from_mongo_key(self.registry_model, key)
+                form_model, section_model, cde_model = models_from_mongo_key(
+                    self.registry_model, key
+                )
                 value = self.form_data[key]
-                self.parsed_data[(form_model, section_model, cde_model)] = self._parse_value(value)
+                self.parsed_data[
+                    (form_model, section_model, cde_model)
+                ] = self._parse_value(value)
 
     def _parse_multisection(self, multisection_code):
         self._parse_timestamps()
@@ -319,6 +378,7 @@ class FormDataParser(object):
         multisection_item_list = self.form_data[multisection_code]
         if len(multisection_item_list) == 0:
             from rdrf.models.definition.models import Section
+
             section_model = Section.objects.get(code=multisection_code)
             self.parsed_multisections[(self.form_model, section_model)] = []
             return
@@ -336,7 +396,9 @@ class FormDataParser(object):
             for key in item_dict:
                 if is_delimited_key(key):
                     value = item_dict[key]
-                    form_model, section_model, cde_model = models_from_mongo_key(self.registry_model, key)
+                    form_model, section_model, cde_model = models_from_mongo_key(
+                        self.registry_model, key
+                    )
                     if the_form_model is None:
                         the_form_model = form_model
                     if the_section_model is None:
@@ -381,13 +443,21 @@ class FormDataParser(object):
                 elif is_delimited_key(key):
                     if self.skip_bad_key is True:
                         try:
-                            form_model, section_model, cde_model = models_from_mongo_key(self.registry_model, key)
+                            (
+                                form_model,
+                                section_model,
+                                cde_model,
+                            ) = models_from_mongo_key(self.registry_model, key)
                         except BadKeyError:
                             logger.info(f"we are skipping the form data key '{key}'")
                     else:
-                        form_model, section_model, cde_model = models_from_mongo_key(self.registry_model, key)
+                        form_model, section_model, cde_model = models_from_mongo_key(
+                            self.registry_model, key
+                        )
                     value = self.form_data[key]
-                    self.parsed_data[(form_model, section_model, cde_model)] = self._parse_value(value)
+                    self.parsed_data[
+                        (form_model, section_model, cde_model)
+                    ] = self._parse_value(value)
         else:
             # multisections extracted from the form like this (ugh):
             # the delimited keys  will(should) always be cdes from the same form and section
@@ -404,6 +474,7 @@ class FormDataParser(object):
     def _get_multisection_code(self):
         # NB this assumes we're only parsing multisection forms one  at at time
         from rdrf.helpers.utils import is_multisection
+
         for key in self.form_data:
             if is_multisection(key):
                 return key
@@ -422,7 +493,11 @@ class FormDataParser(object):
         for section_dict in form_dict["sections"]:
             if section_dict["code"] == section_model.code:
                 return section_dict
-        section_dict = {"code": section_model.code, "cdes": [], "allow_multiple": section_model.allow_multiple}
+        section_dict = {
+            "code": section_model.code,
+            "cdes": [],
+            "allow_multiple": section_model.allow_multiple,
+        }
         form_dict["sections"].append(section_dict)
         return section_dict
 
@@ -445,6 +520,7 @@ class DynamicDataWrapper(object):
     wrapper.save_dynamic_data("sma","cdes", new_data)
 
     """
+
     REGISTRY_SPECIFIC_PATIENT_DATA_COLLECTION = "registry_specific_patient_data"
 
     def __init__(self, obj, filestore_class=None, rdrf_context_id=None):
@@ -467,12 +543,19 @@ class DynamicDataWrapper(object):
         self.patient_record = None
 
     def __str__(self):
-        return "Dynamic Data Wrapper for %s id=%s" % (self.obj.__class__.__name__, self.obj.pk)
+        return "Dynamic Data Wrapper for %s id=%s" % (
+            self.obj.__class__.__name__,
+            self.obj.pk,
+        )
 
     def _get_record(self, registry, collection_name, filter_by_context=True):
         qs = ClinicalData.objects.collection(registry, collection_name)
-        context_id_to_search_for = None if self.rdrf_context_id == "add" else self.rdrf_context_id
-        return qs.find(self.obj, context_id_to_search_for if filter_by_context else None)
+        context_id_to_search_for = (
+            None if self.rdrf_context_id == "add" else self.rdrf_context_id
+        )
+        return qs.find(
+            self.obj, context_id_to_search_for if filter_by_context else None
+        )
 
     def _make_record(self, registry_code, collection_name, data=None, **kwargs):
         data = dict(data or {})
@@ -483,7 +566,8 @@ class DynamicDataWrapper(object):
             context_id=self.rdrf_context_id,
             collection=collection_name,
             data=data,
-            **kwargs)
+            **kwargs,
+        )
 
         if collection_name == "history":
             m.data["username"] = None if not self.user else self.user.username
@@ -499,14 +583,22 @@ class DynamicDataWrapper(object):
         :param flattened: use flattened to get data in a form suitable for the view
         :return: a dictionary of nested or flattened data for this instance
         """
-        nested_data = self._get_record(registry, collection_name).data().first()
 
-        if flattened and nested_data is not None:
-            return build_form_data(nested_data)
+        if not settings.USE_DATA_V2:
+            nested_data = self._get_record(registry, collection_name).data().first()
+            logger.debug(f"nested_data =\n{nested_data}")
+
+            if flattened and nested_data is not None:
+                return build_form_data(nested_data)
+            else:
+                return nested_data
+
         else:
-            return nested_data
+            from rdrf.
 
-    def get_cde_val(self, registry_code, form_name, section_code, cde_code, collection="cdes"):
+    def get_cde_val(
+        self, registry_code, form_name, section_code, cde_code, collection="cdes"
+    ):
         modjgo_queryset = self._get_record(registry_code, collection)
         if modjgo_queryset:
             # NB data is a ClinicalData queryset
@@ -517,7 +609,13 @@ class DynamicDataWrapper(object):
 
     def get_cde_history(self, registry_code, form_name, section_code, cde_code):
         from rdrf.helpers.utils import get_cde_value
-        from rdrf.models.definition.models import Registry, RegistryForm, Section, CommonDataElement
+        from rdrf.models.definition.models import (
+            Registry,
+            RegistryForm,
+            Section,
+            CommonDataElement,
+        )
+
         registry_model = Registry.objects.get(code=registry_code)
         form_model = RegistryForm.objects.get(registry=registry_model, name=form_name)
         section_model = Section.objects.get(code=section_code)
@@ -525,8 +623,12 @@ class DynamicDataWrapper(object):
 
         def fmt(snapshot, snapshot_number):
             return {
-                "timestamp": datetime.datetime.strptime(snapshot["timestamp"][:19], "%Y-%m-%d %H:%M:%S"),
-                "value": get_cde_value(form_model, section_model, cde_model, snapshot["record"]),
+                "timestamp": datetime.datetime.strptime(
+                    snapshot["timestamp"][:19], "%Y-%m-%d %H:%M:%S"
+                ),
+                "value": get_cde_value(
+                    form_model, section_model, cde_model, snapshot["record"]
+                ),
                 "user": snapshot.get("username", ""),
                 "id": str(snapshot_number),
             }
@@ -542,7 +644,9 @@ class DynamicDataWrapper(object):
 
             return list(filter(is_different, snapshots))
 
-        record_query = self._get_record(registry_code, "history", filter_by_context=False)
+        record_query = self._get_record(
+            registry_code, "history", filter_by_context=False
+        )
         record_query = record_query.find(record_type="snapshot")
         data = [fmt(snapshot, i) for i, snapshot in enumerate(record_query.data())]
         return collapse_same(sorted(data, key=itemgetter("timestamp")))
@@ -551,10 +655,12 @@ class DynamicDataWrapper(object):
         data = {}
         if registry_model is None:
             return data
-        record_query = self._get_record(registry_model.code, self.REGISTRY_SPECIFIC_PATIENT_DATA_COLLECTION)
+        record_query = self._get_record(
+            registry_model.code, self.REGISTRY_SPECIFIC_PATIENT_DATA_COLLECTION
+        )
         registry_data = record_query.data().first()
         if registry_data:
-            for k in ['django_id', '_id', 'django_model']:
+            for k in ["django_id", "_id", "django_model"]:
                 if k in registry_data:
                     del registry_data[k]
             data[registry_model.code] = registry_data
@@ -578,6 +684,7 @@ class DynamicDataWrapper(object):
     def _is_section_code(self, code):
         # Supplied code will be non-delimited
         from rdrf.models.definition.models import Section
+
         return Section.objects.filter(code=code).exists()
 
     @staticmethod
@@ -619,13 +726,27 @@ class DynamicDataWrapper(object):
             if is_file_cde(cde_code):
                 existing_value = get_mongo_value(registry, existing_record, key)
                 if is_multiple_file_cde(cde_code):
-                    new_data[key] = self.handle_file_uploads(registry, key, value, existing_value)
+                    new_data[key] = self.handle_file_uploads(
+                        registry, key, value, existing_value
+                    )
                 else:
-                    new_data[key] = self.handle_file_upload(registry, key, value, existing_value)
+                    new_data[key] = self.handle_file_upload(
+                        registry, key, value, existing_value
+                    )
 
-            elif (self._is_section_code(key) and self.current_form_model and index_map is not None):
-                new_data[key] = update_multisection_file_cdes(registry, key, value, self.current_form_model,
-                                                              existing_record, index_map)
+            elif (
+                self._is_section_code(key)
+                and self.current_form_model
+                and index_map is not None
+            ):
+                new_data[key] = update_multisection_file_cdes(
+                    registry,
+                    key,
+                    value,
+                    self.current_form_model,
+                    existing_record,
+                    index_map,
+                )
 
     def update_dynamic_data(self, registry_model, cdes_record):
         # replace entire cdes record with supplied one
@@ -645,7 +766,8 @@ class DynamicDataWrapper(object):
                 collection="cdes",
                 data__django_id=self.obj.pk,
                 data__django_model=self.obj.__class__.__name__,
-                data__context_id=context_id)
+                data__context_id=context_id,
+            )
 
             cdes_modjgo.data.update(cdes_record)
             # ensure context id created
@@ -653,9 +775,14 @@ class DynamicDataWrapper(object):
 
         except ClinicalData.DoesNotExist:
             cdes_modjgo = ClinicalData.create(
-                self.obj, registry_code=registry_model.code, collection="cdes", data=cdes_record)
+                self.obj,
+                registry_code=registry_model.code,
+                collection="cdes",
+                data=cdes_record,
+            )
 
         from rdrf.jsonb import _convert_datetime_to_str
+
         # Not sure why I have to do this explicitly
         _convert_datetime_to_str(cdes_modjgo.data)
         cdes_modjgo.save()
@@ -678,22 +805,30 @@ class DynamicDataWrapper(object):
             raise Exception("Cannot add this form!")
 
         from django.contrib.contenttypes.models import ContentType
-        patient_content_type = ContentType.objects.get(model='patient')
+
+        patient_content_type = ContentType.objects.get(model="patient")
         from rdrf.models.definition.models import RDRFContext
-        context_model = RDRFContext(registry=registry_model, object_id=self.obj.pk, content_type=patient_content_type)
+
+        context_model = RDRFContext(
+            registry=registry_model,
+            object_id=self.obj.pk,
+            content_type=patient_content_type,
+        )
         context_model.context_form_group = form_group
         context_model.save()
         return context_model.pk
 
-    def save_dynamic_data(self,
-                          registry,
-                          collection_name,
-                          form_data,
-                          multisection=False,
-                          parse_all_forms=False,
-                          index_map=None,
-                          additional_data=None,
-                          skip_bad_key=False):
+    def save_dynamic_data(
+        self,
+        registry,
+        collection_name,
+        form_data,
+        multisection=False,
+        parse_all_forms=False,
+        index_map=None,
+        additional_data=None,
+        skip_bad_key=False,
+    ):
         self._convert_date_to_datetime(form_data)
 
         if self.CREATE_MODE:
@@ -721,7 +856,8 @@ class DynamicDataWrapper(object):
             is_multisection=multisection,
             parse_all_forms=parse_all_forms,
             django_instance=self.obj,
-            skip_bad_key=skip_bad_key)
+            skip_bad_key=skip_bad_key,
+        )
 
         if additional_data is not None:
             nested_data.update(additional_data)
@@ -742,10 +878,12 @@ class DynamicDataWrapper(object):
         record.data.update(nested_data)
         record.save()
 
-    def _save_longitudinal_snapshot(self, registry_code, record, form_name=None, form_user=None):
+    def _save_longitudinal_snapshot(
+        self, registry_code, record, form_name=None, form_user=None
+    ):
         try:
             timestamp = str(datetime.datetime.now())
-            patient_id = record.data['django_id']
+            patient_id = record.data["django_id"]
             snapshot = {
                 "django_id": patient_id,
                 "django_model": record.data.get("django_model", None),
@@ -762,16 +900,25 @@ class DynamicDataWrapper(object):
             history.save()
         except Exception as ex:
             from registry.patients.models import Patient
-            patient_model = Patient.objects.get(id=patient_id)
-            logger.error("Couldn't add to history for patient %s: %s" % (getattr(patient_model, settings.LOG_PATIENT_FIELDNAME), ex))
 
-    def save_snapshot(self, registry_code, collection_name, form_name=None, form_user=None):
+            patient_model = Patient.objects.get(id=patient_id)
+            logger.error(
+                "Couldn't add to history for patient %s: %s"
+                % (getattr(patient_model, settings.LOG_PATIENT_FIELDNAME), ex)
+            )
+
+    def save_snapshot(
+        self, registry_code, collection_name, form_name=None, form_user=None
+    ):
         record = self._get_record(registry_code, collection_name).first()
         if record is not None:
-            self._save_longitudinal_snapshot(registry_code, record, form_name=form_name, form_user=form_user)
+            self._save_longitudinal_snapshot(
+                registry_code, record, form_name=form_name, form_user=form_user
+            )
 
     def save_form_progress(self, registry_code, context_model=None):
         from rdrf.forms.progress.form_progress import FormProgress
+
         registry_model = Registry.objects.get(code=registry_code)
         form_progress = FormProgress(registry_model)
         dynamic_data = self.load_dynamic_data(registry_code, "cdes", flattened=False)
@@ -808,13 +955,67 @@ class DynamicDataWrapper(object):
         data = self.load_dynamic_data(registry_code, "cdes", flattened=False)
         if "forms" in data:
             for form_dict in data["forms"]:
-                for section_dict in form_dict['sections']:
+                for section_dict in form_dict["sections"]:
                     for cde_dict in section_dict["cdes"]:
                         yield form_dict, section_dict, cde_dict
 
     def get_form_timestamp(self, registry_form):
-        data = self.load_dynamic_data(registry_form.registry.code, "cdes", flattened=False)
+        data = self.load_dynamic_data(
+            registry_form.registry.code, "cdes", flattened=False
+        )
         timestamp_field = registry_form.name + "_timestamp"
         if data:
             return data.get(timestamp_field, None)
         return None
+
+
+#    def load_dynamic_data(self, registry, collection_name, flattened=True):
+
+def load_data_v2(pid, registry_code, collection_name="cdes"):
+    from rdrf.models.definition.models import CDEValue
+    cde_values = CDEValue.objects.filter(data__pid=pid,
+                                         data__registry=registry_code,
+                                         data__collection=collection_name)
+    flattened = {}
+
+    for cde_value in cde_values.filter(data__multi=False):
+        delimited_key = mongo_key(cde_value.data["form"],
+                                  cde_value.data["section"],
+                                  cde_value.data["cde"])
+        value = cde_value.data["value"]
+        flattened[delimited_key] = value
+
+    multivalues = cde_values.filter(data_multi=True)
+
+    multisections = [cv.data["section"] for cv in multivalues]
+    forms  = [cv.data["form"] for cv in multivalues]
+
+    for form in fo
+
+
+
+    forms = [cv.data["form"] for cv in cde
+    for code in multisections:
+        
+
+    # how to transform this ?
+    
+    
+    for form_dict in data["forms"]:
+        for section_dict in form_dict["sections"]:
+                multisection_code = section_dict["code"]
+                flattened[multisection_code] = []
+                multisection_items = section_dict["cdes"]
+                for cde_list in multisection_items:
+                    d = {}
+                    for cde_dict in cde_list:
+                        delimited_key = mongo_key(
+                            form_dict["name"], section_dict["code"], cde_dict["code"]
+                        )
+                        d[delimited_key] = cde_dict["value"]
+                    flattened[multisection_code].append(d)
+
+    return flattened
+
+
+    

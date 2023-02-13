@@ -25,6 +25,9 @@ FORCE_SCRIPT_NAME = env.get("force_script_name", "") or SCRIPT_NAME or None
 WEBAPP_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 
+USE_DATA_V2 = env.get("use_data_v2", False)
+
+
 # General site config
 PRODUCTION = env.get("production", False)
 
