@@ -231,7 +231,7 @@ class ScaleGroupComparison(BaseGraphic):
             return d[get_legend_group(name)]
 
         def get_opacity(name):
-            return 0.3 if name.startswith("avg_") else 1.0
+            return 0.6 if name.startswith("avg_") else 1.0
 
         scores_map["seq"] = "Survey Time Period"
         fig.for_each_trace(
