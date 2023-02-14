@@ -52,7 +52,8 @@ if load:
                 [
                     dbc.Tab(label=f"{vc.title}", tab_id=f"tab_{vc.id}")
                     for vc in single_configs
-                ],
+                ]
+                + [dbc.Tab(label="Missing Data", tab_id="tab_missing")],
                 id="tabs",
                 active_tab=f"{tab}",
             ),

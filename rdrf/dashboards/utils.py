@@ -196,6 +196,7 @@ def get_single_patient_graphics_map(registry, vis_configs, patient_id):
     from registry.patients.models import Patient
     from .data import get_data
     from dash import html
+    from dashboards.components.missing_data_report import MissingDataReport
 
     no_data = True
 
@@ -216,5 +217,9 @@ def get_single_patient_graphics_map(registry, vis_configs, patient_id):
     graphics_map = {
         f"tab_{vc.id}": create_graphic(vc, data, patient, None) for vc in vis_configs
     }
+
+    graphics_map["tab_missing"] = MissingDataReport(
+        "Missing Data", None, None, patient, None
+    ).graphic
 
     return graphics_map
