@@ -374,17 +374,26 @@ class ScaleGroupComparison(BaseGraphic):
         # 1st column left aligned
         aligns = ["center"] * num_columns
         aligns[0] = "left"
+        widths = self._make_column_widths(num_columns)
 
         fig = go.Figure(
             data=[
                 go.Table(
                     header=dict(values=headers, align=aligns),
                     cells=dict(values=columns, align=aligns),
+                    columnwidth=widths,
                 )
             ]
         )
         div = html.Div([dcc.Graph(figure=fig)], id="sgc-table")
         return div
+
+    def _make_column_widths(self, num_columns):
+        # relative widths:
+        # https://plotly.github.io/plotly.py-docs/generated/plotly.graph_objects.Table.html )
+        widths = [20]
+        num_other = num_columns - 1
+        return widths + [10] * num_other
 
     def calculate_average_scores_over_time(self, data, score_names):
         # this only makes sense if this chart is passed
