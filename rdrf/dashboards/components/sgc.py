@@ -370,10 +370,20 @@ class ScaleGroupComparison(BaseGraphic):
 
         headers = ["Scale Group"] + list(data["SEQ_NAME"])
 
+        num_columns = len(headers)
+        # 1st column left aligned
+        aligns = ["center"] * num_columns
+        aligns[0] = "left"
+
         fig = go.Figure(
-            data=[go.Table(header=dict(values=headers), cells=dict(values=columns))]
+            data=[
+                go.Table(
+                    header=dict(values=headers, align=aligns),
+                    cells=dict(values=columns, align=aligns),
+                )
+            ]
         )
-        div = html.Div([dcc.Graph(figure=fig)], id="fkdflkdfdf")
+        div = html.Div([dcc.Graph(figure=fig)], id="sgc-table")
         return div
 
     def calculate_average_scores_over_time(self, data, score_names):
