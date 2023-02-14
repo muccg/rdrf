@@ -353,6 +353,8 @@ class ScaleGroupComparison(BaseGraphic):
         columns_required = ["SEQ_NAME"] + [score_name for score_name in score_names()]
         df = data[columns_required].round(1)
 
+        df = df.fillna("Missing")
+
         columns = []
 
         def get_scale_group_name(k):
