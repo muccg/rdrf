@@ -83,6 +83,8 @@ class RegistryDataFrame:
         # this resequences the seq number for each patient
         # from 0 ( the first collected survey to the last)
         self.df["SEQ"] = self.df.groupby("PID").cumcount()
+        # must do this if we re-sequence:
+        self.df = self._assign_seq_names(self.df)
 
     def _reload_dataframe(self):
         try:
