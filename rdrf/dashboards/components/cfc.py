@@ -45,12 +45,6 @@ class CombinedFieldComparison(BaseGraphic):
         div = html.Div([html.H3(self.title), bars_div])
         return html.Div(div, id="fgc")
 
-    def _fix_hovertemplate(self, hovertemplate):
-        # Variable=Financial Difficulties<br>Survey Time Period=%{x}<br>Score=%{y}<br>Number of records in Average=%{customdata[0]}<extra></extra>
-        search_string = "<br>Number of records"
-        index = hovertemplate.find(search_string)
-        return hovertemplate[:index]
-
     def _get_value_range(self):
         return self.config.get("value_range", "")
 
