@@ -66,6 +66,7 @@ class CombinedFieldComparison(BaseGraphic):
             title=f"Change in {combined_name} over time for all patients" + s,
             color_discrete_map=colour_map,
             hover_data={"count": True},
+            category_orders={"value": ["Missing", "1", "2", "3", "4", "5", "6", "7"]},
             labels={"SEQ": "Survey Time Period", "value": "Value", "count": "Count"},
         )
         fig.update_xaxes(type="category")
