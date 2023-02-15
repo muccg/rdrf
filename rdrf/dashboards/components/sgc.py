@@ -244,6 +244,7 @@ class ScaleGroupComparison(BaseGraphic):
                 if t.name.startswith("avg_")
                 else {"dash": "solid"},
                 hovertemplate=t.hovertemplate.replace(t.name, scores_map[t.name]),
+                hoverlabel=dict(namelength=0),
             )
         )
 
