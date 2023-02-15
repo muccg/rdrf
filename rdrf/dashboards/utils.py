@@ -19,13 +19,13 @@ def get_sevenscale_colour_map():
     # used by Health Status and Quality of Life
     return {
         "": "lightgrey",
-        "1": "red",
-        "2": "lightred",
+        "1": "darkred",
+        "2": "orangered",
         "3": "orange",
-        "4": "lightblue",
-        "5": "blue",
-        "6": "lightgreen",
-        "7": "green",
+        "4": "gold",
+        "5": "yellow",
+        "6": "greenyellow",
+        "7": "limegreen",
         "Missing": "lightgrey",
     }
 

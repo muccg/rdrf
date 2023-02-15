@@ -231,7 +231,7 @@ class ScaleGroupComparison(BaseGraphic):
             return d[get_legend_group(name)]
 
         def get_opacity(name):
-            return 0.3 if name.startswith("avg_") else 1.0
+            return 0.6 if name.startswith("avg_") else 1.0
 
         scores_map["seq"] = "Survey Time Period"
         fig.for_each_trace(
@@ -244,6 +244,7 @@ class ScaleGroupComparison(BaseGraphic):
                 if t.name.startswith("avg_")
                 else {"dash": "solid"},
                 hovertemplate=t.hovertemplate.replace(t.name, scores_map[t.name]),
+                hoverlabel=dict(namelength=0),
             )
         )
 
@@ -353,6 +354,8 @@ class ScaleGroupComparison(BaseGraphic):
         columns_required = ["SEQ_NAME"] + [score_name for score_name in score_names()]
         df = data[columns_required].round(1)
 
+        df = df.fillna("Missing")
+
         columns = []
 
         def get_scale_group_name(k):
@@ -370,11 +373,30 @@ class ScaleGroupComparison(BaseGraphic):
 
         headers = ["Scale Group"] + list(data["SEQ_NAME"])
 
+        num_columns = len(headers)
+        # 1st column left aligned
+        aligns = ["center"] * num_columns
+        aligns[0] = "left"
+        widths = self._make_column_widths(num_columns)
+
         fig = go.Figure(
-            data=[go.Table(header=dict(values=headers), cells=dict(values=columns))]
+            data=[
+                go.Table(
+                    header=dict(values=headers, align=aligns),
+                    cells=dict(values=columns, align=aligns),
+                    columnwidth=widths,
+                )
+            ]
         )
-        div = html.Div([dcc.Graph(figure=fig)], id="fkdflkdfdf")
+        div = html.Div([dcc.Graph(figure=fig)], id="sgc-table")
         return div
+
+    def _make_column_widths(self, num_columns):
+        # relative widths:
+        # https://plotly.github.io/plotly.py-docs/generated/plotly.graph_objects.Table.html )
+        widths = [20]
+        num_other = num_columns - 1
+        return widths + [10] * num_other
 
     def calculate_average_scores_over_time(self, data, score_names):
         # this only makes sense if this chart is passed

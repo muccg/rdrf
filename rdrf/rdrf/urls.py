@@ -456,7 +456,7 @@ normalpatterns += [
     re_path(r"session_security/", include("session_security.urls")),
 ]
 
-if not settings.IS_WORKER:
+if not settings.IS_WORKER and not settings.SYSTEM_ROLE == "CIC_PROMS":
     dash_patterns = [
         re_path("^dash/", include("django_plotly_dash.urls")),
         re_path(r"^dashboards/", include(("dashboards.urls", "dashboards"))),

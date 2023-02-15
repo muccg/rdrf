@@ -31,6 +31,16 @@ class CombinedFieldComparison(BaseGraphic):
         data = data.round(1)
         data = self._replace_blanks(data)
 
+        data["text"] = data.apply(
+            lambda row: "<b>"
+            + str(int(row["count"]))
+            + " ("
+            + str(row["Percentage"])
+            + "%)"
+            + "</b>",
+            axis=1,
+        )
+
         bars_div = self._create_bars_div(data, inputs, colour_map, combined_name, blurb)
         div = html.Div([html.H3(self.title), bars_div])
         return html.Div(div, id="fgc")
@@ -66,7 +76,14 @@ class CombinedFieldComparison(BaseGraphic):
             title=f"Change in {combined_name} over time for all patients" + s,
             color_discrete_map=colour_map,
             hover_data={"count": True},
-            labels={"SEQ": "Survey Time Period", "value": "Value", "count": "Count"},
+            text="text",
+            category_orders={"value": ["Missing", "1", "2", "3", "4", "5", "6", "7"]},
+            labels={
+                "SEQ": "Survey Time Period",
+                "value": "Value",
+                "count": "Count",
+                "text": "Summary",
+            },
         )
         fig.update_xaxes(type="category")
 
@@ -74,9 +91,46 @@ class CombinedFieldComparison(BaseGraphic):
         self.set_background_colour(fig, "rgb(250, 250, 250)")
         fig.update_layout(legend_traceorder="reversed")
 
+        def adjust_hovertemplate(t):
+            t.update(
+                hovertemplate=self._fix_hovertemplate(t.hovertemplate),
+                hoverlabel=dict(namelength=0),
+            )
+
+        fig.for_each_trace(adjust_hovertemplate)
+
         bar_id = "bar-combined"
         div = html.Div([dcc.Graph(figure=fig)], id=bar_id)
         return div
+
+    def fix_xaxis(self, fig, data):
+        # this replaces the SEQ numbers on the x-axis
+        # with names
+        fig.update_xaxes(type="category")
+
+        seq_totals = data.groupby(["SEQ"])["count"].sum()
+
+        def get_ticktext(row):
+            seq = row["SEQ"]
+            seq_total = seq_totals[seq]
+            seq_name = row["SEQ_NAME"]
+            return seq_name + " (" + str(int(seq_total)) + ")"
+
+        data["ticktext"] = data.apply(get_ticktext, axis=1)
+
+        fig.update_layout(
+            xaxis=dict(
+                tickmode="array", tickvals=data["SEQ"], ticktext=data["ticktext"]
+            )
+        )
+
+    def _fix_hovertemplate(self, hovertemplate):
+        logger.debug(hovertemplate)
+        # Value=Missing<br>Survey Time Period=%{x}<br>Percentage=%{y}<br>Summary=%{text}<br>Count=%{customdata[0]}<extra></extra>
+        index = hovertemplate.find("<br>Count=")
+        ht = hovertemplate[:index]
+        ht = ht.replace("Percentage=%{y}<br>", "")
+        return ht
 
     def _get_combined_data(self, df: pd.DataFrame, inputs) -> pd.DataFrame:
         """
