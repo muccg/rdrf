@@ -37,6 +37,29 @@ class AllPatientsScoreHelper:
         return data
 
 
+class ConfigAdaptor:
+    def __init__(self, config_dict):
+        self.config = config_dict
+
+
+class MultiScaleGroup(BaseGraphic):
+    def get_graphic(self):
+        sgc_configs = self.config["sgcs"]
+        graphics = []
+
+        for sgc_config in sgc_configs:
+            config = ConfigAdaptor(sgc_config)
+            title = sgc_config["blurb"]
+
+            sgc = ScaleGroupComparison(
+                title, config, self.data, self.patient, self.all_patients_data
+            )
+
+            graphics.append(sgc.graphic)
+
+        return html.Div(graphics, "multiscalegroup")
+
+
 class ScaleGroupComparison(BaseGraphic):
     def get_graphic(self):
         self.better = None  # an indicator showing whether up is better

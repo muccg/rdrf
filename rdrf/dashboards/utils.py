@@ -155,6 +155,7 @@ def create_graphic(vis_config, data, patient, all_patients_data=None):
     from .components.cfc import CombinedFieldComparison
     from .components.cpr import ChangesInPatientResponses
     from .components.sgc import ScaleGroupComparison
+    from .components.sgc import MultiScaleGroup
     from .components.tl import TrafficLights
 
     title = vis_config.title
@@ -171,6 +172,10 @@ def create_graphic(vis_config, data, patient, all_patients_data=None):
         return ChangesInPatientResponses(title, vis_config, data).graphic
     elif vis_config.code == "sgc":
         return ScaleGroupComparison(
+            title, vis_config, data, patient, all_patients_data
+        ).graphic
+    elif vis_config.code == "msgc":
+        return MultiScaleGroup(
             title, vis_config, data, patient, all_patients_data
         ).graphic
     elif vis_config.code == "tl":

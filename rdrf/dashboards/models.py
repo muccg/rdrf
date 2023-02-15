@@ -26,6 +26,7 @@ class VisualisationConfig(models.Model):
         ("cpr", "Changes in Patient Responses"),
         ("sgc", "Scale Group Comparison"),
         ("tl", "Traffic Lights Display"),
+        ("msgc", "Multi Scale Group"),
     )
     registry = models.ForeignKey(Registry, on_delete=models.CASCADE)
     base_data = models.ForeignKey(
