@@ -1,5 +1,5 @@
 sphinx
 sphinxcontrib-fulltoc
 #Werkzeug==0.16.0
-Werkzeug==2.0.0
+Werkzeug==2.2.3
 python-Levenshtein
