@@ -74,10 +74,7 @@ class RegistryDataFrame:
         elif self.mode == "single":
             self._reload_dataframe()
 
-        if self.mode == "single":
-            self._order_by_collection_date(self.df)
-        else:
-            self.df.sort_values(by=["SEQ"], inplace=True)
+        self._order_by_collection_date(self.df)
 
         c = datetime.now()
         logger.info(f"time taken to load/generate df = {(c-a).total_seconds()} seconds")
