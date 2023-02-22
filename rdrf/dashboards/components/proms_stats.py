@@ -39,7 +39,6 @@ class PatientsWhoCompletedForms(BaseGraphic):
 
             if time_period == 7:
                 links = self._get_links(start_date, end_date)
-                logger.debug(f"links = {links}")
             else:
                 links = []
 
@@ -49,7 +48,6 @@ class PatientsWhoCompletedForms(BaseGraphic):
                 links_div = None
 
             desc_td = html.Td(desc)
-            logger.debug(f"desc td = {desc_td}")
 
             rows.append(
                 html.Tr(
