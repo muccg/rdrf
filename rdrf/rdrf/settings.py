@@ -250,7 +250,6 @@ if not IS_WORKER:
     INSTALLED_APPS.append("django_plotly_dash.apps.DjangoPlotlyDashConfig")
     INSTALLED_APPS.append("dashboards")
 
-
 # LDAP
 
 
