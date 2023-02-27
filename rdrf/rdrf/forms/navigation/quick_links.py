@@ -575,7 +575,10 @@ class QuickLinks(object):
                 continue
 
             try:
-                text = label + " (" + registry.name + ")"
+                if "menu" in registry.metadata and label in registry.metadata["menu"]:
+                    text = registry.metadata["menu"][label]
+                else:
+                    text = label + " (" + registry.name + ")"
                 qlink = QuickLink(reverse(url, args=(registry.code,)), _(text))
                 rval[text] = qlink
             except NoReverseMatch:
