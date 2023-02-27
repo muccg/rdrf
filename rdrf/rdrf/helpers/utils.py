@@ -1175,3 +1175,11 @@ def get_display_value(cde_code, raw_value):
 
     cde_model = CommonDataElement.objects.get(code=cde_code)
     return cde_model.get_display_value(raw_value)
+
+
+def custom_text(registry_model, key, default):
+    metadata = registry_model.metadata
+    if "custom_text" in metadata:
+        return metadata["custom_text"].get(key, default)
+
+    return default
