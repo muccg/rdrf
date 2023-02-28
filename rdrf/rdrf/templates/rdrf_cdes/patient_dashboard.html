@@ -2,9 +2,9 @@
 {%load plotly_dash%}
 
 {% block content %}
-    <br>Time taken: {{seconds}} seconds</br>
+    <p>
     {% if state == "good" %}
-        {%plotly_app name="SinglePatientDashboardApp" ratio=0.5 %}
+        {%plotly_app name="SinglePatientDashboardApp" ratio=1.0 %}
     {% else %}
         No dashboard items have been configured!
     {% endif %}
