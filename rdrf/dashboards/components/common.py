@@ -80,6 +80,9 @@ class BaseGraphic:
     def fix_yaxis(self, fig, low=0, high=100):
         fig.update_yaxes(range=[low, high])
 
+    def auto_size(self, fig):
+        fig.layout.autosize = True
+
     def better_indicator_image(self, good="up"):
         from django.conf import settings
 
