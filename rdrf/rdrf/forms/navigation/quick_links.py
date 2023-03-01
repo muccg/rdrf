@@ -456,6 +456,12 @@ class QuickLinks(object):
 
             MenuConfig().working_group_staff = {**Links.DATA_ENTRY}
 
+            if settings.SYSTEM_ROLE in [SystemRoles.CIC_CLINICAL, SystemRoles.CIC_DEV]:
+                logger.debug(
+                    "updating menu config for clinical staff to include consent links"
+                )
+                MenuConfig().working_group_staff.update(Links.CONSENT)
+
             MenuConfig().working_group_curator = {
                 **Links.CONSENT,
                 **Links.DATA_ENTRY,
@@ -476,6 +482,12 @@ class QuickLinks(object):
                 **Links.QUESTIONNAIRE,
                 **Links.VERIFICATION,
             }
+
+            if settings.SYSTEM_ROLE in [SystemRoles.CIC_CLINICAL, SystemRoles.CIC_DEV]:
+                logger.debug(
+                    "updating menu config for clinical staff to include consent links"
+                )
+                MenuConfig().clinical.update(Links.CONSENT)
 
             # Super user has combined menu of all other users
             MenuConfig().super_user = {
@@ -523,6 +535,7 @@ class QuickLinks(object):
                 MenuConfig().all = proms_menus
 
     def _group_links(self, group):
+        logger.debug(f"group_links: group = {group}")
         # map RDRF user groups to quick links menu sets
         switcher = {
             RDRF_GROUPS.PATIENT: MenuConfig().patient,
@@ -534,7 +547,9 @@ class QuickLinks(object):
             RDRF_GROUPS.WORKING_GROUP_CURATOR: MenuConfig().working_group_curator,
             RDRF_GROUPS.SUPER_USER: MenuConfig().super_user,
         }
-        return switcher.get(group.lower(), {})
+        links = switcher.get(group.lower(), {})
+        logger.debug(f"links = {links}")
+        return links
 
     def __init__(self, registries):
         self._registries = registries
@@ -560,7 +575,10 @@ class QuickLinks(object):
                 continue
 
             try:
-                text = label + " (" + registry.name + ")"
+                if "menu" in registry.metadata and label in registry.metadata["menu"]:
+                    text = registry.metadata["menu"][label]
+                else:
+                    text = label + " (" + registry.name + ")"
                 qlink = QuickLink(reverse(url, args=(registry.code,)), _(text))
                 rval[text] = qlink
             except NoReverseMatch:
@@ -633,6 +651,7 @@ class QuickLinks(object):
         if settings.SYSTEM_ROLE == SystemRoles.CIC_PROMS:
             return {}
         # enable consent links
+        logger.debug("enabling consents")
         Links.CONSENT = self._per_registry_links("Consents", "consent_list")
 
     def menu_links(self, groups):

@@ -16,6 +16,7 @@ from registry.groups import GROUPS as RDRF_GROUPS
 
 
 import logging
+
 logger = logging.getLogger(__name__)
 
 
@@ -42,41 +43,64 @@ class WorkingGroup(models.Model):
 
 class CustomUser(AbstractBaseUser, PermissionsMixin):
     username = models.CharField(
-        _('username'),
+        _("username"),
         max_length=254,
         unique=True,
-        help_text=_('Required. 254 characters or fewer. Letters, numbers and @/./+/-/_ characters'),
+        help_text=_(
+            "Required. 254 characters or fewer. Letters, numbers and @/./+/-/_ characters"
+        ),
         validators=[
             validators.RegexValidator(
-                re.compile(r'^[\w.@+-]+$'),
-                _('Enter a valid username.'),
-                _('invalid'))])
-    first_name = models.CharField(_('first name'), max_length=30)
-    last_name = models.CharField(_('last name'), max_length=30)
-    email = models.EmailField(_('email address'), max_length=254)
-    is_staff = models.BooleanField(_('staff status'), default=False, help_text=_(
-        'Designates whether the user can log into this admin site.'))
-    is_active = models.BooleanField(_('active'), default=False, help_text=_(
-        'Designates whether this user should be treated as active. Unselect this instead of deleting accounts.'))
-    require_2_fact_auth = models.BooleanField(
-        _('require two-factor authentication'),
+                re.compile(r"^[\w.@+-]+$"), _("Enter a valid username."), _("invalid")
+            )
+        ],
+    )
+    first_name = models.CharField(_("first name"), max_length=30)
+    last_name = models.CharField(_("last name"), max_length=30)
+    email = models.EmailField(_("email address"), max_length=254)
+    is_staff = models.BooleanField(
+        _("staff status"),
         default=False,
-        help_text=_('Requires this user to use two factor authentication to access the system.'))
-    prevent_self_unlock = models.BooleanField(_('prevent self unlock'), default=False, help_text=_(
-        'Explicitly prevent this user to unlock their account using the Unlock Account functionality.'))
+        help_text=_("Designates whether the user can log into this admin site."),
+    )
+    is_active = models.BooleanField(
+        _("active"),
+        default=False,
+        help_text=_(
+            "Designates whether this user should be treated as active. Unselect this instead of deleting accounts."
+        ),
+    )
+    require_2_fact_auth = models.BooleanField(
+        _("require two-factor authentication"),
+        default=False,
+        help_text=_(
+            "Requires this user to use two factor authentication to access the system."
+        ),
+    )
+    prevent_self_unlock = models.BooleanField(
+        _("prevent self unlock"),
+        default=False,
+        help_text=_(
+            "Explicitly prevent this user to unlock their account using the Unlock Account functionality."
+        ),
+    )
 
-    date_joined = models.DateTimeField(_('date joined'), default=timezone.now)
+    date_joined = models.DateTimeField(_("date joined"), default=timezone.now)
 
     working_groups = models.ManyToManyField(
-        WorkingGroup, blank=True, related_name='working_groups')
-    title = models.CharField(max_length=50, null=True, blank=True, verbose_name="position")
-    registry = models.ManyToManyField(Registry, blank=True, related_name='registry')
+        WorkingGroup, blank=True, related_name="working_groups"
+    )
+    title = models.CharField(
+        max_length=50, null=True, blank=True, verbose_name="position"
+    )
+    registry = models.ManyToManyField(Registry, blank=True, related_name="registry")
     password_change_date = models.DateTimeField(auto_now_add=True, null=True)
     preferred_language = models.CharField(
         _("preferred language"),
         max_length=20,
         default="en",
-        help_text=_("Preferred language (code) for communications"))
+        help_text=_("Preferred language (code) for communications"),
+    )
 
     USERNAME_FIELD = "username"
 
@@ -123,9 +147,10 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
     @property
     def notices(self):
         from rdrf.models.definition.models import Notification
+
         return Notification.objects.filter(
-            to_username=self.username,
-            seen=False).order_by("-created")
+            to_username=self.username, seen=False
+        ).order_by("-created")
 
     def in_registry(self, registry_model):
         return self.registry.filter(pk=registry_model.pk).exists()
@@ -196,6 +221,7 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
 
     def add_group(self, group_name):
         from django.contrib.auth.models import Group
+
         existing_groups = [g.name for g in self.groups.all()]
         if group_name not in existing_groups:
             group = Group.objects.get(name=group_name)
@@ -225,6 +251,7 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
     @property
     def menu_links(self):
         from rdrf.forms.navigation.quick_links import QuickLinks
+
         qlinks = QuickLinks(self.get_registries_or_all())
         if self.is_superuser:
             links = qlinks.menu_links([RDRF_GROUPS.SUPER_USER])
@@ -237,6 +264,7 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
                     if custom_action.scope == "U":
                         links.append(custom_action.menu_link)
 
+        links = sorted(links, key=lambda x: -1 if x.text == "Patient List" else 1)
         return links
 
     @property
@@ -245,6 +273,7 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
 
         if self.is_superuser:
             from rdrf.forms.navigation.quick_links import QuickLinks
+
             qlinks = QuickLinks(self.get_registries_or_all())
             links = qlinks.settings_links()
 
@@ -256,6 +285,7 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
 
         if self.is_superuser:
             from rdrf.forms.navigation.quick_links import QuickLinks
+
             qlinks = QuickLinks(self.get_registries_or_all())
             links = qlinks.admin_page_links()
 
@@ -264,11 +294,20 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
     def custom_actions(self, registry_model):
         # return all custom actions applicable
         from rdrf.models.definition.models import CustomAction
-        return [action for action in CustomAction.objects.filter(registry=registry_model)]
+
+        return [
+            action for action in CustomAction.objects.filter(registry=registry_model)
+        ]
 
     def get_custom_actions_by_scope(self, registry_model, scope="P"):
         from rdrf.models.definition.models import CustomAction
-        return [action for action in CustomAction.objects.filter(registry=registry_model, scope=scope)]
+
+        return [
+            action
+            for action in CustomAction.objects.filter(
+                registry=registry_model, scope=scope
+            )
+        ]
 
 
 @receiver(user_registered)
@@ -277,6 +316,7 @@ def user_registered_callback(sender, user, request, **kwargs):
 
     if hasattr(settings, "REGISTRATION_CLASS"):
         from django.utils.module_loading import import_string
+
         registration_class = import_string(settings.REGISTRATION_CLASS)
         reg = registration_class(user, request)
         reg.process()
@@ -313,6 +353,6 @@ def user_activated_callback(sender, user, request, **kwargs):
 
     for registry_model in user.registry.all():
         registry_code = registry_model.code
-        process_notification(registry_code,
-                             email_notification_description,
-                             template_data)
+        process_notification(
+            registry_code, email_notification_description, template_data
+        )

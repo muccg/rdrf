@@ -35,17 +35,13 @@ class ChangesInPatientResponses(BaseGraphic):
 
     """
 
-    def set_fields_of_interest(self, config):
-        # each fol is a dict {"code": <cde_code>,"label": <text>}
-        self.fols = config["fields"]
-
     def get_graphic(self):
-        self.set_fields_of_interest(self.config)
+        field_dicts = self.config["fields"]
         items = []
-        for fol_dict in self.fols:
-            field = fol_dict["code"]
-            label = fol_dict["label"]
-            colour_map = fol_dict.get("colour_map", None)
+        for field_dict in field_dicts:
+            field = field_dict["code"]
+            label = field_dict["label"]
+            colour_map = field_dict.get("colour_map", None)
             pof = self._get_percentages_over_followups(field, label)
             bar_div = self._create_stacked_bar_px(pof, field, label, colour_map)
             items.append(bar_div)
@@ -55,6 +51,8 @@ class ChangesInPatientResponses(BaseGraphic):
                 over the time intervals that PROMs have been completed.
                 Scroll down to see all variables.
                 """
+
+        blurb_text = self.config.get("blurb", blurb_text)
 
         blurb = html.P(blurb_text)
 
@@ -96,6 +94,7 @@ class ChangesInPatientResponses(BaseGraphic):
             color_discrete_map=colour_map,
             text="text",
             hover_data={"Percentage": False},
+            category_orders=self._get_category_orders(label, colour_map),
             labels={"SEQ": "Survey Time Period", "text": "Summary"},
         )
 
@@ -107,10 +106,15 @@ class ChangesInPatientResponses(BaseGraphic):
         div = html.Div([dcc.Graph(figure=fig)], id=id)
         return div
 
+    def _get_category_orders(self, label, colour_map):
+        keys = list(colour_map.keys())
+        if len(keys) == 9:
+            return {label: ["Missing", "", "1", "2", "3", "4", "5", "6", "7"]}
+        return {label: list(colour_map.keys())}
+
     def fix_xaxis(self, fig, data):
         # this replaces the SEQ numbers on the x-axis
         # with names
-        fig.update_xaxes(type="category")
 
         seq_totals = data.groupby(["SEQ"])["counts"].sum()
 

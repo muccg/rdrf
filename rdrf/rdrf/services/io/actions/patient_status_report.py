@@ -42,9 +42,10 @@ class ColumnType:
     FOLLOWUP_DATE = "followup_date"
 
 
-demographics_transform_map = {"sex": {"1": "Male", "2": "Female", "3": "Indeterminate"},
-                              "date_of_birth": format_date,
-                              }
+demographics_transform_map = {
+    "sex": {"1": "Male", "2": "Female", "3": "Indeterminate"},
+    "date_of_birth": format_date,
+}
 
 
 def log_time_taken(f):
@@ -52,8 +53,11 @@ def log_time_taken(f):
         start_time = time()
         result = f(*args, **kw)
         finish_time = time()
-        logger.info(f'The report: {args[2]} was generated in: {(finish_time - start_time):.2f} sec')
+        logger.info(
+            f"The report: {args[2]} was generated in: {(finish_time - start_time):.2f} sec"
+        )
         return result
+
     return wrapper
 
 
@@ -79,7 +83,16 @@ def get_timestamp(clinical_data):
 
 
 class ReportGenerator:
-    def __init__(self, custom_action, registry_model, report_name, report_spec, user, input_data, run_async=False):
+    def __init__(
+        self,
+        custom_action,
+        registry_model,
+        report_name,
+        report_spec,
+        user,
+        input_data,
+        run_async=False,
+    ):
         self.run_async = run_async
         self.custom_action = custom_action
         self.runtime_spec = custom_action.spec
@@ -111,25 +124,34 @@ class ReportGenerator:
 
     def _setup_spec(self):
         if self.custom_action.include_all:
-            fixed_cfg = ContextFormGroup.objects.get(registry=self.custom_action.registry, context_type='F')
+            fixed_cfg = ContextFormGroup.objects.get(
+                registry=self.custom_action.registry, context_type="F"
+            )
             rfs = fixed_cfg.forms
             columns = [
-                {"type": "demographics",
-                 "label": "Given Names",
-                 "name": "given_names"},
-                {"type": "demographics",
-                 "label": "Family Name",
-                 "name": "family_name"},
-                {"type": "demographics",
-                 "label": "DOB",
-                 "name": "date_of_birth"}
+                {"type": "demographics", "label": "Given Names", "name": "given_names"},
+                {"type": "demographics", "label": "Family Name", "name": "family_name"},
+                {"type": "demographics", "label": "DOB", "name": "date_of_birth"},
             ]
             for rf in rfs:
                 for sec in rf.section_models:
                     for cde in sec.cde_models:
-                        columns.append({'name': f'{rf.name}/{sec.code}/{cde.code}', 'type': 'cde',
-                                       'label': f'{rf.name}/{sec.code}/{cde.code}'})
-            self.report_spec = {"columns": columns, "context_form_group": fixed_cfg.name}
+                        columns.append(
+                            {
+                                "name": f"{rf.name}/{sec.code}/{cde.code}",
+                                "type": "cde",
+                                "label": f"{rf.name}/{sec.code}/{cde.code}",
+                            }
+                        )
+            self.report_spec = {
+                "columns": columns,
+                "context_form_group": fixed_cfg.name,
+            }
+
+            with open("/data/report_spec.json", "w") as rs:
+                import json
+
+                json.dump(self.report_spec, rs)
 
     def _set_formats(self):
         if "formats" in self.report_spec:
@@ -155,14 +177,18 @@ class ReportGenerator:
                 filter_field = filter_spec["filter_field"]
                 cfg_name = filter_field.get("context_form_group", None)
                 if cfg_name is not None:
-                    self.filter_context_form_group = ContextFormGroup.objects.get(registry=self.registry_model,
-                                                                                  name=cfg_name)
+                    self.filter_context_form_group = ContextFormGroup.objects.get(
+                        registry=self.registry_model, name=cfg_name
+                    )
                     if not self.filter_context_form_group.context_type == "F":
-                        raise ValueError("filter context form group context type must be fixed")
+                        raise ValueError(
+                            "filter context form group context type must be fixed"
+                        )
 
                 form_name = filter_field["form"]
-                self.filter_form = RegistryForm.objects.get(registry=self.registry_model,
-                                                            name=form_name)
+                self.filter_form = RegistryForm.objects.get(
+                    registry=self.registry_model, name=form_name
+                )
                 section_code = filter_field["section"]
                 self.filter_section = self.filter_form.get_section_model(section_code)
                 cde_code = filter_field["cde"]
@@ -180,17 +206,19 @@ class ReportGenerator:
         import os.path
         from rdrf.helpers.utils import generate_token
         from django.conf import settings
+
         task_dir = settings.TASK_FILE_DIRECTORY
         filename = generate_token()
         filepath = os.path.join(task_dir, filename)
         with open(filepath, "w") as f:
             self.dump_csv(f)
-        result = {"filepath": filepath,
-                  "content_type": "text/csv",
-                  "username": self.user.username,
-                  "user_id": self.user.id,
-                  "filename": f"{self.report_name}.csv",
-                  }
+        result = {
+            "filepath": filepath,
+            "content_type": "text/csv",
+            "username": self.user.username,
+            "user_id": self.user.id,
+            "filename": f"{self.report_name}.csv",
+        }
         return result
 
     def _get_context(self, patient_model):
@@ -209,9 +237,9 @@ class ReportGenerator:
     def _get_context_form_group(self):
         if "context_form_group" in self.report_spec:
             form_group_name = self.report_spec["context_form_group"]
-            cfg = ContextFormGroup.objects.get(name=form_group_name,
-                                               registry=self.registry_model,
-                                               context_type="F")
+            cfg = ContextFormGroup.objects.get(
+                name=form_group_name, registry=self.registry_model, context_type="F"
+            )
             return cfg
 
     def _get_all_data(self):
@@ -227,17 +255,14 @@ class ReportGenerator:
             return ""
         elif col_type == ColumnType.CONSENT:
             consent_section_code, consent_code = column["name"].split("/")
-            return self._get_consent(patient_model,
-                                     consent_section_code,
-                                     consent_code)
+            return self._get_consent(patient_model, consent_section_code, consent_code)
         elif col_type == ColumnType.COMPLETION:
             return 0
         elif col_type == ColumnType.CONSENT_DATE:
             consent_section_code, consent_code = column["name"].split("/")
-            return self._get_consent(patient_model,
-                                     consent_section_code,
-                                     consent_code,
-                                     get_date=True)
+            return self._get_consent(
+                patient_model, consent_section_code, consent_code, get_date=True
+            )
         elif col_type == ColumnType.DEMOGRAPHICS:
             column_name = column["name"]
             return self._get_demographics_column(patient_model, column_name)
@@ -269,7 +294,10 @@ class ReportGenerator:
                     row.append(column_value)
                 rows.append(row)
             except Exception as ex:
-                logger.error("%s report error pid %s: %s" % (self.report_name, patient_model.pk, ex))
+                logger.error(
+                    "%s report error pid %s: %s"
+                    % (self.report_name, patient_model.pk, ex)
+                )
         self.report = rows
 
     def _get_header(self):
@@ -277,6 +305,7 @@ class ReportGenerator:
             if "label" in col:
                 return col["label"]
             return col["name"]
+
         return [header(col) for col in self.report_spec["columns"]]
 
     def _get_column_value(self, patient_model, data, column):
@@ -298,44 +327,47 @@ class ReportGenerator:
                 return "[Not Entered]"
         if column_type == ColumnType.CONSENT:
             consent_section_code, consent_code = column["name"].split("/")
-            return self._get_consent(patient_model,
-                                     consent_section_code,
-                                     consent_code)
+            return self._get_consent(patient_model, consent_section_code, consent_code)
         if column_type == ColumnType.CONSENT_DATE:
             consent_section_code, consent_code = column["name"].split("/")
-            return self._get_consent(patient_model,
-                                     consent_section_code,
-                                     consent_code,
-                                     get_date=True)
+            return self._get_consent(
+                patient_model, consent_section_code, consent_code, get_date=True
+            )
         if column_type == ColumnType.FOLLOWUP_DATE:
             context_form_group_name = column["context_form_group"]
             form_name = column["name"]
-            return self._get_followup_date(patient_model,
-                                           context_form_group_name,
-                                           form_name)
+            return self._get_followup_date(
+                patient_model, context_form_group_name, form_name
+            )
         else:
             raise ReportParserException("Unknown column type: %s" % column_type)
 
-    def _get_followup_date(self,
-                           patient_model,
-                           context_form_group_name,
-                           form_name):
+    def _get_followup_date(self, patient_model, context_form_group_name, form_name):
         from rdrf.models.definition.models import ContextFormGroup
-        cfg = ContextFormGroup.objects.get(registry=self.registry_model,
-                                           name=context_form_group_name)
+
+        cfg = ContextFormGroup.objects.get(
+            registry=self.registry_model, name=context_form_group_name
+        )
         # find the last/latest context containing the form
-        context_models = [c for c in patient_model.context_models
-                          if c.registry.pk == self.registry_model.pk and c.context_form_group and c.context_form_group.pk == cfg.pk]
+        context_models = [
+            c
+            for c in patient_model.context_models
+            if c.registry.pk == self.registry_model.pk
+            and c.context_form_group
+            and c.context_form_group.pk == cfg.pk
+        ]
         if not context_models:
             return ""
         latest_date = None
         for context_model in context_models:
             # get the associated clinical data and check the timestamp
             try:
-                clinical_data = ClinicalData.objects.get(context_id=context_model.pk,
-                                                         django_model="Patient",
-                                                         collection="cdes",
-                                                         django_id=patient_model.pk)
+                clinical_data = ClinicalData.objects.get(
+                    context_id=context_model.pk,
+                    django_model="Patient",
+                    collection="cdes",
+                    django_id=patient_model.pk,
+                )
                 timestamp = get_timestamp(clinical_data)
                 if latest_date is None or timestamp > latest_date:
                     latest_date = timestamp
@@ -345,18 +377,17 @@ class ReportGenerator:
             return ""
         return format_date(latest_date)
 
-    def _get_consent(self,
-                     patient_model,
-                     consent_section_code,
-                     consent_code,
-                     get_date=False):
+    def _get_consent(
+        self, patient_model, consent_section_code, consent_code, get_date=False
+    ):
         for consent_section in self.registry_model.consent_sections.all():
             if consent_section.code == consent_section_code:
                 for consent_question in consent_section.questions.all():
                     if consent_question.code == consent_code:
                         try:
-                            consent_value = ConsentValue.objects.get(patient=patient_model,
-                                                                     consent_question=consent_question)
+                            consent_value = ConsentValue.objects.get(
+                                patient=patient_model, consent_question=consent_question
+                            )
                             if get_date:
                                 first_save = consent_value.first_save
                                 last_update = consent_value.last_update
@@ -381,30 +412,37 @@ class ReportGenerator:
     def _get_cde(self, patient_model, cde_path, data):
         if "/" in cde_path:
             form_name, section_code, cde_code = cde_path.split("/")
-            form_model = RegistryForm.objects.get(name=form_name,
-                                                  registry=self.registry_model)
+            form_model = RegistryForm.objects.get(
+                name=form_name, registry=self.registry_model
+            )
             section_model = Section.objects.get(code=section_code)
             cde_model = CommonDataElement.objects.get(code=cde_code)
         else:
             form_model, section_model, cde_model = self._find_cde(cde_path)
 
         context_id = data["context_id"]
-        raw_value = patient_model.get_form_value(self.registry_model.code,
-                                                 form_model.name,
-                                                 section_model.code,
-                                                 cde_model.code,
-                                                 context_id=context_id,
-                                                 clinical_data=data,
-                                                 flattened=False)
+        raw_value = patient_model.get_form_value(
+            self.registry_model.code,
+            form_model.name,
+            section_model.code,
+            cde_model.code,
+            context_id=context_id,
+            clinical_data=data,
+            flattened=False,
+        )
         if isinstance(raw_value, list):
-            display_value = "|".join([str(cde_model.get_display_value(x)) for x in raw_value])
+            display_value = "|".join(
+                [str(cde_model.get_display_value(x)) for x in raw_value]
+            )
         else:
             display_value = cde_model.get_display_value(raw_value)
             if cde_model.datatype == "date":
                 if not display_value:
                     return ""
                 if self.date_format is not None:
-                    return self.get_formatted_date(display_value, date_format=self.date_format)
+                    return self.get_formatted_date(
+                        display_value, date_format=self.date_format
+                    )
                 else:
                     return self.get_formatted_date(display_value)
         return display_value
@@ -429,22 +467,26 @@ class ReportGenerator:
             return transform(raw_value)
 
     def _load_patient_data(self, patient_model, context_id):
-        return patient_model.get_dynamic_data(self.registry_model,
-                                              context_id=context_id)
+        return patient_model.get_dynamic_data(
+            self.registry_model, context_id=context_id
+        )
 
     def _completed(self, patient_model, form_name, data, percentage=False):
-        form_model = RegistryForm.objects.get(name=form_name,
-                                              registry=self.registry_model)
+        form_model = RegistryForm.objects.get(
+            name=form_name, registry=self.registry_model
+        )
         if not percentage:
             for section_model in form_model.section_models:
                 if not section_model.allow_multiple:
                     for cde_model in section_model.cde_models:
-                        if not cde_completed(self.registry_model,
-                                             form_model,
-                                             section_model,
-                                             cde_model,
-                                             patient_model,
-                                             data):
+                        if not cde_completed(
+                            self.registry_model,
+                            form_model,
+                            section_model,
+                            cde_model,
+                            patient_model,
+                            data,
+                        ):
                             return False
             return True
         # percentage
@@ -454,12 +496,14 @@ class ReportGenerator:
             if not section_model.allow_multiple:
                 for cde_model in section_model.cde_models:
                     num_cdes += 1.0
-                    if cde_completed(self.registry_model,
-                                     form_model,
-                                     section_model,
-                                     cde_model,
-                                     patient_model,
-                                     data):
+                    if cde_completed(
+                        self.registry_model,
+                        form_model,
+                        section_model,
+                        cde_model,
+                        patient_model,
+                        data,
+                    ):
                         num_completed += 1.0
         value = 100.0 * (num_completed / num_cdes)
         return round(value, 0)
@@ -467,14 +511,20 @@ class ReportGenerator:
     def _get_patients(self):
         user_working_groups = self.user.working_groups.all()
         if not self.has_filter or not self.has_valid_filter:
-            return Patient.objects.filter(rdrf_registry__code__in=[self.registry_model.code],
-                                          working_groups__in=user_working_groups)
+            return Patient.objects.filter(
+                rdrf_registry__code__in=[self.registry_model.code],
+                working_groups__in=user_working_groups,
+            )
         else:
+
             def patient_iterator():
-                for patient_model in Patient.objects.filter(rdrf_registry__code__in=[self.registry_model.code],
-                                                            working_groups__in=user_working_groups):
+                for patient_model in Patient.objects.filter(
+                    rdrf_registry__code__in=[self.registry_model.code],
+                    working_groups__in=user_working_groups,
+                ):
                     if self._include_patient(patient_model):
                         yield patient_model
+
             return patient_iterator()
 
     def _include_patient(self, patient_model):
@@ -484,7 +534,9 @@ class ReportGenerator:
         return filter_value >= self.start_value and filter_value <= self.end_value
 
     def _get_filter_value(self, patient_model):
-        cds = patient_model.get_clinical_data_for_form_group(self.context_form_group.name)
+        cds = patient_model.get_clinical_data_for_form_group(
+            self.context_form_group.name
+        )
         if cds:
             if len(cds) > 1:
                 raise ValueError("There should only be one clinical data object")
@@ -513,14 +565,30 @@ class ReportGenerator:
 
 
 @log_time_taken
-def execute(custom_action, registry_model, report_name, report_spec, user, input_data=None, runtime_spec={}, run_async=False):
-    logger.info("running custom action report %s for %s" % (report_name,
-                                                            user.username))
-    parser = ReportGenerator(custom_action, registry_model, report_name, report_spec, user, input_data, run_async)
+def execute(
+    custom_action,
+    registry_model,
+    report_name,
+    report_spec,
+    user,
+    input_data=None,
+    runtime_spec={},
+    run_async=False,
+):
+    logger.info("running custom action report %s for %s" % (report_name, user.username))
+    parser = ReportGenerator(
+        custom_action,
+        registry_model,
+        report_name,
+        report_spec,
+        user,
+        input_data,
+        run_async,
+    )
     parser.generate_report()
     if not run_async:
-        response = HttpResponse(content_type='text/csv')
-        response['Content-Disposition'] = f'attachment; filename="{report_name}.csv"'
+        response = HttpResponse(content_type="text/csv")
+        response["Content-Disposition"] = f'attachment; filename="{report_name}.csv"'
         return parser.dump_csv(response)
     else:
         return parser.task_result

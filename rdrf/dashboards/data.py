@@ -75,10 +75,12 @@ class RegistryDataFrame:
             self._reload_dataframe()
 
         self._order_by_collection_date(self.df)
+
         c = datetime.now()
         logger.info(f"time taken to load/generate df = {(c-a).total_seconds()} seconds")
 
     def _order_by_collection_date(self, df: pd.DataFrame):
+        logger.debug("ordering dataframe by collection date")
         self.df.sort_values(by=[cdf], inplace=True)
         # this resequences the seq number for each patient
         # from 0 ( the first collected survey to the last)
@@ -107,6 +109,8 @@ class RegistryDataFrame:
         self.df = self._assign_seq_names(self.df)
 
     def _assign_seq_names(self, df):
+        logger.debug("assigning sequence names")
+
         def get_aus_date(row):
             try:
                 d = row["COLLECTIONDATE"].date()

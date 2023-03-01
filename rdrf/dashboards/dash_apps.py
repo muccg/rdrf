@@ -45,7 +45,7 @@ if load:
     else:
         tab = f"tab_{single_configs[0].id}"
 
-    single_app.layout = dbc.Container(
+    single_app.layout = html.Div(
         [
             dcc.Store(id="store"),
             dbc.Tabs(
@@ -56,8 +56,9 @@ if load:
                 id="tabs",
                 active_tab=f"{tab}",
             ),
-            html.Div(id="tab-content", className="p-4"),
-        ]
+            html.Div(id="tab-content", className="w-100"),
+        ],
+        className="w-100 p-4",
     )
 
     @single_app.expanded_callback(
@@ -100,7 +101,7 @@ if load:
     else:
         tab = f"tab_{all_configs[0].id}"
 
-    all_app.layout = dbc.Container(
+    all_app.layout = html.Div(
         [
             dcc.Store(id="session", storage_type="session"),
             dbc.Tabs(
@@ -111,8 +112,9 @@ if load:
                 id="tabs",
                 active_tab=f"{tab}",
             ),
-            html.Div(id="tab-content", className="p-4"),
-        ]
+            html.Div(id="tab-content", className="w-100"),
+        ],
+        className="w-100 p-4",
     )
 
     @all_app.callback(Output("tab-content", "children"), Input("tabs", "active_tab"))
