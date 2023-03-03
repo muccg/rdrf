@@ -132,6 +132,7 @@ class ReportGenerator:
                 {"type": "demographics", "label": "Given Names", "name": "given_names"},
                 {"type": "demographics", "label": "Family Name", "name": "family_name"},
                 {"type": "demographics", "label": "DOB", "name": "date_of_birth"},
+                {"type": "demographics", "label": "Sex", "name": "sex"},
             ]
             for rf in rfs:
                 for sec in rf.section_models:
