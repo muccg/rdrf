@@ -15,19 +15,33 @@ class NoBaseline(Exception):
 
 
 class Response:
-    def __init__(self, coll_date, form_name, followup):
+    def __init__(self, schedule, coll_date, form_name, followup):
+        self.schedule = schedule  # we need the schedule to determine the seq number
         self.coll_date = coll_date
         self.form_name = form_name
         self.followup = followup
 
     def near(self, date):
-        days = abs((date - self.coll_date).days)
+        days = abs(self.get_distance(date))
         return days <= 14
+
+    def get_distance(self, coll_date):
+        return (coll_date - self.coll_date).days
+
+    @property
+    def seq(self):
+        proj_dates = [x[0] for x in self.schedule]
+        dists = [self.get_distance(proj_date) for proj_date in proj_dates]
+        min_dist = min(dists)
+        min_dist_index = dists.index(min_dist)
+        seq = min_dist_index + 1
+        return seq
 
 
 class Schedule:
     def __init__(self, config, patient):
-        self.items = config  # see schedule examples above
+        self.items = config["items"]
+        self.baseline_form_name = config["baseline_form_name"]
         self.patient = patient
 
     @property
@@ -57,26 +71,23 @@ class Schedule:
                 schedule.append((d, form, k))
         return sorted(schedule, key=lambda pair: pair[0])
 
-    def checkup(self, baseline_form_name):
+    def get_summary(self):
         baseline = self.patient.baseline  # baseline clinical data record
-        baseline_date = self._get_collection_date(baseline, baseline_form_name)
+        baseline_date = self._get_collection_date(baseline, self.baseline_form_name)
         schedule = self.schedule_from_baseline(baseline_date)
-        responses = self.get_responses()
+        responses = self.get_responses(schedule)
+
         summary = {}
-
-        for coll_date, form_name, k in schedule:
-            for r in responses:
-                if r.near(coll_date):
-                    summary[k] = [form_name, coll_date, r, r.coll_date]
-
-        missing = list(set(self.intervals) - set(summary.keys()))
-
-        for k in missing:
-            summary[k] = "missing"
+        for r in responses:
+            seq = r.seq
+            if seq not in summary:
+                summary[seq] = [r]
+            else:
+                summary[seq].append(r)
 
         return summary
 
-    def get_responses(self) -> List[Response]:
+    def get_responses(self, schedule) -> List[Response]:
         responses = []
         followups = self.patient.follow_ups  # these are clinicaldata records
 
@@ -87,7 +98,7 @@ class Schedule:
                 assert len(form_names) == 1, "Should only be one form in each followup"
                 form_name = form_names[0]
                 coll_date = self._get_collection_date(followup, form_name)
-                responses.append(Response(coll_date, form_name, followup))
+                responses.append(Response(schedule, coll_date, form_name, followup))
             except KeyError:
                 pass
         return responses
