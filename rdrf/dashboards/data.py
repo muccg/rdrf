@@ -194,6 +194,39 @@ class RegistryDataFrame:
         else:
             return self.followup_form
 
+    def _get_patient_rows2(self, patient):
+        rows = []
+        pid = patient.id
+
+    def _get_cds2(self, patient):
+        from rdrf.models.proms.models import Survey
+
+        cds = ClinicalData.objects.filter(
+            collection="cdes", django_id=patient.id
+        ).order_by("context_id")
+
+        followups = Survey.objects.filter(registry=self.registry, is_followup=True)
+        baselines = Survey.objects.filter(registry=self.registry, is_followup=False)
+
+        followup_forms = [fu.form.name for fu in followups if fu.form]
+        baseline_forms = [b.form.name for b in baselines if b.form]
+
+        assert len(followups) == len(
+            followup_forms
+        ), "get_cds2 assumes each survey uses one form"
+        assert len(baseline_forms) == 1, "get_cds2 assumes one baseline form"
+
+        baseline_form = baseline_forms[0]
+
+        fu_cds = {}
+        for cd in cds:
+            if cd.data and "forms" in cd.data:
+                form_names = [f["name"] for f in cd.data["forms"]]
+                if len(form_names) == 1:
+                    form_name = form_names[0]
+                    if form_name in followup_forms:
+                        fu_cds[form_name] = cd
+
     def _get_patient_rows(self, patient):
         rows = []
         pid = patient.id
