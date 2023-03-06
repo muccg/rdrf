@@ -1,4 +1,3 @@
-from typing import Optional
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
 
@@ -20,12 +19,13 @@ class SurveyResponse:
 
 class Schedule:
     def __init__(self, config):
-        self.config = config  # see schedule examples above
-        self.index = 0
+        self.items = config  # see schedule examples above
 
     @property
     def infinite(self):
-        return self.config[-1]["t"] == "thereafter"
+        for item in self.items:
+            if "thereafter" in item:
+                return True
 
     def schedule_from_baseline(self, baseline_date: datetime):
         """
@@ -33,11 +33,11 @@ class Schedule:
         and form needed ( the finite part.)
         """
         schedule = []
-        for item in self.config:
+        for item in self.items:
             t = item["t"]
             if t != "thereafter":
                 t = int(item["t"])
                 d = baseline_date + relativedelta(months=t)
                 form = item["form"]
                 schedule.append((d, form))
-        return schedule
+        return sorted(schedule, key=lambda pair: pair[0])
