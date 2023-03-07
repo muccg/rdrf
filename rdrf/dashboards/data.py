@@ -1,3 +1,4 @@
+from typing import List
 import pandas as pd
 from rdrf.models.definition.models import ClinicalData
 from rdrf.models.definition.models import RDRFContext
@@ -49,6 +50,14 @@ class RegistryDataFrame:
         self.registry = registry
         self.state = None
         self.config_model = config_model
+        self.baseline_form = None
+        self.followup_form = None
+        self.followup_forms = []  # only used by BC
+        # "followup_forms": [{"name": "FollowUpPROMS6months","seq": 1},
+        #  {"name": "FUpPROMSYr1","seq": 2},{"name": "FUpPROMSYr2","seq": 3},
+        #  {"name": "FUpPROMS3_10Years", "seq": "+"} ]
+        self._parse_config(self.config_model.config)
+
         self.patient_id = patient_id
         self.prefix_fields = ["pid", "seq", "type", "context_id", "form"]
         self.prefix_names = ["PID", "SEQ", "TYPE", "CONTEXT_ID", "FORM"]
@@ -56,9 +65,13 @@ class RegistryDataFrame:
         self.num_fields = len(self.fields)
         self.column_names = self._get_column_names()
         self.dataframe_columns = self.prefix_names + self.column_names
-        self.baseline_form = self.config_model.config["baseline_form"]
-        self.followup_form = self.config_model.config["followup_form"]
-        self.form_names = [self.baseline_form, self.followup_form]
+        if not self.followup_forms:
+            self.form_names = [self.baseline_form, self.followup_form]
+        else:
+            self.form_names = [self.baseline_form] + [
+                f["name"] for f in self.followup_forms
+            ]
+
         self.mode = "all" if patient_id is None else "single"
         self.field_map = {field: None for field in self.config_model.config["fields"]}
         self.needs_all = needs_all
@@ -78,6 +91,21 @@ class RegistryDataFrame:
 
         c = datetime.now()
         logger.info(f"time taken to load/generate df = {(c-a).total_seconds()} seconds")
+
+    def _parse_config(self, config_dict: dict):
+        if "followup_forms" in config_dict:
+            self.followup_forms = config_dict["followup_forms"]
+            self.followup_form = None
+        elif "followup_form" in config_dict:
+            self.followup_form = config_dict["followup_form"]
+
+        if "baseline_form" in config_dict:
+            self.baseline_form = config_dict["baseline_form"]
+
+        if self.followup_forms:
+            self.multiform = True
+        else:
+            self.multiform = False
 
     def _order_by_collection_date(self, df: pd.DataFrame):
         logger.debug("ordering dataframe by collection date")
@@ -194,56 +222,90 @@ class RegistryDataFrame:
         else:
             return self.followup_form
 
-    def _get_patient_rows2(self, patient):
-        rows = []
-        pid = patient.id
-
-    def _get_cds2(self, patient):
-        from rdrf.models.proms.models import Survey
-
-        cds = ClinicalData.objects.filter(
-            collection="cdes", django_id=patient.id
-        ).order_by("context_id")
-
-        followups = Survey.objects.filter(registry=self.registry, is_followup=True)
-        baselines = Survey.objects.filter(registry=self.registry, is_followup=False)
-
-        followup_forms = [fu.form.name for fu in followups if fu.form]
-        baseline_forms = [b.form.name for b in baselines if b.form]
-
-        assert len(followups) == len(
-            followup_forms
-        ), "get_cds2 assumes each survey uses one form"
-        assert len(baseline_forms) == 1, "get_cds2 assumes one baseline form"
-
-        baseline_form = baseline_forms[0]
-
-        fu_cds = {}
-        for cd in cds:
-            if cd.data and "forms" in cd.data:
-                form_names = [f["name"] for f in cd.data["forms"]]
-                if len(form_names) == 1:
-                    form_name = form_names[0]
-                    if form_name in followup_forms:
-                        fu_cds[form_name] = cd
-
     def _get_patient_rows(self, patient):
         rows = []
         pid = patient.id
         for seq, cd in enumerate(self._get_cds(patient)):
-            row = [pid, seq]
-            cd_type = self._get_cd_type(cd)
-            row.append(cd_type)
-            context_id = cd.context_id
-            row.append(context_id)
-            form_name = self._get_form(cd_type)
-            row.append(form_name)
-            field_row = self._get_cd_data(cd, form_name)
-            if field_row is None:
-                field_row = [None] * self.num_fields
-            row.extend(field_row)
-            rows.append(row)
+            if self.multiform:
+                multiform_rows = self._get_multiform_rows(cd)
+                for row in multiform_rows:
+                    rows.append(row)
+            else:
+                row = [pid, seq]
+                cd_type = self._get_cd_type(cd)
+                row.append(cd_type)
+                context_id = cd.context_id
+                row.append(context_id)
+                form_name = self._get_form(cd_type)
+                row.append(form_name)
+                field_row = self._get_cd_data(cd, form_name)
+                if field_row is None:
+                    field_row = [None] * self.num_fields
+                row.extend(field_row)
+                rows.append(row)
         return rows
+
+    def _get_multiform_rows(self, cd) -> List:
+        from rdrf.helpers.utils import is_multi_cd
+
+        once_followups = sorted(
+            [f for f in self.followup_forms if f["seq"] != "+"], key=lambda d: d["seq"]
+        )
+
+        multi_followups = [f["name"] for f in self.followup_forms if f["seq"] == "+"]
+
+        if cd.data and "forms" in cd.data:
+            pid = cd.django_id
+
+            if not is_multi_cd(cd):
+                rows = []
+                forms_to_emit = [(0, self.baseline_form)] + [
+                    (f["seq"], f["name"]) for f in once_followups
+                ]
+
+                for seq, form_name in forms_to_emit:
+                    row = [pid, seq]
+                    cd_type = (
+                        "baseline" if form_name == self.baseline_form else "followup"
+                    )
+                    row.append(cd_type)
+                    context_id = cd.context_id
+                    row.append(context_id)
+                    row.append(form_name)
+                    field_row = self._get_cd_data(cd, form_name)
+                    if field_row is None:
+                        field_row = [None] * self.num_fields
+                    row.extend(field_row)
+                    rows.append(row)
+                return rows
+            else:
+                # a multiple followup
+                # how to determine the seq?
+                # there should only be one form in the cd
+                forms = [f["name"] for f in cd.data["forms"]]
+                assert len(forms) == 1, "Should only one form in a multicd"
+                form_name = forms[0]
+
+                assert (
+                    form_name in multi_followups
+                ), f"form {form_name} is not configured as a multiform"
+                rows = []
+                seq = -1
+                row = [pid, seq]
+                cd_type = "followup"
+                row.append(cd_type)
+                context_id = cd.context_id
+                row.append(context_id)
+                row.append(form_name)
+                field_row = self._get_cd_data(cd, form_name)
+                if field_row is None:
+                    field_row = [None] * self.num_fields
+                row.extend(field_row)
+                rows.append(row)
+                return rows
+
+        else:
+            return []
 
     def _get_cds(self, patient):
         return ClinicalData.objects.filter(
