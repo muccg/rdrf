@@ -60,7 +60,11 @@ def circle(colour, id):
     return html.Img(src=image_src(f"{colour}-circle"), id=id)
 
 
-def get_image(value, image_id):
+def get_image(base, value, image_id):
+    if base == 1:
+        if value:
+            new_value = str(int(value) - 1)
+            value = new_value
     colour = base_colour_map.get(value, "blue")
     if colour == "red":
         return circle("red", image_id)
@@ -76,6 +80,19 @@ def get_image(value, image_id):
         return circle("grey", image_id)
 
 
+def get_base(field):
+    from rdrf.models.definition.models import CommonDataElement
+
+    cde = CommonDataElement.objects.get(code=field)
+    try:
+        members = [int(s) for s in cde.get_range_members(get_code=True)]
+        min_value = min(members)
+        return min_value
+    except ValueError:
+        logger.error(f"tl get_base for {field} is None as codes aren't ints")
+        return None
+
+
 def get_display(field, value):
     d = get_display_value(field, value)
     if not d:
@@ -84,7 +101,7 @@ def get_display(field, value):
         return d
 
 
-def get_yes_no(value, image_id):
+def get_yes_no(_, value, image_id):
     if value == "1":
         return "Yes"
     elif value == "0":
@@ -164,6 +181,7 @@ class TrafficLights(BaseGraphic):
         table_rows = []
 
         for field in self.fields:
+            base = get_base(field)
             field_values = table_data[field]
             image_id = f"image_{field}_"
 
@@ -175,7 +193,9 @@ class TrafficLights(BaseGraphic):
                     *[
                         html.Td(
                             [
-                                graphic_function(value, image_id + "_" + str(index)),
+                                graphic_function(
+                                    base, value, image_id + "_" + str(index)
+                                ),
                                 get_popover_target(
                                     image_id + "_" + str(index),
                                     get_popup_info(field, get_display(field, value)),
