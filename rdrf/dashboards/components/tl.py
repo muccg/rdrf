@@ -110,6 +110,13 @@ def get_yes_no(_, value, image_id):
         return circle("grey", image_id)
 
 
+def string_field(_, value, image_id):
+    if not value:
+        return circle("grey", image_id)
+    else:
+        return value
+
+
 def get_popup_info(field, display):
     return f"{field}: {display}"
 
@@ -118,11 +125,13 @@ def get_fields(config):
     return config["fields"]
 
 
-def get_field_label(cde_code):
+def get_field_label(cde_code, prop=None):
     from rdrf.models.definition.models import CommonDataElement
 
     try:
         cde_model = CommonDataElement.objects.get(code=cde_code)
+        if prop:
+            return getattr(cde_model, prop)
         return cde_model.name
     except CommonDataElement.DoesNotExist:
         return cde_code
@@ -167,6 +176,8 @@ class TrafficLights(BaseGraphic):
     def _get_graphic_function(self, field):
         yes_no = set(["Yes", "No"])
         cde_model = CommonDataElement.objects.get(code=field)
+        if cde_model.datatype == "string":
+            return string_field
         func = get_image
         if cde_model.pv_group:
             display_values = set(cde_model.get_range_members(get_code=False))
@@ -181,7 +192,11 @@ class TrafficLights(BaseGraphic):
         table_rows = []
 
         for field in self.fields:
-            base = get_base(field)
+            logger.debug(f"tl field {field}")
+            datatype = get_field_label(field, "datatype")
+            base = None
+            if datatype == "range":
+                base = get_base(field)
             field_values = table_data[field]
             image_id = f"image_{field}_"
 
