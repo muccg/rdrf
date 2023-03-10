@@ -2,6 +2,7 @@ from typing import Optional, List
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
 from rdrf.helpers.utils import parse_iso_datetime
+from dataclasses import dataclass
 
 # Schedule config in metadata ( The absolute time t in months after baseline.)
 # A list of dictionaries like:
@@ -9,13 +10,41 @@ from rdrf.helpers.utils import parse_iso_datetime
 # finite : [ {"t": 6, "form": "6MonthFollowUp"}, {"t": 12, "form": "12MonthFollowUp"}]
 # Because these are all expressed in month deltas, better to use python-dateutil to manipulate the dates
 
+@dataclass
+class Schedule:
+    baseline_form: str
+
+    
+
+def parse_schedule_config(schedule_config):
+     items = config["items"]
+     baseline_form_name = config["baseline_form_name"]
+     intervals = sorted([item["t"] for item in self.items if item["t"] != "thereafter"])
+     
+     
+
+class ResponseType:
+    BASELINE = "baseline"
+    FOLLOWUP = "followup"
+
+def get_responses(patient, registry):
+    baseline = patient.baseline
+    if baseline.data and "forms" in baseline.data:
+        
 
 class NoBaseline(Exception):
     pass
 
 
+class ScheduleAction:
+    NO_ACTION = "no_action"  # system doesn't need to do anything
+    GET
+    REMIND = "remind"  # system need to remind patient
+    NOTIFY = "notify"  # system needs to notify
+
+
 class Response:
-    def __init__(self, schedule, coll_date, form_name, followup):
+    def __init__(self, schedule, coll_date, form_name, followup):x
         self.schedule = schedule  # we need the schedule to determine the seq number
         self.coll_date = coll_date
         self.form_name = form_name
@@ -38,6 +67,17 @@ class Response:
         return seq
 
 
+@dataclass
+class ScheduleItem:
+    form_name: str
+    proj_date: datetime  # projected collection date
+    coll_date: Optional[datetime] = None  # actual collection date
+    received: boolean = False
+
+    def near(self, d: datetime):
+        return abs((d - self.proj_date).days) <= 14
+
+
 class Schedule:
     def __init__(self, config, patient):
         self.items = config["items"]
@@ -55,40 +95,35 @@ class Schedule:
             if "thereafter" in item:
                 return True
 
-    def schedule_from_baseline(self, baseline_date: datetime):
-        """
-        For a given baseline, return a list of triples showing the expected date
-        and form needed ( the finite part.), emit the t value for checking later
-        as the third item
-        """
-        schedule = []
+    def get_schedule_from_baseline(self, baseline_date: datetime) -> List[ScheduleItem]:
+        schedule_items = []
         for item in self.items:
             k = item["t"]
             if k != "thereafter":
                 t = int(item["t"])
                 d = baseline_date + relativedelta(months=t)
                 form = item["form"]
-                schedule.append((d, form, k))
-        return sorted(schedule, key=lambda pair: pair[0])
+                si = ScheduleItem(form_name=form, proj_date=d)
+                schedule_items.append(si)
 
-    def get_summary(self):
+        return sorted(schedule_items, key=lambda si: si.proj_date)
+
+    def check(self) -> List[ScheduleAction]:
         baseline = self.patient.baseline  # baseline clinical data record
-        baseline_date = self._get_collection_date(baseline, self.baseline_form_name)
-        schedule = self.schedule_from_baseline(baseline_date)
-        responses = self.get_responses(schedule)
+        try:
+            baseline_date = self._get_collection_date(baseline, self.baseline_form_name)
+        except NoBaseline:
+            return [ScheduleAction.GET_BASELINE
+            
+        schedule_items: List[ScheduleItem] = self.get_schedule_from_baseline(
+            baseline_date
+        )
 
-        summary = {}
-        for r in responses:
-            seq = r.seq
-            if seq not in summary:
-                summary[seq] = [r]
-            else:
-                summary[seq].append(r)
-
-        return summary
-
-    def get_responses(self, schedule) -> List[Response]:
+        
+    def get_responses(self) -> List[Response]:
         responses = []
+
+        fixed_context
         followups = self.patient.follow_ups  # these are clinicaldata records
 
         for followup in followups:
@@ -98,9 +133,7 @@ class Schedule:
                 assert len(form_names) == 1, "Should only be one form in each followup"
                 form_name = form_names[0]
                 coll_date = self._get_collection_date(followup, form_name)
-                responses.append(Response(schedule, coll_date, form_name, followup))
-            except KeyError:
-                pass
+                responses.append((form_name, coll_date))
         return responses
 
     def _get_collection_date(self, cd, form_name) -> Optional[datetime]:

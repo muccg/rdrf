@@ -162,8 +162,11 @@ def send_proms_request(registry_code, patient_id, survey_name=None, form_name=No
     from rdrf.models.proms.models import SurveyRequestStates
     from rdrf.helpers.utils import generate_token
 
+    logger.info(f"sending proms request patient {patient_id} {survey_name} {form_name}")
+
     patient_token = generate_token()
-    user = "system"
+    logger.info(f"patient token {patient_token}")
+    user = "admin"
     registry_model = Registry.objects.get(code=registry_code)
     patient_model = Patient.objects.get(id=patient_id)
     communication_type = "email"
@@ -184,5 +187,10 @@ def send_proms_request(registry_code, patient_id, survey_name=None, form_name=No
         patient_token=patient_token,
         communication_type=communication_type,
     )
+
     survey_request.save()
-    survey_request.send()
+    logger.info(f"saved survey_request ok")
+    try:
+        survey_request.send()
+    except Exception as ex:
+        logger.error(f"Error sending: {ex}")
