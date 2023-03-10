@@ -173,7 +173,7 @@ def send_proms_request(registry_code, patient_id, survey_name=None, form_name=No
             raise Exception("send_proms_request_task needs survey_name or form_name")
         form_model = RegistryForm.objects.get(registry=registry_model, name=form_name)
         survey = Survey.objects.get(registry=registry_model, form=form_model)
-        survey_name = survey.survey_name
+        survey_name = survey.name
 
     survey_request = SurveyRequest(
         survey_name=survey_name,
