@@ -15,6 +15,16 @@ def log(msg):
 cdf = "COLLECTIONDATE"
 
 
+def get_form_display_name(form_name):
+    from rdrf.models.definition.models import RegistryForm
+
+    form_model = RegistryForm.objects.get(name=form_name)
+    if form_model.display_name:
+        return form_model.display_name
+    else:
+        return form_name
+
+
 class PatientsWhoCompletedForms(BaseGraphic):
     def get_graphic(self):
 
@@ -83,6 +93,8 @@ class PatientsWhoCompletedForms(BaseGraphic):
         start_date, end_date = self._get_start_end(time_period)
         df = self.data
         filtered_df = df[(df[cdf] >= start_date) & (df[cdf] <= end_date)]
+
+        filtered_df["FORM"] = filtered_df["FORM"].map(get_form_display_name)
 
         tof_graphic = TypesOfFormCompleted("", None, filtered_df).graphic
 
