@@ -30,6 +30,7 @@ class ResponseType:
 def get_responses(patient, registry):
     baseline = patient.baseline
     if baseline.data and "forms" in baseline.data:
+        pass
         
 
 class NoBaseline(Exception):
