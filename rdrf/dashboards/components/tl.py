@@ -1,4 +1,5 @@
 import logging
+import textwrap
 from dash import html
 from ..components.common import BaseGraphic
 import dash_bootstrap_components as dbc
@@ -110,11 +111,18 @@ def get_yes_no(_, value, image_id):
         return circle("grey", image_id)
 
 
+def munge(s, width=30):
+    if len(s) > width:
+        return html.P(s, className="text-wrap", style={"width": "150px"})
+    else:
+        return s
+
+
 def string_field(_, value, image_id):
     if not value:
         return circle("grey", image_id)
     else:
-        return value
+        return munge(value)
 
 
 def get_popup_info(field, display):
@@ -224,7 +232,10 @@ class TrafficLights(BaseGraphic):
             table_rows.append(table_row)
 
         table_body = [html.Tbody(table_rows)]
-        table = dbc.Table(table_header + table_body, className="table-striped table-sm")
+        table = dbc.Table(
+            table_header + table_body,
+            className="table-striped table-sm",
+        )
 
         return table
 
