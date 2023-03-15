@@ -189,7 +189,7 @@ def send_proms_request(registry_code, patient_id, survey_name=None, form_name=No
     )
 
     survey_request.save()
-    logger.info(f"saved survey_request ok")
+    logger.info("saved survey_request ok")
     try:
         survey_request.send()
     except Exception as ex:
@@ -198,15 +198,5 @@ def send_proms_request(registry_code, patient_id, survey_name=None, form_name=No
 
 @app.task(name="rdrf.services.tasks.check_proms")
 def check_proms(registry_code, pid):
-    from datetime import datetime
-    from rdrf.models.definition.models import Registry
-    from registry.patients.models import Patient
-    from rdrf.models.proms.models import SurveyRequest
-    from rdrf.models.proms.models import Survey
-    from rdrf.models.proms.models import SurveyRequestStates
-    from rdrf.scheduling import scheduling as sched
-
-    registry = Registry.objects.get(code=registry_code)
-    patient = Patient.objects.get(id=pid)
-
-    t = datetime.now()
+    # to do
+    return registry_code, pid
