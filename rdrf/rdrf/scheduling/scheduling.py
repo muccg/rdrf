@@ -11,11 +11,6 @@ from dataclasses import dataclass
 # Because these are all expressed in month deltas, better to use python-dateutil to manipulate the dates
 
 
-@dataclass
-class Schedule:
-    baseline_form: str
-
-
 class ResponseType:
     BASELINE = "baseline"
     FOLLOWUP = "followup"
@@ -67,7 +62,7 @@ class ScheduleItem:
     form_name: str
     proj_date: datetime  # projected collection date
     coll_date: Optional[datetime] = None  # actual collection date
-    received: boolean = False
+    received: bool = False
 
     def near(self, d: datetime):
         return abs((d - self.proj_date).days) <= 14
@@ -103,18 +98,30 @@ class Schedule:
 
         return sorted(schedule_items, key=lambda si: si.proj_date)
 
-    def check(self) -> List[ScheduleAction]:
+    def check(self):
+        # this is todo
+        # just blocking out
         baseline = self.patient.baseline  # baseline clinical data record
         try:
             baseline_date = self._get_collection_date(baseline, self.baseline_form_name)
         except NoBaseline:
             return [ScheduleAction.BASELINE, self.patient.id]
 
-        # todo
-        return []
+        schedule_items = self.get_schedule_from_baseline(baseline_date)
+        responses = self.get_responses()
+
+        found = []
+
+        for form_name, coll_date in responses:
+            for schedule_item in schedule_items:
+                if schedule_item.form_name == "form_name" and schedule_item.near(
+                    coll_date
+                ):
+                    found.append((form_name, coll_date, schedule_item))
+
+        return found
 
     def get_responses(self):
-        # todo
         responses = []
         followups = self.patient.follow_ups  # these are clinicaldata records
 
