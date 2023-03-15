@@ -1,5 +1,4 @@
 import logging
-import textwrap
 from dash import html
 from ..components.common import BaseGraphic
 import dash_bootstrap_components as dbc
