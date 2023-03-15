@@ -10,42 +10,36 @@ from dataclasses import dataclass
 # finite : [ {"t": 6, "form": "6MonthFollowUp"}, {"t": 12, "form": "12MonthFollowUp"}]
 # Because these are all expressed in month deltas, better to use python-dateutil to manipulate the dates
 
+
 @dataclass
 class Schedule:
     baseline_form: str
 
-    
-
-def parse_schedule_config(schedule_config):
-     items = config["items"]
-     baseline_form_name = config["baseline_form_name"]
-     intervals = sorted([item["t"] for item in self.items if item["t"] != "thereafter"])
-     
-     
 
 class ResponseType:
     BASELINE = "baseline"
     FOLLOWUP = "followup"
 
+
 def get_responses(patient, registry):
     baseline = patient.baseline
     if baseline.data and "forms" in baseline.data:
         pass
-        
+
 
 class NoBaseline(Exception):
     pass
 
 
 class ScheduleAction:
-    NO_ACTION = "no_action"  # system doesn't need to do anything
-    GET
     REMIND = "remind"  # system need to remind patient
     NOTIFY = "notify"  # system needs to notify
+    BASELINE = "baseline"
+    FOLLOWUP = "followup"
 
 
 class Response:
-    def __init__(self, schedule, coll_date, form_name, followup):x
+    def __init__(self, schedule, coll_date, form_name, followup):
         self.schedule = schedule  # we need the schedule to determine the seq number
         self.coll_date = coll_date
         self.form_name = form_name
@@ -114,17 +108,14 @@ class Schedule:
         try:
             baseline_date = self._get_collection_date(baseline, self.baseline_form_name)
         except NoBaseline:
-            return [ScheduleAction.GET_BASELINE
-            
-        schedule_items: List[ScheduleItem] = self.get_schedule_from_baseline(
-            baseline_date
-        )
+            return [ScheduleAction.BASELINE, self.patient.id]
 
-        
-    def get_responses(self) -> List[Response]:
+        # todo
+        return []
+
+    def get_responses(self):
+        # todo
         responses = []
-
-        fixed_context
         followups = self.patient.follow_ups  # these are clinicaldata records
 
         for followup in followups:
@@ -135,6 +126,8 @@ class Schedule:
                 form_name = form_names[0]
                 coll_date = self._get_collection_date(followup, form_name)
                 responses.append((form_name, coll_date))
+            except KeyError:
+                pass
         return responses
 
     def _get_collection_date(self, cd, form_name) -> Optional[datetime]:
