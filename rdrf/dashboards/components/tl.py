@@ -76,6 +76,8 @@ def get_image(base, value, image_id):
         return circle("grey", image_id)
     elif colour == "green":
         return circle("green", image_id)
+    elif colour == "burgundy":
+        return circle("burgundy", image_id)
     else:
         return circle("grey", image_id)
 
@@ -155,11 +157,15 @@ def get_popover_target(target_id, body):
 class TrafficLights(BaseGraphic):
     def get_graphic(self):
         self.fields = get_fields(self.config)
+        self.colour_map = self._get_colour_map(self.config)
         data = self._get_table_data()
         table = self.get_table(data)
         blurb = self._get_blurb()
 
         return html.Div([blurb, html.Br(), table])
+
+    def _get_colour_map(self, config):
+        return config.get("colour_map", None)
 
     def _get_blurb(self):
         legend_map = {
@@ -185,13 +191,34 @@ class TrafficLights(BaseGraphic):
         cde_model = CommonDataElement.objects.get(code=field)
         if cde_model.datatype == "string":
             return string_field
-        func = get_image
+        # func = get_image
+        func = self.get_image2
         if cde_model.pv_group:
             display_values = set(cde_model.get_range_members(get_code=False))
             if display_values == yes_no:
                 func = get_yes_no
 
         return func
+
+    def get_image2(self, base, value, image_id):
+        logger.debug(f"get_image2 base = {base} value = {value} image_id = {image_id}")
+        if self.colour_map:
+            logger.debug(f"using supplied colour map: {self.colour_map}")
+            colour_map = self.colour_map
+        else:
+            logger.debug(f"using base colour map: {base_colour_map}")
+            colour_map = base_colour_map
+        if base == 1:
+            if value:
+                new_value = str(int(value) - 1)
+                value = new_value
+                logger.debug(f"base is 1 so subtracting: value = {value}")
+
+        colour = colour_map.get(value, None)
+        logger.debug(f"colour = {colour}")
+        if colour:
+            return circle(colour, image_id)
+        return circle("grey", image_id)
 
     def get_table(self, table_data):
         seq_names = [html.Th(x) for x in table_data["SEQ_NAME"]]
