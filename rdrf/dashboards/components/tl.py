@@ -158,6 +158,7 @@ class TrafficLights(BaseGraphic):
     def get_graphic(self):
         self.fields = get_fields(self.config)
         self.colour_map = self._get_colour_map(self.config)
+        self.legend_map = self._get_legend_map(self.config)
         data = self._get_table_data()
         table = self.get_table(data)
         blurb = self._get_blurb()
@@ -167,6 +168,17 @@ class TrafficLights(BaseGraphic):
     def _get_colour_map(self, config):
         return config.get("colour_map", None)
 
+    def _get_legend_map(self, config):
+        m = config.get("legend", None)
+        if not m:
+            return None
+
+        legend_map = {}
+        for english in config["legend_order"]:
+            colour = m[english]
+            legend_map[english] = circle(colour, f"legend-{colour}")
+        return legend_map
+
     def _get_blurb(self):
         legend_map = {
             "Not at all": circle("green", "legend-green"),
@@ -175,6 +187,9 @@ class TrafficLights(BaseGraphic):
             "Very much": circle("red", "legend-red"),
             "Missing": circle("grey", "legend-grey"),
         }
+
+        if self.legend_map:
+            legend_map = self.legend_map
 
         children = ["Legend: "]
 
