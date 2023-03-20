@@ -848,6 +848,9 @@ def get_bc_clinical_cancer_stage_spec():
     return """Stage IA
            TNMCT = cT1 TNMCN = cN0 TNMCM = cMX
            TNMCT = cT1 TNMCN = cN0 TNMCM = cM0
+           Stage 0
+           TNMCT = cTis TNMCN = cN0 TNMCM = cMX
+           TNMCT = cTis TNMCN = cN0 TNMCM = cM0
            Stage IIA
            TNMCT = cT0 TNMCN = cN1 TNMCM = cMX
            TNMCT = cT0 TNMCN = cN1 TNMCM = cM0 

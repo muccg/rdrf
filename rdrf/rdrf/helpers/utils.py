@@ -1159,6 +1159,29 @@ def has_cfg(context_model):
         return context_model.context_form_group
 
 
+def is_multi_cd(cd):
+    """
+    args: cd a ClinicalDataRecord
+    Is the passed in cd associated with a multiple context.
+    is this clinical data record
+    repeatable - or is there only one
+    of them - this is represented by the context_type being
+    F(ixed) or M(ultiple)
+    """
+    from rdrf.models.definition.models import RDRFContext
+
+    context_id = cd.context_id
+    context_model = RDRFContext.objects.get(id=context_id)
+    if context_model.context_form_group:
+        cfg = context_model.context_form_group
+        if cfg.context_type == "F":
+            return False
+        elif cfg.context_type == "M":
+            return True
+
+    return False
+
+
 def get_form_url(registry_model, patient_id, context_id, form_name):
     from rdrf.models.definition.models import RegistryForm
 

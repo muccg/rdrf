@@ -163,7 +163,7 @@ for package in [
 
 setup(
     name="django-rdrf",
-    version="6.6.43",
+    version="6.6.44",
     packages=find_packages(),
     description="RDRF",
     long_description="Rare Disease Registry Framework",

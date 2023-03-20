@@ -15,7 +15,7 @@ class VisualisationBaseDataConfig(models.Model):
     state = models.CharField(max_length=1, choices=states)
     registry = models.ForeignKey(Registry, on_delete=models.CASCADE)
     config = models.JSONField()
-    data = models.JSONField()
+    data = models.JSONField(default="{}")
 
 
 class VisualisationConfig(models.Model):

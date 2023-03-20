@@ -68,6 +68,7 @@ if load:
     def render_tab_content(*args, **kwargs):
 
         active_tab = args[0]
+        logger.info(f"active tab {active_tab}")
 
         session_state = kwargs["session_state"]
         try:

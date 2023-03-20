@@ -19,7 +19,11 @@ from rdrf.helpers.transform_cd_dict import get_cd_form, get_section, transform_c
 from rdrf.helpers.utils import de_camelcase, TimeStripper
 from rdrf.models.definition.models import CDEPermittedValueGroup, CDEPermittedValue
 from rdrf.models.definition.models import ClinicalData
-from rdrf.models.definition.models import CommonDataElement, InvalidAbnormalityConditionError, ValidationError
+from rdrf.models.definition.models import (
+    CommonDataElement,
+    InvalidAbnormalityConditionError,
+    ValidationError,
+)
 from rdrf.models.definition.models import EmailNotification
 from rdrf.models.definition.models import EmailNotificationHistory
 from rdrf.models.definition.models import EmailTemplate
@@ -37,12 +41,15 @@ logger = logging.getLogger(__name__)
 
 def load_yaml(yaml_path):
     from django.core.management import call_command
+
     call_command("import_registry", "--file", yaml_path, "--format", "yaml")
 
 
 def get_yaml_path(yaml_filename):
     this_dir = os.path.dirname(__file__)
-    return os.path.abspath(os.path.join(this_dir, "..", "..", "fixtures", yaml_filename))
+    return os.path.abspath(
+        os.path.join(this_dir, "..", "..", "fixtures", yaml_filename)
+    )
 
 
 def use_yaml(yaml_filename):
@@ -51,134 +58,246 @@ def use_yaml(yaml_filename):
             yaml_path = get_yaml_path(yaml_filename)
             load_yaml(yaml_path)
             return method()
+
         return wrapper
+
     return decorator
 
 
 class CalculatedFunctionsTestCase(TestCase):
-
     def setUp(self):
         # Note that we convert the string date as a date django date
-        patient_date_of_birth = '2000-05-17'
-        self.patient_values = {'date_of_birth': datetime.strptime(patient_date_of_birth, '%Y-%m-%d'),
-                               'sex': 1}
+        patient_date_of_birth = "2000-05-17"
+        self.patient_values = {
+            "date_of_birth": datetime.strptime(patient_date_of_birth, "%Y-%m-%d"),
+            "sex": 1,
+        }
 
     def test_cdefhdutchlipidclinicnetwork_all_cap_reached(self):
-        self.form_values = {'CDE00001': 'y',
-                            'CDE00002': 'y',
-                            'CDE00003': 'fh2_y',
-                            'CDE00004': 'fh2_y',
-                            'CDE00011': 'fhpremcvd_yes_corheartdisease',
-                            'CDE00013': 10.0,
-                            'CDEIndexOrRelative': 'fh_is_index',
-                            'DateOfAssessment': '2019-05-10',
-                            'FHFamHistArcusCornealis': 'fh2_y',
-                            'FHFamHistTendonXanthoma': 'fh2_y',
-                            'FHFamilyHistoryChild': 'fh_n',
-                            'FHPersHistCerebralVD': 'fh2_y',
-                            'LDLCholesterolAdjTreatment': '21.74'}
-        self.assertEqual(calculated_functions.CDEfhDutchLipidClinicNetwork(self.patient_values, self.form_values), '18')
+        self.form_values = {
+            "CDE00001": "y",
+            "CDE00002": "y",
+            "CDE00003": "fh2_y",
+            "CDE00004": "fh2_y",
+            "CDE00011": "fhpremcvd_yes_corheartdisease",
+            "CDE00013": 10.0,
+            "CDEIndexOrRelative": "fh_is_index",
+            "DateOfAssessment": "2019-05-10",
+            "FHFamHistArcusCornealis": "fh2_y",
+            "FHFamHistTendonXanthoma": "fh2_y",
+            "FHFamilyHistoryChild": "fh_n",
+            "FHPersHistCerebralVD": "fh2_y",
+            "LDLCholesterolAdjTreatment": "21.74",
+        }
+        self.assertEqual(
+            calculated_functions.CDEfhDutchLipidClinicNetwork(
+                self.patient_values, self.form_values
+            ),
+            "18",
+        )
 
     def test_cdefhdutchlipidclinicnetwork_2(self):
-        self.patient_values = {'date_of_birth': datetime.strptime('1990-01-01', '%Y-%m-%d'),
-                               'sex': 2}
-        self.form_values = {'CDE00001': 'y',
-                            'CDE00002': 'y',
-                            'CDE00003': 'fh2_n',
-                            'CDE00004': 'fh2_n',
-                            'CDE00011': 'fhpremcvd_yes_corheartdisease',
-                            'CDE00013': '',
-                            'CDEIndexOrRelative': 'fh_is_index',
-                            'DateOfAssessment': '2016-01-09',
-                            'FHFamHistArcusCornealis': 'fh2_n',
-                            'FHFamHistTendonXanthoma': 'fh2_n',
-                            'FHFamilyHistoryChild': 'fh_n',
-                            'FHPersHistCerebralVD': 'fh2_y',
-                            'LDLCholesterolAdjTreatment': '6'}
-        self.assertEqual(calculated_functions.CDEfhDutchLipidClinicNetwork(self.patient_values, self.form_values), '11')
+        self.patient_values = {
+            "date_of_birth": datetime.strptime("1990-01-01", "%Y-%m-%d"),
+            "sex": 2,
+        }
+        self.form_values = {
+            "CDE00001": "y",
+            "CDE00002": "y",
+            "CDE00003": "fh2_n",
+            "CDE00004": "fh2_n",
+            "CDE00011": "fhpremcvd_yes_corheartdisease",
+            "CDE00013": "",
+            "CDEIndexOrRelative": "fh_is_index",
+            "DateOfAssessment": "2016-01-09",
+            "FHFamHistArcusCornealis": "fh2_n",
+            "FHFamHistTendonXanthoma": "fh2_n",
+            "FHFamilyHistoryChild": "fh_n",
+            "FHPersHistCerebralVD": "fh2_y",
+            "LDLCholesterolAdjTreatment": "6",
+        }
+        self.assertEqual(
+            calculated_functions.CDEfhDutchLipidClinicNetwork(
+                self.patient_values, self.form_values
+            ),
+            "11",
+        )
 
     def test_cdefhdutchlipidclinicnetwork_3(self):
-        self.patient_values = {'date_of_birth': datetime.strptime('2000-10-01', '%Y-%m-%d'),
-                               'sex': 1}
-        self.form_values = {'CDE00001': 'n',
-                            'CDE00002': 'n',
-                            'CDE00003': 'fh2_y',
-                            'CDE00004': 'fh2_y',
-                            'CDE00011': 'fhpremcvd_no',
-                            'CDE00013': 12.0,
-                            'CDEIndexOrRelative': 'fh_is_relative',
-                            'DateOfAssessment': '2016-10-01',
-                            'FHFamHistArcusCornealis': 'fh2_n',
-                            'FHFamHistTendonXanthoma': 'fh2_n',
-                            'FHFamilyHistoryChild': 'fh_y',
-                            'FHPersHistCerebralVD': 'fh2_y',
-                            'LDLCholesterolAdjTreatment': None}
-        self.assertEqual(calculated_functions.CDEfhDutchLipidClinicNetwork(self.patient_values, self.form_values), '')
+        self.patient_values = {
+            "date_of_birth": datetime.strptime("2000-10-01", "%Y-%m-%d"),
+            "sex": 1,
+        }
+        self.form_values = {
+            "CDE00001": "n",
+            "CDE00002": "n",
+            "CDE00003": "fh2_y",
+            "CDE00004": "fh2_y",
+            "CDE00011": "fhpremcvd_no",
+            "CDE00013": 12.0,
+            "CDEIndexOrRelative": "fh_is_relative",
+            "DateOfAssessment": "2016-10-01",
+            "FHFamHistArcusCornealis": "fh2_n",
+            "FHFamHistTendonXanthoma": "fh2_n",
+            "FHFamilyHistoryChild": "fh_y",
+            "FHPersHistCerebralVD": "fh2_y",
+            "LDLCholesterolAdjTreatment": None,
+        }
+        self.assertEqual(
+            calculated_functions.CDEfhDutchLipidClinicNetwork(
+                self.patient_values, self.form_values
+            ),
+            "",
+        )
 
     def test_cde00024(self):
-        self.form_values = {'CDE00003': 'fh2_y',
-                            'CDE00004': 'fh2_y',
-                            'CDE00013': 10.0,
-                            'CDEfhDutchLipidClinicNetwork': '24',
-                            'CDEIndexOrRelative': 'fh_is_index',
-                            'DateOfAssessment': '2019-05-10',
-                            'FHFamHistArcusCornealis': 'fh2_y',
-                            'FHFamHistTendonXanthoma': 'fh2_y',
-                            'LDLCholesterolAdjTreatment': '21.74'}
-        self.assertEqual(calculated_functions.CDE00024(self.patient_values, self.form_values), 'Definite')
+        self.form_values = {
+            "CDE00003": "fh2_y",
+            "CDE00004": "fh2_y",
+            "CDE00013": 10.0,
+            "CDEfhDutchLipidClinicNetwork": "24",
+            "CDEIndexOrRelative": "fh_is_index",
+            "DateOfAssessment": "2019-05-10",
+            "FHFamHistArcusCornealis": "fh2_y",
+            "FHFamHistTendonXanthoma": "fh2_y",
+            "LDLCholesterolAdjTreatment": "21.74",
+        }
+        self.assertEqual(
+            calculated_functions.CDE00024(self.patient_values, self.form_values),
+            "Definite",
+        )
 
     def test_ldlcholesteroladjtreatment(self):
-        self.form_values = {'CDE00019': 10.0,
-                            'PlasmaLipidTreatment': 'FAEzetimibe/atorvastatin20'}
-        self.assertEqual(calculated_functions.LDLCholesterolAdjTreatment(
-            self.patient_values, self.form_values), '21.74')
+        self.form_values = {
+            "CDE00019": 10.0,
+            "PlasmaLipidTreatment": "FAEzetimibe/atorvastatin20",
+        }
+        self.assertEqual(
+            calculated_functions.LDLCholesterolAdjTreatment(
+                self.patient_values, self.form_values
+            ),
+            "21.74",
+        )
 
     def test_cdebmi(self):
-        self.form_values = {'CDEHeight': "",
-                            'CDEWeight': ""}
-        self.assertEqual(calculated_functions.CDEBMI(self.patient_values, self.form_values), 'NaN')
-        self.form_values = {'CDEHeight': 1.82,
-                            'CDEWeight': 86.0}
-        self.assertEqual(calculated_functions.CDEBMI(self.patient_values, self.form_values), '25.96')
+        self.form_values = {"CDEHeight": "", "CDEWeight": ""}
+        self.assertEqual(
+            calculated_functions.CDEBMI(self.patient_values, self.form_values), "NaN"
+        )
+        self.form_values = {"CDEHeight": 1.82, "CDEWeight": 86.0}
+        self.assertEqual(
+            calculated_functions.CDEBMI(self.patient_values, self.form_values), "25.96"
+        )
 
     def test_fhdeathage(self):
-        self.form_values = {'FHDeathDate': ""}
-        self.assertEqual(calculated_functions.FHDeathAge(self.patient_values, self.form_values), 'NaN')
-        self.form_values = {'FHDeathDate': '2019-05-11'}
-        self.assertEqual(calculated_functions.FHDeathAge(self.patient_values, self.form_values), '18')
+        self.form_values = {"FHDeathDate": ""}
+        self.assertEqual(
+            calculated_functions.FHDeathAge(self.patient_values, self.form_values),
+            "NaN",
+        )
+        self.form_values = {"FHDeathDate": "2019-05-11"}
+        self.assertEqual(
+            calculated_functions.FHDeathAge(self.patient_values, self.form_values), "18"
+        )
 
     def test_ddageatdiagnosis(self):
-        self.form_values = {'DateOfDiagnosis': ""}
-        self.assertEqual(calculated_functions.DDAgeAtDiagnosis(self.patient_values, self.form_values), 'NaN')
-        self.form_values = {'DateOfDiagnosis': '2019-05-01'}
-        self.assertEqual(calculated_functions.DDAgeAtDiagnosis(self.patient_values, self.form_values), '18')
+        self.form_values = {"DateOfDiagnosis": ""}
+        self.assertEqual(
+            calculated_functions.DDAgeAtDiagnosis(
+                self.patient_values, self.form_values
+            ),
+            "NaN",
+        )
+        self.form_values = {"DateOfDiagnosis": "2019-05-01"}
+        self.assertEqual(
+            calculated_functions.DDAgeAtDiagnosis(
+                self.patient_values, self.form_values
+            ),
+            "18",
+        )
 
     def test_poemscore(self):
-        self.form_values = {'poemQ1': "", 'poemQ2': "", 'poemQ3': "", 'poemQ4': "", 'poemQ5': "", 'poemQ6': "",
-                            'poemQ7': ""}
-        self.assertEqual(calculated_functions.poemScore(self.patient_values, self.form_values), 'UNSCORED')
-        self.form_values = {'poemQ1': "", 'poemQ2': "", 'poemQ3': "1to2Days", 'poemQ4': "1to2Days",
-                            'poemQ5': "1to2Days", 'poemQ6': "1to2Days", 'poemQ7': "1to2Days"}
-        self.assertEqual(calculated_functions.poemScore(self.patient_values, self.form_values), 'UNSCORED')
-        self.form_values = {'poemQ1': "", 'poemQ2': "NoDays", 'poemQ3': "NoDays", 'poemQ4': "NoDays",
-                            'poemQ5': "NoDays", 'poemQ6': "NoDays", 'poemQ7': "NoDays"}
-        self.assertEqual(calculated_functions.poemScore(self.patient_values, self.form_values),
-                         '0 ( Clear or almost clear )')
-        self.form_values = {'poemQ1': "NoDays", 'poemQ2': "NoDays", 'poemQ3': "NoDays", 'poemQ4': "NoDays",
-                            'poemQ5': "NoDays", 'poemQ6': "NoDays", 'poemQ7': "NoDays"}
-        self.assertEqual(calculated_functions.poemScore(self.patient_values, self.form_values),
-                         '0 ( Clear or almost clear )')
-        self.form_values = {'poemQ1': "NoDays", 'poemQ2': "1to2Days", 'poemQ3': "1to2Days", 'poemQ4': "1to2Days",
-                            'poemQ5': "1to2Days", 'poemQ6': "1to2Days", 'poemQ7': "1to2Days"}
-        self.assertEqual(calculated_functions.poemScore(self.patient_values, self.form_values), '6 ( Mild eczema )')
-        self.form_values = {'poemQ1': "EveryDay", 'poemQ2': "EveryDay", 'poemQ3': "EveryDay", 'poemQ4': "EveryDay",
-                            'poemQ5': "EveryDay", 'poemQ6': "EveryDay", 'poemQ7': "EveryDay"}
-        self.assertEqual(calculated_functions.poemScore(
-            self.patient_values, self.form_values), '28 ( Very severe eczema )')
+        self.form_values = {
+            "poemQ1": "",
+            "poemQ2": "",
+            "poemQ3": "",
+            "poemQ4": "",
+            "poemQ5": "",
+            "poemQ6": "",
+            "poemQ7": "",
+        }
+        self.assertEqual(
+            calculated_functions.poemScore(self.patient_values, self.form_values),
+            "UNSCORED",
+        )
+        self.form_values = {
+            "poemQ1": "",
+            "poemQ2": "",
+            "poemQ3": "1to2Days",
+            "poemQ4": "1to2Days",
+            "poemQ5": "1to2Days",
+            "poemQ6": "1to2Days",
+            "poemQ7": "1to2Days",
+        }
+        self.assertEqual(
+            calculated_functions.poemScore(self.patient_values, self.form_values),
+            "UNSCORED",
+        )
+        self.form_values = {
+            "poemQ1": "",
+            "poemQ2": "NoDays",
+            "poemQ3": "NoDays",
+            "poemQ4": "NoDays",
+            "poemQ5": "NoDays",
+            "poemQ6": "NoDays",
+            "poemQ7": "NoDays",
+        }
+        self.assertEqual(
+            calculated_functions.poemScore(self.patient_values, self.form_values),
+            "0 ( Clear or almost clear )",
+        )
+        self.form_values = {
+            "poemQ1": "NoDays",
+            "poemQ2": "NoDays",
+            "poemQ3": "NoDays",
+            "poemQ4": "NoDays",
+            "poemQ5": "NoDays",
+            "poemQ6": "NoDays",
+            "poemQ7": "NoDays",
+        }
+        self.assertEqual(
+            calculated_functions.poemScore(self.patient_values, self.form_values),
+            "0 ( Clear or almost clear )",
+        )
+        self.form_values = {
+            "poemQ1": "NoDays",
+            "poemQ2": "1to2Days",
+            "poemQ3": "1to2Days",
+            "poemQ4": "1to2Days",
+            "poemQ5": "1to2Days",
+            "poemQ6": "1to2Days",
+            "poemQ7": "1to2Days",
+        }
+        self.assertEqual(
+            calculated_functions.poemScore(self.patient_values, self.form_values),
+            "6 ( Mild eczema )",
+        )
+        self.form_values = {
+            "poemQ1": "EveryDay",
+            "poemQ2": "EveryDay",
+            "poemQ3": "EveryDay",
+            "poemQ4": "EveryDay",
+            "poemQ5": "EveryDay",
+            "poemQ6": "EveryDay",
+            "poemQ7": "EveryDay",
+        }
+        self.assertEqual(
+            calculated_functions.poemScore(self.patient_values, self.form_values),
+            "28 ( Very severe eczema )",
+        )
 
 
 class AbnormalityRulesTestCase(TestCase):
-
     def setUp(self):
         self.cde = CommonDataElement()
         self.cde.datatype = "integer"
@@ -209,20 +328,28 @@ class AbnormalityRulesTestCase(TestCase):
 
     def test_assignment_rule(self):
         self.cde.abnormality_condition = "x = 10"
-        self.assertRaises(InvalidAbnormalityConditionError, self.cde.is_abnormal, value=9)
+        self.assertRaises(
+            InvalidAbnormalityConditionError, self.cde.is_abnormal, value=9
+        )
 
     def test_multiple_rules_same_line(self):
         self.cde.abnormality_condition = "x < 2   x > 100"
-        self.assertRaises(InvalidAbnormalityConditionError, self.cde.is_abnormal, value=9)
+        self.assertRaises(
+            InvalidAbnormalityConditionError, self.cde.is_abnormal, value=9
+        )
 
     def test_integer_range(self):
         self.cde.abnormality_condition = "2 < x < 10"
-        self.assertRaises(InvalidAbnormalityConditionError, self.cde.is_abnormal, value=9)
+        self.assertRaises(
+            InvalidAbnormalityConditionError, self.cde.is_abnormal, value=9
+        )
 
     def test_float_range(self):
         self.cde.datatype = "float"
         self.cde.abnormality_condition = "2.0 < x <= 10.0"
-        self.assertRaises(InvalidAbnormalityConditionError, self.cde.is_abnormal, value=9)
+        self.assertRaises(
+            InvalidAbnormalityConditionError, self.cde.is_abnormal, value=9
+        )
 
     def test_unsupported_datatype(self):
         self.cde.datatype = "boolean"
@@ -255,21 +382,27 @@ class AbnormalityRulesTestCase(TestCase):
     def test_bad_float(self):
         self.cde.datatype = "float"
         self.cde.abnormality_condition = "x == 10."
-        self.assertRaises(InvalidAbnormalityConditionError, self.cde.is_abnormal, value=9)
+        self.assertRaises(
+            InvalidAbnormalityConditionError, self.cde.is_abnormal, value=9
+        )
 
     def test_second_bad_float(self):
         self.cde.datatype = "float"
         self.cde.abnormality_condition = "x == 10.1."
-        self.assertRaises(InvalidAbnormalityConditionError, self.cde.is_abnormal, value=9)
+        self.assertRaises(
+            InvalidAbnormalityConditionError, self.cde.is_abnormal, value=9
+        )
 
     def test_third_bad_float(self):
         self.cde.datatype = "float"
         self.cde.abnormality_condition = "x == 10.1.2"
-        self.assertRaises(InvalidAbnormalityConditionError, self.cde.is_abnormal, value=9)
+        self.assertRaises(
+            InvalidAbnormalityConditionError, self.cde.is_abnormal, value=9
+        )
 
     def test_string_equality(self):
         self.cde.datatype = "range"
-        self.cde.abnormality_condition = "x == \"10\""
+        self.cde.abnormality_condition = 'x == "10"'
         self.assertFalse(self.cde.is_abnormal(10))
         self.assertTrue(self.cde.is_abnormal("10"))
         self.assertFalse(self.cde.is_abnormal("11"))
@@ -314,7 +447,7 @@ class AbnormalityRulesTestCase(TestCase):
 
     def test_in_string_list(self):
         self.cde.datatype = "range"
-        self.cde.abnormality_condition = "x in [\"10\",\"20\",\"30\"]"
+        self.cde.abnormality_condition = 'x in ["10","20","30"]'
         self.assertFalse(self.cde.is_abnormal(10))
         self.assertTrue(self.cde.is_abnormal("10"))
         self.assertTrue(self.cde.is_abnormal("20"))
@@ -330,38 +463,217 @@ class AbnormalityRulesTestCase(TestCase):
 
 
 class MigrateCDESTestCase(TestCase):
-
     def setUp(self):
         # source section with multi-value
-        self.input_data = {'forms': [{'name': 'ClinicalData', 'sections': [{'cdes': [{'code': 'CDEIndexOrRelative', 'value': 'fh_is_index'}, {'code': 'FHconsentDate', 'value': None}, {'code': 'DateOfAssessment', 'value': '2018-07-02'}, {'code': 'fhAgeAtConsent', 'value': 'NaN'}, {'code': 'fhAgeAtAssessment', 'value': '0'}], 'code': 'fhDateSection', 'allow_multiple': False}, {'cdes': [{'code': 'CDEfhDutchLipidClinicNetwork', 'value': ''}, {'code': 'CDE00024', 'value': ''}], 'code': 'SEC0007', 'allow_multiple': False}, {'cdes': [{'code': 'CDE00003', 'value': 'fh2_n'}, {'code': 'FHFamilyHistoryChild', 'value': 'fh_n'}, {'code': 'CDE00004', 'value': 'fh2_n'}, {'code': 'FHFamHistTendonXanthoma', 'value': 'fh2_n'}, {'code': 'FHFamHistArcusCornealis', 'value': 'fh2_n'}], 'code': 'SEC0002', 'allow_multiple': False}, {'cdes': [{'code': 'CDE00011', 'value': 'fhpremcvd_no'}, {'code': 'FHMyocardialInfarction', 'value': ''}, {'code': 'FHAgeAtMI', 'value': None}, {'code': 'FHCoronaryRevasc', 'value': ''}, {'code': 'FHAgeAtCV', 'value': None}, {'code': 'FHPersHistCerebralVD', 'value': 'fh2_n'}, {'code': 'FHAorticValveDisease', 'value': ''}, {'code': 'FHSupravalvularDisease', 'value': ''}, {'code': 'FHPremNonCoronary', 'value': ''}], 'code': 'SEC0004', 'allow_multiple': False}, {'cdes': [{'code': 'CDE00001', 'value': 'n_'}, {'code': 'CDE00002', 'value': 'n_'}, {'code': 'FHXanthelasma', 'value': ''}], 'code': 'SEC0001', 'allow_multiple': False}, {'cdes': [{'code': 'CDE00013', 'value': None}, {'code': 'CDE00019', 'value': None}, {'code': 'PlasmaLipidTreatment', 'value': ''}, {'code': 'LDLCholesterolAdjTreatment', 'value': 'NaN'}], 'code': 'FHLDLforFHScore', 'allow_multiple': False}, {'cdes': [[{'code': 'FHLipidProfileUntreatedDate', 'value': '2018-07-02'}, {'code': 'CDE00012', 'value': 2.0}, {'code': 'FHLLDLconc', 'value': 2.0}, {'code': 'CDE00014', 'value': 2.0}, {'code': 'CDE00015', 'value': 2.0}, {'code': 'FHApoB', 'value': 2.0}, {'code': 'CDE00016', 'value': 2.0}, {'code': 'FHAST', 'value': 2}, {'code': 'FHALT', 'value': 2}, {'code': 'FHCK', 'value': 2}, {'code': 'FHCreatinine', 'value': 2}, {'code': 'FHCRP', 'value': 2.0}, {
-            'code': 'PlasmaLipidTreatmentNone', 'value': 'Fluvastatin40'}, {'code': 'CDEfhOtherIntolerantDrug', 'value': ''}, {'code': 'FHCompliance', 'value': ''}], [{'code': 'FHLipidProfileUntreatedDate', 'value': '2018-07-02'}, {'code': 'CDE00012', 'value': 2.5}, {'code': 'FHLLDLconc', 'value': 2.5}, {'code': 'CDE00014', 'value': 2.5}, {'code': 'CDE00015', 'value': 2.5}, {'code': 'FHApoB', 'value': 2.5}, {'code': 'CDE00016', 'value': 2.5}, {'code': 'FHAST', 'value': 2}, {'code': 'FHALT', 'value': 2}, {'code': 'FHCK', 'value': 2}, {'code': 'FHCreatinine', 'value': 2}, {'code': 'FHCRP', 'value': 2.0}, {'code': 'PlasmaLipidTreatmentNone', 'value': 'Fluvastatin/Ezetimibe20'}, {'code': 'CDEfhOtherIntolerantDrug', 'value': ''}, {'code': 'FHCompliance', 'value': ''}]], 'code': 'SEC0005', 'allow_multiple': True}, {'cdes': [{'code': 'CDE00005', 'value': ''}, {'code': 'FHPackYears', 'value': None}, {'code': 'FHAlcohol', 'value': ''}, {'code': 'FHHypertriglycerd', 'value': ''}, {'code': 'CDE00006', 'value': ''}, {'code': 'CDE00008', 'value': None}, {'code': 'CDE00009', 'value': None}, {'code': 'FHHeartRate', 'value': None}, {'code': 'CDE00007', 'value': ''}, {'code': 'CDE00010', 'value': None}, {'code': 'HbA1c', 'value': None}, {'code': 'ChronicKidneyDisease', 'value': ''}, {'code': 'FHeGFR', 'value': ''}, {'code': 'FHHypothyroidism', 'value': ''}, {'code': 'FHTSH', 'value': None}, {'code': 'FHHepaticSteatosis', 'value': ''}, {'code': 'FHObesity', 'value': ''}, {'code': 'CDEHeight', 'value': None}, {'code': 'CDEWeight', 'value': None}, {'code': 'CDEBMI', 'value': 'NaN'}, {'code': 'FHWaistCirc', 'value': None}, {'code': 'FHCVDOther', 'value': 'test2 ddddddddd'}], 'code': 'SEC0003', 'allow_multiple': False}, {'cdes': [[{'code': 'FHClinicalTrialName', 'value': ''}, {'code': 'FHTrialLength', 'value': None}, {'code': 'FHTrialSTartDate', 'value': None}, {'code': 'FHTrialStatus', 'value': ''}]], 'code': 'FHClinicalTrials', 'allow_multiple': True}]}], 'django_id': 3, 'timestamp': '2018-07-19T15:14:04.887064', 'context_id': 3, 'django_model': 'Patient', 'ClinicalData_timestamp': '2018-07-19T15:14:04.887064'}
+        self.input_data = {
+            "forms": [
+                {
+                    "name": "ClinicalData",
+                    "sections": [
+                        {
+                            "cdes": [
+                                {"code": "CDEIndexOrRelative", "value": "fh_is_index"},
+                                {"code": "FHconsentDate", "value": None},
+                                {"code": "DateOfAssessment", "value": "2018-07-02"},
+                                {"code": "fhAgeAtConsent", "value": "NaN"},
+                                {"code": "fhAgeAtAssessment", "value": "0"},
+                            ],
+                            "code": "fhDateSection",
+                            "allow_multiple": False,
+                        },
+                        {
+                            "cdes": [
+                                {"code": "CDEfhDutchLipidClinicNetwork", "value": ""},
+                                {"code": "CDE00024", "value": ""},
+                            ],
+                            "code": "SEC0007",
+                            "allow_multiple": False,
+                        },
+                        {
+                            "cdes": [
+                                {"code": "CDE00003", "value": "fh2_n"},
+                                {"code": "FHFamilyHistoryChild", "value": "fh_n"},
+                                {"code": "CDE00004", "value": "fh2_n"},
+                                {"code": "FHFamHistTendonXanthoma", "value": "fh2_n"},
+                                {"code": "FHFamHistArcusCornealis", "value": "fh2_n"},
+                            ],
+                            "code": "SEC0002",
+                            "allow_multiple": False,
+                        },
+                        {
+                            "cdes": [
+                                {"code": "CDE00011", "value": "fhpremcvd_no"},
+                                {"code": "FHMyocardialInfarction", "value": ""},
+                                {"code": "FHAgeAtMI", "value": None},
+                                {"code": "FHCoronaryRevasc", "value": ""},
+                                {"code": "FHAgeAtCV", "value": None},
+                                {"code": "FHPersHistCerebralVD", "value": "fh2_n"},
+                                {"code": "FHAorticValveDisease", "value": ""},
+                                {"code": "FHSupravalvularDisease", "value": ""},
+                                {"code": "FHPremNonCoronary", "value": ""},
+                            ],
+                            "code": "SEC0004",
+                            "allow_multiple": False,
+                        },
+                        {
+                            "cdes": [
+                                {"code": "CDE00001", "value": "n_"},
+                                {"code": "CDE00002", "value": "n_"},
+                                {"code": "FHXanthelasma", "value": ""},
+                            ],
+                            "code": "SEC0001",
+                            "allow_multiple": False,
+                        },
+                        {
+                            "cdes": [
+                                {"code": "CDE00013", "value": None},
+                                {"code": "CDE00019", "value": None},
+                                {"code": "PlasmaLipidTreatment", "value": ""},
+                                {"code": "LDLCholesterolAdjTreatment", "value": "NaN"},
+                            ],
+                            "code": "FHLDLforFHScore",
+                            "allow_multiple": False,
+                        },
+                        {
+                            "cdes": [
+                                [
+                                    {
+                                        "code": "FHLipidProfileUntreatedDate",
+                                        "value": "2018-07-02",
+                                    },
+                                    {"code": "CDE00012", "value": 2.0},
+                                    {"code": "FHLLDLconc", "value": 2.0},
+                                    {"code": "CDE00014", "value": 2.0},
+                                    {"code": "CDE00015", "value": 2.0},
+                                    {"code": "FHApoB", "value": 2.0},
+                                    {"code": "CDE00016", "value": 2.0},
+                                    {"code": "FHAST", "value": 2},
+                                    {"code": "FHALT", "value": 2},
+                                    {"code": "FHCK", "value": 2},
+                                    {"code": "FHCreatinine", "value": 2},
+                                    {"code": "FHCRP", "value": 2.0},
+                                    {
+                                        "code": "PlasmaLipidTreatmentNone",
+                                        "value": "Fluvastatin40",
+                                    },
+                                    {"code": "CDEfhOtherIntolerantDrug", "value": ""},
+                                    {"code": "FHCompliance", "value": ""},
+                                ],
+                                [
+                                    {
+                                        "code": "FHLipidProfileUntreatedDate",
+                                        "value": "2018-07-02",
+                                    },
+                                    {"code": "CDE00012", "value": 2.5},
+                                    {"code": "FHLLDLconc", "value": 2.5},
+                                    {"code": "CDE00014", "value": 2.5},
+                                    {"code": "CDE00015", "value": 2.5},
+                                    {"code": "FHApoB", "value": 2.5},
+                                    {"code": "CDE00016", "value": 2.5},
+                                    {"code": "FHAST", "value": 2},
+                                    {"code": "FHALT", "value": 2},
+                                    {"code": "FHCK", "value": 2},
+                                    {"code": "FHCreatinine", "value": 2},
+                                    {"code": "FHCRP", "value": 2.0},
+                                    {
+                                        "code": "PlasmaLipidTreatmentNone",
+                                        "value": "Fluvastatin/Ezetimibe20",
+                                    },
+                                    {"code": "CDEfhOtherIntolerantDrug", "value": ""},
+                                    {"code": "FHCompliance", "value": ""},
+                                ],
+                            ],
+                            "code": "SEC0005",
+                            "allow_multiple": True,
+                        },
+                        {
+                            "cdes": [
+                                {"code": "CDE00005", "value": ""},
+                                {"code": "FHPackYears", "value": None},
+                                {"code": "FHAlcohol", "value": ""},
+                                {"code": "FHHypertriglycerd", "value": ""},
+                                {"code": "CDE00006", "value": ""},
+                                {"code": "CDE00008", "value": None},
+                                {"code": "CDE00009", "value": None},
+                                {"code": "FHHeartRate", "value": None},
+                                {"code": "CDE00007", "value": ""},
+                                {"code": "CDE00010", "value": None},
+                                {"code": "HbA1c", "value": None},
+                                {"code": "ChronicKidneyDisease", "value": ""},
+                                {"code": "FHeGFR", "value": ""},
+                                {"code": "FHHypothyroidism", "value": ""},
+                                {"code": "FHTSH", "value": None},
+                                {"code": "FHHepaticSteatosis", "value": ""},
+                                {"code": "FHObesity", "value": ""},
+                                {"code": "CDEHeight", "value": None},
+                                {"code": "CDEWeight", "value": None},
+                                {"code": "CDEBMI", "value": "NaN"},
+                                {"code": "FHWaistCirc", "value": None},
+                                {"code": "FHCVDOther", "value": "test2 ddddddddd"},
+                            ],
+                            "code": "SEC0003",
+                            "allow_multiple": False,
+                        },
+                        {
+                            "cdes": [
+                                [
+                                    {"code": "FHClinicalTrialName", "value": ""},
+                                    {"code": "FHTrialLength", "value": None},
+                                    {"code": "FHTrialSTartDate", "value": None},
+                                    {"code": "FHTrialStatus", "value": ""},
+                                ]
+                            ],
+                            "code": "FHClinicalTrials",
+                            "allow_multiple": True,
+                        },
+                    ],
+                }
+            ],
+            "django_id": 3,
+            "timestamp": "2018-07-19T15:14:04.887064",
+            "context_id": 3,
+            "django_model": "Patient",
+            "ClinicalData_timestamp": "2018-07-19T15:14:04.887064",
+        }
 
     def test_migrate_cdes_clinicaldata(self):
-        out_data = transform_cd_dict(["CDE00016", "FHCRP"], "SEC0005", "SEC0003", self.input_data)
+        out_data = transform_cd_dict(
+            ["CDE00016", "FHCRP"], "SEC0005", "SEC0003", self.input_data
+        )
         cd_form = get_cd_form(out_data)
         s_section = get_section("SEC0005", cd_form)
         t_section = get_section("SEC0003", cd_form)
 
         def check_cde_in_section(cde_code, section_dict):
-            for item in section_dict['cdes']:
+            for item in section_dict["cdes"]:
                 # Check if section is multiple or not
                 if isinstance(item, list):
                     cdes_list = item
                     for cde_dict_item in cdes_list:
-                        if cde_dict_item['code'] == cde_code:
+                        if cde_dict_item["code"] == cde_code:
                             return True
                 else:
                     cde_dict_item = item
-                    if cde_dict_item['code'] == cde_code:
+                    if cde_dict_item["code"] == cde_code:
                         return True
 
-        assert not check_cde_in_section("CDE00016", s_section), "CDE00016 is still in source section"
-        assert check_cde_in_section("CDE00016", t_section), "CDE00016 is not in target section found"
+        assert not check_cde_in_section(
+            "CDE00016", s_section
+        ), "CDE00016 is still in source section"
+        assert check_cde_in_section(
+            "CDE00016", t_section
+        ), "CDE00016 is not in target section found"
 
-        assert not check_cde_in_section("FHCRP", s_section), "FHCRP is still in source section"
-        assert check_cde_in_section("FHCRP", t_section), "FHCRP is not in target section found"
+        assert not check_cde_in_section(
+            "FHCRP", s_section
+        ), "FHCRP is still in source section"
+        assert check_cde_in_section(
+            "FHCRP", t_section
+        ), "FHCRP is not in target section found"
 
-        assert check_cde_in_section("FHCompliance", s_section), "FHCompliance has been moved."
+        assert check_cde_in_section(
+            "FHCompliance", s_section
+        ), "FHCompliance has been moved."
 
 
 def mock_messages():
@@ -369,11 +681,13 @@ def mock_messages():
     This switches off messaging, which requires request middleware
     which doesn't exist in RequestFactory requests.
     """
+
     def mock_add_message(request, level, msg, *args, **kwargs):
         logger.info("Django %s Message: %s" % (level, msg))
 
     def mock_error(request, msg, *args, **kwargs):
         logger.info("Django Error Message: %s" % msg)
+
     messages.add_message = mock_add_message
     messages.error = mock_error
 
@@ -382,7 +696,6 @@ mock_messages()
 
 
 class SectionFiller(object):
-
     def __init__(self, form_filler, section):
         self.__dict__["form_filler"] = form_filler
         self.__dict__["section"] = section
@@ -393,14 +706,15 @@ class SectionFiller(object):
 
 
 class FormFiller(object):
-
     def __init__(self, registry_form):
         self.form = registry_form
         self.section_codes = self.form.get_sections()
         self.data = {}
 
     def add_data(self, section, cde_code, value):
-        key = settings.FORM_SECTION_DELIMITER.join([self.form.name, section.code, cde_code])
+        key = settings.FORM_SECTION_DELIMITER.join(
+            [self.form.name, section.code, cde_code]
+        )
         self.data.update({key: value})
 
     def __getattr__(self, item):
@@ -411,18 +725,20 @@ class FormFiller(object):
 
 
 class RDRFTestCase(TestCase):
-    databases = {'default', 'clinical'}
-    fixtures = ['testing_auth', 'testing_users', 'testing_rdrf']
+    databases = {"default", "clinical"}
+    fixtures = ["testing_auth", "testing_users", "testing_rdrf"]
 
 
 class TestFormPermissions(RDRFTestCase):
-
     def test_form_without_groups_restriction_is_open(self):
         from registry.groups.models import CustomUser
-        fh = Registry.objects.get(code='fh')
+
+        fh = Registry.objects.get(code="fh")
 
         for form in fh.forms:
-            assert form.open, "%s has no group restriction so should be open but is not" % form.name
+            assert form.open, (
+                "%s has no group restriction so should be open but is not" % form.name
+            )
             for user in CustomUser.objects.all():
                 user.registry.add(fh)
                 user.save()
@@ -431,8 +747,9 @@ class TestFormPermissions(RDRFTestCase):
     def test_user_in_wrong_group_cant_view_form(self):
         from registry.groups.models import CustomUser
         from django.contrib.auth.models import Group
-        fh = Registry.objects.get(code='fh')
-        genetic_user = CustomUser.objects.get(username='genetic')
+
+        fh = Registry.objects.get(code="fh")
+        genetic_user = CustomUser.objects.get(username="genetic")
         genetic_group, created = Group.objects.get_or_create(name="Genetic Staff")
         if created:
             genetic_group.save()
@@ -447,7 +764,6 @@ class TestFormPermissions(RDRFTestCase):
 
 
 class ExporterTestCase(RDRFTestCase):
-
     def _get_cde_codes_from_registry_export_data(self, data):
         cde_codes = set([])
         for form_map in data["forms"]:
@@ -464,7 +780,6 @@ class ExporterTestCase(RDRFTestCase):
         return "%s\n%s" % (a, b)
 
     def test_export_registry(self):
-
         def test_key(key, data):
             assert key in data, "%s not in yaml export" % key
 
@@ -472,50 +787,61 @@ class ExporterTestCase(RDRFTestCase):
             for key in keys:
                 test_key(key, data)
 
-        self.registry = Registry.objects.get(code='fh')
+        self.registry = Registry.objects.get(code="fh")
         self.exporter = Exporter(self.registry)
         yaml_data, errors = self.exporter.export_yaml()
         assert isinstance(errors, list), "Expected errors list in exporter export_yaml"
         assert len(errors) == 0, "Expected zero errors instead got:%s" % errors
-        assert isinstance(yaml_data, str), "Expected yaml_data is  string:%s" % type(yaml_data)
+        assert isinstance(yaml_data, str), "Expected yaml_data is  string:%s" % type(
+            yaml_data
+        )
         with open("/tmp/test.yaml", "w") as f:
             f.write(yaml_data)
 
         with open("/tmp/test.yaml") as f:
             data = yaml.load(f, Loader=yaml.FullLoader)
 
-        test_key('EXPORT_TYPE', data)
-        test_key('RDRF_VERSION', data)
+        test_key("EXPORT_TYPE", data)
+        test_key("RDRF_VERSION", data)
         assert data["EXPORT_TYPE"] == ExportType.REGISTRY_PLUS_CDES
-        assert 'cdes' in data, "Registry export should have cdes key"
-        assert 'pvgs' in data, "Registry export should have groups key"
-        assert data['code'] == 'fh', "Reg code fh not in export"
-        test_key('forms', data)
-        for form_map in data['forms']:
-            test_keys(['is_questionnaire', 'name', 'sections'], form_map)
-            for section_map in form_map['sections']:
-                test_keys(['code',
-                           'display_name',
-                           'elements',
-                           'allow_multiple',
-                           'extra'],
-                          section_map)
+        assert "cdes" in data, "Registry export should have cdes key"
+        assert "pvgs" in data, "Registry export should have groups key"
+        assert data["code"] == "fh", "Reg code fh not in export"
+        test_key("forms", data)
+        for form_map in data["forms"]:
+            test_keys(["is_questionnaire", "name", "sections"], form_map)
+            for section_map in form_map["sections"]:
+                test_keys(
+                    ["code", "display_name", "elements", "allow_multiple", "extra"],
+                    section_map,
+                )
 
         dummy_cde = CommonDataElement.objects.create()
         cde_fields = list(model_to_dict(dummy_cde).keys())
-        for cde_map in data['cdes']:
-            assert isinstance(
-                cde_map, dict), "Expected cdes list should contain cde dictionaries: actual %s" % cde_map
+        for cde_map in data["cdes"]:
+            assert isinstance(cde_map, dict), (
+                "Expected cdes list should contain cde dictionaries: actual %s"
+                % cde_map
+            )
             for cde_field in cde_fields:
-                assert cde_field in cde_map, "Expected export of cde to contain field %s - it doesn't" % cde_field
+                assert cde_field in cde_map, (
+                    "Expected export of cde to contain field %s - it doesn't"
+                    % cde_field
+                )
 
         for pvg_map in data["pvgs"]:
             assert "code" in pvg_map, "Expected group has code key: %s" % pvg_map
             assert "values" in pvg_map, "Expected group has values key: %s" % pvg_map
             for value_map in pvg_map["values"]:
-                assert "code" in value_map, "Expected value map to have code key %s" % value_map
-                assert "value" in value_map, "Expected value map to have value key %s" % value_map
-                assert "desc" in value_map, "Expected value map to have desc key %s" % value_map
+                assert "code" in value_map, (
+                    "Expected value map to have code key %s" % value_map
+                )
+                assert "value" in value_map, (
+                    "Expected value map to have value key %s" % value_map
+                )
+                assert "desc" in value_map, (
+                    "Expected value map to have desc key %s" % value_map
+                )
 
         # consistency check
         set_of_cde_codes_in_cdes = set([cde_map["code"] for cde_map in data["cdes"]])
@@ -523,7 +849,10 @@ class ExporterTestCase(RDRFTestCase):
         generic_cdes = set(self.registry.generic_cdes)
 
         assert set__of_cdes_in_forms == (
-            set_of_cde_codes_in_cdes - generic_cdes), "Consistency check failed:\n%s" % self._report_cde_diff(set_of_cde_codes_in_cdes, set__of_cdes_in_forms)
+            set_of_cde_codes_in_cdes - generic_cdes
+        ), "Consistency check failed:\n%s" % self._report_cde_diff(
+            set_of_cde_codes_in_cdes, set__of_cdes_in_forms
+        )
 
         # consistency of values in groups - whats exported is whats there
 
@@ -533,8 +862,14 @@ class ExporterTestCase(RDRFTestCase):
                 values_in_export.add(value_map["code"])
 
             values_in_db = self._get_values_for_group(pvg_map["code"])
-            msg = "%s:export %s\ndb: %s" % (pvg_map["code"], values_in_export, values_in_db)
-            assert values_in_export == values_in_db, "Values in export for group %s don't match what's in db: %s" % msg
+            msg = "%s:export %s\ndb: %s" % (
+                pvg_map["code"],
+                values_in_export,
+                values_in_db,
+            )
+            assert values_in_export == values_in_db, (
+                "Values in export for group %s don't match what's in db: %s" % msg
+            )
 
     def _get_values_for_group(self, group_code):
         values = set([])
@@ -545,11 +880,12 @@ class ExporterTestCase(RDRFTestCase):
 
 
 class ImporterTestCase(TestCase):
-
     def _get_yaml_file(self):
         this_dir = os.path.dirname(__file__)
         logger.info("tests.py  dir = %s" % this_dir)
-        test_yaml = os.path.abspath(os.path.join(this_dir, "..", "..", "fixtures", "exported_fh_registry.yaml"))
+        test_yaml = os.path.abspath(
+            os.path.join(this_dir, "..", "..", "fixtures", "exported_fh_registry.yaml")
+        )
         logger.info("full path to test yaml = %s" % test_yaml)
         return test_yaml
 
@@ -564,12 +900,12 @@ class ImporterTestCase(TestCase):
 
 
 class FormTestCase(RDRFTestCase):
-
     def setUp(self):
         super(FormTestCase, self).setUp()
-        self.registry = Registry.objects.get(code='fh')
-        self.wg, created = WorkingGroup.objects.get_or_create(name="testgroup",
-                                                              registry=self.registry)
+        self.registry = Registry.objects.get(code="fh")
+        self.wg, created = WorkingGroup.objects.get_or_create(
+            name="testgroup", registry=self.registry
+        )
 
         if created:
             self.wg.save()
@@ -581,7 +917,8 @@ class FormTestCase(RDRFTestCase):
         self.user.save()
 
         self.state, created = State.objects.get_or_create(
-            short_name="WA", name="Western Australia")
+            short_name="WA", name="Western Australia"
+        )
 
         self.state.save()
         self.create_sections()
@@ -596,7 +933,13 @@ class FormTestCase(RDRFTestCase):
         self.address_type, created = AddressType.objects.get_or_create(pk=1)
 
         self.patient_address, created = PatientAddress.objects.get_or_create(
-            address='1 Line St', address_type=self.address_type, suburb='Neverland', state=self.state.short_name, postcode='1111', patient=self.patient)
+            address="1 Line St",
+            address_type=self.address_type,
+            suburb="Neverland",
+            state=self.state.short_name,
+            postcode="1111",
+            patient=self.patient,
+        )
         self.patient_address.save()
 
         self.request_factory = RequestFactory()
@@ -614,11 +957,14 @@ class FormTestCase(RDRFTestCase):
 
         context_manager = RDRFContextManager(self.registry)
         self.default_context = context_manager.get_or_create_default_context(
-            p, new_patient=True)
+            p, new_patient=True
+        )
 
         return p
 
-    def create_section(self, code, display_name, elements, allow_multiple=False, extra=1):
+    def create_section(
+        self, code, display_name, elements, allow_multiple=False, extra=1
+    ):
         section, created = Section.objects.get_or_create(code=code)
         section.display_name = display_name
         section.elements = ",".join(elements)
@@ -629,8 +975,9 @@ class FormTestCase(RDRFTestCase):
 
     def create_form(self, name, sections, is_questionnnaire=False):
         sections = ",".join([section.code for section in sections])
-        form, created = RegistryForm.objects.get_or_create(name=name, registry=self.registry,
-                                                           defaults={'sections': sections})
+        form, created = RegistryForm.objects.get_or_create(
+            name=name, registry=self.registry, defaults={"sections": sections}
+        )
         if not created:
             form.sections = sections
         form.name = name
@@ -659,12 +1006,15 @@ class FormTestCase(RDRFTestCase):
     def create_sections(self):
         # "simple" sections ( no files or multi-allowed sections
         self.sectionA = self.create_section(
-            "sectionA", "Simple Section A", ["CDEName", "CDEAge"])
+            "sectionA", "Simple Section A", ["CDEName", "CDEAge"]
+        )
         self.sectionB = self.create_section(
-            "sectionB", "Simple Section B", ["CDEHeight", "CDEWeight", "CDEBMI"])
+            "sectionB", "Simple Section B", ["CDEHeight", "CDEWeight", "CDEBMI"]
+        )
         # A multi allowed section with no file cdes
         self.sectionC = self.create_section(
-            "sectionC", "MultiSection No Files Section C", ["CDEName", "CDEAge"], True)
+            "sectionC", "MultiSection No Files Section C", ["CDEName", "CDEAge"], True
+        )
         # A multi allowed section with a file CDE
         # self.sectionD = self.create_section("sectionD", "MultiSection With Files D", ["CDEName", ""])
 
@@ -702,19 +1052,18 @@ class FormTestCase(RDRFTestCase):
         # test can archive prop on CustomUser
         # by default genetic user can't delete as they don't have patient delete permission
 
-        genetic_user = CustomUser.objects.get(username='genetic')
+        genetic_user = CustomUser.objects.get(username="genetic")
         self.assertFalse(genetic_user.can_archive)
 
         # admin can by default
-        admin_user = CustomUser.objects.get(username='admin')
+        admin_user = CustomUser.objects.get(username="admin")
         self.assertTrue(admin_user.can_archive)
 
         # clinical can't either
-        clinical_user = CustomUser.objects.get(username='clinical')
+        clinical_user = CustomUser.objects.get(username="clinical")
         self.assertFalse(clinical_user.can_archive)
 
     def test_simple_form(self):
-
         def form_value(form_name, section_code, cde_code, mongo_record):
             for form in mongo_record["forms"]:
                 if form["name"] == form_name:
@@ -740,7 +1089,8 @@ class FormTestCase(RDRFTestCase):
             self.registry.code,
             self.simple_form.pk,
             self.patient.pk,
-            self.default_context.pk)
+            self.default_context.pk,
+        )
 
         collection = ClinicalData.objects.collection(self.registry.code, "cdes")
         context_id = self.patient.default_context(self.registry).id
@@ -752,61 +1102,71 @@ class FormTestCase(RDRFTestCase):
         assert isinstance(mongo_record["forms"], list)
         assert len(mongo_record["forms"]) == 1, "Expected one form"
 
-        the_form = mongo_record['forms'][0]
+        the_form = mongo_record["forms"][0]
         assert isinstance(the_form, dict), "form data should be a dictionary"
         assert "sections" in the_form, "A form should have a sections key"
         assert isinstance(the_form["sections"], list), "Sections should be in a list"
         # we've only written data for 2 sections
         assert len(the_form["sections"]) == 2, "expected 2 sections got %s" % len(
-            the_form["sections"])
+            the_form["sections"]
+        )
 
         for section_dict in the_form["sections"]:
             assert isinstance(section_dict, dict), "sections should be dictioanaries"
             assert "cdes" in section_dict, "sections should have a cdes key"
-            assert isinstance(section_dict["cdes"], list), "sections cdes key should be a list"
+            assert isinstance(
+                section_dict["cdes"], list
+            ), "sections cdes key should be a list"
             for cde in section_dict["cdes"]:
                 assert isinstance(cde, dict), "cde should be a dict"
                 assert "code" in cde, "cde dictionary should have a code key"
                 assert "value" in cde, "cde dictionary should have a value key"
 
-        assert form_value(
-            self.simple_form.name,
-            self.sectionA.code,
-            "CDEName",
-            mongo_record) == "Fred"
-        assert form_value(
-            self.simple_form.name,
-            self.sectionA.code,
-            "CDEAge",
-            mongo_record) == 20
-        assert form_value(
-            self.simple_form.name,
-            self.sectionB.code,
-            "CDEHeight",
-            mongo_record) == 1.73
-        assert form_value(
-            self.simple_form.name,
-            self.sectionB.code,
-            "CDEWeight",
-            mongo_record) == 88.23
+        assert (
+            form_value(
+                self.simple_form.name, self.sectionA.code, "CDEName", mongo_record
+            )
+            == "Fred"
+        )
+        assert (
+            form_value(
+                self.simple_form.name, self.sectionA.code, "CDEAge", mongo_record
+            )
+            == 20
+        )
+        assert (
+            form_value(
+                self.simple_form.name, self.sectionB.code, "CDEHeight", mongo_record
+            )
+            == 1.73
+        )
+        assert (
+            form_value(
+                self.simple_form.name, self.sectionB.code, "CDEWeight", mongo_record
+            )
+            == 88.23
+        )
 
 
 class LongitudinalTestCase(FormTestCase):
-
     def test_simple_form(self):
         super(LongitudinalTestCase, self).test_simple_form()
         # should have one snapshot
         qs = ClinicalData.objects.collection(self.registry.code, "history")
         snapshots = qs.find(self.patient, record_type="snapshot").data()
-        self.assertGreater(len(snapshots), 0,
-                           "History should be filled in on save")
+        self.assertGreater(len(snapshots), 0, "History should be filled in on save")
         for snapshot in snapshots:
-            self.assertIn("record", snapshot,
-                          "Each snapshot should have a record field")
-            self.assertIn("timestamp", snapshot,
-                          "Each snapshot should have a timestamp field")
-            self.assertIn("forms", snapshot["record"],
-                          "Each  snapshot should record dict contain a forms field")
+            self.assertIn(
+                "record", snapshot, "Each snapshot should have a record field"
+            )
+            self.assertIn(
+                "timestamp", snapshot, "Each snapshot should have a timestamp field"
+            )
+            self.assertIn(
+                "forms",
+                snapshot["record"],
+                "Each  snapshot should record dict contain a forms field",
+            )
 
 
 class DeCamelcaseTestCase(TestCase):
@@ -823,9 +1183,9 @@ class DeCamelcaseTestCase(TestCase):
 
 
 class DateFunctionsTestCase(TestCase):
-
     def test_number_of_days_function(self):
         from rdrf.forms.fields.calculated_functions import number_of_days
+
         r1 = number_of_days("2020-03-23", "2020-03-25")
         r2 = number_of_days("", "2020-03-25")
         r3 = number_of_days("hello", "2020-03-25")
@@ -847,65 +1207,124 @@ class TimeStripperTestCase(TestCase):
     def setUp(self):
         super(TimeStripperTestCase, self).setUp()
 
-        self.data_with_date_cdes = {'django_model': 'Patient',
-                                    'ClinicalData_timestamp': '2017-02-14T10:23:10.601182',
-                                    'context_id': 4,
-                                    'django_id': 3,
-                                    'forms': [{'name': 'ClinicalData',
-                                               'sections': [{'code': 'fhDateSection', 'allow_multiple': False,
-                                                             'cdes': [{'value': 'fh_is_index', 'code': 'CDEIndexOrRelative'},
-                                                                      {'value': '1972-06-15T00:00:00.00',
-                                                                          'code': 'DateOfAssessment'},
-                                                                      {'value': '2015-01-05T10:23:10.601182', 'code': 'FHconsentDate'}]},
-                                                            {'code': 'SEC0007', 'allow_multiple': False,
-                                                             'cdes': [{'value': '', 'code': 'CDE00024'},
-                                                                      {'value': '', 'code': 'CDEfhDutchLipidClinicNetwork'}]}]}]}
+        self.data_with_date_cdes = {
+            "django_model": "Patient",
+            "ClinicalData_timestamp": "2017-02-14T10:23:10.601182",
+            "context_id": 4,
+            "django_id": 3,
+            "forms": [
+                {
+                    "name": "ClinicalData",
+                    "sections": [
+                        {
+                            "code": "fhDateSection",
+                            "allow_multiple": False,
+                            "cdes": [
+                                {"value": "fh_is_index", "code": "CDEIndexOrRelative"},
+                                {
+                                    "value": "1972-06-15T00:00:00.00",
+                                    "code": "DateOfAssessment",
+                                },
+                                {
+                                    "value": "2015-01-05T10:23:10.601182",
+                                    "code": "FHconsentDate",
+                                },
+                            ],
+                        },
+                        {
+                            "code": "SEC0007",
+                            "allow_multiple": False,
+                            "cdes": [
+                                {"value": "", "code": "CDE00024"},
+                                {"value": "", "code": "CDEfhDutchLipidClinicNetwork"},
+                            ],
+                        },
+                    ],
+                }
+            ],
+        }
 
         self.copy_of_initial_data = deepcopy(self.data_with_date_cdes)
 
-        self.data_without_date_cdes = {'django_model': 'Patient',
-                                       'ClinicalData_timestamp': '2017-02-14T10:23:10.601182',
-                                       'context_id': 40,
-                                       'django_id': 300,
-                                       'forms': [{'name': 'ClinicalData',
-                                                  'sections': [{'code': 'fhDateSection', 'allow_multiple': False,
-                                                                 'cdes': [{'value': 'fh_is_index', 'code': 'CDEIndexOrRelative'}]},
-                                                               {'code': 'SEC0007', 'allow_multiple': False,
-                                                                'cdes': [{'value': '', 'code': 'CDE00024'},
-                                                                         {'value': '', 'code': 'CDEfhDutchLipidClinicNetwork'}]}]}]}
+        self.data_without_date_cdes = {
+            "django_model": "Patient",
+            "ClinicalData_timestamp": "2017-02-14T10:23:10.601182",
+            "context_id": 40,
+            "django_id": 300,
+            "forms": [
+                {
+                    "name": "ClinicalData",
+                    "sections": [
+                        {
+                            "code": "fhDateSection",
+                            "allow_multiple": False,
+                            "cdes": [
+                                {"value": "fh_is_index", "code": "CDEIndexOrRelative"}
+                            ],
+                        },
+                        {
+                            "code": "SEC0007",
+                            "allow_multiple": False,
+                            "cdes": [
+                                {"value": "", "code": "CDE00024"},
+                                {"value": "", "code": "CDEfhDutchLipidClinicNetwork"},
+                            ],
+                        },
+                    ],
+                }
+            ],
+        }
 
         self.m1 = FakeClinicalData(1, self.data_with_date_cdes)
         self.m2 = FakeClinicalData(2, self.data_without_date_cdes)
 
         self.ts = TimeStripper([self.m1, self.m2])
         self.ts.test_mode = True
-        self.ts.date_cde_codes = ['DateOfAssessment', 'FHconsentDate']
+        self.ts.date_cde_codes = ["DateOfAssessment", "FHconsentDate"]
 
     def test_timestripper(self):
         expected_date_of_assessment = "1972-06-15"
         expected_fh_consent_date = "2015-01-05"
         expected = [expected_date_of_assessment, expected_fh_consent_date]
-        clinicaldata_timestamp_before = self.data_with_date_cdes["ClinicalData_timestamp"]
-        fh_index_before = self.data_with_date_cdes["forms"][0]["sections"][0]["cdes"][0]["value"]
+        clinicaldata_timestamp_before = self.data_with_date_cdes[
+            "ClinicalData_timestamp"
+        ]
+        fh_index_before = self.data_with_date_cdes["forms"][0]["sections"][0]["cdes"][
+            0
+        ]["value"]
 
         self.ts.forward()
-        clinicaldata_timestamp_after = self.data_with_date_cdes["ClinicalData_timestamp"]
-        fh_index_after = self.data_with_date_cdes["forms"][0]["sections"][0]["cdes"][0]["value"]
+        clinicaldata_timestamp_after = self.data_with_date_cdes[
+            "ClinicalData_timestamp"
+        ]
+        fh_index_after = self.data_with_date_cdes["forms"][0]["sections"][0]["cdes"][0][
+            "value"
+        ]
 
-        self.assertTrue(self.ts.converted_date_cdes == expected,
-                        "Expected %s Actual %s" % (expected, self.ts.converted_date_cdes))
+        self.assertTrue(
+            self.ts.converted_date_cdes == expected,
+            "Expected %s Actual %s" % (expected, self.ts.converted_date_cdes),
+        )
 
         value1 = self.data_with_date_cdes["forms"][0]["sections"][0]["cdes"][1]["value"]
-        self.assertTrue(value1 == expected_date_of_assessment,
-                        "DateOfAssessment value not modified by TimeStripper")
+        self.assertTrue(
+            value1 == expected_date_of_assessment,
+            "DateOfAssessment value not modified by TimeStripper",
+        )
         value2 = self.data_with_date_cdes["forms"][0]["sections"][0]["cdes"][2]["value"]
-        self.assertTrue(value2 == expected_fh_consent_date,
-                        "FHConsentdate value not modified by TimeStripper")
+        self.assertTrue(
+            value2 == expected_fh_consent_date,
+            "FHConsentdate value not modified by TimeStripper",
+        )
 
-        self.assertTrue(clinicaldata_timestamp_after == clinicaldata_timestamp_before,
-                        "Timestamps which are not date cdes should not be affected by TimeStripper")
-        self.assertTrue(fh_index_before == fh_index_after,
-                        "Non date cdes should not be affected by TimeStripper")
+        self.assertTrue(
+            clinicaldata_timestamp_after == clinicaldata_timestamp_before,
+            "Timestamps which are not date cdes should not be affected by TimeStripper",
+        )
+        self.assertTrue(
+            fh_index_before == fh_index_after,
+            "Non date cdes should not be affected by TimeStripper",
+        )
 
     def test_update_of_multisections(self):
         # multisection with 2 items , one cde Surgery , another SurgeryDate
@@ -921,419 +1340,250 @@ class TimeStripperTestCase(TestCase):
         item2 = [cde_dict3, cde_dict4]
         item3 = [cde_dict5, cde_dict6]
 
-        multisection = {"allow_multiple": True,
-                        "cdes": [item1, item2, item3]}
+        multisection = {"allow_multiple": True, "cdes": [item1, item2, item3]}
 
-        data_with_multisections = {"forms": [{"form": "testing",
-                                              "sections": [multisection]}]}
+        data_with_multisections = {
+            "forms": [{"form": "testing", "sections": [multisection]}]
+        }
 
         m = FakeClinicalData(23, data_with_multisections)
 
         ts = TimeStripper([m])
         ts.test_mode = True
-        ts.date_cde_codes = ['SurgeryDate']
+        ts.date_cde_codes = ["SurgeryDate"]
 
         ts.forward()
 
-        self.assertTrue(ts.converted_date_cdes == ["2017-02-14", "2018-03-26"],
-                        "Multisection timestrip failed: actual = %s" % ts.converted_date_cdes)
+        self.assertTrue(
+            ts.converted_date_cdes == ["2017-02-14", "2018-03-26"],
+            "Multisection timestrip failed: actual = %s" % ts.converted_date_cdes,
+        )
 
         expected_value1 = "2017-02-14"
         actual_value1 = m.data["forms"][0]["sections"][0]["cdes"][0][1]["value"]
         self.assertEqual(
             expected_value1,
             actual_value1,
-            "Update of multisection failed for first item: actual = %s" %
-            actual_value1)
+            "Update of multisection failed for first item: actual = %s" % actual_value1,
+        )
 
         expected_value2 = "2018-03-26"
         actual_value2 = m.data["forms"][0]["sections"][0]["cdes"][1][1]["value"]
         self.assertEqual(
             expected_value2,
             actual_value2,
-            "Update of multisection failed for second item: actual = %s" %
-            actual_value2)
+            "Update of multisection failed for second item: actual = %s"
+            % actual_value2,
+        )
 
         expected_value3 = "2011-11-05"  # n shouldn't have changed
         actual_value3 = m.data["forms"][0]["sections"][0]["cdes"][2][1]["value"]
         self.assertEqual(
             expected_value3,
             actual_value3,
-            "Update of multisection failed for third item: actual = %s" %
-            actual_value3)
+            "Update of multisection failed for third item: actual = %s" % actual_value3,
+        )
 
     def test_history_munging(self):
         from rdrf.helpers.utils import HistoryTimeStripper
-        history_modjgo_data = {"django_id": 1,
-                               "record": {
-                                   "django_id": 1,
-                                   "timestamp": "2017-02-13T12:28:49.355839",
-                                   "forms": [
-                                       {
-                                           "sections": [
-                                                {
-                                                    "allow_multiple": False,
-                                                    "cdes": [
-                                                        {
-                                                            "value": "fh_is_index",
-                                                            "code": "CDEIndexOrRelative"
-                                                        },
-                                                        {
-                                                            "value": "2017-02-15",
-                                                            "code": "DateOfAssessment"
-                                                        },
-                                                        {
-                                                            "value": "2017-02-14T00:00:00.000",
-                                                            "code": "FHconsentDate"
-                                                        }
-                                                    ],
-                                                    "code": "fhDateSection"
-                                                },
-                                               {
-                                                    "allow_multiple": False,
-                                                    "cdes": [
-                                                        {
-                                                            "value": "",
-                                                            "code": "CDE00024"
-                                                        },
-                                                        {
-                                                            "value": "",
-                                                            "code": "CDEfhDutchLipidClinicNetwork"
-                                                        }
-                                                    ],
-                                                    "code": "SEC0007"
-                                                },
-                                               {
-                                                    "allow_multiple": False,
-                                                    "cdes": [
-                                                        {
-                                                            "value": "fh2_y",
-                                                            "code": "CDE00004"
-                                                        },
-                                                        {
-                                                            "value": "fh2_n",
-                                                            "code": "FHFamHistTendonXanthoma"
-                                                        },
-                                                        {
-                                                            "value": "fh2_n",
-                                                            "code": "FHFamHistArcusCornealis"
-                                                        },
-                                                        {
-                                                            "value": "fh2_y",
-                                                            "code": "CDE00003"
-                                                        },
-                                                        {
-                                                            "value": "y_childunder18",
-                                                            "code": "FHFamilyHistoryChild"
-                                                        }
-                                                    ],
-                                                    "code": "SEC0002"
-                                                },
-                                               {
-                                                    "allow_multiple": False,
-                                                    "cdes": [
-                                                        {
-                                                            "value": "",
-                                                            "code": "FHSupravalvularDisease"
-                                                        },
-                                                        {
-                                                            "value": None,
-                                                            "code": "FHAgeAtMI"
-                                                        },
-                                                        {
-                                                            "value": None,
-                                                            "code": "FHAgeAtCV"
-                                                        },
-                                                        {
-                                                            "value": "",
-                                                            "code": "FHPremNonCoronary"
-                                                        },
-                                                        {
-                                                            "value": "",
-                                                            "code": "FHAorticValveDisease"
-                                                        },
-                                                        {
-                                                            "value": "fh2_n",
-                                                            "code": "FHPersHistCerebralVD"
-                                                        },
-                                                        {
-                                                            "value": "fhpremcvd_unknown",
-                                                            "code": "CDE00011"
-                                                        },
-                                                        {
-                                                            "value": "",
-                                                            "code": "FHCoronaryRevasc"
-                                                        },
-                                                        {
-                                                            "value": "",
-                                                            "code": "FHMyocardialInfarction"
-                                                        }
-                                                    ],
-                                                    "code": "SEC0004"
-                                                },
-                                               {
-                                                    "allow_multiple": False,
-                                                    "cdes": [
-                                                        {
-                                                            "value": "u_",
-                                                            "code": "CDE00002"
-                                                        },
-                                                        {
-                                                            "value": "",
-                                                            "code": "FHXanthelasma"
-                                                        },
-                                                        {
-                                                            "value": "y",
-                                                            "code": "CDE00001"
-                                                        }
-                                                    ],
-                                                    "code": "SEC0001"
-                                                },
-                                               {
-                                                    "allow_multiple": False,
-                                                    "cdes": [
-                                                        {
-                                                            "value": "",
-                                                            "code": "PlasmaLipidTreatment"
-                                                        },
-                                                        {
-                                                            "value": None,
-                                                            "code": "CDE00019"
-                                                        },
-                                                        {
-                                                            "value": "NaN",
-                                                            "code": "LDLCholesterolAdjTreatment"
-                                                        },
-                                                        {
-                                                            "value": None,
-                                                            "code": "CDE00013"
-                                                        }
-                                                    ],
-                                                    "code": "FHLDLforFHScore"
-                                                },
-                                               {
-                                                    "allow_multiple": True,
-                                                    "cdes": [
-                                                        [
-                                                            {
-                                                                "value": None,
-                                                                "code": "CDE00014"
-                                                            },
-                                                            {
-                                                                "value": None,
-                                                                "code": "FHLipidProfileUntreatedDate"
-                                                            },
-                                                            {
-                                                                "value": None,
-                                                                "code": "FHAlbum"
-                                                            },
-                                                            {
-                                                                "value": None,
-                                                                "code": "CDE00012"
-                                                            },
-                                                            {
-                                                                "value": None,
-                                                                "code": "FHCK"
-                                                            },
-                                                            {
-                                                                "value": None,
-                                                                "code": "FHA1"
-                                                            },
-                                                            {
-                                                                "value": "",
-                                                                "code": "PlasmaLipidTreatmentNone"
-                                                            },
-                                                            {
-                                                                "value": None,
-                                                                "code": "FHAST"
-                                                            },
-                                                            {
-                                                                "value": None,
-                                                                "code": "CDE00015"
-                                                            },
-                                                            {
-                                                                "value": None,
-                                                                "code": "FHApoB"
-                                                            },
-                                                            {
-                                                                "value": None,
-                                                                "code": "FHALT"
-                                                            },
-                                                            {
-                                                                "value": None,
-                                                                "code": "FHLLDLconc"
-                                                            },
-                                                            {
-                                                                "value": None,
-                                                                "code": "FHCreatinine"
-                                                            },
-                                                            {
-                                                                "value": "",
-                                                                "code": "FHCompliance"
-                                                            },
-                                                            {
-                                                                "value": "",
-                                                                "code": "CDEfhOtherIntolerantDrug"
-                                                            },
-                                                            {
-                                                                "value": None,
-                                                                "code": "CDE00016"
-                                                            },
-                                                            {
-                                                                "value": None,
-                                                                "code": "FHCRP"
-                                                            }
-                                                        ]
-                                                    ],
-                                                    "code": "SEC0005"
-                                                },
-                                               {
-                                                    "allow_multiple": False,
-                                                    "cdes": [
-                                                        {
-                                                            "value": "NaN",
-                                                            "code": "CDEBMI"
-                                                        },
-                                                        {
-                                                            "value": "",
-                                                            "code": "FHHypertriglycerd"
-                                                        },
-                                                        {
-                                                            "value": None,
-                                                            "code": "HbA1c"
-                                                        },
-                                                        {
-                                                            "value": "",
-                                                            "code": "FHHypothyroidism"
-                                                        },
-                                                        {
-                                                            "value": None,
-                                                            "code": "CDE00009"
-                                                        },
-                                                        {
-                                                            "value": None,
-                                                            "code": "FHHeartRate"
-                                                        },
-                                                        {
-                                                            "value": None,
-                                                            "code": "CDE00010"
-                                                        },
-                                                        {
-                                                            "value": None,
-                                                            "code": "FHWaistCirc"
-                                                        },
-                                                        {
-                                                            "value": "",
-                                                            "code": "FHObesity"
-                                                        },
-                                                        {
-                                                            "value": None,
-                                                            "code": "CDE00008"
-                                                        },
-                                                        {
-                                                            "value": None,
-                                                            "code": "CDEWeight"
-                                                        },
-                                                        {
-                                                            "value": None,
-                                                            "code": "FHPackYears"
-                                                        },
-                                                        {
-                                                            "value": None,
-                                                            "code": "CDEHeight"
-                                                        },
-                                                        {
-                                                            "value": "",
-                                                            "code": "CDE00007"
-                                                        },
-                                                        {
-                                                            "value": "",
-                                                            "code": "FHAlcohol"
-                                                        },
-                                                        {
-                                                            "value": "",
-                                                            "code": "CDE00005"
-                                                        },
-                                                        {
-                                                            "value": "",
-                                                            "code": "CDE00006"
-                                                        },
-                                                        {
-                                                            "value": "",
-                                                            "code": "FHCVDOther"
-                                                        },
-                                                        {
-                                                            "value": None,
-                                                            "code": "FHeGFR"
-                                                        },
-                                                        {
-                                                            "value": "",
-                                                            "code": "ChronicKidneyDisease"
-                                                        },
-                                                        {
-                                                            "value": "",
-                                                            "code": "FHHepaticSteatosis"
-                                                        },
-                                                        {
-                                                            "value": None,
-                                                            "code": "FHTSH"
-                                                        }
-                                                    ],
-                                                    "code": "SEC0003"
-                                                },
-                                               {
-                                                    "allow_multiple": True,
-                                                    "cdes": [
-                                                        [{
-                                                            "value": "",
-                                                            "code": "FHTrialStatus"
-                                                        },
-                                                            {
-                                                            "value": None,
-                                                            "code": "FHTrialSTartDate"
-                                                        },
-                                                            {
-                                                            "value": "",
-                                                            "code": "FHClinicalTrialName"
-                                                        },
-                                                            {
-                                                            "value": None,
-                                                            "code": "FHTrialLength"
-                                                        }
-                                                        ]
-                                                    ],
-                                                    "code": "FHClinicalTrials"
-                                                }
-                                           ],
-                                           "name": "ClinicalData"
-                                       }
-                                   ],
-                                   "context_id": 1,
-                                   "ClinicalData_timestamp": "2017-02-13T12:28:49.355839",
-                                   "django_model": "Patient"
-                               },
-                               "record_type": "snapshot",
-                               "timestamp": "2017-02-13 12:28:49.665333",
-                               "registry_code": "fh",
-                               "context_id": 1,
-                               "django_model": "Patient"
-                               }
 
-        expected_dates = ['2017-02-14']
+        history_modjgo_data = {
+            "django_id": 1,
+            "record": {
+                "django_id": 1,
+                "timestamp": "2017-02-13T12:28:49.355839",
+                "forms": [
+                    {
+                        "sections": [
+                            {
+                                "allow_multiple": False,
+                                "cdes": [
+                                    {
+                                        "value": "fh_is_index",
+                                        "code": "CDEIndexOrRelative",
+                                    },
+                                    {"value": "2017-02-15", "code": "DateOfAssessment"},
+                                    {
+                                        "value": "2017-02-14T00:00:00.000",
+                                        "code": "FHconsentDate",
+                                    },
+                                ],
+                                "code": "fhDateSection",
+                            },
+                            {
+                                "allow_multiple": False,
+                                "cdes": [
+                                    {"value": "", "code": "CDE00024"},
+                                    {
+                                        "value": "",
+                                        "code": "CDEfhDutchLipidClinicNetwork",
+                                    },
+                                ],
+                                "code": "SEC0007",
+                            },
+                            {
+                                "allow_multiple": False,
+                                "cdes": [
+                                    {"value": "fh2_y", "code": "CDE00004"},
+                                    {
+                                        "value": "fh2_n",
+                                        "code": "FHFamHistTendonXanthoma",
+                                    },
+                                    {
+                                        "value": "fh2_n",
+                                        "code": "FHFamHistArcusCornealis",
+                                    },
+                                    {"value": "fh2_y", "code": "CDE00003"},
+                                    {
+                                        "value": "y_childunder18",
+                                        "code": "FHFamilyHistoryChild",
+                                    },
+                                ],
+                                "code": "SEC0002",
+                            },
+                            {
+                                "allow_multiple": False,
+                                "cdes": [
+                                    {"value": "", "code": "FHSupravalvularDisease"},
+                                    {"value": None, "code": "FHAgeAtMI"},
+                                    {"value": None, "code": "FHAgeAtCV"},
+                                    {"value": "", "code": "FHPremNonCoronary"},
+                                    {"value": "", "code": "FHAorticValveDisease"},
+                                    {"value": "fh2_n", "code": "FHPersHistCerebralVD"},
+                                    {"value": "fhpremcvd_unknown", "code": "CDE00011"},
+                                    {"value": "", "code": "FHCoronaryRevasc"},
+                                    {"value": "", "code": "FHMyocardialInfarction"},
+                                ],
+                                "code": "SEC0004",
+                            },
+                            {
+                                "allow_multiple": False,
+                                "cdes": [
+                                    {"value": "u_", "code": "CDE00002"},
+                                    {"value": "", "code": "FHXanthelasma"},
+                                    {"value": "y", "code": "CDE00001"},
+                                ],
+                                "code": "SEC0001",
+                            },
+                            {
+                                "allow_multiple": False,
+                                "cdes": [
+                                    {"value": "", "code": "PlasmaLipidTreatment"},
+                                    {"value": None, "code": "CDE00019"},
+                                    {
+                                        "value": "NaN",
+                                        "code": "LDLCholesterolAdjTreatment",
+                                    },
+                                    {"value": None, "code": "CDE00013"},
+                                ],
+                                "code": "FHLDLforFHScore",
+                            },
+                            {
+                                "allow_multiple": True,
+                                "cdes": [
+                                    [
+                                        {"value": None, "code": "CDE00014"},
+                                        {
+                                            "value": None,
+                                            "code": "FHLipidProfileUntreatedDate",
+                                        },
+                                        {"value": None, "code": "FHAlbum"},
+                                        {"value": None, "code": "CDE00012"},
+                                        {"value": None, "code": "FHCK"},
+                                        {"value": None, "code": "FHA1"},
+                                        {
+                                            "value": "",
+                                            "code": "PlasmaLipidTreatmentNone",
+                                        },
+                                        {"value": None, "code": "FHAST"},
+                                        {"value": None, "code": "CDE00015"},
+                                        {"value": None, "code": "FHApoB"},
+                                        {"value": None, "code": "FHALT"},
+                                        {"value": None, "code": "FHLLDLconc"},
+                                        {"value": None, "code": "FHCreatinine"},
+                                        {"value": "", "code": "FHCompliance"},
+                                        {
+                                            "value": "",
+                                            "code": "CDEfhOtherIntolerantDrug",
+                                        },
+                                        {"value": None, "code": "CDE00016"},
+                                        {"value": None, "code": "FHCRP"},
+                                    ]
+                                ],
+                                "code": "SEC0005",
+                            },
+                            {
+                                "allow_multiple": False,
+                                "cdes": [
+                                    {"value": "NaN", "code": "CDEBMI"},
+                                    {"value": "", "code": "FHHypertriglycerd"},
+                                    {"value": None, "code": "HbA1c"},
+                                    {"value": "", "code": "FHHypothyroidism"},
+                                    {"value": None, "code": "CDE00009"},
+                                    {"value": None, "code": "FHHeartRate"},
+                                    {"value": None, "code": "CDE00010"},
+                                    {"value": None, "code": "FHWaistCirc"},
+                                    {"value": "", "code": "FHObesity"},
+                                    {"value": None, "code": "CDE00008"},
+                                    {"value": None, "code": "CDEWeight"},
+                                    {"value": None, "code": "FHPackYears"},
+                                    {"value": None, "code": "CDEHeight"},
+                                    {"value": "", "code": "CDE00007"},
+                                    {"value": "", "code": "FHAlcohol"},
+                                    {"value": "", "code": "CDE00005"},
+                                    {"value": "", "code": "CDE00006"},
+                                    {"value": "", "code": "FHCVDOther"},
+                                    {"value": None, "code": "FHeGFR"},
+                                    {"value": "", "code": "ChronicKidneyDisease"},
+                                    {"value": "", "code": "FHHepaticSteatosis"},
+                                    {"value": None, "code": "FHTSH"},
+                                ],
+                                "code": "SEC0003",
+                            },
+                            {
+                                "allow_multiple": True,
+                                "cdes": [
+                                    [
+                                        {"value": "", "code": "FHTrialStatus"},
+                                        {"value": None, "code": "FHTrialSTartDate"},
+                                        {"value": "", "code": "FHClinicalTrialName"},
+                                        {"value": None, "code": "FHTrialLength"},
+                                    ]
+                                ],
+                                "code": "FHClinicalTrials",
+                            },
+                        ],
+                        "name": "ClinicalData",
+                    }
+                ],
+                "context_id": 1,
+                "ClinicalData_timestamp": "2017-02-13T12:28:49.355839",
+                "django_model": "Patient",
+            },
+            "record_type": "snapshot",
+            "timestamp": "2017-02-13 12:28:49.665333",
+            "registry_code": "fh",
+            "context_id": 1,
+            "django_model": "Patient",
+        }
+
+        expected_dates = ["2017-02-14"]
         history_record = FakeClinicalData(73, history_modjgo_data)
         ts = HistoryTimeStripper([history_record])
         ts.test_mode = True
-        ts.date_cde_codes = ['FHconsentDate']
+        ts.date_cde_codes = ["FHconsentDate"]
         ts.forward()
 
-        self.assertTrue(ts.converted_date_cdes == expected_dates,
-                        "Expected: %s, Actual: %s" % (expected_dates,
-                                                      ts.converted_date_cdes))
+        self.assertTrue(
+            ts.converted_date_cdes == expected_dates,
+            "Expected: %s, Actual: %s" % (expected_dates, ts.converted_date_cdes),
+        )
 
 
 class MinTypeTest(TestCase):
     def test_string(self):
         from rdrf.helpers.utils import MinType
+
         bottom = MinType()
         lst = ["a", "B", bottom]
         g = sorted(lst)
@@ -1341,6 +1591,7 @@ class MinTypeTest(TestCase):
 
     def test_ints(self):
         from rdrf.helpers.utils import MinType
+
         bottom = MinType()
         lst = [10, 1, -7, bottom]
         g = sorted(lst)
@@ -1348,14 +1599,15 @@ class MinTypeTest(TestCase):
 
 
 class StructureChecker(TestCase):
-    databases = {'default', 'clinical'}
+    databases = {"default", "clinical"}
 
     def _run_command(self, *args, **kwargs):
         from django.core import management
         import io
+
         out_stream = io.StringIO("")
         # test_mode means the command does not issue sys.exit(1)
-        management.call_command('check_structure', *args, stdout=out_stream, **kwargs)
+        management.call_command("check_structure", *args, stdout=out_stream, **kwargs)
         return out_stream.getvalue()
 
     def clear_modjgo_objects(self):
@@ -1377,52 +1629,88 @@ class StructureChecker(TestCase):
         # Some examples of possible mangled records
         # [ (desc,collectionname,example), ...]
         # we expect non-blank output/failure for each example
-        bad = [("bad id", "cdes", {"django_id": "fred",
-                                   "django_model": "Patient",
-                                   "timestamp": "2018-03-10T04:03:21",
-                                   "forms": []}),
-
-               ("missing id", "cdes", {"django_model": "Patient",
-                                       "timestamp": "2018-03-10T04:03:21",
-                                       "forms": []}),
-
-               ("bad model", "cdes", {"django_id": 100,
-                                      "django_model": "Tomato",
-                                      "timestamp": "2018-03-10T04:03:21",
-                                      "forms": []}),
-
-
-               ("missing_model", "cdes", {"django_id": 23,
-                                          "timestamp": "2018-03-10T04:03:21",
-                                          "forms": []}),
-               ("bad_forms", "cdes", {"django_id": 23,
-                                      "django_model": "Patient",
-                                      "timestamp": "2018-03-10T04:03:21",
-                                      "forms": 999}),
-               ("bad_old_format", "cdes", {"django_id": 23,
-                                           "django_model": "Patient",
-                                           "timestamp": "2018-03-10T04:03:21",
-                                           "formname____sectioncode____cdecode": 99,
-                                           "forms": []})
-               ]
+        bad = [
+            (
+                "bad id",
+                "cdes",
+                {
+                    "django_id": "fred",
+                    "django_model": "Patient",
+                    "timestamp": "2018-03-10T04:03:21",
+                    "forms": [],
+                },
+            ),
+            (
+                "missing id",
+                "cdes",
+                {
+                    "django_model": "Patient",
+                    "timestamp": "2018-03-10T04:03:21",
+                    "forms": [],
+                },
+            ),
+            (
+                "bad model",
+                "cdes",
+                {
+                    "django_id": 100,
+                    "django_model": "Tomato",
+                    "timestamp": "2018-03-10T04:03:21",
+                    "forms": [],
+                },
+            ),
+            (
+                "missing_model",
+                "cdes",
+                {"django_id": 23, "timestamp": "2018-03-10T04:03:21", "forms": []},
+            ),
+            (
+                "bad_forms",
+                "cdes",
+                {
+                    "django_id": 23,
+                    "django_model": "Patient",
+                    "timestamp": "2018-03-10T04:03:21",
+                    "forms": 999,
+                },
+            ),
+            (
+                "bad_old_format",
+                "cdes",
+                {
+                    "django_id": 23,
+                    "django_model": "Patient",
+                    "timestamp": "2018-03-10T04:03:21",
+                    "formname____sectioncode____cdecode": 99,
+                    "forms": [],
+                },
+            ),
+        ]
 
         for bad_example, collection, data in bad:
             self.clear_modjgo_objects()
             m = self.make_modjgo(collection, data)
             with self.assertRaises(SystemExit) as cm:
-                output = self._run_command(registry_code="foobar", collection=collection)
+                output = self._run_command(
+                    registry_code="foobar", collection=collection
+                )
                 print("output = [%s]" % output)
-                assert output != "", "check_structure management command failed: Expected schema error for %s" % bad_example
+                assert output != "", (
+                    "check_structure management command failed: Expected schema error for %s"
+                    % bad_example
+                )
                 parts = output.split(";")
                 bad_pk = int(parts[0])
                 self.assertEqual(m.pk, bad_pk)
             self.assertEqual(cm.exception.code, 1)
 
         # finally, a good record
-        good = {"django_id": 23,
-                "django_model": "Patient",
-                "timestamp": "2018-03-10T04:03:21",
-                "forms": []}
+        good = {
+            "django_id": 23,
+            "django_model": "Patient",
+            "timestamp": "2018-03-10T04:03:21",
+            "forms": [],
+        }
 
         self.clear_modjgo_objects()
         m = self.make_modjgo("cdes", good)
@@ -1434,22 +1722,27 @@ class StructureChecker(TestCase):
         foobar = Registry()
         foobar.code = "foobar"
         foobar.save()
-        bad_history = {"id": 6,
-                       "registry_code": "foobar",
-                       "collection": "history",
-                       "data": {"record": {"django_id": 1,
-                                           "timestamp": "2017-07-10T14:45:36.760123",
-                                           "context_id": 1,
-                                           "django_model": "Patient",
-                                           "oldstyleform____section____cde": 23,
-                                           "Diagnosis_timestamp": "2017-07-10T14:45:36.760123"}
-                                },
-                       "django_id": 1,
-                       "timestamp": "2017-07-10 14:45:37.012962",
-                       "context_id": 1,
-                       "record_type": "snapshot",
-                       "django_model": "Patient",
-                       "registry_code": "foobar"}
+        bad_history = {
+            "id": 6,
+            "registry_code": "foobar",
+            "collection": "history",
+            "data": {
+                "record": {
+                    "django_id": 1,
+                    "timestamp": "2017-07-10T14:45:36.760123",
+                    "context_id": 1,
+                    "django_model": "Patient",
+                    "oldstyleform____section____cde": 23,
+                    "Diagnosis_timestamp": "2017-07-10T14:45:36.760123",
+                }
+            },
+            "django_id": 1,
+            "timestamp": "2017-07-10 14:45:37.012962",
+            "context_id": 1,
+            "record_type": "snapshot",
+            "django_model": "Patient",
+            "registry_code": "foobar",
+        }
 
         self.clear_modjgo_objects()
         self.make_modjgo("history", bad_history)
@@ -1462,8 +1755,9 @@ class StructureChecker(TestCase):
 class RemindersTestCase(TestCase):
     def _run_command(self, *args, **kwargs):
         import io
+
         out_stream = io.StringIO("")
-        call_command('check_logins', *args, stdout=out_stream, **kwargs)
+        call_command("check_logins", *args, stdout=out_stream, **kwargs)
         return out_stream.getvalue()
 
     def setUp(self):
@@ -1501,6 +1795,7 @@ class RemindersTestCase(TestCase):
 
     def set_metadata(self, d):
         import json
+
         self.registry.metadata_json = json.dumps(d)
         self.registry.save()
 
@@ -1527,12 +1822,16 @@ class RemindersTestCase(TestCase):
         enh.date_stamp = date_stamp
         enh.language = "en"
         enh.email_notification = self.email_notification
-        enh.template_data = json.dumps({"user": {"id": self.user.id,
-                                                 "model": "CustomUser",
-                                                 "app": "groups"},
-                                        "registry": {"id": self.registry.id,
-                                                     "app": "rdrf",
-                                                     "model": "Registry"}})
+        enh.template_data = json.dumps(
+            {
+                "user": {"id": self.user.id, "model": "CustomUser", "app": "groups"},
+                "registry": {
+                    "id": self.registry.id,
+                    "app": "rdrf",
+                    "model": "Registry",
+                },
+            }
+        )
 
         enh.save()
         enh.date_stamp = date_stamp
@@ -1557,7 +1856,9 @@ class RemindersTestCase(TestCase):
         self._setup_user("testuser", Time.LONG_AGO)
         result = self._run_command(registry_code="foobar", days=365)
         lines = result.split("\n")
-        assert "testuser" in lines, "Expected to see testuser in output: instead [%s]" % result
+        assert "testuser" in lines, (
+            "Expected to see testuser in output: instead [%s]" % result
+        )
 
         # patient user logged in inside threshhold
         self._setup_user("testuser", Time.RECENTLY)
@@ -1573,7 +1874,7 @@ class RemindersTestCase(TestCase):
         parent_feature = True
         # Check parent feature is enabled.
         try:
-            __import__('angelman.parent_view')
+            __import__("angelman.parent_view")
         except ImportError:
             parent_feature = False
         if parent_feature:
@@ -1589,14 +1890,15 @@ class RemindersTestCase(TestCase):
         # mock the send-reminders action
         self._setup_user("testuser", Time.LONG_AGO)
 
-        result = self._run_command(registry_code="foobar",
-                                   days=365,
-                                   action="send-reminders",
-                                   test_mode=True)
+        result = self._run_command(
+            registry_code="foobar", days=365, action="send-reminders", test_mode=True
+        )
 
         lines = result.split("\n")
 
-        assert "dummy send reg_code=foobar description=reminder" in lines[0], "send-reminders failed?"
+        assert (
+            "dummy send reg_code=foobar description=reminder" in lines[0]
+        ), "send-reminders failed?"
 
         # create some dummy email notification history models to simulate previous
         # reminders being sent
@@ -1604,14 +1906,15 @@ class RemindersTestCase(TestCase):
         self._setup_notification()
         self._create_dummy_history(Time.RECENTLY)
 
-        result = self._run_command(registry_code="foobar",
-                                   days=365,
-                                   action="send-reminders",
-                                   test_mode=True)
+        result = self._run_command(
+            registry_code="foobar", days=365, action="send-reminders", test_mode=True
+        )
 
         lines = result.split("\n")
 
-        assert "not sent" in lines, "Expected reminder NOT to be sent if one already sent"
+        assert (
+            "not sent" in lines
+        ), "Expected reminder NOT to be sent if one already sent"
 
         # 2nd one allowed
         self._clear_notifications()
@@ -1619,29 +1922,30 @@ class RemindersTestCase(TestCase):
         self._setup_notification()
         self._create_dummy_history(Time.MONTH_AGO)
 
-        result = self._run_command(registry_code="foobar",
-                                   days=365,
-                                   action="send-reminders",
-                                   test_mode=True)
+        result = self._run_command(
+            registry_code="foobar", days=365, action="send-reminders", test_mode=True
+        )
 
         lines = result.split("\n")
         print(lines)
-        assert "dummy send reg_code=foobar description=reminder" in lines[0], "send-reminders failed?"
+        assert (
+            "dummy send reg_code=foobar description=reminder" in lines[0]
+        ), "send-reminders failed?"
 
         self._clear_notifications()
         self._setup_user("testuser", Time.LONG_AGO)
         self._setup_notification()
         self._create_dummy_history(Time.MONTH_AGO)
         self._create_dummy_history(Time.MONTH_AGO)
-        result = self._run_command(registry_code="foobar",
-
-                                   days=365,
-                                   action="send-reminders",
-                                   test_mode=True)
+        result = self._run_command(
+            registry_code="foobar", days=365, action="send-reminders", test_mode=True
+        )
 
         lines = result.split("\n")
         print(lines)
-        assert "not sent" in lines, "Expected reminder NOT to be sent if two or more already sent"
+        assert (
+            "not sent" in lines
+        ), "Expected reminder NOT to be sent if two or more already sent"
 
 
 class ClinicalDataTestCase(RDRFTestCase):
@@ -1652,14 +1956,13 @@ class ClinicalDataTestCase(RDRFTestCase):
             registry = None
         if registry is None:
             registry = Registry.objects.create(code=registry_code)
-        data = {"timestamp": "2018-10-12T04:03:21",
-                "forms": []}
+        data = {"timestamp": "2018-10-12T04:03:21", "forms": []}
         cd = ClinicalData()
         cd.data = data
-        cd.collection = 'cdes'
+        cd.collection = "cdes"
         cd.registry_code = registry_code
         cd.django_id = patient_id
-        cd.django_model = 'Patient'
+        cd.django_model = "Patient"
         cd.save()
 
         return cd
@@ -1677,7 +1980,7 @@ class ClinicalDataTestCase(RDRFTestCase):
         patient_model = self.create_new_patient()
         patient_id = patient_model.id
 
-        clinicaldata_model = self.create_clinicaldata(patient_id, 'dummy')
+        clinicaldata_model = self.create_clinicaldata(patient_id, "dummy")
 
         patient_model.delete()
         self.assertEqual(patient_model.active, False)
@@ -1688,10 +1991,10 @@ class ClinicalDataTestCase(RDRFTestCase):
     def test_delete_clinicaldata_sanity_check(self):
         patient_model = self.create_new_patient()
         patient_id = patient_model.id
-        clinicaldata_model1 = self.create_clinicaldata(patient_id, 'dummy')
+        clinicaldata_model1 = self.create_clinicaldata(patient_id, "dummy")
 
         # create another clinicaldata model with different patient id
-        clinicaldata_model2 = self.create_clinicaldata(patient_id + 1, 'dummy')
+        clinicaldata_model2 = self.create_clinicaldata(patient_id + 1, "dummy")
 
         patient_model.delete()
         self.assertEqual(patient_model.active, False)
@@ -1705,7 +2008,7 @@ class ClinicalDataTestCase(RDRFTestCase):
     def test_hard_delete_clinicaldata(self):
         patient_model = self.create_new_patient()
         patient_id = patient_model.id
-        self.create_clinicaldata(patient_id, 'dummy')
+        self.create_clinicaldata(patient_id, "dummy")
         patient_model._hard_delete()
 
         with self.assertRaises(Patient.DoesNotExist):
@@ -1715,15 +2018,15 @@ class ClinicalDataTestCase(RDRFTestCase):
             Patient.objects.really_all().get(id=patient_id)
 
         with self.assertRaises(ClinicalData.DoesNotExist):
-            ClinicalData.objects.get(django_id=patient_id, django_model='Patient')
+            ClinicalData.objects.get(django_id=patient_id, django_model="Patient")
 
     def test_hard_delete_patient_and_clinicaldata_sanity_check(self):
         patient_model1 = self.create_new_patient()
         patient_id1 = patient_model1.id
         patient_model2 = self.create_new_patient()
         patient_id2 = patient_model2.id
-        self.create_clinicaldata(patient_id1, 'dummy')
-        clinicaldata_model2 = self.create_clinicaldata(patient_id2, 'dummy')
+        self.create_clinicaldata(patient_id1, "dummy")
+        clinicaldata_model2 = self.create_clinicaldata(patient_id2, "dummy")
 
         patient_model1._hard_delete()
 
@@ -1734,7 +2037,7 @@ class ClinicalDataTestCase(RDRFTestCase):
             Patient.objects.really_all().get(id=patient_id1)
 
         with self.assertRaises(ClinicalData.DoesNotExist):
-            ClinicalData.objects.get(django_id=patient_id1, django_model='Patient')
+            ClinicalData.objects.get(django_id=patient_id1, django_model="Patient")
 
         self.assertEqual(patient_model2.active, True)
         self.assertEqual(clinicaldata_model2.active, True)
@@ -1742,7 +2045,6 @@ class ClinicalDataTestCase(RDRFTestCase):
 
 
 class UpdateCalculatedFieldsTestCase(FormTestCase):
-
     def setUp(self):
         super().setUp()
 
@@ -1754,10 +2056,16 @@ class UpdateCalculatedFieldsTestCase(FormTestCase):
                             for cde in section["cdes"]:
                                 if cde["code"] == cde_code:
                                     return cde["value"]
+
         self.form_value = form_value
 
-        from rdrf.management.commands.update_calculated_fields import context_ids_for_patient_and_form
-        context_ids = context_ids_for_patient_and_form(self.patient, self.simple_form.name, self.registry)
+        from rdrf.management.commands.update_calculated_fields import (
+            context_ids_for_patient_and_form,
+        )
+
+        context_ids = context_ids_for_patient_and_form(
+            self.patient, self.simple_form.name, self.registry
+        )
         self.context_id = context_ids[0]
 
         ff = FormFiller(self.simple_form)
@@ -1776,32 +2084,42 @@ class UpdateCalculatedFieldsTestCase(FormTestCase):
             self.registry.code,
             self.simple_form.pk,
             self.patient.pk,
-            self.context_id)
+            self.context_id,
+        )
 
     def test_save_new_calculation(self):
         # Check the CDE value is correctly setup.
         collection = ClinicalData.objects.collection(self.registry.code, "cdes")
         db_record = collection.find(self.patient, self.context_id).data().first()
-        assert self.form_value(
-            self.simple_form.name,
-            self.sectionA.code,
-            "CDEAge",
-            db_record) == 20
+        assert (
+            self.form_value(
+                self.simple_form.name, self.sectionA.code, "CDEAge", db_record
+            )
+            == 20
+        )
 
         # Change the CDE value and save it.
-        changed_calculated_cdes = {"CDEAge": {"old_value": 20, "new_value": 21, "section_code": "sectionA"}}
-        from rdrf.management.commands.update_calculated_fields import save_new_calculation
-        save_new_calculation(changed_calculated_cdes, self.context_id,
-                             self.simple_form.name, self.patient, self.registry)
+        changed_calculated_cdes = {
+            "CDEAge": {"old_value": 20, "new_value": 21, "section_code": "sectionA"}
+        }
+        from rdrf.management.commands.update_calculated_fields import (
+            save_new_calculation,
+        )
+
+        save_new_calculation(
+            changed_calculated_cdes,
+            self.context_id,
+            self.simple_form.name,
+            self.patient,
+            self.registry,
+        )
 
         # Check that the CDE value has been updated.
         db_record = collection.find(self.patient, self.context_id).data().first()
 
         cdeage_value = self.form_value(
-            self.simple_form.name,
-            self.sectionA.code,
-            "CDEAge",
-            db_record)
+            self.simple_form.name, self.sectionA.code, "CDEAge", db_record
+        )
         self.assertEqual(cdeage_value, 21)
 
     def test_update_calculated_fields_command(self):
@@ -1810,20 +2128,20 @@ class UpdateCalculatedFieldsTestCase(FormTestCase):
         collection = ClinicalData.objects.collection(self.registry.code, "cdes")
         db_record = collection.find(self.patient, self.context_id).data().first()
         cdebmi_value = self.form_value(
-            self.simple_form.name,
-            self.sectionB.code,
-            "CDEBMI",
-            db_record)
+            self.simple_form.name, self.sectionB.code, "CDEBMI", db_record
+        )
         self.assertEqual(cdebmi_value, "38")
 
-        call_command('update_calculated_fields', registry_code=self.registry.code, patient_id=[self.patient.id])
+        call_command(
+            "update_calculated_fields",
+            registry_code=self.registry.code,
+            patient_id=[self.patient.id],
+        )
 
         db_record = collection.find(self.patient, self.context_id).data().first()
         cdebmi_value = self.form_value(
-            self.simple_form.name,
-            self.sectionB.code,
-            "CDEBMI",
-            db_record)
+            self.simple_form.name, self.sectionB.code, "CDEBMI", db_record
+        )
         self.assertEqual(cdebmi_value, "25.96")
 
 
@@ -1832,9 +2150,11 @@ class CICImporterTestCase(TestCase):
     Tests for the definition importer
     """
 
-    def _get_yaml_file(self, suffix='original'):
+    def _get_yaml_file(self, suffix="original"):
         this_dir = os.path.dirname(__file__)
-        test_yaml = os.path.abspath(os.path.join(this_dir, "..", "..", "fixtures", f"cic_lung_{suffix}.yaml"))
+        test_yaml = os.path.abspath(
+            os.path.join(this_dir, "..", "..", "fixtures", f"cic_lung_{suffix}.yaml")
+        )
         return test_yaml
 
     def _get_survey_names(self):
@@ -1879,7 +2199,10 @@ class CICImporterTestCase(TestCase):
         return list(
             dict.fromkeys(
                 [
-                    code for code in CommonDataElement.objects.filter(code__in=cdes).values_list("pv_group", flat=True)
+                    code
+                    for code in CommonDataElement.objects.filter(
+                        code__in=cdes
+                    ).values_list("pv_group", flat=True)
                     if code is not None
                 ]
             )
@@ -1890,7 +2213,12 @@ class CICImporterTestCase(TestCase):
         Returns a dict of State PV codes and positions
         """
         pv_group = CDEPermittedValueGroup.objects.get(code="State")
-        return {pv.code: pv.position for pv in CDEPermittedValue.objects.filter(pv_group=pv_group).order_by('code')}
+        return {
+            pv.code: pv.position
+            for pv in CDEPermittedValue.objects.filter(pv_group=pv_group).order_by(
+                "code"
+            )
+        }
 
     def model_to_dict(self, model, instance, fields):
         """
@@ -1924,8 +2252,10 @@ class CICImporterTestCase(TestCase):
 
     def form_to_json_string(self, instance, fields):
         f = self.model_to_dict(RegistryForm, instance, fields)
-        f["sections"] = [self.model_to_dict(Section, section, self.section_fields)
-                         for section in instance.section_models]
+        f["sections"] = [
+            self.model_to_dict(Section, section, self.section_fields)
+            for section in instance.section_models
+        ]
         for section in f["sections"]:
             section["elements"] = section["elements"].split(",")
         return json.dumps(f)
@@ -1936,12 +2266,12 @@ class CICImporterTestCase(TestCase):
         :param pvg: PVG object
         :return: a dict of PVG and its PVs (excluding pk of PV)
         """
-        pv_fields = {f.name: f.get_internal_type()
-                     for f in CDEPermittedValue._meta.fields if not f.is_relation and not f.primary_key}
-        d = {
-            "code": pvg.code,
-            "values": []
+        pv_fields = {
+            f.name: f.get_internal_type()
+            for f in CDEPermittedValue._meta.fields
+            if not f.is_relation and not f.primary_key
         }
+        d = {"code": pvg.code, "values": []}
         for pv in CDEPermittedValue.objects.filter(pv_group=pvg):
             value_dict = self.model_to_dict(CDEPermittedValue, pv, pv_fields)
             d["values"].append(value_dict)
@@ -1961,12 +2291,12 @@ class CICImporterTestCase(TestCase):
             "position": sq.position,
             "source": sq.source,
             "widget_config": sq.widget_config,
-            "precondition": None
+            "precondition": None,
         }
         if sq.precondition:
             d["precondition"] = {
                 "cde": sq.precondition.cde.code,
-                "value": sq.precondition.value
+                "value": sq.precondition.value,
             }
         return d
 
@@ -1982,7 +2312,7 @@ class CICImporterTestCase(TestCase):
             "display_name": survey.display_name,
             "form": survey.form,
             "is_followup": survey.is_followup,
-            "questions": []
+            "questions": [],
         }
         for question in SurveyQuestion.objects.filter(survey=survey):
             question_dict = self._survey_question_as_dict(question)
@@ -2003,13 +2333,15 @@ class CICImporterTestCase(TestCase):
         importer.create_registry()  # using the original yaml file here
         self.state_pvs_original = self._get_state_pvs()
 
-        self.yaml_file = self._get_yaml_file(suffix='modified')
+        self.yaml_file = self._get_yaml_file(suffix="modified")
         with open(self.yaml_file) as yf:
             self.yaml_data = yaml.load(yf, Loader=yaml.FullLoader)
         importer.load_yaml(self.yaml_file)
         importer.create_registry()  # using the modified yaml file here
 
-        self.cde_fields = {f.name: f.get_internal_type() for f in CommonDataElement._meta.fields}
+        self.cde_fields = {
+            f.name: f.get_internal_type() for f in CommonDataElement._meta.fields
+        }
         self.cdes_in_yaml = self.yaml_data["cdes"]
 
         self.state_pvs_modified = self._get_state_pvs()
@@ -2023,27 +2355,35 @@ class CICImporterTestCase(TestCase):
         self.pvgs_in_yaml = self.yaml_data["pvgs"]
         self.pvg_codes_in_db = self._get_pvg_codes()
 
-        self.section_fields = {f.name: f.get_internal_type() for f in Section._meta.fields if f.name != "id"}
+        self.section_fields = {
+            f.name: f.get_internal_type()
+            for f in Section._meta.fields
+            if f.name != "id"
+        }
         self.sections_in_yaml = []  # self.yaml_data["sections"]
         self.section_codes_in_db = self._get_section_codes()
 
-        self.form_fields = {f.name: f.get_internal_type()
-                            for f in RegistryForm._meta.fields
-                            if not f.is_relation and f.name not in ["id", "is_questionnaire_login"]}
+        self.form_fields = {
+            f.name: f.get_internal_type()
+            for f in RegistryForm._meta.fields
+            if not f.is_relation and f.name not in ["id", "is_questionnaire_login"]
+        }
         self.forms_in_yaml = self.yaml_data["forms"]
         self.form_names_in_db = self._get_form_names()
 
     def assert_precondition_imported(self, q, survey_questions_in_db, survey_in_yaml):
         cde = q["precondition"]["cde"]
         value = q["precondition"]["value"]
-        preconditions = Precondition.objects.filter(survey__name=survey_in_yaml["name"],
-                                                    cde__code=cde, value=value).count()
+        preconditions = Precondition.objects.filter(
+            survey__name=survey_in_yaml["name"], cde__code=cde, value=value
+        ).count()
         self.assertEqual(preconditions, 1)
 
     def assert_precondition_validity(self, q, survey_questions_in_db):
         precondition_cde = q["precondition"]["cde"]
-        is_precondition_cde_present = self._precondition_cde_exists(precondition_cde,
-                                                                    survey_questions_in_db)
+        is_precondition_cde_present = self._precondition_cde_exists(
+            precondition_cde, survey_questions_in_db
+        )
         self.assertTrue(is_precondition_cde_present)
 
     def test_cdes(self):
@@ -2052,13 +2392,15 @@ class CICImporterTestCase(TestCase):
         """
         for cde_in_yaml in self.cdes_in_yaml:
             cde = CommonDataElement.objects.get(code=cde_in_yaml["code"])
-            cde_from_db = self.model_to_json_string(CommonDataElement, cde, self.cde_fields)
+            cde_from_db = self.model_to_json_string(
+                CommonDataElement, cde, self.cde_fields
+            )
             cde_from_yaml = json.dumps(cde_in_yaml)
             self.assertEqual(cde_from_yaml, cde_from_db)
 
     def test_forms(self):
         """
-         Tests if the imported RegistryForm objects match the yaml
+        Tests if the imported RegistryForm objects match the yaml
         """
         for form_in_yaml in self.forms_in_yaml:
             form = RegistryForm.objects.get(name=form_in_yaml["name"])
@@ -2074,20 +2416,30 @@ class CICImporterTestCase(TestCase):
         """
         for survey_in_yaml in self.surveys_in_yaml:
 
-            assert (survey_in_yaml["name"] in self.survey_names_in_db)
+            assert survey_in_yaml["name"] in self.survey_names_in_db
 
             if survey_in_yaml["name"] in self.survey_names_in_db:
                 survey = Survey.objects.get(name=survey_in_yaml["name"])
                 survey_in_db = self._survey_as_dict(survey)
 
-                survey_questions_in_yaml = sorted(survey_in_yaml["questions"], key=lambda k: k["cde"])
-                survey_questions_in_db = sorted(survey_in_db["questions"], key=lambda k: k["cde"])
-                self.assertEqual(survey_questions_in_yaml, survey_questions_in_db)  # questions
+                survey_questions_in_yaml = sorted(
+                    survey_in_yaml["questions"], key=lambda k: k["cde"]
+                )
+                survey_questions_in_db = sorted(
+                    survey_in_db["questions"], key=lambda k: k["cde"]
+                )
+                self.assertEqual(
+                    survey_questions_in_yaml, survey_questions_in_db
+                )  # questions
 
                 for question_in_db in survey_questions_in_db:
                     if question_in_db["precondition"] is not None:
-                        self.assert_precondition_imported(question_in_db, survey_questions_in_db, survey_in_yaml)
-                        self.assert_precondition_validity(question_in_db, survey_questions_in_db)
+                        self.assert_precondition_imported(
+                            question_in_db, survey_questions_in_db, survey_in_yaml
+                        )
+                        self.assert_precondition_validity(
+                            question_in_db, survey_questions_in_db
+                        )
 
     def test_pvgs(self):
         """
@@ -2098,7 +2450,9 @@ class CICImporterTestCase(TestCase):
                 pvg = CDEPermittedValueGroup.objects.get(code=pvg_in_yaml["code"])
                 pvg_in_db = self._pvg_as_dict(pvg)
 
-                pvg_values_in_yaml = sorted(pvg_in_yaml["values"], key=lambda k: k["code"])
+                pvg_values_in_yaml = sorted(
+                    pvg_in_yaml["values"], key=lambda k: k["code"]
+                )
                 pvg_values_in_db = sorted(pvg_in_db["values"], key=lambda k: k["code"])
                 self.assertEqual(pvg_values_in_yaml, pvg_values_in_db)
 
@@ -2119,16 +2473,17 @@ class CICImporterTestCase(TestCase):
 
 
 class SetupPromsCommandTest(TestCase):
-
     def setUp(self):
         importer = Importer()
         importer.load_yaml(self._get_yaml_file())
         importer.create_registry()
-        self.modified_yaml = self._get_yaml_file(suffix='modified')
+        self.modified_yaml = self._get_yaml_file(suffix="modified")
 
-    def _get_yaml_file(self, suffix='original'):
+    def _get_yaml_file(self, suffix="original"):
         this_dir = os.path.dirname(__file__)
-        test_yaml = os.path.abspath(os.path.join(this_dir, "..", "..", "fixtures", f"cic_lung_{suffix}.yaml"))
+        test_yaml = os.path.abspath(
+            os.path.join(this_dir, "..", "..", "fixtures", f"cic_lung_{suffix}.yaml")
+        )
         return test_yaml
 
     def test_version(self):
@@ -2137,13 +2492,19 @@ class SetupPromsCommandTest(TestCase):
 
     def test_preserving_metadata(self):
         call_command("setup_proms", yaml=self.modified_yaml)
-        proms_system_url = Registry.objects.get(code="ICHOMLC").metadata["proms_system_url"]
+        proms_system_url = Registry.objects.get(code="ICHOMLC").metadata[
+            "proms_system_url"
+        ]
         self.assertEqual(proms_system_url, "https://rdrf.ccgapps.com.au/ciclungproms")
 
     def test_overwriting_metadata(self):
         call_command("setup_proms", yaml=self.modified_yaml, override=True)
-        proms_system_url = Registry.objects.get(code="ICHOMLC").metadata["proms_system_url"]
-        self.assertEqual(proms_system_url, "https://rdrf.ccgapps.com.au/ciclungpromsmodified")
+        proms_system_url = Registry.objects.get(code="ICHOMLC").metadata[
+            "proms_system_url"
+        ]
+        self.assertEqual(
+            proms_system_url, "https://rdrf.ccgapps.com.au/ciclungpromsmodified"
+        )
 
 
 script_paths = {
@@ -2153,11 +2514,12 @@ script_paths = {
 
 
 class CheckViewsTestCase(TestCase):
-
     def test_check_views(self):
         proj_name = os.getenv("PROJECT_NAME")
         completed_process = subprocess.run(
-            ["python", f"{script_paths[proj_name]}/check_views.py", "/app/rdrf"], capture_output=True)
+            ["python", f"{script_paths[proj_name]}/check_views.py", "/app/rdrf"],
+            capture_output=True,
+        )
         if completed_process.returncode == 1:
             print("Insecure Views:")
             print(completed_process.stdout)
@@ -2165,15 +2527,16 @@ class CheckViewsTestCase(TestCase):
 
 
 class CheckViewsUnitTests(TestCase):
-
     def setUp(self):
         import sys
+
         base_dir = os.getcwd()
         old_sys_path = sys.path
         proj_name = os.getenv("PROJECT_NAME")
         os.chdir(script_paths[proj_name])
         sys.path.append(".")
         from check_views import search_and_check_views
+
         os.chdir(base_dir)
         sys.path = old_sys_path
 
@@ -2181,8 +2544,8 @@ class CheckViewsUnitTests(TestCase):
 
     def check_view_assist(self, view_lines):
         good_view = True
-        state = 's'
-        view = ''
+        state = "s"
+        view = ""
 
         for index, line_var in enumerate(view_lines):
             bad_view, state, view = self.func_to_test(
@@ -2245,26 +2608,38 @@ class CheckViewsUnitTests(TestCase):
             "",
         ]
 
-        self.assertTrue(self.check_view_assist(not_a_view), "Error: should not find bad view where there is no view!")
-        self.assertTrue(self.check_view_assist(view_has_mixin), "Error: view has mixin, but mixin has not been found!")
-        self.assertTrue(self.check_view_assist(view_has_decorators),
-                        "Error: view has decorators, but decorators have not been found!")
-        self.assertFalse(self.check_view_assist(view_lacks_security), "Error: view is not secure, but no issues found!")
+        self.assertTrue(
+            self.check_view_assist(not_a_view),
+            "Error: should not find bad view where there is no view!",
+        )
+        self.assertTrue(
+            self.check_view_assist(view_has_mixin),
+            "Error: view has mixin, but mixin has not been found!",
+        )
+        self.assertTrue(
+            self.check_view_assist(view_has_decorators),
+            "Error: view has decorators, but decorators have not been found!",
+        )
+        self.assertFalse(
+            self.check_view_assist(view_lacks_security),
+            "Error: view is not secure, but no issues found!",
+        )
 
 
 class CalculatedFieldSecurityTestCase(RDRFTestCase):
-
     def setUp(self):
         super(CalculatedFieldSecurityTestCase, self).setUp()
-        self.registry = Registry.objects.get(code='fh')
+        self.registry = Registry.objects.get(code="fh")
 
-        self.wg1, created = WorkingGroup.objects.get_or_create(name="testgroup1",
-                                                               registry=self.registry)
+        self.wg1, created = WorkingGroup.objects.get_or_create(
+            name="testgroup1", registry=self.registry
+        )
         if created:
             self.wg1.save()
 
-        self.wg2, created = WorkingGroup.objects.get_or_create(name="testgroup2",
-                                                               registry=self.registry)
+        self.wg2, created = WorkingGroup.objects.get_or_create(
+            name="testgroup2", registry=self.registry
+        )
         if created:
             self.wg2.save()
 
@@ -2300,12 +2675,14 @@ class CalculatedFieldSecurityTestCase(RDRFTestCase):
 
         context_manager = RDRFContextManager(self.registry)
         self.default_context = context_manager.get_or_create_default_context(
-            p, new_patient=True)
+            p, new_patient=True
+        )
 
         return p
 
     def test_calc_field_security(self):
         from rdrf.helpers.utils import same_working_group, is_calculated_cde_in_registry
+
         # What tests do we need?
         # 1. Testing user and patient with matching working groups
         self.assertTrue(same_working_group(self.patient, self.user1, self.registry))
@@ -2314,13 +2691,23 @@ class CalculatedFieldSecurityTestCase(RDRFTestCase):
         self.assertFalse(same_working_group(self.patient, self.user2, self.registry))
 
         # 3. Testing Admin working group matching
-        self.assertTrue(same_working_group(self.patient, self.user_admin, self.registry))
+        self.assertTrue(
+            same_working_group(self.patient, self.user_admin, self.registry)
+        )
 
         # 4. Testing if FH calculated field exists in FH
-        self.assertTrue(is_calculated_cde_in_registry(CommonDataElement.objects.get(pk="CDEBMI"), self.registry))
+        self.assertTrue(
+            is_calculated_cde_in_registry(
+                CommonDataElement.objects.get(pk="CDEBMI"), self.registry
+            )
+        )
 
         # 5. Testing if FH non-calculated field is picked up by function
-        self.assertFalse(is_calculated_cde_in_registry(CommonDataElement.objects.get(pk="CDE00003"), self.registry))
+        self.assertFalse(
+            is_calculated_cde_in_registry(
+                CommonDataElement.objects.get(pk="CDE00003"), self.registry
+            )
+        )
 
         # 6. Testing if non-FH calculated field exists in FH
         # No non-FH calculated fields in the test data, but have
@@ -2328,10 +2715,11 @@ class CalculatedFieldSecurityTestCase(RDRFTestCase):
 
 
 class HL7HandlerTestCase(RDRFTestCase):
-
-    def _get_yaml_file(self, suffix='original'):
+    def _get_yaml_file(self, suffix="original"):
         this_dir = os.path.dirname(__file__)
-        test_yaml = os.path.abspath(os.path.join(this_dir, "..", "..", "fixtures", f"cic_crc_{suffix}.yaml"))
+        test_yaml = os.path.abspath(
+            os.path.join(this_dir, "..", "..", "fixtures", f"cic_crc_{suffix}.yaml")
+        )
         return test_yaml
 
     def setUp(self):
@@ -2364,12 +2752,15 @@ class HL7HandlerTestCase(RDRFTestCase):
         p.rdrf_registry.set([self.registry])
 
         context_manager = RDRFContextManager(self.registry)
-        self.default_context = context_manager.get_or_create_default_context(p, new_patient=True)
+        self.default_context = context_manager.get_or_create_default_context(
+            p, new_patient=True
+        )
         p.save()
         return p
 
     def _create_hl7mapping(self):
         from intframework.models import HL7Mapping
+
         mapping = {
             "Demographics/family_name": {"path": "PID.F5.R1.C1"},
             "Demographics/given_names": {"path": "PID.F5.R1.C2"},
@@ -2379,29 +2770,64 @@ class HL7HandlerTestCase(RDRFTestCase):
             "Demographics/place_of_birth": {"path": "PID.F23"},
             "Demographics/country_of_birth": {"path": "PID.F11.R1.C6"},
             "Demographics/ethnic_origin": {"path": "PID.F22.R1.C2"},
-            "Demographics/sex": {"path": "PID.F8", "tag": "mapping", "map": {"M": 1, "F": 2, "U": 3, "O": 3, "A": 3, "N": 3}},
-            "Demographics/home_phone": {"tag": "search", "path": "PID.F13", "num_components": 4, "select": "C4", "where": {"C2": "P", "C3": "T"}},
-            "Demographics/mobile_phone": {"tag": "search", "path": "PID.F13", "num_components": 4, "select": "C4", "where": {"C2": "P", "C3": "M"}},
-            "Demographics/email": {"tag": "search", "path": "PID.F13", "num_components": 4, "select": "C4", "where": {"C2": "P", "C3": "E"}},
-            "Demographics/work_phone": {"tag": "search", "path": "PID.F13", "num_components": 4, "select": "C4", "where": {"C2": "B", "C3": "P"}}
+            "Demographics/sex": {
+                "path": "PID.F8",
+                "tag": "mapping",
+                "map": {"M": 1, "F": 2, "U": 3, "O": 3, "A": 3, "N": 3},
+            },
+            "Demographics/home_phone": {
+                "tag": "search",
+                "path": "PID.F13",
+                "num_components": 4,
+                "select": "C4",
+                "where": {"C2": "P", "C3": "T"},
+            },
+            "Demographics/mobile_phone": {
+                "tag": "search",
+                "path": "PID.F13",
+                "num_components": 4,
+                "select": "C4",
+                "where": {"C2": "P", "C3": "M"},
+            },
+            "Demographics/email": {
+                "tag": "search",
+                "path": "PID.F13",
+                "num_components": 4,
+                "select": "C4",
+                "where": {"C2": "P", "C3": "E"},
+            },
+            "Demographics/work_phone": {
+                "tag": "search",
+                "path": "PID.F13",
+                "num_components": 4,
+                "select": "C4",
+                "where": {"C2": "B", "C3": "P"},
+            },
         }
 
-        hm = HL7Mapping.objects.create(event_code="ADR_A19", event_map=json.dumps(mapping))
+        hm = HL7Mapping.objects.create(
+            event_code="ADR_A19", event_map=json.dumps(mapping)
+        )
         hm.save()
 
     def test_update_patient(self):
         from intframework.updater import HL7Handler
         from intframework.hub import MockClient
+
         self._create_hl7mapping()
         self.patient = self.create_patient()
         user = get_user_model().objects.get(username="curator")
-        client = MockClient(self.registry, user, settings.HUB_ENDPOINT, settings.HUB_PORT)
+        client = MockClient(
+            self.registry, user, settings.HUB_ENDPOINT, settings.HUB_PORT
+        )
         this_dir = os.path.dirname(__file__)
         mock_message = os.path.abspath(os.path.join(this_dir, "mock-message.txt"))
         client.MOCK_MESSAGE = mock_message
         response_data = client.get_data("A4376449")
         hl7message = response_data["message"]
-        hl7_handler = HL7Handler(umrn="A4376449", hl7message=hl7message, username="testing")
+        hl7_handler = HL7Handler(
+            umrn="A4376449", hl7message=hl7message, username="testing"
+        )
         hl7_handler.handle()
         updated_patient = Patient.objects.get(pk=self.patient.id)
         self.assertEqual(updated_patient.given_names.upper(), "FRANCIS")
@@ -2410,37 +2836,46 @@ class HL7HandlerTestCase(RDRFTestCase):
     def test_subscribed_function(self):
         from intframework.utils import patient_subscribed
         from intframework.utils import parse_message
+
         this_dir = os.path.dirname(__file__)
         mock_message_path = os.path.abspath(os.path.join(this_dir, "mock-message.txt"))
         m = parse_message(mock_message_path)
-        self.assertTrue(patient_subscribed(m), "Mock message has AA so should be subscribed")
+        self.assertTrue(
+            patient_subscribed(m), "Mock message has AA so should be subscribed"
+        )
 
     def test_patient_found_function(self):
         from intframework.utils import patient_found
         from intframework.utils import parse_message
+
         this_dir = os.path.dirname(__file__)
         mock_message_path = os.path.abspath(os.path.join(this_dir, "mock-message.txt"))
         m = parse_message(mock_message_path)
-        self.assertTrue(patient_found(m), "Mock message has PID  so patient should be found")
+        self.assertTrue(
+            patient_found(m), "Mock message has PID  so patient should be found"
+        )
 
 
 class FamilyLinkageTestCase(RDRFTestCase):
-
     def setUp(self):
         super(FamilyLinkageTestCase, self).setUp()
         # need to import FH to correctly use family linkage
         this_dir = os.path.dirname(__file__)
-        test_yaml = os.path.abspath(os.path.join(this_dir, "..", "..", "fixtures", "exported_fh_registry.yaml"))
+        test_yaml = os.path.abspath(
+            os.path.join(this_dir, "..", "..", "fixtures", "exported_fh_registry.yaml")
+        )
         importer = Importer()
         importer.load_yaml(test_yaml)
         importer.create_registry()
-        self.registry = Registry.objects.get(code='fh')
+        self.registry = Registry.objects.get(code="fh")
         self.address_type, created = AddressType.objects.get_or_create(pk=1)
         # make 3 patients for full tests
         self.patient_ids = self.create_patients()
         # maybe make non-patient relative for "non-patient to index" use case
 
-    def create_new_patient(self, given_name, surname, date_of_birth, sex, living_status, p_ids):
+    def create_new_patient(
+        self, given_name, surname, date_of_birth, sex, living_status, p_ids
+    ):
         from rdrf.db.contexts_api import RDRFContextManager
 
         patient_new = Patient()
@@ -2459,13 +2894,18 @@ class FamilyLinkageTestCase(RDRFTestCase):
         patient_new.rdrf_registry.set([self.registry])
         context_manager = RDRFContextManager(self.registry)
         default_context = context_manager.get_or_create_default_context(
-            patient_new, new_patient=True)
+            patient_new, new_patient=True
+        )
         patient_new.save()
-        p_ids += [patient_new.pk, ]
+        p_ids += [
+            patient_new.pk,
+        ]
 
         return patient_new, p_ids, default_context
 
-    def create_new_patient_relative(self, given_name, surname, date_of_birth, sex, living_status, location, index):
+    def create_new_patient_relative(
+        self, given_name, surname, date_of_birth, sex, living_status, location, index
+    ):
         from registry.patients.models import PatientRelative
 
         patient_rel_new = PatientRelative()
@@ -2499,9 +2939,11 @@ class FamilyLinkageTestCase(RDRFTestCase):
         # make patients with func, and add pks to list
         patient_ids = []
         patient_1, patient_ids, self.patient_1_context = self.create_new_patient(
-            "Test", "Test", datetime(1989, 10, 21), "Male", "Living", patient_ids)
+            "Test", "Test", datetime(1989, 10, 21), "Male", "Living", patient_ids
+        )
         patient_2, patient_ids, self.patient_2_context = self.create_new_patient(
-            "Chester", "Test", datetime(1979, 4, 13), "Male", "Living", patient_ids)
+            "Chester", "Test", datetime(1979, 4, 13), "Male", "Living", patient_ids
+        )
         # patient_3, patient_ids, self.patient_3_context = self.create_new_patient("Hester", "Test", datetime(1968, 1, 4), "Female", "Living", patient_ids)
         # make addresses and assign to patients with func - extend later with extra home & some postal addrs
         self.create_address(1, "123 Somewhere Street", "Australia", patient_1)
@@ -2511,29 +2953,31 @@ class FamilyLinkageTestCase(RDRFTestCase):
 
     def run_linkage_manager(self, new_packet):
         from rdrf.views.family_linkage import FamilyLinkageManager
+
         self.linkage_manager = FamilyLinkageManager(self.registry, new_packet)
         self.linkage_manager.run()
 
     def patient_is_index(self, patient):
         family_linkage_value = patient.get_form_value(
             self.registry.code,
-            self.registry.metadata['family_linkage_form_name'],
-            self.registry.metadata['family_linkage_section_code'],
-            self.registry.metadata['family_linkage_cde_code']
+            self.registry.metadata["family_linkage_form_name"],
+            self.registry.metadata["family_linkage_section_code"],
+            self.registry.metadata["family_linkage_cde_code"],
         )
-        return family_linkage_value == 'fh_is_index'
+        return family_linkage_value == "fh_is_index"
 
     def patient_is_relative(self, patient):
         family_linkage_value = patient.get_form_value(
             self.registry.code,
-            self.registry.metadata['family_linkage_form_name'],
-            self.registry.metadata['family_linkage_section_code'],
-            self.registry.metadata['family_linkage_cde_code']
+            self.registry.metadata["family_linkage_form_name"],
+            self.registry.metadata["family_linkage_section_code"],
+            self.registry.metadata["family_linkage_cde_code"],
         )
-        return family_linkage_value == 'fh_is_relative'
+        return family_linkage_value == "fh_is_relative"
 
     def test_family_linkage_manager(self):
         from registry.patients.models import PatientRelative
+
         # What tests do we need?
         # First, set index patient
         error_string = "Error in section: "
@@ -2541,319 +2985,437 @@ class FamilyLinkageTestCase(RDRFTestCase):
         patient1_test = Patient.objects.get(pk=self.patient_ids[0])
         # make FamilyLinkageManager with initial packet
         init_packet = {
-            'index': {
-                'pk': patient1_test.pk,
-                'given_names': patient1_test.given_names,
-                'family_name': patient1_test.family_name,
-                'class': 'Patient',
-                'working_group': None,
-                'link': f'/fh/patient/{patient1_test.pk}/edit'
+            "index": {
+                "pk": patient1_test.pk,
+                "given_names": patient1_test.given_names,
+                "family_name": patient1_test.family_name,
+                "class": "Patient",
+                "working_group": None,
+                "link": f"/fh/patient/{patient1_test.pk}/edit",
             },
-            'relatives': [],
-            'original_index': {
-                'pk': patient1_test.pk,
-                'given_names': patient1_test.given_names,
-                'family_name': patient1_test.family_name,
-                'class': 'Patient',
-                'working_group': None,
-                'link': f'/fh/patient/{patient1_test.pk}/edit'
-            }
+            "relatives": [],
+            "original_index": {
+                "pk": patient1_test.pk,
+                "given_names": patient1_test.given_names,
+                "family_name": patient1_test.family_name,
+                "class": "Patient",
+                "working_group": None,
+                "link": f"/fh/patient/{patient1_test.pk}/edit",
+            },
         }
         logger.info(f"{test_section_str}...")
         self.run_linkage_manager(init_packet)
-        self.assertTrue(self.linkage_manager.index_patient == patient1_test,
-                        f"{error_string}{test_section_str}: Index in linkage manager does not match Patient {patient1_test} (ID = {patient1_test.pk})")
-        self.assertTrue(self.patient_is_index(patient1_test),
-                        f"{error_string}{test_section_str}: Patient {patient1_test} (ID = {patient1_test.pk}) is not index")
+        self.assertTrue(
+            self.linkage_manager.index_patient == patient1_test,
+            f"{error_string}{test_section_str}: Index in linkage manager does not match Patient {patient1_test} (ID = {patient1_test.pk})",
+        )
+        self.assertTrue(
+            self.patient_is_index(patient1_test),
+            f"{error_string}{test_section_str}: Patient {patient1_test} (ID = {patient1_test.pk}) is not index",
+        )
 
         # 1. Link patient to index patient, check that location, living status, and sex carry over
         test_section_str = "Linking new patient to index"
         patient2_test = Patient.objects.get(pk=self.patient_ids[1])
         link_patient_to_index_packet = {
-            'index': {
-                'pk': patient1_test.pk,
-                'given_names': patient1_test.given_names,
-                'family_name': patient1_test.family_name,
-                'class': 'Patient',
-                'working_group': None,
-                'link': f'/fh/patient/{patient1_test.pk}/edit'
+            "index": {
+                "pk": patient1_test.pk,
+                "given_names": patient1_test.given_names,
+                "family_name": patient1_test.family_name,
+                "class": "Patient",
+                "working_group": None,
+                "link": f"/fh/patient/{patient1_test.pk}/edit",
             },
-            'relatives': [
+            "relatives": [
                 {
-                    'pk': patient2_test.pk,
-                    'given_names': patient2_test.given_names,
-                    'family_name': patient2_test.family_name,
-                    'class': 'Patient',
-                    'working_group': None,
-                    'link': f'/fh/patient/{patient2_test.pk}/edit',
-                    'relationship': 'Sibling (1st degree)'
+                    "pk": patient2_test.pk,
+                    "given_names": patient2_test.given_names,
+                    "family_name": patient2_test.family_name,
+                    "class": "Patient",
+                    "working_group": None,
+                    "link": f"/fh/patient/{patient2_test.pk}/edit",
+                    "relationship": "Sibling (1st degree)",
                 },
             ],
-            'original_index': {
-                'pk': patient1_test.pk,
-                'given_names': patient1_test.given_names,
-                'family_name': patient1_test.family_name,
-                'class': 'Patient',
-                'working_group': None,
-                'link': f'/fh/patient/{patient1_test.pk}/edit'
-            }
+            "original_index": {
+                "pk": patient1_test.pk,
+                "given_names": patient1_test.given_names,
+                "family_name": patient1_test.family_name,
+                "class": "Patient",
+                "working_group": None,
+                "link": f"/fh/patient/{patient1_test.pk}/edit",
+            },
         }
         logger.info(f"{test_section_str}...")
         self.run_linkage_manager(link_patient_to_index_packet)
 
         # No opposite to assertRaises - this test expects an exception NOT to be raised
         try:
-            relative_patient2_test = PatientRelative.objects.get(relative_patient=patient2_test)
+            relative_patient2_test = PatientRelative.objects.get(
+                relative_patient=patient2_test
+            )
         except PatientRelative.DoesNotExist:
             self.fail(
-                f"{error_string}{test_section_str}: PatientRelative for Patient {patient2_test} (ID = {patient2_test.pk}) has not been created")
-        self.assertTrue(relative_patient2_test.sex == patient2_test.sex,
-                        f"{error_string}{test_section_str}: PatientRelative sex {relative_patient2_test.sex} does not match Patient {patient2_test} sex '{patient2_test.sex}'")
-        self.assertTrue(relative_patient2_test.living_status == patient2_test.living_status,
-                        f"{error_string}{test_section_str}: PatientRelative living status {relative_patient2_test.living_status} does not match Patient {patient2_test} living status '{patient2_test.living_status}'")
-        self.assertTrue(relative_patient2_test.location == PatientAddress.objects.get(patient=patient2_test).country,
-                        f"{error_string}{test_section_str}: PatientRelative location {relative_patient2_test.location} does not match Patient {patient2_test} location '{PatientAddress.objects.get(patient=patient2_test).country}'")
-        self.assertTrue(relative_patient2_test.patient == patient1_test,
-                        f"{error_string}{test_section_str}: PatientRelative index {relative_patient2_test.patient} does not match Patient {patient1_test}")
-        self.assertTrue(relative_patient2_test in patient1_test.relatives.all(),
-                        f"{error_string}{test_section_str}: PatientRelative is not in index {patient1_test}'s relatives")
-        self.assertTrue(relative_patient2_test.relationship == "Sibling (1st degree)",
-                        f"{error_string}{test_section_str}: PatientRelative's relationship {relative_patient2_test.relationship} does not match 'Sibling (1st degree)'")
-        self.assertTrue(self.patient_is_relative(patient2_test),
-                        f"{error_string}{test_section_str}: Patient {patient2_test} is not a relative")
-        self.assertFalse(self.patient_is_index(patient2_test),
-                         f"{error_string}{test_section_str}: Patient {patient2_test} is an index")
+                f"{error_string}{test_section_str}: PatientRelative for Patient {patient2_test} (ID = {patient2_test.pk}) has not been created"
+            )
+        self.assertTrue(
+            relative_patient2_test.sex == patient2_test.sex,
+            f"{error_string}{test_section_str}: PatientRelative sex {relative_patient2_test.sex} does not match Patient {patient2_test} sex '{patient2_test.sex}'",
+        )
+        self.assertTrue(
+            relative_patient2_test.living_status == patient2_test.living_status,
+            f"{error_string}{test_section_str}: PatientRelative living status {relative_patient2_test.living_status} does not match Patient {patient2_test} living status '{patient2_test.living_status}'",
+        )
+        self.assertTrue(
+            relative_patient2_test.location
+            == PatientAddress.objects.get(patient=patient2_test).country,
+            f"{error_string}{test_section_str}: PatientRelative location {relative_patient2_test.location} does not match Patient {patient2_test} location '{PatientAddress.objects.get(patient=patient2_test).country}'",
+        )
+        self.assertTrue(
+            relative_patient2_test.patient == patient1_test,
+            f"{error_string}{test_section_str}: PatientRelative index {relative_patient2_test.patient} does not match Patient {patient1_test}",
+        )
+        self.assertTrue(
+            relative_patient2_test in patient1_test.relatives.all(),
+            f"{error_string}{test_section_str}: PatientRelative is not in index {patient1_test}'s relatives",
+        )
+        self.assertTrue(
+            relative_patient2_test.relationship == "Sibling (1st degree)",
+            f"{error_string}{test_section_str}: PatientRelative's relationship {relative_patient2_test.relationship} does not match 'Sibling (1st degree)'",
+        )
+        self.assertTrue(
+            self.patient_is_relative(patient2_test),
+            f"{error_string}{test_section_str}: Patient {patient2_test} is not a relative",
+        )
+        self.assertFalse(
+            self.patient_is_index(patient2_test),
+            f"{error_string}{test_section_str}: Patient {patient2_test} is an index",
+        )
 
         # 2. Swap relative to index, check that original index's location, living status, and sex are preserved
         test_section_str = "Setting relative to be new index"
         relative_to_index_packet = {
-            'index': {
-                'pk': relative_patient2_test.pk,
-                'given_names': relative_patient2_test.given_names,
-                'family_name': relative_patient2_test.family_name,
-                'class': 'PatientRelative',
-                'working_group': None,
-                'link': f'/fh/patient/{relative_patient2_test.relative_patient.pk}/edit'
+            "index": {
+                "pk": relative_patient2_test.pk,
+                "given_names": relative_patient2_test.given_names,
+                "family_name": relative_patient2_test.family_name,
+                "class": "PatientRelative",
+                "working_group": None,
+                "link": f"/fh/patient/{relative_patient2_test.relative_patient.pk}/edit",
             },
-            'relatives': [
+            "relatives": [
                 {
-                    'pk': patient1_test.pk,
-                    'given_names': patient1_test.given_names,
-                    'family_name': patient1_test.family_name,
-                    'class': 'Patient',
-                    'working_group': None,
-                    'link': f'/fh/patient/{patient1_test.pk}/edit',
-                    'relationship': 'Sibling (1st degree)'
+                    "pk": patient1_test.pk,
+                    "given_names": patient1_test.given_names,
+                    "family_name": patient1_test.family_name,
+                    "class": "Patient",
+                    "working_group": None,
+                    "link": f"/fh/patient/{patient1_test.pk}/edit",
+                    "relationship": "Sibling (1st degree)",
                 },
             ],
-            'original_index': {
-                'pk': patient1_test.pk,
-                'given_names': patient1_test.given_names,
-                'family_name': patient1_test.family_name,
-                'class': 'Patient',
-                'working_group': None,
-                'link': f'/fh/patient/{patient1_test.pk}/edit'
-            }
+            "original_index": {
+                "pk": patient1_test.pk,
+                "given_names": patient1_test.given_names,
+                "family_name": patient1_test.family_name,
+                "class": "Patient",
+                "working_group": None,
+                "link": f"/fh/patient/{patient1_test.pk}/edit",
+            },
         }
         logger.info(f"{test_section_str}...")
         self.run_linkage_manager(relative_to_index_packet)
 
-        with self.assertRaises(PatientRelative.DoesNotExist, msg=f"{error_string}{test_section_str}: PatientRelative for Patient {patient2_test} exists when it should not"):
-            relative_patient2_test = PatientRelative.objects.get(relative_patient=patient2_test)
-        self.assertTrue(self.patient_is_index(patient2_test),
-                        f"{error_string}{test_section_str}: Patient {patient2_test} is not an index")
-        self.assertFalse(self.patient_is_relative(patient2_test),
-                         f"{error_string}{test_section_str}: Patient {patient2_test} is a relative")
+        with self.assertRaises(
+            PatientRelative.DoesNotExist,
+            msg=f"{error_string}{test_section_str}: PatientRelative for Patient {patient2_test} exists when it should not",
+        ):
+            relative_patient2_test = PatientRelative.objects.get(
+                relative_patient=patient2_test
+            )
+        self.assertTrue(
+            self.patient_is_index(patient2_test),
+            f"{error_string}{test_section_str}: Patient {patient2_test} is not an index",
+        )
+        self.assertFalse(
+            self.patient_is_relative(patient2_test),
+            f"{error_string}{test_section_str}: Patient {patient2_test} is a relative",
+        )
         try:
-            relative_patient1_test = PatientRelative.objects.get(relative_patient=patient1_test)
+            relative_patient1_test = PatientRelative.objects.get(
+                relative_patient=patient1_test
+            )
         except PatientRelative.DoesNotExist:
             self.fail(
-                f"{error_string}{test_section_str}: PatientRelative for Patient {patient1_test} (ID = {patient1_test.pk}) has not been created")
-        self.assertTrue(relative_patient1_test.sex == patient1_test.sex,
-                        f"{error_string}{test_section_str}: PatientRelative sex {relative_patient1_test.sex} does not match Patient {patient1_test} sex '{patient1_test.sex}'")
-        self.assertTrue(relative_patient1_test.living_status == patient1_test.living_status,
-                        f"{error_string}{test_section_str}: PatientRelative living status {relative_patient1_test.living_status} does not match Patient {patient1_test} living status '{patient1_test.living_status}'")
-        self.assertTrue(relative_patient1_test.location == PatientAddress.objects.get(patient=patient1_test).country,
-                        f"{error_string}{test_section_str}: PatientRelative location {relative_patient1_test.location} does not match Patient {patient1_test} location '{PatientAddress.objects.get(patient=patient1_test).country}'")
-        self.assertTrue(relative_patient1_test.patient == patient2_test,
-                        f"{error_string}{test_section_str}: PatientRelative index {relative_patient1_test.patient} does not match Patient {patient2_test}")
-        self.assertTrue(relative_patient1_test in patient2_test.relatives.all(),
-                        f"{error_string}{test_section_str}: PatientRelative is not in index {patient2_test}'s relatives")
-        self.assertTrue(relative_patient1_test.relationship == "Sibling (1st degree)",
-                        f"{error_string}{test_section_str}: PatientRelative's relationship {relative_patient1_test.relationship} does not match 'Sibling (1st degree)'")
-        self.assertTrue(self.patient_is_relative(patient1_test),
-                        f"{error_string}{test_section_str}: Patient {patient1_test} is not a relative")
-        self.assertFalse(self.patient_is_index(patient1_test),
-                         f"{error_string}{test_section_str}: Patient {patient1_test} is an index")
+                f"{error_string}{test_section_str}: PatientRelative for Patient {patient1_test} (ID = {patient1_test.pk}) has not been created"
+            )
+        self.assertTrue(
+            relative_patient1_test.sex == patient1_test.sex,
+            f"{error_string}{test_section_str}: PatientRelative sex {relative_patient1_test.sex} does not match Patient {patient1_test} sex '{patient1_test.sex}'",
+        )
+        self.assertTrue(
+            relative_patient1_test.living_status == patient1_test.living_status,
+            f"{error_string}{test_section_str}: PatientRelative living status {relative_patient1_test.living_status} does not match Patient {patient1_test} living status '{patient1_test.living_status}'",
+        )
+        self.assertTrue(
+            relative_patient1_test.location
+            == PatientAddress.objects.get(patient=patient1_test).country,
+            f"{error_string}{test_section_str}: PatientRelative location {relative_patient1_test.location} does not match Patient {patient1_test} location '{PatientAddress.objects.get(patient=patient1_test).country}'",
+        )
+        self.assertTrue(
+            relative_patient1_test.patient == patient2_test,
+            f"{error_string}{test_section_str}: PatientRelative index {relative_patient1_test.patient} does not match Patient {patient2_test}",
+        )
+        self.assertTrue(
+            relative_patient1_test in patient2_test.relatives.all(),
+            f"{error_string}{test_section_str}: PatientRelative is not in index {patient2_test}'s relatives",
+        )
+        self.assertTrue(
+            relative_patient1_test.relationship == "Sibling (1st degree)",
+            f"{error_string}{test_section_str}: PatientRelative's relationship {relative_patient1_test.relationship} does not match 'Sibling (1st degree)'",
+        )
+        self.assertTrue(
+            self.patient_is_relative(patient1_test),
+            f"{error_string}{test_section_str}: Patient {patient1_test} is not a relative",
+        )
+        self.assertFalse(
+            self.patient_is_index(patient1_test),
+            f"{error_string}{test_section_str}: Patient {patient1_test} is an index",
+        )
 
         # 3. Add non-patient relative, ensure it proceeds correctly
         test_section_str = "Creating non-patient relative"
         logger.info(f"{test_section_str}...")
         relative_test = self.create_new_patient_relative(
-            "Hester", "Test", datetime(1968, 1, 4), "Female", "Living", "MA", patient2_test)
-        self.assertFalse(relative_test.relationship,
-                         f"{error_string}{test_section_str}: PatientRelative {relative_test.given_names} {relative_test.family_name}'s relationship should not be defined")
+            "Hester",
+            "Test",
+            datetime(1968, 1, 4),
+            "Female",
+            "Living",
+            "MA",
+            patient2_test,
+        )
+        self.assertFalse(
+            relative_test.relationship,
+            f"{error_string}{test_section_str}: PatientRelative {relative_test.given_names} {relative_test.family_name}'s relationship should not be defined",
+        )
 
         test_section_str = "Linking non-patient relative to index"
         add_non_patient_relative_packet = {
-            'index': {
-                'pk': patient2_test.pk,
-                'given_names': patient2_test.given_names,
-                'family_name': patient2_test.family_name,
-                'class': 'Patient',
-                'working_group': None,
-                'link': f'/fh/patient/{patient2_test.pk}/edit'
+            "index": {
+                "pk": patient2_test.pk,
+                "given_names": patient2_test.given_names,
+                "family_name": patient2_test.family_name,
+                "class": "Patient",
+                "working_group": None,
+                "link": f"/fh/patient/{patient2_test.pk}/edit",
             },
-            'relatives': [
+            "relatives": [
                 {
-                    'pk': relative_patient1_test.pk,
-                    'given_names': patient1_test.given_names,
-                    'family_name': patient1_test.family_name,
-                    'class': 'PatientRelative',
-                    'working_group': None,
-                    'link': f'/fh/patient/{patient1_test.pk}/edit',
-                    'relationship': 'Sibling (1st degree)'
+                    "pk": relative_patient1_test.pk,
+                    "given_names": patient1_test.given_names,
+                    "family_name": patient1_test.family_name,
+                    "class": "PatientRelative",
+                    "working_group": None,
+                    "link": f"/fh/patient/{patient1_test.pk}/edit",
+                    "relationship": "Sibling (1st degree)",
                 },
                 {
-                    'pk': relative_test.pk,
-                    'given_names': relative_test.given_names,
-                    'family_name': relative_test.family_name,
-                    'class': 'PatientRelative',
-                    'working_group': None,
-                    'link': None,
-                    'relationship': '1st Cousin (3rd degree)'
-                }
+                    "pk": relative_test.pk,
+                    "given_names": relative_test.given_names,
+                    "family_name": relative_test.family_name,
+                    "class": "PatientRelative",
+                    "working_group": None,
+                    "link": None,
+                    "relationship": "1st Cousin (3rd degree)",
+                },
             ],
-            'original_index': {
-                'pk': patient2_test.pk,
-                'given_names': patient2_test.given_names,
-                'family_name': patient2_test.family_name,
-                'class': 'Patient',
-                'working_group': None,
-                'link': f'/fh/patient/{patient2_test.pk}/edit'
-            }
+            "original_index": {
+                "pk": patient2_test.pk,
+                "given_names": patient2_test.given_names,
+                "family_name": patient2_test.family_name,
+                "class": "Patient",
+                "working_group": None,
+                "link": f"/fh/patient/{patient2_test.pk}/edit",
+            },
         }
         logger.info(f"{test_section_str}...")
         self.run_linkage_manager(add_non_patient_relative_packet)
 
         # Need to re-get relative for relationship to be tested properly
         relative_test = PatientRelative.objects.get(pk=relative_test.pk)
-        self.assertTrue(relative_test.pk in [rel['pk'] for rel in self.linkage_manager.relatives],
-                        f"{error_string}{test_section_str}: PatientRelative {relative_test.given_names} {relative_test.family_name} is not in linkage manager relative list")
-        self.assertFalse(relative_test.relative_patient,
-                         f"{error_string}{test_section_str}: PatientRelative {relative_test.given_names} {relative_test.family_name} is a non-patient relative and should not be linked to a patient")
-        self.assertTrue(relative_test.patient == patient2_test,
-                        f"{error_string}{test_section_str}: PatientRelative index {relative_test.patient} does not match Patient {patient2_test}")
-        self.assertTrue(relative_test.relationship == "1st Cousin (3rd degree)",
-                        f"{error_string}{test_section_str}: PatientRelative's relationship {relative_test.relationship} does not match '1st Cousin (3rd degree)'")
-        self.assertTrue(relative_test in patient2_test.relatives.all(),
-                        f"{error_string}{test_section_str}: PatientRelative is not in index {patient2_test}'s relatives")
+        self.assertTrue(
+            relative_test.pk in [rel["pk"] for rel in self.linkage_manager.relatives],
+            f"{error_string}{test_section_str}: PatientRelative {relative_test.given_names} {relative_test.family_name} is not in linkage manager relative list",
+        )
+        self.assertFalse(
+            relative_test.relative_patient,
+            f"{error_string}{test_section_str}: PatientRelative {relative_test.given_names} {relative_test.family_name} is a non-patient relative and should not be linked to a patient",
+        )
+        self.assertTrue(
+            relative_test.patient == patient2_test,
+            f"{error_string}{test_section_str}: PatientRelative index {relative_test.patient} does not match Patient {patient2_test}",
+        )
+        self.assertTrue(
+            relative_test.relationship == "1st Cousin (3rd degree)",
+            f"{error_string}{test_section_str}: PatientRelative's relationship {relative_test.relationship} does not match '1st Cousin (3rd degree)'",
+        )
+        self.assertTrue(
+            relative_test in patient2_test.relatives.all(),
+            f"{error_string}{test_section_str}: PatientRelative is not in index {patient2_test}'s relatives",
+        )
 
         # 4. Swap non-patient relative to index, check that new patient is created + results of test #2
         test_section_str = "Setting non-patient relative to be new index"
         relative_test_data = {
-            'pk': relative_test.pk,
-            'given_names': relative_test.given_names,
-            'family_name': relative_test.family_name,
-            'date_of_birth': relative_test.date_of_birth,
-            'sex': relative_test.sex,
-            'living_status': relative_test.living_status
+            "pk": relative_test.pk,
+            "given_names": relative_test.given_names,
+            "family_name": relative_test.family_name,
+            "date_of_birth": relative_test.date_of_birth,
+            "sex": relative_test.sex,
+            "living_status": relative_test.living_status,
         }
 
         non_patient_to_index_packet = {
-            'index': {
-                'pk': relative_test.pk,
-                'given_names': relative_test.given_names,
-                'family_name': relative_test.family_name,
-                'class': 'PatientRelative',
-                'working_group': None,
-                'link': None
+            "index": {
+                "pk": relative_test.pk,
+                "given_names": relative_test.given_names,
+                "family_name": relative_test.family_name,
+                "class": "PatientRelative",
+                "working_group": None,
+                "link": None,
             },
-            'relatives': [
+            "relatives": [
                 {
-                    'pk': relative_patient1_test.pk,
-                    'given_names': patient1_test.given_names,
-                    'family_name': patient1_test.family_name,
-                    'class': 'PatientRelative',
-                    'working_group': None,
-                    'link': f'/fh/patient/{patient1_test.pk}/edit',
-                    'relationship': '1st Cousin (3rd degree)'
+                    "pk": relative_patient1_test.pk,
+                    "given_names": patient1_test.given_names,
+                    "family_name": patient1_test.family_name,
+                    "class": "PatientRelative",
+                    "working_group": None,
+                    "link": f"/fh/patient/{patient1_test.pk}/edit",
+                    "relationship": "1st Cousin (3rd degree)",
                 },
                 {
-                    'pk': patient2_test.pk,
-                    'given_names': patient2_test.given_names,
-                    'family_name': patient2_test.family_name,
-                    'class': 'Patient',
-                    'working_group': None,
-                    'link': f'/fh/patient/{patient2_test.pk}/edit',
-                    'relationship': '1st Cousin (3rd degree)'
-                }
+                    "pk": patient2_test.pk,
+                    "given_names": patient2_test.given_names,
+                    "family_name": patient2_test.family_name,
+                    "class": "Patient",
+                    "working_group": None,
+                    "link": f"/fh/patient/{patient2_test.pk}/edit",
+                    "relationship": "1st Cousin (3rd degree)",
+                },
             ],
-            'original_index': {
-                'pk': patient2_test.pk,
-                'given_names': patient2_test.given_names,
-                'family_name': patient2_test.family_name,
-                'class': 'Patient',
-                'working_group': None,
-                'link': f'/fh/patient/{patient2_test.pk}/edit'
-            }
+            "original_index": {
+                "pk": patient2_test.pk,
+                "given_names": patient2_test.given_names,
+                "family_name": patient2_test.family_name,
+                "class": "Patient",
+                "working_group": None,
+                "link": f"/fh/patient/{patient2_test.pk}/edit",
+            },
         }
         logger.info(f"{test_section_str}...")
         self.run_linkage_manager(non_patient_to_index_packet)
 
-        with self.assertRaises(PatientRelative.DoesNotExist, msg=f"{error_string}{test_section_str}: PatientRelative still exists when it should not"):
-            relative_test = PatientRelative.objects.get(pk=relative_test_data['pk'])
+        with self.assertRaises(
+            PatientRelative.DoesNotExist,
+            msg=f"{error_string}{test_section_str}: PatientRelative still exists when it should not",
+        ):
+            relative_test = PatientRelative.objects.get(pk=relative_test_data["pk"])
         try:
-            relative_patient1_test = PatientRelative.objects.get(relative_patient=patient1_test)
+            relative_patient1_test = PatientRelative.objects.get(
+                relative_patient=patient1_test
+            )
         except PatientRelative.DoesNotExist:
             self.fail(
-                f"{error_string}{test_section_str}: PatientRelative for Patient {patient1_test} (ID = {patient1_test.pk}) does not exist")
+                f"{error_string}{test_section_str}: PatientRelative for Patient {patient1_test} (ID = {patient1_test.pk}) does not exist"
+            )
         try:
-            relative_patient2_test = PatientRelative.objects.get(relative_patient=patient2_test)
+            relative_patient2_test = PatientRelative.objects.get(
+                relative_patient=patient2_test
+            )
         except PatientRelative.DoesNotExist:
             self.fail(
-                f"{error_string}{test_section_str}: PatientRelative for Patient {patient2_test} (ID = {patient2_test.pk}) has not been created")
+                f"{error_string}{test_section_str}: PatientRelative for Patient {patient2_test} (ID = {patient2_test.pk}) has not been created"
+            )
         relative_test_patient = relative_patient1_test.patient
-        self.assertTrue(relative_test_patient,
-                        f"{error_string}{test_section_str}: New index patient does not exist")
-        self.assertTrue(self.patient_is_index(relative_test_patient),
-                        f"{error_string}{test_section_str}: Patient {relative_test_patient} is not an index")
-        self.assertTrue(self.patient_is_relative(patient2_test),
-                        f"{error_string}{test_section_str}: Patient {patient2_test} is not a relative")
-        self.assertTrue(relative_patient1_test in relative_test_patient.relatives.all(),
-                        f"{error_string}{test_section_str}: PatientRelative {relative_patient1_test.given_names} {relative_patient1_test.family_name} is not in index {relative_test_patient}'s relatives")
-        self.assertTrue(relative_patient2_test in relative_test_patient.relatives.all(),
-                        f"{error_string}{test_section_str}: PatientRelative {relative_patient2_test.given_names} {relative_patient2_test.family_name} is not in index {relative_test_patient}'s relatives")
-        self.assertTrue(relative_test_patient.given_names == relative_test_data['given_names'],
-                        f"{error_string}{test_section_str}: Patient given name {relative_test_patient.given_names} does not match PatientRelative given name {relative_test_data['given_names']}")
-        self.assertTrue(relative_test_patient.family_name.lower() == relative_test_data['family_name'].lower(),
-                        f"{error_string}{test_section_str}: Patient surname {relative_test_patient.family_name} does not match (lowercase) PatientRelative surname {relative_test_data['family_name']}")
-        self.assertTrue(relative_test_patient.date_of_birth == relative_test_data['date_of_birth'],
-                        f"{error_string}{test_section_str}: Patient date of birth {relative_test_patient.date_of_birth} does not match PatientRelative date of birth {relative_test_data['date_of_birth']}")
-        self.assertTrue(relative_test_patient.sex == relative_test_data['sex'],
-                        f"{error_string}{test_section_str}: Patient sex {relative_test_patient.sex} does not match PatientRelative sex {relative_test_data['sex']}")
-        self.assertTrue(relative_test_patient.living_status == relative_test_data['living_status'],
-                        f"{error_string}{test_section_str}: Patient living status {relative_test_patient.living_status} does not match PatientRelative living status {relative_test_data['living_status']}")
-        self.assertTrue(relative_patient1_test.relationship == "1st Cousin (3rd degree)",
-                        f"{error_string}{test_section_str}: PatientRelative {relative_patient1_test.given_names} {relative_patient1_test.family_name}'s relationship {relative_patient1_test.relationship} does not match '1st Cousin (3rd degree)'")
-        self.assertTrue(relative_patient2_test.relationship == "1st Cousin (3rd degree)",
-                        f"{error_string}{test_section_str}: PatientRelative {relative_patient2_test.given_names} {relative_patient2_test.family_name}'s relationship {relative_patient2_test.relationship} does not match '1st Cousin (3rd degree)'")
-        self.assertTrue(relative_patient2_test.sex == patient2_test.sex,
-                        f"{error_string}{test_section_str}: PatientRelative sex {relative_patient2_test.sex} does not match Patient {patient2_test} sex '{patient2_test.sex}'")
-        self.assertTrue(relative_patient2_test.living_status == patient2_test.living_status,
-                        f"{error_string}{test_section_str}: PatientRelative living status {relative_patient2_test.living_status} does not match Patient {patient2_test} living status '{patient2_test.living_status}'")
-        self.assertTrue(relative_patient2_test.location == PatientAddress.objects.get(patient=patient2_test).country,
-                        f"{error_string}{test_section_str}: PatientRelative location {relative_patient2_test.location} does not match Patient {patient2_test} location '{PatientAddress.objects.get(patient=patient2_test).country}'")
-        self.assertTrue(self.patient_is_relative(patient2_test),
-                        f"{error_string}{test_section_str}: Patient {patient2_test} is not a relative")
-        self.assertFalse(self.patient_is_index(patient2_test),
-                         f"{error_string}{test_section_str}: Patient {patient2_test} is an index")
+        self.assertTrue(
+            relative_test_patient,
+            f"{error_string}{test_section_str}: New index patient does not exist",
+        )
+        self.assertTrue(
+            self.patient_is_index(relative_test_patient),
+            f"{error_string}{test_section_str}: Patient {relative_test_patient} is not an index",
+        )
+        self.assertTrue(
+            self.patient_is_relative(patient2_test),
+            f"{error_string}{test_section_str}: Patient {patient2_test} is not a relative",
+        )
+        self.assertTrue(
+            relative_patient1_test in relative_test_patient.relatives.all(),
+            f"{error_string}{test_section_str}: PatientRelative {relative_patient1_test.given_names} {relative_patient1_test.family_name} is not in index {relative_test_patient}'s relatives",
+        )
+        self.assertTrue(
+            relative_patient2_test in relative_test_patient.relatives.all(),
+            f"{error_string}{test_section_str}: PatientRelative {relative_patient2_test.given_names} {relative_patient2_test.family_name} is not in index {relative_test_patient}'s relatives",
+        )
+        self.assertTrue(
+            relative_test_patient.given_names == relative_test_data["given_names"],
+            f"{error_string}{test_section_str}: Patient given name {relative_test_patient.given_names} does not match PatientRelative given name {relative_test_data['given_names']}",
+        )
+        self.assertTrue(
+            relative_test_patient.family_name.lower()
+            == relative_test_data["family_name"].lower(),
+            f"{error_string}{test_section_str}: Patient surname {relative_test_patient.family_name} does not match (lowercase) PatientRelative surname {relative_test_data['family_name']}",
+        )
+        self.assertTrue(
+            relative_test_patient.date_of_birth == relative_test_data["date_of_birth"],
+            f"{error_string}{test_section_str}: Patient date of birth {relative_test_patient.date_of_birth} does not match PatientRelative date of birth {relative_test_data['date_of_birth']}",
+        )
+        self.assertTrue(
+            relative_test_patient.sex == relative_test_data["sex"],
+            f"{error_string}{test_section_str}: Patient sex {relative_test_patient.sex} does not match PatientRelative sex {relative_test_data['sex']}",
+        )
+        self.assertTrue(
+            relative_test_patient.living_status == relative_test_data["living_status"],
+            f"{error_string}{test_section_str}: Patient living status {relative_test_patient.living_status} does not match PatientRelative living status {relative_test_data['living_status']}",
+        )
+        self.assertTrue(
+            relative_patient1_test.relationship == "1st Cousin (3rd degree)",
+            f"{error_string}{test_section_str}: PatientRelative {relative_patient1_test.given_names} {relative_patient1_test.family_name}'s relationship {relative_patient1_test.relationship} does not match '1st Cousin (3rd degree)'",
+        )
+        self.assertTrue(
+            relative_patient2_test.relationship == "1st Cousin (3rd degree)",
+            f"{error_string}{test_section_str}: PatientRelative {relative_patient2_test.given_names} {relative_patient2_test.family_name}'s relationship {relative_patient2_test.relationship} does not match '1st Cousin (3rd degree)'",
+        )
+        self.assertTrue(
+            relative_patient2_test.sex == patient2_test.sex,
+            f"{error_string}{test_section_str}: PatientRelative sex {relative_patient2_test.sex} does not match Patient {patient2_test} sex '{patient2_test.sex}'",
+        )
+        self.assertTrue(
+            relative_patient2_test.living_status == patient2_test.living_status,
+            f"{error_string}{test_section_str}: PatientRelative living status {relative_patient2_test.living_status} does not match Patient {patient2_test} living status '{patient2_test.living_status}'",
+        )
+        self.assertTrue(
+            relative_patient2_test.location
+            == PatientAddress.objects.get(patient=patient2_test).country,
+            f"{error_string}{test_section_str}: PatientRelative location {relative_patient2_test.location} does not match Patient {patient2_test} location '{PatientAddress.objects.get(patient=patient2_test).country}'",
+        )
+        self.assertTrue(
+            self.patient_is_relative(patient2_test),
+            f"{error_string}{test_section_str}: Patient {patient2_test} is not a relative",
+        )
+        self.assertFalse(
+            self.patient_is_index(patient2_test),
+            f"{error_string}{test_section_str}: Patient {patient2_test} is an index",
+        )
 
 
 class LungCancerSmokingTestCase(RDRFTestCase):
     # "CIGDAY", "SMOKING", "SMOKINGSTARTYEAR", "SMOKINGSTOPYEAR", "SMOKABSTINENTYRS"
     def setUp(self):
         from rdrf.forms.fields.calculated_functions import SMOKEPACKYEAR
+
         self.func = SMOKEPACKYEAR
 
     def values(self, smoking, cigday, start_year, abst, stop_year, expectation):
@@ -2893,18 +3455,23 @@ class CICCancerStageTestCase(RDRFTestCase):
     """
     This class tests calculated fields in CIC
     """
+
     patient_values = {}
-    yaml_map = {"crc": "crc44.yaml",
-                "lc": "lc22.yaml",
-                "bc": "bc29.yaml",
-                "ov": "ov41.yaml"}
+    yaml_map = {
+        "crc": "crc44.yaml",
+        "lc": "lc22.yaml",
+        "bc": "bc31.yaml",
+        "ov": "ov41.yaml",
+    }
 
     def get_rules(self):
         return []
 
     def _get_yaml_file(self, filename):
         this_dir = os.path.dirname(__file__)
-        test_yaml = os.path.abspath(os.path.join(this_dir, "..", "..", "fixtures", filename))
+        test_yaml = os.path.abspath(
+            os.path.join(this_dir, "..", "..", "fixtures", filename)
+        )
         return test_yaml
 
     def import_registry(self, name):
@@ -2996,4 +3563,6 @@ class CICCancerStageTestCase(RDRFTestCase):
             inputs_dict = pair[0]
             for spec_input in inputs_dict:
                 if spec_input not in allowed_inputs:
-                    raise Exception(f"input {spec_input} is not an allowed input: {allowed_inputs}")
+                    raise Exception(
+                        f"input {spec_input} is not an allowed input: {allowed_inputs}"
+                    )

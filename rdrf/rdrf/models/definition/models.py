@@ -880,7 +880,7 @@ class CommonDataElement(models.Model):
             return ":NaN"
         elif self.widget_name == "DataSourceSelect" and self.widget_config:
             return self._get_display_value_datasource(stored_value)
-        elif self.pv_group:
+        elif self.pv_group and not self.allow_multiple:
             # if a range, return the display value
             try:
                 values_dict = self.pv_group.as_dict()
@@ -893,6 +893,19 @@ class CommonDataElement(models.Model):
                 logger.error(
                     "bad value for cde %s %s: %s" % (self.code, stored_value, ex)
                 )
+        elif self.pv_group and self.allow_multiple:
+            display_values = []
+            values_dict = self.pv_group.as_dict()
+            for raw_value in stored_value:
+                logger.debug(f"testing {raw_value}")
+                for value_dict in values_dict["values"]:
+                    if value_dict["code"] == raw_value:
+                        logger.debug(
+                            f"display value for {raw_value} = {value_dict['value']}"
+                        )
+                        display_values.append(value_dict["value"])
+            return "+".join(display_values)
+
         elif self.datatype.lower() == "date":
             try:
                 return parse_iso_datetime(stored_value).date()

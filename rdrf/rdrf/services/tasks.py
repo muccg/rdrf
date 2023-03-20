@@ -150,3 +150,53 @@ def recalculate_cde(
 
 
 logger.info("registered tasks")
+
+
+@app.task(name="rdrf.services.tasks.send_proms_request")
+def send_proms_request(registry_code, patient_id, survey_name=None, form_name=None):
+    from rdrf.models.definition.models import Registry
+    from rdrf.models.definition.models import RegistryForm
+    from registry.patients.models import Patient
+    from rdrf.models.proms.models import SurveyRequest
+    from rdrf.models.proms.models import Survey
+    from rdrf.models.proms.models import SurveyRequestStates
+    from rdrf.helpers.utils import generate_token
+
+    logger.info(f"sending proms request patient {patient_id} {survey_name} {form_name}")
+
+    patient_token = generate_token()
+    logger.info(f"patient token {patient_token}")
+    user = "admin"
+    registry_model = Registry.objects.get(code=registry_code)
+    patient_model = Patient.objects.get(id=patient_id)
+    communication_type = "email"
+
+    if survey_name is None:
+        if form_name is None:
+            raise Exception("send_proms_request_task needs survey_name or form_name")
+        form_model = RegistryForm.objects.get(registry=registry_model, name=form_name)
+        survey = Survey.objects.get(registry=registry_model, form=form_model)
+        survey_name = survey.name
+
+    survey_request = SurveyRequest(
+        survey_name=survey_name,
+        registry=registry_model,
+        patient=patient_model,
+        user=user,
+        state=SurveyRequestStates.REQUESTED,
+        patient_token=patient_token,
+        communication_type=communication_type,
+    )
+
+    survey_request.save()
+    logger.info("saved survey_request ok")
+    try:
+        survey_request.send()
+    except Exception as ex:
+        logger.error(f"Error sending: {ex}")
+
+
+@app.task(name="rdrf.services.tasks.check_proms")
+def check_proms(registry_code, pid):
+    # to do
+    return registry_code, pid

@@ -60,7 +60,11 @@ def circle(colour, id):
     return html.Img(src=image_src(f"{colour}-circle"), id=id)
 
 
-def get_image(value, image_id):
+def get_image(base, value, image_id):
+    if base == 1:
+        if value:
+            new_value = str(int(value) - 1)
+            value = new_value
     colour = base_colour_map.get(value, "blue")
     if colour == "red":
         return circle("red", image_id)
@@ -72,8 +76,23 @@ def get_image(value, image_id):
         return circle("grey", image_id)
     elif colour == "green":
         return circle("green", image_id)
+    elif colour == "burgundy":
+        return circle("burgundy", image_id)
     else:
         return circle("grey", image_id)
+
+
+def get_base(field):
+    from rdrf.models.definition.models import CommonDataElement
+
+    cde = CommonDataElement.objects.get(code=field)
+    try:
+        members = [int(s) for s in cde.get_range_members(get_code=True)]
+        min_value = min(members)
+        return min_value
+    except ValueError:
+        logger.error(f"tl get_base for {field} is None as codes aren't ints")
+        return None
 
 
 def get_display(field, value):
@@ -84,13 +103,27 @@ def get_display(field, value):
         return d
 
 
-def get_yes_no(value, image_id):
+def get_yes_no(_, value, image_id):
     if value == "1":
         return "Yes"
     elif value == "0":
         return "No"
     else:
         return circle("grey", image_id)
+
+
+def munge(s, width=30):
+    if len(s) > width:
+        return html.P(s, className="text-wrap", style={"width": "150px"})
+    else:
+        return s
+
+
+def string_field(_, value, image_id):
+    if not value:
+        return circle("grey", image_id)
+    else:
+        return munge(value)
 
 
 def get_popup_info(field, display):
@@ -101,11 +134,13 @@ def get_fields(config):
     return config["fields"]
 
 
-def get_field_label(cde_code):
+def get_field_label(cde_code, prop=None):
     from rdrf.models.definition.models import CommonDataElement
 
     try:
         cde_model = CommonDataElement.objects.get(code=cde_code)
+        if prop:
+            return getattr(cde_model, prop)
         return cde_model.name
     except CommonDataElement.DoesNotExist:
         return cde_code
@@ -122,11 +157,27 @@ def get_popover_target(target_id, body):
 class TrafficLights(BaseGraphic):
     def get_graphic(self):
         self.fields = get_fields(self.config)
+        self.colour_map = self._get_colour_map(self.config)
+        self.legend_map = self._get_legend_map(self.config)
         data = self._get_table_data()
         table = self.get_table(data)
         blurb = self._get_blurb()
 
         return html.Div([blurb, html.Br(), table])
+
+    def _get_colour_map(self, config):
+        return config.get("colour_map", None)
+
+    def _get_legend_map(self, config):
+        m = config.get("legend", None)
+        if not m:
+            return None
+
+        legend_map = {}
+        for english in config["legend_order"]:
+            colour = m[english]
+            legend_map[english] = circle(colour, f"legend-{colour}")
+        return legend_map
 
     def _get_blurb(self):
         legend_map = {
@@ -136,6 +187,9 @@ class TrafficLights(BaseGraphic):
             "Very much": circle("red", "legend-red"),
             "Missing": circle("grey", "legend-grey"),
         }
+
+        if self.legend_map:
+            legend_map = self.legend_map
 
         children = ["Legend: "]
 
@@ -150,7 +204,10 @@ class TrafficLights(BaseGraphic):
     def _get_graphic_function(self, field):
         yes_no = set(["Yes", "No"])
         cde_model = CommonDataElement.objects.get(code=field)
-        func = get_image
+        if cde_model.datatype == "string":
+            return string_field
+        # func = get_image
+        func = self.get_image2
         if cde_model.pv_group:
             display_values = set(cde_model.get_range_members(get_code=False))
             if display_values == yes_no:
@@ -158,12 +215,37 @@ class TrafficLights(BaseGraphic):
 
         return func
 
+    def get_image2(self, base, value, image_id):
+        logger.debug(f"get_image2 base = {base} value = {value} image_id = {image_id}")
+        if self.colour_map:
+            logger.debug(f"using supplied colour map: {self.colour_map}")
+            colour_map = self.colour_map
+        else:
+            logger.debug(f"using base colour map: {base_colour_map}")
+            colour_map = base_colour_map
+        if base == 1:
+            if value:
+                new_value = str(int(value) - 1)
+                value = new_value
+                logger.debug(f"base is 1 so subtracting: value = {value}")
+
+        colour = colour_map.get(value, None)
+        logger.debug(f"colour = {colour}")
+        if colour:
+            return circle(colour, image_id)
+        return circle("grey", image_id)
+
     def get_table(self, table_data):
         seq_names = [html.Th(x) for x in table_data["SEQ_NAME"]]
         table_header = [html.Thead(html.Tr([html.Th("Field"), *seq_names]))]
         table_rows = []
 
         for field in self.fields:
+            logger.debug(f"tl field {field}")
+            datatype = get_field_label(field, "datatype")
+            base = None
+            if datatype == "range":
+                base = get_base(field)
             field_values = table_data[field]
             image_id = f"image_{field}_"
 
@@ -175,7 +257,9 @@ class TrafficLights(BaseGraphic):
                     *[
                         html.Td(
                             [
-                                graphic_function(value, image_id + "_" + str(index)),
+                                graphic_function(
+                                    base, value, image_id + "_" + str(index)
+                                ),
                                 get_popover_target(
                                     image_id + "_" + str(index),
                                     get_popup_info(field, get_display(field, value)),
@@ -189,7 +273,10 @@ class TrafficLights(BaseGraphic):
             table_rows.append(table_row)
 
         table_body = [html.Tbody(table_rows)]
-        table = dbc.Table(table_header + table_body, className="table-striped table-sm")
+        table = dbc.Table(
+            table_header + table_body,
+            className="table-striped table-sm",
+        )
 
         return table
 
