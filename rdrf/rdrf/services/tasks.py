@@ -178,6 +178,12 @@ def send_proms_request(registry_code, patient_id, survey_name=None, form_name=No
         survey = Survey.objects.get(registry=registry_model, form=form_model)
         survey_name = survey.name
 
+    if not patient_model.email:
+        logger.warning(
+            f"can't send proms request to patient with email {patient_model.id} - no email address"
+        )
+        return
+
     survey_request = SurveyRequest(
         survey_name=survey_name,
         registry=registry_model,
