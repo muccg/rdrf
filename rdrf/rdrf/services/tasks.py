@@ -203,17 +203,21 @@ def check_proms(registry_code, pid):
     from rdrf.scheduling.scheduling import PromsDataAnalyser, PromsAction
     from rdrf.helpers.utils import has_died
 
-    registry = Registry.get(code=registry_code)
+    registry = Registry.objects.get(code=registry_code)
     patient = Patient.objects.get(id=pid)
+    logger.debug(f"check_proms task for {registry_code} {pid}")
 
     if has_died(patient):
+        logger.debug("patient has died so won't be sent proms requests")
         return
 
+    logger.debug(f"analysing proms for {pid}")
     proms_data_analyser = PromsDataAnalyser(registry, patient)
 
     actions: list[PromsAction] = proms_data_analyser.analyse()
 
     for action in actions:
+        logger.debug(f"spawning action {action.action_name} for {pid}...")
         if action.action_name == "send_proms_request":
             send_proms_request.delay(
                 action.registry.code, action.patient.id, None, action.form

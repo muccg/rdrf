@@ -3,6 +3,10 @@ from datetime import datetime, timedelta
 from dateutil.relativedelta import relativedelta
 from rdrf.helpers.utils import parse_iso_datetime
 
+import logging
+
+logger = logging.getLogger(__name__)
+
 from dataclasses import dataclass
 
 # Schedule config in metadata ( The absolute time t in months after baseline.)
@@ -158,9 +162,6 @@ class Schedule:
                                     return coll_date
 
 
-
-
-
 class PromsAction:
     def __init__(self, registry, patient, form, action_name):
         self.registry = registry
@@ -187,6 +188,7 @@ class PromsDataAnalyser:
         self.actions = []
 
     def analyse(self):
+        logger.debug("analysing patient {self.patient} for proms")
         self.check_baseline()
         self.check_followups()
         return self.actions
@@ -200,15 +202,20 @@ class PromsDataAnalyser:
         # users can save the baseline / followup forms
         # directly without ever creating a proms request
         # so we check for some data first
+        logger.debug(f"checking baseline for {self.patient}")
         baseline = self.patient.baseline
         collection_date: Optional[datetime] = self.get_collection_date(
             baseline, self.baseline_form
         )
+        logger.debug(f"baseline collection date = {collection_date}")
         if collection_date is None:
             # maybe a survey request was sent out recently
             cutoff = datetime.now() - timedelta(days=self.send_window)
             recent_requests = self.get_survey_requests(self.baseline_form, cutoff)
             if recent_requests.count() == 0:
+                logger.debug(
+                    f"There have been no recent surver requests for {self.baseline_form}"
+                )
                 action = PromsAction(
                     self.registry,
                     self.patient,
@@ -216,21 +223,33 @@ class PromsDataAnalyser:
                     "send_proms_request",
                 )
                 self.actions.append(action)
+                logger.debug(f"added action {action.action_name}")
+            else:
+                logger.debug(
+                    f"There are recent proms requests in last {self.send_window} days - won't send"
+                )
+        else:
+            logger.debug(
+                f"patient has already filled in the {self.baseline_form} with collection date = {collection_date} - won't send"
+            )
 
     def get_survey_requests(self, form_name, cutoff: datetime):
         # assumes the required survey as a form model linked
         # all cic surveys have this
-        form_model = RegistryForm.objects.get(registry=self.registry,
-                                              name=form_name)
+        from rdrf.models.definition.models import RegistryForm
+        from rdrf.models.proms.models import Survey
+        from rdrf.models.proms.models import SurveyRequest
+        from rdrf.models.proms.models import SurveyRequestStates
 
-        survey = Survey.objects.get(registry=self,registry,
-                                    form=form_model)
+        form_model = RegistryForm.objects.get(registry=self.registry, name=form_name)
 
-        return SurveyRequest.objects.filter(registry=self.registry,
-                                            survey=survey,
-                                            state="requested",
-                                            created__gte=cutoff)
-
+        survey = Survey.objects.get(registry=self.registry, form=form_model)
+        return SurveyRequest.objects.filter(
+            registry=self.registry,
+            survey_name=survey.name,
+            state=SurveyRequestStates.REQUESTED,
+            created__gte=cutoff,
+        )
 
     def get_collection_date(self, cd, form_name) -> Optional[datetime]:
         # patient created but no forms saved at all
@@ -255,3 +274,6 @@ class PromsDataAnalyser:
                                         return parse_iso_datetime(value)
                                     except:
                                         return None
+
+    def check_followups(self):
+        logger.debug("check followups is todo")
