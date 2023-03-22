@@ -1206,3 +1206,7 @@ def custom_text(registry_model, key, default):
         return metadata["custom_text"].get(key, default)
 
     return default
+
+
+def has_died(patient):
+    return patient.date_of_death

@@ -1,7 +1,8 @@
 from typing import Optional, List
-from datetime import datetime
+from datetime import datetime, timedelta
 from dateutil.relativedelta import relativedelta
 from rdrf.helpers.utils import parse_iso_datetime
+
 from dataclasses import dataclass
 
 # Schedule config in metadata ( The absolute time t in months after baseline.)
@@ -9,6 +10,9 @@ from dataclasses import dataclass
 # infinite : [ {"t": 6, "form": "6MonthFollowUp"}, {"t": 12, "form": "12MonthFollowUp"}, {"t": "thereafter","form": "blah"}]
 # finite : [ {"t": 6, "form": "6MonthFollowUp"}, {"t": 12, "form": "12MonthFollowUp"}]
 # Because these are all expressed in month deltas, better to use python-dateutil to manipulate the dates
+
+
+COLLECTION_DATE = "COLLECTIONDATE"
 
 
 class ResponseType:
@@ -152,3 +156,102 @@ class Schedule:
                                     value = cde_dict["value"]
                                     coll_date = parse_iso_datetime(value)
                                     return coll_date
+
+
+
+
+
+class PromsAction:
+    def __init__(self, registry, patient, form, action_name):
+        self.registry = registry
+        self.patient = patient
+        self.form = form
+        self.action_name = action_name
+
+
+class PromsDataAnalyser:
+    """
+    This class checks the state of the proms data
+    for a given patient. From the provided schedule
+    for the registry and the patient we can determine
+    what actions are required to be performed
+    """
+
+    def __init__(self, registry, patient):
+        self.registry = registry
+        self.patient = patient
+        self.baseline_form = registry.metadata["schedule"]["baseline_form"]
+        # if a request has been sent out in this window of days before
+        # present we dont resend
+        self.send_window = registry.metadata["schedule"]["send_window"]
+        self.actions = []
+
+    def analyse(self):
+        self.check_baseline()
+        self.check_followups()
+        return self.actions
+
+    def check_baseline(self):
+        """
+        checks whether a baseline proms request needs to be sent out
+        """
+        # has a baseline form being saved?
+        # The issue here is that sometimes
+        # users can save the baseline / followup forms
+        # directly without ever creating a proms request
+        # so we check for some data first
+        baseline = self.patient.baseline
+        collection_date: Optional[datetime] = self.get_collection_date(
+            baseline, self.baseline_form
+        )
+        if collection_date is None:
+            # maybe a survey request was sent out recently
+            cutoff = datetime.now() - timedelta(days=self.send_window)
+            recent_requests = self.get_survey_requests(self.baseline_form, cutoff)
+            if recent_requests.count() == 0:
+                action = PromsAction(
+                    self.registry,
+                    self.patient,
+                    self.baseline_form,
+                    "send_proms_request",
+                )
+                self.actions.append(action)
+
+    def get_survey_requests(self, form_name, cutoff: datetime):
+        # assumes the required survey as a form model linked
+        # all cic surveys have this
+        form_model = RegistryForm.objects.get(registry=self.registry,
+                                              name=form_name)
+
+        survey = Survey.objects.get(registry=self,registry,
+                                    form=form_model)
+
+        return SurveyRequest.objects.filter(registry=self.registry,
+                                            survey=survey,
+                                            state="requested",
+                                            created__gte=cutoff)
+
+
+    def get_collection_date(self, cd, form_name) -> Optional[datetime]:
+        # patient created but no forms saved at all
+        if not cd:
+            return None
+        if not cd.data:
+            return None
+        if "forms" not in cd.data:
+            return None
+
+        for form_dict in cd.data["forms"]:
+            if form_dict["name"] == form_name:
+                for section_dict in form_dict["sections"]:
+                    if not section_dict["allow_multiple"]:
+                        for cde_dict in section_dict["cdes"]:
+                            if cde_dict["code"] == COLLECTION_DATE:
+                                value = cde_dict["value"]
+                                if not value:
+                                    return None
+                                else:
+                                    try:
+                                        return parse_iso_datetime(value)
+                                    except:
+                                        return None

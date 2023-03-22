@@ -198,5 +198,23 @@ def send_proms_request(registry_code, patient_id, survey_name=None, form_name=No
 
 @app.task(name="rdrf.services.tasks.check_proms")
 def check_proms(registry_code, pid):
-    # to do
-    return registry_code, pid
+    from rdrf.models.definition.models import Registry
+    from registry.patients.models import Patient
+    from rdrf.scheduling.scheduling import PromsDataAnalyser, PromsAction
+    from rdrf.helpers.utils import has_died
+
+    registry = Registry.get(code=registry_code)
+    patient = Patient.objects.get(id=pid)
+
+    if has_died(patient):
+        return
+
+    proms_data_analyser = PromsDataAnalyser(registry, patient)
+
+    actions: list[PromsAction] = proms_data_analyser.analyse()
+
+    for action in actions:
+        if action.action_name == "send_proms_request":
+            send_proms_request.delay(
+                action.registry.code, action.patient.id, None, action.form
+            )
