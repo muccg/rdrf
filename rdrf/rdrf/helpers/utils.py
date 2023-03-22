@@ -1210,3 +1210,18 @@ def custom_text(registry_model, key, default):
 
 def has_died(patient):
     return patient.date_of_death
+
+
+def has_consented_to_receive_proms_emails(patient):
+    from rdrf.models.definition.models import ConsentQuestion
+
+    registry_model = patient.rdrf_registry.all()[0]
+    consent_code = registry_model.metadata["proms_consent_code"]
+    consent_model = ConsentQuestion.objects.get(code=consent_code)
+
+    consent_answer = patient.get_consent(consent_model)
+
+    if consent_answer:
+        return True
+
+    return False

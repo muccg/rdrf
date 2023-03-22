@@ -208,6 +208,7 @@ def check_proms(registry_code, pid):
     from registry.patients.models import Patient
     from rdrf.scheduling.scheduling import PromsDataAnalyser, PromsAction
     from rdrf.helpers.utils import has_died
+    from rdrf.helpers.utils import has_consented_to_receive_proms_emails
 
     registry = Registry.objects.get(code=registry_code)
     patient = Patient.objects.get(id=pid)
@@ -215,6 +216,12 @@ def check_proms(registry_code, pid):
 
     if has_died(patient):
         logger.debug("patient has died so won't be sent proms requests")
+        return
+
+    if not has_consented_to_receive_proms_emails(patient):
+        logger.debug(
+            "patient not consented to receive emails so won't be sent proms requests"
+        )
         return
 
     logger.debug(f"analysing proms for {pid}")
