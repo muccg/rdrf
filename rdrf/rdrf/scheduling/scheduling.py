@@ -92,6 +92,14 @@ class Schedule:
             return None
 
     def closest_seq(self, some_date):
+
+        if type(some_date) is str:
+            try:
+                year, month, day = some_date.split("-")
+                some_date = datetime(int(year), int(month), int(day))
+            except:
+                return None
+
         # for a given date , return the closest sequence number in
         # the schedule
         if not self.schedule_items:
