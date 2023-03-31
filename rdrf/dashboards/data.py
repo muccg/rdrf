@@ -86,9 +86,7 @@ class RegistryDataFrame:
             self.df[cdf] = pd.to_datetime(self.df[cdf], unit="ms")
         elif self.mode == "single":
             self._reload_dataframe()
-
         self._order_by_collection_date(self.df)
-
         c = datetime.now()
         logger.info(f"time taken to load/generate df = {(c-a).total_seconds()} seconds")
 
@@ -109,7 +107,9 @@ class RegistryDataFrame:
 
     def _order_by_collection_date(self, df: pd.DataFrame):
         logger.debug("ordering dataframe by collection date")
-        self.df.sort_values(by=[cdf], inplace=True)
+        # it's more likely collection date on baseline form
+        # will be null hence the na_position of first
+        self.df.sort_values(by=[cdf], inplace=True, na_position="first")
         # this resequences the seq number for each patient
         # from 0 ( the first collected survey to the last)
         self.df["SEQ"] = self.df.groupby("PID").cumcount()
