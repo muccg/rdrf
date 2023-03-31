@@ -69,10 +69,42 @@ class ScheduleItem:
 
 
 class Schedule:
-    def __init__(self, config, patient):
-        self.items = config["items"]
-        self.baseline_form_name = config["baseline_form_name"]
+    def __init__(self, registry, patient):
+        self.registry = registry
+        self.config = self.registry.metadata["schedule"]
+
+        self.items = self.config["items"]
+        self.baseline_form_name = self.config["baseline_form"]
         self.patient = patient
+        self.baseline_date = self.get_baseline_date()
+        self.schedule_items = self.get_schedule_from_baseline()
+        if self.baseline_date:
+            self.dates = [self.baseline_date] + [
+                si.proj_date for si in self.schedule_items
+            ]
+        else:
+            self.dates = []
+
+    def __getitem__(self, index):
+        if self.dates:
+            return self.dates[index]
+        else:
+            return None
+
+    def closest_seq(self, some_date):
+        # for a given date , return the closest sequence number in
+        # the schedule
+        if not self.schedule_items:
+            return None
+        best_seq = None
+        best_diff = 10000
+
+        for index, proj_date in enumerate(self.dates):
+            days_diff = abs(proj_date - some_date).days
+            if days_diff < best_diff:
+                best_seq = index
+                best_diff = days_diff
+        return best_seq
 
     @property
     def intervals(self):
@@ -85,18 +117,28 @@ class Schedule:
             if "thereafter" in item:
                 return True
 
-    def get_schedule_from_baseline(self, baseline_date: datetime) -> List[ScheduleItem]:
+    def get_schedule_from_baseline(self) -> List[ScheduleItem]:
+        if self.baseline_date is None:
+            return []
+
         schedule_items = []
         for item in self.items:
             k = item["t"]
             if k != "thereafter":
                 t = int(item["t"])
-                d = baseline_date + relativedelta(months=t)
+                d = self.baseline_date + relativedelta(months=t)
                 form = item["form"]
                 si = ScheduleItem(form_name=form, proj_date=d)
                 schedule_items.append(si)
 
         return sorted(schedule_items, key=lambda si: si.proj_date)
+
+    def get_baseline_date(self):
+        try:
+            baseline = self.patient.baseline  # baseline clinical data record
+            return self._get_collection_date(baseline, self.baseline_form_name)
+        except NoBaseline:
+            return None
 
     def check(self):
         # this is todo
