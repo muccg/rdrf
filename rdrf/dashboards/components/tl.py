@@ -126,10 +126,6 @@ def string_field(_, value, image_id):
         return munge(value)
 
 
-def get_popup_info(field, display):
-    return f"{field}: {display}"
-
-
 def get_fields(config):
     return config["fields"]
 
@@ -144,14 +140,6 @@ def get_field_label(cde_code, prop=None):
         return cde_model.name
     except CommonDataElement.DoesNotExist:
         return cde_code
-
-
-def get_popover_target(target_id, body):
-    return dbc.Popover(
-        dbc.PopoverBody(body),
-        target=target_id,
-        trigger="hover",
-    )
 
 
 class TrafficLights(BaseGraphic):
@@ -259,11 +247,7 @@ class TrafficLights(BaseGraphic):
                             [
                                 graphic_function(
                                     base, value, image_id + "_" + str(index)
-                                ),
-                                get_popover_target(
-                                    image_id + "_" + str(index),
-                                    get_popup_info(field, get_display(field, value)),
-                                ),
+                                )
                             ],
                         )
                         for index, value in enumerate(field_values)
