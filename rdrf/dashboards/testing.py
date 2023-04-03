@@ -34,3 +34,6 @@ class VisTestCase(TestCase):
             correct_value,
             f"symptom score: correct={correct_value} actual={result}",
         )
+
+    def test_no_baseline(self):
+        self.assertTrue(False)

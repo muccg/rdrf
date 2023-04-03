@@ -10,6 +10,8 @@ from datetime import datetime
 
 from .models import VisualisationBaseDataConfig
 from .utils import get_seq_name
+from .utils import dump
+
 
 import logging
 
@@ -53,6 +55,7 @@ class RegistryDataFrame:
         self.baseline_form = None
         self.followup_form = None
         self.followup_forms = []  # only used by BC
+        self.no_data = False
         # "followup_forms": [{"name": "FollowUpPROMS6months","seq": 1},
         #  {"name": "FUpPROMSYr1","seq": 2},{"name": "FUpPROMSYr2","seq": 3},
         #  {"name": "FUpPROMS3_10Years", "seq": "+"} ]
@@ -86,7 +89,12 @@ class RegistryDataFrame:
             self.df[cdf] = pd.to_datetime(self.df[cdf], unit="ms")
         elif self.mode == "single":
             self._reload_dataframe()
-        self._order_by_collection_date(self.df)
+
+        self.no_data = self.df is None
+
+        if not self.no_data:
+            self._order_by_collection_date(self.df)
+            dump(f"rdf-data-{self.mode}-{self.patient_id}", self.df)
         c = datetime.now()
         logger.info(f"time taken to load/generate df = {(c-a).total_seconds()} seconds")
 

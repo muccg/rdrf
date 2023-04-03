@@ -1,6 +1,7 @@
 import logging
 from dash import html
 from ..components.common import BaseGraphic
+from ..utils import dump
 import dash_bootstrap_components as dbc
 import pandas as pd
 from rdrf.helpers.utils import get_display_value
@@ -144,10 +145,18 @@ def get_field_label(cde_code, prop=None):
 
 class TrafficLights(BaseGraphic):
     def get_graphic(self):
+
+        logger.debug("traffic light data")
+        dump(f"tl-{self.title}-initial", self.data)
+
         self.fields = get_fields(self.config)
         self.colour_map = self._get_colour_map(self.config)
         self.legend_map = self._get_legend_map(self.config)
+        logger.debug("getting table data ...")
+
         data = self._get_table_data()
+        logger.debug("data for table:")
+        dump(f"tl-{self.title}-processed", data)
         table = self.get_table(data)
         blurb = self._get_blurb()
 
