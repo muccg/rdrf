@@ -223,5 +223,6 @@ def get_single_patient_graphics_map(registry, vis_configs, patient_id):
 
 
 def dump(name, data):
+    name = name.replace("/", "")
     filename = f"/data/{name}.csv"
     data.to_csv(filename)
