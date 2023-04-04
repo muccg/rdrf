@@ -10,7 +10,6 @@ from datetime import datetime
 
 from .models import VisualisationBaseDataConfig
 from .utils import get_seq_name
-from .utils import dump
 
 
 import logging

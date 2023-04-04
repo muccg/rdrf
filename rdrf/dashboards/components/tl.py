@@ -1,7 +1,6 @@
 import logging
 from dash import html
 from ..components.common import BaseGraphic
-from ..utils import dump
 import dash_bootstrap_components as dbc
 import pandas as pd
 from rdrf.helpers.utils import get_display_value
