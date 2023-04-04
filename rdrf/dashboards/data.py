@@ -94,7 +94,6 @@ class RegistryDataFrame:
 
         if not self.no_data:
             self._order_by_collection_date(self.df)
-            dump(f"rdf-data-{self.mode}-{self.patient_id}", self.df)
         c = datetime.now()
         logger.info(f"time taken to load/generate df = {(c-a).total_seconds()} seconds")
 
@@ -120,9 +119,29 @@ class RegistryDataFrame:
         self.df.sort_values(by=[cdf], inplace=True, na_position="first")
         # this resequences the seq number for each patient
         # from 0 ( the first collected survey to the last)
+
         self.df["SEQ"] = self.df.groupby("PID").cumcount()
+        df = self.df
+
+        def update_seq(row):
+            """
+            This is required because there is the possibility
+            of a patient with no baseline
+            """
+            pid = row["PID"]
+            baselines = df[(df["PID"] == pid) & (df["TYPE"] == "baseline")]
+            if len(baselines) == 0:
+                return row["SEQ"] + 1
+            else:
+                return row["SEQ"]
+
+        self.df["SEQ"] = self.df.apply(update_seq, axis=1)
+
         # must do this if we re-sequence:
         self.df = self._assign_seq_names(self.df)
+
+    def _reseq(self, df):
+        pass
 
     def _reload_dataframe(self):
         try:

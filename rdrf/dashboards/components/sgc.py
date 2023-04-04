@@ -155,7 +155,7 @@ class ScaleGroupComparison(BaseGraphic):
 
     def _get_notes(self):
         if self._is_missing_baseline():
-            return "Note: Patient is missing a Baseline Form"
+            return " Note: Patient is missing a Baseline Form"
 
     def _is_missing_baseline(self):
         base_config = self.config_model.base_data

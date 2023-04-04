@@ -145,18 +145,11 @@ def get_field_label(cde_code, prop=None):
 
 class TrafficLights(BaseGraphic):
     def get_graphic(self):
-
-        logger.debug("traffic light data")
-        dump(f"tl-{self.title}-initial", self.data)
-
         self.fields = get_fields(self.config)
         self.colour_map = self._get_colour_map(self.config)
         self.legend_map = self._get_legend_map(self.config)
-        logger.debug("getting table data ...")
 
         data = self._get_table_data()
-        logger.debug("data for table:")
-        dump(f"tl-{self.title}-processed", data)
         table = self.get_table(data)
         blurb = self._get_blurb()
 
@@ -196,7 +189,13 @@ class TrafficLights(BaseGraphic):
 
         legend = html.Div(children)
 
-        return html.Div([legend])
+        missing_baseline = self._is_missing_baseline()
+        notes = (
+            " Note: Patient is missing a Baseline Form" if missing_baseline else None
+        )
+        children = [legend, notes] if notes else [legend]
+
+        return html.Div(children)
 
     def _get_graphic_function(self, field):
         yes_no = set(["Yes", "No"])

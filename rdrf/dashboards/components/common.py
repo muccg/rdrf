@@ -101,6 +101,12 @@ class BaseGraphic:
 
         return image_src
 
+    def _is_missing_baseline(self):
+        base_config = self.config_model.base_data
+        if base_config:
+            baseline_form = base_config.config["baseline_form"]
+            return not self.patient.has_saved_form(baseline_form)
+
     def add_image(
         self,
         fig,
