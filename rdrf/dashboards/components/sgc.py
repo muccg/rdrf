@@ -4,7 +4,6 @@ from dash import dcc, html
 from rdrf.models.definition.models import CommonDataElement
 from ..components.common import BaseGraphic
 from ..utils import get_range, get_base
-from ..utils import dump
 from ..data import combine_data
 
 from ..score_functions import sgc_functional_score
@@ -43,9 +42,6 @@ class ScaleGroupComparison(BaseGraphic):
         self.better = None  # an indicator showing whether up is better
         self.mode = "single" if self.patient else "all"
         data = self.data
-        logger.debug(f"sgc {self.title} data = {data}")
-        dump_filename = "sgc" + self.title.replace(" ", "")
-        dump(dump_filename, data)
         scores_map = {}
         self.group_info = {}
         self.rev_group = {}
@@ -146,13 +142,9 @@ class ScaleGroupComparison(BaseGraphic):
 
         data = data.round(1)
         table = self.get_table(data, scores_map)
-        dump(f"sgclinechart-{self.title}prefill", data)
 
-        # data = data.fillna(-1)
         data.loc[:, data.columns != "COLLECTIONDATE"].fillna(-1)
 
-        logger.debug(f"data for line chart = {data}")
-        dump(f"sgclinechart-{self.title}", data)
         line_chart = self.get_line_chart(data, chart_title, scores_map)
 
         notes = self._get_notes()
