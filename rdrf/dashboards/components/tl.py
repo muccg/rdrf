@@ -308,8 +308,19 @@ class TrafficLights(BaseGraphic):
                 changed = True
 
         if changed:
-            logger.debug("sequence changed for static, renaming")
-            df = assign_seq_names(df).sort_values(by="SEQ")
+            from rdrf.models.definition.models import RegistryForm
+
+            def static_get_seq_name(seq, form):
+                if form == self.static_followups["baseline"]:
+                    form_model = RegistryForm.objects.get(name=form)
+                    return form_model.display_name
+                else:
+                    for form_dict in self.static_followups["followups"]:
+                        if form_dict["name"] == form:
+                            form_model = RegistryForm.objects.get(name=form)
+                            return form_model.display_name
+
+            df = assign_seq_names(df, static_get_seq_name).sort_values(by="SEQ")
 
         return df
 

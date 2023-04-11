@@ -254,8 +254,14 @@ def get_aus_date(row):
         return ""
 
 
-def assign_seq_names(df):
-    df["SEQ_NAME"] = df.apply(
-        lambda row: get_seq_name(row["SEQ"]) + get_aus_date(row), axis=1
-    )
+def assign_seq_names(df, func=None):
+    if func is None:
+        df["SEQ_NAME"] = df.apply(
+            lambda row: get_seq_name(row["SEQ"]) + get_aus_date(row), axis=1
+        )
+    else:
+        df["SEQ_NAME"] = df.apply(
+            lambda row: func(row["SEQ"], row["FORM"]) + get_aus_date(row), axis=1
+        )
+
     return df
