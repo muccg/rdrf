@@ -34,6 +34,7 @@ class BaseGraphic:
         data: pd.DataFrame,
         patient=None,
         all_patients_data=None,
+        static_followups={},
     ):
         self.config_model = config_model
         if self.config_model is not None:
@@ -44,6 +45,7 @@ class BaseGraphic:
         self.title = title
         self.patient = patient  # none if all patients
         self.all_patients_data = all_patients_data  # this gets provided for some single patient components which need to compare
+        self.static_followups = static_followups
 
     @property
     def needs_global_data(self):

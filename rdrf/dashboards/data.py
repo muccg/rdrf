@@ -108,8 +108,10 @@ class RegistryDataFrame:
 
         if self.followup_forms:
             self.multiform = True
+            logger.debug("is multiform")
         else:
             self.multiform = False
+            logger.debug("is NOT multiform")
 
     def _order_by_collection_date(self, df: pd.DataFrame):
         logger.debug("ordering dataframe by collection date")
@@ -134,13 +136,46 @@ class RegistryDataFrame:
             else:
                 return row["SEQ"]
 
-        self.df["SEQ"] = self.df.apply(update_seq, axis=1)
+        if not self.multiform:
+            logger.debug("applying update seq")
+            self.df["SEQ"] = self.df.apply(update_seq, axis=1)
+        else:
+            logger.debug("multiform!")
+            self.df = self._custom_ordering(self.df)
 
         # must do this if we re-sequence:
         self.df = self._assign_seq_names(self.df)
 
+        # self._sanity_check(self.df)
+
+        logger.debug("finished ordering")
+
+    def _sanity_check(self, df):
+        for index, row in df.iterrows():
+            if row["TYPE"] == "baseline":
+                seq = row["SEQ"]
+                if seq != 0:
+                    raise Exception(f"baseline should be seq 0 instead is {seq}")
+
     def _reseq(self, df):
         pass
+
+    def _custom_ordering(self, df):
+        logger.debug("applying custom ordering")
+
+        def seq_from_form(form):
+            if form == self.baseline_form:
+                return 0
+            else:
+                for fu_dict in self.followup_forms:
+                    if form == fu_dict["name"]:
+                        return fu_dict["seq"]
+                return 99
+
+        df = df.assign(newseq=df["FORM"].transform(seq_from_form))
+        df.sort_values(by=["PID", "newseq", cdf], inplace=True, na_position="last")
+        df = df.drop("newseq", axis=1)
+        return df
 
     def _reload_dataframe(self):
         try:
@@ -274,6 +309,9 @@ class RegistryDataFrame:
     def _get_multiform_rows(self, cd) -> List:
         from rdrf.helpers.utils import is_multi_cd
 
+        def msg(s):
+            logger.debug(f"EMIT: {s}")
+
         once_followups = sorted(
             [f for f in self.followup_forms if f["seq"] != "+"], key=lambda d: d["seq"]
         )
@@ -290,11 +328,13 @@ class RegistryDataFrame:
                 ]
 
                 for seq, form_name in forms_to_emit:
+                    msg(f"{seq} {form_name}")
                     row = [pid, seq]
                     cd_type = (
                         "baseline" if form_name == self.baseline_form else "followup"
                     )
                     row.append(cd_type)
+                    msg(f"cd type = {cd_type}")
                     context_id = cd.context_id
                     row.append(context_id)
                     row.append(form_name)
@@ -302,7 +342,9 @@ class RegistryDataFrame:
                     if field_row is None:
                         field_row = [None] * self.num_fields
                     row.extend(field_row)
+                    msg(f"{row}")
                     rows.append(row)
+                    msg(f"done {seq} {form_name}")
                 return rows
             else:
                 # a multiple followup
