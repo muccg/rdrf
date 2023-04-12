@@ -43,7 +43,7 @@ class CRCTrafficLightTestCase(TestCase):
 
         table_data = tl._get_table_data()
 
-        self.check_baseline(table_date)
+        self.check_baseline(table_data)
 
         self.check_followups(table_data)
 
@@ -53,8 +53,6 @@ class CRCTrafficLightTestCase(TestCase):
         return TrafficLight(data)
 
     def create_dataframe(self):
-        import pandas as pd
-
         return None
 
     def check_baseline(self, df):
