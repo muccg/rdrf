@@ -36,6 +36,33 @@ class VisTestCase(TestCase):
         )
 
 
-class VisTestCases(TestCase):
-    def test_one_baseline_only(self):
-        pass
+class CRCTrafficLightTestCase(TestCase):
+    def test_normal_case(self):
+        initial_df = self.create_dataframe()
+        tl = self.create_traffic_light(initial_df)
+
+        table_data = tl._get_table_data()
+
+        self.check_baseline(table_date)
+
+        self.check_followups(table_data)
+
+    def create_traffic_light(self, data):
+        from dashboards.components.tl import TrafficLight
+
+        return TrafficLight(data)
+
+    def create_dataframe(self):
+        import pandas as pd
+
+        return None
+
+    def check_baseline(self, df):
+        num_baselines = 0
+
+        for index, row in df.iterrows():
+            if row["TYPE"] == "baseline":
+                self.assertEqual(row["SEQ"], 0, "baseline row does not have SEQ 0")
+                num_baselines += 1
+
+        self.assertEqual(num_baselines, 1, "Number of baseline rows is not 1")
