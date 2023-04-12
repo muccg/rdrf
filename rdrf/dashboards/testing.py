@@ -56,6 +56,7 @@ class CRCTrafficLightTestCase(VisualisationsTestCase):
 
     def create_traffic_light(self, data):
         from dashboards.components.tl import TrafficLights
+        from dashboards.components.tl import get_fields
 
         vis_config = Mock()
 
@@ -95,7 +96,9 @@ class CRCTrafficLightTestCase(VisualisationsTestCase):
         vis_config.config = config_dict
         patient = Mock()
 
-        return TrafficLights("crc test tl", vis_config, data, patient, None)
+        tl = TrafficLights("crc test tl", vis_config, data, patient, None)
+        tl.fields = get_fields(tl.config)
+        return tl
 
     def create_dataframe(self):
         return None
