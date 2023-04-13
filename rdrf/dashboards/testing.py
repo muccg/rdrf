@@ -34,3 +34,8 @@ class VisTestCase(TestCase):
             correct_value,
             f"symptom score: correct={correct_value} actual={result}",
         )
+
+
+class VisTestCases(TestCase):
+    def test_one_baseline_only(self):
+        pass

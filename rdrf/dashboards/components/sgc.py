@@ -142,7 +142,9 @@ class ScaleGroupComparison(BaseGraphic):
 
         data = data.round(1)
         table = self.get_table(data, scores_map)
-        data = data.fillna(-1)
+
+        data.loc[:, data.columns != "COLLECTIONDATE"].fillna(-1)
+
         line_chart = self.get_line_chart(data, chart_title, scores_map)
 
         notes = self._get_notes()
@@ -155,7 +157,7 @@ class ScaleGroupComparison(BaseGraphic):
 
     def _get_notes(self):
         if self._is_missing_baseline():
-            return "Note: Patient is missing a Baseline Form"
+            return " Note: Patient is missing a Baseline Form"
 
     def _is_missing_baseline(self):
         base_config = self.config_model.base_data
