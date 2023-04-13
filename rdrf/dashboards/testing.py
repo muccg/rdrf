@@ -101,7 +101,13 @@ class CRCTrafficLightTestCase(VisualisationsTestCase):
         return tl
 
     def create_dataframe(self):
-        return None
+        import pandas as pd
+
+        # PID', 'SEQ', 'SEQ_NAME', 'FORM', 'TYPE', 'COLLECTIONDATE
+
+        from dashboards.data import get_data
+
+        return df
 
     def check_baseline(self, df):
         num_baselines = 0
