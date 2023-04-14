@@ -5,6 +5,8 @@ from rdrf.models.definition.models import CommonDataElement
 from ..components.common import BaseGraphic
 from ..utils import get_range, get_base
 from ..data import combine_data
+from ..data import has_static_followups
+from ..data import get_static_followups_handler
 
 from ..score_functions import sgc_functional_score
 from ..score_functions import sgc_symptom_score
@@ -42,6 +44,15 @@ class ScaleGroupComparison(BaseGraphic):
         self.better = None  # an indicator showing whether up is better
         self.mode = "single" if self.patient else "all"
         data = self.data
+        from dashboards.utils import dump
+
+        dump_file = f"sgc-initial-{self.title}.csv"
+        dump(dump_file, data)
+
+        if has_static_followups(self.registry):
+            sfu_handler = get_static_followups_handler(self.registry)
+            sfu_handler.fix_ordering_of_static_followups(data)
+
         scores_map = {}
         self.group_info = {}
         self.rev_group = {}

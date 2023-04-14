@@ -6,8 +6,11 @@ import pandas as pd
 from rdrf.helpers.utils import get_display_value
 
 from ..utils import assign_seq_names
+from ..data import has_static_followups
+from ..data import get_static_followups_handler
 
 from rdrf.models.definition.models import CommonDataElement
+
 
 logger = logging.getLogger(__name__)
 
@@ -151,6 +154,10 @@ class TrafficLights(BaseGraphic):
         self.legend_map = self._get_legend_map(self.config)
 
         data = self._get_table_data()
+        dump_file = f"tl-{self.title}-no1yr-expected-data"
+        from dashboards.utils import dump
+
+        dump(dump_file, data)
         table = self.get_table(data)
         blurb = self._get_blurb()
 
@@ -280,9 +287,9 @@ class TrafficLights(BaseGraphic):
             df[display_field] = df[field].map(lambda v: get_display_value(field, v))
 
         # for BC need to ensure the static followups are in the correct order
-        if self.static_followups:
-            logger.debug(f"there are static followups = {self.static_followups}")
-            df = self._fix_ordering_of_static_followups(df)
+        if has_static_followups(self.registry):
+            sfuh = get_static_followups_handler(self.registry)
+            df = sfuh.fix_ordering_of_static_followups(df)
         else:
             logger.debug("no static followups!")
 

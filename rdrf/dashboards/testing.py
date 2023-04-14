@@ -2,6 +2,7 @@ from django.test import TestCase
 from dashboards.score_functions import sgc_symptom_score as f
 
 from unittest.mock import Mock
+import pandas as pd
 
 
 class VisTestCase(TestCase):
@@ -38,21 +39,34 @@ class VisTestCase(TestCase):
         )
 
 
-class VisualisationsTestCase(TestCase):
-    databases = {"default", "clinical"}
-    fixtures = ["testing_auth", "testing_users", "testing_rdrf"]
-
-
-class CRCTrafficLightTestCase(VisualisationsTestCase):
+class BCTrafficLightTestCase(TestCase):
     def test_normal_case(self):
-        initial_df = self.create_dataframe()
+        # normal data baseline + followups
+        initial_df = self.create_dataframe("normal")
+        expected_df = self.get_expected_dataframe("normal")
+        self.check(initial_df, expected_df)
+
+    def check(self, initial_df, expected_df):
         tl = self.create_traffic_light(initial_df)
-
         table_data = tl._get_table_data()
-
         self.check_baseline(table_data)
-
         self.check_followups(table_data)
+        self.check_dataframe(table_data, expected_df)
+
+    def test_missing_baseline(self):
+        initial_df = self.create_dataframe("missingbaseline")
+        expected_df = self.get_expected_dataframe("missingbaseline")
+        self.check(initial_df, expected_df)
+
+    def test_missing_sixmonth(self):
+        initial_df = self.create_dataframe("missingsixmonth")
+        expected_df = self.get_expected_dataframe("missingsixmonth")
+        self.check(initial_df, expected_df)
+
+    def test_missing_oneyear(self):
+        initial_df = self.create_dataframe("missingoneyear")
+        expected_df = self.get_expected_dataframe("missingoneyear")
+        self.check(initial_df, expected_df)
 
     def create_traffic_light(self, data):
         from dashboards.components.tl import TrafficLights
@@ -100,14 +114,10 @@ class CRCTrafficLightTestCase(VisualisationsTestCase):
         tl.fields = get_fields(tl.config)
         return tl
 
-    def create_dataframe(self):
-        import pandas as pd
-
-        # PID', 'SEQ', 'SEQ_NAME', 'FORM', 'TYPE', 'COLLECTIONDATE
-
-        from dashboards.data import get_data
-
-        return df
+    def create_dataframe(self, scenario):
+        csv_file_name = f"bc-{scenario}-initial.csv"
+        csv_file_path = f"/???/{csv_file_name}"
+        return pd.read_csv(csv_file_path)
 
     def check_baseline(self, df):
         num_baselines = 0
