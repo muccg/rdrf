@@ -49,6 +49,7 @@ class RegistryDataFrame:
         needs_all=False,
     ):
         self.registry = registry
+        self.has_static_followups = has_static_followups(self.registry)
         self.state = None
         self.config_model = config_model
         self.baseline_form = None
@@ -93,6 +94,10 @@ class RegistryDataFrame:
 
         if not self.no_data:
             self._order_by_collection_date(self.df)
+            if self.has_static_followups:
+                sfu_handler = get_static_followups_handler(self.registry)
+                self.df = sfu_handler.fix_ordering_of_static_followups(self.df)
+
         c = datetime.now()
         logger.info(f"time taken to load/generate df = {(c-a).total_seconds()} seconds")
 

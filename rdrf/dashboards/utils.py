@@ -265,3 +265,22 @@ def assign_seq_names(df, func=None):
         )
 
     return df
+
+
+class DataFrameError(Exception):
+    pass
+
+
+def sanity_check(where, df):
+    for index, row in df.iterrows():
+        seq = row["SEQ"]
+        form_type = row["TYPE"]
+        form = row["FORM"]
+        if form_type == "baseline" and seq > 0:
+            raise DataFrameError(
+                f"{where} baseline should have seq 0: {form} has seq = {seq}"
+            )
+        if form_type == "followup" and seq == 0:
+            raise DataFrameError(
+                f"{where} followup should have seq > 0: {form} has seq = 0"
+            )

@@ -4,6 +4,7 @@ from dash import dcc, html
 from rdrf.models.definition.models import CommonDataElement
 from ..components.common import BaseGraphic
 from ..utils import get_range, get_base
+from ..utils import sanity_check
 from ..data import combine_data
 from ..data import has_static_followups
 from ..data import get_static_followups_handler
@@ -44,15 +45,12 @@ class ScaleGroupComparison(BaseGraphic):
         self.better = None  # an indicator showing whether up is better
         self.mode = "single" if self.patient else "all"
         data = self.data
-        from dashboards.utils import dump
-
-        dump_file = f"sgc-initial-{self.title}.csv"
-        dump(dump_file, data)
 
         if has_static_followups(self.registry):
             sfu_handler = get_static_followups_handler(self.registry)
-            sfu_handler.fix_ordering_of_static_followups(data)
+            data = sfu_handler.fix_ordering_of_static_followups(data)
 
+        sanity_check("in get_graphic", data)
         scores_map = {}
         self.group_info = {}
         self.rev_group = {}
@@ -416,7 +414,15 @@ class ScaleGroupComparison(BaseGraphic):
         # this only makes sense if this chart is passed
         # all patients scores
         aggregations_map = {score_name: "mean" for score_name in score_names}
+        from dashboards.utils import dump
+
+        sanity_check("in calc avg scores", data)
+
+        dump(f"sgc-{self.title}-preavg.csv", data)
+
         df = data.groupby(SEQ).agg(aggregations_map).reset_index()
+        dump(f"sgc-{self.title}-postavg.csv", df)
+
         return df
 
     def calculate_score_counts_over_time(self, data, score_names):
@@ -516,8 +522,7 @@ class ScaleGroupComparison(BaseGraphic):
 
     def load_all_patients_data(self):
         if not self.all_patients_data:
-            from rdrf.models.definition.models import Registry
             from dashboards.data import get_data
 
-            registry = Registry.objects.get()
-            self.all_patients_data = get_data(registry)
+            self.all_patients_data = get_data(self.registry)
+            sanity_check("in load all", self.all_patients_data)

@@ -121,7 +121,6 @@ class BCTrafficLightTestCase(TestCase):
 
     def check_baseline(self, df):
         num_baselines = 0
-
         for index, row in df.iterrows():
             if row["TYPE"] == "baseline":
                 self.assertEqual(row["SEQ"], 0, "baseline row does not have SEQ 0")
