@@ -5,7 +5,6 @@ import dash_bootstrap_components as dbc
 import pandas as pd
 from rdrf.helpers.utils import get_display_value
 
-from ..utils import assign_seq_names
 from ..data import has_static_followups
 from ..data import get_static_followups_handler
 
