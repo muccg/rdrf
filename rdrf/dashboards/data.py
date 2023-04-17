@@ -583,7 +583,6 @@ class StaticFollowupsHandler:
         for static_form_dict in self.static_followups:
             if static_form_dict["name"] == form:
                 static_seq = static_form_dict["seq"]
-                old_seq = row["SEQ"]
                 df.at[index, "SEQ"] = static_seq
 
     def get_static_form_name(self, seq, form):
