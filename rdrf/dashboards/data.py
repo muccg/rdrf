@@ -557,7 +557,6 @@ class StaticFollowupsHandler:
         changed = False
         for index, row in df.iterrows():
             if row["FORM"] == self.baseline_form:
-                old_seq = row["SEQ"]
                 df.at[index, "SEQ"] = 0
                 changed = True
             elif row["FORM"] in self.static_form_names:
