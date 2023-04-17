@@ -49,6 +49,7 @@ class RegistryDataFrame:
         needs_all=False,
     ):
         self.registry = registry
+        self.has_static_followups = has_static_followups(self.registry)
         self.state = None
         self.config_model = config_model
         self.baseline_form = None
@@ -93,6 +94,10 @@ class RegistryDataFrame:
 
         if not self.no_data:
             self._order_by_collection_date(self.df)
+            if self.has_static_followups:
+                sfu_handler = get_static_followups_handler(self.registry)
+                self.df = sfu_handler.fix_ordering_of_static_followups(self.df)
+
         c = datetime.now()
         logger.info(f"time taken to load/generate df = {(c-a).total_seconds()} seconds")
 
@@ -528,3 +533,100 @@ def combine_data(
     combined_data = combined_data.merge(count_data, how="left", on="SEQ")
     logger.debug(f"combined data including counts = {combined_data}")
     return combined_data
+
+
+def has_static_followups(registry):
+    # Breast Cancer has these. CRC,LC and OV do not.
+    try:
+        from dashboards.models import VisualisationBaseDataConfig
+
+        vbdc = VisualisationBaseDataConfig.objects.get(registry=registry)
+        return "followup_forms" in vbdc.config
+    except VisualisationBaseDataConfig.DoesNotExist:
+        return False
+
+    return False
+
+
+class StaticFollowupsHandler:
+    """
+    Some registries have "static followups"
+    Like Breast Cancer: once off forms in the main
+    context with distinct names like 6MonthFollowup, 1yearFollowup etc
+    This causes complications in the data loading.
+    The sequence number needs to be corrected in the loaded dataframe
+    """
+
+    def __init__(self, registry, baseline_form, static_followups):
+        self.registry = registry
+        self.baseline_form = baseline_form
+        self.static_followups = static_followups
+        self.static_form_names = [
+            x["name"] for x in self.static_followups if x["seq"] != "+"
+        ]
+
+    def fix_ordering_of_static_followups(self, df: pd.DataFrame) -> pd.DataFrame:
+        changed = False
+        for index, row in df.iterrows():
+            if row["FORM"] == self.baseline_form:
+                old_seq = row["SEQ"]
+                df.at[index, "SEQ"] = 0
+                logger.debug(f"""static baseline fix: {row["FORM"]} {old_seq} -> 0""")
+                changed = True
+            elif row["FORM"] in self.static_form_names:
+                logger.debug(f"""fixing row for static followup {row["FORM"]}""")
+                self.fixup_static_followup(df, index, row)
+                changed = True
+
+        if changed:
+            from dashboards.utils import assign_seq_names
+
+            df = assign_seq_names(df, self.get_static_form_name).sort_values(by="SEQ")
+        return df
+
+    def fixup_static_followup(self, df: pd.DataFrame, index, row):
+        # the metadata looks like
+        # self.static_followups is a dict
+        # with keys
+        # "followup_forms": [{"seq": 1, "name": "FollowUpPROMS6months"},
+        # {"seq": 2, "name": "FUpPROMSYr1"},
+        # {"seq": 3, "name": "FUpPROMSYr2"},
+        # {"seq": "+", "name": "FUpPROMS3_10Years"}]
+        # baseline_form : "<baseline> form
+        # this mutates the passed in dataframe
+        form = row["FORM"]
+        for static_form_dict in self.static_followups:
+            if static_form_dict["name"] == form:
+                static_seq = static_form_dict["seq"]
+                old_seq = row["SEQ"]
+                df.at[index, "SEQ"] = static_seq
+                logger.debug(
+                    f"""static fu fix: {row["FORM"]} {old_seq} -> {static_seq}"""
+                )
+
+    def get_static_form_name(self, seq, form):
+        from rdrf.models.definition.models import RegistryForm
+
+        if form == self.baseline_form:
+            form_model = RegistryForm.objects.get(name=form)
+            return form_model.display_name
+        else:
+            for form_dict in self.static_followups:
+                if form_dict["name"] == form:
+                    form_model = RegistryForm.objects.get(name=form)
+                    return form_model.display_name
+        return form
+
+
+def get_static_followups_handler(registry):
+    try:
+        from dashboards.models import VisualisationBaseDataConfig
+
+        vbdc = VisualisationBaseDataConfig.objects.get(registry=registry)
+        if "followup_forms" in vbdc.config:
+            sfs = vbdc.config["followup_forms"]
+            baseline_form = vbdc.config["baseline_form"]
+            return StaticFollowupsHandler(registry, baseline_form, sfs)
+
+    except VisualisationBaseDataConfig.DoesNotExist:
+        return None

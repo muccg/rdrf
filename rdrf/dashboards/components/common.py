@@ -37,12 +37,16 @@ class BaseGraphic:
         static_followups={},
     ):
         self.config_model = config_model
+        self.registry = config_model.registry
         if self.config_model is not None:
             self.config = config_model.config
         else:
             self.config = None
         self.data = data
         self.title = title
+        from dashboards.utils import dump
+
+        dump(f"initial-data-{self.title}-no1yr", self.data)
         self.patient = patient  # none if all patients
         self.all_patients_data = all_patients_data  # this gets provided for some single patient components which need to compare
         self.static_followups = static_followups

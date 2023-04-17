@@ -5,9 +5,11 @@ import dash_bootstrap_components as dbc
 import pandas as pd
 from rdrf.helpers.utils import get_display_value
 
-from ..utils import assign_seq_names
+from ..data import has_static_followups
+from ..data import get_static_followups_handler
 
 from rdrf.models.definition.models import CommonDataElement
+
 
 logger = logging.getLogger(__name__)
 
@@ -151,6 +153,10 @@ class TrafficLights(BaseGraphic):
         self.legend_map = self._get_legend_map(self.config)
 
         data = self._get_table_data()
+        dump_file = f"tl-{self.title}-no1yr-expected-data"
+        from dashboards.utils import dump
+
+        dump(dump_file, data)
         table = self.get_table(data)
         blurb = self._get_blurb()
 
@@ -279,72 +285,13 @@ class TrafficLights(BaseGraphic):
             display_field = field + "_display"
             df[display_field] = df[field].map(lambda v: get_display_value(field, v))
 
-        # for BC need to ensure the static followups are in the correct order
-        if self.static_followups:
-            logger.debug(f"there are static followups = {self.static_followups}")
-            df = self._fix_ordering_of_static_followups(df)
-        else:
-            logger.debug("no static followups!")
+        if has_static_followups(self.registry):
+            sfuh = get_static_followups_handler(self.registry)
+            df = sfuh.fix_ordering_of_static_followups(df)
 
         return df
-
-    def _fix_ordering_of_static_followups(self, df):
-        logger.debug("fixing static followups:")
-        static_followups = [
-            x["name"] for x in self.static_followups["followups"] if x["seq"] != "+"
-        ]
-        baseline_form = self.static_followups["baseline"]
-        logger.debug(f"static followups = {static_followups}")
-        changed = False
-        for index, row in df.iterrows():
-            if row["FORM"] == baseline_form:
-                old_seq = row["SEQ"]
-                df.at[index, "SEQ"] = 0
-                logger.debug(f"""static baseline fix: {row["FORM"]} {old_seq} -> 0""")
-                changed = True
-            elif row["FORM"] in static_followups:
-                logger.debug(f"""fixing row for static followup {row["FORM"]}""")
-                self._fixup_static_followup(df, index, row)
-                changed = True
-
-        if changed:
-            from rdrf.models.definition.models import RegistryForm
-
-            def static_get_seq_name(seq, form):
-                if form == self.static_followups["baseline"]:
-                    form_model = RegistryForm.objects.get(name=form)
-                    return form_model.display_name
-                else:
-                    for form_dict in self.static_followups["followups"]:
-                        if form_dict["name"] == form:
-                            form_model = RegistryForm.objects.get(name=form)
-                            return form_model.display_name
-
-            df = assign_seq_names(df, static_get_seq_name).sort_values(by="SEQ")
-
-        return df
-
-    def _fixup_static_followup(self, df, index, row):
-        # the metadata looks like
-        # self.static_followups is a dict
-        # with keys
-        # "followup_forms": [{"seq": 1, "name": "FollowUpPROMS6months"},
-        # {"seq": 2, "name": "FUpPROMSYr1"},
-        # {"seq": 3, "name": "FUpPROMSYr2"},
-        # {"seq": "+", "name": "FUpPROMS3_10Years"}]
-        # baseline_form : "<baseline> form
-        form = row["FORM"]
-        for static_form_dict in self.static_followups["followups"]:
-            if static_form_dict["name"] == form:
-                static_seq = static_form_dict["seq"]
-                old_seq = row["SEQ"]
-                df.at[index, "SEQ"] = static_seq
-                logger.debug(
-                    f"""static fu fix: {row["FORM"]} {old_seq} -> {static_seq}"""
-                )
 
     def _add_colour_column(self, cde, df):
-        # https://pandas.pydata.org/docs/reference/api/pandas.Series.map.html
         column_name = cde + "_colour"
         df[column_name] = df[cde].map(get_colour)
         return df
