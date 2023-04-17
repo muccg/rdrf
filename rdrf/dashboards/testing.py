@@ -1,9 +1,6 @@
 from django.test import TestCase
 from dashboards.score_functions import sgc_symptom_score as f
 
-from unittest.mock import Mock
-import pandas as pd
-
 
 class VisTestCase(TestCase):
     def test_scg_symptom1(self):
