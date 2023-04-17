@@ -3,6 +3,7 @@ import pandas as pd
 from rdrf.models.definition.models import ClinicalData
 from rdrf.models.definition.models import RDRFContext
 from rdrf.models.definition.models import CommonDataElement
+from rdrf.models.definition.models import RegistryForm
 
 from registry.patients.models import Patient
 
@@ -113,13 +114,10 @@ class RegistryDataFrame:
 
         if self.followup_forms:
             self.multiform = True
-            logger.debug("is multiform")
         else:
             self.multiform = False
-            logger.debug("is NOT multiform")
 
     def _order_by_collection_date(self, df: pd.DataFrame):
-        logger.debug("ordering dataframe by collection date")
         # it's more likely collection date on baseline form
         # will be null hence the na_position of first
         self.df.sort_values(by=[cdf], inplace=True, na_position="first")
@@ -142,18 +140,13 @@ class RegistryDataFrame:
                 return row["SEQ"]
 
         if not self.multiform:
-            logger.debug("applying update seq")
             self.df["SEQ"] = self.df.apply(update_seq, axis=1)
         else:
-            logger.debug("multiform!")
             self.df = self._custom_ordering(self.df)
 
         # must do this if we re-sequence:
         self.df = self._assign_seq_names(self.df)
-
         # self._sanity_check(self.df)
-
-        logger.debug("finished ordering")
 
     def _sanity_check(self, df):
         for index, row in df.iterrows():
@@ -166,8 +159,6 @@ class RegistryDataFrame:
         pass
 
     def _custom_ordering(self, df):
-        logger.debug("applying custom ordering")
-
         def seq_from_form(form):
             if form == self.baseline_form:
                 return 0
@@ -203,8 +194,6 @@ class RegistryDataFrame:
         self.df = self._assign_seq_names(self.df)
 
     def _assign_seq_names(self, df):
-        logger.debug("assigning sequence names")
-
         def get_aus_date(row):
             try:
                 d = row["COLLECTIONDATE"].date()
@@ -531,7 +520,6 @@ def combine_data(
 
     combined_data = indiv_data.merge(avg_data, how="left", on="SEQ")
     combined_data = combined_data.merge(count_data, how="left", on="SEQ")
-    logger.debug(f"combined data including counts = {combined_data}")
     return combined_data
 
 
@@ -565,16 +553,18 @@ class StaticFollowupsHandler:
             x["name"] for x in self.static_followups if x["seq"] != "+"
         ]
 
+        self.multiform = [x["name"] for x in self.static_followups if x["seq"] == "+"][
+            0
+        ]
+
     def fix_ordering_of_static_followups(self, df: pd.DataFrame) -> pd.DataFrame:
         changed = False
         for index, row in df.iterrows():
             if row["FORM"] == self.baseline_form:
                 old_seq = row["SEQ"]
                 df.at[index, "SEQ"] = 0
-                logger.debug(f"""static baseline fix: {row["FORM"]} {old_seq} -> 0""")
                 changed = True
             elif row["FORM"] in self.static_form_names:
-                logger.debug(f"""fixing row for static followup {row["FORM"]}""")
                 self.fixup_static_followup(df, index, row)
                 changed = True
 
@@ -600,22 +590,35 @@ class StaticFollowupsHandler:
                 static_seq = static_form_dict["seq"]
                 old_seq = row["SEQ"]
                 df.at[index, "SEQ"] = static_seq
-                logger.debug(
-                    f"""static fu fix: {row["FORM"]} {old_seq} -> {static_seq}"""
-                )
 
     def get_static_form_name(self, seq, form):
         from rdrf.models.definition.models import RegistryForm
 
         if form == self.baseline_form:
             form_model = RegistryForm.objects.get(name=form)
-            return form_model.display_name
+            name = form_model.display_name
+            return name
         else:
             for form_dict in self.static_followups:
                 if form_dict["name"] == form:
                     form_model = RegistryForm.objects.get(name=form)
-                    return form_model.display_name
+                    name = form_model.display_name
+                    return name
+
         return form
+
+    def get_static_form_name_from_seq_name(self, seq_name):
+        if seq_name == "Baseline":
+            return RegistryForm.objects.get(name=self.baseline_form).display_name
+        else:
+            from dashboards.utils import seq_names as names_dict
+
+            for seq, name in names_dict.items():
+                if name == seq_name:
+                    for d in self.static_followups:
+                        if d["seq"] == seq:
+                            return RegistryForm.objects.get(name=d["name"]).display_name
+            return RegistryForm.objects.get(name=self.multiform).display_name
 
 
 def get_static_followups_handler(registry):

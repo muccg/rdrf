@@ -37,11 +37,12 @@ class BaseGraphic:
         static_followups={},
     ):
         self.config_model = config_model
-        self.registry = config_model.registry
         if self.config_model is not None:
             self.config = config_model.config
+            self.registry = config_model.registry
         else:
             self.config = None
+            self.registry = None
         self.data = data
         self.title = title
         self.patient = patient  # none if all patients
