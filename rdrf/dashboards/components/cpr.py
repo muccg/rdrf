@@ -40,12 +40,8 @@ class ChangesInPatientResponses(BaseGraphic):
     def get_graphic(self):
         if self.registry is not None:
             if has_static_followups(self.registry):
-                logger.debug("cpr has static")
                 self.sfuh = get_static_followups_handler(self.registry)
                 self.data = self.sfuh.fix_ordering_of_static_followups(self.data)
-                from dashboards.utils import dump
-
-                dump(f"cpr-{self.title}.csv", self.data)
 
         field_dicts = self.config["fields"]
         items = []
@@ -127,10 +123,6 @@ class ChangesInPatientResponses(BaseGraphic):
     def fix_xaxis(self, fig, data):
         # this replaces the SEQ numbers on the x-axis
         # with names
-
-        logger.debug("fixing x axis for cpr")
-        logger.debug(data)
-
         seq_totals = data.groupby(["SEQ"])["counts"].sum()
 
         def get_ticktext(row):
@@ -140,7 +132,6 @@ class ChangesInPatientResponses(BaseGraphic):
             return seq_name + " (" + str(seq_total) + ")"
 
         def get_ticktext2(row):
-            logger.debug(row)
             seq = row["SEQ"]
             seq_total = seq_totals[seq]
             old_seq_name = row["SEQ_NAME"]

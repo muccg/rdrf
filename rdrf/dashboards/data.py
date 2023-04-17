@@ -322,13 +322,11 @@ class RegistryDataFrame:
                 ]
 
                 for seq, form_name in forms_to_emit:
-                    msg(f"{seq} {form_name}")
                     row = [pid, seq]
                     cd_type = (
                         "baseline" if form_name == self.baseline_form else "followup"
                     )
                     row.append(cd_type)
-                    msg(f"cd type = {cd_type}")
                     context_id = cd.context_id
                     row.append(context_id)
                     row.append(form_name)
@@ -336,9 +334,7 @@ class RegistryDataFrame:
                     if field_row is None:
                         field_row = [None] * self.num_fields
                     row.extend(field_row)
-                    msg(f"{row}")
                     rows.append(row)
-                    msg(f"done {seq} {form_name}")
                 return rows
             else:
                 # a multiple followup
