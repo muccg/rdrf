@@ -153,10 +153,6 @@ class TrafficLights(BaseGraphic):
         self.legend_map = self._get_legend_map(self.config)
 
         data = self._get_table_data()
-        dump_file = f"tl-{self.title}-no1yr-expected-data"
-        from dashboards.utils import dump
-
-        dump(dump_file, data)
         table = self.get_table(data)
         blurb = self._get_blurb()
 

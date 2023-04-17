@@ -414,14 +414,10 @@ class ScaleGroupComparison(BaseGraphic):
         # this only makes sense if this chart is passed
         # all patients scores
         aggregations_map = {score_name: "mean" for score_name in score_names}
-        from dashboards.utils import dump
 
         sanity_check("in calc avg scores", data)
 
-        dump(f"sgc-{self.title}-preavg.csv", data)
-
         df = data.groupby(SEQ).agg(aggregations_map).reset_index()
-        dump(f"sgc-{self.title}-postavg.csv", df)
 
         return df
 
