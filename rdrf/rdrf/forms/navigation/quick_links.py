@@ -457,9 +457,6 @@ class QuickLinks(object):
             MenuConfig().working_group_staff = {**Links.DATA_ENTRY}
 
             if settings.SYSTEM_ROLE in [SystemRoles.CIC_CLINICAL, SystemRoles.CIC_DEV]:
-                logger.debug(
-                    "updating menu config for clinical staff to include consent links"
-                )
                 MenuConfig().working_group_staff.update(Links.CONSENT)
 
             MenuConfig().working_group_curator = {
@@ -484,9 +481,6 @@ class QuickLinks(object):
             }
 
             if settings.SYSTEM_ROLE in [SystemRoles.CIC_CLINICAL, SystemRoles.CIC_DEV]:
-                logger.debug(
-                    "updating menu config for clinical staff to include consent links"
-                )
                 MenuConfig().clinical.update(Links.CONSENT)
 
             # Super user has combined menu of all other users
@@ -535,7 +529,6 @@ class QuickLinks(object):
                 MenuConfig().all = proms_menus
 
     def _group_links(self, group):
-        logger.debug(f"group_links: group = {group}")
         # map RDRF user groups to quick links menu sets
         switcher = {
             RDRF_GROUPS.PATIENT: MenuConfig().patient,

@@ -5,7 +5,11 @@ import dash_bootstrap_components as dbc
 import pandas as pd
 from rdrf.helpers.utils import get_display_value
 
+from ..data import has_static_followups
+from ..data import get_static_followups_handler
+
 from rdrf.models.definition.models import CommonDataElement
+
 
 logger = logging.getLogger(__name__)
 
@@ -147,6 +151,7 @@ class TrafficLights(BaseGraphic):
         self.fields = get_fields(self.config)
         self.colour_map = self._get_colour_map(self.config)
         self.legend_map = self._get_legend_map(self.config)
+
         data = self._get_table_data()
         table = self.get_table(data)
         blurb = self._get_blurb()
@@ -187,7 +192,13 @@ class TrafficLights(BaseGraphic):
 
         legend = html.Div(children)
 
-        return html.Div([legend])
+        missing_baseline = self._is_missing_baseline()
+        notes = (
+            " Note: Patient is missing a Baseline Form" if missing_baseline else None
+        )
+        children = [legend, notes] if notes else [legend]
+
+        return html.Div(children)
 
     def _get_graphic_function(self, field):
         yes_no = set(["Yes", "No"])
@@ -204,21 +215,16 @@ class TrafficLights(BaseGraphic):
         return func
 
     def get_image2(self, base, value, image_id):
-        logger.debug(f"get_image2 base = {base} value = {value} image_id = {image_id}")
         if self.colour_map:
-            logger.debug(f"using supplied colour map: {self.colour_map}")
             colour_map = self.colour_map
         else:
-            logger.debug(f"using base colour map: {base_colour_map}")
             colour_map = base_colour_map
         if base == 1:
             if value:
                 new_value = str(int(value) - 1)
                 value = new_value
-                logger.debug(f"base is 1 so subtracting: value = {value}")
 
         colour = colour_map.get(value, None)
-        logger.debug(f"colour = {colour}")
         if colour:
             return circle(colour, image_id)
         return circle("grey", image_id)
@@ -229,7 +235,6 @@ class TrafficLights(BaseGraphic):
         table_rows = []
 
         for field in self.fields:
-            logger.debug(f"tl field {field}")
             datatype = get_field_label(field, "datatype")
             base = None
             if datatype == "range":
@@ -265,7 +270,7 @@ class TrafficLights(BaseGraphic):
         return table
 
     def _get_table_data(self) -> pd.DataFrame:
-        prefix = ["PID", "SEQ", "SEQ_NAME", "TYPE"]
+        prefix = ["PID", "SEQ", "SEQ_NAME", "FORM", "TYPE", "COLLECTIONDATE"]
         cdes = self.fields
         df = self.data[prefix + cdes]
 
@@ -276,10 +281,13 @@ class TrafficLights(BaseGraphic):
             display_field = field + "_display"
             df[display_field] = df[field].map(lambda v: get_display_value(field, v))
 
+        if has_static_followups(self.registry):
+            sfuh = get_static_followups_handler(self.registry)
+            df = sfuh.fix_ordering_of_static_followups(df)
+
         return df
 
     def _add_colour_column(self, cde, df):
-        # https://pandas.pydata.org/docs/reference/api/pandas.Series.map.html
         column_name = cde + "_colour"
         df[column_name] = df[cde].map(get_colour)
         return df

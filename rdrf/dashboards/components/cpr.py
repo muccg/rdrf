@@ -1,6 +1,8 @@
 from .common import BaseGraphic
 from dash import dcc, html
 from ..data import lookup_cde_value
+from ..data import has_static_followups
+from ..data import get_static_followups_handler
 from ..utils import get_colour_map
 from ..utils import add_seq_name
 import plotly.express as px
@@ -36,6 +38,11 @@ class ChangesInPatientResponses(BaseGraphic):
     """
 
     def get_graphic(self):
+        if self.registry is not None:
+            if has_static_followups(self.registry):
+                self.sfuh = get_static_followups_handler(self.registry)
+                self.data = self.sfuh.fix_ordering_of_static_followups(self.data)
+
         field_dicts = self.config["fields"]
         items = []
         for field_dict in field_dicts:
@@ -74,6 +81,7 @@ class ChangesInPatientResponses(BaseGraphic):
 
         df = add_seq_name(df)
         df = df.round(1)
+
         df["text"] = df.apply(
             lambda row: "<b>"
             + str(row["counts"])
@@ -115,7 +123,6 @@ class ChangesInPatientResponses(BaseGraphic):
     def fix_xaxis(self, fig, data):
         # this replaces the SEQ numbers on the x-axis
         # with names
-
         seq_totals = data.groupby(["SEQ"])["counts"].sum()
 
         def get_ticktext(row):
@@ -124,7 +131,19 @@ class ChangesInPatientResponses(BaseGraphic):
             seq_name = row["SEQ_NAME"]
             return seq_name + " (" + str(seq_total) + ")"
 
-        data["ticktext"] = data.apply(get_ticktext, axis=1)
+        def get_ticktext2(row):
+            seq = row["SEQ"]
+            seq_total = seq_totals[seq]
+            old_seq_name = row["SEQ_NAME"]
+            seq_name = self.sfuh.get_static_form_name_from_seq_name(old_seq_name)
+            return seq_name + " (" + str(seq_total) + ")"
+
+        if hasattr(self, "sfuh"):
+            func = get_ticktext2
+        else:
+            func = get_ticktext
+
+        data["ticktext"] = data.apply(func, axis=1)
 
         fig.update_layout(
             xaxis=dict(

@@ -125,7 +125,6 @@ class CombinedFieldComparison(BaseGraphic):
         )
 
     def _fix_hovertemplate(self, hovertemplate):
-        logger.debug(hovertemplate)
         # Value=Missing<br>Survey Time Period=%{x}<br>Percentage=%{y}<br>Summary=%{text}<br>Count=%{customdata[0]}<extra></extra>
         index = hovertemplate.find("<br>Count=")
         ht = hovertemplate[:index]
@@ -190,5 +189,4 @@ class CombinedFieldComparison(BaseGraphic):
 
         # reset index
         counted = counted.reset_index()
-        logger.debug(f"counted = \n{counted}")
         return counted
