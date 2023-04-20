@@ -153,7 +153,10 @@ class RegistryDataFrame:
             if row["TYPE"] == "baseline":
                 seq = row["SEQ"]
                 if seq != 0:
-                    raise Exception(f"baseline should be seq 0 instead is {seq}")
+                    pid = row["PID"]
+                    form = row["FORM"]
+                    msg = f"proms sanity check {pid} {form} seq {seq} should be 0"
+                    logger.error(msg)
 
     def _reseq(self, df):
         pass

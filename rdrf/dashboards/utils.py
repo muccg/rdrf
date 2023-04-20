@@ -1,4 +1,5 @@
 import logging
+from dashboards import errors
 
 logger = logging.getLogger(__name__)
 
@@ -277,10 +278,8 @@ def sanity_check(where, df):
         form_type = row["TYPE"]
         form = row["FORM"]
         if form_type == "baseline" and seq > 0:
-            raise DataFrameError(
-                f"{where} baseline should have seq 0: {form} has seq = {seq}"
-            )
+            error_code = errors.BASELINE_SEQ_NON_ZERO
+            logger.error(f"""ERROR: {row["PID"]} { error_code}""")
         if form_type == "followup" and seq == 0:
-            raise DataFrameError(
-                f"{where} followup should have seq > 0: {form} has seq = 0"
-            )
+            error_code = errors.FOLLOWUP_SEQ_ZERO
+            logger.error(f"""ERROR: {row["PID"]} { error_code}""")

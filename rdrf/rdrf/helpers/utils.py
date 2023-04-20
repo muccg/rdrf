@@ -1206,3 +1206,17 @@ def custom_text(registry_model, key, default):
         return metadata["custom_text"].get(key, default)
 
     return default
+
+
+class PromsProblem:
+    pass
+
+
+class PromsAnalyser:
+    def __init__(self, registry, patient):
+        self.registry = registry
+        self.patient = patient
+        self.problems = []
+
+    def analyse(self) -> list[PromsProblem]:
+        return []
