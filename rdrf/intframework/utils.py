@@ -131,6 +131,8 @@ def date(hl7_value):
 def rdrf_date(hl7_value):
     if not hl7_value:
         return None
+    if hl7_value == '""':
+        return None
     date_object = date(hl7_value).date()
     s = "%s-%s-%s" % (date_object.year, date_object.month, date_object.day)
     return s
