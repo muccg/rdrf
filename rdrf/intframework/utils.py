@@ -34,30 +34,33 @@ def field_empty(message: hl7.Message, path: str) -> bool:
 
 
 def get_umrn(message: hl7.Message) -> str:
+    logger.info("get umrn")
     try:
         umrn = message["PID.F3"]
         return umrn
     except Exception as ex:
-        logger.error(ex)
+        logger.error(f"Error getting umrn returning empty string: {ex}")
         return ""
 
 
 def get_event_code(message: hl7.Message) -> str:
-    logger.info("get event code ")
+    logger.info("get event code")
     try:
         ec = message["MSH.F9.R1.C3"]  # ADR_A19  message structure
         if not len(ec):
-            raise Exception
-        logger.info("event code = %s" % ec)
+            raise Exception("event code empty")
+        logger.info(f"event code = {ec}")
         return ec
     except Exception as ex:
-        logger.error(ex)
+        logger.info(f"Error getting event_code using MSH.F9.R1.C3: {ex}")
+        logger.info("Will try MSH.F9.R1.C1_MSH.F9.R1.C2")
         try:
             ec = f'{message["MSH.F9.R1.C1"]}_{message["MSH.F9.R1.C2"]}'  # message code and trigger event
-            logger.info("event code = %s" % ec)
+            logger.info(f"event code = {ec}")
             return ec
         except Exception as ex:
-            logger.error(ex)
+            logger.error(f"Error getting event_code as MSH.F9.R1.C1_MSH.F9.R1.C2: {ex}")
+            logger.error("Will return the string 'error'")
             return "error"
 
 
