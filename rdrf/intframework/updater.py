@@ -239,30 +239,37 @@ class HL7Handler:
         registry = Registry.objects.get()
         patient = None
         umrn = None
+        new_patient = None
         try:
             logger.info("creating message model and field dict ...")
             field_dict, message_model = self._get_update_dict(registry.code)
+            if message_model is not None:
+                mm = message_model.id
+            else:
+                mm = None
             if field_dict is None:
-                logger.error("field_dict is None")
-                return {"error": "field_dict is None"}
+                logger.error(f"field_dict is None. message_model {mm}")
+                return {
+                    "error": "field_dict is None",
+                    "message_model": mm,
+                    "where": "getting field_dict",
+                }
+
             self.patient_attributes = self._parse_demographics_fields(field_dict)
             self.patient_cdes = self._parse_cde_fields(field_dict)
             umrn = self.patient_attributes["umrn"]
             logger.info(f"umrn = {umrn}")
             if not umrn:
                 logger.error("UMRN missing or not parsed from patient attributes")
-                if message_model is not None:
-                    mm = message_model.id
-                else:
-                    mm = "None"
-
                 return {
-                    "Error creating/updating patient": "No UMRN",
+                    "error": "No UMRN couldn't update or create patient",
                     "umrn": str(umrn),
-                    "Message model": mm,
+                    "message_model": mm,
+                    "where": "getting umrn from patient attributes",
                 }
             if self._umrn_exists(umrn):
-                logger.info("A patient already exists with this umrn so updating")
+                new_patient = False
+                logger.info("A patient already exists with this umrn so updating ...")
                 patient = self._update_patient()
                 if patient:
                     self._update_cdes(registry, patient)
@@ -273,6 +280,7 @@ class HL7Handler:
                     message_model.state = "R"
                     message_model.save()
             else:
+                new_patient = True
                 logger.info(
                     f"No patient exists with umrn: {umrn}: a new patient will be created"
                 )
@@ -292,12 +300,21 @@ class HL7Handler:
                 patient.save()
                 self._populate_pmi(registry.code, patient, umrn, default_context)
         except Exception as ex:
-            logger.error(f"Error creating/updating patient {umrn}: {ex}")
+            if new_patient is False:
+                update_type = "updating existing patient"
+            elif new_patient is True:
+                update_type = "creating new patient"
+            else:
+                update_type = "determining patient"
+
+            logger.error(f"Error in {update_type} patient {umrn}: {ex}")
             error_string = f"{ex}"
 
             return {
-                "Error creating/updating patient with UMRN": umrn,
-                "Exception": error_string,
+                "error": error_string,
+                "umrn": str(umrn),
+                "update_type": update_type,
+                "where": "updating/creating patient",
             }
 
         self.patient_attributes["patient_url"] = ""
