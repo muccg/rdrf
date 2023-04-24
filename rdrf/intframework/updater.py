@@ -160,14 +160,19 @@ class HL7Handler:
             return None, message_model
 
     def _create_message_model(self, registry_code, message):
-        logger.info("create message model ..")
-        logger.info("getting event code from message ...")
-        event_code = get_event_code(message)
-        logger.info(f"got event code {event_code}")
-        logger.info("getting umrn from message ...")
-        umrn = get_umrn(message)
-        logger.info(f"umrn = {umrn}")
-        logger.info("instantiating message model...")
+        # need to ensure we can save the message with content
+        try:
+            event_code = get_event_code(message)
+        except Exception as ex:
+            logger.error(f"Error getting event code: {ex}")
+            event_code = "error"
+
+        try:
+            umrn = get_umrn(message)
+        except Exception as ex:
+            logger.error(f"Error getting umrn from message: {ex}")
+            umrn = ""
+
         message_model = HL7Message(
             username="HL7Updater",
             event_code=event_code,
@@ -175,7 +180,7 @@ class HL7Handler:
             umrn=umrn,
             registry_code=registry_code,
         )
-
+        try:
         logger.info("saving model ..")
         try:
             message_model.save()
@@ -239,6 +244,9 @@ class HL7Handler:
             self.patient_cdes = self._parse_cde_fields(field_dict)
             umrn = self.patient_attributes["umrn"]
             logger.info(f"umrn = {umrn}")
+            if not umrn:
+                logger.error(f"UMRN missing or not parsed from patient attributes")
+                return None
             if self._umrn_exists(umrn):
                 logger.info("A patient already exists with this umrn so updating")
                 patient = self._update_patient()
