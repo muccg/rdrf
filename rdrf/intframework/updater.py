@@ -122,14 +122,18 @@ class HL7Handler:
     def _umrn_exists(self, umrn: str) -> bool:
         return Patient.objects.filter(umrn=umrn).count() > 0
 
-    def _get_update_dict(self, registry_code: str) -> Tuple[Optional[dict], HL7Message]:
+    def _get_update_dict(
+        self, registry_code: str
+    ) -> Tuple[Optional[dict], Optional[HL7Message]]:
         event_code = get_event_code(self.hl7message)
+        message_model = None
 
         logger.info("trying to create message model ...")
         try:
             message_model = self._create_message_model(registry_code, self.hl7message)
+            message_model.save()
         except Exception as ex:
-            logger.error("Error creating message model: {ex}")
+            logger.error(f"Error creating message model: {ex}")
 
         try:
             patient = Patient.objects.get(umrn=self.umrn)
@@ -246,8 +250,17 @@ class HL7Handler:
             umrn = self.patient_attributes["umrn"]
             logger.info(f"umrn = {umrn}")
             if not umrn:
-                logger.error(f"UMRN missing or not parsed from patient attributes")
-                return None
+                logger.error("UMRN missing or not parsed from patient attributes")
+                if message_model is not None:
+                    mm = message_model.id
+                else:
+                    mm = "None"
+
+                return {
+                    "Error creating/updating patient": "No UMRN",
+                    "umrn": str(umrn),
+                    "Message model": mm,
+                }
             if self._umrn_exists(umrn):
                 logger.info("A patient already exists with this umrn so updating")
                 patient = self._update_patient()
@@ -280,11 +293,11 @@ class HL7Handler:
                 self._populate_pmi(registry.code, patient, umrn, default_context)
         except Exception as ex:
             logger.error(f"Error creating/updating patient {umrn}: {ex}")
-            error = f"{ex}"
+            error_string = f"{ex}"
 
             return {
                 "Error creating/updating patient with UMRN": umrn,
-                "Exception": error,
+                "Exception": error_string,
             }
 
         self.patient_attributes["patient_url"] = ""
