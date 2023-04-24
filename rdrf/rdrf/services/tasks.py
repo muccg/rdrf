@@ -32,6 +32,21 @@ def run_custom_action(custom_action_id, user_id, patient_id, input_data):
 
 @app.task(name="rdrf.services.tasks.handle_hl7_message")
 def handle_hl7_message(umrn, message: hl7.Message):
+    """
+    Handle an incoming subscription message.
+    The side-effect of running this task is either
+    the updating of an existing patient or creation
+    of a new one ( if the umrn does not exist in the db.)
+    The result of the task is a dictionary which will
+    be serialised in the redis result backend.
+    It is important that no none-serialisable data ( like
+    exception objects ) get put in the dictionary.
+    If all does well the patient attributes are stored.
+    If something errors, the details of the error
+    should be persisted in the result backend as a dictionary
+    with an "error" key a "where" key and other info.
+    Otherwise, the result is not used in further task processing.
+    """
     logger.info(f"processing task for umrn {umrn}")
     try:
         event_code = get_event_code(message)
