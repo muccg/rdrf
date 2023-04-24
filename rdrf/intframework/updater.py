@@ -180,6 +180,7 @@ class HL7Handler:
             umrn=umrn,
             registry_code=registry_code,
         )
+
         try:
         logger.info("saving model ..")
         try:
