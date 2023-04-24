@@ -175,6 +175,7 @@ class HL7Handler:
             umrn=umrn,
             registry_code=registry_code,
         )
+
         try:
             message_model.save()
         except Exception as ex:
