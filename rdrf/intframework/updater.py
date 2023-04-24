@@ -181,12 +181,12 @@ class HL7Handler:
             registry_code=registry_code,
         )
 
-        try:
         logger.info("saving model ..")
         try:
             message_model.save()
         except Exception as ex:
             logger.error(f"Error saving message model: {ex}")
+            logger.error(f"message content = {message}")
             raise
         logger.info(f"saved message model pk = {message_model.pk}")
         return message_model
