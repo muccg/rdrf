@@ -58,12 +58,12 @@ def handle_hl7_message(umrn, message: hl7.Message):
     response_data = hl7_handler.handle()
     if response_data:
         if "error" in response_data:
-            logger.error(f"HL7 handler: {umrn} {event_code} errored: {response_data}")
+            logger.error(f"HL7 handler: {umrn} {event_code} failed: {response_data}")
         else:
-            logger.info(f"HL7 handler: {umrn} {event_code} processed")
+            logger.info(f"HL7 handler: {umrn} {event_code} processed: {response_data}")
 
     else:
-        logger.error(f"HL7 handler: {umrn} {event_code} failed")
+        logger.error(f"HL7 handler: {umrn} {event_code} failed ( response_data empty)")
     return response_data
 
 

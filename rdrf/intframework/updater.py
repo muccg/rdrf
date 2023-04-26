@@ -177,6 +177,10 @@ class HL7Handler:
             logger.error(f"Error getting umrn from message: {ex}")
             umrn = ""
 
+        if not umrn:
+            logger.info(f"using umrn from updater: {self.umrn}")
+            umrn = self.umrn
+
         message_model = HL7Message(
             username="HL7Updater",
             event_code=event_code,
@@ -257,6 +261,7 @@ class HL7Handler:
 
             self.patient_attributes = self._parse_demographics_fields(field_dict)
             self.patient_cdes = self._parse_cde_fields(field_dict)
+            # we know the umrn already so no need to do the below?
             umrn = self.patient_attributes["umrn"]
             logger.info(f"umrn = {umrn}")
             if not umrn:
