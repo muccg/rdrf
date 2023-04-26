@@ -242,7 +242,7 @@ class HL7Handler:
         logger.info("updating or creating patient from hl7 message data")
         registry = Registry.objects.get()
         patient = None
-        umrn = None
+        umrn = self.umrn
         new_patient = None
         try:
             logger.info("creating message model and field dict ...")
@@ -259,10 +259,17 @@ class HL7Handler:
                     "where": "getting field_dict",
                 }
 
+            logger.info("getting patient attributes...")
             self.patient_attributes = self._parse_demographics_fields(field_dict)
+            logger.info("getting patient cdes...")
             self.patient_cdes = self._parse_cde_fields(field_dict)
-            # we know the umrn already so no need to do the below?
-            umrn = self.patient_attributes["umrn"]
+            if not umrn:
+                logger.info("no umrn from task - getting from attributes")
+                umrn = self.patient_attributes.get("umrn", None)
+                if umrn is None:
+                    logger.info(
+                        f"patient attributes doesn't have umrn: {self.patient_attributes}"
+                    )
             logger.info(f"umrn = {umrn}")
             if not umrn:
                 logger.error("UMRN missing or not parsed from patient attributes")
