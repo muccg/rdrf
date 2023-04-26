@@ -17,6 +17,12 @@ from typing import Optional, Tuple
 logger = logging.getLogger(__name__)
 
 
+def get_error_string(ex):
+    # one of the errors we saw had a blank
+    # message so hard to diagnose
+    return f"Error: {ex}\nError Rep: {repr(ex)}"
+
+
 def parse_cde_triple(
     key: str,
 ) -> Optional[Tuple[RegistryForm, Section, CommonDataElement]]:
@@ -132,8 +138,10 @@ class HL7Handler:
         try:
             message_model = self._create_message_model(registry_code, self.hl7message)
             message_model.save()
+            logger.info("saved message model ok")
         except Exception as ex:
-            logger.error(f"Error creating message model: {ex}")
+            logger.error("failed to create message model:")
+            logger.error(get_error_string(ex))
 
         try:
             patient = Patient.objects.get(umrn=self.umrn)
@@ -158,7 +166,7 @@ class HL7Handler:
             message_model.save()
             return None, message_model
         except Exception as ex:
-            message = f"Unhandled error: {ex}"
+            message = f"Unhandled error: {get_error_string(ex)}"
             message_model.error_message = message
             message_model.save()
             return None, message_model
@@ -168,17 +176,19 @@ class HL7Handler:
         try:
             event_code = get_event_code(message)
         except Exception as ex:
-            logger.error(f"Error getting event code: {ex}")
+            logger.error(f"Error getting event code: {get_error_string(ex)}")
             event_code = "error"
 
         try:
             umrn = get_umrn(message)
         except Exception as ex:
-            logger.error(f"Error getting umrn from message: {ex}")
+            logger.error(f"Error getting umrn from message: {get_error_string(ex)}")
             umrn = ""
 
         if not umrn:
-            logger.info(f"using umrn from updater: {self.umrn}")
+            logger.info(
+                f"couldn't get umrn from message so using umrn from updater: {self.umrn}"
+            )
             umrn = self.umrn
 
         message_model = HL7Message(
@@ -193,7 +203,7 @@ class HL7Handler:
         try:
             message_model.save()
         except Exception as ex:
-            logger.error(f"Error saving message model: {ex}")
+            logger.error(f"Error saving message model: {get_error_string(ex)}")
             logger.error(f"message content = {message}")
             raise
         logger.info(f"saved message model pk = {message_model.pk}")
@@ -209,6 +219,7 @@ class HL7Handler:
             **self.patient_attributes
         )
         if updated:
+            logger.info("patient model updated")
             return patient
         return None
 
@@ -283,9 +294,13 @@ class HL7Handler:
                 new_patient = False
                 logger.info("A patient already exists with this umrn so updating ...")
                 patient = self._update_patient()
+                logger.info("patient updated")
                 if patient:
+                    logger.info("updating cdes ...")
                     self._update_cdes(registry, patient)
-                    logger.info(f"patient updated ok umrn = {umrn} id = {patient.id}")
+                    logger.info(
+                        f"patient updated cdes ok umrn = {umrn} id = {patient.id}"
+                    )
                     self.patient_attributes["patient_updated"] = "updated"
                     message_model.patient_id = patient.id
                     message_model.umrn = umrn
@@ -299,9 +314,12 @@ class HL7Handler:
                 patient = Patient(**self.patient_attributes)
                 patient.consent = False
                 patient.save()
+                logger.info(f"new patient saved id = {patient.id}")
                 default_context = patient.get_or_create_default_context(registry)
                 self._update_cdes(registry, patient)
-                logger.info(f"patient saved ok umrn = {umrn} id = {patient.id}")
+                logger.info(
+                    f"new patient cdes saved ok umrn = {umrn} id = {patient.id}"
+                )
                 message_model.patient_id = patient.id
                 message_model.umrn = umrn
                 message_model.state = "R"
@@ -319,8 +337,8 @@ class HL7Handler:
             else:
                 update_type = "determining patient"
 
-            logger.error(f"Error in {update_type} patient {umrn}: {ex}")
-            error_string = f"{ex}"
+            error_string = f"{get_error_string(ex)}"
+            logger.error(f"Error in {update_type} patient {umrn}: {error_string}")
 
             return {
                 "error": error_string,
@@ -329,6 +347,7 @@ class HL7Handler:
                 "where": "updating/creating patient",
             }
 
+        logger.info("updater task succeeded - returning patient attributes")
         self.patient_attributes["patient_url"] = ""
         if hasattr(patient, "pk"):
             try:
