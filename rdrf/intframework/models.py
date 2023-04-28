@@ -38,10 +38,12 @@ class HL7MessageConfig(models.Model):
 
 
 class HL7Message(models.Model):
-    MESSAGE_STATES = (("C", "created"),
-                      ("S", "sent"),
-                      ("R", "received"),
-                      ("E", "error"))
+    MESSAGE_STATES = (
+        ("C", "created"),
+        ("S", "sent"),
+        ("R", "received"),
+        ("E", "error"),
+    )
 
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
@@ -70,16 +72,18 @@ class HL7Message(models.Model):
 
 
 class HL7MessageFieldUpdate(models.Model):
-    UPDATE_STATES = (("Success", "Success"),
-                     ("Failure", "Failure"),
-                     ("Empty", "Empty"))
+    UPDATE_STATES = (("Success", "Success"), ("Failure", "Failure"), ("Empty", "Empty"))
 
     created = models.DateTimeField(auto_now_add=True)
-    hl7_message = models.ForeignKey(HL7Message, on_delete=models.CASCADE, related_name="updates")
+    hl7_message = models.ForeignKey(
+        HL7Message, on_delete=models.CASCADE, related_name="updates"
+    )
     data_field = models.CharField(max_length=200, default="")
     hl7_path = models.CharField(max_length=20)
     original_value = models.CharField(max_length=200, default="")
-    update_status = models.CharField(choices=UPDATE_STATES, max_length=10, default="Failure")
+    update_status = models.CharField(
+        choices=UPDATE_STATES, max_length=10, default="Failure"
+    )
     failure_reason = models.CharField(max_length=300, default="", blank=True, null=True)
 
 
@@ -87,6 +91,7 @@ class HL7Mapping(models.Model):
     """
     Facilitate HL7 --> RDRF conversions
     """
+
     event_code = models.CharField(max_length=20)
     event_map = models.TextField(blank=True, null=True)
 
@@ -95,7 +100,9 @@ class HL7Mapping(models.Model):
             mapping_map = json.loads(self.event_map)
             return mapping_map
         except ValueError as ex:
-            logger.error(f"Error loading HL7 mappings: HL7Mapping {self.id} {self.event_code}: {ex}")
+            logger.error(
+                f"Error loading HL7 mappings: HL7Mapping {self.id} {self.event_code}: {ex}"
+            )
             return {}
 
     def _get_event_code(self, parsed_message):
@@ -124,7 +131,9 @@ class HL7Mapping(models.Model):
         hl7_value = self._get_hl7_value(hl7_path, hl7_message)
         table_name = mapping_data.get("table", "")
         if hl7_value == '""':
-            logger.info(f"in handle table for {field_moniker} but value is double quotes so blanking")
+            logger.info(
+                f"in handle table for {field_moniker} but value is double quotes so blanking"
+            )
             rdrf_value = ""
         else:
             rdrf_value = get_code_table_value(table_name, hl7_value)
@@ -165,7 +174,9 @@ class HL7Mapping(models.Model):
         else:
             return lambda x: x
 
-    def parse(self, hl7_message, patient, registry_code, message_model) -> Tuple[dict, hl7.Message]:
+    def parse(
+        self, hl7_message, patient, registry_code, message_model
+    ) -> Tuple[dict, hl7.Message]:
         mapping_map = self.load()
         if not mapping_map:
             raise Exception("cannot parse message as map malformed")
@@ -183,16 +194,18 @@ class HL7Mapping(models.Model):
             path = mapping_data.get("path", "")
 
             handler = self._get_handler(tag)
-            update_model = HL7MessageFieldUpdate(hl7_message=message_model,
-                                                 hl7_path="unknown",
-                                                 data_field=field_moniker)
+            update_model = HL7MessageFieldUpdate(
+                hl7_message=message_model, hl7_path="unknown", data_field=field_moniker
+            )
             try:
                 if field_empty(hl7_message, path):
                     raise FieldEmpty(path)
                 value = handler(hl7_message, field_moniker, mapping_data, update_model)
                 if update_model.failure_reason == "":
                     if value == '""':
-                        logger.info(f"{field_moniker} is double quotes so will blank this field")
+                        logger.info(
+                            f"{field_moniker} is double quotes so will blank this field"
+                        )
                         if "date_" in field_moniker:
                             value = None
                         else:
@@ -267,10 +280,12 @@ class HL7Mapping(models.Model):
 
 
 class DataRequest(models.Model):
-    DATAREQUEST_STATES = ((DataRequestState.REQUESTED, "requested"),
-                          (DataRequestState.ERROR, "error"),
-                          (DataRequestState.APPLIED, "applied"),
-                          (DataRequestState.RECEIVED, "received"))
+    DATAREQUEST_STATES = (
+        (DataRequestState.REQUESTED, "requested"),
+        (DataRequestState.ERROR, "error"),
+        (DataRequestState.APPLIED, "applied"),
+        (DataRequestState.RECEIVED, "received"),
+    )
     requesting_username = models.CharField(max_length=80)
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
@@ -278,9 +293,9 @@ class DataRequest(models.Model):
     umrn = models.CharField(max_length=80)
     token = models.CharField(max_length=80, unique=True)
     external_data_json = models.TextField(blank=True, null=True)
-    state = models.CharField(max_length=3,
-                             choices=DATAREQUEST_STATES,
-                             default=DataRequestState.REQUESTED)
+    state = models.CharField(
+        max_length=3, choices=DATAREQUEST_STATES, default=DataRequestState.REQUESTED
+    )
     error_message = models.TextField(blank=True, null=True)
     cic_data_json = models.TextField(blank=True, null=True)
 

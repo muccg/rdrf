@@ -51,6 +51,7 @@ def save_content(model, message):
             logger.error(f"Bad Message content:{message}")
         except Exception as ex:
             logger.error(f"Could not write out message log: {get_error_string(ex)}")
+    return model
 
 
 def parse_cde_triple(

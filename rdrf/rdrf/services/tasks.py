@@ -3,6 +3,7 @@ from intframework.utils import get_event_code
 from intframework.updater import HL7Handler
 import hl7
 from celery.utils.log import get_task_logger
+import sys
 
 logger = get_task_logger(__name__)
 
@@ -47,15 +48,29 @@ def handle_hl7_message(umrn, message: hl7.Message):
     with an "error" key a "where" key and other info.
     Otherwise, the result is not used in further task processing.
     """
+    from rdrf.conf import settings
+
+    log_messages = settings.LOG_HL7_MESSAGES
     logger.info(f"processing task for umrn {umrn}")
+    try:
+        if log_messages:
+            logger.info(f"message:**********\n{message}\n**********")
+    except Exception as ex:
+        logger.error(f"could not print message to log: {ex}", sys.exc_info())
     try:
         event_code = get_event_code(message)
     except Exception as ex:
         logger.error(f"error getting event code for message: {ex}")
         event_code = "unknown"
     logger.info(f"HL7 handler: {umrn} {event_code} received")
-    hl7_handler = HL7Handler(umrn=umrn, hl7message=message, username="updater")
-    response_data = hl7_handler.handle()
+    try:
+        logger.info("creating handler ...")
+        hl7_handler = HL7Handler(umrn=umrn, hl7message=message, username="updater")
+        logger.info("handler created. Handling message ...")
+        response_data = hl7_handler.handle()
+    except Exception as ex:
+        logger.error(f"Unhandled error handling message: {ex}", sys.exc_info())
+        response_data = None
     if response_data:
         if "error" in response_data:
             logger.error(f"HL7 handler: {umrn} {event_code} failed: {response_data}")
