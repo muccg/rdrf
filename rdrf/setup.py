@@ -61,7 +61,7 @@ requirements = [
     "django-redis==4.12.1",
     "kombu==5.2.4",
     "django-csp==3.7",
-    "hl7==0.4.5",
+    "hl7==0.4.2",
     "pandas==1.5.3",
     "flask==2.1.3",
     "dash==2.6.2",
