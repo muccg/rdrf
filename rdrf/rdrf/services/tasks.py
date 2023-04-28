@@ -48,7 +48,7 @@ def handle_hl7_message(umrn, message: hl7.Message):
     with an "error" key a "where" key and other info.
     Otherwise, the result is not used in further task processing.
     """
-    from rdrf.conf import settings
+    from django.conf import settings
 
     log_messages = settings.LOG_HL7_MESSAGES
     logger.info(f"processing task for umrn {umrn}")
