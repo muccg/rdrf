@@ -217,12 +217,12 @@ class HL7Handler:
         try:
             logger.info("getting umrn from message ...")
             umrn = get_umrn(message)
-            logger.info(f"got umrn")
+            logger.info("got umrn")
             logger.info(f"umrn in message = {umrn}")
 
         except Exception as ex:
             logger.error(f"Error getting umrn from message: {get_error_string(ex)}")
-            logger.info(f"setting umrn to empty string")
+            logger.info("setting umrn to empty string")
             umrn = ""
 
         if not umrn:
