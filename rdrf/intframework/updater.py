@@ -1,3 +1,4 @@
+import sys
 import logging
 from django.urls import reverse
 from django.urls import NoReverseMatch
@@ -21,6 +22,36 @@ def get_error_string(ex):
     # one of the errors we saw had a blank
     # message so hard to diagnose
     return f"Error: {ex}\nError Rep: {repr(ex)}"
+
+
+def save_content(model, message):
+    should_log = False
+    try:
+        model.content = message
+        model.save()
+        logger.info(f"saved message content to model {model.id} OK")
+        return model
+    except Exception as ex:
+        should_log = True
+        logger.error(f"could not save message content to model: {get_error_string(ex)}")
+
+    logger.info("tring to save message using str")
+    try:
+        model.content = str(message)
+        model.save()
+        logger.info(f"saved message content to model {model.id} OK")
+        return model
+    except Exception as ex:
+        should_log = True
+        logger.error(f"could not save message content to model: {get_error_string(ex)}")
+
+    if should_log:
+        try:
+            logger.info("Message content couldn't be logged on model.")
+            logger.error(f"Bad Message content:{message}")
+        except Exception as ex:
+            logger.error(f"Could not write out message log: {get_error_string(ex)}")
+    return model
 
 
 def parse_cde_triple(
@@ -140,7 +171,7 @@ class HL7Handler:
             message_model.save()
             logger.info("saved message model ok")
         except Exception as ex:
-            logger.error("failed to create message model:")
+            logger.error("failed to create message model:", exc_info=sys.exc_info())
             logger.error(get_error_string(ex))
 
         try:
@@ -173,16 +204,25 @@ class HL7Handler:
 
     def _create_message_model(self, registry_code, message):
         # need to ensure we can save the message with content
+        logger.info("creating message model ...")
         try:
+            logger.info("getting event code from message ...")
             event_code = get_event_code(message)
+            logger.info("got event code")
         except Exception as ex:
             logger.error(f"Error getting event code: {get_error_string(ex)}")
+            logger.info("setting event_code to 'error'")
             event_code = "error"
 
         try:
+            logger.info("getting umrn from message ...")
             umrn = get_umrn(message)
+            logger.info("got umrn")
+            logger.info(f"umrn in message = {umrn}")
+
         except Exception as ex:
             logger.error(f"Error getting umrn from message: {get_error_string(ex)}")
+            logger.info("setting umrn to empty string")
             umrn = ""
 
         if not umrn:
@@ -194,7 +234,7 @@ class HL7Handler:
         message_model = HL7Message(
             username="HL7Updater",
             event_code=event_code,
-            content=message,
+            content="initial",
             umrn=umrn,
             registry_code=registry_code,
         )
@@ -203,10 +243,17 @@ class HL7Handler:
         try:
             message_model.save()
         except Exception as ex:
-            logger.error(f"Error saving message model: {get_error_string(ex)}")
-            logger.error(f"message content = {message}")
+            logger.error(
+                f"Error saving message model: {get_error_string(ex)}",
+                exc_info=sys.exc_info(),
+            )
             raise
         logger.info(f"saved message model pk = {message_model.pk}")
+
+        logger.info("now trying to saving message content to model")
+
+        save_content(message_model, message)
+
         return message_model
 
     def _update_patient(self) -> Optional[Patient]:
