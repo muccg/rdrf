@@ -2855,6 +2855,30 @@ class HL7HandlerTestCase(RDRFTestCase):
             patient_found(m), "Mock message has PID  so patient should be found"
         )
 
+    def test_message_model_save(self):
+        from intframework.models import HL7Message
+        from intframework.utils import parse_message
+
+        this_dir = os.path.dirname(__file__)
+        mock_message_path = os.path.abspath(os.path.join(this_dir, "mock-message.txt"))
+        m = parse_message(mock_message_path)
+
+        msg = HL7Message()
+        msg.event_code = "testing"
+        msg.content = m
+        msg.patient_id = 23
+        msg.registry_code = "test"
+        msg.state = "C"
+        msg.save()
+
+    def test_log_message(self):
+        from intframework.utils import parse_message
+
+        this_dir = os.path.dirname(__file__)
+        mock_message_path = os.path.abspath(os.path.join(this_dir, "mock-message.txt"))
+        m = parse_message(mock_message_path)
+        logger.info(f"testing we can log messages {m}")
+
 
 class FamilyLinkageTestCase(RDRFTestCase):
     def setUp(self):
