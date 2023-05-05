@@ -1,14 +1,13 @@
-from typing import Optional, List
+from typing import Optional
 from datetime import datetime, timedelta
 from dateutil.relativedelta import relativedelta
 from rdrf.helpers.utils import parse_iso_datetime
 from rdrf.helpers.utils import has_consented_to_receive_proms_emails
+from dataclasses import dataclass
 
 import logging
 
 logger = logging.getLogger(__name__)
-
-from dataclasses import dataclass
 
 
 COLLECTION_DATE = "COLLECTIONDATE"
@@ -117,7 +116,7 @@ class PromsDataAnalyser:
             logger.info(
                 f"patient {self.patient.id} has not consented to receive followups"
             )
-            logger.info(f"no followup checks will be performed.")
+            logger.info("no followup checks will be performed.")
         return self.actions
 
     def check_baseline(self):
@@ -157,7 +156,7 @@ class PromsDataAnalyser:
                 )
         else:
             logger.debug(
-                f"patient has already filled in the {self.baseline_form} with collection date = {collection_date} - won't send"
+                f"patient has already filled in the {self.baseline_form} with collection date = {self.baseline_collection_date} - won't send"
             )
 
     def get_survey_requests(self, form_name, cutoff: datetime):
@@ -199,7 +198,7 @@ class PromsDataAnalyser:
                                 else:
                                     try:
                                         return parse_iso_datetime(value)
-                                    except:
+                                    except Exception:
                                         return None
 
     def check_followups(self):
