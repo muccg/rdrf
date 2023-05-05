@@ -3,6 +3,7 @@ from intframework.utils import get_event_code
 from intframework.updater import HL7Handler
 import hl7
 from celery.utils.log import get_task_logger
+import sys
 
 logger = get_task_logger(__name__)
 
@@ -32,19 +33,52 @@ def run_custom_action(custom_action_id, user_id, patient_id, input_data):
 
 @app.task(name="rdrf.services.tasks.handle_hl7_message")
 def handle_hl7_message(umrn, message: hl7.Message):
+    """
+    Handle an incoming subscription message.
+    The side-effect of running this task is either
+    the updating of an existing patient or creation
+    of a new one ( if the umrn does not exist in the db.)
+    The result of the task is a dictionary which will
+    be serialised in the redis result backend.
+    It is important that no none-serialisable data ( like
+    exception objects ) get put in the dictionary.
+    If all does well the patient attributes are stored.
+    If something errors, the details of the error
+    should be persisted in the result backend as a dictionary
+    with an "error" key a "where" key and other info.
+    Otherwise, the result is not used in further task processing.
+    """
+    from django.conf import settings
+
+    log_messages = settings.LOG_HL7_MESSAGES
     logger.info(f"processing task for umrn {umrn}")
+    try:
+        if log_messages:
+            logger.info(f"message:**********\n{message}\n**********")
+    except Exception as ex:
+        logger.error(f"could not print message to log: {ex}", sys.exc_info())
     try:
         event_code = get_event_code(message)
     except Exception as ex:
         logger.error(f"error getting event code for message: {ex}")
         event_code = "unknown"
     logger.info(f"HL7 handler: {umrn} {event_code} received")
-    hl7_handler = HL7Handler(umrn=umrn, hl7message=message, username="updater")
-    response_data = hl7_handler.handle()
+    try:
+        logger.info("creating handler ...")
+        hl7_handler = HL7Handler(umrn=umrn, hl7message=message, username="updater")
+        logger.info("handler created. Handling message ...")
+        response_data = hl7_handler.handle()
+    except Exception as ex:
+        logger.error(f"Unhandled error handling message: {ex}", sys.exc_info())
+        response_data = None
     if response_data:
-        logger.info(f"HL7 handler: {umrn} {event_code} processed")
+        if "error" in response_data:
+            logger.error(f"HL7 handler: {umrn} {event_code} failed: {response_data}")
+        else:
+            logger.info(f"HL7 handler: {umrn} {event_code} processed: {response_data}")
+
     else:
-        logger.error(f"HL7 handler: {umrn} {event_code} failed")
+        logger.error(f"HL7 handler: {umrn} {event_code} failed ( response_data empty)")
     return response_data
 
 

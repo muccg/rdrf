@@ -133,9 +133,9 @@ def needs_all_patients_data(vis_configs):
 
 
 def handle_value_error(func):
-    def wrapper(vis_config, data, patient, all_patients_data=None):
+    def wrapper(vis_config, data, patient, all_patients_data=None, static_followups={}):
         try:
-            return func(vis_config, data, patient, all_patients_data)
+            return func(vis_config, data, patient, all_patients_data, static_followups)
         except ValueError as ve:
             logger.error(f"Error in create graphic {vis_config.code}: {ve}")
             return "Not enough data"
@@ -144,7 +144,9 @@ def handle_value_error(func):
 
 
 @handle_value_error
-def create_graphic(vis_config, data, patient, all_patients_data=None):
+def create_graphic(
+    vis_config, data, patient, all_patients_data=None, static_followups={}
+):
     # patient is None for all patients graphics
     # contextual single patient components
     # should be supplied with the patient
@@ -174,7 +176,9 @@ def create_graphic(vis_config, data, patient, all_patients_data=None):
             title, vis_config, data, patient, all_patients_data
         ).graphic
     elif vis_config.code == "tl":
-        return TrafficLights(title, vis_config, data, all_patients_data).graphic
+        return TrafficLights(
+            title, vis_config, data, patient, all_patients_data, static_followups
+        ).graphic
     else:
         logger.error(f"dashboard error - unknown visualisation {vis_config.code}")
         raise Exception(f"Unknown code: {vis_config.code}")
@@ -194,6 +198,7 @@ def get_all_patients_graphics_map(registry, vis_configs):
 
 def get_single_patient_graphics_map(registry, vis_configs, patient_id):
     from registry.patients.models import Patient
+    from dashboards.models import VisualisationBaseDataConfig
     from .data import get_data
     from dash import html
 
@@ -202,6 +207,15 @@ def get_single_patient_graphics_map(registry, vis_configs, patient_id):
     patient = Patient.objects.get(id=patient_id)
 
     needs_all = needs_all_patients_data(vis_configs)
+
+    base_config_model = VisualisationBaseDataConfig.objects.get(registry=registry)
+    base_config = base_config_model.config
+    static_followups = {}
+    static_followup_forms = base_config.get("followup_forms", [])
+    if static_followup_forms:
+        static_followups["followups"] = static_followup_forms
+        static_followups["baseline"] = base_config.get("baseline_form", None)
+
     try:
         data = get_data(registry, patient, needs_all)
         if data is not None:
@@ -214,7 +228,59 @@ def get_single_patient_graphics_map(registry, vis_configs, patient_id):
         return {f"tab_{vc.id}": html.H3("No data") for vc in vis_configs}
 
     graphics_map = {
-        f"tab_{vc.id}": create_graphic(vc, data, patient, None) for vc in vis_configs
+        f"tab_{vc.id}": create_graphic(vc, data, patient, None, static_followups)
+        for vc in vis_configs
     }
 
     return graphics_map
+
+
+def dump(name, data):
+    name = name.replace("/", "")
+    filename = f"/data/{name}.csv"
+    data.to_csv(filename)
+
+
+def get_aus_date(row):
+    try:
+        d = row["COLLECTIONDATE"].date()
+        aus_date = f"{d.day}-{d.month}-{d.year}"
+        if "nan" in aus_date:
+            return ""
+        return f" ({aus_date})"
+    except KeyError:
+        return ""
+    except ValueError:
+        return ""
+
+
+def assign_seq_names(df, func=None):
+    if func is None:
+        df["SEQ_NAME"] = df.apply(
+            lambda row: get_seq_name(row["SEQ"]) + get_aus_date(row), axis=1
+        )
+    else:
+        df["SEQ_NAME"] = df.apply(
+            lambda row: func(row["SEQ"], row["FORM"]) + get_aus_date(row), axis=1
+        )
+
+    return df
+
+
+class DataFrameError(Exception):
+    pass
+
+
+def sanity_check(where, df):
+    for index, row in df.iterrows():
+        seq = row["SEQ"]
+        form_type = row["TYPE"]
+        form = row["FORM"]
+        if form_type == "baseline" and seq > 0:
+            raise DataFrameError(
+                f"{where} baseline should have seq 0: {form} has seq = {seq}"
+            )
+        if form_type == "followup" and seq == 0:
+            raise DataFrameError(
+                f"{where} followup should have seq > 0: {form} has seq = 0"
+            )

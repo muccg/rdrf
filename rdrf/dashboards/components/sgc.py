@@ -4,7 +4,10 @@ from dash import dcc, html
 from rdrf.models.definition.models import CommonDataElement
 from ..components.common import BaseGraphic
 from ..utils import get_range, get_base
+from ..utils import sanity_check
 from ..data import combine_data
+from ..data import has_static_followups
+from ..data import get_static_followups_handler
 
 from ..score_functions import sgc_functional_score
 from ..score_functions import sgc_symptom_score
@@ -42,6 +45,12 @@ class ScaleGroupComparison(BaseGraphic):
         self.better = None  # an indicator showing whether up is better
         self.mode = "single" if self.patient else "all"
         data = self.data
+
+        if has_static_followups(self.registry):
+            sfu_handler = get_static_followups_handler(self.registry)
+            data = sfu_handler.fix_ordering_of_static_followups(data)
+
+        sanity_check("in get_graphic", data)
         scores_map = {}
         self.group_info = {}
         self.rev_group = {}
@@ -142,7 +151,9 @@ class ScaleGroupComparison(BaseGraphic):
 
         data = data.round(1)
         table = self.get_table(data, scores_map)
-        data = data.fillna(-1)
+
+        data.loc[:, data.columns != "COLLECTIONDATE"].fillna(-1)
+
         line_chart = self.get_line_chart(data, chart_title, scores_map)
 
         notes = self._get_notes()
@@ -155,7 +166,7 @@ class ScaleGroupComparison(BaseGraphic):
 
     def _get_notes(self):
         if self._is_missing_baseline():
-            return "Note: Patient is missing a Baseline Form"
+            return " Note: Patient is missing a Baseline Form"
 
     def _is_missing_baseline(self):
         base_config = self.config_model.base_data
@@ -403,7 +414,11 @@ class ScaleGroupComparison(BaseGraphic):
         # this only makes sense if this chart is passed
         # all patients scores
         aggregations_map = {score_name: "mean" for score_name in score_names}
+
+        sanity_check("in calc avg scores", data)
+
         df = data.groupby(SEQ).agg(aggregations_map).reset_index()
+
         return df
 
     def calculate_score_counts_over_time(self, data, score_names):
@@ -503,8 +518,7 @@ class ScaleGroupComparison(BaseGraphic):
 
     def load_all_patients_data(self):
         if not self.all_patients_data:
-            from rdrf.models.definition.models import Registry
             from dashboards.data import get_data
 
-            registry = Registry.objects.get()
-            self.all_patients_data = get_data(registry)
+            self.all_patients_data = get_data(self.registry)
+            sanity_check("in load all", self.all_patients_data)

@@ -15,8 +15,11 @@ class Command(BaseCommand):
         for config in VisualisationBaseDataConfig.objects.all():
             self.print(f"generating json data for {config.registry.code}")
             rdf = RegistryDataFrame(config.registry, config, None, force_reload=True)
-            json_data = rdf.data.to_json()
-            config.data = json_data
-            config.state = "D"
-            config.save()
-            self.print("saved OK")
+            if rdf.data is not None:
+                json_data = rdf.data.to_json()
+                config.data = json_data
+                config.state = "D"
+                config.save()
+                self.print("saved OK")
+            else:
+                self.print("no data to load")

@@ -939,6 +939,8 @@ CSP_INCLUDE_NONCE_IN = ["script-src", "style-src"]
 
 HUB_ENABLED = env.get("hub_enabled", False)
 
+LOG_HL7_MESSAGES = env.get("log_hl7_messages", False)
+
 if HUB_ENABLED:
     HL7_VERSION = env.get("hl7_version", "2.6")
     # sender app ( us )
