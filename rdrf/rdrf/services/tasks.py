@@ -259,7 +259,9 @@ def check_proms(registry_code, pid):
     for action in actions:
         logger.debug(f"spawning action {action.action_name} for {pid}...")
         if action.action_name == "send_proms_request":
-            logger.info(f"spawning task for action send_proms_request for {pid} form {action.form}
+            logger.info(
+                f"spawning task for action send_proms_request for {pid} form {action.form}"
+            )
             send_proms_request.delay(
                 action.registry.code, action.patient.id, None, action.form
             )
