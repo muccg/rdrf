@@ -2,6 +2,8 @@
 
 set -e 
 
+docker --version
+
 #
 # Development build and tests
 #
