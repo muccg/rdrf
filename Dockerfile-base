@@ -17,6 +17,8 @@ RUN env | sort
 
 # Project specific deps
 RUN apt-get update && apt-get install -y --no-install-recommends \
+  pkg-config \
+  libcairo2-dev \
   gettext \
   libpcre3 \
   libpq5 \
